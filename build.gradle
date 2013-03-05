@@ -3,12 +3,12 @@ ext.githubProjectName = rootProject.name // Change if github project name is not
 group = "com.netflix.${githubProjectName}"
 
 buildscript {
-    repositories { mavenCentral() }
+    repositories { mavenRepo url: 'http://jcenter.bintray.com' }
     apply from: file('gradle/buildscript.gradle'), to: buildscript 
 }
 
 allprojects {
-    repositories { mavenCentral() }
+    repositories { mavenRepo url: 'http://jcenter.bintray.com' }
 }
 
 apply from: file('gradle/convention.gradle')
