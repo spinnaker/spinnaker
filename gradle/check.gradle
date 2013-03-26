@@ -1,14 +1,15 @@
 // Checkstyle
 apply plugin: 'checkstyle'
-tasks.withType(Checkstyle) { ignoreFailures = true }
 checkstyle {
-    ignoreFailures = true // Waiting on GRADLE-2163
+    ignoreFailures = true 
     configFile = rootProject.file('codequality/checkstyle.xml')
 }
 
 // FindBugs
 apply plugin: 'findbugs'
-//tasks.withType(Findbugs) { reports.html.enabled true }
+findbugs {
+    ignoreFailures = true
+}
 
 // PMD
 apply plugin: 'pmd'

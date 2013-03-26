@@ -14,9 +14,9 @@ signing {
  */
 task uploadMavenCentral(type:Upload, dependsOn: signArchives) {
     configuration = configurations.archives
-    doFirst {
+    onlyIf { ['release', 'snapshot'].contains(project.status) }
         repositories.mavenDeployer {
-            beforeDeployment { org.gradle.api.artifacts.maven.MavenDeployment deployment -> signing.signPom(deployment) }
+            beforeDeployment { signing.signPom(it) }
 
             // To test deployment locally, use the following instead of oss.sonatype.org
             //repository(url: "file://localhost/${rootProject.rootDir}/repo")
@@ -62,6 +62,5 @@ task uploadMavenCentral(type:Upload, dependsOn: signArchives) {
                     }
                 }
         }
-    }
 }
 
