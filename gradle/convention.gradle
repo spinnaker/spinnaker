@@ -1,11 +1,9 @@
-def preferredStatus = project.status
-
 apply plugin: 'java' // Plugin as major conventions, overwrites status
 
 sourceCompatibility = 1.6
 
 // GRADLE-2087 workaround, perform after java plugin
-status = version.contains('SNAPSHOT')?'snapshot':preferredStatus
+status = project.hasProperty('preferredStatus')?project.preferredStatus:(version.contains('SNAPSHOT')?'snapshot':'release')
 
 // Indenting to align with multi-project branch
     task sourcesJar(type: Jar, dependsOn:classes) {
