@@ -1,0 +1,22 @@
+apply plugin: "java"
+apply plugin: "application"
+apply plugin: "idea"
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    systemProperty 'aws.secret', awsSecret
+    systemProperty 'aws.key', awsKey
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
+dependencies {
+    compile 'com.amazonaws:aws-java-sdk:1.7.5'
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
+}

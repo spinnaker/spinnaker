@@ -1,0 +1,8 @@
+.DS_Store
+build/
+front50.i*
+out/
+.gradle/
+.vagrant/
+
+gradle.properties
