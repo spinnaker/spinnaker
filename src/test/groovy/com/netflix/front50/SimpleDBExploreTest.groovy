@@ -3,6 +3,7 @@ package com.netflix.front50
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient
+import com.amazonaws.services.simpledb.model.CreateDomainRequest
 import com.amazonaws.services.simpledb.model.Item
 import com.amazonaws.services.simpledb.model.SelectRequest
 import spock.lang.Specification
@@ -18,6 +19,15 @@ class SimpleDBExploreTest extends Specification {
         client = new AmazonSimpleDBClient(new BasicAWSCredentials(
                 System.properties["aws.key"], System.properties["aws.secret"]
         ))
+        if (System.properties['env'].equals('local-test')) {
+            client.setEndpoint("http://localhost:8080")
+            this.createLocalTable()
+        }
+
+    }
+
+    void createLocalTable() {
+        client.createDomain(new CreateDomainRequest(domain));
     }
 
     def 'should list items in a table'() {

@@ -1,15 +1,35 @@
-apply plugin: "java"
-apply plugin: "application"
-apply plugin: "idea"
-apply plugin: "groovy"
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: 'groovy'
+apply plugin: 'vagrant'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-vagrant-plugin:0.5'
+    }
+}
+
+vagrant {
+    boxDir = file('./etc/vagrant')
+}
+
+test.dependsOn vagrantUp
+test.finalizedBy vagrantDestroy
 
 repositories {
     mavenCentral()
+    maven { url 'http://jcenter.bintray.com' }
 }
 
 test {
     systemProperty 'aws.secret', awsSecret
     systemProperty 'aws.key', awsKey
+    systemProperty 'env', 'local-test'
     testLogging {
         exceptionFormat = 'full'
     }
@@ -17,6 +37,7 @@ test {
 
 dependencies {
     compile 'com.amazonaws:aws-java-sdk:1.7.5'
+    compile 'com.beacon50:SimpleJDBC:1.0'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
 }

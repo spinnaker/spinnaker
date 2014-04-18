@@ -6,3 +6,4 @@ out/
 .vagrant/
 
 gradle.properties
+.vagrant
