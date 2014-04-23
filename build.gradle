@@ -3,14 +3,22 @@ apply plugin: 'application'
 apply plugin: 'idea'
 apply plugin: 'groovy'
 apply plugin: 'vagrant'
+apply plugin: 'spring-boot'
 
 buildscript {
+    project.ext {
+        bootVersion = '1.0.1.RELEASE'
+        ver = '1.0'
+    }
     repositories {
         jcenter()
+        maven { url "http://repo.spring.io/libs-snapshot" }
+        mavenLocal()
     }
 
     dependencies {
         classpath 'org.gradle.api.plugins:gradle-vagrant-plugin:0.5'
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${project.bootVersion}")
     }
 }
 
@@ -18,8 +26,15 @@ vagrant {
     boxDir = file('./etc/vagrant')
 }
 
-test.dependsOn vagrantUp
-test.finalizedBy vagrantDestroy
+sourceSets {
+    main {
+        java { srcDirs = [] }    // no source dirs for the java compiler
+        groovy { srcDirs += ["src/main/java", "src/main/groovy"] }  // compile everything in src/ with groovy
+    }
+}
+
+//test.dependsOn vagrantUp
+//test.finalizedBy vagrantDestroy
 
 repositories {
     mavenCentral()
@@ -36,8 +51,11 @@ test {
 }
 
 dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-web:1.0.1.RELEASE'
     compile 'com.amazonaws:aws-java-sdk:1.7.5'
-    compile 'com.beacon50:SimpleJDBC:1.0'
+    compile 'org.codehaus.groovy:groovy-all:2.2.2'
+    compile 'com.netflix.rxjava:rxjava-groovy:0.17.5'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
+    testCompile 'org.springframework.boot:spring-boot-starter-test:1.0.1.RELEASE'
 }

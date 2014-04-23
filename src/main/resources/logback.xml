@@ -1,0 +1,19 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework" level="INFO" />
+    <logger name="org.springframework.transaction" level="INFO" />
+    <logger name="org.springframework.security" level="INFO" /> <!-- to debug security related issues (DEBUG) -->
+    <logger name="org.springframework.web.servlet.mvc" level="INFO" /> <!-- some serialization issues are at trace level here: org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod -->
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
