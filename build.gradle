@@ -36,6 +36,11 @@ sourceSets {
 //test.dependsOn vagrantUp
 //test.finalizedBy vagrantDestroy
 
+run {
+    systemProperty 'aws.secret', awsSecret
+    systemProperty 'aws.key', awsKey
+}
+
 repositories {
     mavenCentral()
     maven { url 'http://jcenter.bintray.com' }

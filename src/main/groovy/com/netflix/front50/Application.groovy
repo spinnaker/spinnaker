@@ -1,10 +1,17 @@
 package com.netflix.front50
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.front50.exception.NotFoundException
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Configurable
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 
 /**
  * Created by aglover on 4/20/14.
  */
+@Component
+@Configurable
 class Application {
     String name
     String description
@@ -18,7 +25,9 @@ class Application {
     String createTs
 
     @JsonIgnore
-    static ApplicationDAO dao
+    @Autowired
+    @Qualifier("SimpleDB")
+    ApplicationDAO dao
 
     Application() {} //forces Groovy to add LinkedHashMap constructor
 
@@ -36,11 +45,11 @@ class Application {
         this.updateTs = updatedAt
     }
 
-    static Collection<Application> findAll() {
+    Collection<Application> findAll() throws NotFoundException {
         return dao.all()
     }
 
-    static Application findByName(String name) {
+    Application findByName(String name) throws NotFoundException {
         return dao.findByName(name)
     }
 }

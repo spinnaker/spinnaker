@@ -9,7 +9,7 @@ import spock.lang.Specification
 /**
  * Created by aglover on 4/22/14.
  */
-class RemoteSimpleDBTest extends Specification {
+class ReadOnlySimpleDBTest extends Specification {
     static AmazonSimpleDB client
     static String domain = "RESOURCE_REGISTRY"
 
@@ -39,7 +39,7 @@ class RemoteSimpleDBTest extends Specification {
 
         expect:
         itms != null
-        itms.size() == 1416
+        itms.size() >= 1416
     }
 
 }
