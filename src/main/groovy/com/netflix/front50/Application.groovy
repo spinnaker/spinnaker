@@ -23,6 +23,7 @@ class Application {
     String pdApiKey
     String updateTs
     String createTs
+    String tags
 
     @JsonIgnore
     @Autowired
@@ -43,6 +44,10 @@ class Application {
         this.type = type
         this.createTs = createdAt
         this.updateTs = updatedAt
+    }
+
+    Application save() {
+        return null
     }
 
     Collection<Application> findAll() throws NotFoundException {

@@ -2,6 +2,8 @@ package com.netflix.front50
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.Item
+import com.amazonaws.services.simpledb.model.PutAttributesRequest
+import com.amazonaws.services.simpledb.model.ReplaceableAttribute
 import com.amazonaws.services.simpledb.model.SelectRequest
 import com.netflix.front50.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,6 +20,33 @@ class SimpleDBDAO implements ApplicationDAO {
     AmazonSimpleDB awsClient
 
     final String DOMAIN = "RESOURCE_REGISTRY"
+
+    @Override
+    Application create(String id, Map<String, String> properties) {
+
+        properties['createTs'] = System.currentTimeMillis() as String
+        Collection<ReplaceableAttribute> attributes = []
+        properties.each { key, value ->
+            attributes << new ReplaceableAttribute(key, value, false)
+        }
+        awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
+                withItemName(id).withAttributes(attributes))
+
+        Application application = new Application(properties)
+        application.name = id
+        return application
+    }
+
+    @Override
+    void update(String id, Map<String, String> properties) {
+        properties['updateTs'] = System.currentTimeMillis() as String
+        Collection<ReplaceableAttribute> attributes = []
+        properties.each { key, value ->
+            attributes << new ReplaceableAttribute(key, value, true)
+        }
+        awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
+                withItemName(id).withAttributes(attributes))
+    }
 
     @Override
     Application findByName(String name) {

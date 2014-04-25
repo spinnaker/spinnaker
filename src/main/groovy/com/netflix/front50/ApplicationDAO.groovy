@@ -6,4 +6,6 @@ package com.netflix.front50
 public interface ApplicationDAO {
     Application findByName(String name)
     List<Application> all()
+    Application create(String id, Map<String, String> attributes)
+    void update(String id, Map<String, String> attributes)
 }

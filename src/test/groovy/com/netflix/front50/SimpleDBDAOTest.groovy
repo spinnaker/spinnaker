@@ -11,6 +11,40 @@ import spock.lang.Specification
  */
 class SimpleDBDAOTest extends Specification {
 
+    void 'should update an existing record'() {
+        def awsClient = Mock(AmazonSimpleDB)
+        def attributes = [
+                "group"      : "tst-group",
+                "tags"       : "[1,ok, test]"]
+        def dao = new SimpleDBDAO()
+        dao.awsClient = awsClient
+        when:
+        dao.update("SampleApp1", attributes)
+        then:
+        1 * awsClient.putAttributes(_)
+    }
+
+    void 'should save'() {
+        def awsClient = Mock(AmazonSimpleDB)
+
+        def attributes = [
+                "group"      : "tst-group",
+                "type"       : "test type",
+                "description": "test",
+                "owner"      : "Kevin McEntee",
+                "email"      : "web@netflix.com",
+                "updateTs"   : "1265752693581",
+                "tags"       : "[1,ok, test]"]
+        def dao = new SimpleDBDAO()
+        dao.awsClient = awsClient
+        when:
+        def application = dao.create("SampleApp1", attributes)
+        then:
+        application.email == 'web@netflix.com'
+        application.createTs != null
+        1 * awsClient.putAttributes(_)
+    }
+
     void 'should throw exception if no application is found'() {
         def awsClient = Mock(AmazonSimpleDB)
         def result = Mock(SelectResult)
