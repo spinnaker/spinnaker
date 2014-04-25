@@ -9,6 +9,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.name = "local-simpledb"
   end
 
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+  end
+  #need this line? nameserver 10.64.48.160 in the sudo vi /etc/resolv.conf file
+
   config.vm.box = "ubuntu.13.10-64bit"
   config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/saucy/current/saucy-server-cloudimg-amd64-vagrant-disk1.box"
 
