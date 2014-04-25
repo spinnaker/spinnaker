@@ -23,15 +23,9 @@ class SimpleDBDAO implements ApplicationDAO {
 
     @Override
     Application create(String id, Map<String, String> properties) {
-
         properties['createTs'] = System.currentTimeMillis() as String
-        Collection<ReplaceableAttribute> attributes = []
-        properties.each { key, value ->
-            attributes << new ReplaceableAttribute(key, value, false)
-        }
         awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
-                withItemName(id).withAttributes(attributes))
-
+                withItemName(id).withAttributes(buildAttributes(properties, false)))
         Application application = new Application(properties)
         application.name = id
         return application
@@ -40,12 +34,8 @@ class SimpleDBDAO implements ApplicationDAO {
     @Override
     void update(String id, Map<String, String> properties) {
         properties['updateTs'] = System.currentTimeMillis() as String
-        Collection<ReplaceableAttribute> attributes = []
-        properties.each { key, value ->
-            attributes << new ReplaceableAttribute(key, value, true)
-        }
         awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
-                withItemName(id).withAttributes(attributes))
+                withItemName(id).withAttributes(buildAttributes(properties, true)))
     }
 
     @Override
@@ -66,6 +56,14 @@ class SimpleDBDAO implements ApplicationDAO {
         } else {
             throw new NotFoundException("No Applications found in domain ${DOMAIN}")
         }
+    }
+
+    private Collection<ReplaceableAttribute> buildAttributes(Map<String, String> properties, boolean replace) {
+        Collection<ReplaceableAttribute> attributes = []
+        properties.each { key, value ->
+            attributes << new ReplaceableAttribute(key, value, replace)
+        }
+        attributes
     }
 
     private Application mapToApp(Item item) {

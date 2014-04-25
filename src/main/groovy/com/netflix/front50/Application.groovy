@@ -1,11 +1,14 @@
 package com.netflix.front50
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.front50.exception.NoPrimaryKeyException
 import com.netflix.front50.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Configurable
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+
+import java.lang.reflect.Modifier
 
 /**
  * Created by aglover on 4/20/14.
@@ -47,7 +50,16 @@ class Application {
     }
 
     Application save() {
-        return null
+        Map<String, String> values = Application.declaredFields.toList().findResults {
+            if ((it.modifiers == Modifier.PRIVATE) && (it.annotatedType.type == String.class)) {
+                def value = this."$it.name"
+                value ? [it.name, value] : null
+            }
+        }.collectEntries()
+        if (!values.containsKey('name')) {
+            throw new NoPrimaryKeyException("Application lacks a name!")
+        }
+        return dao.create(values['name'], values)
     }
 
     Collection<Application> findAll() throws NotFoundException {
