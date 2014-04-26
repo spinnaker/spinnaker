@@ -24,6 +24,17 @@ public class Front50Controller {
     @Autowired
     Application application;
 
+    @RequestMapping(value = "/name/{name}", method = RequestMethod.POST)
+    @ResponseBody
+    public Application post(@RequestBody Application app) {
+        try {
+            return application.initialize(app).withName(app.getName()).save();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new ApplicationException(e);
+        }
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public Collection<Application> index() {
         try {

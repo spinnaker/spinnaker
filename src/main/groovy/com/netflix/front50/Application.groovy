@@ -1,8 +1,11 @@
 package com.netflix.front50
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.front50.exception.NoPrimaryKeyException
 import com.netflix.front50.exception.NotFoundException
+import groovy.transform.ToString
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Configurable
 import org.springframework.beans.factory.annotation.Qualifier
@@ -15,6 +18,7 @@ import java.lang.reflect.Modifier
  */
 @Component
 @Configurable
+@ToString
 class Application {
     String name
     String description
@@ -35,8 +39,17 @@ class Application {
 
     Application() {} //forces Groovy to add LinkedHashMap constructor
 
-    Application(String name, String description, String email, String owner, String type,
-                String group, String monitorBucketType, String pdApiKey, long createdAt, long updatedAt) {
+    @JsonCreator
+    Application(@JsonProperty("name") String name,
+                @JsonProperty("description") String description,
+                @JsonProperty("email") String email,
+                @JsonProperty("owner") String owner,
+                @JsonProperty("type") String type,
+                @JsonProperty("group") String group,
+                @JsonProperty("monitorBucketType") String monitorBucketType,
+                @JsonProperty("pdApiKey") String pdApiKey,
+                @JsonProperty("createTs") String createdAt,
+                @JsonProperty("updateTs") String updatedAt) {
         this.group = group
         this.monitorBucketType = monitorBucketType
         this.pdApiKey = pdApiKey
@@ -47,6 +60,28 @@ class Application {
         this.type = type
         this.createTs = createdAt
         this.updateTs = updatedAt
+    }
+
+    void update(Map<String, String> newAttributes) {
+        if (this.name == null || this.name.equals("")) {
+            throw new NoPrimaryKeyException("Application lacks a name!")
+        }
+        this.dao.update(this.name, newAttributes)
+    }
+
+    /**
+     * Similar to clone but doesn't produce a copy
+     */
+    Application initialize(Application app){
+        Application.declaredFields.each { field ->
+            if ((field.modifiers == Modifier.PRIVATE) && (field.annotatedType.type == String.class)){
+                def value = app."$field.name"
+                if(value){
+                    this."$field.name" = value
+                }
+            }
+        }
+        return this
     }
 
     Application save() {
@@ -68,5 +103,10 @@ class Application {
 
     Application findByName(String name) throws NotFoundException {
         return dao.findByName(name)
+    }
+
+    Application withName(String name){
+        this.name = name
+        return this
     }
 }

@@ -58,12 +58,8 @@ class SimpleDBDAO implements ApplicationDAO {
         }
     }
 
-    private Collection<ReplaceableAttribute> buildAttributes(Map<String, String> properties, boolean replace) {
-        Collection<ReplaceableAttribute> attributes = []
-        properties.each { key, value ->
-            attributes << new ReplaceableAttribute(key, value, replace)
-        }
-        attributes
+    Collection<ReplaceableAttribute> buildAttributes(def properties, boolean replace) {
+        properties.collectMany { key, value -> [new ReplaceableAttribute(key, value, replace)] }
     }
 
     private Application mapToApp(Item item) {

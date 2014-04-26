@@ -3,6 +3,7 @@ package com.netflix.front50
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.Attribute
 import com.amazonaws.services.simpledb.model.Item
+import com.amazonaws.services.simpledb.model.ReplaceableAttribute
 import com.amazonaws.services.simpledb.model.SelectResult
 import spock.lang.Specification
 
@@ -14,14 +15,33 @@ class SimpleDBDAOTest extends Specification {
     void 'should update an existing record'() {
         def awsClient = Mock(AmazonSimpleDB)
         def attributes = [
-                "group"      : "tst-group",
-                "tags"       : "[1,ok, test]"]
+                "group": "tst-group",
+                "tags" : "[1,ok, test]"]
         def dao = new SimpleDBDAO()
         dao.awsClient = awsClient
         when:
         dao.update("SampleApp1", attributes)
         then:
         1 * awsClient.putAttributes(_)
+    }
+
+    void 'should transform a properties map into another one'() {
+        def attributes = [
+                "group"      : "tst-group",
+                "type"       : "test type",
+                "description": "test",
+                "owner"      : "Kevin McEntee",
+                "email"      : "web@netflix.com",
+                "updateTs"   : "1265752693581",
+                "tags"       : "[1,ok, test]"]
+        def dao = new SimpleDBDAO()
+        def values = dao.buildAttributes(attributes, false)
+        def attr = values.find { it.name == "description" }
+        expect:
+        values != null
+        values.size() == 7
+        values[0].class == ReplaceableAttribute.class
+        attr.value == "test"
     }
 
     void 'should save'() {
