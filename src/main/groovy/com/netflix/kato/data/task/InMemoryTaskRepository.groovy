@@ -20,7 +20,7 @@ class InMemoryTaskRepository implements TaskRepository {
 
   @Override
   List<Task> list() {
-    repository.values()
+    repository.values() as List
   }
 
   private String getNextId() {

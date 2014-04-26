@@ -22,6 +22,9 @@ public class DefaultTask implements Task {
   }
 
   public void updateStatus(String phase, String status) {
+    if (complete) {
+      throw new IllegalStateException("Task is already completed! No further updates allowed!")
+    }
     log.info "[$phase] - $status"
     this.phase = phase
     this.status = status
@@ -29,10 +32,16 @@ public class DefaultTask implements Task {
   }
 
   public void complete() {
+    if (complete) {
+      throw new IllegalStateException("Task is already completed! No further updates allowed!")
+    }
     this.complete = Boolean.TRUE
   }
 
   public void fail() {
+    if (complete) {
+      throw new IllegalStateException("Task is already completed! No further updates allowed!")
+    }
     this.failed = Boolean.TRUE
     complete()
   }

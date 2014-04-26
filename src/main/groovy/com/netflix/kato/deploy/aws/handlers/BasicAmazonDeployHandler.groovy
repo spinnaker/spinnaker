@@ -1,12 +1,13 @@
 package com.netflix.kato.deploy.aws.handlers
 
-import com.netflix.kato.data.task.InMemoryTaskRepository
 import com.netflix.kato.data.task.Task
+import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.*
 import com.netflix.kato.deploy.aws.AutoScalingWorker
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
 import groovy.util.logging.Log4j
 import org.springframework.stereotype.Component
+
 
 import static com.netflix.kato.deploy.aws.StaticAmazonClients.getAmazonEC2
 import static com.netflix.kato.deploy.aws.StaticAmazonClients.getAutoScaling
@@ -17,7 +18,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private static final String BASE_PHASE = "DEPLOY"
 
   private static Task getTask() {
-    InMemoryTaskRepository.localTask.get()
+    TaskRepository.threadLocalTask.get()
   }
 
   @Override
