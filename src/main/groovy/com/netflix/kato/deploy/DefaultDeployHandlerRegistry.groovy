@@ -1,15 +1,15 @@
 package com.netflix.kato.deploy
 
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DeploymentHandlerRegistry {
+class DefaultDeployHandlerRegistry implements DeployHandlerRegistry {
 
   @Autowired
   List<DeployHandler> deployHandlers
 
+  @Override
   DeployHandler findHandler(DeployDescription description) {
     def handler = deployHandlers.find { it.handles(description) }
     if (!handler) {
@@ -18,7 +18,4 @@ class DeploymentHandlerRegistry {
       handler
     }
   }
-
-  @InheritConstructors
-  static class DeployHandlerNotFoundException extends RuntimeException {}
 }

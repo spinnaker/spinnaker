@@ -11,7 +11,7 @@ import static com.netflix.kato.holders.ApplicationContextHolder.applicationConte
 @Log4j
 class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION"
-  private final Task task = InMemoryTaskRepository.localTask.get()
+  private final Task task = TaskRepository.threadLocalTask.get()
 
   private final List<AtomicOperation> atomicOperations
 
@@ -42,7 +42,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     Thread.start {
       // Autowire the atomic operations
       atomicOperations.each { autowire it }
-      InMemoryTaskRepository.localTask.set(task)
+      TaskRepository.threadLocalTask.set(task)
       OrchestrationProcessor orchestrationProcessor = new DefaultOrchestrationProcessor(atomicOperations)
       try {
         orchestrationProcessor.process()

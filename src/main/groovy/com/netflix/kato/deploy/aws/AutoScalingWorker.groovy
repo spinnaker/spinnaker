@@ -1,17 +1,12 @@
 package com.netflix.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.InstanceMonitoring
+import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
+import com.amazonaws.services.ec2.model.*
 import com.netflix.frigga.Names
-import com.netflix.kato.data.task.InMemoryTaskRepository
 import com.netflix.kato.data.task.Task
+import com.netflix.kato.data.task.TaskRepository
 import org.joda.time.LocalDateTime
 import org.springframework.web.client.RestTemplate
 
@@ -19,7 +14,7 @@ class AutoScalingWorker {
   private static final String AWS_PHASE = "AWS_DEPLOY"
 
   private static Task getTask() {
-    InMemoryTaskRepository.localTask.get()
+    TaskRepository.threadLocalTask.get()
   }
 
   private String application
@@ -134,7 +129,7 @@ class AutoScalingWorker {
     CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
         .withImageId(ami)
         .withIamInstanceProfile("BaseIAMRole")
-        .withInstanceMonitoring(new InstanceMonitoring().withEnabled(true))
+        .withInstanceMonitoring(new com.amazonaws.services.autoscaling.model.InstanceMonitoring().withEnabled(true))
         .withLaunchConfigurationName(launchConfigName)
         .withUserData(userData)
         .withInstanceType(instanceType)
@@ -147,7 +142,7 @@ class AutoScalingWorker {
 
   private String getAutoScalingGroupName(Integer sequence) {
     def pushVersion = String.format("v%03d", sequence)
-    "${application}-${clusterName}-${pushVersion}"
+    "${application}-${clusterName.replaceAll("$application-", "")}-${pushVersion}"
   }
 
   String createAutoScalingGroup(Integer sequence, String launchConfigurationName) {
