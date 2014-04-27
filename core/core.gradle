@@ -1,31 +1,6 @@
-apply plugin: 'idea'
-apply plugin: 'groovy'
-
-group = "com.netflix.kato"
-version = "0.1-SNAPSHOT"
-
-repositories {
-  jcenter()
-  maven { url "http://repo.spring.io/repo" }
-}
-
-ext {
-  astyanaxVersion = "1.56.48"
-  springBootVersion = '1.0.1.RELEASE'
-}
-
 dependencies {
-  compile 'joda-time:joda-time:2.3'
-  compile 'com.netflix.frigga:frigga:0.6'
-  compile "com.amazonaws:aws-java-sdk:1.7.2"
-  compile "org.codehaus.groovy:groovy-all:2.3.0-beta-2"
-  compile "org.springsource.loaded:springloaded:1.2.0.BUILD-SNAPSHOT"
-  compile 'org.apache.httpcomponents:httpclient:4.3.3'
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
-  compile "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
-
+  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   testCompile "cglib:cglib-nodep:3.1"
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 }

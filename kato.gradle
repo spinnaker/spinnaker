@@ -2,3 +2,21 @@ apply plugin: 'idea'
 
 group = "com.netflix.kato"
 version = "0.1-SNAPSHOT"
+
+ext {
+  springBootVersion = "1.0.1.RELEASE"
+}
+
+subprojects {
+  apply plugin: 'idea'
+  apply plugin: 'groovy'
+
+  repositories {
+    jcenter()
+    maven { url "http://repo.spring.io/repo" }
+  }
+
+  dependencies {
+    compile "org.codehaus.groovy:groovy-all:2.3.0-beta-2"
+  }
+}
