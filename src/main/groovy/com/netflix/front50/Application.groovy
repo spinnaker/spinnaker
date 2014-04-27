@@ -83,6 +83,7 @@ class Application {
      * Similar to clone but doesn't produce a copy
      */
     Application initialize(Application app) {
+        this.clear()
         Application.declaredFields.each { field ->
             if (isColumnProperty(field)) {
                 def value = app."$field.name"
