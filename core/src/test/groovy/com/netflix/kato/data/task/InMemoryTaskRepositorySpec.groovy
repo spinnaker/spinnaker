@@ -49,6 +49,6 @@ class InMemoryTaskRepositorySpec extends Specification {
       def list = taskRepository.list()
 
     then:
-      list == [t2, t1]
+      list.containsAll([t1, t2])
   }
 }

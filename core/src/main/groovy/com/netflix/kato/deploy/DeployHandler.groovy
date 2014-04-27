@@ -6,7 +6,6 @@ package com.netflix.kato.deploy
  *
  * @param <T> the type of the {@link DeployDescription}
  * @see DeployDescription
- * @see com.netflix.kato.deploy.aws.handlers.BasicAmazonDeployHandler
  * @author Dan Woods
  */
 public interface DeployHandler<T> {

@@ -1,0 +1,4 @@
+apply plugin: 'idea'
+
+group = "com.netflix.kato"
+version = "0.1-SNAPSHOT"
