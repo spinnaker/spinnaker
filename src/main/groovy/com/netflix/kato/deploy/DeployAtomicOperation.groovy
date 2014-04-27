@@ -1,6 +1,5 @@
 package com.netflix.kato.deploy
 
-import com.netflix.kato.data.task.InMemoryTaskRepository
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.orchestration.AtomicOperation

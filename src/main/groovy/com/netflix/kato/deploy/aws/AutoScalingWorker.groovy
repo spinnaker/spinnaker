@@ -1,7 +1,8 @@
 package com.netflix.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
+import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
 import com.netflix.frigga.Names

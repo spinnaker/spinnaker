@@ -2,12 +2,12 @@ package com.netflix.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.netflix.frigga.Names
-import com.netflix.kato.data.task.InMemoryTaskRepository
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.kato.orchestration.AtomicOperation
 import org.springframework.web.client.RestTemplate
+
 
 import static com.netflix.kato.deploy.aws.StaticAmazonClients.getAutoScaling
 

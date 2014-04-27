@@ -1,10 +1,10 @@
 package com.netflix.kato.orchestration
 
-import com.netflix.kato.data.task.InMemoryTaskRepository
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import groovy.util.logging.Log4j
 import java.util.concurrent.TimeoutException
+
 
 import static com.netflix.kato.holders.ApplicationContextHolder.applicationContext
 
