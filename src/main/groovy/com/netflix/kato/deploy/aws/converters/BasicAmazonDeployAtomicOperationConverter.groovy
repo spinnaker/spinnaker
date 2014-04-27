@@ -1,4 +1,4 @@
-package com.netflix.kato.deploy.aws
+package com.netflix.kato.deploy.aws.converters
 
 import com.netflix.kato.deploy.DeployAtomicOperation
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription

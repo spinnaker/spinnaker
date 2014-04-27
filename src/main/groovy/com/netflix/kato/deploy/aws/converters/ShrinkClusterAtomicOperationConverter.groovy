@@ -1,4 +1,4 @@
-package com.netflix.kato.deploy.aws
+package com.netflix.kato.deploy.aws.converters
 
 import com.netflix.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.kato.deploy.aws.ops.ShrinkClusterAtomicOperation

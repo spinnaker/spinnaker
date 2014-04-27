@@ -8,6 +8,7 @@ import com.amazonaws.services.ec2.model.*
 import com.netflix.frigga.Names
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
+import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import org.joda.time.LocalDateTime
 import org.springframework.web.client.RestTemplate
 
@@ -24,7 +25,7 @@ class AutoScalingWorker {
   private String clusterName
   private String ami
   private String instanceType
-  private List<String> avaabilityZones
+  private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
   private RestTemplate rt = new RestTemplate()
@@ -33,25 +34,10 @@ class AutoScalingWorker {
   private int maxInstances
   private int desiredInstances
 
+  private List<UserDataProvider> userDataProviders = []
+
   AutoScalingWorker() {
 
-  }
-
-  AutoScalingWorker(String application, String region, String environment, String clusterName, String ami,
-                    int minInstances, int maxInstances, int desiredInstances, String instanceType,
-                    List<String> availabilityZones, AmazonEC2 amazonEC2, AmazonAutoScaling autoScaling) {
-    this.application = application
-    this.ami = ami
-    this.region = region
-    this.environment = environment
-    this.clusterName = clusterName
-    this.minInstances = minInstances
-    this.maxInstances = maxInstances
-    this.desiredInstances = desiredInstances
-    this.instanceType = instanceType
-    this.avaabilityZones = availabilityZones
-    this.amazonEC2 = amazonEC2
-    this.autoScaling = autoScaling
   }
 
   String deploy() {
@@ -66,7 +52,6 @@ class AutoScalingWorker {
     task.updateStatus AWS_PHASE,"Beginning ASG deployment."
     Map ancestorAsg = ancestorAsg
     Integer nextSequence
-    String launchConfigurationName
     if (ancestorAsg) {
       task.updateStatus AWS_PHASE, "Found ancestor ASG: parsing details."
       Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
@@ -76,16 +61,24 @@ class AutoScalingWorker {
       if (!ancestorSecurityGroups.contains(packageSecurityGroup)) {
         ancestorSecurityGroups << packageSecurityGroup
       }
-      task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
-      launchConfigurationName = createLaunchConfiguration(null, ancestorSecurityGroups, nextSequence)
-      task.updateStatus AWS_PHASE, "Deploying ASG."
     } else {
       nextSequence = 0
-      task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
-      launchConfigurationName = createLaunchConfiguration(null, [packageSecurityGroup], nextSequence)
-      task.updateStatus AWS_PHASE, "Deploying ASG."
     }
-    createAutoScalingGroup(nextSequence, launchConfigurationName)
+
+    String asgName = getAutoScalingGroupName(nextSequence)
+    String launchConfigName = getLaunchConfigurationName(nextSequence)
+
+    def userData = getUserData(asgName, launchConfigName)
+    task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
+    createLaunchConfiguration(launchConfigName, userData, [packageSecurityGroup])
+    task.updateStatus AWS_PHASE, "Deploying ASG."
+
+    createAutoScalingGroup(asgName, launchConfigName)
+  }
+
+  String getLaunchConfigurationName(Integer nextSequence) {
+    def nowTime = new LocalDateTime().toString("MMddYYYYHHmmss")
+    "${getAutoScalingGroupName(nextSequence)}-${nowTime}"
   }
 
   Map getAncestorAsg() {
@@ -123,44 +116,44 @@ class AutoScalingWorker {
     result.groupId
   }
 
-  String createLaunchConfiguration(String userData, List<String> securityGroups, Integer sequence) {
-    def nowTime = new LocalDateTime().toString("MMddYYYYHHmmss")
-    String launchConfigName = "${getAutoScalingGroupName(sequence)}-${nowTime}"
-
+  String createLaunchConfiguration(String name, String userData, List<String> securityGroups) {
     CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
         .withImageId(ami)
         .withIamInstanceProfile("BaseIAMRole")
         .withInstanceMonitoring(new com.amazonaws.services.autoscaling.model.InstanceMonitoring().withEnabled(true))
-        .withLaunchConfigurationName(launchConfigName)
+        .withLaunchConfigurationName(name)
         .withUserData(userData)
         .withInstanceType(instanceType)
         .withSecurityGroups(securityGroups)
     autoScaling.createLaunchConfiguration(request)
 
-    launchConfigName
+    name
   }
 
-
-  private String getAutoScalingGroupName(Integer sequence) {
+  String getAutoScalingGroupName(Integer sequence) {
     def pushVersion = String.format("v%03d", sequence)
-    "${application}-${clusterName.replaceAll("$application-", "")}-${pushVersion}"
+    "${application}-${clusterName?.replaceAll("$application-", "")}-${pushVersion}"
   }
 
-  String createAutoScalingGroup(Integer sequence, String launchConfigurationName) {
-    String autoScalingGroupName = getAutoScalingGroupName(sequence)
-
+  String createAutoScalingGroup(String asgName, String launchConfigurationName) {
     CreateAutoScalingGroupRequest request = new CreateAutoScalingGroupRequest()
-        .withAutoScalingGroupName(autoScalingGroupName)
+        .withAutoScalingGroupName(asgName)
         .withLaunchConfigurationName(launchConfigurationName)
         .withMinSize(minInstances)
         .withMaxSize(maxInstances)
         .withDesiredCapacity(desiredInstances)
         .withDefaultCooldown(10)
         .withHealthCheckGracePeriod(600)
-        .withAvailabilityZones(avaabilityZones)
+        .withAvailabilityZones(availabilityZones)
     autoScaling.createAutoScalingGroup(request)
 
-    autoScalingGroupName
+    asgName
+  }
+
+  String getUserData(String asgName, String launchConfigName) {
+    userDataProviders.collect { udp ->
+      udp.getUserData(asgName, launchConfigName, region)
+    }?.join("\n")
   }
 
 }

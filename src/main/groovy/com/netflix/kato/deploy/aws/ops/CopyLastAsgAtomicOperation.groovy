@@ -3,9 +3,14 @@ package com.netflix.kato.deploy.aws.ops
 import com.netflix.kato.deploy.aws.AutoScalingWorker
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.kato.deploy.aws.handlers.BasicAmazonDeployHandler
+import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {
+
+  @Autowired
+  List<UserDataProvider> userDataProviders
 
   final BasicAmazonDeployDescription description
 

@@ -12,6 +12,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
   void "deploy workflow is create security group, create launch config, create asg"() {
     setup:
+      def asgName = "myasg-v000"
+      def launchConfigName = "launchConfig"
       def mockAutoScalingWorker = Spy(AutoScalingWorker)
 
     when:
@@ -20,8 +22,11 @@ class AutoScalingWorkerUnitSpec extends Specification {
     then:
       1 * mockAutoScalingWorker.getSecurityGroupForApplication() >> "sg-1234"
       1 * mockAutoScalingWorker.getAncestorAsg() >> null
-      1 * mockAutoScalingWorker.createLaunchConfiguration(null, ['sg-1234'], 0) >> { "launchConfigName" }
-      1 * mockAutoScalingWorker.createAutoScalingGroup(0, "launchConfigName") >> {}
+      1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
+      1 * mockAutoScalingWorker.getUserData(asgName, launchConfigName) >> { "" }
+      1 * mockAutoScalingWorker.getLaunchConfigurationName(0) >> launchConfigName
+      1 * mockAutoScalingWorker.createLaunchConfiguration(_, _, _) >> { launchConfigName }
+      1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 
   void "deploy favors security groups of ancestor asg"() {
@@ -32,6 +37,8 @@ class AutoScalingWorkerUnitSpec extends Specification {
       mockAutoScalingWorker.deploy()
 
     then:
+      1 * mockAutoScalingWorker.getUserData(_, _) >> null
+      1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
       1 * mockAutoScalingWorker.getSecurityGroupForApplication() >> "sg-1234"
       1 * mockAutoScalingWorker.getAncestorAsg() >> {
         [autoScalingGroupName: "asgard-test-v000", launchConfigurationName: "asgard-test-v000-launchConfigName"]
@@ -39,10 +46,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
       1 * mockAutoScalingWorker.getSecurityGroupsForLaunchConfiguration("asgard-test-v000-launchConfigName") >> {
         ['sg-5678']
       }
-      1 * mockAutoScalingWorker.createLaunchConfiguration(null, ['sg-5678', 'sg-1234'], 1) >> {
+      1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234']) >> {
         'launchConfigName'
       }
-      1 * mockAutoScalingWorker.createAutoScalingGroup(1, "launchConfigName") >> {}
+      1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 
   void "security group is created for app if one is not found"() {
@@ -53,10 +60,12 @@ class AutoScalingWorkerUnitSpec extends Specification {
       mockAutoScalingWorker.deploy()
 
     then:
+      1 * mockAutoScalingWorker.getUserData(_, _) >> null
+      1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
       1 * mockAutoScalingWorker.getSecurityGroupForApplication() >> null
       1 * mockAutoScalingWorker.createSecurityGroup() >> { "sg-1234" }
       1 * mockAutoScalingWorker.getAncestorAsg() >> null
-      1 * mockAutoScalingWorker.createLaunchConfiguration(null, ['sg-1234'], 0) >> { "launchConfigName" }
-      1 * mockAutoScalingWorker.createAutoScalingGroup(0, "launchConfigName") >> {}
+      1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234']) >> { "launchConfigName" }
+      1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 }

@@ -4,8 +4,10 @@ import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.*
 import com.netflix.kato.deploy.aws.AutoScalingWorker
+import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
 import groovy.util.logging.Log4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 
@@ -20,6 +22,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  List<UserDataProvider> userDataProviders
 
   @Override
   boolean handles(DeployDescription description) {
@@ -37,9 +42,23 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def amazonEC2 = getAmazonEC2(description.credentials.accessId, description.credentials.secretKey, region)
       def autoScaling = getAutoScaling(description.credentials.accessId, description.credentials.secretKey, region)
-      def autoScalingWorker = new AutoScalingWorker(description.application, region, description.credentials.environment,
-          description.clusterName, description.amiName, description.capacity.min, description.capacity.max,
-          description.capacity.desired, description.instanceType, availabilityZones, amazonEC2, autoScaling)
+
+      def autoScalingWorker = new AutoScalingWorker(
+          application: description.application,
+          region: region,
+          environment: description.credentials.environment,
+          clusterName: description.clusterName,
+          ami: description.amiName,
+          minInstances: description.capacity.min,
+          maxInstances: description.capacity.max,
+          desiredInstances: description.capacity.desired,
+          instanceType: description.instanceType,
+          availabilityZones: availabilityZones,
+          amazonEC2: amazonEC2,
+          autoScaling: autoScaling,
+          userDataProviders: userDataProviders
+      )
+
       def asgName = autoScalingWorker.deploy()
 
       deploymentResult.serverGroupNames << "${region}:${asgName}"

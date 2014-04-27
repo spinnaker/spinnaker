@@ -1,5 +1,6 @@
 package com.netflix.kato.deploy.aws
 
+import com.netflix.kato.deploy.aws.converters.ShrinkClusterAtomicOperationConverter
 import com.netflix.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
 import com.netflix.kato.security.NamedAccountCredentials

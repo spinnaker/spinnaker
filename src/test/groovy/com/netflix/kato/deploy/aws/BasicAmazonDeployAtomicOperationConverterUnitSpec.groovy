@@ -1,6 +1,7 @@
 package com.netflix.kato.deploy.aws
 
 import com.netflix.kato.deploy.DeployAtomicOperation
+import com.netflix.kato.deploy.aws.converters.BasicAmazonDeployAtomicOperationConverter
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.kato.security.NamedAccountCredentials
 import com.netflix.kato.security.NamedAccountCredentialsHolder
