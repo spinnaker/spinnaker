@@ -1,20 +1,18 @@
-package com.netflix.kato.deploy.aws
+package com.netflix.kato.deploy.aws.converters
 
-import com.netflix.kato.deploy.aws.converters.ShrinkClusterAtomicOperationConverter
-import com.netflix.kato.deploy.aws.description.ShrinkClusterDescription
-import com.netflix.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
+import com.netflix.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.kato.deploy.aws.ops.ResizeAsgAtomicOperation
 import com.netflix.kato.security.NamedAccountCredentials
 import com.netflix.kato.security.NamedAccountCredentialsHolder
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ShrinkClusterAtomicOperationConverterUnitSpec extends Specification {
-
+class ResizeAsgAtomicOperationConverterUnitSpec extends Specification {
   @Shared
-  ShrinkClusterAtomicOperationConverter converter
+  ResizeAsgAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new ShrinkClusterAtomicOperationConverter()
+    this.converter = new ResizeAsgAtomicOperationConverter()
     def namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
     def mockCredentials = Mock(NamedAccountCredentials)
     namedAccountCredentialsHolder.getCredentials(_) >> mockCredentials
@@ -23,18 +21,18 @@ class ShrinkClusterAtomicOperationConverterUnitSpec extends Specification {
 
   void "shrinkClusterDescription type returns ShrinkClusterDescription and ShrinkClusterAtomicOperation"() {
     setup:
-      def input = [application: "asgard", clusterName: "asgard-test", regions: ["us-west-1"], credentials: "test"]
+      def input = [asgName: "myasg-stack-v000", regions: ["us-west-1"], credentials: "test"]
 
     when:
       def description = converter.convertDescription(input)
 
     then:
-      description instanceof ShrinkClusterDescription
+      description instanceof ResizeAsgDescription
 
     when:
       def operation = converter.convertOperation(input)
 
     then:
-      operation instanceof ShrinkClusterAtomicOperation
+      operation instanceof ResizeAsgAtomicOperation
   }
 }

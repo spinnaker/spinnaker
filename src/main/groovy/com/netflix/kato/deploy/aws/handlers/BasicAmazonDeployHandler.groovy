@@ -4,8 +4,8 @@ import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.*
 import com.netflix.kato.deploy.aws.AutoScalingWorker
-import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
+import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
