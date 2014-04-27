@@ -38,6 +38,20 @@ class ApplicationModelTest extends Specification {
         application.name == null
     }
 
+    void 'should support obtaining list of properties who have values'() {
+        def application = new Application()
+        application.setName("TEST_APP")
+        application.email = 'aglover@netflix.com'
+
+        def props = application.allSetColumnProperties()
+
+        expect:
+        props != null
+        props.size() == 2
+        props['name'] == 'TEST_APP'
+        props['email'] == "aglover@netflix.com"
+    }
+
     void 'update should update the underlying model'() {
         def dao = Mock(ApplicationDAO)
 

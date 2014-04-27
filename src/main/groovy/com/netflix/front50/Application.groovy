@@ -67,6 +67,8 @@ class Application {
         if (this.name == null || this.name.equals("")) {
             throw new NoPrimaryKeyException("Application lacks a name!")
         }
+        //must have a name, go ahead and remove it
+        newAttributes.remove("name")
         this.dao.update(this.name, newAttributes)
     }
 
@@ -96,12 +98,7 @@ class Application {
     }
 
     Application save() {
-        Map<String, String> values = Application.declaredFields.toList().findResults {
-            if (isColumnProperty(it)) {
-                def value = this."$it.name"
-                value ? [it.name, value] : null
-            }
-        }.collectEntries()
+        Map<String, String> values = allSetColumnProperties()
         if (!values.containsKey('name')) {
             throw new NoPrimaryKeyException("Application lacks a name!")
         }
@@ -123,5 +120,14 @@ class Application {
 
     private boolean isColumnProperty(Field field) {
         (field.modifiers == Modifier.PRIVATE) && (field.annotatedType.type == String.class)
+    }
+
+    protected Map<String, String> allSetColumnProperties() {
+        Application.declaredFields.toList().findResults {
+            if (isColumnProperty(it)) {
+                def value = this."$it.name"
+                value ? [it.name, value] : null
+            }
+        }.collectEntries()
     }
 }

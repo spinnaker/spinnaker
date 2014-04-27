@@ -1,5 +1,6 @@
 package com.netflix.front50;
 
+import com.netflix.front50.exception.NoPrimaryKeyException;
 import com.netflix.front50.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -24,14 +25,30 @@ public class Front50Controller {
     @Autowired
     Application application;
 
-    @RequestMapping(value = "/name/{name}", method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.PUT)
+    @ResponseBody
+    public Application put(@RequestBody Application app) {
+        try {
+            if (app.getName() == null || app.getName().equals("")) {
+                throw new ApplicationWithoutNameException("Application must have a name");
+            }
+            Application foundApp = application.findByName(app.getName());
+            application.initialize(foundApp).withName(app.getName()).update(app.allSetColumnProperties());
+            return application;
+        } catch (NotFoundException e) {
+            throw new ApplicationNotFoundException(e);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
     @ResponseBody
     public Application post(@RequestBody Application app) {
         try {
             return application.initialize(app).withName(app.getName()).save();
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new ApplicationException(e);
+        } catch (NoPrimaryKeyException e) {
+            throw new ApplicationWithoutNameException(e);
+        } catch (Throwable thr) {
+            throw new ApplicationException(thr);
         }
     }
 
@@ -55,6 +72,18 @@ public class Front50Controller {
         } catch (Throwable thr) {
             thr.printStackTrace();
             throw new ApplicationException(thr);
+        }
+    }
+
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Applications must have a name")
+    class ApplicationWithoutNameException extends RuntimeException {
+        public ApplicationWithoutNameException(Throwable cause) {
+            super(cause);
+        }
+
+        public ApplicationWithoutNameException(String message) {
+            super(message);
         }
     }
 
