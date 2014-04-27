@@ -3,8 +3,6 @@ package com.netflix.kato.data.task
 import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryTaskRepository implements TaskRepository {
-  public static final ThreadLocal<Task> localTask = new ThreadLocal<>()
-
   private final Map<String, Task> repository = new ConcurrentHashMap<>()
 
   @Override

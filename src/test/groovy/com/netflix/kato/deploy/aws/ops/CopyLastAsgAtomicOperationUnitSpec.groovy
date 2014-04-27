@@ -6,9 +6,9 @@ import com.netflix.kato.deploy.aws.handlers.BasicAmazonDeployHandler
 import com.netflix.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
-class CopyLastAsgAtomicOperationSpec extends Specification {
+class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
-  void "operate build description based on ancestor asg"() {
+  void "operation builds description based on ancestor asg"() {
     setup:
       def description = new BasicAmazonDeployDescription(application: "asgard")
       description.availabilityZones = ['us-west-1': []]

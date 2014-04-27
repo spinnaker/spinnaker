@@ -4,6 +4,7 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.netflix.frigga.Names
 import com.netflix.kato.data.task.InMemoryTaskRepository
 import com.netflix.kato.data.task.Task
+import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.kato.orchestration.AtomicOperation
 import org.springframework.web.client.RestTemplate
@@ -14,14 +15,15 @@ class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DEPLOY"
 
   private static Task getTask() {
-    InMemoryTaskRepository.localTask.get()
+    TaskRepository.threadLocalTask.get()
   }
 
   final ShrinkClusterDescription description
-  final RestTemplate rt = new RestTemplate()
+  final RestTemplate rt
 
-  ShrinkClusterAtomicOperation(ShrinkClusterDescription description) {
+  ShrinkClusterAtomicOperation(ShrinkClusterDescription description, RestTemplate rt = new RestTemplate()) {
     this.description = description
+    this.rt = rt
   }
 
   @Override
