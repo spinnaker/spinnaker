@@ -7,9 +7,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -27,7 +25,7 @@ class Front50ControllerTest extends Specification {
 
     void 'a put should update an application'() {
         def sampleApp = new Application("SAMPLEAPP", null, "web@netflix.com", "Andy McEntee",
-                null, null, null, null, null, null)
+                null, null, null, null, null, null, null, null)
 
         def application = new Application()
 
@@ -44,12 +42,12 @@ class Front50ControllerTest extends Specification {
         then:
         response.andExpect status().isOk()
         response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
-        1 * dao.update("SAMPLEAPP", ["email":"web@netflix.com", "owner":"Andy McEntee"])
+        1 * dao.update("SAMPLEAPP", ["email": "web@netflix.com", "owner": "Andy McEntee"])
     }
 
     void 'a put should not update an application if no name is provided'() {
         def sampleApp = new Application(null, null, "web@netflix.com", "Andy McEntee",
-                null, null, null, null, null, null)
+                null, null, null, null, null, null, null, null)
         def application = new Application()
 
         def dao = Mock(ApplicationDAO)
@@ -67,7 +65,7 @@ class Front50ControllerTest extends Specification {
 
     void 'a post w/o a name will throw an error'() {
         def sampleApp = new Application(null, "Standalone App", "web@netflix.com", "Kevin McEntee",
-                "netflix.com application", "Standalone Application", null, null, null, null)
+                "netflix.com application", "Standalone Application", null, null, null, null, null, null)
         def application = new Application()
 
         def dao = Mock(ApplicationDAO)
@@ -86,7 +84,7 @@ class Front50ControllerTest extends Specification {
 
     void 'a post w/a new application should yeild a success'() {
         def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-                "netflix.com application", "Standalone Application", null, null, null, null)
+                "netflix.com application", "Standalone Application", null, null, null, null, null, null)
         def application = new Application()
 
         def dao = Mock(ApplicationDAO)
@@ -106,7 +104,7 @@ class Front50ControllerTest extends Specification {
 
     void 'a get w/a name should return a JSON document for the found app'() {
         def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-                "netflix.com application", "Standalone Application", null, null, "1265752693581l", "1265752693581l")
+                "netflix.com application", "Standalone Application", null, null, null, null, "1265752693581l", "1265752693581l")
         def application = Mock(Application)
         application.findByName("SAMPLEAPP") >> sampleApp
         this.controller.application = application
@@ -129,9 +127,9 @@ class Front50ControllerTest extends Specification {
 
     void 'index should return a list of applications'() {
         def sampleApps = [new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-                "netflix.com application", "Standalone Application", null, null, "1265752693581l", "1265752693581l"),
+                "netflix.com application", "Standalone Application", null, null, null, null, "1265752693581l", "1265752693581l"),
                           new Application("SAMPLEAPP-2", "Standalone App", "web@netflix.com", "Kevin McEntee",
-                                  "netflix.com application", "Standalone Application", null, null, "1265752693581l", "1265752693581l")]
+                                  "netflix.com application", "Standalone Application", null, null, null, null, "1265752693581l", "1265752693581l")]
         def application = Mock(Application)
         application.findAll() >> sampleApps
         this.controller.application = application

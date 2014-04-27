@@ -59,6 +59,7 @@ public class Front50Controller {
         } catch (NotFoundException e) {
             throw new NoApplicationsFoundException(e);
         } catch (Throwable thr) {
+            thr.printStackTrace();
             throw new ApplicationException(thr);
         }
     }

@@ -32,6 +32,7 @@ class Application {
     String updateTs
     String createTs
     String tags
+    String regions
 
     @JsonIgnore
     @Autowired
@@ -39,6 +40,15 @@ class Application {
     ApplicationDAO dao
 
     Application() {} //forces Groovy to add LinkedHashMap constructor
+
+    void update(Map<String, String> newAttributes) {
+        if (this.name == null || this.name.equals("")) {
+            throw new NoPrimaryKeyException("Application lacks a name!")
+        }
+        //must have a name, go ahead and remove it
+        newAttributes.remove("name")
+        this.dao.update(this.name, newAttributes)
+    }
 
     @JsonCreator
     Application(@JsonProperty("name") String name,
@@ -49,8 +59,11 @@ class Application {
                 @JsonProperty("group") String group,
                 @JsonProperty("monitorBucketType") String monitorBucketType,
                 @JsonProperty("pdApiKey") String pdApiKey,
+                @JsonProperty("regions") String regions,
+                @JsonProperty("tags") String tags,
                 @JsonProperty("createTs") String createdAt,
-                @JsonProperty("updateTs") String updatedAt) {
+                @JsonProperty("updateTs") String updatedAt
+    ) {
         this.group = group
         this.monitorBucketType = monitorBucketType
         this.pdApiKey = pdApiKey
@@ -59,17 +72,10 @@ class Application {
         this.email = email
         this.owner = owner
         this.type = type
+        this.tags = tags
+        this.regions = regions
         this.createTs = createdAt
         this.updateTs = updatedAt
-    }
-
-    void update(Map<String, String> newAttributes) {
-        if (this.name == null || this.name.equals("")) {
-            throw new NoPrimaryKeyException("Application lacks a name!")
-        }
-        //must have a name, go ahead and remove it
-        newAttributes.remove("name")
-        this.dao.update(this.name, newAttributes)
     }
 
     Application clear() {
