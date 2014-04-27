@@ -25,6 +25,19 @@ class ApplicationModelTest extends Specification {
         app2.dao != null
     }
 
+    void 'clear should clear ONLY column attributes'() {
+        def application = new Application()
+        application.setName("TEST_APP")
+        application.email = 'aglover@netflix.com'
+        def dao = Mock(ApplicationDAO)
+        application.dao = dao
+        application.clear()
+
+        expect:
+        application.dao != null
+        application.name == null
+    }
+
     void 'update should update the underlying model'() {
         def dao = Mock(ApplicationDAO)
 

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Configurable
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 /**
@@ -69,14 +70,23 @@ class Application {
         this.dao.update(this.name, newAttributes)
     }
 
+    Application clear() {
+        Application.declaredFields.each { field ->
+            if (isColumnProperty(field)) {
+                this."$field.name" = null
+            }
+        }
+        return this
+    }
+
     /**
      * Similar to clone but doesn't produce a copy
      */
-    Application initialize(Application app){
+    Application initialize(Application app) {
         Application.declaredFields.each { field ->
-            if ((field.modifiers == Modifier.PRIVATE) && (field.annotatedType.type == String.class)){
+            if (isColumnProperty(field)) {
                 def value = app."$field.name"
-                if(value){
+                if (value) {
                     this."$field.name" = value
                 }
             }
@@ -86,7 +96,7 @@ class Application {
 
     Application save() {
         Map<String, String> values = Application.declaredFields.toList().findResults {
-            if ((it.modifiers == Modifier.PRIVATE) && (it.annotatedType.type == String.class)) {
+            if (isColumnProperty(it)) {
                 def value = this."$it.name"
                 value ? [it.name, value] : null
             }
@@ -105,8 +115,12 @@ class Application {
         return dao.findByName(name)
     }
 
-    Application withName(String name){
+    Application withName(String name) {
         this.name = name
         return this
+    }
+
+    private boolean isColumnProperty(Field field) {
+        (field.modifiers == Modifier.PRIVATE) && (field.annotatedType.type == String.class)
     }
 }
