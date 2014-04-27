@@ -4,7 +4,7 @@ package com.netflix.kato.deploy
  * A DeployHandler takes a parameterized description object and performs some deployment operation based off of its
  * detail. These objects may most often be derived from a {@link DeployHandlerRegistry} implementation.
  *
- * @param the type of the {@link DeployDescription}
+ * @param <T> the type of the {@link DeployDescription}
  * @see DeployDescription
  * @see com.netflix.kato.deploy.aws.handlers.BasicAmazonDeployHandler
  * @author Dan Woods
