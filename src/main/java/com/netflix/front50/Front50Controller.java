@@ -9,7 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Collection;
 
 @RestController
@@ -17,6 +18,8 @@ import java.util.Collection;
 @EnableAutoConfiguration
 @ComponentScan("com.netflix.front50")
 public class Front50Controller {
+
+    static final Logger LOG = LoggerFactory.getLogger(Front50Controller.class);
 
     public static void main(String[] args) {
         SpringApplication.run(Front50Controller.class, args);
@@ -36,6 +39,7 @@ public class Front50Controller {
             application.initialize(foundApp).withName(app.getName()).update(app.allSetColumnProperties());
             return application;
         } catch (NotFoundException e) {
+            LOG.error("PUT::App not found: " + app.getName(), e);
             throw new ApplicationNotFoundException(e);
         }
     }
@@ -46,8 +50,10 @@ public class Front50Controller {
         try {
             return application.initialize(app).withName(app.getName()).save();
         } catch (NoPrimaryKeyException e) {
+            LOG.error("POST::App not found: " + app.getName(), e);
             throw new ApplicationWithoutNameException(e);
         } catch (Throwable thr) {
+            LOG.error("POST:: throwable occurred: " + app.getName(), thr);
             throw new ApplicationException(thr);
         }
     }
@@ -57,9 +63,10 @@ public class Front50Controller {
         try {
             return application.findAll();
         } catch (NotFoundException e) {
+            LOG.error("GET(/) -> NotFoundException occurred: ", e);
             throw new NoApplicationsFoundException(e);
         } catch (Throwable thr) {
-            thr.printStackTrace();
+            LOG.error("GET(/) -> Throwable occurred: ", thr);
             throw new ApplicationException(thr);
         }
     }
@@ -69,9 +76,10 @@ public class Front50Controller {
         try {
             return application.findByName(name);
         } catch (NotFoundException e) {
+            LOG.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e);
             throw new ApplicationNotFoundException(e);
         } catch (Throwable thr) {
-            thr.printStackTrace();
+            LOG.error("GET(/name/{name}) -> Throwable occurred: ", thr);
             throw new ApplicationException(thr);
         }
     }
