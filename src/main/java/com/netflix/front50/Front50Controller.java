@@ -2,6 +2,8 @@ package com.netflix.front50;
 
 import com.netflix.front50.exception.NoPrimaryKeyException;
 import com.netflix.front50.exception.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -9,8 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 
 @RestController
@@ -68,6 +69,16 @@ public class Front50Controller {
         } catch (Throwable thr) {
             LOG.error("GET(/) -> Throwable occurred: ", thr);
             throw new ApplicationException(thr);
+        }
+    }
+
+    @RequestMapping(value = "/name/{name}", method = RequestMethod.DELETE)
+    public void delete(@PathVariable String name) {
+        try {
+            application.initialize(new Application().withName(name)).delete();
+        } catch (NoPrimaryKeyException e) {
+            LOG.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e);
+            throw new ApplicationNotFoundException(e);
         }
     }
 

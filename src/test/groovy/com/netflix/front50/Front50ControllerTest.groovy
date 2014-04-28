@@ -125,6 +125,20 @@ class Front50ControllerTest extends Specification {
         response.andExpect status().is(404)
     }
 
+    void 'delete should remove a domain'() {
+        def application = Mock(Application)
+        this.controller.application = application
+        application.initialize(_) >> application
+
+        when:
+        def response = mockMvc.perform(delete("/name/SAMPLEAPP"))
+
+        then:
+        1 * application.delete()
+        response.andExpect status().isOk()
+
+    }
+
     void 'index should return a list of applications'() {
         def sampleApps = [new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
                 "netflix.com application", "Standalone Application", null, null, null, null, "1265752693581l", "1265752693581l"),

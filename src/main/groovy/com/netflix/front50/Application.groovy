@@ -41,15 +41,6 @@ class Application {
 
     Application() {} //forces Groovy to add LinkedHashMap constructor
 
-    void update(Map<String, String> newAttributes) {
-        if (this.name == null || this.name.equals("")) {
-            throw new NoPrimaryKeyException("Application lacks a name!")
-        }
-        //must have a name, go ahead and remove it
-        newAttributes.remove("name")
-        this.dao.update(this.name, newAttributes)
-    }
-
     @JsonCreator
     Application(@JsonProperty("name") String name,
                 @JsonProperty("description") String description,
@@ -76,6 +67,18 @@ class Application {
         this.regions = regions
         this.createTs = createdAt
         this.updateTs = updatedAt
+    }
+
+    void update(Map<String, String> newAttributes) {
+        checkForName()
+        //must have a name, go ahead and remove it
+        newAttributes.remove("name")
+        this.dao.update(this.name, newAttributes)
+    }
+
+    void delete() {
+        checkForName()
+        this.dao.delete(this.name)
     }
 
     Application clear() {
@@ -122,6 +125,12 @@ class Application {
     Application withName(String name) {
         this.name = name
         return this
+    }
+
+    private void checkForName() {
+        if (this.name == null || this.name.equals("")) {
+            throw new NoPrimaryKeyException("Application lacks a name!")
+        }
     }
 
     private boolean isColumnProperty(Field field) {

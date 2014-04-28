@@ -113,6 +113,31 @@ class ApplicationModelTest extends Specification {
         thrown(NoPrimaryKeyException)
     }
 
+    void 'delete should just work'() {
+        def dao = Mock(ApplicationDAO)
+        def app = new Application()
+        app.name = "TEST_APP"
+        app.dao = dao
+
+        when:
+        app.delete()
+
+        then:
+        1 * dao.delete("TEST_APP")
+    }
+
+    void 'cannot delete w/o a name'() {
+        def dao = Mock(ApplicationDAO)
+        def app = new Application()
+        app.dao = dao
+
+        when:
+        app.delete()
+
+        then:
+        thrown(NoPrimaryKeyException)
+    }
+
     void 'find apps by name'() {
         def dao = Mock(ApplicationDAO)
         dao.findByName(_) >> new Application(email: "web@netflix.com")
