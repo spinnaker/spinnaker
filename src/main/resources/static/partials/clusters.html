@@ -1,11 +1,8 @@
-<div class="btn-row col-md-12" ng-show="cluster">
-  <a href="#/{{deployable}}/clusters" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
-  <a href="#" class="btn btn-primary"><i class="fa fa-plus"></i> New ASG</a>
-  <a href="#" class="btn btn-warning"><i class="fa fa-compress"></i> Shrink Cluster</a>
-</div>
-<div class="btn-row col-md-12" ng-show="!cluster">
-  <a href="#/" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to App List</a>
-  <a href="#" class="btn btn-primary"><i class="fa fa-plus"></i> New ASG</a>
+<div class="btn-row col-md-12">
+  <a href="#/{{deployable}}/clusters" class="btn btn-default" ng-show="cluster"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
+  <a href="#/" class="btn btn-default" ng-show="!cluster"><i class="fa fa-arrow-left"></i> Back to App List</a>
+  <a data-toggle="modal" data-target="#newAsgModal" class="btn btn-primary"><i class="fa fa-plus"></i> New ASG</a>
+  <a class="btn btn-warning" ng-click="shrink()"><i class="fa fa-compress"></i> Shrink Cluster</a>
 </div>
 <div ng-show="!asgs">
   Loading...
@@ -54,3 +51,36 @@
     </div>
   </div>
 </div>
+<div id="newAsgModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Creating new ASG in {{cluster.name}}</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Regions</label>
+            <div class="col-sm-9">
+              <input type="checkbox" class="form-control" ng-model="regions[0]" checked="checked" ng-true-value="us-west-1"> us-west-1
+              <input type="checkbox" class="form-control" ng-model="regions[1]" checked="checked" ng-true-value="us-west-1"> us-west-2
+              <input type="checkbox" class="form-control" ng-model="regions[2]" checked="checked" ng-true-value="us-east-1"> us-east-1
+              <input type="checkbox" class="form-control" ng-model="regions[3]" checked="checked" ng-true-value="eu-west-1"> eu-west-1
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="image" class="col-sm-3 control-label">Image</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="image" ng-model="image">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" ng-click="createAsg()">Save changes</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

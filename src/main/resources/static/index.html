@@ -84,31 +84,66 @@
     var ClusterResource = $resource("/deployables/:deployable/clusters/:cluster");
     $scope.deployable = $routeParams.deployable;
     $scope.cluster = $routeParams.cluster;
-    var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster}, function () {
-      $scope.asgs = asgs;
-    });
+
+    getAsgs();
+    setInterval(getAsgs, 10000);
+    function getAsgs() {
+      var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster}, function () {
+        $scope.asgs = asgs;
+      });
+    }
+
 
     $scope.toAgo = function(input) {
       if (!input) {
         return "";
       }
       return moment(parseInt(input)).fromNow();
+    };
+
+    $scope.regions = [];
+    $scope.createAsg = function() {
+      console.log($scope.regions);
     }
   }
 
-  function AsgController($scope, $routeParams, $resource) {
+  function AsgController($scope, $routeParams, $resource, $location) {
+    var KatoResource = $resource("http://localhost:8501/ops");
+
     var AsgResource = $resource("/deployables/:deployable/clusters/:cluster/asgs/:asg");
     $scope.deployable = $routeParams.deployable;
     $scope.cluster = $routeParams.cluster;
-    var asg = AsgResource.get({deployable: $routeParams.deployable, cluster: $routeParams.cluster, asg: $routeParams.asg}, function() {
-      $scope.asg = asg;
-    });
+
+    getAsg();
+    setInterval(getAsg, 10000);
+    function getAsg() {
+      var asg = AsgResource.get({deployable: $routeParams.deployable, cluster: $routeParams.cluster, asg: $routeParams.asg}, function() {
+        $scope.asg = asg;
+      });
+    }
 
     $scope.toAgo = function(input) {
       if (!input) {
         return "";
       }
       return moment(parseInt(input)).fromNow();
+    };
+
+    $scope.resize = function(asg, region) {
+      var description = { resizeAsgDescription: { asgName: asg, regions: [region],
+        capacity: { min: parseInt($scope.resizeMin), max: parseInt($scope.resizeMax), desired: parseInt($scope.resizeDesired) },
+        credentials: "test" }};
+      KatoResource.save([description], function() {
+        $("#resizeModal").modal("hide");
+      });
+    };
+
+    $scope.doAsgDelete = function(asg, region) {
+      var description = { deleteAsgDescription: { asgName: asg, region: region, credentials: "test" }};
+      KatoResource.save([description], function() {
+        $("#deleteModal").modal("hide");
+        $location.path("/"+$scope.deployable+"/clusters");
+      });
     }
   }
 

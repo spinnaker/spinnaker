@@ -1,8 +1,8 @@
-<div class="btn-row col-md-12" ng-show="cluster">
-  <a href="#/{{deployable}}/clusters" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to {{asg.cluster}}</a>
-</div>
-<div class="btn-row col-md-12" ng-show="!cluster">
-  <a href="#/" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
+<div class="btn-row col-md-12">
+  <a href="#/{{deployable}}/clusters" class="btn btn-default" ng-show="cluster"><i class="fa fa-arrow-left"></i> Back to {{asg.cluster}}</a>
+  <a href="#/" class="btn btn-default" ng-show="!cluster"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
+  <a class="btn btn-warning" data-toggle="modal" data-target="#resizeModal"><i class="fa fa-expand"></i> Resize</a>
+  <a class="btn btn-danger" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Delete</a>
 </div>
 <div ng-show="!asg">
   Loading...
@@ -11,12 +11,104 @@
   <ul class="asg-quick-info">
     <li>
       <span class="label label-primary">Deployable</span>
-      <span>{{asg.name}}</span>
+      <span><a href="#/{{deployable}}/clusters">{{deployable}}</a></span>
     </li>
     <li>
+      <span class="label label-primary">Region</span>
+      <span>{{asg.region}}</span>
+    </li>
+    <li>
+      <span class="label label-primary">Type</span>
+      <span>{{asg.launchConfig.instanceType}}</span>
+    </li>
+    <li ng-show="asg.buildInfo">
       <span class="label label-primary">Build</span>
-      <span>{{asg.buildInfo.buildJobName}}/#{{asg.buildInfo.buildNumber}}</span>
+      <span>
+        <a href="http://builds.netflix.com/job/{{asg.buildInfo.buildJobName}}/{{asg.buildInfo.buildJobNumber}}" target="_blank">
+          {{asg.buildInfo.buildJobName}}/#{{asg.buildInfo.buildNumber}}
+        </a>
+      </span>
+    </li>
+    <li>
+      <span class="label label-primary">Created</span>
+      <span>{{toAgo(asg.created)}}</span>
+    </li>
+    <li>
+      <span class="label label-primary">Capacity (min/max/desired)</span>
+      <span>{{asg.asg.minSize}} / {{asg.asg.maxSize}} / {{asg.asg.desiredCapacity}}</span>
     </li>
   </ul>
-
+  <table class="table table-condensed table-bordered">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Public DNS</th>
+        <th>Public IP</th>
+        <th>Private DNS</th>
+        <th>Private IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="instance in asg.instances" class="{{instance.state.name == 'running' ? 'green' : 'red'}}">
+        <td>{{instance.instanceId}}</td>
+        <td>{{instance.publicDnsName}}</td>
+        <td>{{instance.publicIpAddress}}</td>
+        <td>{{instance.privateDnsName}}</td>
+        <td>{{instance.privateIpAddress}}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
+<div id="resizeModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Resizing ASG: {{asg.name}}</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+            <label for="min" class="col-sm-3 control-label">Min Size</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control" id="min" ng-model="resizeMin">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="max" class="col-sm-3 control-label">Max Size</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control" id="max" ng-model="resizeMax">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="desired" class="col-sm-3 control-label">Desired Size</label>
+            <div class="col-sm-2">
+              <input type="text" class="form-control" id="desired" ng-model="resizeDesired">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" ng-click="resize(asg.name, asg.region)">Save changes</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div id="deleteModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Deleting ASG: {{asg.name}}</h4>
+      </div>
+      <div class="modal-body">
+        <p>Omg, are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" ng-click="doAsgDelete(asg.name, asg.region)">Save changes</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

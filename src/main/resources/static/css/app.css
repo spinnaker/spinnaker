@@ -124,10 +124,10 @@ div.asg div.instance {
     border: 1px solid #000;
     margin-right: 5px;
 }
-div.instance.green {
+.green {
     background-color: #9FEC9F;
 }
-div.instance.ref {
+.red {
     background-color: #f00;
 }
 div.asg div.details.instances {
@@ -146,9 +146,10 @@ div.asg-detail-view {
     padding-left: 0;
 }
 ul.asg-quick-info {
-    padding: 0;
-    margin: 0;
+    padding: 0 0 15px 0;
+    margin: 0 0 15px 0;
     list-style-type: none;
+    border-bottom: 1px solid #ccc;
 }
 ul.asg-quick-info li {
     display: inline-block;
