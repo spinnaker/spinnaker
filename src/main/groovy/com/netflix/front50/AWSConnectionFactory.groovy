@@ -1,6 +1,6 @@
 package com.netflix.front50
 
-import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient
 import org.springframework.context.annotation.Bean
@@ -13,8 +13,10 @@ import org.springframework.stereotype.Component
 class AWSConnectionFactory {
 
     @Bean
-    public AmazonSimpleDB manufacture() {
-        return new AmazonSimpleDBClient(new BasicAWSCredentials(
-                System.properties["aws.key"], System.properties["aws.secret"]));
+    public AmazonSimpleDB manufacture(AWSCredentialsProvider provider) {
+        return new AmazonSimpleDBClient(provider
+//                new BasicAWSCredentials(
+//                System.properties["aws.key"], System.properties["aws.secret"])
+        );
     }
 }

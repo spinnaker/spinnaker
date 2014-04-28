@@ -7,10 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.netflix.appinfo.InstanceInfo;
+
 
 import java.util.Collection;
 
@@ -20,9 +23,17 @@ import java.util.Collection;
 @ComponentScan("com.netflix.front50")
 public class Front50Controller {
 
+    @Bean
+    public InstanceInfo.InstanceStatus instanceStatus() {
+        return InstanceInfo.InstanceStatus.UNKNOWN;
+    }
+
     static final Logger LOG = LoggerFactory.getLogger(Front50Controller.class);
 
     public static void main(String[] args) {
+        if (System.getProperty("netflix.environment") == null) {
+            System.setProperty("netflix.environment", "test");
+        }
         SpringApplication.run(Front50Controller.class, args);
     }
 
