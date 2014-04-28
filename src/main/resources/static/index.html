@@ -2,6 +2,7 @@
 <html ng-app="app">
 <head>
   <link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet">
   <link href="css/app.css" rel="stylesheet">
 </head>
 <body>
@@ -42,10 +43,14 @@
     $routeProvider.when('/', {
       templateUrl: 'partials/landing.html',
       controller: LandingPageController
-    }).when('/:deployable/clusters', {
+    }).when('/:deployable/clusters/:cluster?', {
       templateUrl: 'partials/clusters.html',
       controller: ClusterController
-    }).otherwise('/')
+    }).when('/:deployable/clusters/:cluster/asgs/:asg', {
+      templateUrl: 'partials/asg.html',
+      controller: AsgController
+    })
+    .otherwise('/')
   }]);
 
   function LandingPageController($scope, $location, $resource) {
@@ -67,7 +72,7 @@
       }
     };
 
-    $scope.toDate = function(input) {
+    $scope.toAgo = function(input) {
       if (!input) {
         return "";
       }
@@ -76,12 +81,35 @@
   }
 
   function ClusterController($scope, $routeParams, $resource) {
-    var ClusterResource = $resource("/deployables/:deployable/clusters");
-
-    var asgs = ClusterResource.query({deployable: $routeParams.deployable}, function() {
+    var ClusterResource = $resource("/deployables/:deployable/clusters/:cluster");
+    $scope.deployable = $routeParams.deployable;
+    $scope.cluster = $routeParams.cluster;
+    var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster}, function () {
       $scope.asgs = asgs;
     });
 
+    $scope.toAgo = function(input) {
+      if (!input) {
+        return "";
+      }
+      return moment(parseInt(input)).fromNow();
+    }
+  }
+
+  function AsgController($scope, $routeParams, $resource) {
+    var AsgResource = $resource("/deployables/:deployable/clusters/:cluster/asgs/:asg");
+    $scope.deployable = $routeParams.deployable;
+    $scope.cluster = $routeParams.cluster;
+    var asg = AsgResource.get({deployable: $routeParams.deployable, cluster: $routeParams.cluster, asg: $routeParams.asg}, function() {
+      $scope.asg = asg;
+    });
+
+    $scope.toAgo = function(input) {
+      if (!input) {
+        return "";
+      }
+      return moment(parseInt(input)).fromNow();
+    }
   }
 
 </script>

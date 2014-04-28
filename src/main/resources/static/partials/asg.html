@@ -1,0 +1,22 @@
+<div class="btn-row col-md-12" ng-show="cluster">
+  <a href="#/{{deployable}}/clusters" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to {{asg.cluster}}</a>
+</div>
+<div class="btn-row col-md-12" ng-show="!cluster">
+  <a href="#/" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
+</div>
+<div ng-show="!asg">
+  Loading...
+</div>
+<div class="container-fluid asg-detail-view" ng-show="asg">
+  <ul class="asg-quick-info">
+    <li>
+      <span class="label label-primary">Deployable</span>
+      <span>{{asg.name}}</span>
+    </li>
+    <li>
+      <span class="label label-primary">Build</span>
+      <span>{{asg.buildInfo.buildJobName}}/#{{asg.buildInfo.buildNumber}}</span>
+    </li>
+  </ul>
+
+</div>

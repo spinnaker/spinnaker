@@ -1,23 +1,36 @@
+<div class="btn-row col-md-12" ng-show="cluster">
+  <a href="#/{{deployable}}/clusters" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
+  <a href="#" class="btn btn-primary"><i class="fa fa-plus"></i> New ASG</a>
+  <a href="#" class="btn btn-warning"><i class="fa fa-compress"></i> Shrink Cluster</a>
+</div>
+<div class="btn-row col-md-12" ng-show="!cluster">
+  <a href="#/" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to App List</a>
+  <a href="#" class="btn btn-primary"><i class="fa fa-plus"></i> New ASG</a>
+</div>
 <div ng-show="!asgs">
   Loading...
 </div>
 <div ng-repeat='asg in asgs' ng-show="asgs" class="asg col-md-2">
   <div class="header">
-    <span>{{asg.name}}</span>
+    <span><a href="#/{{deployable}}/clusters/{{asg.cluster}}/asgs/{{asg.name}}">{{asg.name}}</a></span>
     <span class="pull-right">{{asg.region}}</span>
   </div>
   <div class="body">
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Cluster</span>
-      <span class="col-sm-8 detail-text">{{asg.cluster}}</span>
+      <span class="col-sm-8 detail-text"><a href="#/{{deployable}}/clusters/{{asg.cluster}}" title="{{asg.cluster}}">{{asg.cluster}}</a></span>
     </div>
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Package</span>
       <span class="col-sm-8 detail-text">{{asg.buildInfo.packageName}}</span>
     </div>
     <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Created</span>
+      <span class="col-sm-8 detail-text">{{toAgo(asg.created)}}</span>
+    </div>
+    <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Build Job</span>
-      <span class="col-sm-8 detail-text">{{asg.buildInfo.buildJobName}}</span>
+      <span class="col-sm-8 detail-text"><a href="http://builds.netflix.com/job/{{asg.buildInfo.buildJobName}}" target="_blank">{{asg.buildInfo.buildJobName}}</a></span>
     </div>
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Build Number</span>
@@ -34,8 +47,8 @@
       <span class="col-sm-4 detail-label">Instances</span>
       <span class="col-sm-8 detail-text"></span>
     </div>
-    <div class="col-sm-12 details">
-      <div ng-repeat="instance in asg.instances" class="instance {{instance.healthStatus == 'Healthy' ? 'green' : 'red'}}">
+    <div class="col-sm-12 details instances">
+      <div ng-repeat="instance in asg.instances" title="{{instance.instanceId}}" class="instance {{instance.healthStatus == 'Healthy' ? 'green' : 'red'}}">
         &nbsp;
       </div>
     </div>

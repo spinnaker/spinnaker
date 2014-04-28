@@ -79,7 +79,7 @@ div.asg {
     margin-bottom: 15px;
 }
 div.asg .header {
-    padding: 15px;
+    padding: 15px 4px 15px 4px;
     color: #000;
     border-bottom: 1px solid #fff;
     font-size: 12px;
@@ -90,12 +90,16 @@ div.asg .header span {
     font-style: normal;
 }
 div.asg .body {
-    padding: 15px;
+    padding: 15px 4px 0 4px;
     font-size: 12px;
 }
 div.asg div.details {
     padding: 0;
     margin: 0;
+    line-height: 20px;
+}
+div.asg div.details:hover {
+    background-color: #fff;
 }
 div.asg div.details hr {
     margin: 5px 0 0 0;
@@ -110,6 +114,8 @@ div.asg div.details span.detail-label {
 }
 div.asg div.details span.detail-text {
     text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 div.asg div.instance {
     height: 7px;
@@ -119,8 +125,35 @@ div.asg div.instance {
     margin-right: 5px;
 }
 div.instance.green {
-    background-color: #0aae09;
+    background-color: #9FEC9F;
 }
 div.instance.ref {
     background-color: #f00;
+}
+div.asg div.details.instances {
+    padding-top: 5px;
+    background-color: transparent;
+}
+div.asg div.details.instances:hover {
+    background-color: transparent;
+}
+.btn-row {
+    padding: 0 0 20px 0;
+    margin: 0 0 20px 0;
+    border-bottom: 1px solid #ccc;
+}
+div.asg-detail-view {
+    padding-left: 0;
+}
+ul.asg-quick-info {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+ul.asg-quick-info li {
+    display: inline-block;
+    margin-right: 20px;
+    background-color: #f1f1f1;
+    padding: 15px;
+    border-radius: 4px;
 }

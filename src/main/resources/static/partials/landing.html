@@ -26,8 +26,8 @@
         <td>{{value.attributes.group}}</td>
         <td class="email">{{value.attributes.email}}</td>
         <td class="owner">{{value.attributes.owner}}</td>
-        <td class="time">{{toDate(value.attributes.createTs)}}</td>
-        <td class="time">{{toDate(value.attributes.updateTs)}}</td>
+        <td class="time">{{toAgo(value.attributes.createTs)}}</td>
+        <td class="time">{{toAgo(value.attributes.updateTs)}}</td>
         <td class="tags">
           <span ng-repeat="tag in splitTags(value.attributes.tags)">
             {{tag}}
