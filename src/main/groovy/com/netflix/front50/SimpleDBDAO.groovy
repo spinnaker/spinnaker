@@ -1,6 +1,7 @@
 package com.netflix.front50
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
+import com.amazonaws.services.simpledb.model.DeleteAttributesRequest
 import com.amazonaws.services.simpledb.model.Item
 import com.amazonaws.services.simpledb.model.PutAttributesRequest
 import com.amazonaws.services.simpledb.model.ReplaceableAttribute
@@ -29,6 +30,12 @@ class SimpleDBDAO implements ApplicationDAO {
         Application application = new Application(properties)
         application.name = id
         return application
+    }
+
+    @Override
+    void delete(String id) {
+        awsClient.deleteAttributes(
+                new DeleteAttributesRequest().withDomainName(DOMAIN).withItemName(id))
     }
 
     @Override

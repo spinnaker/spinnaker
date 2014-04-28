@@ -8,4 +8,5 @@ public interface ApplicationDAO {
     List<Application> all()
     Application create(String id, Map<String, String> attributes)
     void update(String id, Map<String, String> attributes)
+    void delete(String id)
 }
