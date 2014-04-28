@@ -1,0 +1,126 @@
+#app-list {
+    font-size: 13px;
+}
+.navbar {
+    border-radius: 0;
+    margin-bottom: 0;
+}
+#globalnav {
+    background-color: #eee;
+    margin-bottom: 40px;
+}
+#globalnav a {
+    font-size: 13px;
+}
+.navbar a>img {
+    max-height: 75%;
+}
+#globalnav li {
+    padding-right: 15px;
+}
+#globalnav a {
+    text-indent: 15px;
+}
+#app-nav {
+    background: url(images/package-x-generic.png) no-repeat left center;
+}
+#cluster-nav {
+    background: url(images/network-cluster.png) no-repeat left center;
+}
+#app-list td a {
+    padding: 5px 0 0 35px;
+}
+td.deployable {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+td.deployable a {
+    background: url(images/package-x-generic.png) no-repeat;
+    text-indent: 25px;
+    border-left: 10px solid transparent;
+}
+td.description {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+td.asgCount, td.instanceCount {
+    text-align: center;
+}
+td.asgCount span {
+    background: url(images/network-idle.png) no-repeat;
+    width: 40px;
+    display: inline-block;
+    text-indent: 15px;
+}
+td.instanceCount span {
+    background: url(images/video-display.png) no-repeat;
+    width: 40px;
+    display: inline-block;
+    text-indent: 15px;
+}
+td.email, td.owner {
+    max-width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+td.time {
+    min-width: 115px;
+}
+td.tags {
+    max-width: 75px;
+}
+div.asg {
+    border: 1px solid #ccc;
+    background-color: #eee;
+    border-radius: 4px;
+    min-height: 250px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+}
+div.asg .header {
+    padding: 15px;
+    color: #000;
+    border-bottom: 1px solid #fff;
+    font-size: 12px;
+    font-style: italic;
+}
+div.asg .header span {
+    font-weight: bold;
+    font-style: normal;
+}
+div.asg .body {
+    padding: 15px;
+    font-size: 12px;
+}
+div.asg div.details {
+    padding: 0;
+    margin: 0;
+}
+div.asg div.details hr {
+    margin: 5px 0 0 0;
+    border: 1px solid #ccc;
+}
+div.asg div.details span {
+    padding: 0;
+    margin: 0;
+}
+div.asg div.details span.detail-label {
+    font-weight: bold;
+}
+div.asg div.details span.detail-text {
+    text-align: right;
+}
+div.asg div.instance {
+    height: 7px;
+    width: 7px;
+    display: inline-block;
+    border: 1px solid #000;
+    margin-right: 5px;
+}
+div.instance.green {
+    background-color: #0aae09;
+}
+div.instance.ref {
+    background-color: #f00;
+}

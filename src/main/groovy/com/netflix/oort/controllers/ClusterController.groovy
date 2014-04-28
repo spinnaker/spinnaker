@@ -1,6 +1,7 @@
 package com.netflix.oort.controllers
 
 import com.netflix.frigga.Names
+import com.netflix.frigga.ami.AppVersion
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -15,7 +16,33 @@ class ClusterController {
 
   @RequestMapping(method = RequestMethod.GET)
   def list(@PathVariable("deployable") String deployable) {
-    getMultiRegionClusterList(deployable)
+    def map = DeployableController.Cacher.get().get(deployable)
+    def list = []
+    map.clusters.each { String cluster, Map obj ->
+      obj.each { String region, List<Map> asgs ->
+        asgs.each { Map asg ->
+          def resp = [name: asg.autoScalingGroupName, region: region, cluster: cluster, instances: asg.instances]
+
+          def image = getImage(asg.launchConfigurationName, region)
+          def buildVersion = image.tags.find { it.key == "appversion" }?.value
+          if (buildVersion) {
+            def props = AppVersion.parseName(buildVersion)?.properties
+            if (props) {
+              resp.buildInfo = ["buildNumber", "commit", "packageName", "buildJobName"].collectEntries {
+                [(it): props[it]]
+              }
+            }
+          }
+          list << resp
+        }
+      }
+    }
+    list
+  }
+
+  def getImage(String launchConfigName, String region) {
+    def launchConfig = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/launchConfigurations/$launchConfigName", Map).body
+    restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/images/$launchConfig.imageId", Map).body
   }
 
   @RequestMapping(value = "/{cluster}", method = RequestMethod.GET)

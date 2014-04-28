@@ -1,12 +1,37 @@
 <!DOCTYPE html>
 <html ng-app="app">
 <head>
-
+  <link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
 </head>
 <body>
-<div class="container" ng-view=""></div>
+<div class="navbar navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">
+        <img src="css/images/logo.png">
+        Asgard
+      </a>
+    </div>
+  </div>
+</div>
+<div class="navbar" id="globalnav" role="global">
+  <div class="container-fluid">
+    <ul class="nav navbar-nav">
+      <li><a href="#" id="app-nav">Apps</a></li>
+      <li><a href="#" id="cluster-nav">Clusters</a></li>
+    </ul>
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12" ng-view=""></div>
+  </div>
+</div>
 
+<script src="http://momentjs.com/downloads/moment.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular-route.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular-resource.min.js"></script>
@@ -40,14 +65,21 @@
       } else {
         return [];
       }
+    };
+
+    $scope.toDate = function(input) {
+      if (!input) {
+        return "";
+      }
+      return moment(parseInt(input)).fromNow();
     }
   }
 
   function ClusterController($scope, $routeParams, $resource) {
     var ClusterResource = $resource("/deployables/:deployable/clusters");
 
-    var clusters = ClusterResource.get({deployable: $routeParams.deployable}, function() {
-      $scope.clusters = clusters;
+    var asgs = ClusterResource.query({deployable: $routeParams.deployable}, function() {
+      $scope.asgs = asgs;
     });
 
   }

@@ -1,9 +1,43 @@
-<div ng-repeat='(cluster, value) in clusters'>
-  <span>{{cluster}}</span>
-  <div ng-repeat='(region, asgs) in value'>
-    <span>&nbsp;{{region}}</span>
-    <div ng-repeat='asg in asgs'>
-      <span>&nbsp;&nbsp;{{asg}}</span>
+<div ng-show="!asgs">
+  Loading...
+</div>
+<div ng-repeat='asg in asgs' ng-show="asgs" class="asg col-md-2">
+  <div class="header">
+    <span>{{asg.name}}</span>
+    <span class="pull-right">{{asg.region}}</span>
+  </div>
+  <div class="body">
+    <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Cluster</span>
+      <span class="col-sm-8 detail-text">{{asg.cluster}}</span>
+    </div>
+    <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Package</span>
+      <span class="col-sm-8 detail-text">{{asg.buildInfo.packageName}}</span>
+    </div>
+    <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Build Job</span>
+      <span class="col-sm-8 detail-text">{{asg.buildInfo.buildJobName}}</span>
+    </div>
+    <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Build Number</span>
+      <span class="col-sm-8 detail-text">{{asg.buildInfo.buildNumber}}</span>
+    </div>
+    <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Commit</span>
+      <span class="col-sm-8 detail-text">{{asg.buildInfo.commit}}</span>
+    </div>
+    <div class="col-sm-12 details">
+      <hr/>
+    </div>
+    <div class="col-sm-12 details">
+      <span class="col-sm-4 detail-label">Instances</span>
+      <span class="col-sm-8 detail-text"></span>
+    </div>
+    <div class="col-sm-12 details">
+      <div ng-repeat="instance in asg.instances" class="instance {{instance.healthStatus == 'Healthy' ? 'green' : 'red'}}">
+        &nbsp;
+      </div>
     </div>
   </div>
 </div>
