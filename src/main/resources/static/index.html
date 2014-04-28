@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+
+</head>
+<body>
+<div class="container" ng-view=""></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular-route.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular-resource.min.js"></script>
+
+<script>
+  var app = angular.module("app", ["ngRoute", "ngResource"]);
+  app.config(['$routeProvider', function($routeProvider) {
+    $routeProvider.when('/', {
+      templateUrl: 'partials/landing.html',
+      controller: LandingPageController
+    }).when('/:deployable/clusters', {
+      templateUrl: 'partials/clusters.html',
+      controller: ClusterController
+    }).otherwise('/')
+  }]);
+
+  function LandingPageController($scope, $location, $resource) {
+    var DeployableResource = $resource("/deployables");
+
+    var deployables = DeployableResource.get(function() {
+      $scope.deployables = deployables;
+    });
+
+    $scope.go = function(deployable) {
+      $location.path('/'+deployable+'/clusters');
+    };
+
+    $scope.splitTags = function(tags) {
+      if (tags) {
+        return tags.split(",");
+      } else {
+        return [];
+      }
+    }
+  }
+
+  function ClusterController($scope, $routeParams, $resource) {
+    var ClusterResource = $resource("/deployables/:deployable/clusters");
+
+    var clusters = ClusterResource.get({deployable: $routeParams.deployable}, function() {
+      $scope.clusters = clusters;
+    });
+
+  }
+
+</script>
+</body>
+</html>

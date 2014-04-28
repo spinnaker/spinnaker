@@ -1,0 +1,9 @@
+<div ng-repeat='(cluster, value) in clusters'>
+  <span>{{cluster}}</span>
+  <div ng-repeat='(region, asgs) in value'>
+    <span>&nbsp;{{region}}</span>
+    <div ng-repeat='asg in asgs'>
+      <span>&nbsp;&nbsp;{{asg}}</span>
+    </div>
+  </div>
+</div>

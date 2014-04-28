@@ -1,0 +1,40 @@
+
+<div ng-show="!deployables">
+  Loading...
+</div>
+<div ng-show="deployables">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>ASGs</th>
+        <th>Instances</th>
+        <th>Description</th>
+        <th>Group</th>
+        <th>Email</th>
+        <th>Owner</th>
+        <th>Create Time</th>
+        <th>Update Time</th>
+        <th>Tags</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="(deployable, value) in deployables">
+        <td><a href="#/{{deployable}}/clusters">{{deployable}}</a></td>
+        <td>{{value.asgCount}}</td>
+        <td>{{value.instanceCount}}</td>
+        <td>{{value.attributes.description}}</td>
+        <td>{{value.attributes.group}}</td>
+        <td>{{value.attributes.email}}</td>
+        <td>{{value.attributes.owner}}</td>
+        <td>{{value.attributes.createTs}}</td>
+        <td>{{value.attributes.updateTs}}</td>
+        <td>
+          <span ng-repeat="tag in splitTags(value.attributes.tags)">
+            {{tag}}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
