@@ -14,9 +14,6 @@ class AWSConnectionFactory {
 
     @Bean
     public AmazonSimpleDB manufacture(AWSCredentialsProvider provider) {
-        return new AmazonSimpleDBClient(provider
-//                new BasicAWSCredentials(
-//                System.properties["aws.key"], System.properties["aws.secret"])
-        );
+        return new AmazonSimpleDBClient(provider);
     }
 }
