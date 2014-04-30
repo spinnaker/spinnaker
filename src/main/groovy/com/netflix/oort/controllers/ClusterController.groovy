@@ -27,23 +27,19 @@ class ClusterController {
     }
   }
 
-  @RequestMapping(value = "/{cluster}/asgs/{asg}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{cluster}/asgs/{asg}/{region}", method = RequestMethod.GET)
   def getAsg(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
-             @PathVariable("asg") String asgName, HttpServletResponse response) {
+             @PathVariable("asg") String asgName, @PathVariable("region") String region, HttpServletResponse response) {
     def map = DeployableController.Cacher.get().get(deployable)
     if (map.clusters.containsKey(clusterName)) {
-      def cluster = map.clusters."$clusterName"
-      def asgDetails = cluster.collect { String region, List<Map> asgs ->
-        def found = asgs.find { it.autoScalingGroupName == asgName }
-        if (found) {
-          def converted = convertAsgMap(clusterName, region, found)
-          converted.asg = found
-          converted.instances = converted.instances.collect { getInstance(region, it.instanceId) }
-          converted
-        } else { null }
+      def asgs = map.clusters."$clusterName"."$region"
+      def found = asgs.find { it.autoScalingGroupName == asgName }
+      if (found) {
+        def converted = convertAsgMap(clusterName, region, found)
+        converted.asg = found
+        converted.instances = converted.instances.collect { getInstance(region, it.instanceId) }
+        return converted
       }
-      asgDetails.removeAll([null])
-      asgDetails?.getAt(0)
     } else {
       response.sendError 404
     }

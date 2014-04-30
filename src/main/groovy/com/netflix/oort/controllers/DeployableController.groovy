@@ -2,10 +2,13 @@ package com.netflix.oort.controllers
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.SelectRequest
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.frigga.ami.AppVersion
 import groovy.util.logging.Log4j
 import java.util.concurrent.*
 import java.util.concurrent.locks.ReentrantLock
+import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Component
 import org.springframework.util.StopWatch
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.RestTemplate
+import rx.schedulers.Schedulers
 
 @RestController
 @RequestMapping("/deployables")
@@ -20,7 +24,7 @@ class DeployableController {
   @RequestMapping(method = RequestMethod.GET)
   def list() {
     def cache = Cacher.get()
-    cache.inject([:]) { Map map, String deployable, Map v ->
+    cache.inject(new ConcurrentHashMap<>()) { Map map, String deployable, Map v ->
       if (!map.containsKey(deployable)) {
         map[deployable] = [instanceCount:0, asgCount:0, attributes: v.attributes]
       }
@@ -32,6 +36,26 @@ class DeployableController {
       }
       map
     }
+  }
+
+  @RequestMapping(value = "/{name}/images")
+  def getImages(@PathVariable("name") String name) {
+    def rt = new RestTemplate()
+
+    rx.Observable.from(["us-east-1", "us-west-1", "us-west-2", "eu-west-1"]).flatMap {
+      rx.Observable.from(it).observeOn(Schedulers.io()).map { String region ->
+        def list = rt.getForObject("http://bakery.test.netflix.net:7001/api/v1/${region}/bake/;package=${name};store_type=ebs;region=${region};vm_type=pv;base_os=ubuntu;base_label=release", List)
+        list.findAll { it.ami } collect {
+          def version = it.ami_name?.split('-')?.getAt(1..2)?.join('.')
+          [name: it.ami, region: region, version: version]
+        }
+      }
+    }.reduce([], { objs, obj ->
+      if (obj) {
+        objs << obj
+      }
+      objs
+    }).toBlockingObservable().first()?.flatten()
   }
 
   @Component
@@ -58,6 +82,9 @@ class DeployableController {
 
     @Scheduled(fixedRate = 30000l)
     void cacheClusters() {
+      if (firstRun) {
+        lock.lock()
+      }
       def request = new SelectRequest("select * from $database limit 2500")
       def result = amazonSimpleDB.select(request)
       def simpleDb = [:]
@@ -72,9 +99,6 @@ class DeployableController {
         }
       }
 
-      if (firstRun) {
-        lock.lock()
-      }
       def run = new ConcurrentHashMap()
       def stopwatch = new StopWatch()
       stopwatch.start()

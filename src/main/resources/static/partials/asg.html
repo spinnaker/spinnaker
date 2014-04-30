@@ -1,8 +1,8 @@
-<div class="btn-row col-md-12">
+<div class="btn-row col-md-12" ng-show="asg">
   <a href="#/{{deployable}}/clusters" class="btn btn-default" ng-show="cluster"><i class="fa fa-arrow-left"></i> Back to {{asg.cluster}}</a>
   <a href="#/" class="btn btn-default" ng-show="!cluster"><i class="fa fa-arrow-left"></i> Back to {{deployable}}</a>
   <a class="btn btn-warning" data-toggle="modal" data-target="#resizeModal"><i class="fa fa-expand"></i> Resize</a>
-  <a class="btn btn-danger" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Delete</a>
+  <a class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" ng-show="!asg.instances.length"><i class="fa fa-trash-o"></i> Delete</a>
 </div>
 <div ng-show="!asg">
   Loading...
@@ -15,7 +15,7 @@
     </li>
     <li>
       <span class="label label-primary">Region</span>
-      <span>{{asg.region}}</span>
+      <span>{{region}}</span>
     </li>
     <li>
       <span class="label label-primary">Type</span>

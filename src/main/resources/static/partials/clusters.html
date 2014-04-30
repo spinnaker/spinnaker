@@ -9,13 +9,13 @@
 </div>
 <div ng-repeat='asg in asgs' ng-show="asgs" class="asg col-md-2">
   <div class="header">
-    <span><a href="#/{{deployable}}/clusters/{{asg.cluster}}/asgs/{{asg.name}}">{{asg.name}}</a></span>
+    <span><a href="#/{{deployable}}/clusters/{{asg.cluster}}/asgs/{{asg.name}}/{{asg.region}}">{{asg.name}}</a></span>
     <span class="pull-right">{{asg.region}}</span>
   </div>
   <div class="body">
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Cluster</span>
-      <span class="col-sm-8 detail-text"><a href="#/{{deployable}}/clusters/{{asg.cluster}}" title="{{asg.cluster}}">{{asg.cluster}}</a></span>
+      <span class="col-sm-8 detail-text"><a href="#/{{deployable}}/clusters/{{asg.cluster}}/{{asg.region}}" title="{{asg.cluster}}">{{asg.cluster}}</a></span>
     </div>
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Package</span>

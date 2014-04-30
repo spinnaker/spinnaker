@@ -1,3 +1,6 @@
+<div class="btn-row col-md-12">
+  <a data-toggle="modal" data-target="#newDeploymentModal" class="btn btn-primary"><i class="fa fa-plus"></i> Quick Deploy</a>
+</div>
 <div ng-show="!deployables">
   Loading...
 </div>
@@ -37,3 +40,65 @@
     </tbody>
   </table>
 </div>
+<div id="newDeploymentModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Creating New Deployment</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+            <label for="deployable" class="col-sm-3 control-label">Name</label>
+            <div class="col-sm-9">
+              <input ng-model="deployable" id="deployable">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cluster" class="col-sm-3 control-label">Cluster Name</label>
+            <div class="col-sm-9">
+              <input ng-model="cluster" id="cluster">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-3 control-label">Cluster Size</label>
+            <div class="col-sm-9">
+              <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="minInstances" type="text">
+              <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="maxInstances" type="text">
+              <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="desiredInstances" type="text">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="pkg" class="col-sm-3 control-label">Package</label>
+            <div class="col-sm-9">
+              <input ng-model="pkg" id="pkg">
+            </div>
+          </div>
+          <div class="form-group" ng-show="!images && pkg">
+            <label for="img-btn" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+              <button id="img-btn" class="btn btn-primary" ng-show="!loading" ng-click="loading = true; updateImages()">Load Images for Package</button>
+              <span ng-show="loading"><i class="fa fa-spinner fa-spin"></i> Loading image list...</span>
+            </div>
+          </div>
+          <div class="form-group" ng-show="images">
+            <label for="image" class="col-sm-3 control-label">Images</label>
+            <div class="col-sm-9">
+              <select id="image" ng-model="chosenImages" ng-options="(c.name + ' / ' + c.version + ' / ' + c.region) for c in images" multiple>
+                <option value=""></option>
+              </select>
+            </div>
+          </div>
+          <div class="pull-right" ng-show="chosenImages">
+            <span class="label label-primary" style="margin-right: 10px;" ng-repeat="c in chosenImages">{{c.region}}</span>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" ng-click="deploy()">Deploy!</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
