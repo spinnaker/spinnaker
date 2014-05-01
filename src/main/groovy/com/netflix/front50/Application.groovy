@@ -134,7 +134,7 @@ class Application {
     }
 
     private boolean isColumnProperty(Field field) {
-        (field.modifiers == Modifier.PRIVATE) && (field.annotatedType.type == String.class)
+        (field.modifiers == Modifier.PRIVATE) && (field.genericType == String.class)
     }
 
     protected Map<String, String> allSetColumnProperties() {

@@ -1,5 +1,6 @@
 package com.netflix.front50;
 
+import com.netflix.appinfo.InstanceInfo;
 import com.netflix.front50.exception.NoPrimaryKeyException;
 import com.netflix.front50.exception.NotFoundException;
 import org.slf4j.Logger;
@@ -12,8 +13,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import com.netflix.appinfo.InstanceInfo;
-
 
 import java.util.Collection;
 
@@ -22,13 +21,10 @@ import java.util.Collection;
 @EnableAutoConfiguration
 @ComponentScan("com.netflix.front50")
 public class Front50Controller {
-
-    @Bean
-    public InstanceInfo.InstanceStatus instanceStatus() {
-        return InstanceInfo.InstanceStatus.UNKNOWN;
-    }
-
     static final Logger LOG = LoggerFactory.getLogger(Front50Controller.class);
+
+    @Autowired
+    Application application;
 
     public static void main(String[] args) {
         if (System.getProperty("netflix.environment") == null) {
@@ -37,8 +33,10 @@ public class Front50Controller {
         SpringApplication.run(Front50Controller.class, args);
     }
 
-    @Autowired
-    Application application;
+    @Bean
+    public InstanceInfo.InstanceStatus instanceStatus() {
+        return InstanceInfo.InstanceStatus.UNKNOWN;
+    }
 
     @RequestMapping(method = RequestMethod.PUT)
     @ResponseBody
