@@ -40,7 +40,7 @@
     </tbody>
   </table>
 </div>
-<div id="newDeploymentModal" class="modal fade">
+<div id="newDeploymentModal" class="modal fade" ng-controller="NewDeploymentController">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -56,13 +56,13 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="cluster" class="col-sm-3 control-label">Cluster Name</label>
+            <label for="stack" class="col-sm-3 control-label">Stack</label>
             <div class="col-sm-9">
-              <input ng-model="cluster" id="cluster">
+              <input ng-model="stack" id="stack">
             </div>
           </div>
           <div class="form-group">
-            <label class="col-sm-3 control-label">Cluster Size</label>
+            <label class="col-sm-3 control-label">Server Group Capacity</label>
             <div class="col-sm-9">
               <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="minInstances" type="text">
               <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="maxInstances" type="text">

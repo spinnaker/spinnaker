@@ -43,7 +43,7 @@
     $routeProvider.when('/', {
       templateUrl: 'partials/landing.html',
       controller: LandingPageController
-    }).when('/:deployable/clusters/:cluster?', {
+    }).when('/:deployable/clusters/:cluster?/:region?', {
       templateUrl: 'partials/clusters.html',
       controller: ClusterController
     }).when('/:deployable/clusters/:cluster/asgs/:asg/:region', {
@@ -55,11 +55,14 @@
 
   function LandingPageController($scope, $location, $resource) {
     var DeployableResource = $resource("/deployables");
-    var KatoResource = $resource("http://localhost:8501/ops");
 
-    var deployables = DeployableResource.get(function() {
-      $scope.deployables = deployables;
-    });
+    getDeployables();
+    setTimeout(getDeployables, 30000);
+    function getDeployables() {
+      var deployables = DeployableResource.get(function () {
+        $scope.deployables = deployables;
+      });
+    }
 
     $scope.go = function(deployable) {
       $location.path('/'+deployable+'/clusters');
@@ -79,6 +82,10 @@
       }
       return moment(parseInt(input)).fromNow();
     };
+  }
+
+  function NewDeploymentController($scope, $resource) {
+    var KatoResource = $resource("http://localhost:8501/ops");
 
     $scope.regions = [];
     $scope.deploy = function() {
@@ -100,11 +107,16 @@
         var image = $scope.chosenImages[i];
         var azs = {};
         azs[image.region] = [image.region+"a"];
-        var description = { basicAmazonDeployDescription: { application: $scope.deployable, amiName: image.name,
-          clusterName: $scope.cluster, instanceType: "t1.micro", availabilityZones: azs,
-          capacity: { min: parseInt($scope.minInstances), max: parseInt($scope.maxInstances), desired: parseInt($scope.desiredInstances) },
-          credentials: "test" }};
-        basicDeployments.push(description);
+        var description = { application: $scope.deployable, amiName: image.name,
+          stack: $scope.stack, instanceType: "t1.micro", securityGroups: ["nf-datacenter", "nf-infrastructure"],
+          availabilityZones: azs, credentials: "test" };
+        if ($scope.copyLastAsg) {
+          basicDeployments.push({ copyLastAsgDescription: description });
+        } else {
+          description.capacity = { min: parseInt($scope.minInstances), max: parseInt($scope.maxInstances),
+            desired: parseInt($scope.desiredInstances) };
+          basicDeployments.push({ basicAmazonDeploymentDescription: description });
+        }
       }
       KatoResource.save(basicDeployments, function() {
         $("#newDeploymentModal").modal("hide");
@@ -112,19 +124,25 @@
     }
   }
 
-  function ClusterController($scope, $routeParams, $resource) {
+  function ClusterController($scope, $routeParams, $resource, $timeout) {
     var ClusterResource = $resource("/deployables/:deployable/clusters/:cluster");
     $scope.deployable = $routeParams.deployable;
     $scope.cluster = $routeParams.cluster;
 
-    getAsgs();
-    setInterval(getAsgs, 10000);
-    function getAsgs() {
-      var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster}, function () {
-        $scope.asgs = asgs;
-      });
+    if ($routeParams.cluster) {
+      $scope.cluster = $routeParams.cluster;
     }
 
+    if ($routeParams.region) {
+      $scope.region = $routeParams.region;
+    }
+
+    (function tick() {
+      var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster, region: $routeParams.region}, function () {
+        $scope.asgs = asgs;
+        $timeout(tick, 10000);
+      });
+    })();
 
     $scope.toAgo = function(input) {
       if (!input) {
@@ -136,6 +154,19 @@
     $scope.regions = [];
     $scope.createAsg = function() {
       console.log($scope.regions);
+    };
+
+    var KatoResource = $resource("http://localhost:8501/ops");
+    $scope.shrink = function() {
+      var regions = [];
+      for (var i=0;i<$scope.asgs.length;i++) {
+        var asg = $scope.asgs[i];
+        regions.push(asg.region);
+      }
+      var description = { shrinkClusterDescription: { application: $scope.deployable, clusterName: $scope.cluster, regions: regions, credentials: "test" }};
+      KatoResource.save([description], function() {
+        $("#shrinkClusterModal").modal("hide");
+      });
     }
   }
 
@@ -174,8 +205,9 @@
     $scope.doAsgDelete = function(asg, region) {
       var description = { deleteAsgDescription: { asgName: asg, region: region, credentials: "test" }};
       KatoResource.save([description], function() {
-        $("#deleteModal").modal("hide");
-        $location.path("/"+$scope.deployable+"/clusters");
+        $("#deleteModal").modal("hide", function() {
+          $location.path("/" + $scope.deployable + "/clusters");
+        });
       });
     }
   }

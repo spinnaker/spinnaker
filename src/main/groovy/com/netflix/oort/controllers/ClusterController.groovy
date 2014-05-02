@@ -18,10 +18,17 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{cluster}", method = RequestMethod.GET)
-  def get(@PathVariable("deployable") String deployable, @PathVariable("cluster") String cluster, HttpServletResponse response) {
+  def get(@PathVariable("deployable") String deployable, @PathVariable("cluster") String cluster,
+          @RequestParam(value = "region", required = false) String region, HttpServletResponse response) {
     def map = DeployableController.Cacher.get().get(deployable)
     if (map.clusters.containsKey(cluster)) {
-      toAsgList([clusters: [(cluster): map.clusters."$cluster"]])
+      def target
+      if (region && map.clusters."$cluster".containsKey(region)) {
+        target = [clusters: [(cluster): [(region): map.clusters."$cluster"."$region"]]]
+      } else {
+        target = [clusters: [(cluster): map.clusters."$cluster"]]
+      }
+      toAsgList(target)
     } else {
       response.sendError 404
     }
