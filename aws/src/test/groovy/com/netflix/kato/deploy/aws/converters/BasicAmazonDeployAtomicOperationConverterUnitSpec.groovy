@@ -22,7 +22,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
   void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {
     setup:
-      def input = [application: "asgard", amiName: "ami-000", clusterName: "asgard-test", instanceType: "m3.medium",
+      def input = [application: "asgard", amiName: "ami-000", stack: "asgard-test", instanceType: "m3.medium",
                    availabilityZones: ["us-west-1": ["us-west-1a"]], capacity: [min: 1, max: 2, desired: 5],
                    credentials: "test"]
 

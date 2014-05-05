@@ -52,7 +52,7 @@ class AutoScalingWorker {
     }
 
     task.updateStatus AWS_PHASE, "Looking up security groups..."
-    securityGroups = getSecurityGroup(securityGroups as String[])
+    securityGroups = getSecurityGroupIds(securityGroups as String[])
 
     task.updateStatus AWS_PHASE,"Beginning ASG deployment."
     securityGroups << packageSecurityGroup
@@ -108,10 +108,10 @@ class AutoScalingWorker {
   }
 
   String getSecurityGroupForApplication() {
-    getSecurityGroup([application] as String[])?.getAt(0)
+    getSecurityGroupIds([application] as String[])?.getAt(0)
   }
 
-  private List<String> getSecurityGroup(String...names) {
+  List<String> getSecurityGroupIds(String...names) {
     DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest().withGroupNames(names)
     try {
       DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups(request)

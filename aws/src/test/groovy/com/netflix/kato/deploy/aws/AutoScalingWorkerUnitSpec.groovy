@@ -20,6 +20,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
       mockAutoScalingWorker.deploy()
 
     then:
+      1 * mockAutoScalingWorker.getSecurityGroupIds(_) >> ["sg-5678"]
       1 * mockAutoScalingWorker.getSecurityGroupForApplication() >> "sg-1234"
       1 * mockAutoScalingWorker.getAncestorAsg() >> null
       1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
@@ -37,6 +38,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
       mockAutoScalingWorker.deploy()
 
     then:
+      1 * mockAutoScalingWorker.getSecurityGroupIds(_) >> ["sg-5678"]
       1 * mockAutoScalingWorker.getUserData(_, _) >> null
       1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
       1 * mockAutoScalingWorker.getSecurityGroupForApplication() >> "sg-1234"
@@ -46,7 +48,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
       1 * mockAutoScalingWorker.getSecurityGroupsForLaunchConfiguration("asgard-test-v000-launchConfigName") >> {
         ['sg-5678']
       }
-      1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234']) >> {
+      1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> {
         'launchConfigName'
       }
       1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
@@ -60,12 +62,13 @@ class AutoScalingWorkerUnitSpec extends Specification {
       mockAutoScalingWorker.deploy()
 
     then:
+      1 * mockAutoScalingWorker.getSecurityGroupIds(_) >> ["sg-5678"]
       1 * mockAutoScalingWorker.getUserData(_, _) >> null
       1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
       1 * mockAutoScalingWorker.getSecurityGroupForApplication() >> null
       1 * mockAutoScalingWorker.createSecurityGroup() >> { "sg-1234" }
       1 * mockAutoScalingWorker.getAncestorAsg() >> null
-      1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234']) >> { "launchConfigName" }
+      1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> { "launchConfigName" }
       1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 }

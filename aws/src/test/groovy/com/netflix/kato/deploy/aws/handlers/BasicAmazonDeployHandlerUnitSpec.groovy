@@ -1,5 +1,6 @@
 package com.netflix.kato.deploy.aws.handlers
 
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.kato.data.task.Task
@@ -41,7 +42,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       StaticAmazonClients.metaClass.'static'.getAutoScaling = { String accessId, String secretKey, String region -> Mock(AmazonAutoScaling) }
       def description = new BasicAmazonDeployDescription()
       description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-      description.credentials = new AmazonCredentials("foo", "bar", "baz")
+      description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
 
     when:
       def results = handler.handle(description)

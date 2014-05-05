@@ -1,5 +1,6 @@
 package com.netflix.kato.deploy.aws.ops
 
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.netflix.kato.data.task.Task
@@ -20,14 +21,14 @@ class ShrinkClusterAtomicOperationUnitSpec extends Specification {
   void "operation looks up unused asgs and deletes them"() {
     setup:
       def mockAutoScaling = Mock(AmazonAutoScaling)
-      StaticAmazonClients.metaClass.'static'.getAutoScaling = { String accessId, String secretKey, String region ->
+      StaticAmazonClients.metaClass.'static'.getAutoScaling = { AmazonCredentials credentials, String region ->
         mockAutoScaling
       }
       def description = new ShrinkClusterDescription()
       description.application = "asgard"
       description.clusterName = "asgard-test"
       description.regions = ['us-west-1']
-      description.credentials = new AmazonCredentials("foo", "bar", "baz")
+      description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
       def inactiveClusterName = "asgard-test-v000"
       def rt = Mock(RestTemplate)
       def eddaAsgUrl = "http://entrypoints-v2.us-west-1.baz.netflix.net:7001/REST/v2/aws/autoScalingGroups"

@@ -1,5 +1,6 @@
 package com.netflix.kato.deploy.aws.ops
 
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.kato.data.task.Task
@@ -18,11 +19,11 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
   void "operation invokes update to autoscaling group"() {
     setup:
       def mockAutoScaling = Mock(AmazonAutoScaling)
-      StaticAmazonClients.metaClass.'static'.getAutoScaling = { String accessId, String secretKey, String region ->
+      StaticAmazonClients.metaClass.'static'.getAutoScaling = { AmazonCredentials credentials, String region ->
         mockAutoScaling
       }
       def description = new ResizeAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
-      description.credentials = new AmazonCredentials("foo", "bar", "baz")
+      description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
       description.capacity.min = 1
       description.capacity.max = 2
       description.capacity.desired = 5

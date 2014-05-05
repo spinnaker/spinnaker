@@ -1,5 +1,6 @@
 package com.netflix.kato.deploy.aws.ops
 
+import com.amazonaws.auth.AWSCredentials
 import com.netflix.kato.deploy.aws.AutoScalingWorker
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.kato.deploy.aws.handlers.BasicAmazonDeployHandler
@@ -12,7 +13,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     setup:
       def description = new BasicAmazonDeployDescription(application: "asgard")
       description.availabilityZones = ['us-west-1': []]
-      description.credentials = new AmazonCredentials("foo", "bar", "baz")
+      description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
       AutoScalingWorker.metaClass.getAncestorAsg = { [minSize: 1, maxSize: 2, desiredCapacity: 5] }
       List<BasicAmazonDeployDescription> descriptions = []
       BasicAmazonDeployHandler.metaClass.handle = { BasicAmazonDeployDescription desc -> descriptions << desc }

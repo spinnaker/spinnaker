@@ -22,7 +22,7 @@ class CopyLastAsgAtomicOperationConverterUnitSpec extends Specification {
 
   void "copyLastAsgDescription type returns BasicAmazonDeployDescription and CopyLastAsgAtomicOperation"() {
     setup:
-      def input = [application: "asgard", amiName: "ami-000", clusterName: "asgard-test", instanceType: "m3.medium",
+      def input = [application: "asgard", amiName: "ami-000", stack: "asgard-test", instanceType: "m3.medium",
                    availabilityZones: ["us-west-1": ["us-west-1a"]], credentials: "test"]
 
     when:
