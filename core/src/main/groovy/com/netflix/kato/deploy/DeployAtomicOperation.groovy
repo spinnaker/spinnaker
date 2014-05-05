@@ -34,7 +34,7 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
     task.updateStatus TASK_PHASE, "Found handler: ${deployHandler.getClass().simpleName}"
 
     task.updateStatus TASK_PHASE, "Invoking Handler."
-    def deploymentResult = deployHandler.handle(description)
+    def deploymentResult = deployHandler.handle(description, priorOutputs)
 
     task.updateStatus TASK_PHASE, "Server Groups: ${deploymentResult.serverGroupNames} created."
 

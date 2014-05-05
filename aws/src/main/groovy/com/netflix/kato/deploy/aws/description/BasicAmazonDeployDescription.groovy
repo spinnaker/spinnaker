@@ -9,7 +9,8 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String amiName
   String stack
   String instanceType
-  List<String> securityGroups = []
+  List<String> loadBalancerNames
+  List<String> securityGroups
   Map<String, List<String>> availabilityZones = [:]
   Capacity capacity = new Capacity()
 

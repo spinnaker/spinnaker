@@ -22,7 +22,7 @@ class DeployAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * deployHandlerRegistry.findHandler(_) >> testDeployHandler
-      1 * testDeployHandler.handle(_) >> { Mock(DeploymentResult) }
+      1 * testDeployHandler.handle(_, _) >> { Mock(DeploymentResult) }
   }
 
   void "exception is thrown when handler doesnt exist in registry"() {

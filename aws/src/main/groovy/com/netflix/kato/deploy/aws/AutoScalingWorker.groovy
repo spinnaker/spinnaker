@@ -26,6 +26,7 @@ class AutoScalingWorker {
   private String stack
   private String ami
   private String instanceType
+  private List<String> loadBalancers
   private List<String> securityGroups
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
@@ -157,6 +158,7 @@ class AutoScalingWorker {
         .withDefaultCooldown(10)
         .withHealthCheckGracePeriod(600)
         .withAvailabilityZones(availabilityZones)
+        .withLoadBalancerNames(loadBalancers)
     autoScaling.createAutoScalingGroup(request)
 
     asgName

@@ -14,9 +14,10 @@ public interface DeployHandler<T> {
    * implementation of {@link DeploymentResult}
    *
    * @param description
+   * @param outputs from prior operations
    * @return deployment result object
    */
-  DeploymentResult handle(T description)
+  DeploymentResult handle(T description, List priorOutputs)
 
   /**
    * Used to determine if this handler is suitable for processing the supplied description object.

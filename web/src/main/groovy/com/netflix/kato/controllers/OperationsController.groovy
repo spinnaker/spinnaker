@@ -20,7 +20,10 @@ class OperationsController {
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = requestBody.collect { Map<String, Map> input ->
       input.collect { k, v ->
-        AtomicOperationConverter converter = (AtomicOperationConverter) applicationContext.getBean(k)
+        AtomicOperationConverter converter = null
+        try {
+          converter = (AtomicOperationConverter) applicationContext.getBean(k)
+        } catch (IGNORE) {}
         if (!converter) {
           throw new AtomicOperationNotFoundException(k)
         }
