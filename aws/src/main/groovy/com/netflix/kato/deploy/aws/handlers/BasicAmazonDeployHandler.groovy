@@ -40,18 +40,19 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       String region = entry.key
       List<String> availabilityZones = entry.value
 
-      def amazonEC2 = getAmazonEC2(description.credentials.accessId, description.credentials.secretKey, region)
-      def autoScaling = getAutoScaling(description.credentials.accessId, description.credentials.secretKey, region)
+      def amazonEC2 = getAmazonEC2(description.credentials, region)
+      def autoScaling = getAutoScaling(description.credentials, region)
 
       def autoScalingWorker = new AutoScalingWorker(
           application: description.application,
           region: region,
           environment: description.credentials.environment,
-          clusterName: description.clusterName,
+          stack: description.stack,
           ami: description.amiName,
           minInstances: description.capacity.min,
           maxInstances: description.capacity.max,
           desiredInstances: description.capacity.desired,
+          securityGroups: description.securityGroups,
           instanceType: description.instanceType,
           availabilityZones: availabilityZones,
           amazonEC2: amazonEC2,

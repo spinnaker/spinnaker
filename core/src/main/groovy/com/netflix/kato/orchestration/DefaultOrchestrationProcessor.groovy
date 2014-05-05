@@ -46,8 +46,8 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       OrchestrationProcessor orchestrationProcessor = new DefaultOrchestrationProcessor(atomicOperations)
       try {
         orchestrationProcessor.process()
-        task.complete()
         task.updateStatus(TASK_PHASE, "Orchestration is complete.")
+        task.complete()
       } catch (TimeoutException IGNORE) {
         task.updateStatus "INIT", "Orchestration timed out."
         task.fail()

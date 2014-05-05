@@ -1,7 +1,12 @@
-apply plugin: 'idea'
+buildscript { 
+  repositories { maven { url 'http://artifacts.netflix.com/build-gradle' } }
+  dependencies {
+      classpath 'com.netflix.nebula:nebula-publishing-plugin:1.9.6'
+      classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3'
+  }
+}
 
-group = "com.netflix.kato"
-version = "0.1-SNAPSHOT"
+apply plugin: 'idea'
 
 ext {
   springBootVersion = "1.0.1.RELEASE"
@@ -10,13 +15,41 @@ ext {
 subprojects {
   apply plugin: 'idea'
   apply plugin: 'groovy'
+  apply plugin: 'nebula-publishing'
+  apply plugin: 'nebula-source-jar'
+  apply plugin: 'nebula-javadoc-jar'
+  apply plugin: 'artifactory'
+
+  group = "com.netflix.kato"
+  version = "1.0-SNAPSHOT"
+
+
+  artifactory {
+    contextUrl = 'http://artifacts.netflix.com/'
+    publish {
+      contextUrl = 'http://artifacts.netflix.com/'
+      repository {
+        repoKey = 'gradle-netflix-local'
+        username = project.artifactoryUsername
+        password = project.artifactoryPassword
+      }
+      defaults {
+        mavenDescriptor = 'build/publications/mavenJava/pom-default.xml'
+      }
+    }
+  }
 
   repositories {
-    jcenter()
-    maven { url "http://repo.spring.io/repo" }
+    maven { url 'http://artifacts.netflix.com/build-gradle' }
+    maven { url 'http://repo.spring.io/repo' }
   }
 
   dependencies {
     compile "org.codehaus.groovy:groovy-all:2.3.0-beta-2"
   }
+
+  tasks.artifactoryPublish.dependsOn('generatePomFileForMavenJavaPublication')
+  tasks.publish.dependsOn('artifactoryPublish')
 }
+
+

@@ -1,5 +1,6 @@
 package com.netflix.kato.security.aws
 
+import com.amazonaws.auth.AWSCredentialsProvider
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.kato.security.NamedAccountCredentials
 import javax.xml.bind.annotation.XmlTransient
@@ -11,7 +12,7 @@ class AmazonNamedAccountCredentials implements NamedAccountCredentials<AmazonCre
   @Transient
   final AmazonCredentials credentials
 
-  AmazonNamedAccountCredentials(String accessId, String secretKey, String environment) {
-    this.credentials = new AmazonCredentials(accessId, secretKey, environment)
+  AmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment) {
+    this.credentials = new AmazonCredentials(provider.credentials, environment)
   }
 }

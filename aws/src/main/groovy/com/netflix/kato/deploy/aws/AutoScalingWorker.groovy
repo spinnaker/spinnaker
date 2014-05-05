@@ -9,6 +9,7 @@ import com.netflix.frigga.Names
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.aws.userdata.UserDataProvider
+import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 import org.springframework.web.client.RestTemplate
 
@@ -22,9 +23,10 @@ class AutoScalingWorker {
   private String application
   private String region
   private String environment
-  private String clusterName
+  private String stack
   private String ami
   private String instanceType
+  private List<String> securityGroups
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
@@ -49,7 +51,11 @@ class AutoScalingWorker {
       packageSecurityGroup = createSecurityGroup()
     }
 
+    task.updateStatus AWS_PHASE, "Looking up security groups..."
+    securityGroups = getSecurityGroup(securityGroups as String[])
+
     task.updateStatus AWS_PHASE,"Beginning ASG deployment."
+    securityGroups << packageSecurityGroup
     Map ancestorAsg = ancestorAsg
     Integer nextSequence
     if (ancestorAsg) {
@@ -61,6 +67,7 @@ class AutoScalingWorker {
       if (!ancestorSecurityGroups.contains(packageSecurityGroup)) {
         ancestorSecurityGroups << packageSecurityGroup
       }
+      securityGroups.addAll ancestorSecurityGroups
     } else {
       nextSequence = 0
     }
@@ -70,7 +77,7 @@ class AutoScalingWorker {
 
     def userData = getUserData(asgName, launchConfigName)
     task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
-    createLaunchConfiguration(launchConfigName, userData, [packageSecurityGroup])
+    createLaunchConfiguration(launchConfigName, userData, securityGroups?.unique())
     task.updateStatus AWS_PHASE, "Deploying ASG."
 
     createAutoScalingGroup(asgName, launchConfigName)
@@ -101,10 +108,14 @@ class AutoScalingWorker {
   }
 
   String getSecurityGroupForApplication() {
-    DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest().withGroupNames(application)
+    getSecurityGroup([application] as String[])?.getAt(0)
+  }
+
+  private List<String> getSecurityGroup(String...names) {
+    DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest().withGroupNames(names)
     try {
       DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups(request)
-      return result.securityGroups ? result.securityGroups.first().groupId : null
+      result.securityGroups*.groupId
     } catch (IGNORE) {
       return null
     }
@@ -125,6 +136,7 @@ class AutoScalingWorker {
         .withUserData(userData)
         .withInstanceType(instanceType)
         .withSecurityGroups(securityGroups)
+        .withKeyName("nf-test-keypair-a")
     autoScaling.createLaunchConfiguration(request)
 
     name
@@ -132,7 +144,7 @@ class AutoScalingWorker {
 
   String getAutoScalingGroupName(Integer sequence) {
     def pushVersion = String.format("v%03d", sequence)
-    "${application}-${clusterName?.replaceAll("$application-", "")}-${pushVersion}"
+    "${application}-${stack?.replaceAll("$application-", "")}-${pushVersion}"
   }
 
   String createAutoScalingGroup(String asgName, String launchConfigurationName) {
@@ -151,9 +163,10 @@ class AutoScalingWorker {
   }
 
   String getUserData(String asgName, String launchConfigName) {
-    userDataProviders.collect { udp ->
+    def data = userDataProviders.collect { udp ->
       udp.getUserData(asgName, launchConfigName, region)
     }?.join("\n")
+    data ? new String(Base64.encodeBase64(data?.bytes)) : null
   }
 
 }

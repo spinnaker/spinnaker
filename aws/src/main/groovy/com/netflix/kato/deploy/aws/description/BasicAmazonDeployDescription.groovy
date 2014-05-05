@@ -7,8 +7,9 @@ import groovy.transform.AutoClone
 class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription implements DeployDescription {
   String application
   String amiName
-  String clusterName
+  String stack
   String instanceType
+  List<String> securityGroups = []
   Map<String, List<String>> availabilityZones = [:]
   Capacity capacity = new Capacity()
 

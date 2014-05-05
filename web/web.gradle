@@ -1,9 +1,34 @@
+buildscript { 
+  repositories { 
+    maven { url 'http://artifacts.netflix.com/build-gradle' } 
+  }
+  dependencies {
+      classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+  }
+}
+
+apply plugin: 'spring-boot'
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
 dependencies {
   compile project(":core")
   compile project(":aws")
+  compile "com.netflix.eureka:eureka-client:1.1.128"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
-  compile "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
   testCompile "cglib:cglib-nodep:3.1"
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+  runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:1.0-SNAPSHOT"
 }
+
+run {
+  systemProperties['netflix.environment'] = "test"
+  systemProperties['aws.accessKeyId'] = project.accessKeyId
+  systemProperties['aws.secretKey'] = project.secretKey
+}
+
+tasks.bootRepackage.enabled = false
