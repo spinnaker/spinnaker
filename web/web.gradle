@@ -24,11 +24,3 @@ dependencies {
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
   runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:1.0-SNAPSHOT"
 }
-
-run {
-  systemProperties['netflix.environment'] = "test"
-  systemProperties['aws.accessKeyId'] = project.accessKeyId
-  systemProperties['aws.secretKey'] = project.secretKey
-}
-
-tasks.bootRepackage.enabled = false
