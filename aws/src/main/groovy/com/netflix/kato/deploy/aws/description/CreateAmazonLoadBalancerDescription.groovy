@@ -1,6 +1,6 @@
 package com.netflix.kato.deploy.aws.description
 
-class CreateLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
+class CreateAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
   String clusterName
   Map<String, List<String>> availabilityZones
   List<Listener> listeners

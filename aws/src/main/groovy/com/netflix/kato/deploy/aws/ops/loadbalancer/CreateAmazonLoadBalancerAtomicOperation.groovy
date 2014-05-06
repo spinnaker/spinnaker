@@ -4,30 +4,30 @@ import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerReque
 import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
-import com.netflix.kato.deploy.aws.description.CreateLoadBalancerDescription
+import com.netflix.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import com.netflix.kato.orchestration.AtomicOperation
 
 
 import static com.netflix.kato.deploy.aws.StaticAmazonClients.getAmazonElasticLoadBalancing
 
-class CreateLoadBalancerAtomicOperation implements AtomicOperation<CreateLoadBalancerResult> {
+class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateAmazonLoadBalancerResult> {
   private static final String BASE_PHASE = "CREATE_ELB"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  private final CreateLoadBalancerDescription description
+  private final CreateAmazonLoadBalancerDescription description
 
-  CreateLoadBalancerAtomicOperation(CreateLoadBalancerDescription description) {
+  CreateAmazonLoadBalancerAtomicOperation(CreateAmazonLoadBalancerDescription description) {
     this.description = description
   }
 
   @Override
-  CreateLoadBalancerResult operate(List priorOutputs) {
+  CreateAmazonLoadBalancerResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing load balancer creation..."
 
-    def operationResult = new CreateLoadBalancerResult(loadBalancers: [:])
+    def operationResult = new CreateAmazonLoadBalancerResult(loadBalancers: [:])
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       def region = entry.key
       def availabilityZones = entry.value
@@ -39,7 +39,7 @@ class CreateLoadBalancerAtomicOperation implements AtomicOperation<CreateLoadBal
       request.withAvailabilityZones(availabilityZones)
 
       def listeners = []
-      for (CreateLoadBalancerDescription.Listener listener : description.listeners) {
+      for (CreateAmazonLoadBalancerDescription.Listener listener : description.listeners) {
         def awsListener = new Listener()
         awsListener.withLoadBalancerPort(listener.externalPort).withInstancePort(listener.internalPort)
 
@@ -58,7 +58,7 @@ class CreateLoadBalancerAtomicOperation implements AtomicOperation<CreateLoadBal
       task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}..."
       def result = client.createLoadBalancer(request)
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}."
-      operationResult.loadBalancers[region] = new CreateLoadBalancerResult.LoadBalancer(loadBalancerName, result.DNSName)
+      operationResult.loadBalancers[region] = new CreateAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, result.DNSName)
     }
     task.updateStatus BASE_PHASE, "Done deploying load balancers."
     operationResult

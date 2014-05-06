@@ -5,7 +5,7 @@ import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.*
 import com.netflix.kato.deploy.aws.AutoScalingWorker
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.kato.deploy.aws.ops.loadbalancer.CreateLoadBalancerResult
+import com.netflix.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,8 +42,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       List<String> availabilityZones = entry.value
 
       // Get the list of load balancers that were created as part of this conglomerate job to apply to the ASG.
-      List<CreateLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<CreateLoadBalancerResult.LoadBalancer>)priorOutputs.findAll {
-        it instanceof CreateLoadBalancerResult }?.loadBalancers?.getAt(region)
+      List<CreateAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<CreateAmazonLoadBalancerResult.LoadBalancer>)priorOutputs.findAll {
+        it instanceof CreateAmazonLoadBalancerResult }?.loadBalancers?.getAt(region)
 
       def amazonEC2 = getAmazonEC2(description.credentials, region)
       def autoScaling = getAutoScaling(description.credentials, region)

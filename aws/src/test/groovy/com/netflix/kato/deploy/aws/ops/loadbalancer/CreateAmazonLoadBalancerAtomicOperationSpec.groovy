@@ -6,11 +6,11 @@ import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerReque
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.aws.StaticAmazonClients
-import com.netflix.kato.deploy.aws.description.CreateLoadBalancerDescription
+import com.netflix.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import com.netflix.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
-class CreateLoadBalancerAtomicOperationSpec extends Specification {
+class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -22,17 +22,17 @@ class CreateLoadBalancerAtomicOperationSpec extends Specification {
       StaticAmazonClients.metaClass.'static'.getAmazonElasticLoadBalancing = { AmazonCredentials credentials, String region ->
         mockClient
       }
-      def description = new CreateLoadBalancerDescription(clusterName: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
+      def description = new CreateAmazonLoadBalancerDescription(clusterName: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
           listeners: [
-              new CreateLoadBalancerDescription.Listener(
-                  externalProtocol: CreateLoadBalancerDescription.Listener.ListenerType.HTTP,
+              new CreateAmazonLoadBalancerDescription.Listener(
+                  externalProtocol: CreateAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
                   externalPort: 80,
                   internalPort: 8501
               )
           ],
           credentials: new AmazonCredentials(Mock(AWSCredentials), "bar")
       )
-      def operation = new CreateLoadBalancerAtomicOperation(description)
+      def operation = new CreateAmazonLoadBalancerAtomicOperation(description)
 
     when:
       def result = operation.operate([])
