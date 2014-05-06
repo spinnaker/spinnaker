@@ -36,9 +36,6 @@ sourceSets {
     }
 }
 
-//test.dependsOn vagrantUp
-//test.finalizedBy vagrantDestroy
-
 configurations.all {
     resolutionStrategy {
         force 'org.apache.log4j:log4j:1.2.17'
@@ -59,19 +56,17 @@ configurations.all {
 }
 
 run {
-    systemProperty 'aws.secret', awsSecret
-    systemProperty 'aws.key', awsKey
+    systemProperty 'aws.secret', project.hasProperty('awsSecret') ? project.awsSecret : null
+    systemProperty 'aws.key', project.hasProperty('awsKey') ? project.awsKey : null
 }
 
 repositories {
     maven { url 'http://artifacts.netflix.com/build-gradle' }
-    //mavenCentral()
-    //maven { url 'http://jcenter.bintray.com' }
 }
 
 test {
-    systemProperty 'aws.secret', awsSecret
-    systemProperty 'aws.key', awsKey
+    systemProperty 'aws.secret', project.hasProperty('awsSecret') ? project.awsSecret : null
+    systemProperty 'aws.key', project.hasProperty('awsKey') ? project.awsKey : null
     systemProperty 'env', 'local-test'
     testLogging {
         exceptionFormat = 'full'
@@ -88,4 +83,8 @@ dependencies {
     testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
     testCompile 'org.springframework.boot:spring-boot-starter-test:1.0.1.RELEASE'
     runtime 'com.netflix.asgard.netflixplatform:netflixplatform:1.0-SNAPSHOT'
+}
+
+nebula {
+    readyForJava7 = true
 }

@@ -1,10 +1,16 @@
 package com.netflix.front50
 
+import co.freeside.betamax.Betamax
+import co.freeside.betamax.Recorder
+import co.freeside.betamax.httpclient.BetamaxHttpsSupport
+import co.freeside.betamax.httpclient.BetamaxRoutePlanner
+import com.amazonaws.ClientConfiguration
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient
 import com.amazonaws.services.simpledb.model.*
 import com.jayway.awaitility.groovy.AwaitilitySupport
+import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.concurrent.TimeUnit.SECONDS
@@ -14,22 +20,33 @@ import static java.util.concurrent.TimeUnit.SECONDS
  */
 @Mixin(AwaitilitySupport)
 class CreateUpdateSimpleDBTest extends Specification {
-    static AmazonSimpleDB client
+    static AmazonSimpleDBClient client
     final static String DOMAIN = "TEST_RESOURCE_REGISTRY_ONLY"
 
+    @Rule
+    Recorder recorder = new Recorder()
+
+    @Betamax(tape = 'aws-simpledb-1')
     void setupSpec() {
         client = new AmazonSimpleDBClient(new BasicAWSCredentials(
                 System.properties["aws.key"], System.properties["aws.secret"]
-        ))
+        ), new ClientConfiguration().withProxyHost('127.0.0.1').withProxyPort(5555))
+
+        BetamaxRoutePlanner.configure(client.client.httpClient)
+        BetamaxHttpsSupport.configure(client.client.httpClient)
+
         client.createDomain(new CreateDomainRequest(DOMAIN))
     }
 
+    @Betamax(tape = 'aws-simpledb-1')
     def cleanupSpec() {
         client.deleteDomain(new DeleteDomainRequest(DOMAIN))
     }
+
     /**
      * puts 1 row into database before each test
      */
+    @Betamax(tape = 'aws-simpledb-1')
     void setup() {
         def input = [
                 "group"      : "tst-group",
@@ -48,6 +65,7 @@ class CreateUpdateSimpleDBTest extends Specification {
                 withItemName("TEST_APP").withAttributes(attributes))
     }
 
+    @Betamax(tape = 'aws-simpledb-1')
     void 'updates should work by setting true to replaceable attribute'() {
         Collection<ReplaceableAttribute> attributes = []
         attributes << new ReplaceableAttribute('owner', 'aglover@netflix.com', true)
@@ -66,6 +84,7 @@ class CreateUpdateSimpleDBTest extends Specification {
         }
     }
 
+    @Betamax(tape = 'aws-simpledb-1')
     void 'create should result in a new row'() {
         def testData = [
                 ["name": "SAMPLEAPP", "attrs":
@@ -96,6 +115,7 @@ class CreateUpdateSimpleDBTest extends Specification {
         notThrown(Exception)
     }
 
+    @Betamax(tape = 'aws-simpledb-1')
     void 'create throw an error if an attribute is null and not result in a new row'() {
         def testData = [
                 ["name": "SAMPLEAPP", "attrs":
@@ -122,5 +142,4 @@ class CreateUpdateSimpleDBTest extends Specification {
         then:
         thrown(Exception)
     }
-
 }
