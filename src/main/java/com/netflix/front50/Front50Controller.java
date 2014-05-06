@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -20,16 +22,21 @@ import java.util.Collection;
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan("com.netflix.front50")
-public class Front50Controller {
+public class Front50Controller extends SpringBootServletInitializer {
     static final Logger LOG = LoggerFactory.getLogger(Front50Controller.class);
 
     @Autowired
     Application application;
 
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        initializeEnv();
+        application.sources(Front50Controller.class);
+        return super.configure(application);
+    }
+
     public static void main(String[] args) {
-        if (System.getProperty("netflix.environment") == null) {
-            System.setProperty("netflix.environment", "test");
-        }
+        initializeEnv();
         SpringApplication.run(Front50Controller.class, args);
     }
 
@@ -104,6 +111,11 @@ public class Front50Controller {
         }
     }
 
+    private static void initializeEnv() {
+        if (System.getProperty("netflix.environment") == null) {
+            System.setProperty("netflix.environment", "test");
+        }
+    }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Applications must have a name")
     class ApplicationWithoutNameException extends RuntimeException {
