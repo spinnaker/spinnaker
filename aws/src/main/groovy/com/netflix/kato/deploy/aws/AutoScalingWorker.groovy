@@ -166,7 +166,7 @@ class AutoScalingWorker {
 
   String getUserData(String asgName, String launchConfigName) {
     def data = userDataProviders.collect { udp ->
-      udp.getUserData(asgName, launchConfigName, region)
+      udp.getUserData(asgName, launchConfigName, region, environment)
     }?.join("\n")
     data ? new String(Base64.encodeBase64(data?.bytes)) : null
   }

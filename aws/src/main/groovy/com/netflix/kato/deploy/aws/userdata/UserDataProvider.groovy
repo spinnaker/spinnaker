@@ -16,5 +16,5 @@ public interface UserDataProvider {
    *
    * @return user data string
    */
-  String getUserData(String asgName, String launchConfigName, String region)
+  String getUserData(String asgName, String launchConfigName, String region, String environment)
 }

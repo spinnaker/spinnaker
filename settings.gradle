@@ -1,4 +1,4 @@
-include "core", "web", "aws"
+include "core", "web", "aws", "perforce"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

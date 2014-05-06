@@ -17,6 +17,7 @@ configurations.all {
 dependencies {
   compile project(":core")
   compile project(":aws")
+  compile project(":perforce")
   compile "com.netflix.eureka:eureka-client:1.1.128"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
