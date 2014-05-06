@@ -1,7 +1,7 @@
 dependencies {
-  compile project(":core")
+  compile project(":kato-core")
   compile 'joda-time:joda-time:2.3'
-  compile 'com.netflix.frigga:frigga:0.6'
+  compile 'com.netflix.frigga:frigga:0.9'
   compile "com.amazonaws:aws-java-sdk:1.7.2"
   compile "org.springsource.loaded:springloaded:1.2.0.BUILD-SNAPSHOT"
   compile 'org.apache.httpcomponents:httpclient:4.3.3'

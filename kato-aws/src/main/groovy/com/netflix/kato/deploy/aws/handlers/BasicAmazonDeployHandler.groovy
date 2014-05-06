@@ -45,6 +45,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       List<CreateAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<CreateAmazonLoadBalancerResult.LoadBalancer>)priorOutputs.findAll {
         it instanceof CreateAmazonLoadBalancerResult }?.loadBalancers?.getAt(region)
 
+      if (!description.loadBalancers) {
+        description.loadBalancers = []
+      }
+      description.loadBalancers.addAll suppliedLoadBalancers?.name
+
       def amazonEC2 = getAmazonEC2(description.credentials, region)
       def autoScaling = getAutoScaling(description.credentials, region)
 
@@ -62,7 +67,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           availabilityZones: availabilityZones,
           amazonEC2: amazonEC2,
           autoScaling: autoScaling,
-          loadBalancers: suppliedLoadBalancers?.name,
+          loadBalancers: description.loadBalancers,
           userDataProviders: userDataProviders
       )
 

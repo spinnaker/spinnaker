@@ -1,4 +1,4 @@
-include "core", "web", "aws", "perforce"
+include "kato-core", "kato-web", "kato-aws", "kato-perforce"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

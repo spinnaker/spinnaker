@@ -1,5 +1,0 @@
-dependencies {
-  compile project(":aws")
-  compile 'com.perforce:p4java:2010.1.269249'
-  compile 'com.netflix.frigga:frigga:0.6'
-}

@@ -9,8 +9,11 @@ import com.netflix.frigga.Names
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
 import com.netflix.kato.deploy.aws.userdata.UserDataProvider
+import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.client.RestTemplate
 
 class AutoScalingWorker {
@@ -45,9 +48,12 @@ class AutoScalingWorker {
 
   String deploy() {
     task.updateStatus AWS_PHASE, "Beginning Amazon deployment."
+
     task.updateStatus AWS_PHASE, "Checking for security package."
-    String packageSecurityGroup = getSecurityGroupForApplication()
-    if (!packageSecurityGroup) {
+    String packageSecurityGroup
+    try {
+      packageSecurityGroup = getSecurityGroupForApplication()
+    } catch (SecurityGroupNotFoundException IGNORE) {
       task.updateStatus AWS_PHASE, "Not found, creating."
       packageSecurityGroup = createSecurityGroup()
     }
@@ -117,14 +123,19 @@ class AutoScalingWorker {
   }
 
   List<String> getSecurityGroupIds(String...names) {
-    DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest().withGroupNames(names)
-    try {
-      DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups(request)
-      result.securityGroups*.groupId
-    } catch (IGNORE) {
-      return null
+    DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups()
+    def securityGroups = result.securityGroups.findAll { names.contains(it.groupName) }.collectEntries {
+      [(it.groupName): it.groupId]
     }
+    if (names.minus(securityGroups.keySet()).size() > 0) {
+      throw new SecurityGroupNotFoundException()
+    }
+    securityGroups.keySet() as List
   }
+
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "could not find all supplied security groups!")
+  @InheritConstructors
+  static class SecurityGroupNotFoundException extends RuntimeException {}
 
   String createSecurityGroup() {
     CreateSecurityGroupRequest request = new CreateSecurityGroupRequest(application, "Security Group for $application")

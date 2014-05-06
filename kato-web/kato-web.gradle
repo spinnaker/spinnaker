@@ -1,6 +1,6 @@
 buildscript { 
   repositories { 
-    maven { url 'http://artifacts.netflix.com/build-gradle' } 
+    jcenter()
   }
   dependencies {
       classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
@@ -15,13 +15,13 @@ configurations.all {
 }
 
 dependencies {
-  compile project(":core")
-  compile project(":aws")
-  compile project(":perforce")
+  compile project(":kato-core")
+  compile project(":kato-aws")
+  compile project(":kato-perforce")
   compile "com.netflix.eureka:eureka-client:1.1.128"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
   testCompile "cglib:cglib-nodep:3.1"
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
-  runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:1.0-SNAPSHOT"
+  runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:0.1"
 }
