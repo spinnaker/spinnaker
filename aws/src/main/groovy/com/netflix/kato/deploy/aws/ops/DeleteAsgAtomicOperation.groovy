@@ -24,7 +24,7 @@ class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Cluster Shrinking Operation..."
+    task.updateStatus BASE_PHASE, "Initializing Delete ASG Operation..."
     def autoScaling = getAutoScaling(description.credentials, description.region)
 
     task.updateStatus BASE_PHASE, "Removing ASG -> ${description.asgName}"
@@ -32,6 +32,6 @@ class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
         .withForceDelete(description.forceDelete)
     autoScaling.deleteAutoScalingGroup(request)
     task.updateStatus BASE_PHASE, "Deleted ASG -> ${description.asgName}"
-    task.updateStatus BASE_PHASE, "Finished Shrinking Cluster."
+    task.updateStatus BASE_PHASE, "Finished Deleting ASG."
   }
 }

@@ -53,7 +53,11 @@ class AutoScalingWorker {
     }
 
     task.updateStatus AWS_PHASE, "Looking up security groups..."
-    securityGroups = getSecurityGroupIds(securityGroups as String[])
+    if (securityGroups) {
+      securityGroups = getSecurityGroupIds(securityGroups as String[])
+    } else {
+      securityGroups = getSecurityGroupIds(["nf-datacenter", "nf-infrastructure"] as String[])
+    }
 
     task.updateStatus AWS_PHASE,"Beginning ASG deployment."
     securityGroups << packageSecurityGroup
