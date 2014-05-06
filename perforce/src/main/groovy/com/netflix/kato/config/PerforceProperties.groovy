@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties("perforce")
 class PerforceProperties {
-  String host = "perforce"
+  String host = "perforce.netflix.com"
   Integer port = 1666
   String programName = "nac"
   String userName = "rolem"
