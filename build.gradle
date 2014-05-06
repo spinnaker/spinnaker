@@ -6,6 +6,7 @@ apply plugin: 'groovy'
 apply plugin: 'vagrant'
 apply plugin: 'spring-boot'
 apply plugin: 'nebula-ospackage-tomcat'
+apply plugin: 'war'
 
 buildscript {
     project.ext {
