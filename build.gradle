@@ -13,6 +13,7 @@ buildscript {
         bootVersion = '1.0.1.RELEASE'
         ver = '1.0'
         rxJavaVersion = '0.17.5'
+        servoVersion = '0.7.2'
     }
     repositories {
         jcenter()
@@ -43,6 +44,9 @@ configurations.all {
         force 'com.google.guava:guava:14.0.1'
         force 'commons-codec:commons-codec:1.7'
         eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'com.netflix.servo') {
+                details.useVersion servoVersion
+            }
             if (details.requested.group == 'com.netflix.rxjava') {
                 details.useVersion rxJavaVersion
             }
