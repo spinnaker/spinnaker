@@ -11,6 +11,4 @@ Supported endpoints:
  * `POST` `/` request body must be JSON document and will create an Application record (if a name is provided).
  * `DELETE` `/name/{name}` removed an Application record (if found).
 
-
-
 [0]:http://projects.spring.io/spring-boot/
