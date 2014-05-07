@@ -37,6 +37,10 @@
       <span class="label label-primary">Capacity (min/max/desired)</span>
       <span>{{asg.asg.minSize}} / {{asg.asg.maxSize}} / {{asg.asg.desiredCapacity}}</span>
     </li>
+    <li>
+      <span class="label label-primary">UDF</span>
+      <span><button ng-click="showUserData()" class="btn btn-link">Show</button></span>
+    </li>
   </ul>
   <table class="table table-condensed table-bordered">
     <thead>
@@ -46,6 +50,7 @@
         <th>Public IP</th>
         <th>Private DNS</th>
         <th>Private IP</th>
+        <th>Logs</th>
       </tr>
     </thead>
     <tbody>
@@ -55,6 +60,9 @@
         <td>{{instance.publicIpAddress}}</td>
         <td>{{instance.privateDnsName}}</td>
         <td>{{instance.privateIpAddress}}</td>
+        <td>
+          <a href="http://{{instance.publicDnsName}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+        </td>
       </tr>
     </tbody>
   </table>

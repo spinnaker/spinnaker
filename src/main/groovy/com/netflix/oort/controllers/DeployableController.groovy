@@ -75,7 +75,7 @@ class DeployableController {
 
     static Map get() {
       lock.lock()
-      def m = map
+      def m = map.clone()
       lock.unlock()
       m
     }

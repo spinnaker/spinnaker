@@ -2,6 +2,7 @@ package com.netflix.oort.controllers
 
 import com.netflix.frigga.ami.AppVersion
 import javax.servlet.http.HttpServletResponse
+import org.apache.commons.codec.binary.Base64
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.RestTemplate
 
@@ -67,10 +68,11 @@ class ClusterController {
   def convertAsgMap(String cluster, String region, Map asg) {
     def extra = getExtraDetails(asg.launchConfigurationName, region)
     def launchConfig = extra.launchConfig
+    def userData = extra.userData
     def image = extra.image
 
     def resp = [name: asg.autoScalingGroupName, region: region, cluster: cluster, instances: asg.instances,
-                created: asg.createdTime, launchConfig: launchConfig]
+                created: asg.createdTime, launchConfig: launchConfig, userData: userData]
 
     def buildVersion = image.tags.find { it.key == "appversion" }?.value
     if (buildVersion) {
@@ -88,7 +90,7 @@ class ClusterController {
   def getExtraDetails(String launchConfigName, String region) {
     def launchConfig = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/launchConfigurations/$launchConfigName", Map).body
     def image = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/images/$launchConfig.imageId", Map).body
-    [launchConfig: launchConfig, image: image]
+    [launchConfig: launchConfig, userData: new String(Base64.decodeBase64(launchConfig.userData as String)), image: image]
   }
 
   def getInstance(String region, String instanceId) {

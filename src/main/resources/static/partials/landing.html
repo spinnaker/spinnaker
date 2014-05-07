@@ -62,11 +62,30 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="col-sm-3 control-label">Server Group Capacity</label>
+            <label class="col-sm-3 control-label">Instances</label>
             <div class="col-sm-9">
-              <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="minInstances" type="text">
-              <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="maxInstances" type="text">
-              <input class="col-sm-2" style="display: inline-block; margin-right: 5px" ng-model="desiredInstances" type="text">
+              <table>
+                <thead>
+                  <tr>
+                    <td class="col-md-5">Min</td>
+                    <td class="col-md-5">Max</td>
+                    <td class="col-md-5">Desired</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <input class="col-sm-9" ng-model="minInstances" type="text">
+                    </td>
+                    <td>
+                      <input class="col-sm-9" ng-model="maxInstances" type="text">
+                    </td>
+                    <td>
+                      <input class="col-sm-9" ng-model="desiredInstances" type="text">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
           <div class="form-group">
@@ -85,9 +104,18 @@
           <div class="form-group" ng-show="images">
             <label for="image" class="col-sm-3 control-label">Images</label>
             <div class="col-sm-9">
-              <select id="image" ng-model="chosenImages" ng-options="(c.name + ' / ' + c.version + ' / ' + c.region) for c in images" multiple>
+              <select id="image" ng-model="chosenImages" ng-change="getAvailableTypes()" ng-options="(c.name + ' / ' + c.version + ' / ' + c.region) for c in images" multiple>
                 <option value=""></option>
               </select>
+            </div>
+          </div>
+          <div class="form-group" ng-show="availableTypes">
+            <label for="type" class="col-sm-3 control-label">Instance Type</label>
+            <div class="col-sm-9">
+              <select id="type" ng-model="instanceType" ng-options="instanceType for instanceType in availableTypes">
+                <option value=""></option>
+              </select>
+              <span ng-show="price">${{price}}</span>
             </div>
           </div>
           <div class="pull-right" ng-show="chosenImages">

@@ -15,7 +15,10 @@
   <div class="body">
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Cluster</span>
-      <span class="col-sm-8 detail-text"><a href="#/{{deployable}}/clusters/{{asg.cluster}}/{{asg.region}}" title="{{asg.cluster}}">{{asg.cluster}}</a></span>
+      <span class="col-sm-8 detail-text">
+        <a href="#/{{deployable}}/clusters/{{asg.cluster}}" title="{{asg.cluster}}" ng-show="!cluster">{{asg.cluster}}</a>
+        <a href="#/{{deployable}}/clusters/{{asg.cluster}}/{{asg.region}}" title="{{asg.cluster}}" ng-show="cluster">{{asg.cluster}} / {{asg.region}}</a>
+      </span>
     </div>
     <div class="col-sm-12 details">
       <span class="col-sm-4 detail-label">Package</span>

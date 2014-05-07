@@ -53,16 +53,15 @@
     .otherwise('/')
   }]);
 
-  function LandingPageController($scope, $location, $resource) {
+  function LandingPageController($scope, $location, $resource, $timeout) {
     var DeployableResource = $resource("/deployables");
 
-    getDeployables();
-    setTimeout(getDeployables, 30000);
-    function getDeployables() {
+    (function tick() {
       var deployables = DeployableResource.get(function () {
         $scope.deployables = deployables;
+        $timeout(tick, 30000);
       });
-    }
+    })();
 
     $scope.go = function(deployable) {
       $location.path('/'+deployable+'/clusters');
@@ -92,6 +91,32 @@
       console.log($scope.regions);
     };
 
+    var PricingResource = $resource("/pricing/:type");
+    var prices = PricingResource.get(function() {
+      $scope.prices = prices;
+    });
+
+    $scope.getAvailableTypes = function() {
+      var availableTypes = [];
+
+      for (name in $scope.prices) {
+        var type = $scope.prices[name];
+        var available = true;
+        for (var i=0;i<$scope.chosenImages.length;i++) {
+          var image = $scope.chosenImages[i];
+          if (!type.hasOwnProperty(image.region)) {
+            available = false;
+            break;
+          }
+        }
+        if (available) {
+          availableTypes.push(name);
+        }
+      }
+      $scope.availableTypes = availableTypes;
+      console.log(availableTypes);
+    };
+
     var ImageResource = $resource("/deployables/:pkg/images");
     $scope.updateImages = function() {
       var images = ImageResource.query({pkg: $scope.pkg}, function() {
@@ -108,14 +133,14 @@
         var azs = {};
         azs[image.region] = [image.region+"a"];
         var description = { application: $scope.deployable, amiName: image.name,
-          stack: $scope.stack, instanceType: "t1.micro", securityGroups: ["nf-datacenter", "nf-infrastructure"],
+          stack: $scope.stack, instanceType: $scope.instanceType, securityGroups: ["nf-datacenter", "nf-infrastructure"],
           availabilityZones: azs, credentials: "test" };
         if ($scope.copyLastAsg) {
           basicDeployments.push({ copyLastAsgDescription: description });
         } else {
           description.capacity = { min: parseInt($scope.minInstances), max: parseInt($scope.maxInstances),
             desired: parseInt($scope.desiredInstances) };
-          basicDeployments.push({ basicAmazonDeploymentDescription: description });
+          basicDeployments.push({ basicAmazonDeployDescription: description });
         }
       }
       KatoResource.save(basicDeployments, function() {
@@ -170,7 +195,7 @@
     }
   }
 
-  function AsgController($scope, $routeParams, $resource, $location) {
+  function AsgController($scope, $routeParams, $resource, $location, $timeout) {
     var KatoResource = $resource("http://localhost:8501/ops");
 
     var AsgResource = $resource("/deployables/:deployable/clusters/:cluster/asgs/:asg/:region");
@@ -178,13 +203,12 @@
     $scope.cluster = $routeParams.cluster;
     $scope.region = $routeParams.region;
 
-    getAsg();
-    setInterval(getAsg, 10000);
-    function getAsg() {
+    (function tick() {
       var asg = AsgResource.get({deployable: $routeParams.deployable, cluster: $routeParams.cluster, asg: $routeParams.asg, region: $routeParams.region}, function() {
         $scope.asg = asg;
+        $timeout(tick, 10000);
       });
-    }
+    })();
 
     $scope.toAgo = function(input) {
       if (!input) {
@@ -209,6 +233,13 @@
           $location.path("/" + $scope.deployable + "/clusters");
         });
       });
+    };
+
+    $scope.showUserData = function() {
+      var newWindow = window.open();
+      var pre = newWindow.document.createElement("pre");
+      pre.innerHTML = $scope.asg.userData;
+      newWindow.document.body.appendChild(pre);
     }
   }
 
