@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.kato.deploy.aws.userdata
 
 import com.netflix.frigga.Names
@@ -63,14 +79,14 @@ class PerforceUserDataProvider implements UserDataProvider {
 
     // Replace the tokens & return the result
     String result = rawUserData
-        .replace('%%app%%', names.app)
-        .replace('%%env%%', env)
-        .replace('%%region%%', region)
-        .replace('%%group%%', names.group)
-        .replace('%%autogrp%%', names.group)
-        .replace('%%cluster%%', cluster)
-        .replace('%%stack%%', stack)
-        .replace('%%launchconfig%%', launchConfigName)
+      .replace('%%app%%', names.app)
+      .replace('%%env%%', env)
+      .replace('%%region%%', region)
+      .replace('%%group%%', names.group)
+      .replace('%%autogrp%%', names.group)
+      .replace('%%cluster%%', cluster)
+      .replace('%%stack%%', stack)
+      .replace('%%launchconfig%%', launchConfigName)
 
     List<String> additionalEnvVars = []
     additionalEnvVars << names.countries ? "NETFLIX_COUNTRIES=${names.countries}" : null
@@ -99,7 +115,9 @@ class PerforceUserDataProvider implements UserDataProvider {
       IFileSpec fileSpec = depotFileSpecs[0]
       InputStream fileSpecInputStream = fileSpec.getContents(true)
       String contents = fileSpecInputStream.getText('UTF-8')
-      if (contents.length() && !contents.endsWith("\n")) { contents = contents + '\n' }
+      if (contents.length() && !contents.endsWith("\n")) {
+        contents = contents + '\n'
+      }
       contents
     } catch (P4JavaError IGNORE) {
       // This normal case happens if the requested file is not found.

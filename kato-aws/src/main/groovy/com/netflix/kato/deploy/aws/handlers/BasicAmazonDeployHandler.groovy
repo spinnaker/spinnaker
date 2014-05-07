@@ -1,16 +1,34 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.kato.deploy.aws.handlers
 
 import com.netflix.kato.data.task.Task
 import com.netflix.kato.data.task.TaskRepository
-import com.netflix.kato.deploy.*
+import com.netflix.kato.deploy.DeployDescription
+import com.netflix.kato.deploy.DeployHandler
+import com.netflix.kato.deploy.DeploymentResult
 import com.netflix.kato.deploy.aws.AutoScalingWorker
 import com.netflix.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.kato.deploy.aws.userdata.UserDataProvider
 import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-
 
 import static com.netflix.kato.deploy.aws.StaticAmazonClients.getAmazonEC2
 import static com.netflix.kato.deploy.aws.StaticAmazonClients.getAutoScaling
@@ -41,9 +59,13 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       String region = entry.key
       List<String> availabilityZones = entry.value
 
+      // Get the properly typed version of the description's subnetType
+      def subnetType = description.subnetType ? AutoScalingWorker.SubnetType.fromString(description.subnetType) : null
+
       // Get the list of load balancers that were created as part of this conglomerate job to apply to the ASG.
-      List<CreateAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<CreateAmazonLoadBalancerResult.LoadBalancer>)priorOutputs.findAll {
-        it instanceof CreateAmazonLoadBalancerResult }?.loadBalancers?.getAt(region)
+      List<CreateAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<CreateAmazonLoadBalancerResult.LoadBalancer>) priorOutputs.findAll {
+        it instanceof CreateAmazonLoadBalancerResult
+      }?.loadBalancers?.getAt(region)
 
       if (!description.loadBalancers) {
         description.loadBalancers = []
@@ -54,21 +76,22 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def autoScaling = getAutoScaling(description.credentials, region)
 
       def autoScalingWorker = new AutoScalingWorker(
-          application: description.application,
-          region: region,
-          environment: description.credentials.environment,
-          stack: description.stack,
-          ami: description.amiName,
-          minInstances: description.capacity.min,
-          maxInstances: description.capacity.max,
-          desiredInstances: description.capacity.desired,
-          securityGroups: description.securityGroups,
-          instanceType: description.instanceType,
-          availabilityZones: availabilityZones,
-          amazonEC2: amazonEC2,
-          autoScaling: autoScaling,
-          loadBalancers: description.loadBalancers,
-          userDataProviders: userDataProviders
+        application: description.application,
+        region: region,
+        environment: description.credentials.environment,
+        stack: description.stack,
+        ami: description.amiName,
+        minInstances: description.capacity.min,
+        maxInstances: description.capacity.max,
+        desiredInstances: description.capacity.desired,
+        securityGroups: description.securityGroups,
+        instanceType: description.instanceType,
+        availabilityZones: availabilityZones,
+        subnetType: subnetType,
+        amazonEC2: amazonEC2,
+        autoScaling: autoScaling,
+        loadBalancers: description.loadBalancers,
+        userDataProviders: userDataProviders
       )
 
       def asgName = autoScalingWorker.deploy()
