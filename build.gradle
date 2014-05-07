@@ -11,7 +11,7 @@ apply plugin: 'war'
 buildscript {
     project.ext {
         bootVersion = '1.0.1.RELEASE'
-        ver = '1.0'
+        ver = '1.1'
         rxJavaVersion = '0.17.5'
     }
     repositories {
@@ -19,15 +19,10 @@ buildscript {
         maven { url "http://repo.spring.io/libs-snapshot" }
         mavenLocal()
     }
-
     dependencies {
         classpath 'org.gradle.api.plugins:gradle-vagrant-plugin:0.5'
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${project.bootVersion}")
     }
-}
-
-vagrant {
-    boxDir = file('./etc/vagrant')
 }
 
 sourceSets {
@@ -53,7 +48,6 @@ configurations.all {
     exclude group: 'ch.qos.logback', module: 'logback-classic'
     exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
     exclude group: 'commons-logging', module: 'commons-logging'
-
 }
 
 run {
