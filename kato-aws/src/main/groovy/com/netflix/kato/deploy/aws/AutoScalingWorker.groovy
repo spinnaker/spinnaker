@@ -50,11 +50,8 @@ class AutoScalingWorker {
     task.updateStatus AWS_PHASE, "Beginning Amazon deployment."
 
     task.updateStatus AWS_PHASE, "Checking for security package."
-    String packageSecurityGroup
-    try {
-      packageSecurityGroup = getSecurityGroupForApplication()
-    } catch (SecurityGroupNotFoundException IGNORE) {
-      task.updateStatus AWS_PHASE, "Not found, creating."
+    String packageSecurityGroup = getSecurityGroupForApplication()
+    if (!packageSecurityGroup) {
       packageSecurityGroup = createSecurityGroup()
     }
 
@@ -119,7 +116,11 @@ class AutoScalingWorker {
   }
 
   String getSecurityGroupForApplication() {
-    getSecurityGroupIds([application] as String[])?.getAt(0)
+    try {
+      getSecurityGroupIds([application] as String[])?.getAt(0)
+    } catch (SecurityGroupNotFoundException IGNORE) {
+      null
+    }
   }
 
   List<String> getSecurityGroupIds(String...names) {
