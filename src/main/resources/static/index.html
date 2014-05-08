@@ -163,7 +163,7 @@
     }
 
     (function tick() {
-      var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster, region: $routeParams.region}, function () {
+      var asgs = ClusterResource.query({deployable: $routeParams.deployable, cluster: $routeParams.cluster, zone: $routeParams.region}, function () {
         $scope.asgs = asgs;
         $timeout(tick, 10000);
       });
@@ -198,7 +198,7 @@
   function AsgController($scope, $routeParams, $resource, $location, $timeout) {
     var KatoResource = $resource("http://localhost:8501/ops");
 
-    var AsgResource = $resource("/deployables/:deployable/clusters/:cluster/asgs/:asg/:region");
+    var AsgResource = $resource("/deployables/:deployable/clusters/:cluster/serverGroups/:asg/:region");
     $scope.deployable = $routeParams.deployable;
     $scope.cluster = $routeParams.cluster;
     $scope.region = $routeParams.region;

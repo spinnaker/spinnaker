@@ -24,7 +24,9 @@ class Deployable {
       Clusters clusters = new Clusters()
       for (provider in clusterProviders) {
         def providerClusters = provider.get(this.name)
-        clusters.addAll providerClusters
+        if (providerClusters) {
+          clusters.addAll providerClusters
+        }
       }
       this.clusters = clusters
     }

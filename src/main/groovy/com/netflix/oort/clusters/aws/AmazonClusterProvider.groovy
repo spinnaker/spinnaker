@@ -23,7 +23,7 @@ class AmazonClusterProvider implements ClusterProvider {
   AggregateRemoteResource edda
 
   @Override
-  Map<String, Cluster> get(String deployable) {
+  Map<String, List<Cluster>> get(String deployable) {
     Cacher.get().get(deployable)
   }
 
@@ -108,14 +108,13 @@ class AmazonClusterProvider implements ClusterProvider {
               run[names.app][names.cluster] = []
             }
             def cluster = new AmazonCluster(name: names.cluster, zone: region, serverGroups: [])
-            run[names.app][names.cluster] << cluster
             ApplicationContextHolder.applicationContext.autowireCapableBeanFactory.autowireBean(cluster)
 
             Map launchConfig = launchConfigCache[region][asg.launchConfigurationName] as Map
             String userData = new String(Base64.decodeBase64(launchConfig.userData as String))
 
             def resp = [name: names.group, region: region, cluster: names.cluster, instances: asg.instances,
-                        created: asg.createdTime, launchConfig: launchConfig, userData: userData]
+                        created: asg.createdTime, launchConfig: launchConfig, userData: userData, capacity: [min: asg.minSize, max: asg.maxSize, desired: asg.desiredCapacity]]
 
             Map image = imageCache[region][launchConfig.imageId] as Map
             def buildVersion = image?.tags?.find { it.key == "appversion" }?.value
@@ -128,7 +127,9 @@ class AmazonClusterProvider implements ClusterProvider {
               }
             }
 
-            run[names.app][names.cluster].serverGroups << new AmazonServerGroup(names.group, resp)
+            def serverGroup = new AmazonServerGroup(names.group, resp)
+            cluster.serverGroups << serverGroup
+            run[names.app][names.cluster] << cluster
           } catch (IGNORE) {}
         }
       }

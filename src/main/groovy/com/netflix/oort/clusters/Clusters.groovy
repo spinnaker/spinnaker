@@ -26,10 +26,8 @@ class Clusters {
     clusters[cluster.name] << cluster
   }
 
-  void addAll(Collection<Cluster> clusters) {
-    for (cluster in clusters) {
-      add cluster
-    }
+  void addAll(Map<String, List<Cluster>> clusters) {
+    this.clusters.putAll(clusters)
   }
 
   void remove(String name) {

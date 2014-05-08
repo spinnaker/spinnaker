@@ -1,5 +1,6 @@
-apply plugin: 'idea'
+apply from: 'gradle/idea.gradle'
 apply plugin: 'groovy'
+
 buildscript {
   repositories {
     jcenter()
@@ -22,7 +23,8 @@ repositories {
 
 ext {
   astyanaxVersion = "1.56.48"
-  springBootVersion = '1.0.1.RELEASE'
+  springBootVersion = '1.0.2.RELEASE'
+  mainClassName = "com.netflix.oort.Main"
 }
 
 dependencies {

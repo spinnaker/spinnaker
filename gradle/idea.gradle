@@ -1,0 +1,116 @@
+// This only gets applied to the root project
+apply plugin: "idea"
+
+def getSpringloadedJvmArgs(project) {
+  def jarFile = JarFinder.find("org.springsource.loaded.SpringLoaded", project.sourceSets.main.compileClasspath.files)
+  if (jarFile) {
+    "-javaagent:${jarFile.absolutePath}"
+  } else {
+    ""
+  }
+}
+
+idea.workspace.iws {
+      withXml { provider ->
+        def node = provider.asNode()
+        def runManagerConfig = node['component'].find { it.'@name' == 'RunManager' } as Node
+        if (!runManagerConfig) {
+          runManagerConfig = node.appendNode('component', [name: 'RunManager'])
+        }
+
+        runManagerConfig.append(new XmlParser().parseText("""
+            <configuration default="false" name="Run ${project.name}" type="Application" factoryName="Application">
+              <extension name="coverage" enabled="false" merge="false" />
+              <option name="MAIN_CLASS_NAME" value="${mainClassName}" />
+              <option name="VM_PARAMETERS" value="&quot;${getSpringloadedJvmArgs(project)}&quot; &quot;-noverify&quot; &quot;-Xmx2048m&quot; &quot;-Xms2048m&quot; &quot;-XX:MaxPermSize=2048M&quot; &quot;-XX:PermSize=2048M&quot;" />
+              <option name="PROGRAM_PARAMETERS" value="" />
+              <option name="WORKING_DIRECTORY" value="${project.projectDir.absolutePath}" />
+              <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+              <option name="ALTERNATIVE_JRE_PATH" value="" />
+              <option name="ENABLE_SWING_INSPECTOR" value="false" />
+              <option name="ENV_VARIABLES" />
+              <option name="PASS_PARENT_ENVS" value="true" />
+              <module name="${project.name}" />
+              <envs />
+              <RunnerSettings RunnerId="Debug">
+                <option name="DEBUG_PORT" value="63810" />
+                <option name="TRANSPORT" value="0" />
+                <option name="LOCAL" value="true" />
+              </RunnerSettings>
+              <RunnerSettings RunnerId="Run" />
+              <ConfigurationWrapper RunnerId="Debug" />
+              <ConfigurationWrapper RunnerId="Run" />
+              <method />
+            </configuration>
+        """))
+
+      }
+}
+
+class JarFinder {
+  static File find(String className, Collection<File> classpath) {
+    findJarFile(maybeLoadClass(className, toClassLoader(classpath)))
+  }
+  private static File findJarFile(Class<?> targetClass) {
+    if (targetClass) {
+      String absolutePath = targetClass.getResource('/' + targetClass.getName().replace(".", "/") + ".class").path
+      String jarPath = absolutePath.substring("file:".length(), absolutePath.lastIndexOf("!"))
+      new File(jarPath)
+    } else {
+      null
+    }
+  }
+  private static ClassLoader toClassLoader(Collection<File> classpath) {
+    List<URL> urls = new ArrayList<URL>(classpath.size())
+    for (File file in classpath) {
+      try {
+        urls.add(file.toURI().toURL())
+      } catch (MalformedURLException ignore) {}
+    }
+    new URLClassLoader(urls as URL[])
+  }
+  private static Class<?> maybeLoadClass(String className, ClassLoader classLoader) {
+    if (classLoader) {
+      try {
+        return classLoader.loadClass(className)
+      } catch (ClassNotFoundException ignore) {}
+    }
+    null
+  }
+}
+
+
+idea {
+  project {
+    jdkName "1.7"
+    languageLevel "1.7"
+    ipr {
+      withXml { provider ->
+        def node = provider.asNode()
+        node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
+        node.append(new XmlParser().parse(file("gradle/codeStyle.xml")))
+
+        def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
+        if (nullableManager) {
+          nullableManager.parent().remove(nullableManager)
+        }
+
+        def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
+        copyrightManager.@default = "ASL2"
+        def aslCopyright = copyrightManager.copyright.find { it.option.find { it.@name == "myName" }?.@value == "ASL2" }
+        if (aslCopyright == null) {
+          copyrightManager.append(new XmlParser().parseText("""
+            <copyright>
+              <option name="notice" value="Copyright \$today.year Netflix, Inc.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;   http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License." />
+              <option name="keyword" value="Copyright" />
+              <option name="allowReplaceKeyword" value="" />
+              <option name="myName" value="ASL2" />
+              <option name="myLocal" value="true" />
+            </copyright>
+          """))
+        }
+
+      }
+    }
+  }
+}

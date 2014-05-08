@@ -30,6 +30,8 @@ class ClusterController {
     Map<String, Deployable> deployables = [:]
     deployableProviders.each {
       def deployableObject = it.get(deployable)
+      if (!deployableObject) return
+
       if (deployables.containsKey(deployableObject.name)) {
         def existing = deployables[deployableObject.name]
         deployables[deployableObject.name] = Deployable.merge(existing, deployableObject)
@@ -45,25 +47,23 @@ class ClusterController {
           @RequestParam(value = "zone", required = false) String zoneName) {
     clusterProviders.collect {
       zoneName ? [it.getByNameAndZone(deployable, clusterName, zoneName)] : it.getByName(deployable, clusterName)
-    }
+    }?.flatten()
   }
 
-  @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}/{region}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}/{zone}", method = RequestMethod.GET)
   def getAsg(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
-             @PathVariable("serverGroup") String serverGroupName, @PathVariable("region") String region, HttpServletResponse response) {
-    def map = DeployableController.Cacher.get().get(deployable)
-    if (map.clusters.containsKey(clusterName)) {
-      def asgs = map.clusters."$clusterName"."$region"
-      def found = asgs.find { it.autoScalingGroupName == asgName }
-      if (found) {
-        def converted = convertAsgMap(clusterName, region, found)
-        converted.asg = found
-        converted.instances = converted.instances.collect { getInstance(region, it.instanceId) }
-        return converted
+             @PathVariable("serverGroup") String serverGroupName, @PathVariable("zone") String zoneName, HttpServletResponse response) {
+
+    def serverGroup
+    for (provider in clusterProviders) {
+      serverGroup = provider.getByNameAndZone(deployable, clusterName, zoneName).serverGroups.find { it.name == serverGroupName }
+      if (serverGroup) {
+        def copied = new HashMap(serverGroup)
+        copied.instances = copied.instances.collect { getInstance zoneName, it.instanceId }
+        return copied
       }
-    } else {
-      response.sendError 404
     }
+    response.sendError 404
   }
 
   def toAsgList(Map map) {

@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.*
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.client.RestTemplate
+import org.springsource.loaded.agent.SpringLoadedPreProcessor
+import org.springsource.loaded.agent.SpringPlugin
 
 @EnableAutoConfiguration
 @Configuration
@@ -14,6 +16,10 @@ import org.springframework.web.client.RestTemplate
 class Main {
 
   static void main(_) {
+    def springPlugin = SpringLoadedPreProcessor.globalPlugins.find { it instanceof SpringPlugin }
+    if (springPlugin) {
+      SpringLoadedPreProcessor.unregisterGlobalPlugin springPlugin
+    }
     SpringApplication.run this, [] as String[]
   }
 
