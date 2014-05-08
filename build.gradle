@@ -1,5 +1,16 @@
 apply plugin: 'idea'
 apply plugin: 'groovy'
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.0.2.RELEASE"
+  }
+}
+
+apply plugin: 'spring-boot'
+
 
 group = "com.netflix.kato"
 version = "0.1-SNAPSHOT"
