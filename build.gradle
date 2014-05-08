@@ -73,14 +73,15 @@ test {
 }
 
 dependencies {
-    compile 'org.springframework.boot:spring-boot-starter-web:1.0.1.RELEASE'
+    compile "org.springframework.boot:spring-boot-starter-web:${bootVersion}"
+    compile "org.springframework.boot:spring-boot-starter-actuator:${bootVersion}"
     compile 'com.amazonaws:aws-java-sdk:1.7.5'
     compile 'org.codehaus.groovy:groovy-all:2.2.2'
     compile 'com.netflix.rxjava:rxjava-groovy:0.17.5'
     compile 'com.netflix.eureka:eureka-client:1.1.128'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
-    testCompile 'org.springframework.boot:spring-boot-starter-test:1.0.1.RELEASE'
+    testCompile "org.springframework.boot:spring-boot-starter-test:${bootVersion}"
     runtime 'com.netflix.asgard.netflixplatform:netflixplatform:1.0-SNAPSHOT'
 }
 

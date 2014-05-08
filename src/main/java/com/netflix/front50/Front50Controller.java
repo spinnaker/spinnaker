@@ -45,7 +45,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         return InstanceInfo.InstanceStatus.UNKNOWN;
     }
 
-    @RequestMapping(method = RequestMethod.PUT)
+    @RequestMapping(method = RequestMethod.PUT, value="/")
     @ResponseBody
     public Application put(@RequestBody Application app) {
         try {
@@ -61,7 +61,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.POST, value="/name/{name}")
     @ResponseBody
     public Application post(@RequestBody Application app) {
         try {
@@ -75,7 +75,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET, value="/")
     public Collection<Application> index() {
         try {
             return application.findAll();
