@@ -1,16 +1,18 @@
 package com.netflix.oort.controllers
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.oort.remoting.AggregateRemoteResource
 import javax.servlet.http.HttpServletResponse
 import org.apache.commons.codec.binary.Base64
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.client.RestTemplate
 
 @RestController
 @RequestMapping("/deployables/{deployable}/clusters")
 class ClusterController {
 
-  RestTemplate restTemplate = new RestTemplate()
+  @Autowired
+  AggregateRemoteResource edda
 
   @RequestMapping(method = RequestMethod.GET)
   def list(@PathVariable("deployable") String deployable) {
@@ -88,14 +90,14 @@ class ClusterController {
   }
 
   def getExtraDetails(String launchConfigName, String region) {
-    def launchConfig = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/launchConfigurations/$launchConfigName", Map).body
-    def image = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/images/$launchConfig.imageId", Map).body
+    def launchConfig = edda.getRemoteResource(region).get("/REST/v2/aws/launchConfigurations/$launchConfigName")
+    def image = edda.getRemoteResource(region).get("/REST/v2/aws/images/$launchConfig.imageId")
     [launchConfig: launchConfig, userData: new String(Base64.decodeBase64(launchConfig.userData as String)), image: image]
   }
 
   def getInstance(String region, String instanceId) {
     try {
-      restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/view/instances/$instanceId", Map).body
+      edda.getRemoteResource(region) get "/REST/v2/view/instances/$instanceId"
     } catch (IGNORE) { [instanceId: instanceId, state: [name: "offline"]] }
   }
 }

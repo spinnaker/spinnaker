@@ -1,16 +1,13 @@
 package com.netflix.oort.controllers
 
-import com.amazonaws.services.simpledb.AmazonSimpleDB
-import com.amazonaws.services.simpledb.model.SelectRequest
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.frigga.ami.AppVersion
+import com.netflix.oort.remoting.AggregateRemoteResource
+import com.netflix.oort.remoting.RemoteResource
 import groovy.util.logging.Log4j
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
-import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.util.StopWatch
@@ -21,6 +18,10 @@ import rx.schedulers.Schedulers
 @RestController
 @RequestMapping("/deployables")
 class DeployableController {
+
+  @Autowired
+  RemoteResource bakery
+
   @RequestMapping(method = RequestMethod.GET)
   def list() {
     def cache = Cacher.get()
@@ -44,7 +45,7 @@ class DeployableController {
 
     rx.Observable.from(["us-east-1", "us-west-1", "us-west-2", "eu-west-1"]).flatMap {
       rx.Observable.from(it).observeOn(Schedulers.io()).map { String region ->
-        def list = rt.getForObject("http://bakery.test.netflix.net:7001/api/v1/${region}/bake/;package=${name};store_type=ebs;region=${region};vm_type=pv;base_os=ubuntu;base_label=release", List)
+        def list = bakery.query("/api/v1/${region}/bake/;package=${name};store_type=ebs;region=${region};vm_type=pv;base_os=ubuntu;base_label=release")
         list.findAll { it.ami } collect {
           def version = it.ami_name?.split('-')?.getAt(1..2)?.join('.')
           [name: it.ami, region: region, version: version]
@@ -62,20 +63,19 @@ class DeployableController {
   @Log4j
   static class Cacher {
     private static def firstRun = true
-    private static def restTemplate = new RestTemplate()
     private static def lock = new ReentrantLock()
     private static def map = new ConcurrentHashMap()
     private static def executorService = Executors.newFixedThreadPool(20)
 
     @Autowired
-    AmazonSimpleDB amazonSimpleDB
+    RemoteResource front50
 
-    @Value('${Aws.SimpleDB.Name:RESOURCE_REGISTRY}')
-    String database
+    @Autowired
+    AggregateRemoteResource edda
 
     static Map get() {
       lock.lock()
-      def m = map.clone()
+      def m = (Map) map.clone()
       lock.unlock()
       m
     }
@@ -85,31 +85,23 @@ class DeployableController {
       if (firstRun) {
         lock.lock()
       }
-      def request = new SelectRequest("select * from $database limit 2500")
-      def result = amazonSimpleDB.select(request)
-      def simpleDb = [:]
-      while(true) {
-        simpleDb += result.items.collectEntries {
-          [(it.name.toLowerCase()): it.attributes.collectEntries {[(it.name):it.value]}]
-        }
-        if (result.nextToken) {
-          result = amazonSimpleDB.select(request.withNextToken(result.nextToken))
-        } else {
-          break
-        }
+
+      List<Map> apps = (List<Map>) front50.query("")
+      def simpleDb = apps.collectEntries { Map obj ->
+        def m = [:]
+        obj.each { k, v -> m[k] = v }
+        [(obj.name?.toLowerCase()): obj.collectEntries { k, v -> [(k): v]}]
       }
 
       def run = new ConcurrentHashMap()
       def stopwatch = new StopWatch()
       stopwatch.start()
       log.info "Beginning caching."
-      def c = { String region ->
-        List<String> asgs = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/autoScalingGroups", List).body
+      def c = { String region, RemoteResource remoteResource ->
+        List<Map> asgs = remoteResource.query("/REST/v2/aws/autoScalingGroups;_expand")
 
-        def c = { String asgName ->
-          def names = Names.parseName asgName
-          def asg = restTemplate.getForEntity("http://entrypoints-v2.${region}.test.netflix.net:7001/REST/v2/aws/autoScalingGroups/$asgName", Map).body
-
+        for (asg in asgs) {
+          def names = Names.parseName(asg.autoScalingGroupName)
           if (!run.containsKey(names.app)) {
             run[names.app] = new ConcurrentHashMap()
           }
@@ -127,11 +119,8 @@ class DeployableController {
           }
           run[names.app]["clusters"][names.cluster][region] << asg
         }
-
-        def callables = asgs.collect { c.curry(it) }
-        executorService.invokeAll(callables as List<Callable>)
       }
-      def callables = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect { c.curry(it) }
+      def callables = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect { c.curry(it, edda.getRemoteResource(it)) }
       executorService.invokeAll(callables)*.get()
       if (!lock.isLocked()) {
         lock.lock()
