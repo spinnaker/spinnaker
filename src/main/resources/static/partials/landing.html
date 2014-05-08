@@ -23,7 +23,7 @@
     <tbody>
       <tr ng-repeat="(deployable, value) in deployables">
         <td class="deployable"><a href="#/{{deployable}}/clusters" title="{{deployable}}">{{deployable}}</a></td>
-        <td class="asgCount"><span>{{value.asgCount}}</span></td>
+        <td class="asgCount"><span>{{value.serverGroupCount}}</span></td>
         <td class="instanceCount"><span>{{value.instanceCount}}</span></td>
         <td class="description" title="{{value.attributes.description}}">{{value.attributes.description}}</td>
         <td>{{value.attributes.group}}</td>

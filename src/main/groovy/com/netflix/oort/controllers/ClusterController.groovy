@@ -1,6 +1,11 @@
 package com.netflix.oort.controllers
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.oort.clusters.Cluster
+import com.netflix.oort.clusters.ClusterProvider
+import com.netflix.oort.clusters.ServerGroup
+import com.netflix.oort.deployables.Deployable
+import com.netflix.oort.deployables.DeployableProvider
 import com.netflix.oort.remoting.AggregateRemoteResource
 import javax.servlet.http.HttpServletResponse
 import org.apache.commons.codec.binary.Base64
@@ -14,32 +19,38 @@ class ClusterController {
   @Autowired
   AggregateRemoteResource edda
 
+  @Autowired
+  List<DeployableProvider> deployableProviders
+
+  @Autowired
+  List<ClusterProvider> clusterProviders
+
   @RequestMapping(method = RequestMethod.GET)
   def list(@PathVariable("deployable") String deployable) {
-    def map = DeployableController.Cacher.get().get(deployable)
-    toAsgList map
+    Map<String, Deployable> deployables = [:]
+    deployableProviders.each {
+      def deployableObject = it.get(deployable)
+      if (deployables.containsKey(deployableObject.name)) {
+        def existing = deployables[deployableObject.name]
+        deployables[deployableObject.name] = Deployable.merge(existing, deployableObject)
+      } else {
+        deployables[deployableObject.name] = deployableObject
+      }
+    }
+    deployables.values()?.getAt(0)?.clusters?.list()
   }
 
   @RequestMapping(value = "/{cluster}", method = RequestMethod.GET)
-  def get(@PathVariable("deployable") String deployable, @PathVariable("cluster") String cluster,
-          @RequestParam(value = "region", required = false) String region, HttpServletResponse response) {
-    def map = DeployableController.Cacher.get().get(deployable)
-    if (map.clusters.containsKey(cluster)) {
-      def target
-      if (region && map.clusters."$cluster".containsKey(region)) {
-        target = [clusters: [(cluster): [(region): map.clusters."$cluster"."$region"]]]
-      } else {
-        target = [clusters: [(cluster): map.clusters."$cluster"]]
-      }
-      toAsgList(target)
-    } else {
-      response.sendError 404
+  def get(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
+          @RequestParam(value = "zone", required = false) String zoneName) {
+    clusterProviders.collect {
+      zoneName ? [it.getByNameAndZone(deployable, clusterName, zoneName)] : it.getByName(deployable, clusterName)
     }
   }
 
-  @RequestMapping(value = "/{cluster}/asgs/{asg}/{region}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}/{region}", method = RequestMethod.GET)
   def getAsg(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
-             @PathVariable("asg") String asgName, @PathVariable("region") String region, HttpServletResponse response) {
+             @PathVariable("serverGroup") String serverGroupName, @PathVariable("region") String region, HttpServletResponse response) {
     def map = DeployableController.Cacher.get().get(deployable)
     if (map.clusters.containsKey(clusterName)) {
       def asgs = map.clusters."$clusterName"."$region"

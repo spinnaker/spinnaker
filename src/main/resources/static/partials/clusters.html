@@ -7,49 +7,51 @@
 <div ng-show="!asgs">
   Loading...
 </div>
-<div ng-repeat='asg in asgs' ng-show="asgs" class="asg col-md-2">
-  <div class="header">
-    <span><a href="#/{{deployable}}/clusters/{{asg.cluster}}/asgs/{{asg.name}}/{{asg.region}}">{{asg.name}}</a></span>
-    <span class="pull-right">{{asg.region}}</span>
-  </div>
-  <div class="body">
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Cluster</span>
-      <span class="col-sm-8 detail-text">
-        <a href="#/{{deployable}}/clusters/{{asg.cluster}}" title="{{asg.cluster}}" ng-show="!cluster">{{asg.cluster}}</a>
-        <a href="#/{{deployable}}/clusters/{{asg.cluster}}/{{asg.region}}" title="{{asg.cluster}}" ng-show="cluster">{{asg.cluster}} / {{asg.region}}</a>
-      </span>
+<div ng-repeat='clusterObj in asgs' ng-show="asgs">
+  <div ng-repeat='asg in clusterObj.serverGroups' class="asg col-md-2">
+    <div class="header">
+      <span><a href="#/{{deployable}}/clusters/{{asg.cluster}}/asgs/{{asg.name}}/{{asg.region}}">{{asg.name}}</a></span>
+      <span class="pull-right">{{asg.region}}</span>
     </div>
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Package</span>
-      <span class="col-sm-8 detail-text">{{asg.buildInfo.packageName}}</span>
-    </div>
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Created</span>
-      <span class="col-sm-8 detail-text">{{toAgo(asg.created)}}</span>
-    </div>
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Build Job</span>
-      <span class="col-sm-8 detail-text"><a href="http://builds.netflix.com/job/{{asg.buildInfo.buildJobName}}" target="_blank">{{asg.buildInfo.buildJobName}}</a></span>
-    </div>
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Build Number</span>
-      <span class="col-sm-8 detail-text">{{asg.buildInfo.buildNumber}}</span>
-    </div>
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Commit</span>
-      <span class="col-sm-8 detail-text">{{asg.buildInfo.commit}}</span>
-    </div>
-    <div class="col-sm-12 details">
-      <hr/>
-    </div>
-    <div class="col-sm-12 details">
-      <span class="col-sm-4 detail-label">Instances</span>
-      <span class="col-sm-8 detail-text"></span>
-    </div>
-    <div class="col-sm-12 details instances">
-      <div ng-repeat="instance in asg.instances" title="{{instance.instanceId}}" class="instance {{instance.healthStatus == 'Healthy' && instance.lifecycleState != 'Terminating' ? 'green' : 'red'}}">
-        &nbsp;
+    <div class="body">
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Cluster</span>
+        <span class="col-sm-8 detail-text">
+          <a href="#/{{deployable}}/clusters/{{asg.cluster}}" title="{{asg.cluster}}" ng-show="!cluster">{{asg.cluster}}</a>
+          <a href="#/{{deployable}}/clusters/{{asg.cluster}}/{{asg.region}}" title="{{asg.cluster}}" ng-show="cluster">{{asg.cluster}} / {{asg.region}}</a>
+        </span>
+      </div>
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Package</span>
+        <span class="col-sm-8 detail-text">{{asg.buildInfo.packageName}}</span>
+      </div>
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Created</span>
+        <span class="col-sm-8 detail-text">{{toAgo(asg.created)}}</span>
+      </div>
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Build Job</span>
+        <span class="col-sm-8 detail-text"><a href="http://builds.netflix.com/job/{{asg.buildInfo.buildJobName}}" target="_blank">{{asg.buildInfo.buildJobName}}</a></span>
+      </div>
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Build Number</span>
+        <span class="col-sm-8 detail-text">{{asg.buildInfo.buildNumber}}</span>
+      </div>
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Commit</span>
+        <span class="col-sm-8 detail-text">{{asg.buildInfo.commit}}</span>
+      </div>
+      <div class="col-sm-12 details">
+        <hr/>
+      </div>
+      <div class="col-sm-12 details">
+        <span class="col-sm-4 detail-label">Instances</span>
+        <span class="col-sm-8 detail-text"></span>
+      </div>
+      <div class="col-sm-12 details instances">
+        <div ng-repeat="instance in asg.instances" title="{{instance.instanceId}}" class="instance {{instance.healthStatus == 'Healthy' && instance.lifecycleState != 'Terminating' ? 'green' : 'red'}}">
+          &nbsp;
+        </div>
       </div>
     </div>
   </div>
