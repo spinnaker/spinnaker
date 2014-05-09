@@ -50,9 +50,10 @@ class DeployableController {
     }
     deployables.inject(new HashMap()) { Map map, String name, Deployable deployable ->
       if (!map.containsKey(name)) {
-        map[name] = [instanceCount: 0, serverGroupCount: 0, attributes: deployable.attributes]
+        map[name] = [clusterCount: 0, instanceCount: 0, serverGroupCount: 0, attributes: deployable.attributes]
       }
       deployable.clusters.list().each { Cluster cluster ->
+        map[name].clusterCount += 1
         map[name].serverGroupCount += cluster.serverGroups?.size()
         map[name].instanceCount += cluster.serverGroups?.collect { it.getInstanceCount() }?.sum() ?: 0
       }
@@ -82,7 +83,7 @@ class DeployableController {
     def serverGroupCount = clusters.collect { it.serverGroups.size() }?.sum()
     def instanceCount = clusters.inject(0) { int c, Cluster cluster -> c += (cluster.serverGroups?.collect { it.getInstanceCount() }?.sum() ?: 0); c }
 
-    [instanceCount: instanceCount, serverGroupCount: serverGroupCount, attributes: deployable.attributes]
+    [clusterCount: clusters.size(), instanceCount: instanceCount, serverGroupCount: serverGroupCount, attributes: deployable.attributes]
   }
 
   @RequestMapping(value = "/{name}/images")
