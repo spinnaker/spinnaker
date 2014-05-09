@@ -108,8 +108,8 @@ class Application {
 
     Application save() {
         Map<String, String> values = allSetColumnProperties()
-        if (!values.containsKey('name')) {
-            throw new NoPrimaryKeyException("Application lacks a name!")
+        if (!values.containsKey('name') || !values.containsKey('email')) {
+            throw new NoPrimaryKeyException("Application lacks a name and/or email!")
         }
         return dao.create(values['name'], values)
     }

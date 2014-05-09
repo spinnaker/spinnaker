@@ -113,6 +113,18 @@ class ApplicationModelTest extends Specification {
         thrown(NoPrimaryKeyException)
     }
 
+    void 'save should result in an exception is no email is provided'() {
+        def dao = Mock(ApplicationDAO)
+
+        def application = new Application()
+        application.name = 'TEST-APP'
+        when:
+        application.save()
+
+        then:
+        thrown(NoPrimaryKeyException)
+    }
+
     void 'delete should just work'() {
         def dao = Mock(ApplicationDAO)
         def app = new Application()

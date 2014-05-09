@@ -67,7 +67,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         try {
             return application.initialize(app).withName(app.getName()).save();
         } catch (NoPrimaryKeyException e) {
-            LOG.error("POST::App not found: " + app.getName(), e);
+            LOG.error("POST:: cannot create app as name and/or email is missing: " + app, e);
             throw new ApplicationWithoutNameException(e);
         } catch (Throwable thr) {
             LOG.error("POST:: throwable occurred: " + app.getName(), thr);
