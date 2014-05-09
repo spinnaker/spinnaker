@@ -11,7 +11,7 @@ apply plugin: 'war'
 buildscript {
     project.ext {
         bootVersion = '1.0.1.RELEASE'
-        ver = '1.1'
+        ver = '1.2'
         rxJavaVersion = '0.17.5'
         servoVersion = '0.7.2'
     }

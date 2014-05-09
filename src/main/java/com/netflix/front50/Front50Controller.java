@@ -88,7 +88,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(value = "/name/{name}", method = RequestMethod.DELETE)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name}")
     public void delete(@PathVariable String name) {
         try {
             application.initialize(new Application().withName(name)).delete();
@@ -98,7 +98,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(value = "/name/{name}", method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET, value = "/name/{name}")
     public Application getByName(@PathVariable String name) {
         try {
             return application.findByName(name);
