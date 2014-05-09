@@ -60,6 +60,31 @@ class DeployableController {
     }
   }
 
+  @RequestMapping(value = "/{name}")
+  def get(@PathVariable("name") String name) {
+    def deployables = deployableProviders.collect { it.get(name) }
+    Deployable deployable = deployables.inject(new HashMap()) { Map map, Deployable deployable ->
+      if (map.containsKey(deployable.name)) {
+        def existing = map[deployable.name]
+        def merged = Deployable.merge(existing, deployable)
+        map[deployable.name] = merged
+      } else {
+        map[deployable.name] = deployable
+      }
+      map
+    }?.getAt(name)
+
+    if (!deployable) {
+      return null
+    }
+
+    def clusters = deployable.clusters.list()
+    def serverGroupCount = clusters.collect { it.serverGroups.size() }?.sum()
+    def instanceCount = clusters.inject(0) { int c, Cluster cluster -> c += (cluster.serverGroups?.collect { it.getInstanceCount() }?.sum() ?: 0); c }
+
+    [instanceCount: instanceCount, serverGroupCount: serverGroupCount, attributes: deployable.attributes]
+  }
+
   @RequestMapping(value = "/{name}/images")
   def getImages(@PathVariable("name") String name) {
     rx.Observable.from(["us-east-1", "us-west-1", "us-west-2", "eu-west-1"]).flatMap {
