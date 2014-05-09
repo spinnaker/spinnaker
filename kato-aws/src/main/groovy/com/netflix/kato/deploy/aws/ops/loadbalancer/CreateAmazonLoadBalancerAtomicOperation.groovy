@@ -66,6 +66,9 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
 
       if (description.subnetType) {
         request.withSubnets(getSubnetIds(description.subnetType, region, description.credentials.environment))
+        if (description.subnetType == "internal") {
+          request.scheme = "internal"
+        }
       } else {
         request.withAvailabilityZones(availabilityZones)
       }

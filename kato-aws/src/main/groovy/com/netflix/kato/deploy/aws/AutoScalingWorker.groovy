@@ -318,7 +318,16 @@ class AutoScalingWorker {
    */
   String getAutoScalingGroupName(Integer sequence) {
     def pushVersion = String.format("v%03d", sequence)
-    "${application}-${stack?.replaceAll("$application-", "")}-${pushVersion}"
+    "${clusterName}-${pushVersion}"
+  }
+
+  /**
+   * Asgard's convention for naming a Cluster. A cluster doesn't really exist, but is derived from the application name and the stack.
+   *
+   * @return the name of the cluster to be deployed to
+   */
+  String getClusterName() {
+    "${application}-${stack?.replaceAll("$application-", "")}"
   }
 
   /**
