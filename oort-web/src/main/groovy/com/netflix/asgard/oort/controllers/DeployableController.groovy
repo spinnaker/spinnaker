@@ -63,7 +63,7 @@ class DeployableController {
 
   @RequestMapping(value = "/{name}")
   def get(@PathVariable("name") String name) {
-    def deployables = deployableProviders.collect { it.get(name) }
+    def deployables = deployableProviders.collect { it.get(name) }.findAll { it }
     Deployable deployable = deployables.inject(new HashMap()) { Map map, Deployable deployable ->
       if (map.containsKey(deployable.name)) {
         def existing = map[deployable.name]
