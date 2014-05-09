@@ -1,0 +1,65 @@
+<!--
+  ~ Copyright 2014 Netflix, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="header">
+  <span><a href="#/{{deployable}}/clusters/{{serverGroup.cluster}}/asgs/{{serverGroup.name}}/{{serverGroup.region}}">{{serverGroup.name}}</a></span>
+  <span class="pull-right">{{serverGroup.region}}</span>
+</div>
+<div class="body">
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Cluster</span>
+        <span class="col-sm-8 detail-text">
+          <a href="#/{{deployable}}/clusters/{{serverGroup.cluster}}" title="{{serverGroup.cluster}}" ng-show="!cluster">{{serverGroup.cluster}}</a>
+          <a href="#/{{deployable}}/clusters/{{serverGroup.cluster}}/{{serverGroup.region}}" title="{{serverGroup.cluster}}" ng-show="cluster">{{serverGroup.cluster}} / {{serverGroup.region}}</a>
+        </span>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Provider</span>
+    <span class="col-sm-8 detail-text">{{clusterObj.type}}</span>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Package</span>
+    <span class="col-sm-8 detail-text">{{serverGroup.buildInfo.packageName}}</span>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Created</span>
+    <span class="col-sm-8 detail-text">{{toAgo(serverGroup.created)}}</span>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Build Job</span>
+    <span class="col-sm-8 detail-text"><a href="http://builds.netflix.com/job/{{serverGroup.buildInfo.buildJobName}}" target="_blank">{{serverGroup.buildInfo.buildJobName}}</a></span>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Build Number</span>
+    <span class="col-sm-8 detail-text">{{serverGroup.buildInfo.buildNumber}}</span>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Commit</span>
+    <span class="col-sm-8 detail-text">{{serverGroup.buildInfo.commit}}</span>
+  </div>
+  <div class="col-sm-12 details">
+    <hr/>
+  </div>
+  <div class="col-sm-12 details">
+    <span class="col-sm-4 detail-label">Instances</span>
+    <span class="col-sm-8 detail-text"></span>
+  </div>
+  <div class="col-sm-12 details instances">
+    <div ng-repeat="instance in serverGroup.instances" title="{{instance.instanceId}}" class="instance {{instance.healthStatus == 'Healthy' && instance.lifecycleState != 'Terminating' ? 'green' : 'red'}}">
+      &nbsp;
+    </div>
+  </div>
+</div>
