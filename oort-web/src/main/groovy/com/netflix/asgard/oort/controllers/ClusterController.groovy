@@ -59,17 +59,35 @@ class ClusterController {
   def get(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
           @RequestParam(value = "zone", required = false) String zoneName) {
     clusterProviders.collect {
-      zoneName ? [it.getByNameAndZone(deployable, clusterName, zoneName)] : it.getByName(deployable, clusterName)
+      zoneName ? it.getByNameAndZone(deployable, clusterName, zoneName) : it.getByName(deployable, clusterName)
     }?.flatten()
+  }
+
+  @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}", method = RequestMethod.GET)
+  def getAsgs(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
+             @PathVariable("serverGroup") String serverGroupName, HttpServletResponse response) {
+    def serverGroups = []
+    for (provider in clusterProviders) {
+      def clusters = provider.getByName(deployable, clusterName)
+      for (cluster in clusters) {
+        def serverGroup = cluster.serverGroups.find { it.name == serverGroupName }
+        if (serverGroup) {
+          def copied = new HashMap(serverGroup)
+          copied.instances = copied.instances.collect { getInstance cluster.zone, it.instanceId }
+          serverGroups << copied
+        }
+      }
+    }
+    serverGroups
   }
 
   @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}/{zone}", method = RequestMethod.GET)
   def getAsg(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
              @PathVariable("serverGroup") String serverGroupName, @PathVariable("zone") String zoneName, HttpServletResponse response) {
-
     def serverGroup
     for (provider in clusterProviders) {
-      serverGroup = provider.getByNameAndZone(deployable, clusterName, zoneName).serverGroups.find { it.name == serverGroupName }
+      def clusters = provider.getByNameAndZone(deployable, clusterName, zoneName)
+      serverGroup = clusters.serverGroups?.flatten()?.find { it.name == serverGroupName }
       if (serverGroup) {
         def copied = new HashMap(serverGroup)
         copied.instances = copied.instances.collect { getInstance zoneName, it.instanceId }

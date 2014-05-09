@@ -52,8 +52,8 @@ class AmazonClusterProvider implements ClusterProvider {
   }
 
   @Override
-  Cluster getByNameAndZone(String deployable, String clusterName, String zone) {
-    Cacher.get().get(deployable)?.get(clusterName)?.find { it.zone == zone }
+  List<Cluster> getByNameAndZone(String deployable, String clusterName, String zone) {
+    Cacher.get().get(deployable)?.get(clusterName)?.findAll { it.zone == zone }
   }
 
   @Component
