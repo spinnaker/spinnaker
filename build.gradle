@@ -7,6 +7,7 @@ apply plugin: 'vagrant'
 apply plugin: 'spring-boot'
 apply plugin: 'nebula-ospackage-tomcat'
 apply plugin: 'war'
+apply plugin: 'docker'
 
 buildscript {
     project.ext {
@@ -19,10 +20,12 @@ buildscript {
         jcenter()
         maven { url "http://repo.spring.io/libs-snapshot" }
         mavenLocal()
+        mavenCentral()
     }
     dependencies {
         classpath 'org.gradle.api.plugins:gradle-vagrant-plugin:0.5'
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${project.bootVersion}")
+        classpath 'se.transmode.gradle:gradle-docker:1.1'
     }
 }
 
@@ -87,4 +90,9 @@ dependencies {
 
 nebula {
     readyForJava7 = true
+}
+
+mainClassName = 'com.netflix.front50.Front50Controller'
+distDocker {
+    exposePort 8080
 }
