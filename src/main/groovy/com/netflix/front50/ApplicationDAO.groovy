@@ -9,4 +9,5 @@ public interface ApplicationDAO {
     Application create(String id, Map<String, String> attributes)
     void update(String id, Map<String, String> attributes)
     void delete(String id)
+    boolean isHealthly()
 }

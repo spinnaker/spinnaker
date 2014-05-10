@@ -1,11 +1,7 @@
 package com.netflix.front50
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
-import com.amazonaws.services.simpledb.model.DeleteAttributesRequest
-import com.amazonaws.services.simpledb.model.Item
-import com.amazonaws.services.simpledb.model.PutAttributesRequest
-import com.amazonaws.services.simpledb.model.ReplaceableAttribute
-import com.amazonaws.services.simpledb.model.SelectRequest
+import com.amazonaws.services.simpledb.model.*
 import com.netflix.front50.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -17,10 +13,23 @@ import org.springframework.stereotype.Component
 @Qualifier("SimpleDB")
 @Component
 class SimpleDBDAO implements ApplicationDAO {
+
     @Autowired
     AmazonSimpleDB awsClient
 
     final String DOMAIN = "RESOURCE_REGISTRY"
+
+    @Override
+    boolean isHealthly() {
+        if (this.awsClient == null || listDomains().size() <= 0) {
+            return false
+        }
+        return true
+    }
+
+    private List<String> listDomains() {
+        awsClient.listDomains(new ListDomainsRequest().withMaxNumberOfDomains(1)).getDomainNames()
+    }
 
     @Override
     Application create(String id, Map<String, String> properties) {

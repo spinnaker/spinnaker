@@ -93,6 +93,7 @@ nebula {
 }
 
 mainClassName = 'com.netflix.front50.Front50Controller'
+
 distDocker {
     exposePort 8080
 }

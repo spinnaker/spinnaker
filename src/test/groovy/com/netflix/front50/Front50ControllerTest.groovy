@@ -155,5 +155,4 @@ class Front50ControllerTest extends Specification {
         response.andExpect status().isOk()
         response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
     }
-
 }
