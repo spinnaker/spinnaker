@@ -14,9 +14,24 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+
+@Component
+class DefaultDeployHandlerRegistry implements DeployHandlerRegistry {
+
+  @Autowired
+  List<DeployHandler> deployHandlers
+
+  @Override
+  DeployHandler findHandler(DeployDescription description) {
+    def handler = deployHandlers.find { it.handles(description) }
+    if (!handler) {
+      throw new DeployHandlerNotFoundException()
+    } else {
+      handler
+    }
+  }
 }

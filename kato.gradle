@@ -27,6 +27,15 @@ apply from: 'gradle/idea.gradle'
 
 ext {
   springBootVersion = "1.0.2.RELEASE"
+
+  commonDependencies = [
+    springBootActuator: "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}",
+    springBootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}",
+    springBootTest: "org.springframework.boot:spring-boot-starter-test:${springBootVersion}",
+    spock: "org.spockframework:spock-core:0.7-groovy-2.0",
+    cglib: "cglib:cglib-nodep:3.1",
+    frigga: "com.netflix.frigga:frigga:0.9"
+  ]
 }
 
 subprojects {
@@ -34,7 +43,7 @@ subprojects {
   apply plugin: 'groovy'
 
   group = "com.netflix.asgard.kato"
-  version = "1.0"
+  version = "1.1-SNAPSHOT"
 
   configurations.all {
     resolutionStrategy {

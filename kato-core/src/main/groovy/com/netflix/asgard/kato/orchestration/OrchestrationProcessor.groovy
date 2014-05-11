@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.orchestration
 
-  compile 'com.perforce:p4java:2010.1.269249'
+/**
+ * Implementations of this interface should perform orchestration of operations in a workflow. Often will be used in
+ * conjunction with {@link AtomicOperation} instances.
+ *
+ * @author Dan Woods
+ */
+public interface OrchestrationProcessor {
+  /**
+   * This is the invocation point of orchestration.
+   *
+   * @return a list of results
+   */
+  List process()
 }

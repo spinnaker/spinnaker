@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy
 
-  compile 'com.perforce:p4java:2010.1.269249'
-}
+import groovy.transform.InheritConstructors
+
+@InheritConstructors
+class DeployHandlerNotFoundException extends RuntimeException {}

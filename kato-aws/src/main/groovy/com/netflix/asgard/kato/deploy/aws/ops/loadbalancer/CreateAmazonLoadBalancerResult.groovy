@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy.aws.ops.loadbalancer
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import groovy.transform.Immutable
+
+class CreateAmazonLoadBalancerResult {
+  /**
+   * Association of region -> loadBalancer
+   */
+  Map<String, LoadBalancer> loadBalancers
+
+  @Immutable
+  static class LoadBalancer {
+    String name
+    String dnsName
+  }
 }

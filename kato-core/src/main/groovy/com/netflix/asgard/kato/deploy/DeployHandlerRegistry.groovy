@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy
 
-  compile 'com.perforce:p4java:2010.1.269249'
+/**
+ * A registry of {@link DeployHandler} instances.
+ *
+ * @author Dan Woods
+ */
+public interface DeployHandlerRegistry {
+  /**
+   * This method is used to locate a handler most appropriate for the provided description object.
+   *
+   * @param description
+   * @return a deploy handler instance
+   * @throws DeployHandlerNotFoundException
+   */
+  DeployHandler findHandler(DeployDescription description) throws DeployHandlerNotFoundException
 }

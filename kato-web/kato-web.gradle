@@ -31,13 +31,14 @@ configurations.all {
 }
 
 dependencies {
-  compile project(":kato-core")
-  compile project(":kato-aws")
-  compile project(":kato-perforce")
-  compile "com.netflix.eureka:eureka-client:1.1.128"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
-  testCompile "cglib:cglib-nodep:3.1"
-  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
   runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:0.1"
+
+  compile project(":kato-core")
+  compile "com.netflix.eureka:eureka-client:1.1.128"
+  compile commonDependencies.springBootActuator
+  compile commonDependencies.springBootDataRest
+
+  testCompile commonDependencies.cglib
+  testCompile commonDependencies.spock
+  testCompile commonDependencies.springBootTest
 }

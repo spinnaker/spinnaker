@@ -15,8 +15,8 @@
  */
 
 dependencies {
-  compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  testCompile "cglib:cglib-nodep:3.1"
-  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+  compile commonDependencies.springBootDataRest
+  compile commonDependencies.springBootActuator
+  testCompile commonDependencies.cglib
+  testCompile commonDependencies.spock
 }

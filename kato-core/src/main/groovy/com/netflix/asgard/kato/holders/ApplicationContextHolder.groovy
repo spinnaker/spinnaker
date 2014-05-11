@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.holders
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.springframework.stereotype.Component
+
+@Component
+class ApplicationContextHolder implements ApplicationContextAware {
+  static ApplicationContext applicationContext
+
+  @Override
+  void setApplicationContext(ApplicationContext ctx) {
+    applicationContext = ctx
+  }
 }

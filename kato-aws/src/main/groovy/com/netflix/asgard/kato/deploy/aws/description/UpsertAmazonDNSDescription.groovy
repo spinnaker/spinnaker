@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy.aws.description
 
-  compile 'com.perforce:p4java:2010.1.269249'
+class UpsertAmazonDNSDescription extends AbstractAmazonCredentialsDescription {
+  String type
+  String name
+  String target
+  String hostedZoneName
 }

@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy.aws.description
 
-  compile 'com.perforce:p4java:2010.1.269249'
+class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
+  String asgName
+  List<String> regions
+  Capacity capacity = new Capacity()
+
+  static class Capacity {
+    int min
+    int max
+    int desired
+  }
 }

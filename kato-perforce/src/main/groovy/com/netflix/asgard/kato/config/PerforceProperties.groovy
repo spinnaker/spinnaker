@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.config
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
+
+@Component
+@ConfigurationProperties("perforce")
+class PerforceProperties {
+  String host = "perforce.netflix.com"
+  Integer port = 1666
+  String programName = "nac"
+  String userName = "rolem"
+  String udfRoot = '//depot/pd/xf/oq/cloud/apps/aws/udf'
 }

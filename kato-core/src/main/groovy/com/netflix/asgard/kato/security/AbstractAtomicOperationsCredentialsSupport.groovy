@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.security
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import com.netflix.asgard.kato.orchestration.AtomicOperationConverter
+import org.springframework.beans.factory.annotation.Autowired
+
+abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {
+  @Autowired
+  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+
+  def getCredentialsForEnvironment(String name) {
+    namedAccountCredentialsHolder.getCredentials(name).credentials
+  }
 }

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.orchestration
 
-  compile 'com.perforce:p4java:2010.1.269249'
-}
+import groovy.transform.InheritConstructors
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
+
+@ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Could not find a suitable converter for supplied type.")
+@InheritConstructors
+class AtomicOperationNotFoundException extends RuntimeException {}

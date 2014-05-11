@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.deploy.aws.description
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.asgard.kato.security.aws.AmazonCredentials
+
+abstract class AbstractAmazonCredentialsDescription {
+  @JsonIgnore
+  AmazonCredentials credentials
+
+  @JsonProperty("credentials")
+  String getCredentialAccount() {
+    this.credentials.environment
+  }
 }

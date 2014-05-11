@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.security.aws
 
-  compile 'com.perforce:p4java:2010.1.269249'
+import com.amazonaws.auth.AWSCredentials
+import groovy.transform.Canonical
+
+@Canonical
+class AmazonCredentials {
+  final AWSCredentials credentials
+  final String environment
 }

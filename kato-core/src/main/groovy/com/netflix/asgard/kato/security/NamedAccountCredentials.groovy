@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-aws")
-  compile commonDependencies.frigga
+package com.netflix.asgard.kato.security
 
-  compile 'com.perforce:p4java:2010.1.269249'
+/**
+ * Implementations of this interface will provide credentials for use in the {@link NamedAccountCredentialsHolder}.
+ *
+ * @param parameterized type of the credentials object returned.
+ * @author Dan Woods
+ */
+public interface NamedAccountCredentials<T> {
+  /**
+   * This method will return the credentials object.
+   *
+   * @return credentials object
+   */
+  T getCredentials()
 }
