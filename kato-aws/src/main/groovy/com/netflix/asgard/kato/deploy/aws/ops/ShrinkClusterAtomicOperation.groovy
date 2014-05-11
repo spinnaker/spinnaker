@@ -16,15 +16,17 @@
 
 package com.netflix.asgard.kato.deploy.aws.ops
 
+import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
-import com.netflix.frigga.Names
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.asgard.kato.orchestration.AtomicOperation
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
+import com.netflix.frigga.Names
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
-
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAutoScaling
 
 class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "SHRINK_CLUSTER"
@@ -32,6 +34,9 @@ class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
 
   final ShrinkClusterDescription description
   final RestTemplate rt
@@ -45,10 +50,10 @@ class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
   Void operate(List _) {
     task.updateStatus BASE_PHASE, "Initializing Cluster Shrinking Operation..."
     for (String region in description.regions) {
-      def autoScaling = getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
 
       task.updateStatus BASE_PHASE, "Looking up inactive ASGs in ${region}..."
-      List<String> inactiveAsgs = getInactiveAsgs(region)
+      List<String> inactiveAsgs = getInactiveAsgs(autoScaling)
       for (String inactiveAsg : inactiveAsgs) {
         task.updateStatus BASE_PHASE, "Removing ASG -> ${inactiveAsg}"
         try {
@@ -63,20 +68,15 @@ class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Finished Shrinking Cluster."
   }
 
-  List<String> getInactiveAsgs(String region) {
-    def env = description.credentials.environment
-
-    List<String> asgs = rt.getForEntity("http://entrypoints-v2.${region}.${env}.netflix.net:7001/REST/v2/aws/autoScalingGroups", List).body
-    def appAsgs = asgs.findAll {
-      def names = Names.parseName(it)
+  List<String> getInactiveAsgs(AmazonAutoScaling autoScaling) {
+    DescribeAutoScalingGroupsResult result = autoScaling.describeAutoScalingGroups()
+    result.autoScalingGroups.findAll {
+      def names = Names.parseName(it.autoScalingGroupName)
       description.clusterName == names.cluster && description.application == names.app
-    }
-    appAsgs.findAll { String asgName ->
-      try {
-        Map asg = rt.getForEntity("http://entrypoints-v2.${region}.${env}.netflix.net:7001/REST/v2/aws/autoScalingGroups/$asgName", Map).body
-        !asg.instances
-      } catch (IGNORE) {
-      }
+    }.findAll {
+      !it.instances
+    }.collect {
+      it.autoScalingGroupName
     }
   }
 }

@@ -22,8 +22,8 @@ import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import com.netflix.asgard.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.asgard.kato.orchestration.AtomicOperation
-
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAmazonRoute53
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
+import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSResult> {
   private static final String BASE_PHASE = "CREATE_ELB"
@@ -31,6 +31,9 @@ class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSR
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
 
   UpsertAmazonDNSDescription description
 
@@ -49,7 +52,7 @@ class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSR
       description.target = priorElb.loadBalancers?.values()?.getAt(0)?.dnsName
     }
 
-    def route53 = getAmazonRoute53(description.credentials, null)
+    def route53 = amazonClientProvider.getAmazonRoute53(description.credentials, null)
     def hostedZone = route53.listHostedZones().hostedZones.find { it.name == description.hostedZoneName }
 
     def recordSet = new ResourceRecordSet(description.name, description.type)

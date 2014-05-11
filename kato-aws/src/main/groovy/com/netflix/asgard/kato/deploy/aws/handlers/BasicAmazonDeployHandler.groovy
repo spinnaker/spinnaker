@@ -25,12 +25,10 @@ import com.netflix.asgard.kato.deploy.aws.AutoScalingWorker
 import com.netflix.asgard.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.asgard.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.asgard.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAmazonEC2
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAutoScaling
 
 @Log4j
 @Component
@@ -43,6 +41,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   @Autowired
   List<UserDataProvider> userDataProviders
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
 
   @Override
   boolean handles(DeployDescription description) {
@@ -71,8 +72,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
       description.loadBalancers.addAll suppliedLoadBalancers?.name
 
-      def amazonEC2 = getAmazonEC2(description.credentials, region)
-      def autoScaling = getAutoScaling(description.credentials, region)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
 
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,

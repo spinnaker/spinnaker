@@ -25,6 +25,7 @@ import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
 import com.netflix.asgard.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import com.netflix.asgard.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import com.netflix.asgard.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
@@ -37,10 +38,10 @@ class UpsertAmazonDNSAtomicOperationSpec extends Specification {
   void "operation inherits prior-deployed elb dns name when no target explicitly specified"() {
     setup:
     def mockClient = Mock(AmazonRoute53)
-    StaticAmazonClients.metaClass.'static'.getAmazonRoute53 = { AmazonCredentials credentials, String region ->
-      mockClient
-    }
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAmazonRoute53(_, _) >> mockClient
     def op = new UpsertAmazonDNSAtomicOperation(new UpsertAmazonDNSDescription())
+    op.amazonClientProvider = mockAmazonClientProvider
     def elbDeploy = Mock(CreateAmazonLoadBalancerResult)
     elbDeploy.getLoadBalancers() >> ["us-east-1": new CreateAmazonLoadBalancerResult.LoadBalancer("foo", "elb")]
 

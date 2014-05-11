@@ -17,12 +17,13 @@
 package com.netflix.asgard.kato.deploy.aws.ops.loadbalancer
 
 import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
-import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
 import com.netflix.asgard.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import com.netflix.asgard.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
@@ -35,9 +36,10 @@ class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {
   void "operation builds appropriate request/response graph"() {
     setup:
     def mockClient = Mock(AmazonElasticLoadBalancing)
-    StaticAmazonClients.metaClass.'static'.getAmazonElasticLoadBalancing = { AmazonCredentials credentials, String region ->
-      mockClient
-    }
+    def mockEc2 = Mock(AmazonEC2)
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> mockClient
+    mockAmazonClientProvider.getAmazonEC2(_, _) >> mockEc2
     def description = new CreateAmazonLoadBalancerDescription(clusterName: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
       listeners: [
         new CreateAmazonLoadBalancerDescription.Listener(
@@ -49,6 +51,7 @@ class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {
       credentials: new AmazonCredentials(Mock(AWSCredentials), "bar")
     )
     def operation = new CreateAmazonLoadBalancerAtomicOperation(description)
+    operation.amazonClientProvider = mockAmazonClientProvider
 
     when:
     def result = operation.operate([])

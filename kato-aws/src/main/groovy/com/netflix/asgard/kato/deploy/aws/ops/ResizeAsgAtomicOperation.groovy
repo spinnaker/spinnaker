@@ -22,8 +22,8 @@ import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.description.ResizeAsgDescription
 import com.netflix.asgard.kato.orchestration.AtomicOperation
-
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAutoScaling
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
+import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
   private static final String PHASE = "RESIZE"
@@ -31,6 +31,9 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
 
   final ResizeAsgDescription description
 
@@ -44,7 +47,7 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
 
     for (String region : description.regions) {
       task.updateStatus PHASE, "Beginning resize of ${description.asgName} in ${region}."
-      def autoScaling = getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       resize autoScaling
       task.updateStatus PHASE, "Completed resize of ${description.asgName} in ${region}."
     }

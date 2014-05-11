@@ -16,6 +16,8 @@
 
 package com.netflix.asgard.kato.deploy.aws.ops.loadbalancer
 
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.SubnetState
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Listener
@@ -24,9 +26,9 @@ import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import com.netflix.asgard.kato.orchestration.AtomicOperation
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
-
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAmazonElasticLoadBalancing
 
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link CreateAmazonLoadBalancerDescription}.
@@ -41,6 +43,9 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
 
   private final CreateAmazonLoadBalancerDescription description
   RestTemplate rt = new RestTemplate()
@@ -63,9 +68,9 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
       def request = new CreateLoadBalancerRequest(loadBalancerName)
-
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
       if (description.subnetType) {
-        request.withSubnets(getSubnetIds(description.subnetType, region, description.credentials.environment))
+        request.withSubnets(getSubnetIds(description.subnetType, amazonEC2))
         if (description.subnetType == "internal") {
           request.scheme = "internal"
         }
@@ -74,7 +79,7 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       }
 
       if (description.securityGroups) {
-        request.withSecurityGroups(getSecurityGroupIds(region, description.credentials.environment, description.securityGroups as String[]))
+        request.withSecurityGroups(getSecurityGroupIds(amazonEC2, description.securityGroups as String[]))
       }
 
       def listeners = []
@@ -93,7 +98,7 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       }
       request.withListeners(listeners)
 
-      def client = getAmazonElasticLoadBalancing(description.credentials, region)
+      def client = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
       task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}..."
       def result = client.createLoadBalancer(request)
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}."
@@ -103,10 +108,10 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
     operationResult
   }
 
-  List<String> getSubnetIds(String subnetType, String region, String environment) {
-    List<Map> subnets = rt.getForObject("http://entrypoints-v2.${region}.${environment}.netflix.net:7001/REST/v2/aws/subnets;_expand", List)
+  List<String> getSubnetIds(String subnetType, AmazonEC2 ec2) {
+    DescribeSubnetsResult result = ec2.describeSubnets()
     def mySubnets = []
-    for (subnet in subnets) {
+    for (subnet in result.subnets) {
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
@@ -118,10 +123,10 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
     mySubnets
   }
 
-  List<String> getSecurityGroupIds(String region, String environment, String...names) {
-    List<Map> securityGroups = rt.getForObject("http://entrypoints-v2.${region}.${environment}.netflix.net:7001/REST/v2/aws/securityGroups;_expand", List)
+  List<String> getSecurityGroupIds(AmazonEC2 ec2, String... names) {
+    def result = ec2.describeSecurityGroups()
     def mySecurityGroups = [:]
-    for (secGrp in securityGroups) {
+    for (secGrp in result.securityGroups) {
       if (names.contains(secGrp.groupName)) {
         mySecurityGroups[secGrp.groupName] = secGrp.groupId
       }

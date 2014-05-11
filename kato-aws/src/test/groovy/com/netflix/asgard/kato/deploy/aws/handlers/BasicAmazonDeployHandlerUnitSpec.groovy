@@ -22,9 +22,9 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.AutoScalingWorker
-import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
 import com.netflix.asgard.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.asgard.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import com.netflix.asgard.kato.security.aws.AmazonCredentials
 import spock.lang.Shared
 import spock.lang.Specification
@@ -38,7 +38,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   Task task
 
   def setupSpec() {
-    this.handler = new BasicAmazonDeployHandler()
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
+    mockAmazonClientProvider.getAmazonEC2(_, _) >> Mock(AmazonEC2)
+    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider)
     this.task = Mock(Task)
     TaskRepository.threadLocalTask.set(task)
   }
@@ -55,8 +58,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setup:
     def deployCallCounts = 0
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
-    StaticAmazonClients.metaClass.'static'.getAmazonEC2 = { String accessId, String secretKey, String region -> Mock(AmazonEC2) }
-    StaticAmazonClients.metaClass.'static'.getAutoScaling = { String accessId, String secretKey, String region -> Mock(AmazonAutoScaling) }
     def description = new BasicAmazonDeployDescription()
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
@@ -74,8 +75,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def setlbCalls = 0
     AutoScalingWorker.metaClass.deploy = {}
     AutoScalingWorker.metaClass.setLoadBalancers = { setlbCalls++ }
-    StaticAmazonClients.metaClass.'static'.getAmazonEC2 = { String accessId, String secretKey, String region -> Mock(AmazonEC2) }
-    StaticAmazonClients.metaClass.'static'.getAutoScaling = { String accessId, String secretKey, String region -> Mock(AmazonAutoScaling) }
     def description = new BasicAmazonDeployDescription()
     description.availabilityZones = ["us-east-1": []]
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")

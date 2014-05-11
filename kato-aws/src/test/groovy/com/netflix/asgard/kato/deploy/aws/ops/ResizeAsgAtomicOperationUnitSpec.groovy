@@ -21,8 +21,8 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
-import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
 import com.netflix.asgard.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import com.netflix.asgard.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
@@ -35,15 +35,15 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
   void "operation invokes update to autoscaling group"() {
     setup:
     def mockAutoScaling = Mock(AmazonAutoScaling)
-    StaticAmazonClients.metaClass.'static'.getAutoScaling = { AmazonCredentials credentials, String region ->
-      mockAutoScaling
-    }
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new ResizeAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
     description.capacity.min = 1
     description.capacity.max = 2
     description.capacity.desired = 5
     def operation = new ResizeAsgAtomicOperation(description)
+    operation.amazonClientProvider = mockAmazonClientProvider
 
     when:
     operation.operate([])

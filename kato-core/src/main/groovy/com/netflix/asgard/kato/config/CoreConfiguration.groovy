@@ -18,20 +18,32 @@ package com.netflix.asgard.kato.config
 
 import com.netflix.asgard.kato.data.task.InMemoryTaskRepository
 import com.netflix.asgard.kato.data.task.TaskRepository
+import com.netflix.asgard.kato.deploy.DefaultDeployHandlerRegistry
+import com.netflix.asgard.kato.deploy.DeployHandlerRegistry
 import com.netflix.asgard.kato.security.DefaultNamedAccountCredentialsHolder
+import com.netflix.asgard.kato.security.NamedAccountCredentials
 import com.netflix.asgard.kato.security.NamedAccountCredentialsHolder
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 class CoreConfiguration {
   @Bean
+  @ConditionalOnMissingBean(TaskRepository)
   TaskRepository taskRepository() {
     new InMemoryTaskRepository()
   }
 
   @Bean
+  @ConditionalOnMissingBean(NamedAccountCredentials)
   NamedAccountCredentialsHolder namedAccountCredentialsHolder() {
     new DefaultNamedAccountCredentialsHolder()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(DeployHandlerRegistry)
+  DeployHandlerRegistry deployHandlerRegistry() {
+    new DefaultDeployHandlerRegistry()
   }
 }

@@ -21,8 +21,8 @@ import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.description.DeleteAsgDescription
 import com.netflix.asgard.kato.orchestration.AtomicOperation
-
-import static com.netflix.asgard.kato.deploy.aws.StaticAmazonClients.getAutoScaling
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
+import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_ASG"
@@ -30,6 +30,9 @@ class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
 
   final DeleteAsgDescription description
 
@@ -40,7 +43,7 @@ class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Delete ASG Operation..."
-    def autoScaling = getAutoScaling(description.credentials, description.region)
+    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region)
 
     task.updateStatus BASE_PHASE, "Removing ASG -> ${description.asgName}"
     def request = new DeleteAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName)

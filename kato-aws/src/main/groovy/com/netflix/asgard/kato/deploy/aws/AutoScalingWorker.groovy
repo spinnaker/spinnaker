@@ -25,10 +25,10 @@ import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SubnetState
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.frigga.Names
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.frigga.Names
 import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime

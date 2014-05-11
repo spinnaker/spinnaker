@@ -17,9 +17,9 @@
 package com.netflix.asgard.kato.health
 
 import com.amazonaws.AmazonServiceException
-import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
 import com.netflix.asgard.kato.security.NamedAccountCredentials
 import com.netflix.asgard.kato.security.NamedAccountCredentialsHolder
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import com.netflix.asgard.kato.security.aws.AmazonCredentials
 import com.netflix.asgard.kato.security.aws.AmazonNamedAccountCredentials
 import groovy.transform.InheritConstructors
@@ -35,16 +35,20 @@ class AmazonHealthIndicator implements HealthIndicator<String> {
   @Autowired
   NamedAccountCredentialsHolder namedAccountCredentialsHolder
 
+  @Autowired
+  AmazonClientProvider amazonClientProvider
+
   @Override
   String health() {
     List<NamedAccountCredentials> amazonCredentials = namedAccountCredentialsHolder.accountNames.collect {
-      namedAccountCredentialsHolder.getCredentials(it) }.findAll { it instanceof AmazonNamedAccountCredentials }
+      namedAccountCredentialsHolder.getCredentials(it)
+    }.findAll { it instanceof AmazonNamedAccountCredentials }
     if (!amazonCredentials) {
       throw new AmazonCredentialsNotFoundException()
     }
     for (NamedAccountCredentials<AmazonCredentials> namedAccountCredentials in amazonCredentials) {
       try {
-        def ec2 = StaticAmazonClients.getAmazonEC2(namedAccountCredentials.credentials, "us-east-1")
+        def ec2 = amazonClientProvider.getAmazonEC2(namedAccountCredentials.credentials, "us-east-1")
         ec2.describeAccountAttributes()
       } catch (AmazonServiceException e) {
         throw new AmazonUnreachableException(e)

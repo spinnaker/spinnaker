@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.asgard.kato.deploy.aws.health
+package com.netflix.asgard.kato.health
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
-import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
-import com.netflix.asgard.kato.health.AmazonHealthIndicator
 import com.netflix.asgard.kato.security.NamedAccountCredentials
 import com.netflix.asgard.kato.security.NamedAccountCredentialsHolder
-import com.netflix.asgard.kato.security.aws.AmazonCredentials
+import com.netflix.asgard.kato.security.aws.AmazonClientProvider
 import com.netflix.asgard.kato.security.aws.AmazonNamedAccountCredentials
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
@@ -61,8 +59,9 @@ class AmazonHealthIndicatorSpec extends Specification {
     holder.getCredentials("foo") >> creds
     def mockEc2 = Mock(AmazonEC2)
     mockEc2.describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
-    StaticAmazonClients.metaClass.'static'.getAmazonEC2 = { AmazonCredentials amazonCredentials, String region -> mockEc2 }
-    def endpoint = new EndpointMvcAdapter(new HealthEndpoint(new AmazonHealthIndicator(namedAccountCredentialsHolder: holder)))
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAmazonEC2(_, _) >> mockEc2
+    def endpoint = new EndpointMvcAdapter(new HealthEndpoint(new AmazonHealthIndicator(namedAccountCredentialsHolder: holder, amazonClientProvider: mockAmazonClientProvider)))
     def mvc = standaloneSetup(endpoint).setMessageConverters new MappingJackson2HttpMessageConverter() build()
 
     when:
@@ -81,8 +80,9 @@ class AmazonHealthIndicatorSpec extends Specification {
     holder.getCredentials("foo") >> creds
     def mockEc2 = Mock(AmazonEC2)
     mockEc2.describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
-    StaticAmazonClients.metaClass.'static'.getAmazonEC2 = { AmazonCredentials amazonCredentials, String region -> mockEc2 }
-    def endpoint = new EndpointMvcAdapter(new HealthEndpoint(new AmazonHealthIndicator(namedAccountCredentialsHolder: holder)))
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAmazonEC2(_, _) >> mockEc2
+    def endpoint = new EndpointMvcAdapter(new HealthEndpoint(new AmazonHealthIndicator(namedAccountCredentialsHolder: holder, amazonClientProvider: mockAmazonClientProvider)))
     def mvc = standaloneSetup(endpoint).setMessageConverters new MappingJackson2HttpMessageConverter() build()
 
     when:

@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.asgard.kato.deploy
+package com.netflix.asgard.kato.aws
 
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.context.annotation.Configuration
 
-class DefaultDeployHandlerRegistry implements DeployHandlerRegistry {
+@EnableAutoConfiguration
+@Configuration
+class KatoAmazonRunner {
 
-  @Autowired
-  List<DeployHandler> deployHandlers
-
-  @Override
-  DeployHandler findHandler(DeployDescription description) {
-    def handler = deployHandlers.find { it.handles(description) }
-    if (!handler) {
-      throw new DeployHandlerNotFoundException()
-    } else {
-      handler
-    }
+  static void main(_) {
+    SpringApplication.run this, [] as String[]
   }
 }
