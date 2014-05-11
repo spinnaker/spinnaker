@@ -1,0 +1,13 @@
+apply plugin: "groovy"
+apply plugin: "idea"
+
+repositories {
+  mavenCentral()
+  mavenLocal()
+}
+
+dependencies {
+  compile project(":kato-web")
+  compile "com.google.apis:google-api-services-compute:v1-rev17-1.18.0-rc"
+  compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
+}
