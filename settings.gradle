@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-perforce"
+include "kato-core", "kato-web", "kato-aws", "kato-gce"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
