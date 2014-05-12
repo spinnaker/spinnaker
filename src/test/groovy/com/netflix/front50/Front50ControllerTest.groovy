@@ -36,7 +36,7 @@ class Front50ControllerTest extends Specification {
         this.controller.application = application
 
         when:
-        def response = mockMvc.perform(put("/").
+        def response = mockMvc.perform(put("/applications").
                 contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
         then:
@@ -56,7 +56,7 @@ class Front50ControllerTest extends Specification {
         this.controller.application = application
 
         when:
-        def response = mockMvc.perform(put("/").
+        def response = mockMvc.perform(put("/applications").
                 contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
         then:
@@ -75,7 +75,7 @@ class Front50ControllerTest extends Specification {
         this.controller.application = application
 
         when:
-        def response = mockMvc.perform(post("/").
+        def response = mockMvc.perform(post("/applications").
                 contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
         then:
@@ -94,7 +94,7 @@ class Front50ControllerTest extends Specification {
         this.controller.application = application
 
         when:
-        def response = mockMvc.perform(post("/name/SAMPLEAPP").
+        def response = mockMvc.perform(post("/applications/name/SAMPLEAPP").
                 contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
         then:
@@ -108,7 +108,7 @@ class Front50ControllerTest extends Specification {
         def application = Mock(Application)
         application.findByName("SAMPLEAPP") >> sampleApp
         this.controller.application = application
-        def response = mockMvc.perform(get("/name/SAMPLEAPP"))
+        def response = mockMvc.perform(get("/applications/name/SAMPLEAPP"))
 
         expect:
         response.andExpect status().isOk()
@@ -119,7 +119,7 @@ class Front50ControllerTest extends Specification {
         def application = Mock(Application)
         application.findByName(_) >> { throw new NotFoundException("not found!") }
         this.controller.application = application
-        def response = mockMvc.perform(get("/name/blah"))
+        def response = mockMvc.perform(get("/applications/name/blah"))
 
         expect:
         response.andExpect status().is(404)
@@ -131,7 +131,7 @@ class Front50ControllerTest extends Specification {
         application.initialize(_) >> application
 
         when:
-        def response = mockMvc.perform(delete("/name/SAMPLEAPP"))
+        def response = mockMvc.perform(delete("/applications/name/SAMPLEAPP"))
 
         then:
         1 * application.delete()
@@ -149,7 +149,7 @@ class Front50ControllerTest extends Specification {
         this.controller.application = application
 
         when:
-        def response = mockMvc.perform(get("/"))
+        def response = mockMvc.perform(get("/applications"))
 
         then:
         response.andExpect status().isOk()

@@ -45,7 +45,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         return InstanceInfo.InstanceStatus.UNKNOWN;
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value="/")
+    @RequestMapping(method = RequestMethod.PUT, value="/applications")
     @ResponseBody
     public Application put(@RequestBody Application app) {
         try {
@@ -61,7 +61,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(method = RequestMethod.POST, value="/name/{name}")
+    @RequestMapping(method = RequestMethod.POST, value="/applications/name/{name}")
     @ResponseBody
     public Application post(@RequestBody Application app) {
         try {
@@ -75,20 +75,20 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value="/")
+    @RequestMapping(method = RequestMethod.GET, value="/applications")
     public Collection<Application> index() {
         try {
             return application.findAll();
         } catch (NotFoundException e) {
-            LOG.error("GET(/) -> NotFoundException occurred: ", e);
+            LOG.error("GET(/applications) -> NotFoundException occurred: ", e);
             throw new NoApplicationsFoundException(e);
         } catch (Throwable thr) {
-            LOG.error("GET(/) -> Throwable occurred: ", thr);
+            LOG.error("GET(/applications) -> Throwable occurred: ", thr);
             throw new ApplicationException(thr);
         }
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name}")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/applications/name/{name}")
     public void delete(@PathVariable String name) {
         try {
             application.initialize(new Application().withName(name)).delete();
@@ -98,7 +98,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/name/{name}")
+    @RequestMapping(method = RequestMethod.GET, value = "/applications/name/{name}")
     public Application getByName(@PathVariable String name) {
         try {
             return application.findByName(name);
