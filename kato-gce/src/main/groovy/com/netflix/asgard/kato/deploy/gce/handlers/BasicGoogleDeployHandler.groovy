@@ -1,17 +1,16 @@
-package com.netflix.kato.deploy.gce.handlers
+package com.netflix.asgard.kato.deploy.gce.handlers
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AccessConfig
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
-import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.Instance
-import com.netflix.kato.deploy.gce.description.BasicGoogleDeployDescription
-import com.netflix.kato.data.task.Task
-import com.netflix.kato.data.task.TaskRepository
-import com.netflix.kato.deploy.DeployDescription
-import com.netflix.kato.deploy.DeployHandler
-import com.netflix.kato.deploy.DeploymentResult
+import com.netflix.asgard.kato.deploy.gce.description.BasicGoogleDeployDescription
+import com.netflix.asgard.kato.data.task.Task
+import com.netflix.asgard.kato.data.task.TaskRepository
+import com.netflix.asgard.kato.deploy.DeployDescription
+import com.netflix.asgard.kato.deploy.DeployHandler
+import com.netflix.asgard.kato.deploy.DeploymentResult
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,4 +1,4 @@
-package com.netflix.kato.security.gce
+package com.netflix.asgard.kato.security.gce
 
 import com.google.api.services.compute.Compute
 import groovy.transform.Canonical

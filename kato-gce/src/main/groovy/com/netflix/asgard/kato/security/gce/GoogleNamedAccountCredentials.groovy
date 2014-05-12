@@ -1,4 +1,4 @@
-package com.netflix.kato.security.gce
+package com.netflix.asgard.kato.security.gce
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -8,7 +8,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.SecurityUtils
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeScopes
-import com.netflix.kato.security.NamedAccountCredentials
+import com.netflix.asgard.kato.security.NamedAccountCredentials
 import java.security.PrivateKey
 import org.apache.commons.codec.binary.Base64
 import org.springframework.web.client.RestTemplate
