@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual"
+package com.netflix.asgard.kato.config
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+import com.netflix.asgard.kato.deploy.DeployHandler
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+
+@Configuration
+class DefaultWebConfig {
+
+  @Bean
+  @ConditionalOnMissingBean(DeployHandler)
+  DeployHandler deployHandler() {
+
   }
-}
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
 }

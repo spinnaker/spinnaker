@@ -1,0 +1,11 @@
+= Asgard 2 Platform: Kato
+Dan Woods <danw@netflix.com>
+2013-05-12
+:appversion: 1.1-SNAPSHOT
+:source-highlighter: prettify
+
+== Introduction
+
+Kato is the library and micro-service that provides the Asgard 2 platform with the structure and RESTful HTTP interface for performing deployment and deployment related activities. Consumers of Kato can make use of its
+ functions by posting an array of operation descriptions to the +/ops+ endpoint. These descriptions are, in turn, coerced to internal data structures and handed off to their respective handlers for
+ processing.

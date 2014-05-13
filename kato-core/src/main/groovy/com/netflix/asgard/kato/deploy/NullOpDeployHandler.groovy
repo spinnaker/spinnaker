@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual"
+package com.netflix.asgard.kato.deploy
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+class NullOpDeployHandler implements DeployHandler<String> {
+  @Override
+  DeploymentResult handle(String description, List priorOutputs) {
+    null
   }
-}
 
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
+  @Override
+  boolean handles(DeployDescription description) {
+    false
+  }
 }
