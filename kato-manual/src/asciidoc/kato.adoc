@@ -1,6 +1,12 @@
 = Asgard 2 Platform: Kato
 Dan Woods <danw@netflix.com>
 2013-05-12
+:toc: right
+:toclevels: 4
+:sectanchors:
+:sectlink:
+:linkattrs:
+:numbered:
 :appversion: 1.1-SNAPSHOT
 :source-highlighter: prettify
 
@@ -24,11 +30,11 @@ In itself, however, the web project won't offer much functionality besides stand
 
 == REST API
 
-Kato provides a set of RESTful HTTP APIs, which expose its deployment-related functions (+/ops+), access to tasks that have run or are currently running (+/task+), and access to the list of configured account names, which can be used by descriptions to specify an account or environment with which a deployment-related activity should take place. 
+Kato provides a set of RESTful HTTP APIs, which expose its deployment-related functions (+/ops+), access to tasks that have run or are currently running (+/task+), and access to the list of configured account names, which can be used to specify an account or environment with which a deployment-related activity should take place. 
 
 === Operations
 
-Kato's REST API is driven off the premise that clients will provide a set of "descriptions" for the atomic operations which they wish to execute. Internally, POST'ed "descriptions" will be coerced to atomic operations, which will execute some deployment-related action against the operation's cloud provider. The service provides a RESTful HTTP endpoint at +/ops+, which takes an array of objects, where each object is keyed by the name of the operation that it is describing. For example, the request body shown in Listing 1.1 could be supplied to invoke the creation of an Amazon Elastic Load Balancer, the insertion of a DNS record at Route53, and the deployment of a given AMI to Amazon.
+Kato's REST API is driven off the premise that clients will provide a set of "descriptions" for the atomic operations which they wish to execute. Internally, POST'ed "descriptions" will be coerced to atomic operations, which will execute some deployment-related action. The service provides a RESTful HTTP endpoint at +/ops+, which takes an array of objects, where each object is keyed by the name of the operation that it is describing. For example, the request body shown in Listing 1.1 could be supplied to invoke the creation of an Amazon Elastic Load Balancer, the insertion of a DNS record at Route53, and the deployment of a given AMI to Amazon.
 
 .Listing 1.1
 [source,javascript]
@@ -78,7 +84,7 @@ POST /ops
 }]
 ----
 
-In this example, "createAmazonLoadBalancerDescription", "upsertAmazonDNSDescription", and "basicAmazonDeployDescription" are the names of the descriptions to which Kato can locate corresponding atomic operations (or "handlers"). The result from the above call will nearly always be a data structure that provides a RESTful HTTP reference link to a +Task+ resource, which can be polled by clients to see the status or history of a set of work they have submitted.
+In this example, +createAmazonLoadBalancerDescription+, +upsertAmazonDNSDescription+, and +basicAmazonDeployDescription+ are the names of the descriptions to which Kato can locate corresponding atomic operations. The result from the above call will nearly always be a data structure that provides a RESTful HTTP reference link to a +Task+ resource, which can be polled by clients to see the status or history of a set of work they have submitted.
 
 The response from a call to the operations endpoint will look like the JSON depicted in Listing 1.2.
 
@@ -90,34 +96,56 @@ The response from a call to the operations endpoint will look like the JSON depi
 
 It is the "resourceLink" piece of this response that defines the endpoint that clients can use to query the status of their job execution.
 
-==== AWS Operations Module
+==== Amazon Operations
 
-Kato's AWS module (+kato-aws+) provides operations that are relevant for deployments and deployment-related function with Amazon.
+NOTE: Kato's AWS module (+kato-aws+) provides operations that are relevant for deployments and deployment-related function with Amazon.
 
-===== **Basic Amazon Deploy Description**
+- - -
+include::src/asciidoc/ops/basicAmazonDeployDescription.adoc[]
+- - -
+include::src/asciidoc/ops/copyLastAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/createAmazonLoadBalancerDescription.adoc[]
+- - -
+include::src/asciidoc/ops/deleteAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/resizeAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/shrinkClusterDescription.adoc[]
+- - -
+include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
+- - -
 
-_Key_: +basicAmazonDeployDescription+
+==== Google Operations
 
-This description supplies the +BasicAmazonDeployHandler+ with the inputs necessary to deploy a named Amazon Machine Image to a new AutoScaling Group.
+TODO
 
-.Description of payload inputs
-[width="100%",frame="topbot",options="header,footer"]
-|======================
-|Key               | Type   | Required | Value
-|application       | string | true     | The name of the application to which this deployment is concerned. Strictly speaking, this will be used to build the common naming scheme for the AutoScaling group
-|amiName           | string | true     | Name of the AMI that will be deployed to the ASG.
-|instanceType      | string | true     | Some https://aws.amazon.com/ec2/instance-types/[Amazon Instance Type] that members of this AutoScaling group will use.
-|availabilityZones | object | true     | An object that provides a named region to array of availability zone relationships. For example, +{ "us-east-1": ["us-east-1a", "us-east-1c"] }+ will inform the deployment engine to deploy the provided AMI in the "us-east-1" region, and specifically into the availability zones: "us-east-1a", "us-east-1c".
-|capacity          | object | true     | An object that represents the capacity of the newly created AutoScaling group. Valid values are "min", "max", and "desired", which represent the minimum number of instances, the maximum number of instances, and the desired number of instances for an AutoScaling group, respectively.
-|securityGroups    | array  | false    | List of security *group names*. Their IDs in their particular regions will be found at Amazon -- no need to look them up in advance.
-|loadBalancers     | array  | false    | A list of string values that correspond to load balancer names that should be attached to the newly created ASG. Load balancers must be created prior to this description being submitted. In the case where a +createAmazonLoadBalancerDescription+ was provided earlier in the request's execution chain, the value from that execution will be included in this list.
-|subnetType        | string | false    | The subnet "type" that is applicable to this deployment. This instructs the deployment engine to what subnets and vpcs this deployment will be a part. Subnets that are tagged with the key "immutable_metadata" and a value of a structure like, +{ "purpose": "internal", "target": "ec2" }+, will be found by the engine, and their "purpose" may be used as a value type for this field. Note that "purpose" and "target" provide a composite key, where the "target" property has eligible values of one of: "ec2" or "elb". Only one "purpose" to "target" correlation is valid with respect to the "subnetType" field in this description.
-|stack             | string | false    | The "stack" to which this deployment is applicable. A stack is some arbitrarily named "environment" that many applications may be a part of. This value, in conjunction with the "application" comprise the "cluster name" in Asgard's view of the Cloud.
-|======================
+==== Azure Operations
+
+TODO
+
+==== Rackspace Operations
+
+TODO
+
+==== SoftLayer Operations
+
+TODO
 
 === Tasks
 
-The endpoint mapped to +/task+ provides details about tasks that Kato has run or is running. When a description is submitted to Kato, it is transformed into an atomic operation and delegated to an orchestration engine, which will (should) process the request in the background, while returning a +Task+ object to the foreground. A response from a post to the operations controller will include a "resourceLink" to the task. That resource link can, in turn, be queried by clients to observe the current status of the submitted execution. An example output of a +DefaultTask+ object might look like the response shown in Listing 1.3.
+NOTE: The endpoint mapped to +/task+ provides details about tasks that Kato has run or is running. When a description is submitted to Kato, it is transformed into an atomic operation and delegated to an orchestration engine, which will (should) process the request in the background, while returning a +Task+ object to the foreground. A response from a post to the operations controller will include a "resourceLink" to the task. That resource link can, in turn, be queried by clients to observe the current status of the submitted execution. An example output of a +DefaultTask+ object might look like the response shown in Listing 1.3.
+
+==== Endpoints
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Request Type | Endpoint    | Description
+|GET          | /task       | Will return a list of all running and previously run tasks.
+|GET          | /task/:id   | Will return the task for the specified ID.
+|======================
+
+==== Example
 
 .Listing 1.3
 [source,javascript]
@@ -143,4 +171,40 @@ GET /task/e1jbn3
 }
 ----
 
-Querying the +/task+ endpoint without supplying an ID means that a list of tasks -- both running and completed -- will be returned to the user.
+=== Credentials
+
+NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts that are configured with Kato. Descriptions that are POST'ed to the +/ops+ endpoint may require a credential's name to resolve it internally.
+
+==== Endpoints
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Request Type | Endpoint     | Description
+|GET          | /credentials | Returns an array of strings that represent the configured credential account names
+|======================
+
+==== Example
+
+.Listing 1.3
+[source,javascript]
+----
+GET /credentials
+[
+	"test",
+	"prod"
+]
+----
+
+== Extending Kato
+
+TODO
+
+== Authors
+
+Dan Woods
+
+== Copyrights and Licenses
+
+Copyright (C) 2014 Netflix. Licensed under the Apache License.
+
+See https://raw.githubusercontent.com/Asgard/kato/master/LICENSE.txt[LICENSE.txt] for more information.
