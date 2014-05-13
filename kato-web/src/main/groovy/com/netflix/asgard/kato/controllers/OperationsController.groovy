@@ -23,11 +23,7 @@ import com.netflix.asgard.kato.orchestration.AtomicOperationNotFoundException
 import com.netflix.asgard.kato.orchestration.OrchestrationProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/ops")
@@ -46,7 +42,7 @@ class OperationsController {
     start atomicOperations
   }
 
-  @RequestMapping(value="/{name}", method=RequestMethod.POST)
+  @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   Map<String, String> atomic(@PathVariable("name") String name, @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = convert([(name): requestBody])
     start atomicOperations

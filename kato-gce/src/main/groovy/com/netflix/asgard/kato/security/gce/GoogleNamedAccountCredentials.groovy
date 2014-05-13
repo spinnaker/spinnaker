@@ -9,9 +9,10 @@ import com.google.api.client.util.SecurityUtils
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeScopes
 import com.netflix.asgard.kato.security.NamedAccountCredentials
-import java.security.PrivateKey
 import org.apache.commons.codec.binary.Base64
 import org.springframework.web.client.RestTemplate
+
+import java.security.PrivateKey
 
 class GoogleNamedAccountCredentials implements NamedAccountCredentials {
   final GoogleCredentials credentials
@@ -28,14 +29,14 @@ class GoogleNamedAccountCredentials implements NamedAccountCredentials {
     def key = new ByteArrayInputStream(Base64.decodeBase64(map.key as String))
     PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore, key, "notasecret", "privatekey", "notasecret")
     def credential = new GoogleCredential.Builder().setTransport(httpTransport)
-        .setJsonFactory(JSON_FACTORY)
-        .setServiceAccountId(map.email as String)
-        .setServiceAccountScopes(Collections.singleton(ComputeScopes.COMPUTE))
-        .setServiceAccountPrivateKey(privateKey)
-        .build()
+      .setJsonFactory(JSON_FACTORY)
+      .setServiceAccountId(map.email as String)
+      .setServiceAccountScopes(Collections.singleton(ComputeScopes.COMPUTE))
+      .setServiceAccountPrivateKey(privateKey)
+      .build()
     new Compute.Builder(
-        httpTransport, JSON_FACTORY, null).setApplicationName("asgard")
-        .setHttpRequestInitializer(credential).build()
+      httpTransport, JSON_FACTORY, null).setApplicationName("asgard")
+      .setHttpRequestInitializer(credential).build()
   }
 
 }

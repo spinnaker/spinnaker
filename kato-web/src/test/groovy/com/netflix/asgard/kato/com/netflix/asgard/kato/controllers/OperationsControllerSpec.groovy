@@ -33,25 +33,25 @@ class OperationsControllerSpec extends Specification {
 
   void "controller takes many operation descriptions, resolves them from the spring context, and executes them in order"() {
     setup:
-      """
+    """
         AtomicOperationConverter beans must be registered in the application context, with the bean name that corresponds to the key
         that is describing them in the request. For example, a description that looks like this:
            { "desc1": {} }
         will go to the Spring context for a bean named "desc1", and will call the "convertOperation" method on it, with the description as input.
       """
-      OrchestrationProcessor orchestrationProcessor = Mock(OrchestrationProcessor)
-      def mvc = MockMvcBuilders.standaloneSetup(new OperationsController(orchestrationProcessor: orchestrationProcessor, applicationContext: new AnnotationConfigApplicationContext(TestConfig))).build()
+    OrchestrationProcessor orchestrationProcessor = Mock(OrchestrationProcessor)
+    def mvc = MockMvcBuilders.standaloneSetup(new OperationsController(orchestrationProcessor: orchestrationProcessor, applicationContext: new AnnotationConfigApplicationContext(TestConfig))).build()
 
     when:
-      mvc.perform(MockMvcRequestBuilders.post("/ops").contentType(MediaType.APPLICATION_JSON).content('[ { "desc1": {}, "desc2": {} } ]')).andReturn()
+    mvc.perform(MockMvcRequestBuilders.post("/ops").contentType(MediaType.APPLICATION_JSON).content('[ { "desc1": {}, "desc2": {} } ]')).andReturn()
 
     then:
-      "Operations were supplied IN ORDER to the orchestration processor."
-      1 * orchestrationProcessor.process(*_) >> {
-        // The need for this flatten is weird -- seems like a bug in spock.
-        assert it?.flatten()*.getClass() == [Op1, Op2]
-        Mock(Task)
-      }
+    "Operations were supplied IN ORDER to the orchestration processor."
+    1 * orchestrationProcessor.process(*_) >> {
+      // The need for this flatten is weird -- seems like a bug in spock.
+      assert it?.flatten()*.getClass() == [Op1, Op2]
+      Mock(Task)
+    }
   }
 
   @Configuration
@@ -72,6 +72,7 @@ class OperationsControllerSpec extends Specification {
       return null
     }
   }
+
   static class Op2 implements AtomicOperation {
     Object operate(List priorOutputs) {
       return null
@@ -82,6 +83,7 @@ class OperationsControllerSpec extends Specification {
     AtomicOperation convertOperation(Map input) {
       new Op1()
     }
+
     Object convertDescription(Map input) {
       return null
     }
@@ -91,6 +93,7 @@ class OperationsControllerSpec extends Specification {
     AtomicOperation convertOperation(Map input) {
       new Op2()
     }
+
     Object convertDescription(Map input) {
       return null
     }

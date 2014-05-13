@@ -1,7 +1,7 @@
 package com.netflix.asgard.kato.deploy.gce.description
 
-import com.netflix.asgard.kato.security.gce.GoogleCredentials
 import com.netflix.asgard.kato.deploy.DeployDescription
+import com.netflix.asgard.kato.security.gce.GoogleCredentials
 
 class BasicGoogleDeployDescription implements DeployDescription {
   String application

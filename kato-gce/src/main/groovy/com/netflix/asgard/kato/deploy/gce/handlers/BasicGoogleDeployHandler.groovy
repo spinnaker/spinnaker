@@ -5,12 +5,12 @@ import com.google.api.services.compute.model.AccessConfig
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Instance
-import com.netflix.asgard.kato.deploy.gce.description.BasicGoogleDeployDescription
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.DeployDescription
 import com.netflix.asgard.kato.deploy.DeployHandler
 import com.netflix.asgard.kato.deploy.DeploymentResult
+import com.netflix.asgard.kato.deploy.gce.description.BasicGoogleDeployDescription
 import org.springframework.stereotype.Component
 
 @Component
@@ -51,10 +51,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing instance..."
     def rootDrive = new AttachedDisk(boot: true, autoDelete: true, type: "PERSISTENT",
-        initializeParams: new AttachedDiskInitializeParams(sourceImage: sourceImage.getSelfLink()))
+      initializeParams: new AttachedDiskInitializeParams(sourceImage: sourceImage.getSelfLink()))
 
     def network = new com.google.api.services.compute.model.NetworkInterface(network: networking.getSelfLink(),
-        accessConfigs: [new AccessConfig(type: "ONE_TO_ONE_NAT")])
+      accessConfigs: [new AccessConfig(type: "ONE_TO_ONE_NAT")])
 
     def clusterName = "${description.application}-${description.stack}"
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
@@ -63,7 +63,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def instanceName = "${clusterName}-v${nextSequence}-instance1".toString()
     task.updateStatus BASE_PHASE, "Produced instance name: $instanceName"
 
-    def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive],networkInterfaces: [network])
+    def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive], networkInterfaces: [network])
 
     task.updateStatus BASE_PHASE, "Creating instance $instanceName..."
     compute.instances().insert(project, description.zone, instance).execute()

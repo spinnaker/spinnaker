@@ -38,14 +38,14 @@ class BasicGoogleDeployHandlerSpec extends Specification {
   @Ignore
   void "handler deploys with netflix specific naming convention"() {
     setup:
-      def compute = Mock(Compute)
-      def instanceMock = getComputeMock(Compute.Instances, Compute.Instances.List, InstanceList, Instance, null)
-      def credentials = new GoogleCredentials("project", compute)
-      def description = new BasicGoogleDeployDescription(application: "app", stack: "stack", image: "image", type: "f1-micro", zone: "us-central1-b", credentials: credentials)
-      def handler = new BasicGoogleDeployHandler()
+    def compute = Mock(Compute)
+    def instanceMock = getComputeMock(Compute.Instances, Compute.Instances.List, InstanceList, Instance, null)
+    def credentials = new GoogleCredentials("project", compute)
+    def description = new BasicGoogleDeployDescription(application: "app", stack: "stack", image: "image", type: "f1-micro", zone: "us-central1-b", credentials: credentials)
+    def handler = new BasicGoogleDeployHandler()
 
     when:
-      handler.handle(description, [])
+    handler.handle(description, [])
 
     then:
     10 * compute.machineTypes() >> getComputeMock(Compute.MachineTypes, Compute.MachineTypes.List, MachineTypeList, MachineType, description.type)
