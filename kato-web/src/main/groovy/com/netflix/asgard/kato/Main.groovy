@@ -44,4 +44,5 @@ class Main extends SpringBootServletInitializer {
   InstanceInfo.InstanceStatus instanceStatus() {
     InstanceInfo.InstanceStatus.UNKNOWN
   }
+
 }

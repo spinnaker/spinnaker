@@ -19,49 +19,38 @@ package com.netflix.asgard.kato.orchestration
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import groovy.util.logging.Log4j
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 
 import java.util.concurrent.TimeoutException
-
-import static com.netflix.asgard.kato.holders.ApplicationContextHolder.applicationContext
 
 @Log4j
 class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION"
-  private final Task task = TaskRepository.threadLocalTask.get()
 
-  private final List<AtomicOperation> atomicOperations
+  @Autowired
+  TaskRepository taskRepository
 
-  DefaultOrchestrationProcessor(List<AtomicOperation> atomicOperations) {
-    this.atomicOperations = atomicOperations
-  }
+  @Autowired
+  ApplicationContext applicationContext
 
-  @Override
-  List process() {
-    final List results = []
-
-    for (AtomicOperation atomicOperation : atomicOperations) {
-      task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
-      try {
-        results << atomicOperation.operate(results)
-      } catch (e) {
-        log.error e
-        task.updateStatus TASK_PHASE, "operation failed: ${atomicOperation.class.simpleName} -- ${e.message}"
-        task.fail()
-      }
-    }
-
-    results
-  }
-
-  static Task start(List<AtomicOperation> atomicOperations) {
+  Task process(List<AtomicOperation> atomicOperations) {
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...")
     Thread.start {
       // Autowire the atomic operations
       atomicOperations.each { autowire it }
       TaskRepository.threadLocalTask.set(task)
-      OrchestrationProcessor orchestrationProcessor = new DefaultOrchestrationProcessor(atomicOperations)
       try {
-        orchestrationProcessor.process()
+        def results = []
+        for (AtomicOperation atomicOperation : atomicOperations) {
+          task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
+          try {
+            results << atomicOperation.operate(results)
+          } catch (e) {
+            log.error e
+            task.updateStatus TASK_PHASE, "operation failed: ${atomicOperation.class.simpleName} -- ${e.message}"
+          }
+        }
         task.updateStatus(TASK_PHASE, "Orchestration is complete.")
         task.complete()
       } catch (TimeoutException IGNORE) {
@@ -73,16 +62,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     task
   }
 
-  static void autowire(obj) {
+  void autowire(obj) {
     applicationContext.autowireCapableBeanFactory.autowireBean obj
-  }
-
-  private static TaskRepository _taskRepository
-
-  static TaskRepository getTaskRepository() {
-    if (!_taskRepository) {
-      _taskRepository = applicationContext.getBean(TaskRepository)
-    }
-    _taskRepository
   }
 }

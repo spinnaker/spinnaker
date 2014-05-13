@@ -17,13 +17,13 @@
 package com.netflix.asgard.kato.controllers
 
 import com.netflix.asgard.kato.data.task.Task
-import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.orchestration.AtomicOperation
 import com.netflix.asgard.kato.orchestration.AtomicOperationConverter
 import com.netflix.asgard.kato.orchestration.AtomicOperationNotFoundException
-import com.netflix.asgard.kato.orchestration.DefaultOrchestrationProcessor
+import com.netflix.asgard.kato.orchestration.OrchestrationProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -33,29 +33,42 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/ops")
 class OperationsController {
   @Autowired
-  TaskRepository taskRepository
+  ApplicationContext applicationContext
 
   @Autowired
-  ApplicationContext applicationContext
+  OrchestrationProcessor orchestrationProcessor
 
   @RequestMapping(method = RequestMethod.POST)
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = requestBody.collect { Map<String, Map> input ->
-      input.collect { k, v ->
-        AtomicOperationConverter converter = null
-        try {
-          converter = (AtomicOperationConverter) applicationContext.getBean(k)
-        } catch (IGNORE) {
-        }
-        if (!converter) {
-          throw new AtomicOperationNotFoundException(k)
-        }
-        converter.convertOperation v
-      }
+      convert(input)
     }?.flatten()
+    start atomicOperations
+  }
 
-    Task task = DefaultOrchestrationProcessor.start(atomicOperations)
+  @RequestMapping(value="/{name}", method=RequestMethod.POST)
+  Map<String, String> atomic(@PathVariable("name") String name, @RequestBody Map requestBody) {
+    List<AtomicOperation> atomicOperations = convert([(name): requestBody])
+    start atomicOperations
+  }
+
+  private Map<String, String> start(List<AtomicOperation> atomicOperations) {
+    Task task = orchestrationProcessor.process(atomicOperations)
     [id: task.id, resourceUri: "/task/${task.id}".toString()]
+  }
+
+  private List<AtomicOperation> convert(Map<String, Map> input) {
+    input.collect { k, v ->
+      AtomicOperationConverter converter = null
+      try {
+        converter = (AtomicOperationConverter) applicationContext.getBean(k)
+      } catch (IGNORE) {
+      }
+      if (!converter) {
+        throw new AtomicOperationNotFoundException(k)
+      }
+      converter.convertOperation v
+    }
   }
 
 }

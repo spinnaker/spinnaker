@@ -20,6 +20,8 @@ import com.netflix.asgard.kato.data.task.InMemoryTaskRepository
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.deploy.DefaultDeployHandlerRegistry
 import com.netflix.asgard.kato.deploy.DeployHandlerRegistry
+import com.netflix.asgard.kato.orchestration.DefaultOrchestrationProcessor
+import com.netflix.asgard.kato.orchestration.OrchestrationProcessor
 import com.netflix.asgard.kato.security.DefaultNamedAccountCredentialsHolder
 import com.netflix.asgard.kato.security.NamedAccountCredentials
 import com.netflix.asgard.kato.security.NamedAccountCredentialsHolder
@@ -45,5 +47,11 @@ class CoreConfiguration {
   @ConditionalOnMissingBean(DeployHandlerRegistry)
   DeployHandlerRegistry deployHandlerRegistry() {
     new DefaultDeployHandlerRegistry()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(OrchestrationProcessor)
+  OrchestrationProcessor orchestrationProcessor() {
+    new DefaultOrchestrationProcessor()
   }
 }

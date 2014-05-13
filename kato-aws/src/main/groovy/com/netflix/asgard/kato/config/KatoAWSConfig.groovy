@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.asgard.kato.orchestration
+package com.netflix.asgard.kato.config
 
-import com.netflix.asgard.kato.data.task.Task
+import com.netflix.asgard.kato.deploy.aws.userdata.NullOpUserDataProvider
+import com.netflix.asgard.kato.deploy.aws.userdata.UserDataProvider
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
-/**
- * Implementations of this interface should perform orchestration of operations in a workflow. Often will be used in
- * conjunction with {@link AtomicOperation} instances.
- *
- * @author Dan Woods
- */
-public interface OrchestrationProcessor {
+@Configuration
+class KatoAWSConfig {
 
-  /**
-   * This is the invocation point of orchestration.
-   *
-   * @return a list of results
-   */
-  Task process(List<AtomicOperation> atomicOperations)
+  @Bean
+  @ConditionalOnMissingBean(UserDataProvider)
+  UserDataProvider userDataProvider() {
+    new NullOpUserDataProvider()
+  }
 }

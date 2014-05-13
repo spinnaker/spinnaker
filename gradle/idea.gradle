@@ -27,11 +27,6 @@ idea {
         node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
         node.append(new XmlParser().parse(file("gradle/codeStyle.xml")))
 
-        def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
-        if (nullableManager) {
-          nullableManager.parent().remove(nullableManager)
-        }
-
         def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
         copyrightManager.@default = "ASL2"
         def aslCopyright = copyrightManager.copyright.find { it.option.find { it.@name == "myName" }?.@value == "ASL2" }
