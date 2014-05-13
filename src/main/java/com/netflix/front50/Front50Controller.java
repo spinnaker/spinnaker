@@ -29,13 +29,13 @@ public class Front50Controller extends SpringBootServletInitializer {
     Application application;
 
     @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    protected SpringApplicationBuilder configure(final SpringApplicationBuilder application) {
         initializeEnv();
         application.sources(Front50Controller.class);
         return super.configure(application);
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         initializeEnv();
         SpringApplication.run(Front50Controller.class, args);
     }
@@ -47,12 +47,12 @@ public class Front50Controller extends SpringBootServletInitializer {
 
     @RequestMapping(method = RequestMethod.PUT, value="/applications")
     @ResponseBody
-    public Application put(@RequestBody Application app) {
+    public Application put(@RequestBody final Application app) {
         try {
             if (app.getName() == null || app.getName().equals("")) {
                 throw new ApplicationWithoutNameException("Application must have a name");
             }
-            Application foundApp = application.findByName(app.getName());
+            final Application foundApp = application.findByName(app.getName());
             application.initialize(foundApp).withName(app.getName()).update(app.allSetColumnProperties());
             return application;
         } catch (NotFoundException e) {
@@ -63,7 +63,7 @@ public class Front50Controller extends SpringBootServletInitializer {
 
     @RequestMapping(method = RequestMethod.POST, value="/applications/name/{name}")
     @ResponseBody
-    public Application post(@RequestBody Application app) {
+    public Application post(@RequestBody final Application app) {
         try {
             return application.initialize(app).withName(app.getName()).save();
         } catch (NoPrimaryKeyException e) {
@@ -89,7 +89,7 @@ public class Front50Controller extends SpringBootServletInitializer {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/applications/name/{name}")
-    public void delete(@PathVariable String name) {
+    public void delete(@PathVariable final String name) {
         try {
             application.initialize(new Application().withName(name)).delete();
         } catch (NoPrimaryKeyException e) {
@@ -99,7 +99,7 @@ public class Front50Controller extends SpringBootServletInitializer {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/applications/name/{name}")
-    public Application getByName(@PathVariable String name) {
+    public Application getByName(@PathVariable final String name) {
         try {
             return application.findByName(name);
         } catch (NotFoundException e) {
