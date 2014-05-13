@@ -17,6 +17,7 @@
 package com.netflix.asgard.kato.deploy.aws.ops
 
 import com.amazonaws.auth.AWSCredentials
+import com.netflix.asgard.kato.deploy.DeploymentResult
 import com.netflix.asgard.kato.deploy.aws.AutoScalingWorker
 import com.netflix.asgard.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.asgard.kato.deploy.aws.handlers.BasicAmazonDeployHandler
@@ -27,15 +28,18 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
 
   void "operation builds description based on ancestor asg"() {
     setup:
+    def deployHandler = Mock(BasicAmazonDeployHandler)
+    List<BasicAmazonDeployDescription> descriptions = []
+    deployHandler.handle(_, _) >> { BasicAmazonDeployDescription desc, _ -> descriptions << desc; new DeploymentResult() }
     def description = new BasicAmazonDeployDescription(application: "asgard")
     description.availabilityZones = ['us-west-1': []]
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
     AutoScalingWorker.metaClass.getAncestorAsg = { [minSize: 1, maxSize: 2, desiredCapacity: 5] }
-    List<BasicAmazonDeployDescription> descriptions = []
-    BasicAmazonDeployHandler.metaClass.handle = { BasicAmazonDeployDescription desc -> descriptions << desc }
+    def op = new CopyLastAsgAtomicOperation(description)
+    op.basicAmazonDeployHandler = deployHandler
 
     when:
-    new CopyLastAsgAtomicOperation(description).operate([])
+    op.operate([])
 
     then:
     descriptions

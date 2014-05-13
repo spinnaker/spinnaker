@@ -28,6 +28,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   List<UserDataProvider> userDataProviders
 
+  @Autowired
+  BasicAmazonDeployHandler basicAmazonDeployHandler
+
   final BasicAmazonDeployDescription description
 
   CopyLastAsgAtomicOperation(BasicAmazonDeployDescription description) {
@@ -45,7 +48,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {
       newDescription.capacity.max = ancestorAsg.maxSize
       newDescription.capacity.desired = ancestorAsg.desiredCapacity
 
-      new BasicAmazonDeployHandler().handle(description, priorOutputs)
+      basicAmazonDeployHandler.handle(description, priorOutputs)
     }
 
     null

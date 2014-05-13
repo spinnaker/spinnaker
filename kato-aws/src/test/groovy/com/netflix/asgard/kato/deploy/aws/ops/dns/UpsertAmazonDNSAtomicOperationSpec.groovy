@@ -65,10 +65,10 @@ class UpsertAmazonDNSAtomicOperationSpec extends Specification {
   void "operation calls out to route53 to UPSERT dns record"() {
     setup:
     def mockClient = Mock(AmazonRoute53)
-    StaticAmazonClients.metaClass.'static'.getAmazonRoute53 = { AmazonCredentials credentials, String region ->
-      mockClient
-    }
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAmazonRoute53(_, _) >> mockClient
     def op = new UpsertAmazonDNSAtomicOperation(new UpsertAmazonDNSDescription())
+    op.amazonClientProvider = mockAmazonClientProvider
 
     when:
     op.operate([])

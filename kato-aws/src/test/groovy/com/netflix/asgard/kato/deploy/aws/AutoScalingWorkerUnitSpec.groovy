@@ -96,6 +96,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
       def mock = Mock(DescribeSubnetsResult)
       mock.getSubnets() >> [new Subnet()
                               .withSubnetId("123")
+                              .withState("available")
                               .withAvailabilityZone("us-west-1a")
                               .withTags([new Tag("immutable_metadata", '{ "purpose": "internal", "target": "ec2"}')])
       ]
