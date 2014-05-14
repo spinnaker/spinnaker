@@ -44,7 +44,7 @@ subprojects {
   apply plugin: 'groovy'
 
   group = "com.netflix.asgard.kato"
-  version = "1.2"
+  version = "1.3-SNAPSHOT"
 
   configurations.all {
     resolutionStrategy {
