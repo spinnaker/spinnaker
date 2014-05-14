@@ -178,7 +178,7 @@ class AutoScalingWorker {
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         def metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType.type
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
           && metadata.target == SUBNET_PURPOSE_TYPE && subnet.state == SubnetState.Available.toString()) {
           subnets << subnet.subnetId
         }
