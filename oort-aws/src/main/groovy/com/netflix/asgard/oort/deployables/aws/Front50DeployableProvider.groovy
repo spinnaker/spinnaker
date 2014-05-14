@@ -71,7 +71,7 @@ class Front50DeployableProvider implements DeployableProvider {
       def stopwatch = new StopWatch()
       log.info "Begin First50 Deployable caching..."
       stopwatch.start()
-      List<Map> apps = (List<Map>) front50.query("")
+      List<Map> apps = (List<Map>) front50.query("/applications")
       run = apps.collectEntries { Map obj ->
         [(obj.name?.toLowerCase()): new Deployable(name: obj.name?.toLowerCase(), type: "Amazon",
             attributes: (Map<String, String>)obj.collectEntries { k, v -> [(k): v]})]

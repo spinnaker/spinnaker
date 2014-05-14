@@ -20,14 +20,19 @@ import com.netflix.asgard.oort.clusters.ClusterProvider
 import com.netflix.asgard.oort.deployables.Deployable
 import com.netflix.asgard.oort.deployables.DeployableProvider
 import com.netflix.asgard.oort.remoting.AggregateRemoteResource
+import org.springframework.beans.factory.annotation.Value
+
 import javax.servlet.http.HttpServletResponse
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/deployables/{deployable}/clusters")
+@RequestMapping("/applications/{deployable}/clusters")
 class ClusterController {
+
+  @Value('${discovery.url.format}')
+  String discoveryUrlFormat
 
   @Autowired
   AggregateRemoteResource edda
@@ -52,14 +57,24 @@ class ClusterController {
         deployables[deployableObject.name] = deployableObject
       }
     }
-    deployables.values()?.getAt(0)?.clusters?.list()
+    def clusters = deployables.values()?.getAt(0)?.clusters?.list()
+    clusters.each {
+      it.serverGroups.each { serverGroup ->
+        serverGroup.instances = serverGroup.instances.collect { getInstance(serverGroup.region, it.instanceId) + [eureka: getDiscoveryHealth(serverGroup.region, deployable, it.instanceId)]}
+      }
+    }
   }
 
   @RequestMapping(value = "/{cluster}", method = RequestMethod.GET)
   def get(@PathVariable("deployable") String deployable, @PathVariable("cluster") String clusterName,
           @RequestParam(value = "zone", required = false) String zoneName) {
     clusterProviders.collect {
-      zoneName ? it.getByNameAndZone(deployable, clusterName, zoneName) : it.getByName(deployable, clusterName)
+      def clusters = zoneName ? it.getByNameAndZone(deployable, clusterName, zoneName) : it.getByName(deployable, clusterName)
+      clusters.each {
+        it.serverGroups.each { serverGroup ->
+          serverGroup.instances = serverGroup.instances.collect { getInstance serverGroup.region, it.instanceId }
+        }
+      }
     }?.flatten()
   }
 
@@ -90,7 +105,8 @@ class ClusterController {
       serverGroup = clusters.serverGroups?.flatten()?.find { it.name == serverGroupName }
       if (serverGroup) {
         def copied = new HashMap(serverGroup)
-        copied.instances = copied.instances.collect { getInstance zoneName, it.instanceId }
+        def instances = copied.instances.collect { getInstance zoneName, it.instanceId }
+        copied.instances = instances
         return copied
       }
     }
@@ -101,5 +117,15 @@ class ClusterController {
     try {
       edda.getRemoteResource(region) get "/REST/v2/view/instances/$instanceId"
     } catch (IGNORE) { [instanceId: instanceId, state: [name: "offline"]] }
+  }
+
+  def getDiscoveryHealth(String region, String application, String instanceId) {
+    try {
+      def map = edda.getRemoteResource(region) get "/REST/v2/discovery/applications/$application;_pp:(instances:(id,status,overriddenStatus))"
+      def instance = map.instances.find { it.id == instanceId }
+      if (instance) {
+        return [id: instanceId, status: instance.overriddenStatus?.name != "UNKNOWN" ? instance.overriddenStatus.name : instance.status.name]
+      }
+    } catch (IGNORE) { [instanceId: instanceId, state: [name: "unknown"]] }
   }
 }

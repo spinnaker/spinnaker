@@ -58,7 +58,7 @@
     <span class="col-sm-8 detail-text"></span>
   </div>
   <div class="col-sm-12 details instances">
-    <div ng-repeat="instance in serverGroup.instances" title="{{instance.instanceId}}" class="instance {{instance.healthStatus == 'Healthy' && instance.lifecycleState != 'Terminating' ? 'green' : 'red'}}">
+    <div ng-repeat="instance in serverGroup.instances" title="{{instance.instanceId}}" class="instance {{instance.state.name == 'running' ? 'green' : 'red'}}">
       &nbsp;
     </div>
   </div>

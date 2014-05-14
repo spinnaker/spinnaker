@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
 
 @RestController
-@RequestMapping("/deployables")
+@RequestMapping("/applications")
 class DeployableController {
 
   @Autowired
@@ -53,6 +53,7 @@ class DeployableController {
         map[name] = [clusterCount: 0, instanceCount: 0, serverGroupCount: 0, attributes: deployable.attributes]
       }
       deployable.clusters.list().each { Cluster cluster ->
+        map[name].clusters = (map[name].clusters ?: new HashSet()) << cluster.name
         map[name].clusterCount += 1
         map[name].serverGroupCount += cluster.serverGroups?.size()
         map[name].instanceCount += cluster.serverGroups?.collect { it.getInstanceCount() }?.sum() ?: 0
