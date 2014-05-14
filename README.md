@@ -42,7 +42,7 @@ You can then execute the task: `gradle bootRun`. Kato, by default, runs on port 
 Documentation
 ===
 
-Start an instance of Kato and point to +/manual+.
+Start an instance of Kato and point to `/manual/index.html`.
 
 Authors
 ===
