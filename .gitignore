@@ -9,3 +9,5 @@ TestScript.groovy
 .idea/
 application.yml
 *.hprof
+gradle.properties
+kato-manual/src/main/resources/static

@@ -22,11 +22,9 @@ import com.amazonaws.services.route53.model.HostedZone
 import com.amazonaws.services.route53.model.ListHostedZonesResult
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
-import com.netflix.asgard.kato.deploy.aws.StaticAmazonClients
 import com.netflix.asgard.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import com.netflix.asgard.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.asgard.kato.security.aws.AmazonClientProvider
-import com.netflix.asgard.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
 class UpsertAmazonDNSAtomicOperationSpec extends Specification {

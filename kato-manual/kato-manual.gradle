@@ -21,3 +21,16 @@ asciidoctor {
         ]
     ]
 }
+
+task cleanResources(type: Delete) {
+  delete fileTree(dir: "src/main/resources/static/manual/")
+}
+
+asciidoctor.dependsOn("cleanResources")
+jar.dependsOn("asciidoctor")
+asciidoctor.doLast {
+  copy {
+    from 'build/asciidoc'
+    into 'src/main/resources/static/manual'
+  }
+}
