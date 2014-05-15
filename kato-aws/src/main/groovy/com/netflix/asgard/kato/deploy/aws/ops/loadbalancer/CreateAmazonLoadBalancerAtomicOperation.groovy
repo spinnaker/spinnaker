@@ -18,7 +18,6 @@ package com.netflix.asgard.kato.deploy.aws.ops.loadbalancer
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
-import com.amazonaws.services.ec2.model.SubnetState
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -115,7 +114,7 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_PURPOSE_TYPE && subnet.state == SubnetState.Available.toString()) {
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_PURPOSE_TYPE) {
           mySubnets << subnet.subnetId
         }
       }

@@ -51,7 +51,7 @@ import java.lang.reflect.Method
 @Component
 class AmazonClientProvider {
 
-  @Value('${edda.host.format:null}')
+  @Value('${edda.host.format:#{null}}')
   String edda
 
   RestTemplate restTemplate

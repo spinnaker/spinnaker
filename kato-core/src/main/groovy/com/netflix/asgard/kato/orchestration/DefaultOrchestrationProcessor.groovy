@@ -18,13 +18,11 @@ package com.netflix.asgard.kato.orchestration
 
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
-import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
 import java.util.concurrent.TimeoutException
 
-@Log4j
 class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION"
 
@@ -47,7 +45,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           try {
             results << atomicOperation.operate(results)
           } catch (e) {
-            log.error e
+            e.printStackTrace()
             task.updateStatus TASK_PHASE, "operation failed: ${atomicOperation.class.simpleName} -- ${e.message}"
           }
         }

@@ -26,11 +26,9 @@ import com.netflix.asgard.kato.deploy.aws.description.BasicAmazonDeployDescripti
 import com.netflix.asgard.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.asgard.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.asgard.kato.security.aws.AmazonClientProvider
-import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@Log4j
 @Component
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"

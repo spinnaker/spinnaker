@@ -19,10 +19,12 @@ package com.netflix.asgard.kato.data.task
 import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.Immutable
 import groovy.transform.ToString
-import groovy.util.logging.Log4j
 
-@Log4j
+import java.util.logging.Logger
+
 public class DefaultTask implements Task {
+  private static final Logger log = Logger.getLogger(this.class.name)
+
   final String id
   final List<Status> history = []
   final long startTimeMs = new Date().time

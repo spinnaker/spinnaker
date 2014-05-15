@@ -19,10 +19,8 @@ package com.netflix.asgard.kato.deploy
 import com.netflix.asgard.kato.data.task.Task
 import com.netflix.asgard.kato.data.task.TaskRepository
 import com.netflix.asgard.kato.orchestration.AtomicOperation
-import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
 
-@Log4j
 class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String TASK_PHASE = "DEPLOY"
 

@@ -17,7 +17,6 @@
 package com.netflix.asgard.kato
 
 import com.netflix.appinfo.InstanceInfo
-import groovy.util.logging.Log4j
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -26,7 +25,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
-@Log4j
 @Configuration
 @ComponentScan("com.netflix.asgard.kato")
 @EnableAutoConfiguration
