@@ -1,7 +1,7 @@
-package com.netflix.asgard.orca.bakery.tasks
+package com.netflix.bluespar.orca.bakery.tasks
 
-import com.netflix.asgard.orca.bakery.api.BakeService
-import com.netflix.asgard.orca.bakery.api.BakeStatus
+import com.netflix.bluespar.orca.bakery.api.BakeService
+import com.netflix.bluespar.orca.bakery.api.BakeStatus
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext

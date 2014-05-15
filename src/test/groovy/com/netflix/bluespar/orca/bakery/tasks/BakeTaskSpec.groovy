@@ -1,9 +1,7 @@
-package com.netflix.asgard.orca.bakery.tasks
+package com.netflix.bluespar.orca.bakery.tasks
 
-import com.netflix.asgard.orca.bakery.api.BakeService
-import com.netflix.asgard.orca.bakery.api.BakeState
-import com.netflix.asgard.orca.bakery.api.BakeStatus
-import com.netflix.asgard.orca.bakery.tasks.BakeTask
+import com.netflix.bluespar.orca.bakery.api.BakeService
+import com.netflix.bluespar.orca.bakery.api.BakeStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.StepContribution
@@ -14,7 +12,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import rx.*
 
-import static com.netflix.asgard.orca.bakery.api.BakeState.RUNNING
+import static com.netflix.bluespar.orca.bakery.api.BakeState.RUNNING
 
 class BakeTaskSpec extends Specification {
 

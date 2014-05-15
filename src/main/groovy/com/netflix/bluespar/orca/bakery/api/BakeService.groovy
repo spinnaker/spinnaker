@@ -1,4 +1,4 @@
-package com.netflix.asgard.orca.bakery.api
+package com.netflix.bluespar.orca.bakery.api
 
 import retrofit.http.POST
 import retrofit.http.Path
