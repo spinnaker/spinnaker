@@ -1,0 +1,14 @@
+allprojects {
+    buildscript {
+        repositories {
+            mavenLocal()
+        }
+        configurations.all {
+            resolutionStrategy.cacheChangingModulesFor 0, 'hours'
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
