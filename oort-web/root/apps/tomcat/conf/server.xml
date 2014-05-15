@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Server className="org.apache.catalina.core.StandardServer" debug="0" port="7531"
+        shutdown="SHUTDOWN">
+   <Service className="org.apache.catalina.core.StandardService" debug="0"
+            name="Tomcat-Standalone">
+      <Connector acceptCount="300" bufferSize="2048" compression="off" connectionLinger="-1"
+                 connectionTimeout="4000"
+                 debug="0"
+                 disableUploadTimeout="true"
+                 enableLookups="false"
+                 maxKeepAliveRequests="100"
+                 protocol="org.apache.coyote.http11.Http11NioProtocol"
+                 scheme="http"
+                 secure="false"
+                 tcpNoDelay="true"
+                 useURIValidationHack="false"
+                 port="7101"
+                 maxThreads="200"
+                 minSpareThreads="50"
+                 address="0.0.0.0"
+                 proxyPort="">
+         <Factory className="org.apache.catalina.net.DefaultServerSocketFactory"/>
+      </Connector>
+      <Engine defaultHost="localhost" name="Standalone">
+         <Host appBase="webapps" autoDeploy="true" liveDeploy="true" name="localhost"
+               unpackWARs="true"
+               xmlValidation="false"
+               xmlNamespaceAware="false"/>
+      </Engine>
+   </Service>
+</Server>
