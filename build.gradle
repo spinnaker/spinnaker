@@ -17,9 +17,10 @@
 buildscript {
   repositories {
     jcenter()
+    maven { url 'http://dl.bintray.com/bluespar/gradle' }
   }
   dependencies {
-    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.1'
+    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.0'
   }
 }
 
