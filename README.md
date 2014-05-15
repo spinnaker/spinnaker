@@ -13,7 +13,7 @@ To include, add the following to your build.gradle
       repositories { jcenter() }
 
       dependencies {
-        classpath 'com.netflix.nebula:bluespar-gradle-project:1.9.+'
+        classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.+'
       }
     }
 
