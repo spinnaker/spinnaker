@@ -7,18 +7,16 @@ allprojects {
 }
 
 subprojects {
-  apply plugin: 'nebula-publishing'
-  apply plugin: 'nebula-source-jar'
-  apply plugin: 'nebula-javadoc-jar'
-  apply plugin: 'netflix-repos'
+  apply plugin: "nebula"
   apply plugin: "idea"
   apply plugin: "groovy"
-  apply plugin: 'artifactory'
 
   group = "com.netflix.asgard.oort"
   version = "0.1-SNAPSHOT"
 
   repositories {
+    maven { url 'http://artifacts.netflix.com/build-gradle'  }
+    maven { url 'http://dl.bintray.com/asgard/asgard' }
     jcenter()
     maven { url "http://repo.spring.io/repo" }
   }
@@ -27,16 +25,6 @@ subprojects {
     compile 'org.codehaus.groovy:groovy-all:2.3.0'
   }
 
-  artifactory {
-    publish {
-      contextUrl = 'http://artifacts.netflix.com/'
-      repository {
-        repoKey = 'gradle-netflix-local'
-        username = project.artifactoryUsername
-        password = project.artifactoryPassword
-      }
-    }
-  } 
 }
 
 def getSpringloadedJvmArgs(project) {
