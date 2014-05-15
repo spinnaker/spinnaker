@@ -1,0 +1,31 @@
+apply plugin: 'groovy'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven { url 'http://repo.spring.io/milestone' }
+}
+
+dependencies {
+
+    final GROOVY_VERSION = "2.3.0"
+    final SPRING_VERSION = '4.0.4.RELEASE'
+    final BATCH_VERSION = '3.0.0.RC1'
+    final SPOCK_VERSION = '0.7-groovy-2.0'
+    final LOGBACK_VERSION = '1.0.13'
+    final SLF4J_VERSION = '1.7.5'
+
+    compile "org.codehaus.groovy:groovy:$GROOVY_VERSION:indy"
+    compile "org.springframework.batch:spring-batch-core:$BATCH_VERSION"
+
+    // I hate logging but this pretty much makes it shut up
+    compile "ch.qos.logback:logback-classic:$LOGBACK_VERSION"
+    compile "org.slf4j:jcl-over-slf4j:$SLF4J_VERSION"
+
+    testCompile "org.spockframework:spock-core:$SPOCK_VERSION"
+    testCompile "org.spockframework:spock-spring:$SPOCK_VERSION"
+    testCompile "org.springframework.batch:spring-batch-test:$BATCH_VERSION"
+    testCompile "org.springframework:spring-test:$SPRING_VERSION"
+}
+
+configurations.all*.exclude module: "groovy-all"
