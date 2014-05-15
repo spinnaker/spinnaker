@@ -70,7 +70,7 @@
   }]);
 
   function LandingPageController($scope, $location, $resource, $timeout) {
-    var DeployableResource = $resource("/deployables");
+    var DeployableResource = $resource("/applications");
 
     (function tick() {
       var deployables = DeployableResource.get(function () {
@@ -100,7 +100,7 @@
   }
 
   function NewDeploymentController($scope, $resource) {
-    var KatoResource = $resource("http://localhost:8501/ops");
+    var KatoResource = $resource("http://kato.test.netflix.net:7001/ops");
 
     $scope.regions = [];
     $scope.deploy = function() {
@@ -133,7 +133,7 @@
       console.log(availableTypes);
     };
 
-    var ImageResource = $resource("/deployables/:pkg/images");
+    var ImageResource = $resource("/applications/:pkg/images");
     $scope.updateImages = function() {
       var images = ImageResource.query({pkg: $scope.pkg}, function() {
         $scope.images = images;
@@ -166,7 +166,7 @@
   }
 
   function ClusterController($scope, $routeParams, $resource, $timeout) {
-    var ClusterResource = $resource("/deployables/:deployable/clusters/:cluster");
+    var ClusterResource = $resource("/applications/:deployable/clusters/:cluster");
     $scope.deployable = $routeParams.deployable;
     $scope.cluster = $routeParams.cluster;
 
@@ -214,7 +214,7 @@
   function AsgController($scope, $routeParams, $resource, $location, $timeout) {
     var KatoResource = $resource("http://localhost:8501/ops");
 
-    var AsgResource = $resource("/deployables/:deployable/clusters/:cluster/serverGroups/:asg/:region");
+    var AsgResource = $resource("/applications/:deployable/clusters/:cluster/serverGroups/:asg/:region");
     $scope.deployable = $routeParams.deployable;
     $scope.cluster = $routeParams.cluster;
     $scope.region = $routeParams.region;

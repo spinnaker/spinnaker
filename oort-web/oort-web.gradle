@@ -25,6 +25,10 @@ buildscript {
 
 apply plugin: 'spring-boot'
 
+nebula {
+  readyForJava7 = true
+}
+
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
