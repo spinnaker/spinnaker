@@ -9,16 +9,21 @@ repositories {
 dependencies {
 
     final GROOVY_VERSION = "2.3.0"
-    final SPRING_VERSION = '4.0.4.RELEASE'
-    final BATCH_VERSION = '3.0.0.RC1'
-    final SPOCK_VERSION = '0.7-groovy-2.0'
-    final LOGBACK_VERSION = '1.0.13'
-    final SLF4J_VERSION = '1.7.5'
+    final SPRING_VERSION = "4.0.4.RELEASE"
+    final BATCH_VERSION = "3.0.0.RC1"
+    final GUAVA_VERSION = "17.0"
+    final RXJAVA_VERSION = "0.18.3"
+    final RETROFIT_VERSION = "1.5.1"
+    final SPOCK_VERSION = "0.7-groovy-2.0"
+    final LOGBACK_VERSION = "1.0.13"
+    final SLF4J_VERSION = "1.7.5"
 
     compile "org.codehaus.groovy:groovy:$GROOVY_VERSION:indy"
     compile "org.springframework.batch:spring-batch-core:$BATCH_VERSION"
+    compile "com.google.guava:guava:$GUAVA_VERSION"
+    compile "com.netflix.rxjava:rxjava-core:$RXJAVA_VERSION"
+    compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
 
-    // I hate logging but this pretty much makes it shut up
     compile "ch.qos.logback:logback-classic:$LOGBACK_VERSION"
     compile "org.slf4j:jcl-over-slf4j:$SLF4J_VERSION"
 
