@@ -16,6 +16,7 @@
 package com.netflix.bluespar
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
@@ -104,10 +105,10 @@ class BluesparProjectPlugin implements Plugin<Project> {
 
     void configureRelease(Project project) {
         // Release, to be replaced by our own in the future.
-        project.plugins.apply(ReleasePlugin)
-        project.ext.'gradle.release.useAutomaticVersion' = "true"
+        project.rootProject.plugins.apply(ReleasePlugin)
+        project.rootProject.ext.'gradle.release.useAutomaticVersion' = "true"
 
-        ReleasePluginConvention releaseConvention = project.convention.getPlugin(ReleasePluginConvention)
+        ReleasePluginConvention releaseConvention = project.rootProject.convention.getPlugin(ReleasePluginConvention)
         releaseConvention.failOnUnversionedFiles = false
         releaseConvention.failOnCommitNeeded = false
 
@@ -116,10 +117,14 @@ class BluesparProjectPlugin implements Plugin<Project> {
         gitReleaseConvention.requireBranch = null
         gitReleaseConvention.pushToCurrentBranch = true
 
-        def spawnBintrayUpload = project.task('spawnBintrayUpload', description: 'Create GradleBuild to run BintrayUpload to use a new version', group: 'Release', type: GradleBuild) {
-            startParameter = project.getGradle().startParameter.newInstance()
-            tasks = ['bintrayUpload']
+        try {
+            def spawnBintrayUpload = project.rootProject.task('spawnBintrayUpload', description: 'Create GradleBuild to run BintrayUpload to use a new version', group: 'Release', type: GradleBuild) {
+                startParameter = project.rootProject.getGradle().startParameter.newInstance()
+                tasks = ['bintrayUpload']
+            }
+            project.rootProject.tasks.createReleaseTag.dependsOn spawnBintrayUpload
+        } catch (InvalidUserDataException iude) {
+            //task already created, ignore
         }
-        project.tasks.createReleaseTag.dependsOn spawnBintrayUpload
     }
 }
