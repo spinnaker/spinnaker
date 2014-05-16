@@ -69,4 +69,4 @@ subprojects { project ->
   project.tasks.publish.onlyIf { !project.version.endsWith("SNAPSHOT") }
 }
 
-
+tasks.checkSnapshotDependencies.onlyIf { false }
