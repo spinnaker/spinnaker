@@ -1,0 +1,33 @@
+===== Tag ASG Description
+
+====== Key
+
++tagAsgDescription+
+
+====== Description
+
+This description provides the inputs necessary to terminate a provided instance and decrement the desired capacity of its AutoScaling group. The process will also deregister the instance from any associated load balancers before performing the termination.
+
+====== Example Request Body
+[source,javascript]
+----
+[{
+    "terminateInstanceAndDecrementAsgDescription": {
+        "asgName": "kato-main-v000",
+        "instance": "i-123456",
+        "region": "us-west-1",
+        "credentials": "test"
+    }
+}]
+----
+
+====== Description of inputs
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Key               | Type   | Required | Value
+|asgName           | string | true     | The name of the asg in which the instanceId resides.
+|instance          | string | true     | The id of the instance that is to be terminated as part of this operation.
+|region            | string | true     | The region in which the specified ASG and instance live.
+|credentials       | string | true     | The named account credentials that are to be used for this operation.
+|======================
