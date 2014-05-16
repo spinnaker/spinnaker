@@ -1,7 +1,7 @@
 package com.netflix.bluespar.orca.bakery.tasks
 
-import com.netflix.bluespar.orca.bakery.api.BakeService
 import com.netflix.bluespar.orca.bakery.api.BakeStatus
+import com.netflix.bluespar.orca.bakery.api.BakeryService
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -12,14 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
 @CompileStatic
-class BakeTask implements Tasklet {
+class CreateBakeTask implements Tasklet {
 
     @Autowired
-    BakeService bakeService
+    BakeryService bakery
 
     @Override
     RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        bakeService.createBake(chunkContext.stepContext.jobParameters.region as String).subscribe { BakeStatus bakeStatus ->
+        bakery.createBake(chunkContext.stepContext.jobParameters.region as String).subscribe { BakeStatus bakeStatus ->
             chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
                 put("bake.status", bakeStatus)
             }

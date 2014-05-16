@@ -1,23 +1,24 @@
 package com.netflix.bluespar.orca.bakery.tasks
 
-import com.netflix.bluespar.orca.bakery.api.BakeService
 import com.netflix.bluespar.orca.bakery.api.BakeStatus
+import com.netflix.bluespar.orca.bakery.api.BakeryService
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
+import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
-import rx.*
 
 import static com.netflix.bluespar.orca.bakery.api.BakeState.RUNNING
+import static java.util.UUID.randomUUID
 
-class BakeTaskSpec extends Specification {
+class CreateBakeTaskSpec extends Specification {
 
     @Subject
-    def task = new BakeTask()
+    def task = new CreateBakeTask()
 
     final region = "us-west-1"
     def jobParameters = new JobParametersBuilder().addString("region", region).toJobParameters()
@@ -27,13 +28,10 @@ class BakeTaskSpec extends Specification {
     def stepContribution = new StepContribution(stepExecution)
     def chunkContext = new ChunkContext(stepContext)
 
-    def setup() {
-    }
-
     def "creates a bake for the correct region"() {
         given:
-        def mockBakeService = Mock(BakeService)
-        task.bakeService = mockBakeService
+        def mockBakeService = Mock(BakeryService)
+        task.bakery = mockBakeService
 
         when:
         task.execute(stepContribution, chunkContext)
@@ -44,8 +42,8 @@ class BakeTaskSpec extends Specification {
 
     def "stores the status of the bake in the job context"() {
         given:
-        def bakeStatus = new BakeStatus(state: RUNNING)
-        task.bakeService = Stub(BakeService) {
+        def bakeStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
+        task.bakery = Stub(BakeryService) {
             createBake(region) >> Observable.from(bakeStatus)
         }
 
@@ -53,7 +51,7 @@ class BakeTaskSpec extends Specification {
         task.execute(stepContribution, chunkContext)
 
         then:
-        stepContext.jobExecutionContext["bake.status"] == bakeStatus
+        stepContext.jobExecutionContext["bake.status"] == new BakeStatus(id: randomUUID(), state: RUNNING)
     }
 
 }
