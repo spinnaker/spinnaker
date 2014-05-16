@@ -1,7 +1,7 @@
 Kato
 ===
 
-Deployment libraries for the Asgard platform.
+Deployment libraries for Bluespar.
 
 Quick Use
 ===
@@ -23,4 +23,4 @@ Copyright and License
 
 Copyright (C) 2014 Netflix. Licensed under the Apache License.
 
-See [LICENSE.txt](https://raw.githubusercontent.com/Asgard/kato/master/LICENSE.txt) for more information.
+See [LICENSE.txt](https://raw.githubusercontent.com/bluespar/kato/master/LICENSE.txt) for more information.
