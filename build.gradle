@@ -17,9 +17,10 @@
 buildscript {
   repositories {
     jcenter()
+    mavenLocal()
   }
   dependencies {
-    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.0'
+    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.1-SNAPSHOT'
   }
 }
 
@@ -58,4 +59,6 @@ project(':kork-core') {
   }
 }
 
+project(':kork-too') {
 
+}
