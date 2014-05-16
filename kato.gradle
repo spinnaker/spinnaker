@@ -47,7 +47,7 @@ subprojects {
   apply plugin: 'groovy'
 
   group = "com.netflix.bluespar.kato"
-  version = "1.3.1"
+  version = "1.3.2-SNAPSHOT"
 
   configurations.all {
     resolutionStrategy {
