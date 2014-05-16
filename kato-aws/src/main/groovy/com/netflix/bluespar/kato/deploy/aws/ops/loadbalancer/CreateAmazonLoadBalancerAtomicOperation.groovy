@@ -18,7 +18,9 @@ package com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
+import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
 import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.bluespar.kato.data.task.Task
@@ -68,6 +70,8 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
 
       def request = new CreateLoadBalancerRequest(loadBalancerName)
       def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
+
+      // Networking Related
       if (description.subnetType) {
         request.withSubnets(getSubnetIds(description.subnetType, amazonEC2))
         if (description.subnetType == "internal") {
@@ -77,10 +81,12 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
         request.withAvailabilityZones(availabilityZones)
       }
 
+      // Security Related
       if (description.securityGroups) {
         request.withSecurityGroups(getSecurityGroupIds(amazonEC2, description.securityGroups as String[]))
       }
 
+      // Port mapping
       def listeners = []
       for (CreateAmazonLoadBalancerDescription.Listener listener : description.listeners) {
         def awsListener = new Listener()
@@ -97,11 +103,16 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       }
       request.withListeners(listeners)
 
+      // Go do it
       def client = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
       task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}..."
       def result = client.createLoadBalancer(request)
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}."
       operationResult.loadBalancers[region] = new CreateAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, result.DNSName)
+      if (description.healthCheck) {
+        def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck().withTarget(description.healthCheck))
+        client.configureHealthCheck(healthCheck)
+      }
     }
     task.updateStatus BASE_PHASE, "Done deploying load balancers."
     operationResult

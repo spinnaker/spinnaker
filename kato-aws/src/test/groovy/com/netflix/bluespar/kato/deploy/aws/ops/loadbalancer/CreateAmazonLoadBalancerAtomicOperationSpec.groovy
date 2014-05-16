@@ -19,13 +19,13 @@ package com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
 import com.netflix.bluespar.kato.security.aws.AmazonCredentials
-import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
 import spock.lang.Specification
 
 class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {
@@ -49,7 +49,8 @@ class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {
           internalPort: 8501
         )
       ],
-      credentials: new AmazonCredentials(Mock(AWSCredentials), "bar")
+      credentials: new AmazonCredentials(Mock(AWSCredentials), "bar"),
+      healthCheck: "HTTP:7001/health"
     )
     def operation = new CreateAmazonLoadBalancerAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
@@ -68,6 +69,10 @@ class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {
       def awsResponse = Mock(com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerResult)
       awsResponse.getDNSName() >> "ok"
       awsResponse
+    }
+    1 * mockClient.configureHealthCheck(_) >> { ConfigureHealthCheckRequest request ->
+      assert request.loadBalancerName == "kato-main-frontend"
+      assert request.healthCheck.target == "HTTP:7001/health"
     }
     result.loadBalancers."us-east-1".name == "kato-main-frontend"
     result.loadBalancers."us-east-1".dnsName == "ok"

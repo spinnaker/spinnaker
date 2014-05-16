@@ -22,6 +22,7 @@ class CreateAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescr
   List<String> securityGroups
   Map<String, List<String>> availabilityZones
   List<Listener> listeners
+  String healthCheck
 
   static class Listener {
     enum ListenerType {
