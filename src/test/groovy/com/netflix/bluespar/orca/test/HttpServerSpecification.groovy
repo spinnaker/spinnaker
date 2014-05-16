@@ -89,12 +89,14 @@ abstract class HttpServerSpecification extends Specification {
                     response = json.toString()
                 }
                 exchange.with {
-                    responseHeaders[HttpHeaders.CONTENT_TYPE] = "application/json"
                     headers.each { key, value ->
                         responseHeaders[key] = value
                     }
                     sendResponseHeaders responseStatus, response.length()
-                    responseBody.write response.bytes
+                    if (response.length() > 0) {
+                        responseHeaders[HttpHeaders.CONTENT_TYPE] = "application/json"
+                        responseBody.write response.bytes
+                    }
                     close()
                 }
             } else {
