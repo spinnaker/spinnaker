@@ -1,6 +1,5 @@
 package com.netflix.bluespar.orca.bakery.tasks
 
-
 import com.netflix.bluespar.orca.bakery.api.BakeStatus
 import com.netflix.bluespar.orca.bakery.api.BakeryService
 import org.springframework.batch.core.JobExecution
@@ -11,7 +10,6 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
 import rx.Observable
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -23,7 +21,7 @@ class MonitorBakeTaskSpec extends Specification {
     @Subject
     def task = new MonitorBakeTask()
 
-    @Shared final region = "us-west-1"
+    final region = "us-west-1"
     def jobParameters = new JobParametersBuilder().addString("region", region).toJobParameters()
     def jobExecution = new JobExecution(1, jobParameters)
     def stepExecution = new StepExecution("bakeStep", jobExecution)
@@ -46,7 +44,7 @@ class MonitorBakeTaskSpec extends Specification {
         task.execute(stepContribution, chunkContext) == repeatStatus
 
         where:
-        bakeState           | repeatStatus
+        bakeState                  | repeatStatus
         BakeStatus.State.PENDING   | RepeatStatus.CONTINUABLE
         BakeStatus.State.RUNNING   | RepeatStatus.CONTINUABLE
         BakeStatus.State.COMPLETED | RepeatStatus.FINISHED
