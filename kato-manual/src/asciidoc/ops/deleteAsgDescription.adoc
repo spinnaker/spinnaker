@@ -15,7 +15,8 @@ This description provides the inputs necessary to handle the deletion of a *size
     "deleteAsgDescription": {
         "asgName": "kato-main-v000",
         "region": "us-east-1",
-        "forceDelete": false
+        "forceDelete": false,
+        "credentials": "test"
     }
 }]
 ----

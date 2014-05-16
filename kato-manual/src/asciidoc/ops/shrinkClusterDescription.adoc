@@ -16,7 +16,8 @@ This description provides the inputs necessary to shrink a cluster. A cluster is
       "application": "kato",
       "clusterName": "kato-main",
       "forceDelete": false,
-      "regions": ["us-east-1"]
+      "regions": ["us-east-1"],
+      "credentials": "test"
     }
 }]
 ----

@@ -19,7 +19,8 @@ This description provides the inputs necessary to handle a capacity change for a
           "min": 2,
           "max": 5,
           "desired": 3
-        }
+        },
+        "credentials": "test"
     }
 }]
 ----
