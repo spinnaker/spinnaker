@@ -40,3 +40,6 @@ run {
   systemProperties = System.properties
   main = 'com.netflix.asgard.kato.Main'
 }
+
+// Don't include this in our final build
+tasks.collect { it.onlyIf { false } }
