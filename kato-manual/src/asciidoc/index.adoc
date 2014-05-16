@@ -115,6 +115,12 @@ include::src/asciidoc/ops/shrinkClusterDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
 - - -
+include::src/asciidoc/ops/disableAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/tagAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
+- - -
 
 ==== Google Operations
 
