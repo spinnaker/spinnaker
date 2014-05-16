@@ -17,9 +17,10 @@
 buildscript {
   repositories {
     jcenter()
+    maven { url "http://dl.bintray.com/bluespar/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.asgard:asgard-gradle-project:1.9.1'
+    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.0'
   }
 }
 
@@ -40,10 +41,10 @@ ext {
 }
 
 subprojects {
-  apply plugin: 'asgard-gradle-project'
+  apply plugin: 'bluespar-gradle-project'
   apply plugin: 'groovy'
 
-  group = "com.netflix.asgard.kato"
+  group = "com.netflix.bluespar.kato"
 
   configurations.all {
     resolutionStrategy {

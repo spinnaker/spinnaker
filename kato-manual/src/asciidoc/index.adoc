@@ -1,4 +1,4 @@
-= Asgard 2 Platform: Kato
+= Bluespar: Project Kato
 Dan Woods <danw@netflix.com>
 2013-05-12
 :toc: right
@@ -24,13 +24,13 @@ Once built, the +web+ module may be used to act as a service endpoint, or the in
 
 === Running
 
-At its most fundamental level, Kato is but a set of libraries. Even its web tier is little more than a few controllers, which are capable of being mapped into another Spring project. This fact gives Kato a great deal of flexibility in _how_ it will be used in its implementation. The web subproject, however, is capable of acting as a standalone server, which bootstraps a Spring Application context within an embedded servlet container. By creating a run configuration within your IDE for the +com.netflix.asgard.kato.Main+ class, which is located within the +kato-web+ project module, you can run Kato in its embedded form.
+At its most fundamental level, Kato is but a set of libraries. Even its web tier is little more than a few controllers, which are capable of being mapped into another Spring project. This fact gives Kato a great deal of flexibility in _how_ it will be used in its implementation. The web subproject, however, is capable of acting as a standalone server, which bootstraps a Spring Application context within an embedded servlet container. By creating a run configuration within your IDE for the +com.netflix.bluespar.kato.Main+ class, which is located within the +kato-web+ project module, you can run Kato in its embedded form.
 
 In itself, however, the web project won't offer much functionality besides standing up an in-memory +NamedAccountCredentialsHolder+, which is responsible for the management and distribution of account credentials, bootstrapping +kato-core+'s no-operation deployment handler, and exposing the RESTful HTTP endpoints for the listing of available account credentials, the execution of atomic operations, and the retrieval of tasks that are being, or have been, executed.
 
 == REST API
 
-Kato provides a set of RESTful HTTP APIs, which expose its deployment-related functions (+/ops+), access to tasks that have run or are currently running (+/task+), and access to the list of configured account names, which can be used to specify an account or environment with which a deployment-related activity should take place. 
+Kato provides a set of RESTful HTTP APIs, which expose its deployment-related functions (+/ops+), access to tasks that have run or are currently running (+/task+), and access to the list of configured account names, which can be used to specify an account or environment with which a deployment-related activity should take place.
 
 === Operations
 
@@ -207,4 +207,4 @@ Dan Woods
 
 Copyright (C) 2014 Netflix. Licensed under the Apache License.
 
-See https://raw.githubusercontent.com/Asgard/kato/master/LICENSE.txt[LICENSE.txt] for more information.
+See https://raw.githubusercontent.com/bluespar/kato/master/LICENSE.txt[LICENSE.txt] for more information.
