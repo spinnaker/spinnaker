@@ -1,0 +1,24 @@
+ext {
+  internal = false
+}
+
+// Check if we're internal, if so, add the internal artifactory as a maven repo
+try {
+  def inet = new InetSocketAddress("artifacts.netflix.com", 80)
+  def sock = new Socket()
+  sock.connect(inet, 500)
+  sock.close()
+  project.internal = true
+  println "Internal Configuration."
+} catch (ignore) {
+  println "External Configuration."
+}
+
+if (project.internal) {
+  repositories {
+    maven { url "http://artifacts.netflix.com/gradle-netflix-local" }
+  }
+  dependencies {
+    compile "com.netflix.bluespar.kato:kato-perforce-udp:1.3-SNAPSHOT"
+  }
+}

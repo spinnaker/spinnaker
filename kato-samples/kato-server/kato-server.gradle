@@ -10,23 +10,13 @@ buildscript {
 apply plugin: 'base'
 apply plugin: 'spring-boot'
 apply plugin: 'idea'
+apply from: 'gradle/internal.gradle'
 
 repositories {
   mavenLocal()
   mavenCentral()
   jcenter()
 }
-
-ext {
-  internal = false
-}
-
-try {
-  def inet = new InetSocketAddress("artifacts.netflix.com", 80)
-  new Socket().connect(inet, 5)
-  internal = true
-  repositories.maven { url "http://artifacts.netflix.com/gradle-netflix-local" }
-} catch (ignore) {}
 
 /**
  * This is mostly all because of logging.
@@ -45,10 +35,6 @@ configurations.all {
 }
 
 dependencies {
-  if (internal) {
-    compile "com.netflix.asgard.kato:kato-perforce-udp:1.3-SNAPSHOT"
-  }
-
   // Web module, which provides the REST endpoints.
   compile project(":kato-web")
   // AWS deployment module
