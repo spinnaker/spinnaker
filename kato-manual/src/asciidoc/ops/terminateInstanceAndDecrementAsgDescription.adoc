@@ -1,8 +1,8 @@
-===== Tag ASG Description
+===== Terminate Instance and Decrement ASG Description
 
 ====== Key
 
-+tagAsgDescription+
++terminateInstanceAndDecrementAsgDescription+
 
 ====== Description
 
