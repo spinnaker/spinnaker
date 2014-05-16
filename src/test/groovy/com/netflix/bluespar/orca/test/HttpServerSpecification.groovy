@@ -1,11 +1,15 @@
 package com.netflix.bluespar.orca.test
 
 import com.google.common.base.Optional
-import com.google.common.net.HttpHeaders
+import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
 import spock.lang.Specification
+
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE
+import static java.net.HttpURLConnection.HTTP_BAD_METHOD
+import static java.util.Collections.EMPTY_MAP
 
 /**
  * A base {@link Specification} class for specs that need to connect to a REST server or similar endpoint.
@@ -40,30 +44,32 @@ abstract class HttpServerSpecification extends Specification {
     /**
      * @see #expect(java.lang.String, java.lang.String, int, java.util.Map, com.google.common.base.Optional)
      */
-    protected final void expect(String method, String path, int responseStatus) {
-        expect method, path, responseStatus, Collections.EMPTY_MAP, Optional.absent()
+    @CompileStatic
+    protected final void expect(String method, String path, int status) {
+        expect method, path, status, EMPTY_MAP, Optional.absent()
     }
 
     /**
      * @see #expect(java.lang.String, java.lang.String, int, java.util.Map, com.google.common.base.Optional)
      */
-    protected final void expect(String method, String path, int responseStatus, Closure responseContent) {
-        expect method, path, responseStatus, Collections.EMPTY_MAP, Optional.of(responseContent)
+    protected final void expect(String method, String path, int status, Closure content) {
+        expect method, path, status, EMPTY_MAP, Optional.of(content)
     }
 
     /**
      * @see #expect(java.lang.String, java.lang.String, int, java.util.Map, com.google.common.base.Optional)
      */
-    protected final void expect(String method, String path, int responseStatus, Map<String, ?> headers) {
-        expect method, path, responseStatus, headers, Optional.absent()
+    @CompileStatic
+    protected final void expect(String method, String path, int status, Map<String, String> headers) {
+        expect method, path, status, headers, Optional.absent()
     }
 
     /**
      * @see #expect(java.lang.String, java.lang.String, int, java.util.Map, com.google.common.base.Optional)
      */
-    protected
-    final void expect(String method, String path, int responseStatus, Map<String, ?> headers, Closure responseContent) {
-        expect method, path, responseStatus, headers, Optional.of(responseContent)
+    @CompileStatic
+    protected final void expect(String method, String path, int status, Map<String, String> headers, Closure content) {
+        expect method, path, status, headers, Optional.of(content) as Optional<Closure> // cast necessary due to GROOVY-6800
     }
 
     /**
@@ -74,34 +80,34 @@ abstract class HttpServerSpecification extends Specification {
      *
      * @param method the HTTP method expected
      * @param path the literal path expected relative to the base URI of the server. Note this cannot use wildcards or any other clever things.
-     * @param responseStatus the HTTP status of the response.
-     * @param headers any HTTP headers that should be sent with the response.
-     * @param responseContent a <em>Closure</em> used to construct a response using {@link JsonBuilder}.
+     * @param status the HTTP status of the response.
+     * @param responseHeaders any HTTP responseHeaders that should be sent with the response.
+     * @param content a <em>Closure</em> used to construct a response using {@link JsonBuilder}.
      */
-    protected
-    final void expect(String method, String path, int responseStatus, Map<String, ?> headers, Optional<Closure> responseContent) {
-        server.createContext path, { exchange ->
+    @CompileStatic
+    protected final void expect(String method, String path, int status, Map<String, String> headers, Optional<Closure> content) {
+        server.createContext path, { HttpExchange exchange ->
             if (exchange.requestMethod == method) {
                 def response = ""
-                if (responseContent.present) {
+                if (content.present) {
                     def json = new JsonBuilder()
-                    json(responseContent.get())
+                    json(content.get())
                     response = json.toString()
                 }
                 exchange.with {
                     headers.each { key, value ->
-                        responseHeaders[key] = value
+                        responseHeaders.add(key, value)
                     }
-                    sendResponseHeaders responseStatus, response.length()
+                    sendResponseHeaders status, response.length()
                     if (response.length() > 0) {
-                        responseHeaders[HttpHeaders.CONTENT_TYPE] = "application/json"
+                        responseHeaders.add(CONTENT_TYPE, "application/json")
                         responseBody.write response.bytes
                     }
                     close()
                 }
             } else {
                 exchange.with {
-                    sendResponseHeaders HttpURLConnection.HTTP_BAD_METHOD, 0
+                    sendResponseHeaders HTTP_BAD_METHOD, 0
                     close()
                 }
             }
