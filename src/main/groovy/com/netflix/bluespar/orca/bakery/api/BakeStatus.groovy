@@ -10,6 +10,9 @@ import groovy.transform.ToString
 class BakeStatus {
 
     String id
-    BakeState state
+    State state
 
+    static enum State {
+        PENDING, RUNNING, COMPLETED, SUSPENDED, CANCELLED
+    }
 }

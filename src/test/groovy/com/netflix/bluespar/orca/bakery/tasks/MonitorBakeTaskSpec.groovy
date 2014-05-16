@@ -1,6 +1,6 @@
 package com.netflix.bluespar.orca.bakery.tasks
 
-import com.netflix.bluespar.orca.bakery.api.BakeState
+
 import com.netflix.bluespar.orca.bakery.api.BakeStatus
 import com.netflix.bluespar.orca.bakery.api.BakeryService
 import org.springframework.batch.core.JobExecution
@@ -33,7 +33,7 @@ class MonitorBakeTaskSpec extends Specification {
     @Unroll
     def "should return #repeatStatus if bake is #bakeState"() {
         given:
-        def previousStatus = new BakeStatus(id: id, state: BakeState.PENDING)
+        def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
         jobExecution.executionContext.put("bake.status", previousStatus)
 
         and:
@@ -46,23 +46,23 @@ class MonitorBakeTaskSpec extends Specification {
 
         where:
         bakeState           | repeatStatus
-        BakeState.PENDING   | RepeatStatus.CONTINUABLE
-        BakeState.RUNNING   | RepeatStatus.CONTINUABLE
-        BakeState.COMPLETED | RepeatStatus.FINISHED
-        BakeState.CANCELLED | RepeatStatus.FINISHED
-        BakeState.SUSPENDED | RepeatStatus.CONTINUABLE
+        BakeStatus.State.PENDING   | RepeatStatus.CONTINUABLE
+        BakeStatus.State.RUNNING   | RepeatStatus.CONTINUABLE
+        BakeStatus.State.COMPLETED | RepeatStatus.FINISHED
+        BakeStatus.State.CANCELLED | RepeatStatus.FINISHED
+        BakeStatus.State.SUSPENDED | RepeatStatus.CONTINUABLE
 
         id = randomUUID().toString()
     }
 
     def "should store the updated status in the job context"() {
         given:
-        def previousStatus = new BakeStatus(id: id, state: BakeState.PENDING)
+        def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
         jobExecution.executionContext.put("bake.status", previousStatus)
 
         and:
         task.bakery = Stub(BakeryService) {
-            lookupStatus(region, id) >> Observable.from(new BakeStatus(id: id, state: BakeState.COMPLETED))
+            lookupStatus(region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
         }
 
         when:
@@ -71,7 +71,7 @@ class MonitorBakeTaskSpec extends Specification {
         then:
         with(stepContext.jobExecutionContext["bake.status"]) {
             id == previousStatus.id
-            state == BakeState.COMPLETED
+            state == BakeStatus.State.COMPLETED
         }
 
         where:

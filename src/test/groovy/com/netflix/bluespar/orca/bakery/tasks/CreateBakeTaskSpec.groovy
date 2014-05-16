@@ -12,7 +12,7 @@ import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.netflix.bluespar.orca.bakery.api.BakeState.RUNNING
+import static com.netflix.bluespar.orca.bakery.api.BakeStatus.State.RUNNING
 import static java.util.UUID.randomUUID
 
 class CreateBakeTaskSpec extends Specification {
@@ -51,7 +51,7 @@ class CreateBakeTaskSpec extends Specification {
         task.execute(stepContribution, chunkContext)
 
         then:
-        stepContext.jobExecutionContext["bake.status"] == new BakeStatus(id: randomUUID(), state: RUNNING)
+        stepContext.jobExecutionContext["bake.status"].is bakeStatus
     }
 
 }

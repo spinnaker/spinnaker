@@ -9,8 +9,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 
-import static com.netflix.bluespar.orca.bakery.api.BakeState.CANCELLED
-import static com.netflix.bluespar.orca.bakery.api.BakeState.COMPLETED
+import static com.netflix.bluespar.orca.bakery.api.BakeStatus.State.CANCELLED
+import static com.netflix.bluespar.orca.bakery.api.BakeStatus.State.COMPLETED
 import static org.springframework.batch.repeat.RepeatStatus.CONTINUABLE
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
