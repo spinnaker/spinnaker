@@ -23,7 +23,7 @@ abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOpera
   @Autowired
   NamedAccountCredentialsHolder namedAccountCredentialsHolder
 
-  def getCredentialsForEnvironment(String name) {
+  def getCredentialsObject(String name) {
     namedAccountCredentialsHolder.getCredentials(name).credentials
   }
 }

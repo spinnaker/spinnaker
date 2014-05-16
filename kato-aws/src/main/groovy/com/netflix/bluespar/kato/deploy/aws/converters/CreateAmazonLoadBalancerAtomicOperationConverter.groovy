@@ -49,7 +49,7 @@ class CreateAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
   CreateAmazonLoadBalancerDescription convertDescription(Map input) {
     def json = objectMapper.writeValueAsString(input)
     def description = objectMapper.readValue(json, CreateAmazonLoadBalancerDescription)
-    description.credentials = (AmazonCredentials) getCredentialsForEnvironment(input.credentials as String)
+    description.credentials = (AmazonCredentials) getCredentialsObject(input.credentials as String)
     description
   }
 }

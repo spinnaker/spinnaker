@@ -30,6 +30,7 @@ This description provides the inputs necessary to attach Route53 DNS configurati
 |type              | string | true     | Specifies the type of DNS record to create. Valid values for this field are one of "CNAME" or "A".
 |name              | string | true     | The hostname to be created. This MUST be a sub-domain of the specified +hostedZoneName+, and must end with a dot (".").
 |target            | string | true     | The target to which the DNS record will be attached. If the type is "CNAME", then this can be an existing hostname; if the type is "A", then this can be an existing hostname (and an ALIAS record will be created), or an IP Address (and a host record will be created).
+|credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================
 
 ====== Conditions

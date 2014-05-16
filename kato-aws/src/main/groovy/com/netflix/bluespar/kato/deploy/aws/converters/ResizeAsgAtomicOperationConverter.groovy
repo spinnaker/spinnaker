@@ -31,7 +31,7 @@ class ResizeAsgAtomicOperationConverter extends AbstractAtomicOperationsCredenti
 
   @Override
   ResizeAsgDescription convertDescription(Map input) {
-    input.credentials = getCredentialsForEnvironment(input.credentials as String)
+    input.credentials = getCredentialsObject(input.credentials as String)
     new ResizeAsgDescription(input)
   }
 }

@@ -83,6 +83,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         maxInstances: description.capacity.max,
         desiredInstances: description.capacity.desired,
         securityGroups: description.securityGroups,
+        iamRole: description.iamRole,
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
         subnetType: subnetType,

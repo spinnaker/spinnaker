@@ -17,8 +17,12 @@
 package com.netflix.bluespar.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
@@ -77,6 +81,7 @@ class AutoScalingWorker {
   private String stack
   private String ami
   private String instanceType
+  private String iamRole
   private SubnetType subnetType
   private List<String> loadBalancers
   private List<String> securityGroups
@@ -126,7 +131,7 @@ class AutoScalingWorker {
 
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
     securityGroups << applicationSecurityGroup
-    Map ancestorAsg = ancestorAsg
+    def ancestorAsg = ancestorAsg
     Integer nextSequence
     if (ancestorAsg) {
       task.updateStatus AWS_PHASE, "Found ancestor ASG: parsing details."
@@ -194,20 +199,18 @@ class AutoScalingWorker {
    * @return id of the vpc
    */
   String getVpcForSubnetType() {
-    List<Map> subnets = rt.getForObject("http://entrypoints-v2.${region}.${environment}.netflix.net:7001/REST/v2/aws/subnets;_expand", List)
-    def vpcId = null
-    for (Map subnet in subnets) {
+    def response = amazonEC2.describeSubnets()
+    response.subnets.each { subnet ->
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
-        Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType.type
-          && metadata.target == SUBNET_PURPOSE_TYPE && subnet.state == SubnetState.Available.toString()) {
-          vpcId = subnet.vpcId
-          break
+        def metadata = objectMapper.readValue metadataJson, Map
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
+          && metadata.target == SUBNET_PURPOSE_TYPE) {
+          return subnet.vpcId
         }
       }
     }
-    vpcId
+    null
   }
 
   /**
@@ -215,18 +218,22 @@ class AutoScalingWorker {
    *
    * @return map depicting the ASG data structure.
    */
-  Map getAncestorAsg() {
-    List<String> asgs = rt.getForEntity("http://entrypoints-v2.${region}.${environment}.netflix.net:7001/REST/v2/aws/autoScalingGroups", List).body
-    def lastAsgName = asgs.findAll {
+  AutoScalingGroup getAncestorAsg() {
+    def request = new DescribeAutoScalingGroupsRequest()
+    def result  = autoScaling.describeAutoScalingGroups(request)
+    def asgs = []
+    while (true) {
+      asgs.addAll result.autoScalingGroups
+      if (result.nextToken) {
+        result = autoScaling.describeAutoScalingGroups(request.withNextToken(result.nextToken))
+      } else {
+        break
+      }
+    }
+    asgs.findAll {
       def names = Names.parseName(it)
       names.sequence >= 0 && application == names.app
-    }?.max()
-
-    if (lastAsgName) {
-      rt.getForEntity("http://entrypoints-v2.${region}.${environment}.netflix.net:7001/REST/v2/aws/autoScalingGroups/$lastAsgName", Map).body
-    } else {
-      null
-    }
+    }?.max() ?: null
   }
 
   /**
@@ -238,8 +245,20 @@ class AutoScalingWorker {
    * @return
    */
   List<String> getSecurityGroupsForLaunchConfiguration(String launchConfigName) {
-    Map launchConfiguration = rt.getForEntity("http://entrypoints-v2.${region}.${environment}.netflix.net:7001/REST/v2/aws/launchConfigurations/$launchConfigName", Map).body
-    launchConfiguration.securityGroups
+    def request = new DescribeLaunchConfigurationsRequest().withLaunchConfigurationNames(launchConfigName)
+    def result  = autoScaling.describeLaunchConfigurations(request)
+    def securityGroups = []
+    while (true) {
+      result.launchConfigurations.each {
+        securityGroups.addAll it.securityGroups
+      }
+      if (result.nextToken) {
+        result = autoScaling.describeLaunchConfigurations(request.withNextToken(result.nextToken))
+      } else {
+        break
+      }
+    }
+    securityGroups
   }
 
   /**
@@ -298,7 +317,7 @@ class AutoScalingWorker {
   String createLaunchConfiguration(String name, String userData, List<String> securityGroups) {
     CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
       .withImageId(ami)
-      .withIamInstanceProfile("BaseIAMRole")
+      .withIamInstanceProfile(iamRole)
       .withInstanceMonitoring(new com.amazonaws.services.autoscaling.model.InstanceMonitoring().withEnabled(true))
       .withLaunchConfigurationName(name)
       .withUserData(userData)

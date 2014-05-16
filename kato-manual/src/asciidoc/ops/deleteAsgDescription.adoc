@@ -26,6 +26,7 @@ This description provides the inputs necessary to handle the deletion of a *size
 |======================
 |Key               | Type   | Required | Value
 |asgName           | string | true     | The name of the asg that the process will delete.
-|region            | string | true     | The region in which the specified ASG lives.
+|regions           | array  | true     | The regions in which the specified ASG lives.
+|credentials       | string | true     | The named account credentials that are to be used for this operation.
 |forceDelete       | string | false    | Specifies whether to force the deletion of this ASG. Default: false
 |======================

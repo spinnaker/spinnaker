@@ -16,22 +16,22 @@
 
 package com.netflix.bluespar.kato.deploy.aws.converters
 
-import com.netflix.bluespar.kato.deploy.aws.description.UpsertAmazonDNSDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.dns.UpsertAmazonDNSAtomicOperation
+import com.netflix.bluespar.kato.deploy.aws.description.DisableAsgDescription
+import com.netflix.bluespar.kato.deploy.aws.ops.DisableAsgAtomicOperation
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
 import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("upsertAmazonDNSDescription")
-class UpsertAmazonDNSAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("disableAsgDescription")
+class DisableAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new UpsertAmazonDNSAtomicOperation(convertDescription(input))
+    new DisableAsgAtomicOperation(convertDescription(input))
   }
 
   @Override
-  UpsertAmazonDNSDescription convertDescription(Map input) {
+  DisableAsgDescription convertDescription(Map input) {
     input.credentials = getCredentialsObject(input.credentials as String)
-    new UpsertAmazonDNSDescription(input)
+    new DisableAsgDescription(input)
   }
 }

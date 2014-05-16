@@ -36,7 +36,7 @@ class CopyLastAsgAtomicOperationConverter extends AbstractAtomicOperationsCreden
   }
 
   BasicAmazonDeployDescription convertDescription(Map input) {
-    input.credentials = getCredentialsForEnvironment(input.credentials as String)
+    input.credentials = getCredentialsObject(input.credentials as String)
     new BasicAmazonDeployDescription(input)
   }
 }

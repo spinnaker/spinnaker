@@ -29,7 +29,7 @@ class DeleteAsgAtomicOperationConverter extends AbstractAtomicOperationsCredenti
   }
 
   DeleteAsgDescription convertDescription(Map input) {
-    input.credentials = getCredentialsForEnvironment(input.credentials as String)
+    input.credentials = getCredentialsObject(input.credentials as String)
     new DeleteAsgDescription(input)
   }
 }

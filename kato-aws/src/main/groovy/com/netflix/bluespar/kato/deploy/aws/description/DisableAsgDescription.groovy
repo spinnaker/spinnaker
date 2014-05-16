@@ -16,8 +16,11 @@
 
 package com.netflix.bluespar.kato.deploy.aws.description
 
-class DeleteAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
+/**
+ * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
+ * ovverride will also be achieved.
+ */
+class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
   List<String> regions
-  Boolean forceDelete = Boolean.FALSE
+  String asgName
 }

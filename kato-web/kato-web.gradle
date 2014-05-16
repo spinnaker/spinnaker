@@ -31,10 +31,10 @@ configurations.all {
 }
 
 dependencies {
-  runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:0.1"
   compile project(":kato-manual")
   compile project(":kato-core")
-  compile "com.netflix.eureka:eureka-client:1.1.128"
+  runtime commonDependencies.kork
+  compile commonDependencies.eureka
   compile commonDependencies.springBootActuator
   compile commonDependencies.springBootDataRest
 

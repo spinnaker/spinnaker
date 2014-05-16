@@ -29,5 +29,6 @@ This description provides the inputs necessary to shrink a cluster. A cluster is
 |application       | string | true     | The application name for which the specified cluster belongs.
 |clusterName       | string | true     | The cluster name against which the shrinking operation will occur.
 |regions           | array  | true     | The regions for which the cluster shrink operation should occur.
+|credentials       | string | true     | The named account credentials that are to be used for this operation.
 |forceDelete       | string | false    | Specifies whether the ASGs within the cluster should be forcibly deleted.
 |======================
