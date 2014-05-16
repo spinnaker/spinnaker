@@ -51,6 +51,7 @@ class DisableAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
+    task.updateStatus BASE_PHASE, "Initializing Disable ASG operation for $description.asgName..."
     for (region in description.regions) {
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
@@ -79,6 +80,7 @@ class DisableAsgAtomicOperation implements AtomicOperation<Void> {
         }
       }
     }
+    task.updateStatus BASE_PHASE, "Done disabling ASG $description.asgName."
     null
   }
 

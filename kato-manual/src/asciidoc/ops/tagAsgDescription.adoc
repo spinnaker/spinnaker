@@ -1,14 +1,12 @@
-===== Disable ASG Description
+===== Tag ASG Description
 
 ====== Key
 
-+disableAsgDescription+
++tagAsgDescription+
 
 ====== Description
 
-This description provides the inputs necessary for "disabling" an AutoScaling group. AutoScaling groups are considered disabled when their "Launch", "Terminate", and "AddToLoadBalancer" scaling processes are suspended.
-
-NOTE: In addition to disabling an ASG with Amazon, if a Eureka/Discovery host is provided in configuration under the key "discovery.host.format" and with the format "http://%s.discovery%s.netflix.com", where the first "%s" is the region and the second the name of the environment to which the supplied credentials are provided, then this process will put all instances in the ASG "OUT_OF_SERVICE".
+This description provides tags that are to be applied to a named AutoScaling group in the specified regions.
 
 ====== Example Request Body
 [source,javascript]
@@ -17,6 +15,7 @@ NOTE: In addition to disabling an ASG with Amazon, if a Eureka/Discovery host is
     "disableAsgDescription": {
         "asgName": "kato-main-v000",
         "regions": ["us-west-1", "us-east-1"],
+        "tags": { "key": "value },
         "credentials": "test"
     }
 }]
@@ -29,5 +28,6 @@ NOTE: In addition to disabling an ASG with Amazon, if a Eureka/Discovery host is
 |Key               | Type   | Required | Value
 |asgName           | string | true     | The name of the asg that the process will disable.
 |regions           | array  | true     | The regions in which the specified ASG lives.
+|tags              | object | true     | A key-value object that represents the tags to be applied to an AutoScaling group.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================
