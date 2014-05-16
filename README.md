@@ -1,3 +1,5 @@
+[![Build Status](https://drone.io/github.com/bluespar/kato/status.png)](https://drone.io/github.com/bluespar/kato/latest)
+
 Kato
 ===
 
