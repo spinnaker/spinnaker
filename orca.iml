@@ -14,7 +14,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="Gradle: groovy-2.3.0-indy" level="project" />
     <orderEntry type="library" exported="" name="Gradle: spring-batch-core-3.0.0.RC1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: logback-classic-1.0.13" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jcl-over-slf4j-1.7.5" level="project" />
@@ -51,6 +50,8 @@
     <orderEntry type="library" exported="" name="Gradle: guava-17.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: rxjava-core-0.18.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: commons-collections-3.2.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.0-indy" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.0" level="project" />
   </component>
 </module>
 

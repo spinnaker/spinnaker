@@ -9,6 +9,7 @@ import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import rx.Observable
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -20,7 +21,7 @@ class CreateBakeTaskSpec extends Specification {
     @Subject
     def task = new CreateBakeTask()
 
-    final region = "us-west-1"
+    @Shared final region = "us-west-1"
     def jobParameters = new JobParametersBuilder().addString("region", region).toJobParameters()
     def jobExecution = new JobExecution(1, jobParameters)
     def stepExecution = new StepExecution("bakeStep", jobExecution)

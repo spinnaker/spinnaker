@@ -11,6 +11,7 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
 import rx.Observable
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -22,7 +23,7 @@ class MonitorBakeTaskSpec extends Specification {
     @Subject
     def task = new MonitorBakeTask()
 
-    final region = "us-west-1"
+    @Shared final region = "us-west-1"
     def jobParameters = new JobParametersBuilder().addString("region", region).toJobParameters()
     def jobExecution = new JobExecution(1, jobParameters)
     def stepExecution = new StepExecution("bakeStep", jobExecution)

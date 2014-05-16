@@ -18,7 +18,7 @@ dependencies {
     final LOGBACK_VERSION = "1.0.13"
     final SLF4J_VERSION = "1.7.5"
 
-    compile "org.codehaus.groovy:groovy:$GROOVY_VERSION:indy"
+    compile "org.codehaus.groovy:groovy-all:$GROOVY_VERSION:indy"
     compile "org.springframework.batch:spring-batch-core:$BATCH_VERSION"
     compile "com.google.guava:guava:$GUAVA_VERSION"
     compile "com.netflix.rxjava:rxjava-core:$RXJAVA_VERSION"
@@ -32,5 +32,3 @@ dependencies {
     testCompile "org.springframework.batch:spring-batch-test:$BATCH_VERSION"
     testCompile "org.springframework:spring-test:$SPRING_VERSION"
 }
-
-configurations.all*.exclude module: "groovy-all"
