@@ -1,0 +1,42 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.0.2.RELEASE"
+  }
+}
+
+apply plugin: 'base'
+apply plugin: 'spring-boot'
+apply plugin: 'idea'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  jcenter()
+}
+
+configurations.all {
+  resolutionStrategy {
+    force 'org.apache.log4j:log4j:1.2.17'
+    force 'com.google.guava:guava:14.0.1'
+    force 'commons-codec:commons-codec:1.7'
+  }
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: 'org.mortbay.jetty', module: 'servlet-api'
+  exclude group: 'ch.qos.logback', module: 'logback-classic'
+  exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+  exclude group: 'commons-logging', module: 'commons-logging'
+}
+
+dependencies {
+  compile "com.netflix.asgard.kato:kato-perforce-udp:1.1-SNAPSHOT"
+  compile project(":kato-web")
+  compile project(":kato-aws")
+}
+
+run {
+  systemProperties = System.properties
+  main = 'com.netflix.asgard.kato.Main'
+}

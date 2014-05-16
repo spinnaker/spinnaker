@@ -15,6 +15,7 @@
  */
 
 include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual"
+include "kato-samples:kato-server"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
