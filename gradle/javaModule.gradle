@@ -1,0 +1,41 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: "groovy"
+
+dependencies {
+  groovy "org.codehaus.groovy:groovy-all:2.3.0"
+}
+
+configurations {
+  compile.extendsFrom -= groovy
+  testCompile.extendsFrom groovy
+  configurations {
+    all {
+      incoming.afterResolve {
+        dependencies.withType(ModuleDependency) { dep ->
+          excludeRules.each {
+            if ([it.group, it.module].any { it == null }) {
+              throw new InvalidUserDataException(
+                "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}

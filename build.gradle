@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 buildscript {
   repositories {
     jcenter()
@@ -24,7 +26,7 @@ buildscript {
 }
 
 apply plugin: 'bluespar-gradle-project'
-apply plugin: 'java'
+apply from: 'gradle/javaModule.gradle'
 apply from: 'gradle/idea.gradle'
 
 group = "com.netflix.bluespar.amazon"
