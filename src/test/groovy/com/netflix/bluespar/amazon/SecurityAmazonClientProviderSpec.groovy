@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.bluespar.amazon
 
 import com.amazonaws.auth.AWSCredentials
@@ -95,6 +97,20 @@ class SecurityAmazonClientProviderSpec extends Specification {
     when:
     def client = provider.getAmazonEC2(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
     client.describeSecurityGroups()
+
+    then:
+    count
+  }
+
+  void "unmapped describe calls fall back to aws client"() {
+    setup:
+    def provider = new AmazonClientProvider("edda")
+    def count = 0
+    AmazonEC2.metaClass.describeAccountAttributes = { count++ }
+
+    when:
+    def client = provider.getAmazonEC2(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
+    client.describeAccountAttributes()
 
     then:
     count
