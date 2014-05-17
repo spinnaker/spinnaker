@@ -1,0 +1,25 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.2'
+  }
+}
+
+apply plugin: 'bluespar-gradle-project'
+apply plugin: 'java'
+apply plugin: 'idea'
+
+group = "com.netflix.bluespar.amazon"
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile 'com.fasterxml.jackson.core:jackson-databind:2.3.3'
+  compile 'com.amazonaws:aws-java-sdk:1.7.2'
+  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+  testCompile 'cglib:cglib-nodep:3.1'
+}
