@@ -17,12 +17,11 @@
 package com.netflix.bluespar.kato.deploy.aws.ops
 
 import com.amazonaws.auth.AWSCredentials
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.deploy.DeploymentResult
 import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
 import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.bluespar.kato.deploy.aws.handlers.BasicAmazonDeployHandler
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
-import com.netflix.bluespar.kato.deploy.aws.ops.CopyLastAsgAtomicOperation
 import spock.lang.Specification
 
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {

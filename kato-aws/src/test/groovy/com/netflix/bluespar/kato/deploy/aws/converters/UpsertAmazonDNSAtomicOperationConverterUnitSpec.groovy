@@ -20,7 +20,6 @@ import com.netflix.bluespar.kato.deploy.aws.description.UpsertAmazonDNSDescripti
 import com.netflix.bluespar.kato.deploy.aws.ops.dns.UpsertAmazonDNSAtomicOperation
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.deploy.aws.converters.UpsertAmazonDNSAtomicOperationConverter
 import spock.lang.Shared
 import spock.lang.Specification
 

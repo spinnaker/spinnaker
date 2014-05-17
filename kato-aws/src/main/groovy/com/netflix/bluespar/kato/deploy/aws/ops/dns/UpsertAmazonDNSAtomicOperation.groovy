@@ -17,12 +17,12 @@
 package com.netflix.bluespar.kato.deploy.aws.ops.dns
 
 import com.amazonaws.services.route53.model.*
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSResult> {

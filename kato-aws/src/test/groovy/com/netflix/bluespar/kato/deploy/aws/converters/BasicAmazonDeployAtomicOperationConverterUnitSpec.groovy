@@ -20,7 +20,6 @@ import com.netflix.bluespar.kato.deploy.DeployAtomicOperation
 import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.deploy.aws.converters.BasicAmazonDeployAtomicOperationConverter
 import spock.lang.Shared
 import spock.lang.Specification
 

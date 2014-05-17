@@ -17,17 +17,11 @@
 package com.netflix.bluespar.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
-import com.amazonaws.services.ec2.model.SubnetState
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
@@ -220,7 +214,7 @@ class AutoScalingWorker {
    */
   AutoScalingGroup getAncestorAsg() {
     def request = new DescribeAutoScalingGroupsRequest()
-    def result  = autoScaling.describeAutoScalingGroups(request)
+    def result = autoScaling.describeAutoScalingGroups(request)
     def asgs = []
     while (true) {
       asgs.addAll result.autoScalingGroups
@@ -246,7 +240,7 @@ class AutoScalingWorker {
    */
   List<String> getSecurityGroupsForLaunchConfiguration(String launchConfigName) {
     def request = new DescribeLaunchConfigurationsRequest().withLaunchConfigurationNames(launchConfigName)
-    def result  = autoScaling.describeLaunchConfigurations(request)
+    def result = autoScaling.describeLaunchConfigurations(request)
     def securityGroups = []
     while (true) {
       result.launchConfigurations.each {

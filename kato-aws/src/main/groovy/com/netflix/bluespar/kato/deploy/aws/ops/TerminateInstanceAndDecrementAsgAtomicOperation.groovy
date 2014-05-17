@@ -20,11 +20,11 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.TerminateInstanceAndDecrementAsgDescription
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 

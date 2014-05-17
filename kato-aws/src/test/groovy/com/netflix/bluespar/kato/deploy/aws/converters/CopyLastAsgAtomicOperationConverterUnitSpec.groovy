@@ -17,7 +17,6 @@
 package com.netflix.bluespar.kato.deploy.aws.converters
 
 import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.bluespar.kato.deploy.aws.converters.CopyLastAsgAtomicOperationConverter
 import com.netflix.bluespar.kato.deploy.aws.ops.CopyLastAsgAtomicOperation
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder

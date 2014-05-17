@@ -21,11 +21,11 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
 import spock.lang.Specification
 
 class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {

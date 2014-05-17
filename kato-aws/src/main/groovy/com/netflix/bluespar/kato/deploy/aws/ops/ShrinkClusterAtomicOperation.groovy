@@ -19,11 +19,11 @@ package com.netflix.bluespar.kato.deploy.aws.ops
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
 import com.netflix.frigga.Names
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate

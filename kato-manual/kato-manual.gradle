@@ -34,3 +34,8 @@ asciidoctor.doLast {
     into 'src/main/resources/static/manual'
   }
 }
+
+task zip(dependsOn: "asciidoctor", type: Zip) {
+  from 'src/main/resources/static/manual'
+  archiveName 'manual.zip'
+}

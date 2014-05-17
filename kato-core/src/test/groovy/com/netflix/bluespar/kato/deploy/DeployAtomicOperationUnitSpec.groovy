@@ -18,12 +18,6 @@ package com.netflix.bluespar.kato.deploy
 
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.DeployAtomicOperation
-import com.netflix.bluespar.kato.deploy.DeployDescription
-import com.netflix.bluespar.kato.deploy.DeployHandler
-import com.netflix.bluespar.kato.deploy.DeployHandlerNotFoundException
-import com.netflix.bluespar.kato.deploy.DeployHandlerRegistry
-import com.netflix.bluespar.kato.deploy.DeploymentResult
 import spock.lang.Specification
 
 class DeployAtomicOperationUnitSpec extends Specification {

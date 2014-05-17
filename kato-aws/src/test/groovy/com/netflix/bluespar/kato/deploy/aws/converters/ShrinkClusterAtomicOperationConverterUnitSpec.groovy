@@ -17,7 +17,6 @@
 package com.netflix.bluespar.kato.deploy.aws.converters
 
 import com.netflix.bluespar.kato.deploy.aws.description.ShrinkClusterDescription
-import com.netflix.bluespar.kato.deploy.aws.converters.ShrinkClusterAtomicOperationConverter
 import com.netflix.bluespar.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder

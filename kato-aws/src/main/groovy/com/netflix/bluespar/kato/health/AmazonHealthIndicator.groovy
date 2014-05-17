@@ -17,10 +17,10 @@
 package com.netflix.bluespar.kato.health
 
 import com.amazonaws.AmazonServiceException
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
 import com.netflix.bluespar.kato.security.aws.AmazonNamedAccountCredentials
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired

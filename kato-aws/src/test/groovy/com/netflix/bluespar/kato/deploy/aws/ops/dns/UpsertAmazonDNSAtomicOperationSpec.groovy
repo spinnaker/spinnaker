@@ -20,12 +20,11 @@ import com.amazonaws.services.route53.AmazonRoute53
 import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest
 import com.amazonaws.services.route53.model.HostedZone
 import com.amazonaws.services.route53.model.ListHostedZonesResult
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.UpsertAmazonDNSDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.dns.UpsertAmazonDNSAtomicOperation
 import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
 import spock.lang.Specification
 
 class UpsertAmazonDNSAtomicOperationSpec extends Specification {

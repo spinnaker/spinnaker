@@ -19,11 +19,11 @@ package com.netflix.bluespar.kato.deploy.aws.ops
 import com.amazonaws.services.autoscaling.model.CreateOrUpdateTagsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.Tag
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.TagAsgDescription
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
 import org.springframework.beans.factory.annotation.Autowired
 
 class TagAsgAtomicOperation implements AtomicOperation<Void> {

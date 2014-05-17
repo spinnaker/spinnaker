@@ -16,7 +16,6 @@
 
 package com.netflix.bluespar.kato.deploy.aws.converters
 
-import com.netflix.bluespar.kato.deploy.aws.converters.ResizeAsgAtomicOperationConverter
 import com.netflix.bluespar.kato.deploy.aws.description.ResizeAsgDescription
 import com.netflix.bluespar.kato.deploy.aws.ops.ResizeAsgAtomicOperation
 import com.netflix.bluespar.kato.security.NamedAccountCredentials

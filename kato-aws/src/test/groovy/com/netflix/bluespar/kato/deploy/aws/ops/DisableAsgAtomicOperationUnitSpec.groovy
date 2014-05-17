@@ -18,16 +18,12 @@ package com.netflix.bluespar.kato.deploy.aws.ops
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
+import com.amazonaws.services.autoscaling.model.*
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.DisableAsgDescription
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 

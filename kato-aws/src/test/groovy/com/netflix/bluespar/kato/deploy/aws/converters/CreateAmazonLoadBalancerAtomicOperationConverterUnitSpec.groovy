@@ -18,7 +18,6 @@ package com.netflix.bluespar.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.bluespar.kato.deploy.aws.converters.CreateAmazonLoadBalancerAtomicOperationConverter
 import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder

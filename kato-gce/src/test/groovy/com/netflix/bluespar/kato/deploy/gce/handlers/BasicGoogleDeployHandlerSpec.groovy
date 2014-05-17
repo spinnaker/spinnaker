@@ -22,7 +22,6 @@ import com.google.api.services.compute.model.*
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.gce.description.BasicGoogleDeployDescription
-import com.netflix.bluespar.kato.deploy.gce.handlers.BasicGoogleDeployHandler
 import com.netflix.bluespar.kato.security.gce.GoogleCredentials
 import spock.lang.Ignore
 import spock.lang.Specification

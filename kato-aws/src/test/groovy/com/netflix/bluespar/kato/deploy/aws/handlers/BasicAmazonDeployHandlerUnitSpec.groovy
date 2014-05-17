@@ -19,14 +19,13 @@ package com.netflix.bluespar.kato.deploy.aws.handlers
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
 import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
-import com.netflix.bluespar.kato.deploy.aws.handlers.BasicAmazonDeployHandler
-import com.netflix.bluespar.kato.security.aws.AmazonClientProvider
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 

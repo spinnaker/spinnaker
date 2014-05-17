@@ -16,8 +16,6 @@
 
 package com.netflix.bluespar.kato.security
 
-import com.netflix.bluespar.kato.security.DefaultNamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 

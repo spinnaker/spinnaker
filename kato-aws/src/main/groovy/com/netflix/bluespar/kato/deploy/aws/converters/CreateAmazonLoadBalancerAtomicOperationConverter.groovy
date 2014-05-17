@@ -19,10 +19,10 @@ package com.netflix.bluespar.kato.deploy.aws.converters
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
 import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

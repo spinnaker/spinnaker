@@ -22,7 +22,6 @@ import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.ec2.model.Tag
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
 import spock.lang.Specification
 
 class AutoScalingWorkerUnitSpec extends Specification {

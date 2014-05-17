@@ -18,7 +18,7 @@ package com.netflix.bluespar.kato.deploy.aws.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.bluespar.kato.security.aws.AmazonCredentials
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 
 abstract class AbstractAmazonCredentialsDescription {
   @JsonIgnore

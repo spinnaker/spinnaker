@@ -17,7 +17,6 @@
 package com.netflix.bluespar.kato.data.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.bluespar.kato.data.task.DefaultTask
 import spock.lang.Shared
 import spock.lang.Specification
 

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
+repositories {
+  maven { url "http://dl.bintray.com/bluespar/bluespar" }
+}
+
 dependencies {
   compile project(":kato-core")
   compile commonDependencies.frigga
   compile commonDependencies.springBootActuator
+  compile 'com.netflix.bluespar.amazon:amazoncomponents:0.1'
   compile 'joda-time:joda-time:2.3'
   compile 'com.amazonaws:aws-java-sdk:1.7.2'
   compile 'org.apache.httpcomponents:httpclient:4.3.3'

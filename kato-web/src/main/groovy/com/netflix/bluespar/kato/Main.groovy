@@ -26,7 +26,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ComponentScan("com.netflix.asgard.kato")
+@ComponentScan("com.netflix.bluespar.kato")
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static void main(_) {
