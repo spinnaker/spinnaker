@@ -6,7 +6,7 @@ This project provides common utilities for working with the Amazon AWS SDK.
 Edda
 ---
 
-Through the +AmazonClientProvider+, callers can get supply an [Edda](https://github.com/Netflix/edda/wiki) host as a String pattern in the form that formats to a hostname that includes a region and test (in that order) in the URL. For example: `http://edda.%s.%s.netflix.com` will be formatted to `http://edda.us-east-1.test.netflix.com` when I am requesting a client in "us-east-1" with an `AmazonCredentials` object that uses "test" as its environment.
+Through the `AmazonClientProvider`, callers can get supply an [Edda](https://github.com/Netflix/edda/wiki) host as a String pattern in the form that formats to a hostname that includes a region and test (in that order) in the URL. For example: `http://edda.%s.%s.netflix.com` will be formatted to `http://edda.us-east-1.test.netflix.com` when I am requesting a client in "us-east-1" with an `AmazonCredentials` object that uses "test" as its environment.
 
 Quick Use
 ---
