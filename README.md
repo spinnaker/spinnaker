@@ -8,6 +8,39 @@ Edda
 
 Through the +AmazonClientProvider+, callers can get supply an [Edda](https://github.com/Netflix/edda/wiki) host as a String pattern in the form that formats to a hostname that includes a region and test (in that order) in the URL. For example: `http://edda.%s.%s.netflix.com` will be formatted to `http://edda.us-east-1.test.netflix.com` when I am requesting a client in "us-east-1" with an `AmazonCredentials` object that uses "test" as its environment.
 
+Quick Use
+---
+From Gradle:
+
+```groovy
+repositories {
+  jcenter()
+}
+dependencies {
+  compile 'com.amazonaws:aws-java-sdk:1.7.2'
+  compile 'com.netflix.bluespar.amazon:amazoncomponents:0.1'
+}
+
+```
+
+... and then ...
+
+```groovy
+import com.netflix.bluespar.amazon.security.*
+import com.amazonaws.auth.BasicAWSCredentials
+
+def credentials = new AmazonCredentials(new BasicAWSCredentials("accessId", "secretKey"), "test")
+
+def eddaFormat = "http://edda.%s.%s.netflix.com" // will get translated to http://edda.us-east-1.test.netflix.com
+def provider = new AmazonClientProvider(eddaFormat)
+
+def amazonEC2 = provider.getAmazonEC2(credentials, "us-east-1")
+
+// This call will go through Edda
+amazonEC2.describeSecurityGroups()
+```
+
+
 Credentials
 ---
 
