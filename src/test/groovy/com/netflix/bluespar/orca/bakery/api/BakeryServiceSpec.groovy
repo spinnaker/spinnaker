@@ -1,16 +1,20 @@
 package com.netflix.bluespar.orca.bakery.api
 
-import com.netflix.bluespar.orca.test.HttpServerSpecification
+import com.netflix.bluespar.orca.test.HttpServerRule
+import org.junit.Rule
 import retrofit.RestAdapter
 import retrofit.RetrofitError
+import spock.lang.Specification
 import spock.lang.Subject
 
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
 import static retrofit.RestAdapter.LogLevel.FULL
 
-class BakeryServiceSpec extends HttpServerSpecification {
+class BakeryServiceSpec extends Specification {
 
+    @Rule
+    HttpServerRule httpServer = new HttpServerRule()
     RestAdapter restAdapter
 
     @Subject
@@ -18,14 +22,18 @@ class BakeryServiceSpec extends HttpServerSpecification {
 
     final bakePath = "/api/v1/us-west-1/bake"
     final statusPath = "/api/v1/us-west-1/status"
-    final bakeURI = "$baseURI$bakePath"
-    final statusURI = "$baseURI$statusPath"
     final bakeId = "b-123456789"
     final statusId = "s-123456789"
 
+    String bakeURI
+    String statusURI
+
     def setup() {
+        bakeURI = "$httpServer.baseURI$bakePath"
+        statusURI = "$httpServer.baseURI$statusPath"
+
         restAdapter = new RestAdapter.Builder()
-            .setEndpoint(baseURI)
+            .setEndpoint(httpServer.baseURI)
             .setLogLevel(FULL)
             .build()
         bakery = restAdapter.create(BakeryService)
@@ -33,7 +41,7 @@ class BakeryServiceSpec extends HttpServerSpecification {
 
     def "can lookup a bake status"() {
         given:
-        expect("GET", "$statusPath/$statusId", HTTP_OK) {
+        httpServer.expect("GET", "$statusPath/$statusId", HTTP_OK) {
             state "COMPLETED"
             progress 100
             status "SUCCESS"
@@ -56,7 +64,7 @@ class BakeryServiceSpec extends HttpServerSpecification {
 
     def "looking up an unknown status id will throw an exception"() {
         given:
-        expect("GET", "$statusPath/$statusId", HTTP_NOT_FOUND)
+        httpServer.expect("GET", "$statusPath/$statusId", HTTP_NOT_FOUND)
 
         when:
         bakery.lookupStatus("us-west-1", statusId).toBlockingObservable().first()
@@ -68,7 +76,7 @@ class BakeryServiceSpec extends HttpServerSpecification {
 
     def "should return status of newly created bake"() {
         given: "the bakery accepts a new bake"
-        expect("POST", bakePath, HTTP_ACCEPTED) {
+        httpServer.expect("POST", bakePath, HTTP_ACCEPTED) {
             state "PENDING"
             progress 0
             resource_uri "$bakeURI/$bakeId"
@@ -89,7 +97,8 @@ class BakeryServiceSpec extends HttpServerSpecification {
 
     def "should handle a repeat create bake response"() {
         given: "the POST to /bake redirects to the status of an existing bake"
-        def responseContent = {
+        httpServer.expect "POST", bakePath, HTTP_SEE_OTHER, [(LOCATION): "$statusURI/$statusId"]
+        httpServer.expect("GET", "$statusPath/$statusId", HTTP_OK) {
             state "RUNNING"
             progress 1
             resource_uri "$bakeURI/$bakeId"
@@ -100,8 +109,6 @@ class BakeryServiceSpec extends HttpServerSpecification {
             mtime 1382310109766
             messages(["on instance i-66f5913d runnning: aminate ..."])
         }
-        expect "POST", bakePath, HTTP_SEE_OTHER, [(LOCATION): "$baseURI$statusPath/$statusId"], responseContent
-        expect "GET", "$statusPath/$statusId", HTTP_OK, responseContent
 
         expect: "createBake should return the status of the bake"
         with(bakery.createBake("us-west-1").toBlockingObservable().first()) {
