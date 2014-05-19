@@ -16,6 +16,7 @@
 
 package com.netflix.bluespar.amazon.data;
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.ec2.model.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,6 +29,7 @@ public class AmazonObjectMapper extends ObjectMapper {
     configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    addMixInAnnotations(AutoScalingGroup.class, AutoScalingGroupMixins.class);
     addMixInAnnotations(AvailabilityZone.class, AvailabilityZoneMixins.class);
     addMixInAnnotations(Instance.class, InstanceMixins.class);
     addMixInAnnotations(Image.class, ImageMixins.class);
@@ -49,146 +51,151 @@ public class AmazonObjectMapper extends ObjectMapper {
 
   private interface SubnetMixins {
     @JsonIgnore
-    public abstract void setState(String state);
+    void setState(String state);
   }
 
   private interface AvailabilityZoneMixins {
     @JsonIgnore
-    public abstract void setState(String state);
+    void setState(String state);
   }
 
   private interface ImageMixins {
     @JsonProperty("state")
-    public abstract void setState(String state);
+    void setState(String state);
 
     @JsonProperty("architecture")
-    public abstract void setArchitecture(String architecture);
+    void setArchitecture(String architecture);
 
     @JsonProperty("imageType")
-    public abstract void setImageType(String imageType);
+    void setImageType(String imageType);
 
     @JsonProperty("platform")
-    public abstract void setPlatform(String platform);
+    void setPlatform(String platform);
 
     @JsonProperty("rootDeviceType")
-    public abstract void setRootDeviceType(String type);
+    void setRootDeviceType(String type);
 
     @JsonProperty("virtualizationType")
-    public abstract void setVirtualizationType(String virtualizationType);
+    void setVirtualizationType(String virtualizationType);
 
     @JsonProperty("hypervisor")
-    public abstract void setHypervisor(String hypervisor);
+    void setHypervisor(String hypervisor);
   }
 
   private interface InstanceMixins {
     @JsonIgnore
-    public abstract Boolean getSourceDestCheck();
+    Boolean getSourceDestCheck();
 
     @JsonIgnore
-    public abstract Boolean getEbsOptimized();
+    Boolean getEbsOptimized();
 
     @JsonIgnore
-    public abstract void setInstanceType(String type);
+    void setInstanceType(String type);
 
     @JsonIgnore
-    public abstract void setPlatform(PlatformValues platform);
+    void setPlatform(PlatformValues platform);
 
     @JsonProperty("architecture")
-    public abstract void setArchitecture(String architecture);
+    void setArchitecture(String architecture);
 
     @JsonIgnore
-    public abstract void setRootDeviceType(DeviceType type);
+    void setRootDeviceType(DeviceType type);
 
     @JsonIgnore
-    public abstract void setVirtualizationType(VirtualizationType type);
+    void setVirtualizationType(VirtualizationType type);
 
     @JsonIgnore
-    public abstract void setInstanceLifecycle(InstanceLifecycleType type);
+    void setInstanceLifecycle(InstanceLifecycleType type);
 
     @JsonIgnore
-    public abstract void setHypervisor(HypervisorType type);
+    void setHypervisor(HypervisorType type);
+  }
+
+  private interface AutoScalingGroupMixins {
+    @JsonProperty("VPCZoneIdentifier")
+    void setVPCZoneIdentifier(String VPCZoneIdentifier);
   }
 
   private interface AutoScalingInstanceMixins {
     @JsonProperty("lifecycleState")
-    public abstract void setLifecycleState(String state);
+    void setLifecycleState(String state);
   }
 
   private interface InstancePrivateIpAddressMixins {
     @JsonIgnore
-    public abstract Boolean getPrimary();
+    Boolean getPrimary();
   }
 
   private interface InstanceNetworkInterfaceMixins {
     @JsonIgnore
-    public abstract Boolean getSourceDestCheck();
+    Boolean getSourceDestCheck();
 
     @JsonIgnore
-    public abstract void setStatus(NetworkInterfaceStatus status);
+    void setStatus(NetworkInterfaceStatus status);
   }
 
   private interface InstanceNetworkInterfaceAttachmentMixins {
     @JsonIgnore
-    public abstract Boolean getDeleteOnTermination();
+    Boolean getDeleteOnTermination();
 
     @JsonIgnore
-    public abstract void setStatus(AttachmentStatus status);
+    void setStatus(AttachmentStatus status);
   }
 
   private interface EbsBlockDeviceMixins {
     @JsonIgnore
-    public abstract Boolean getDeleteOnTermination();
+    Boolean getDeleteOnTermination();
 
     @JsonProperty("volumeType")
-    public abstract void setVolumeType(String type);
+    void setVolumeType(String type);
   }
 
   private interface EbsInstanceBlockDeviceMixins {
     @JsonIgnore
-    public abstract Boolean getDeleteOnTermination();
+    Boolean getDeleteOnTermination();
 
     @JsonIgnore
-    public abstract void setStatus(AttachmentStatus status);
+    void setStatus(AttachmentStatus status);
   }
 
   private interface VolumeMixins {
     @JsonProperty("state")
-    public abstract void setState(String state);
+    void setState(String state);
 
     @JsonProperty("volumeType")
-    public abstract void setVolumeType(String type);
+    void setVolumeType(String type);
   }
 
   private interface VolumeAttachmentMixins {
     @JsonIgnore
-    public abstract Boolean getDeleteOnTermination();
+    Boolean getDeleteOnTermination();
 
     @JsonIgnore
-    public abstract void setState(VolumeAttachmentState state);
+    void setState(VolumeAttachmentState state);
   }
 
   private interface TagDescriptionMixins {
     @JsonIgnore
-    public abstract Boolean getPropagateAtLaunch();
+    Boolean getPropagateAtLaunch();
   }
 
   private interface MonitoringMixins {
     @JsonIgnore
-    public abstract void setState(MonitoringState state);
+    void setState(MonitoringState state);
   }
 
   private interface InstanceStateMixins {
     @JsonIgnore
-    public abstract void setName(InstanceStateName instanceStateName);
+    void setName(InstanceStateName instanceStateName);
   }
 
   private interface PlacementMixins {
     @JsonIgnore
-    public abstract void setTenancy(Tenancy tenancy);
+    void setTenancy(Tenancy tenancy);
   }
 
   private interface ProductCodeMixins {
     @JsonIgnore
-    public abstract void setProductCodeType(ProductCodeValues values);
+    void setProductCodeType(ProductCodeValues values);
   }
 }
