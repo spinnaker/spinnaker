@@ -25,6 +25,7 @@ import com.netflix.bluespar.kato.security.aws.AmazonNamedAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -60,5 +61,12 @@ class KatoAWSConfig {
     void init() {
       namedAccountCredentialsHolder.put(defaultEnv, new AmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv))
     }
+  }
+
+  @Component
+  @ConfigurationProperties("deploy.defaults")
+  static class DeployDefaultConfigurationProperties {
+    String iamRole = "BaseIAMRole"
+    String keyPair = "nf-test-keypair-a"
   }
 }

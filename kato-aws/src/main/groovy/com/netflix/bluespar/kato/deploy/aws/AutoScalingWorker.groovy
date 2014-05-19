@@ -40,7 +40,7 @@ import org.springframework.web.client.RestTemplate
  * @author Dan Woods
  */
 class AutoScalingWorker {
-  private static final String SUBNET_METADATA_KEY = "immutable_metadata"
+  static final String SUBNET_METADATA_KEY = "immutable_metadata"
   private static final String SUBNET_PURPOSE_TYPE = "ec2"
   private static final String AWS_PHASE = "AWS_DEPLOY"
 
@@ -82,7 +82,6 @@ class AutoScalingWorker {
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
-  private RestTemplate rt = new RestTemplate()
 
   private int minInstances
   private int maxInstances
@@ -131,12 +130,6 @@ class AutoScalingWorker {
       task.updateStatus AWS_PHASE, "Found ancestor ASG: parsing details."
       Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
       nextSequence = ancestorNames.sequence + 1
-      task.updateStatus AWS_PHASE, "Copying security groups from ancestor ASG."
-      List<String> ancestorSecurityGroups = getSecurityGroupsForLaunchConfiguration(ancestorAsg.launchConfigurationName as String)
-      if (!ancestorSecurityGroups.contains(applicationSecurityGroup)) {
-        ancestorSecurityGroups << applicationSecurityGroup
-      }
-      securityGroups.addAll ancestorSecurityGroups
     } else {
       nextSequence = 0
     }
@@ -215,7 +208,7 @@ class AutoScalingWorker {
   AutoScalingGroup getAncestorAsg() {
     def request = new DescribeAutoScalingGroupsRequest()
     def result = autoScaling.describeAutoScalingGroups(request)
-    def asgs = []
+    List<AutoScalingGroup> asgs = []
     while (true) {
       asgs.addAll result.autoScalingGroups
       if (result.nextToken) {
@@ -224,8 +217,8 @@ class AutoScalingWorker {
         break
       }
     }
-    asgs.findAll {
-      def names = Names.parseName(it)
+    asgs.findAll { AutoScalingGroup asg ->
+      def names = Names.parseName(asg.autoScalingGroupName)
       names.sequence >= 0 && application == names.app
     }?.max() ?: null
   }

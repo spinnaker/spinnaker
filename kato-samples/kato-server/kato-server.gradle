@@ -9,6 +9,7 @@ buildscript {
 
 apply plugin: 'base'
 apply plugin: 'spring-boot'
+apply plugin: 'groovy'
 apply plugin: 'idea'
 apply from: 'gradle/internal.gradle'
 
