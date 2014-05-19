@@ -63,9 +63,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getAncestorAsg() >> {
       [autoScalingGroupName: "asgard-test-v000", launchConfigurationName: "asgard-test-v000-launchConfigName"]
     }
-    1 * mockAutoScalingWorker.getSecurityGroupsForLaunchConfiguration("asgard-test-v000-launchConfigName") >> {
-      ['sg-5678']
-    }
     1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> {
       'launchConfigName'
     }
