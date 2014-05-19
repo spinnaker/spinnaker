@@ -55,9 +55,11 @@ public class AstyanaxComponents {
     public AstyanaxConfiguration astyanaxConfiguration() {
         return new AstyanaxConfigurationImpl()
                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
-                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE);
+                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
+                .setCqlVersion("3.0.0")
+                .setTargetCassandraVersion("1.2");
     }
-
+    
     @Bean
     public ConnectionPoolMonitor connectionPoolMonitor() {
         return new CountingConnectionPoolMonitor();
