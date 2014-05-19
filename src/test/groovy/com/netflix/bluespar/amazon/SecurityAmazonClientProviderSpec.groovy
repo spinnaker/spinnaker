@@ -115,4 +115,25 @@ class SecurityAmazonClientProviderSpec extends Specification {
     then:
     count
   }
+
+  void "describe call with no keys calls for the full list"() {
+    setup:
+    def mockHttp = Mock(HttpClient)
+    def provider = new AmazonClientProvider("edda", mockHttp)
+
+    when:
+    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
+    client.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest())
+
+    then:
+    client instanceof AmazonAutoScaling
+    1 * mockHttp.execute(_) >> { HttpGet get ->
+      assert get.URI.rawPath.endsWith("_expand")
+      def mock = Mock(HttpResponse)
+      def entity = Mock(HttpEntity)
+      entity.getContent() >> { new ByteArrayInputStream('[{ "autoScalingGroupName": "my-app-v000" }]'.bytes) }
+      mock.getEntity() >> entity
+      mock
+    }
+  }
 }

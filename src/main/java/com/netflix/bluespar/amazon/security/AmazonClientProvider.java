@@ -48,6 +48,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ProtocolException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -203,10 +204,14 @@ public class AmazonClientProvider {
             field.setAccessible(true);
             List collection = (List) field.get(request);
             List results = new ArrayList<>();
-            for (Object id : collection) {
-              if (id instanceof String) {
-                results.add(objectMapper.readValue(getJson(object, (String) id), singleType));
+            if (collection != null && collection.size() > 0) {
+              for (Object id : collection) {
+                if (id instanceof String) {
+                  results.add(objectMapper.readValue(getJson(object, (String) id), singleType));
+                }
               }
+            } else {
+              results.addAll((Collection)objectMapper.readValue(getJson(object, null), collectionType));
             }
             return (T) results;
           } catch (NoSuchFieldException | IllegalAccessException | IOException e) {
