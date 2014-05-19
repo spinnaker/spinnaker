@@ -5,6 +5,9 @@ import retrofit.http.POST
 import retrofit.http.Path
 import rx.Observable
 
+/**
+ * An interface to the Bakery's REST API. See {@link https://confluence.netflix.com/display/ENGTOOLS/Bakery+API}.
+ */
 interface BakeryService {
 
     @POST("/api/v1/{region}/bake")
