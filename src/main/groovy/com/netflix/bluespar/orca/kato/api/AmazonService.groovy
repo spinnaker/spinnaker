@@ -1,5 +1,7 @@
 package com.netflix.bluespar.orca.kato.api
 
+import retrofit.client.Response
+import retrofit.http.Body
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
@@ -11,12 +13,12 @@ import rx.Observable
 interface AmazonService {
 
     @POST("/ops")
-    void requestOperations(List<Operation> operations)
+    Observable<Response> requestOperations(@Body Collection<Operation> operations)
 
     @GET("/task")
     Observable<List<Task>> listTasks()
 
     @GET("/task/{id}")
-    Observable<Task> taskDetails(@Path("id") String id)
+    Observable<Task> lookupTask(@Path("id") String id)
 
 }

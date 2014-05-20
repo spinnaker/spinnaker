@@ -13,12 +13,9 @@ import static retrofit.RestAdapter.LogLevel.FULL
 
 class BakeryServiceSpec extends Specification {
 
-    @Rule
-    HttpServerRule httpServer = new HttpServerRule()
-    RestAdapter restAdapter
+    @Rule HttpServerRule httpServer = new HttpServerRule()
 
-    @Subject
-    BakeryService bakery
+    @Subject BakeryService bakery
 
     final bakePath = "/api/v1/us-west-1/bake"
     final statusPath = "/api/v1/us-west-1/status"
@@ -32,11 +29,11 @@ class BakeryServiceSpec extends Specification {
         bakeURI = "$httpServer.baseURI$bakePath"
         statusURI = "$httpServer.baseURI$statusPath"
 
-        restAdapter = new RestAdapter.Builder()
+        bakery = new RestAdapter.Builder()
             .setEndpoint(httpServer.baseURI)
             .setLogLevel(FULL)
             .build()
-        bakery = restAdapter.create(BakeryService)
+            .create(BakeryService)
     }
 
     def "can lookup a bake status"() {
