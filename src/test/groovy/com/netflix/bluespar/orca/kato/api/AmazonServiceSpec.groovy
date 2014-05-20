@@ -22,7 +22,7 @@ class AmazonServiceSpec extends Specification {
     def setup() {
         amazonService = new RestAdapter.Builder()
             .setEndpoint(httpServer.baseURI)
-            .setLogLevel(FULL).set
+            .setLogLevel(FULL)
             .build()
             .create(AmazonService)
     }
