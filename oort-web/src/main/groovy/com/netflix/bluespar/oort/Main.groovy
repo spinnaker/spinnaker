@@ -19,6 +19,8 @@ package com.netflix.bluespar.oort
 import com.netflix.appinfo.InstanceInfo
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -30,7 +32,7 @@ import org.springsource.loaded.agent.SpringPlugin
 @Configuration
 @ComponentScan("com.netflix.bluespar")
 @EnableScheduling
-class Main {
+class Main extends SpringBootServletInitializer {
 
   static void main(_) {
     def springPlugin = SpringLoadedPreProcessor.globalPlugins.find { it instanceof SpringPlugin }
@@ -38,6 +40,11 @@ class Main {
       SpringLoadedPreProcessor.unregisterGlobalPlugin springPlugin
     }
     SpringApplication.run this, [] as String[]
+  }
+
+  @Override
+  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    application.sources Main
   }
 
   @Bean
