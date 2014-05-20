@@ -110,7 +110,8 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}."
       operationResult.loadBalancers[region] = new CreateAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, result.DNSName)
       if (description.healthCheck) {
-        def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck().withTarget(description.healthCheck))
+        def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck().withTarget(description.healthCheck).withInterval(10).withTimeout(5).withUnhealthyThreshold(2)
+          .withHealthyThreshold(10))
         client.configureHealthCheck(healthCheck)
       }
     }

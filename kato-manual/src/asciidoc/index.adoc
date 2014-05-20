@@ -121,6 +121,9 @@ include::src/asciidoc/ops/tagAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
+include::src/asciidoc/ops/destroyAsgDescription.adoc[]
+- - -
+
 
 ==== Google Operations
 

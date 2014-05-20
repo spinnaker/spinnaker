@@ -32,7 +32,6 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.client.RestTemplate
 
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
@@ -187,7 +186,7 @@ class AutoScalingWorker {
    */
   String getVpcForSubnetType() {
     def response = amazonEC2.describeSubnets()
-    response.subnets.each { subnet ->
+    for (subnet in response.subnets) {
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         def metadata = objectMapper.readValue metadataJson, Map

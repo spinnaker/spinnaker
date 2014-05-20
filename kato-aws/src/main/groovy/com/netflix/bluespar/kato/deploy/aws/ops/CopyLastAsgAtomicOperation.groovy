@@ -29,7 +29,6 @@ import com.netflix.bluespar.kato.deploy.DeploymentResult
 import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
 import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.bluespar.kato.deploy.aws.handlers.BasicAmazonDeployHandler
-import com.netflix.bluespar.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 

@@ -16,21 +16,22 @@
 
 package com.netflix.bluespar.kato.deploy.aws.converters
 
-import com.netflix.bluespar.kato.deploy.aws.description.ShrinkClusterDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
+import com.netflix.bluespar.kato.deploy.aws.description.DestroyAsgDescription
+import com.netflix.bluespar.kato.deploy.aws.ops.DestroyAsgAtomicOperation
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
 import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
-import org.springframework.validation.ValidationUtils
 
-@Component("shrinkClusterDescription")
-class ShrinkClusterAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("destroyAsgDescription")
+class DestroyAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Override
   AtomicOperation convertOperation(Map input) {
-    new ShrinkClusterAtomicOperation(convertDescription(input))
+    new DestroyAsgAtomicOperation(convertDescription(input))
   }
 
-  ShrinkClusterDescription convertDescription(Map input) {
+  @Override
+  DestroyAsgDescription convertDescription(Map input) {
     input.credentials = getCredentialsObject(input.credentials as String)
-    new ShrinkClusterDescription(input)
+    new DestroyAsgDescription(input)
   }
 }
