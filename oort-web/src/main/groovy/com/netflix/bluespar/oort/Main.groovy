@@ -16,8 +16,10 @@
 
 package com.netflix.bluespar.oort
 
+import com.netflix.appinfo.InstanceInfo
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -36,5 +38,10 @@ class Main {
       SpringLoadedPreProcessor.unregisterGlobalPlugin springPlugin
     }
     SpringApplication.run this, [] as String[]
+  }
+
+  @Bean
+  InstanceInfo.InstanceStatus instanceStatus() {
+    InstanceInfo.InstanceStatus.UNKNOWN
   }
 }

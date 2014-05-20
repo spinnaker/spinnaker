@@ -20,7 +20,6 @@ subprojects {
   apply plugin: "groovy"
 
   group = "com.netflix.bluespar.oort"
-  version = "0.1-SNAPSHOT"
 
   configurations.all {
     resolutionStrategy {
@@ -43,6 +42,8 @@ subprojects {
   }
 
 }
+
+tasks.checkSnapshotDependencies.enabled = false
 
 def getSpringloadedJvmArgs(project) {
   def jarFile = JarFinder.find("org.springsource.loaded.SpringLoaded", project.sourceSets.main.compileClasspath.files)

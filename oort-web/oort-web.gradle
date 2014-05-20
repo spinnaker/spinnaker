@@ -26,14 +26,13 @@ buildscript {
 apply plugin: 'spring-boot'
 
 repositories {
-  mavenLocal()
   maven { url "http://dl.bintray.com/bluespar/bluespar"}
 }
 
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
-  compile "com.netflix.bluespar.kork:kork-core:1.4"
+  runtime "com.netflix.bluespar.kork:kork-core:1.5"
   compile "com.netflix.eureka:eureka-client:1.1.128"
   compile "org.springsource.loaded:springloaded:1.2.0.BUILD-SNAPSHOT"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
