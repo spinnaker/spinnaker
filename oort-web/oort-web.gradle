@@ -32,7 +32,7 @@ repositories {
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
-  runtime "com.netflix.bluespar.kork:kork-core:1.6"
+  runtime "com.netflix.bluespar.kork:kork-core:1.7"
   compile "com.netflix.eureka:eureka-client:1.1.128"
   compile "org.springsource.loaded:springloaded:1.2.0.BUILD-SNAPSHOT"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
