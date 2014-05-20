@@ -47,7 +47,7 @@ subprojects {
 project(':kork-core') {
   dependencies {
     compile 'org.springframework.boot:spring-boot-autoconfigure:1.0.2.RELEASE'
-    compile 'com.netflix.eureka:eureka-client:1.1.128'
+    compile 'com.netflix.eureka:eureka-client:1.1.132'
     compile 'com.netflix.astyanax:astyanax-cassandra:1.56.48'
     compile 'com.netflix.astyanax:astyanax-thrift:1.56.48'
     compile 'com.amazonaws:aws-java-sdk:1.7.5'
