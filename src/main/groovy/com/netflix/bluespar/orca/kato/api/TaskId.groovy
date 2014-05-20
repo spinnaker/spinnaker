@@ -5,5 +5,6 @@ import groovy.transform.Immutable
 
 @Immutable
 @CompileStatic
-class Task {
+class TaskId {
+    final String id
 }

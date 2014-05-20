@@ -13,7 +13,7 @@ import rx.Observable
 interface AmazonService {
 
     @POST("/ops")
-    Observable<Response> requestOperations(@Body Collection<Operation> operations)
+    Observable<TaskId> requestOperations(@Body Collection<Operation> operations)
 
     @GET("/task")
     Observable<List<Task>> listTasks()

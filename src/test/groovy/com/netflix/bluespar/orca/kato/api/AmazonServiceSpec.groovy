@@ -38,8 +38,8 @@ class AmazonServiceSpec extends Specification {
         def operation = new DeployDescription()
 
         expect: "kato should return the details of the task it created"
-        with(amazonService.requestOperations([operation]).toBlockingObservable().first()) { Response response ->
-            new JsonSlurper().parse(response.body.in()).id == taskId
+        with(amazonService.requestOperations([operation]).toBlockingObservable().first()) {
+            it.id == taskId
         }
     }
 
