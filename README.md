@@ -1,7 +1,7 @@
-bluespar-gradle-project
+spinnaker-gradle-project
 ==============
 
-Build conventions for bluespar Gradle projects
+Build conventions for spinnaker Gradle projects
 
 ## Usage
 
@@ -13,11 +13,11 @@ To include, add the following to your build.gradle
       repositories { jcenter() }
 
       dependencies {
-        classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.+'
+        classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.+'
       }
     }
 
-    apply plugin: 'bluespar-gradle-project'
+    apply plugin: 'spinnaker-gradle-project'
 
 ### Tasks Provided
 

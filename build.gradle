@@ -18,15 +18,15 @@ buildscript {
     dependencies { classpath 'com.netflix.nebula:nebula-plugin-plugin:1.9.11' }
 }
 
-group = 'com.netflix.bluespar'
-description 'Build conventions for bluespar Gradle projects'
+group = 'com.netflix.spinnaker'
+description 'Build conventions for spinnaker Gradle projects'
 apply plugin: 'nebula-plugin'
 
 bintray {
   pkg {
-    userOrg = 'bluespar'
+    userOrg = 'spinnaker'
     repo = 'gradle'
-    labels = ['bluespar', 'groovy', 'gradle', 'java', 'Netflix']
+    labels = ['spinnaker', 'groovy', 'gradle', 'java', 'Netflix']
   }
 }
 

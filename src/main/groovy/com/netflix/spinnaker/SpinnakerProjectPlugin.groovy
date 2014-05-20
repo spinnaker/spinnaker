@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.bluespar
+package com.netflix.spinnaker
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
@@ -34,7 +34,7 @@ import release.ReleasePlugin
 import release.ReleasePluginConvention
 
 
-class BluesparProjectPlugin implements Plugin<Project> {
+class SpinnakerProjectPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.status = project.version.toString().endsWith('-SNAPSHOT')?'integration':'release'
@@ -51,8 +51,8 @@ class BluesparProjectPlugin implements Plugin<Project> {
     void addStandardRepos(Project project) {
         project.repositories.jcenter()
         project.repositories.maven {
-            name 'Bintray bluespar repo'
-            url 'http://dl.bintray.com/bluespar/bluespar'
+            name 'Bintray spinnaker repo'
+            url 'http://dl.bintray.com/spinnaker/spinnaker'
         }
     }
 
@@ -70,9 +70,9 @@ class BluesparProjectPlugin implements Plugin<Project> {
         project.plugins.apply(NebulaOJOPublishingPlugin)
 
         BintrayExtension bintray = project.extensions.getByType(BintrayExtension)
-        bintray.pkg.userOrg = 'bluespar'
-        bintray.pkg.repo = 'bluespar'
-        bintray.pkg.labels = ['bluespar', 'groovy', 'Netflix']
+        bintray.pkg.userOrg = 'spinnaker'
+        bintray.pkg.repo = 'spinnaker'
+        bintray.pkg.labels = ['spinnaker', 'groovy', 'Netflix']
         project.tasks.publish.dependsOn('bintrayUpload')        
     }
 
@@ -84,11 +84,11 @@ class BluesparProjectPlugin implements Plugin<Project> {
                     @Override
                     void execute(XmlProvider x) {
                         def root = x.asNode()
-                        root.appendNode('url', "https://github.com/bluespar/${repoName}")
+                        root.appendNode('url', "https://github.com/spinnaker/${repoName}")
                         root.appendNode('scm').replaceNode {
                             scm {
-                                url "scm:git://github.com/bluespar/${repoName}.git"
-                                connection "scm:git://github.com/bluespar/${repoName}.git"
+                                url "scm:git://github.com/spinnaker/${repoName}.git"
+                                connection "scm:git://github.com/spinnaker/${repoName}.git"
                             }
                         }
                     }
