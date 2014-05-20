@@ -23,52 +23,28 @@ buildscript {
   }
 }
 
-apply plugin: 'nebula-ospackage-tomcat'
-apply plugin: 'war'
 apply plugin: 'spring-boot'
 
-nebula {
-  readyForJava7
-}
-
-configurations.all {
-  resolutionStrategy {
-    force 'org.apache.log4j:log4j:1.2.17'
-    force 'com.google.guava:guava:14.0.1'
-    force 'commons-codec:commons-codec:1.7'
-  }
-  exclude group: 'javax.servlet', module: 'servlet-api'
-  exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-  exclude group: 'ch.qos.logback', module: 'logback-classic'
-  exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
-  exclude group: 'commons-logging', module: 'commons-logging'
+repositories {
+  mavenLocal()
+  maven { url "http://dl.bintray.com/bluespar/bluespar"}
 }
 
 dependencies {
-  runtime "com.netflix.asgard.platformcomponents:platformcomponents-core:0.1"
-  runtime "com.netflix.asgard.netflixplatform:netflixplatform:1.0-SNAPSHOT"
   compile project(":oort-core")
   compile project(":oort-aws")
+  compile "com.netflix.bluespar.kork:kork-core:1.4"
   compile "com.netflix.eureka:eureka-client:1.1.128"
-  compile "org.codehaus.groovy:groovy-all:2.3.0-beta-2"
   compile "org.springsource.loaded:springloaded:1.2.0.BUILD-SNAPSHOT"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
   testCompile "cglib:cglib-nodep:3.1"
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
-
-  providedRuntime 'javax.servlet:javax.servlet-api:3.1.0'
-  providedRuntime 'org.apache.tomcat:tomcat-jsp-api:7.0.50'
-  providedRuntime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.50'
-  providedRuntime 'org.apache.tomcat.embed:tomcat-embed-logging-juli:7.0.50'
-  providedRuntime('org.apache.tomcat:tomcat7-websocket:7.0.50') {
-    transitive = false
-  }
-  providedRuntime('org.apache.tomcat:tomcat-websocket-api:7.0.50')
 }
 
 run {
   systemProperties = System.getProperties()
+  main = 'com.netflix.bluespar.oort.Main'
 }
 
-imposeIdeaConfig this, "com.netflix.asgard.oort.Main"
+imposeIdeaConfig this, "com.netflix.bluespar.oort.Main"

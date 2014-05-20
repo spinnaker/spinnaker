@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-repositories {
-  mavenLocal()
-  maven { url "http://dl.bintray.com/bluespar/bluespar/"}
-}
+package com.netflix.bluespar.oort.remoting
 
-dependencies {
-  compile project(":oort-core")
-  compile "com.netflix.bluespar.amazon:amazoncomponents:0.4-SNAPSHOT"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile 'com.netflix.frigga:frigga:0.6'
-  compile "com.amazonaws:aws-java-sdk:1.7.2"
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+public interface RemoteResource {
+  Map get(String uri)
+  List query(String uri)
 }

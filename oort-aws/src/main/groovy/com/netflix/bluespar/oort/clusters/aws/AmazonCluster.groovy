@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-repositories {
-  mavenLocal()
-  maven { url "http://dl.bintray.com/bluespar/bluespar/"}
-}
+package com.netflix.bluespar.oort.clusters.aws
 
-dependencies {
-  compile project(":oort-core")
-  compile "com.netflix.bluespar.amazon:amazoncomponents:0.4-SNAPSHOT"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile 'com.netflix.frigga:frigga:0.6'
-  compile "com.amazonaws:aws-java-sdk:1.7.2"
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.bluespar.oort.clusters.Cluster
+import com.netflix.bluespar.oort.clusters.ServerGroup
+import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
+import org.springframework.beans.factory.annotation.Autowired
+
+class AmazonCluster implements Cluster {
+  @Autowired
+  @JsonIgnore
+  AggregateRemoteResource edda
+
+  String name
+  String zone
+  String type = "Amazon"
+  List<ServerGroup> serverGroups
 }

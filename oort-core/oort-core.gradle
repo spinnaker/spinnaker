@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+repositories {
+  jcenter()
+}
+
 dependencies {
   compile 'org.apache.httpcomponents:httpclient:4.3.3'
   compile "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
