@@ -89,7 +89,7 @@ public class AmazonObjectMapper extends ObjectMapper {
     @JsonIgnore
     Boolean getEbsOptimized();
 
-    @JsonIgnore
+    @JsonProperty("instanceType")
     void setInstanceType(String type);
 
     @JsonIgnore

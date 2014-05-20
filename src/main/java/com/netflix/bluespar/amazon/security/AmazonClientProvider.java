@@ -26,6 +26,7 @@ import com.amazonaws.services.autoscaling.model.*;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.route53.AmazonRoute53;
@@ -67,7 +68,7 @@ public class AmazonClientProvider {
   }
 
   public AmazonClientProvider(String edda) {
-    this(edda, new DefaultHttpClient());
+    this(edda, null);
   }
 
   public AmazonClientProvider(String edda, HttpClient httpClient) {
@@ -125,7 +126,7 @@ public class AmazonClientProvider {
       client.setRegion(Region.getRegion(Regions.fromName(region)));
     }
 
-    return new GeneralAmazonClientInvocationHandler(client, String.format(edda, region, amazonCredentials.getEnvironment()), httpClient, objectMapper);
+    return new GeneralAmazonClientInvocationHandler(client, String.format(edda, region, amazonCredentials.getEnvironment()), this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
   }
 
   public static class GeneralAmazonClientInvocationHandler implements InvocationHandler {
@@ -194,6 +195,17 @@ public class AmazonClientProvider {
 
     public DescribeAutoScalingGroupsResult describeAutoScalingGroups() {
       return describeAutoScalingGroups(null);
+    }
+
+    public DescribeInstancesResult describeInstances() {
+      return describeInstances(null);
+    }
+
+    public DescribeInstancesResult describeInstances(DescribeInstancesRequest request) {
+      List<Instance> instances = describe(request, "instanceIds", "../view/instances", Instance.class, new TypeReference<List<Instance>>() {
+      });
+      Reservation reservation = new Reservation().withReservationId("1234").withInstances(instances);
+      return new DescribeInstancesResult().withReservations(reservation);
     }
 
     public <T> T describe(Object request, String idKey, final String object, final Class singleType, TypeReference<T> collectionType) {
