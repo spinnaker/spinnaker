@@ -37,8 +37,8 @@ ext {
     cglib             : "cglib:cglib-nodep:3.1",
     frigga            : "com.netflix.frigga:frigga:0.9",
     groovy            : "org.codehaus.groovy:groovy-all:2.3.0",
-    eureka            : "com.netflix.eureka:eureka-client:1.1.128",
-    kork              : "com.netflix.bluespar.kork:kork-core:1.0"
+    eureka            : "com.netflix.eureka:eureka-client:1.1.132",
+    kork              : "com.netflix.bluespar.kork:kork-core:1.4"
   ]
 }
 

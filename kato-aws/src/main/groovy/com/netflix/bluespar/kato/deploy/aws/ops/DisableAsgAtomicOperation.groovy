@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.client.RestTemplate
 
 class DisableAsgAtomicOperation implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "DELETE_ASG"
+  private static final String BASE_PHASE = "DISABLE_ASG"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
