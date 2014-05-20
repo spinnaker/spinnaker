@@ -34,8 +34,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EurekaComponents {
     @Bean
-    public ApplicationInfoManagerFactoryBean applicationInfoManager(EurekaInstanceConfig config) {
-        return new ApplicationInfoManagerFactoryBean(config);
+    public ApplicationInfoManagerFactoryBean applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
+        return new ApplicationInfoManagerFactoryBean(eurekaInstanceConfig);
     }
 
     @Bean
