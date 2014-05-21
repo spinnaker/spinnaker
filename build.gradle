@@ -23,6 +23,7 @@ dependencies {
     compile "com.google.guava:guava:$GUAVA_VERSION"
     compile "com.netflix.rxjava:rxjava-core:$RXJAVA_VERSION"
     compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
+    compile "com.squareup.okhttp:okhttp:1.5.4"
 
     compile "ch.qos.logback:logback-classic:$LOGBACK_VERSION"
     compile "org.slf4j:jcl-over-slf4j:$SLF4J_VERSION"

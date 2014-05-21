@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.orca.test
 
 import com.google.common.base.Optional
+import com.google.common.io.ByteSink
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import groovy.json.JsonBuilder
@@ -96,29 +97,31 @@ class HttpServerRule implements TestRule {
      */
     final void expect(String method, String path, int status, Map<String, String> headers, Optional<Closure> content) {
         server.createContext path, { HttpExchange exchange ->
-            if (exchange.requestMethod == method) {
-                def response = ""
-                if (content.present) {
-                    def json = new JsonBuilder()
-                    json(content.get())
-                    response = json.toString()
-                }
-                exchange.with {
-                    headers.each { key, value ->
-                        responseHeaders.add(key, value)
+            try {
+                if (exchange.requestMethod == method) {
+                    def response = ""
+                    if (content.present) {
+                        def json = new JsonBuilder()
+                        json(content.get())
+                        response = json.toString()
                     }
-                    sendResponseHeaders status, response.length()
-                    if (response.length() > 0) {
-                        responseHeaders.add(CONTENT_TYPE, "application/json")
-                        responseBody.write response.bytes
+                    exchange.with {
+                        headers.each { key, value ->
+                            responseHeaders.add(key, value)
+                        }
+                        sendResponseHeaders status, response.length()
+                        if (response.length() > 0) {
+                            responseHeaders.add(CONTENT_TYPE, "application/json")
+                            responseBody.write response.bytes
+                        }
                     }
-                    close()
+                } else {
+                    exchange.with {
+                        sendResponseHeaders HTTP_BAD_METHOD, 0
+                    }
                 }
-            } else {
-                exchange.with {
-                    sendResponseHeaders HTTP_BAD_METHOD, 0
-                    close()
-                }
+            } finally {
+                exchange.close()
             }
         }
     }

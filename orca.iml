@@ -55,6 +55,7 @@
     <orderEntry type="library" scope="TEST" name="Gradle: bonecp-spring-0.8.0.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: bonecp-0.8.0.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: h2-1.4.178" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: okhttp-1.5.4" level="project" />
   </component>
 </module>
 

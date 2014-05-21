@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.kato.api
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.test.HttpServerRule
 import org.junit.Rule
+import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -19,7 +20,8 @@ class AmazonServiceSpec extends Specification {
     final taskId = "e1jbn3"
 
     def setup() {
-        amazonService = new KatoConfiguration().amazonService(newFixedEndpoint(httpServer.baseURI), FULL)
+        amazonService = new KatoConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
+            .amazonService(newFixedEndpoint(httpServer.baseURI))
     }
 
     def "can interpret the response from an operation request"() {

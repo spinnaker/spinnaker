@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.test.HttpServerRule
 import org.junit.Rule
 import retrofit.RetrofitError
+import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -34,7 +35,8 @@ class BakeryServiceSpec extends Specification {
         bakeURI = "$httpServer.baseURI$bakePath"
         statusURI = "$httpServer.baseURI$statusPath"
 
-        bakery = new BakeryConfiguration().bakery(newFixedEndpoint(httpServer.baseURI), FULL)
+        bakery = new BakeryConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
+            .bakery(newFixedEndpoint(httpServer.baseURI))
     }
 
     def "can lookup a bake status"() {
