@@ -19,13 +19,13 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.2'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.2'
   }
 }
 
 subprojects {
-  group = 'com.netflix.bluespar.kork'
-  apply plugin: 'bluespar-gradle-project'
+  group = 'com.netflix.spinnaker.kork'
+  apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
   apply plugin: 'jacoco'
 

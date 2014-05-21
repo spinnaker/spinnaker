@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.netflix.bluespar.kork.PlatformComponents
+  com.netflix.spinnaker.kork.PlatformComponents

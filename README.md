@@ -1,4 +1,4 @@
-[![Build Status](https://drone.io/github.com/bluespar/kork/status.png)](https://drone.io/github.com/bluespar/kork/latest)
+[![Build Status](https://drone.io/github.com/spinnaker/kork/status.png)](https://drone.io/github.com/spinnaker/kork/latest)
 
 Kork adapts NetflixOSS platform components to Spring configuration and Spring-Boot autoconfiguration.
 

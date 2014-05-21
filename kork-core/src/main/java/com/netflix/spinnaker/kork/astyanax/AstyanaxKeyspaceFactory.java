@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kork.aws;
+package com.netflix.spinnaker.kork.astyanax;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 
-@Configuration
-public class AwsComponents {
-    @Bean
-    AWSCredentialsProvider awsCredentialsProvider() {
-        return new DefaultAWSCredentialsProviderChain();
-    }
+public interface AstyanaxKeyspaceFactory {
+    Keyspace getKeyspace(String clusterName, String keyspaceName) throws ConnectionException;
 }

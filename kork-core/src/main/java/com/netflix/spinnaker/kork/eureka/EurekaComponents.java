@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kork.eureka;
+package com.netflix.spinnaker.kork.eureka;
 
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.EurekaInstanceConfig;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kork.astyanax;
+package com.netflix.spinnaker.kork.astyanax;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.astyanax.AstyanaxConfiguration;

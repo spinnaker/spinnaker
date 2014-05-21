@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kork;
+package com.netflix.spinnaker.kork.aws;
 
-import com.netflix.bluespar.kork.aws.AwsComponents;
-import com.netflix.bluespar.kork.eureka.EurekaComponents;
-import com.netflix.bluespar.kork.astyanax.AstyanaxComponents;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Configuration
-@ConditionalOnMissingClass(name = {"com.netflix.config.NetflixConfiguration"})
-@Import({EurekaComponents.class, AstyanaxComponents.class, AwsComponents.class})
-public class PlatformComponents {
-
+public class AwsComponents {
+    @Bean
+    AWSCredentialsProvider awsCredentialsProvider() {
+        return new DefaultAWSCredentialsProviderChain();
+    }
 }
-
