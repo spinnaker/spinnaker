@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.orca.bakery.api
 
+import com.netflix.spinnaker.orca.bakery.api.Bake.Label
+import com.netflix.spinnaker.orca.bakery.api.Bake.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.test.HttpServerRule
 import org.junit.Rule
@@ -18,8 +20,10 @@ class BakeryServiceSpec extends Specification {
 
     @Subject BakeryService bakery
 
-    final bakePath = "/api/v1/us-west-1/bake"
-    final statusPath = "/api/v1/us-west-1/status"
+    final region = "us-west-1"
+    final bake = new Bake("rfletcher", "orca", Label.release, OperatingSystem.ubuntu)
+    final bakePath = "/api/v1/$region/bake"
+    final statusPath = "/api/v1/$region/status"
     final bakeId = "b-123456789"
     final statusId = "s-123456789"
 
@@ -50,7 +54,7 @@ class BakeryServiceSpec extends Specification {
         }
 
         expect:
-        with(bakery.lookupStatus("us-west-1", statusId).toBlockingObservable().first()) {
+        with(bakery.lookupStatus(region, statusId).toBlockingObservable().first()) {
             id == statusId
             state == BakeStatus.State.COMPLETED
         }
@@ -61,7 +65,7 @@ class BakeryServiceSpec extends Specification {
         httpServer.expect("GET", "$statusPath/$statusId", HTTP_NOT_FOUND)
 
         when:
-        bakery.lookupStatus("us-west-1", statusId).toBlockingObservable().first()
+        bakery.lookupStatus(region, statusId).toBlockingObservable().first()
 
         then:
         def ex = thrown(RetrofitError)
@@ -83,7 +87,7 @@ class BakeryServiceSpec extends Specification {
         }
 
         expect: "createBake should return the status of the bake"
-        with(bakery.createBake("us-west-1").toBlockingObservable().first()) {
+        with(bakery.createBake(region, bake).toBlockingObservable().first()) {
             id == statusId
             state == BakeStatus.State.PENDING
         }
@@ -105,7 +109,7 @@ class BakeryServiceSpec extends Specification {
         }
 
         expect: "createBake should return the status of the bake"
-        with(bakery.createBake("us-west-1").toBlockingObservable().first()) {
+        with(bakery.createBake(region, bake).toBlockingObservable().first()) {
             id == statusId
             state == BakeStatus.State.RUNNING
         }

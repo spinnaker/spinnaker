@@ -2,10 +2,8 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.StepContribution
-import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
@@ -15,6 +13,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import static java.util.UUID.randomUUID
+import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class MonitorBakeTaskSpec extends Specification {
 
@@ -23,8 +22,7 @@ class MonitorBakeTaskSpec extends Specification {
 
     final region = "us-west-1"
     def jobParameters = new JobParametersBuilder().addString("region", region).toJobParameters()
-    def jobExecution = new JobExecution(1, jobParameters)
-    def stepExecution = new StepExecution("bakeStep", jobExecution)
+    def stepExecution = createStepExecution(jobParameters)
     def stepContext = new StepContext(stepExecution)
     def stepContribution = new StepContribution(stepExecution)
     def chunkContext = new ChunkContext(stepContext)
@@ -33,7 +31,7 @@ class MonitorBakeTaskSpec extends Specification {
     def "should return #repeatStatus if bake is #bakeState"() {
         given:
         def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-        jobExecution.executionContext.put("bake.status", previousStatus)
+        stepExecution.jobExecution.executionContext.put("bake.status", previousStatus)
 
         and:
         task.bakery = Stub(BakeryService) {
@@ -57,7 +55,7 @@ class MonitorBakeTaskSpec extends Specification {
     def "should store the updated status in the job context"() {
         given:
         def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-        jobExecution.executionContext.put("bake.status", previousStatus)
+        stepExecution.jobExecution.executionContext.put("bake.status", previousStatus)
 
         and:
         task.bakery = Stub(BakeryService) {

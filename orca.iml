@@ -52,6 +52,9 @@
     <orderEntry type="library" scope="TEST" name="Gradle: commons-collections-3.2.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.0-indy" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: bonecp-spring-0.8.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: bonecp-0.8.0.RELEASE" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: h2-1.4.178" level="project" />
   </component>
 </module>
 

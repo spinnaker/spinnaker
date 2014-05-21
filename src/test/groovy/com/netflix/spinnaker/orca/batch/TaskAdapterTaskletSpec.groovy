@@ -3,16 +3,15 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.StepContribution
-import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskAdapterTaskletSpec extends Specification {
 
@@ -21,10 +20,7 @@ class TaskAdapterTaskletSpec extends Specification {
     @Subject
     def tasklet = new TaskAdapterTasklet(step)
 
-    // I can't believe I have to set all this crap up
-    def jobParameters = new JobParametersBuilder().toJobParameters()
-    def jobExecution = new JobExecution(1, jobParameters)
-    def stepExecution = new StepExecution("bakeStep", jobExecution)
+    def stepExecution = createStepExecution()
     def stepContext = new StepContext(stepExecution)
     def stepContribution = new StepContribution(stepExecution)
     def chunkContext = new ChunkContext(stepContext)
@@ -40,7 +36,7 @@ class TaskAdapterTaskletSpec extends Specification {
     @Unroll("should convert a result of #taskResult to repeat status #repeatStatus and exitStatus #exitStatus")
     def "should convert step return status to equivalent batch status"() {
         given:
-        step.execute() >> taskResult
+        step.execute(*_) >> taskResult
 
         expect:
         tasklet.execute(stepContribution, chunkContext) == repeatStatus

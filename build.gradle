@@ -31,4 +31,7 @@ dependencies {
     testCompile "org.spockframework:spock-spring:$SPOCK_VERSION"
     testCompile "org.springframework.batch:spring-batch-test:$BATCH_VERSION"
     testCompile "org.springframework:spring-test:$SPRING_VERSION"
+    testCompile "com.jolbox:bonecp-spring:0.8.0.RELEASE"
+
+    testRuntime "com.h2database:h2:1.4.178"
 }

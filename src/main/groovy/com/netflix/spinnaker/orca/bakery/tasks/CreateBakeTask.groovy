@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.netflix.spinnaker.orca.bakery.api.BakeStatus
+import com.netflix.spinnaker.orca.bakery.api.Bake
+import com.netflix.spinnaker.orca.bakery.api.Bake.Label
+import com.netflix.spinnaker.orca.bakery.api.Bake.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.StepContribution
@@ -19,11 +21,23 @@ class CreateBakeTask implements Tasklet {
 
     @Override
     RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        bakery.createBake(chunkContext.stepContext.jobParameters.region as String).subscribe { BakeStatus bakeStatus ->
-            chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
-                put("bake.status", bakeStatus)
-            }
+        def region = chunkContext.stepContext.jobParameters.region as String
+        def bake = bakeFromContext(chunkContext)
+
+        def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
+        chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
+            put("bake.status", bakeStatus)
         }
         return FINISHED
+    }
+
+    private Bake bakeFromContext(ChunkContext chunkContext) {
+        def jobContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
+        // TODO: use a Groovy 2.3 @Builder
+        new Bake(jobContext.getString("bake.user"),
+            jobContext.getString("bake.package"),
+            Label.valueOf(jobContext.getString("bake.baseLabel")),
+            OperatingSystem.valueOf(jobContext.getString("bake.baseOs"))
+        )
     }
 }
