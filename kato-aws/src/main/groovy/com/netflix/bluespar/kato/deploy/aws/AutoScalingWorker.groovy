@@ -223,31 +223,6 @@ class AutoScalingWorker {
   }
 
   /**
-   * Utility method for looking up security groups for a launch configuration that we are not managing with this
-   * deployment. This may be used to transport an ancestor ASG's security groups to the ASG we're creating with this
-   * deployment.
-   *
-   * @param launchConfigName
-   * @return
-   */
-  List<String> getSecurityGroupsForLaunchConfiguration(String launchConfigName) {
-    def request = new DescribeLaunchConfigurationsRequest().withLaunchConfigurationNames(launchConfigName)
-    def result = autoScaling.describeLaunchConfigurations(request)
-    def securityGroups = []
-    while (true) {
-      result.launchConfigurations.each {
-        securityGroups.addAll it.securityGroups
-      }
-      if (result.nextToken) {
-        result = autoScaling.describeLaunchConfigurations(request.withNextToken(result.nextToken))
-      } else {
-        break
-      }
-    }
-    securityGroups
-  }
-
-  /**
    * Find a security group that matches the name of this deployable.
    *
    * @return
@@ -332,7 +307,7 @@ class AutoScalingWorker {
    * @return the name of the cluster to be deployed to
    */
   String getClusterName() {
-    "${application}-${stack?.replaceAll("$application-", "")}"
+    "${application}${stack ? '-'+stack?.replaceAll("$application-", "") : ''}"
   }
 
   /**
