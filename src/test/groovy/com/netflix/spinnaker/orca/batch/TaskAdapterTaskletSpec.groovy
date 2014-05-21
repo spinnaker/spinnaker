@@ -34,7 +34,7 @@ class TaskAdapterTaskletSpec extends Specification {
         tasklet.execute(stepContribution, chunkContext)
 
         then:
-        1 * step.execute(*_)
+        1 * step.execute(*_) >> TaskResult.SUCCEEDED
     }
 
     @Unroll("should convert a result of #taskResult to repeat status #repeatStatus and exitStatus #exitStatus")
