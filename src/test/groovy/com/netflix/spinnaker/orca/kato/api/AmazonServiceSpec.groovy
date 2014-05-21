@@ -1,12 +1,13 @@
 package com.netflix.spinnaker.orca.kato.api
 
+import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.test.HttpServerRule
 import org.junit.Rule
-import retrofit.RestAdapter
 import spock.lang.Specification
 import spock.lang.Subject
 
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
+import static retrofit.Endpoints.newFixedEndpoint
 import static retrofit.RestAdapter.LogLevel.FULL
 
 class AmazonServiceSpec extends Specification {
@@ -18,11 +19,7 @@ class AmazonServiceSpec extends Specification {
     final taskId = "e1jbn3"
 
     def setup() {
-        amazonService = new RestAdapter.Builder()
-            .setEndpoint(httpServer.baseURI)
-            .setLogLevel(FULL)
-            .build()
-            .create(AmazonService)
+        amazonService = new KatoConfiguration().amazonService(newFixedEndpoint(httpServer.baseURI), FULL)
     }
 
     def "can interpret the response from an operation request"() {

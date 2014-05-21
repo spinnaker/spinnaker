@@ -1,14 +1,15 @@
 package com.netflix.spinnaker.orca.bakery.api
 
+import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.test.HttpServerRule
 import org.junit.Rule
-import retrofit.RestAdapter
 import retrofit.RetrofitError
 import spock.lang.Specification
 import spock.lang.Subject
 
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
+import static retrofit.Endpoints.newFixedEndpoint
 import static retrofit.RestAdapter.LogLevel.FULL
 
 class BakeryServiceSpec extends Specification {
@@ -29,11 +30,7 @@ class BakeryServiceSpec extends Specification {
         bakeURI = "$httpServer.baseURI$bakePath"
         statusURI = "$httpServer.baseURI$statusPath"
 
-        bakery = new RestAdapter.Builder()
-            .setEndpoint(httpServer.baseURI)
-            .setLogLevel(FULL)
-            .build()
-            .create(BakeryService)
+        bakery = new BakeryConfiguration().bakery(newFixedEndpoint(httpServer.baseURI), FULL)
     }
 
     def "can lookup a bake status"() {
