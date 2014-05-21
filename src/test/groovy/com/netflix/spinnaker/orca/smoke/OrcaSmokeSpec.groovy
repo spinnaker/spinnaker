@@ -21,14 +21,9 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-@IgnoreIf({
-    try {
-        InetAddress.getByName("bakery.test.netflix.net")
-        return false
-    } catch (UnknownHostException ex) {
-        return true
-    }
-})
+import static com.netflix.spinnaker.orca.test.Network.isReachable
+
+@IgnoreIf({ !isReachable("http://bakery.test.netflix.net:7001") })
 @ContextConfiguration(classes = [BakeryConfiguration, SmokeSpecConfiguration])
 class OrcaSmokeSpec extends Specification {
 
