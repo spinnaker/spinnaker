@@ -16,7 +16,11 @@
 
 buildscript {
   repositories {
-    jcenter()
+    if( project.hasProperty('internalArtifactory') ){
+      maven { url project.internalArtifactory }
+    } else {
+      jcenter()
+    }
     maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
   }
   dependencies {
@@ -25,6 +29,15 @@ buildscript {
 }
 
 subprojects {
+  
+  repositories {
+    if( parent.hasProperty('internalArtifactory') ){
+      maven { url parent.internalArtifactory }
+    } else {
+      jcenter()
+    }
+  }
+
   group = 'com.netflix.spinnaker.kork'
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
@@ -42,7 +55,7 @@ subprojects {
         force 'com.netflix.archaius:archaius-core:0.6.0'
       }
     }
-  }
+  } 
 }
 
 project(':kork-core') {
