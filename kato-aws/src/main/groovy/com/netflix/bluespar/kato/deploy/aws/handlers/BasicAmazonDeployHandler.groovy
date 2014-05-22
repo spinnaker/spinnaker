@@ -97,7 +97,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       deploymentResult.serverGroupNames << "${region}:${asgName}"
     }
-
+    task.resultObjects << deploymentResult
     deploymentResult
   }
 }

@@ -43,6 +43,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     mockAmazonClientProvider.getAmazonEC2(_, _) >> Mock(AmazonEC2)
     this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider)
     this.task = Mock(Task)
+    this.task.getResultObjects() >> []
     TaskRepository.threadLocalTask.set(task)
   }
 

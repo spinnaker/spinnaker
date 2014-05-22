@@ -29,6 +29,11 @@ public interface Task {
   String getId()
 
   /**
+   * A list of result objects that are serialized back to the caller
+   */
+  List<Object> getResultObjects()
+
+  /**
    * A comprehensive history of this task's execution.
    */
   List<Status> getHistory()

@@ -27,6 +27,7 @@ public class DefaultTask implements Task {
 
   final String id
   final List<Status> history = []
+  final List<Object> resultObjects = []
   final long startTimeMs = new Date().time
 
   private String phase
