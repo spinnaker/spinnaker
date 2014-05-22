@@ -55,4 +55,19 @@ class ChunkContextAdapterSpec extends Specification {
         value = "bar"
     }
 
+    def "values are put to the step execution context only"() {
+        when:
+        context[key] = value
+
+        then:
+        stepExecutionContext.get(key) == value
+
+        and:
+        !jobExecutionContext.containsKey(key)
+
+        where:
+        key = "foo"
+        value = "bar"
+    }
+
 }

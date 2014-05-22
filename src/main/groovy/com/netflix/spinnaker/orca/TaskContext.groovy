@@ -4,4 +4,6 @@ interface TaskContext {
 
     def <T> T getAt(String key)
 
+    void putAt(String key, value)
+
 }
