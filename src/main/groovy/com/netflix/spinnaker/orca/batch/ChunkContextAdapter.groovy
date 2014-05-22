@@ -26,9 +26,4 @@ class ChunkContextAdapter implements TaskContext {
             jobExecutionContext.get(key)
         }
     }
-
-    @Override
-    void putAt(String key, value) {
-        stepExecutionContext.put(key, value)
-    }
 }
