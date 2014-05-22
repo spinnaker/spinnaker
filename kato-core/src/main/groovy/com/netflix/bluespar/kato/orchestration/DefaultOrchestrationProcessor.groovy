@@ -49,12 +49,12 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.updateStatus TASK_PHASE, "operation failed: ${atomicOperation.class.simpleName} -- ${e.message}"
           }
         }
+        task.resultObjects.addAll(results)
         task.updateStatus(TASK_PHASE, "Orchestration is complete.")
         task.complete()
       } catch (TimeoutException IGNORE) {
         task.updateStatus "INIT", "Orchestration timed out."
         task.fail()
-        log.error "Timeout."
       }
     }
     task
