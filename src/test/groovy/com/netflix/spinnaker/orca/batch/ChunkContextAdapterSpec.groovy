@@ -5,6 +5,7 @@ import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.test.MetaDataInstanceFactory
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class ChunkContextAdapterSpec extends Specification {
 
@@ -18,41 +19,44 @@ class ChunkContextAdapterSpec extends Specification {
     @Subject
     def context = new ChunkContextAdapter(chunkContext)
 
-    def "gets values from the step execution context"() {
+    @Unroll
+    def "traverses the heirarchy of contexts to retrieve values"() {
         given:
-        stepExecutionContext.put(key, value)
+        if (stepValue) stepExecutionContext.put(key, stepValue)
+        if (jobValue) jobExecutionContext.put(key, jobValue)
 
         expect:
-        context[key] == value
+        context[key] == expected
 
         where:
+        stepValue | jobValue || expected
+        "step"    | null     || "step"
+        null      | "job"    || "job"
+        null      | null     || null
+        "step"    | "job"    || "step"
+
+        and:
         key = "foo"
-        value = "bar"
     }
 
-    def "gets values from the job execution context if not found in the step execution context"() {
+    @Unroll
+    def "traverses the heirarchy of contexts to determine if key is present"() {
         given:
-        jobExecutionContext.put(key, value)
+        if (stepValue) stepExecutionContext.put(key, stepValue)
+        if (jobValue) jobExecutionContext.put(key, jobValue)
 
         expect:
-        context[key] == value
+        context.containsKey(key) == expected
 
         where:
+        stepValue | jobValue || expected
+        "step"    | null     || true
+        null      | "job"    || true
+        null      | null     || false
+        "step"    | "job"    || true
+
+        and:
         key = "foo"
-        value = "bar"
-    }
-
-    def "prefers values from the step execution context if found in both"() {
-        given:
-        stepExecutionContext.put(key, "STEP_$value")
-        jobExecutionContext.put(key, "JOB_$value")
-
-        expect:
-        context[key] == "STEP_$value"
-
-        where:
-        key = "foo"
-        value = "bar"
     }
 
 }

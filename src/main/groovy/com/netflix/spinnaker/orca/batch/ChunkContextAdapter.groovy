@@ -26,4 +26,9 @@ class ChunkContextAdapter implements TaskContext {
             jobExecutionContext.get(key)
         }
     }
+
+    @Override
+    boolean containsKey(String key) {
+        stepExecutionContext.containsKey(key) || jobExecutionContext.containsKey(key)
+    }
 }
