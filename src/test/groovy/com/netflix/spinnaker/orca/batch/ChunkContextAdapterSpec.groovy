@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.batch
 
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.test.MetaDataInstanceFactory
@@ -19,12 +18,41 @@ class ChunkContextAdapterSpec extends Specification {
     @Subject
     def context = new ChunkContextAdapter(chunkContext)
 
-    def "gets values from the step context"() {
+    def "gets values from the step execution context"() {
         given:
-        stepExecutionContext.put("foo", "bar")
+        stepExecutionContext.put(key, value)
 
         expect:
-        context["foo"] == "bar"
+        context[key] == value
+
+        where:
+        key = "foo"
+        value = "bar"
+    }
+
+    def "gets values from the job execution context if not found in the step execution context"() {
+        given:
+        jobExecutionContext.put(key, value)
+
+        expect:
+        context[key] == value
+
+        where:
+        key = "foo"
+        value = "bar"
+    }
+
+    def "prefers values from the step execution context if found in both"() {
+        given:
+        stepExecutionContext.put(key, "STEP_$value")
+        jobExecutionContext.put(key, "JOB_$value")
+
+        expect:
+        context[key] == "STEP_$value"
+
+        where:
+        key = "foo"
+        value = "bar"
     }
 
 }
