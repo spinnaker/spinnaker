@@ -1,9 +1,16 @@
 package com.netflix.spinnaker.orca
 
-public enum TaskResult {
+import groovy.transform.CompileStatic
 
-    RUNNING,
-    SUCCEEDED,
-    FAILED
+@CompileStatic
+class TaskResult {
+
+    Status status
+
+    static enum Status {
+        RUNNING,
+        SUCCEEDED,
+        FAILED
+    }
 
 }

@@ -30,13 +30,13 @@ class TaskAdapterTaskletSpec extends Specification {
         tasklet.execute(stepContribution, chunkContext)
 
         then:
-        1 * step.execute(*_) >> TaskResult.SUCCEEDED
+        1 * step.execute(*_) >> new TaskResult(status: TaskResult.Status.SUCCEEDED)
     }
 
-    @Unroll("should convert a result of #taskResult to repeat status #repeatStatus and exitStatus #exitStatus")
+    @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
     def "should convert step return status to equivalent batch status"() {
         given:
-        step.execute(*_) >> taskResult
+        step.execute(*_) >> new TaskResult(status: taskResultStatus)
 
         expect:
         tasklet.execute(stepContribution, chunkContext) == repeatStatus
@@ -45,10 +45,10 @@ class TaskAdapterTaskletSpec extends Specification {
         stepContribution.exitStatus == exitStatus
 
         where:
-        taskResult           | repeatStatus             | exitStatus
-        TaskResult.SUCCEEDED | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-        TaskResult.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
-        TaskResult.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+        taskResultStatus            | repeatStatus             | exitStatus
+        TaskResult.Status.SUCCEEDED | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
+        TaskResult.Status.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
+        TaskResult.Status.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
     }
 
 }
