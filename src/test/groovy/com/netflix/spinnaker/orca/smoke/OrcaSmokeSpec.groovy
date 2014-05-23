@@ -4,6 +4,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
+import com.netflix.spinnaker.orca.batch.TaskAdapterTasklet
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
@@ -72,7 +73,7 @@ class SmokeSpecConfiguration {
         })
             .build()
         def step2 = steps.get("CreateBakeStep")
-            .tasklet(new CreateBakeTask(bakery: bakery))
+            .tasklet(TaskAdapterTasklet.decorate(new CreateBakeTask(bakery: bakery)))
             .build()
         def step3 = steps.get("MonitorBakeStep")
             .tasklet(new MonitorBakeTask(bakery: bakery))
