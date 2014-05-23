@@ -1,40 +1,38 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskContext
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.StepContribution
-import org.springframework.batch.core.scope.context.ChunkContext
-import org.springframework.batch.core.step.tasklet.Tasklet
-import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 
-import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.CANCELLED
-import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
-import static org.springframework.batch.repeat.RepeatStatus.CONTINUABLE
-import static org.springframework.batch.repeat.RepeatStatus.FINISHED
-
 @CompileStatic
-class MonitorBakeTask implements Tasklet {
+class MonitorBakeTask implements Task {
 
     @Autowired
     BakeryService bakery
 
     @Override
-    RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        def region = chunkContext.stepContext.jobParameters.region as String
-        def previousStatus = chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
-            get("bake.status") as BakeStatus
-        }
+    TaskResult execute(TaskContext context) {
+        def region = context["region"] as String
+        def previousStatus = context["bake.status"] as BakeStatus
 
-        if (previousStatus) {
-            def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
-            chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
-                put("bake.status", newStatus)
-            }
-            return newStatus.state in [COMPLETED, CANCELLED] ? FINISHED : CONTINUABLE
-        } else {
-            return CONTINUABLE
+        def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
+
+        def taskResult = new TaskResult()
+        taskResult.outputs["bake.status"] = newStatus
+        switch (newStatus.state) {
+            case BakeStatus.State.COMPLETED:
+                taskResult.status = TaskResult.Status.SUCCEEDED
+                break
+            case BakeStatus.State.CANCELLED:
+                taskResult.status = TaskResult.Status.FAILED
+                break
+            default:
+                taskResult.status = TaskResult.Status.RUNNING
         }
+        return taskResult
     }
 }

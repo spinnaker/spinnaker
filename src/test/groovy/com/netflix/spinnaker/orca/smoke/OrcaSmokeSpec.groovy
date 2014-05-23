@@ -76,7 +76,7 @@ class SmokeSpecConfiguration {
             .tasklet(TaskAdapterTasklet.decorate(new CreateBakeTask(bakery: bakery)))
             .build()
         def step3 = steps.get("MonitorBakeStep")
-            .tasklet(new MonitorBakeTask(bakery: bakery))
+            .tasklet(TaskAdapterTasklet.decorate(new MonitorBakeTask(bakery: bakery)))
             .build()
         jobs.get("BakeJob")
             .start(step1)
