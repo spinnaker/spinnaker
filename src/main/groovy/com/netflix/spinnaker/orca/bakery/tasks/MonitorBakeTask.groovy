@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
@@ -21,7 +22,7 @@ class MonitorBakeTask implements Task {
 
         def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
 
-        new TaskResult(mapStatus(newStatus), ["bake.status": newStatus])
+        new DefaultTaskResult(mapStatus(newStatus), ["bake.status": newStatus])
     }
 
     private TaskResult.Status mapStatus(BakeStatus newStatus) {

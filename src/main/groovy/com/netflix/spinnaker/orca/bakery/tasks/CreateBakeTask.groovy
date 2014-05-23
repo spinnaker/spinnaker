@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
@@ -23,7 +24,7 @@ class CreateBakeTask implements Task {
 
         def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
 
-        new TaskResult(TaskResult.Status.SUCCEEDED, ["bake.status": bakeStatus])
+        new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.status": bakeStatus])
     }
 
     private Bake bakeFromContext(TaskContext context) {

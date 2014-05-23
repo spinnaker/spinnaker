@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
@@ -32,7 +33,7 @@ class TaskTaskletAdapterSpec extends Specification {
         tasklet.execute(stepContribution, chunkContext)
 
         then:
-        1 * step.execute(*_) >> new TaskResult(SUCCEEDED)
+        1 * step.execute(*_) >> new DefaultTaskResult(SUCCEEDED)
     }
 
     def "should wrap job and step context in task context passed to execute method"() {
@@ -45,7 +46,7 @@ class TaskTaskletAdapterSpec extends Specification {
         then:
         1 * step.execute(*_) >> { TaskContext context ->
             assert context.inputs[key] == value
-            new TaskResult(SUCCEEDED)
+            new DefaultTaskResult(SUCCEEDED)
         }
 
         where:
@@ -56,7 +57,7 @@ class TaskTaskletAdapterSpec extends Specification {
     @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
     def "should convert step return status to equivalent batch status"() {
         given:
-        step.execute(*_) >> new TaskResult(taskResultStatus)
+        step.execute(*_) >> new DefaultTaskResult(taskResultStatus)
 
         expect:
         tasklet.execute(stepContribution, chunkContext) == repeatStatus
@@ -74,7 +75,7 @@ class TaskTaskletAdapterSpec extends Specification {
     @Unroll
     def "should write any task outputs to the step context if the task status is #taskStatus"() {
         given:
-        step.execute(*_) >> new TaskResult(taskStatus, outputs)
+        step.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
 
         when:
         tasklet.execute(stepContribution, chunkContext)
@@ -91,7 +92,7 @@ class TaskTaskletAdapterSpec extends Specification {
     @Unroll
     def "should write any task outputs to the job context if the task status is #taskStatus"() {
         given:
-        step.execute(*_) >> new TaskResult(taskStatus, outputs)
+        step.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
 
         when:
         tasklet.execute(stepContribution, chunkContext)
