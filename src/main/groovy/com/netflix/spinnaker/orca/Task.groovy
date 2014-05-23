@@ -2,6 +2,6 @@ package com.netflix.spinnaker.orca
 
 interface Task {
 
-    TaskResult execute()
+    TaskResult execute(TaskContext context)
 
 }

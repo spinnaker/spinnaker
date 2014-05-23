@@ -21,7 +21,7 @@ class TaskAdapterTasklet implements Tasklet {
         def jobExecutionContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
         def stepExecutionContext = chunkContext.stepContext.stepExecution.executionContext
 
-        def result = step.execute()
+        def result = step.execute(new ChunkContextAdapter(chunkContext))
 
         def executionContext = result.status.complete ? jobExecutionContext : stepExecutionContext
         result.outputs.each { k, v ->

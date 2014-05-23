@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
@@ -11,6 +12,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskAdapterTaskletSpec extends Specification {
@@ -30,7 +32,25 @@ class TaskAdapterTaskletSpec extends Specification {
         tasklet.execute(stepContribution, chunkContext)
 
         then:
-        1 * step.execute(*_) >> new TaskResult(status: TaskResult.Status.SUCCEEDED)
+        1 * step.execute(*_) >> new TaskResult(status: SUCCEEDED)
+    }
+
+    def "should wrap job and step context in task context passed to execute method"() {
+        given:
+        stepExecution.executionContext.put(key, value)
+
+        when:
+        tasklet.execute(stepContribution, chunkContext)
+
+        then:
+        1 * step.execute(*_) >> { TaskContext context ->
+            assert context[key] == value
+            new TaskResult(status: SUCCEEDED)
+        }
+
+        where:
+        key = "foo"
+        value = "bar"
     }
 
     @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
@@ -45,10 +65,10 @@ class TaskAdapterTaskletSpec extends Specification {
         stepContribution.exitStatus == exitStatus
 
         where:
-        taskResultStatus            | repeatStatus             | exitStatus
-        TaskResult.Status.SUCCEEDED | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-        TaskResult.Status.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
-        TaskResult.Status.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+        taskResultStatus          | repeatStatus             | exitStatus
+        SUCCEEDED                 | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
+        TaskResult.Status.FAILED  | RepeatStatus.FINISHED    | ExitStatus.FAILED
+        TaskResult.Status.RUNNING | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
     }
 
     @Unroll
@@ -85,7 +105,7 @@ class TaskAdapterTaskletSpec extends Specification {
         stepContext.jobExecutionContext == outputs
 
         where:
-        taskStatus << [TaskResult.Status.FAILED, TaskResult.Status.SUCCEEDED]
+        taskStatus << [TaskResult.Status.FAILED, SUCCEEDED]
         outputs = [foo: "bar", baz: "qux"]
     }
 
