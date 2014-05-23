@@ -20,6 +20,11 @@ class TaskAdapterTasklet implements Tasklet {
     RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         def result = step.execute()
 
+        def executionContext = result.status.complete ? chunkContext.stepContext.stepExecution.jobExecution.executionContext : chunkContext.stepContext.stepExecution.executionContext
+        result.outputs.each { k, v ->
+            executionContext.put(k, v)
+        }
+
         def batchStepStatus = BatchStepStatus.forTaskResult(result)
         contribution.exitStatus = batchStepStatus.exitStatus
         return batchStepStatus.repeatStatus

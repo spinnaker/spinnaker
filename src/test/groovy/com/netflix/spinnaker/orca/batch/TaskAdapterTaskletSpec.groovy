@@ -51,4 +51,42 @@ class TaskAdapterTaskletSpec extends Specification {
         TaskResult.Status.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
     }
 
+    @Unroll
+    def "should write any task outputs to the step context if the task status is #taskStatus"() {
+        given:
+        def taskResult = new TaskResult(status: taskStatus)
+        taskResult.outputs.putAll(outputs)
+        step.execute(*_) >> taskResult
+
+        when:
+        tasklet.execute(stepContribution, chunkContext)
+
+        then:
+        stepContext.stepExecutionContext == outputs
+        stepContext.jobExecutionContext.isEmpty()
+
+        where:
+        taskStatus << [TaskResult.Status.RUNNING]
+        outputs = [foo: "bar", baz: "qux"]
+    }
+
+    @Unroll
+    def "should write any task outputs to the job context if the task status is #taskStatus"() {
+        given:
+        def taskResult = new TaskResult(status: taskStatus)
+        taskResult.outputs.putAll(outputs)
+        step.execute(*_) >> taskResult
+
+        when:
+        tasklet.execute(stepContribution, chunkContext)
+
+        then:
+        stepContext.stepExecutionContext.isEmpty()
+        stepContext.jobExecutionContext == outputs
+
+        where:
+        taskStatus << [TaskResult.Status.FAILED, TaskResult.Status.SUCCEEDED]
+        outputs = [foo: "bar", baz: "qux"]
+    }
+
 }
