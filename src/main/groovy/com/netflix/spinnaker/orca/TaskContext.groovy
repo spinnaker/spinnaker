@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.orca
 
+import com.google.common.collect.ImmutableMap
+
 interface TaskContext {
 
-    Map<String, Object> getInputs()
+    ImmutableMap<String, Object> getInputs()
 
 }

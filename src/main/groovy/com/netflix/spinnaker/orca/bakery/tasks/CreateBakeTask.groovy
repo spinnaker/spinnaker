@@ -23,10 +23,7 @@ class CreateBakeTask implements Task {
 
         def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
 
-        def taskResult = new TaskResult()
-        taskResult.outputs."bake.status" = bakeStatus
-        taskResult.status = TaskResult.Status.SUCCEEDED
-        return taskResult
+        new TaskResult(TaskResult.Status.SUCCEEDED, ["bake.status": bakeStatus])
     }
 
     private Bake bakeFromContext(TaskContext context) {

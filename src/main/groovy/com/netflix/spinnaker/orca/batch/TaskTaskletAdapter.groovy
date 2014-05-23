@@ -8,16 +8,16 @@ import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 
 @CompileStatic
-class TaskAdapterTasklet implements Tasklet {
+class TaskTaskletAdapter implements Tasklet {
 
     private final Task task
 
-    TaskAdapterTasklet(Task task) {
+    TaskTaskletAdapter(Task task) {
         this.task = task
     }
 
     static Tasklet decorate(Task task) {
-        new TaskAdapterTasklet(task)
+        new TaskTaskletAdapter(task)
     }
 
     @Override
@@ -32,7 +32,7 @@ class TaskAdapterTasklet implements Tasklet {
             executionContext.put(k, v)
         }
 
-        def batchStepStatus = BatchStepStatus.forTaskResult(result)
+        def batchStepStatus = BatchStepStatus.mapResult(result)
         contribution.exitStatus = batchStepStatus.exitStatus
         return batchStepStatus.repeatStatus
     }

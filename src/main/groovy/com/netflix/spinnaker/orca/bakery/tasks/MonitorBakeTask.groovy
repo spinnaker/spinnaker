@@ -21,18 +21,17 @@ class MonitorBakeTask implements Task {
 
         def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
 
-        def taskResult = new TaskResult()
-        taskResult.outputs."bake.status" = newStatus
+        new TaskResult(mapStatus(newStatus), ["bake.status": newStatus])
+    }
+
+    private TaskResult.Status mapStatus(BakeStatus newStatus) {
         switch (newStatus.state) {
             case BakeStatus.State.COMPLETED:
-                taskResult.status = TaskResult.Status.SUCCEEDED
-                break
+                return TaskResult.Status.SUCCEEDED
             case BakeStatus.State.CANCELLED:
-                taskResult.status = TaskResult.Status.FAILED
-                break
+                return TaskResult.Status.FAILED
             default:
-                taskResult.status = TaskResult.Status.RUNNING
+                return TaskResult.Status.RUNNING
         }
-        return taskResult
     }
 }

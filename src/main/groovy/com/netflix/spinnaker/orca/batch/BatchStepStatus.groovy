@@ -13,7 +13,7 @@ class BatchStepStatus {
     RepeatStatus repeatStatus
     ExitStatus exitStatus
 
-    static BatchStepStatus forTaskResult(TaskResult result) {
+    static BatchStepStatus mapResult(TaskResult result) {
         switch (result.status) {
             case TaskResult.Status.SUCCEEDED:
                 return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.COMPLETED)

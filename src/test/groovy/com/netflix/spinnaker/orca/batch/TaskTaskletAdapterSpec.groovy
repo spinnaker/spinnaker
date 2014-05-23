@@ -15,12 +15,12 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
-class TaskAdapterTaskletSpec extends Specification {
+class TaskTaskletAdapterSpec extends Specification {
 
     def step = Mock(Task)
 
     @Subject
-    def tasklet = new TaskAdapterTasklet(step)
+    def tasklet = new TaskTaskletAdapter(step)
 
     def stepExecution = createStepExecution()
     def stepContext = new StepContext(stepExecution)
@@ -32,7 +32,7 @@ class TaskAdapterTaskletSpec extends Specification {
         tasklet.execute(stepContribution, chunkContext)
 
         then:
-        1 * step.execute(*_) >> new TaskResult(status: SUCCEEDED)
+        1 * step.execute(*_) >> new TaskResult(SUCCEEDED)
     }
 
     def "should wrap job and step context in task context passed to execute method"() {
@@ -45,7 +45,7 @@ class TaskAdapterTaskletSpec extends Specification {
         then:
         1 * step.execute(*_) >> { TaskContext context ->
             assert context.inputs[key] == value
-            new TaskResult(status: SUCCEEDED)
+            new TaskResult(SUCCEEDED)
         }
 
         where:
@@ -56,7 +56,7 @@ class TaskAdapterTaskletSpec extends Specification {
     @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
     def "should convert step return status to equivalent batch status"() {
         given:
-        step.execute(*_) >> new TaskResult(status: taskResultStatus)
+        step.execute(*_) >> new TaskResult(taskResultStatus)
 
         expect:
         tasklet.execute(stepContribution, chunkContext) == repeatStatus
@@ -74,9 +74,7 @@ class TaskAdapterTaskletSpec extends Specification {
     @Unroll
     def "should write any task outputs to the step context if the task status is #taskStatus"() {
         given:
-        def taskResult = new TaskResult(status: taskStatus)
-        taskResult.outputs.putAll(outputs)
-        step.execute(*_) >> taskResult
+        step.execute(*_) >> new TaskResult(taskStatus, outputs)
 
         when:
         tasklet.execute(stepContribution, chunkContext)
@@ -93,9 +91,7 @@ class TaskAdapterTaskletSpec extends Specification {
     @Unroll
     def "should write any task outputs to the job context if the task status is #taskStatus"() {
         given:
-        def taskResult = new TaskResult(status: taskStatus)
-        taskResult.outputs.putAll(outputs)
-        step.execute(*_) >> taskResult
+        step.execute(*_) >> new TaskResult(taskStatus, outputs)
 
         when:
         tasklet.execute(stepContribution, chunkContext)

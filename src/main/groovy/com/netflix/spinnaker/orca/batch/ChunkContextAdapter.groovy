@@ -8,7 +8,7 @@ import org.springframework.batch.core.scope.context.ChunkContext
 @CompileStatic
 class ChunkContextAdapter implements TaskContext {
 
-    final Map<String, Object> inputs
+    final ImmutableMap<String, Object> inputs
 
     ChunkContextAdapter(ChunkContext chunkContext) {
         def entries = [:]
