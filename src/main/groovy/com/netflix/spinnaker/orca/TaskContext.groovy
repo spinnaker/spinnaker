@@ -2,7 +2,6 @@ package com.netflix.spinnaker.orca
 
 interface TaskContext {
 
-    def <T> T getAt(String key)
+    Map<String, Object> getInputs()
 
-    boolean containsKey(String key)
 }

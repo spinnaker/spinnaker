@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
@@ -18,15 +19,16 @@ class MonitorBakeTaskSpec extends Specification {
 
     final region = "us-west-1"
 
-    def context = Stub(TaskContext) {
-        getAt("region") >> region
-    }
+    def inputs = [region: region]
+    def context = [
+        getInputs: ImmutableMap.&copyOf.curry(inputs)
+    ] as TaskContext
 
     @Unroll
     def "should return #taskStatus if bake is #bakeState"() {
         given:
         def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-        context.getAt("bake.status") >> previousStatus
+        inputs."bake.status" = previousStatus
 
         and:
         task.bakery = Stub(BakeryService) {
@@ -50,7 +52,7 @@ class MonitorBakeTaskSpec extends Specification {
     def "outputs the updated bake status"() {
         given:
         def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-        context.getAt("bake.status") >> previousStatus
+        inputs."bake.status" = previousStatus
 
         and:
         task.bakery = Stub(BakeryService) {
@@ -61,7 +63,7 @@ class MonitorBakeTaskSpec extends Specification {
         def result = task.execute(context)
 
         then:
-        with(result.outputs["bake.status"]) {
+        with(result.outputs."bake.status") {
             id == previousStatus.id
             state == BakeStatus.State.COMPLETED
         }

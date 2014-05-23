@@ -18,23 +18,23 @@ class CreateBakeTask implements Task {
 
     @Override
     TaskResult execute(TaskContext context) {
-        def region = context["region"] as String
+        def region = context.inputs.region as String
         def bake = bakeFromContext(context)
 
         def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
 
         def taskResult = new TaskResult()
-        taskResult.outputs["bake.status"] = bakeStatus
+        taskResult.outputs."bake.status" = bakeStatus
         taskResult.status = TaskResult.Status.SUCCEEDED
         return taskResult
     }
 
     private Bake bakeFromContext(TaskContext context) {
         // TODO: use a Groovy 2.3 @Builder
-        new Bake(context["bake.user"] as String,
-            context["bake.package"] as String,
-            Label.valueOf(context["bake.baseLabel"] as String),
-            OperatingSystem.valueOf(context["bake.baseOs"] as String)
+        new Bake(context.inputs."bake.user" as String,
+            context.inputs."bake.package" as String,
+            Label.valueOf(context.inputs."bake.baseLabel" as String),
+            OperatingSystem.valueOf(context.inputs."bake.baseOs" as String)
         )
     }
 }

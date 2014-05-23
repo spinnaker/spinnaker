@@ -44,7 +44,7 @@ class TaskAdapterTaskletSpec extends Specification {
 
         then:
         1 * step.execute(*_) >> { TaskContext context ->
-            assert context[key] == value
+            assert context.inputs[key] == value
             new TaskResult(status: SUCCEEDED)
         }
 

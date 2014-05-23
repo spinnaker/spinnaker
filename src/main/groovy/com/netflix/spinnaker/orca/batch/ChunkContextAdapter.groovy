@@ -1,34 +1,21 @@
 package com.netflix.spinnaker.orca.batch
 
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.TaskContext
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.scope.context.ChunkContext
-import org.springframework.batch.item.ExecutionContext
 
 @CompileStatic
 class ChunkContextAdapter implements TaskContext {
 
-    private final ChunkContext chunkContext
-    private final ExecutionContext stepExecutionContext
-    private final ExecutionContext jobExecutionContext
+    final Map<String, Object> inputs
 
     ChunkContextAdapter(ChunkContext chunkContext) {
-        this.chunkContext = chunkContext
-        stepExecutionContext = chunkContext.stepContext.stepExecution.executionContext
-        jobExecutionContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
-    }
-
-    @Override
-    def <T> T getAt(String key) {
-        if (stepExecutionContext.containsKey(key)) {
-            stepExecutionContext.get(key)
-        } else {
-            jobExecutionContext.get(key)
-        }
-    }
-
-    @Override
-    boolean containsKey(String key) {
-        stepExecutionContext.containsKey(key) || jobExecutionContext.containsKey(key)
+        def entries = [:]
+        entries.putAll(chunkContext.stepContext.jobExecutionContext)
+        entries.putAll(chunkContext.stepContext.stepExecutionContext)
+        inputs = new ImmutableMap.Builder()
+            .putAll(entries)
+            .build()
     }
 }

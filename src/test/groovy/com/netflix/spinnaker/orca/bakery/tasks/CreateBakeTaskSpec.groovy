@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
@@ -22,12 +23,15 @@ class CreateBakeTaskSpec extends Specification {
     final bakeOs = Bake.OperatingSystem.ubuntu
     final bakeLabel = Bake.Label.release
 
+    def inputs = [
+        region            : region,
+        ("bake.package")  : bakePackage,
+        ("bake.user")     : bakeUser,
+        ("bake.baseOs")   : bakeOs.name(),
+        ("bake.baseLabel"): bakeLabel.name()
+    ]
     def context = Stub(TaskContext) {
-        getAt("region") >> region
-        getAt("bake.package") >> bakePackage
-        getAt("bake.user") >> bakeUser
-        getAt("bake.baseOs") >> bakeOs.name()
-        getAt("bake.baseLabel") >> bakeLabel.name()
+        getInputs() >> ImmutableMap.copyOf(inputs)
     }
 
     def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)

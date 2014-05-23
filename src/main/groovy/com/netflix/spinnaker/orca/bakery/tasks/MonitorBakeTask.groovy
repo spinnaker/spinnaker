@@ -16,13 +16,13 @@ class MonitorBakeTask implements Task {
 
     @Override
     TaskResult execute(TaskContext context) {
-        def region = context["region"] as String
-        def previousStatus = context["bake.status"] as BakeStatus
+        def region = context.inputs.region as String
+        def previousStatus = context.inputs."bake.status" as BakeStatus
 
         def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
 
         def taskResult = new TaskResult()
-        taskResult.outputs["bake.status"] = newStatus
+        taskResult.outputs."bake.status" = newStatus
         switch (newStatus.state) {
             case BakeStatus.State.COMPLETED:
                 taskResult.status = TaskResult.Status.SUCCEEDED
