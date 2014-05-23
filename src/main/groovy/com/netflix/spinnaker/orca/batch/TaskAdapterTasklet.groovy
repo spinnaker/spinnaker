@@ -18,9 +18,12 @@ class TaskAdapterTasklet implements Tasklet {
 
     @Override
     RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+        def jobExecutionContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
+        def stepExecutionContext = chunkContext.stepContext.stepExecution.executionContext
+
         def result = step.execute()
 
-        def executionContext = result.status.complete ? chunkContext.stepContext.stepExecution.jobExecution.executionContext : chunkContext.stepContext.stepExecution.executionContext
+        def executionContext = result.status.complete ? jobExecutionContext : stepExecutionContext
         result.outputs.each { k, v ->
             executionContext.put(k, v)
         }
