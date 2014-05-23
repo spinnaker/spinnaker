@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca.test
 
 import com.google.common.base.Optional
-import com.google.common.io.ByteSink
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import groovy.json.JsonBuilder

@@ -8,7 +8,6 @@ import com.netflix.spinnaker.orca.batch.TaskAdapterTasklet
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -32,13 +31,8 @@ class OrcaSmokeSpec extends Specification {
     JobLauncherTestUtils jobLauncherTestUtils
 
     def "can bake and monitor to completion"() {
-        given:
-        def jobParameters = new JobParametersBuilder()
-            .addString("region", "us-west-1")
-            .toJobParameters()
-
         when:
-        def jobStatus = jobLauncherTestUtils.launchJob(jobParameters).status
+        def jobStatus = jobLauncherTestUtils.launchJob().status
 
         then:
         jobStatus == BatchStatus.COMPLETED
@@ -65,6 +59,7 @@ class SmokeSpecConfiguration {
         def step1 = steps.get("ConfigureBake")
             .tasklet({ StepContribution contribution, ChunkContext chunkContext ->
             chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
+                putString("region", "us-west-1")
                 putString("bake.user", "rfletcher")
                 putString("bake.package", "oort")
                 putString("bake.baseOs", "ubuntu")
