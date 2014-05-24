@@ -72,7 +72,9 @@ test {
     systemProperty 'aws.key', project.hasProperty('awsKey') ? project.awsKey : null
     systemProperty 'env', 'local-test'
     testLogging {
-        exceptionFormat = 'full'
+        events 'passed'
+        exceptionFormat 'full'
+
     }
 }
 
