@@ -11,7 +11,7 @@ apply plugin: 'docker'
 
 buildscript {
     project.ext {
-        bootVersion = '1.0.1.RELEASE'
+        bootVersion = '1.0.2.RELEASE'
         ver = '1.2'
         rxJavaVersion = '0.17.5'
         servoVersion = '0.7.2'
@@ -64,6 +64,7 @@ run {
 
 repositories {
     maven { url 'http://artifacts.netflix.com/build-gradle' }
+    maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
 }
 
 test {
@@ -85,7 +86,7 @@ dependencies {
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
     testCompile "org.springframework.boot:spring-boot-starter-test:${bootVersion}"
-    runtime 'com.netflix.asgard.netflixplatform:netflixplatform:1.0-SNAPSHOT'
+    runtime 'com.netflix.spinnaker.netflixplatform:netflixplatform:1.2-SNAPSHOT'
 }
 
 nebula {

@@ -76,7 +76,7 @@ public class Front50Controller extends SpringBootServletInitializer {
     }
 
     @RequestMapping(method = RequestMethod.GET, value="/applications")
-    public Collection<Application> index() {
+    public Collection<Application> applications() {
         try {
             return application.findAll();
         } catch (NotFoundException e) {

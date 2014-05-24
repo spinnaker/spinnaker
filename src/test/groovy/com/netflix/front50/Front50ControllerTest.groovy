@@ -155,4 +155,13 @@ class Front50ControllerTest extends Specification {
         response.andExpect status().isOk()
         response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
     }
+
+//    void 'index should return html page'() {
+//        when:
+//        def response = mockMvc.perform(get("/"))
+//
+//        then:
+//        response.andExpect status().isOk()
+//        response.andExpect content().string("hit")
+//    }
 }
