@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.config
+package com.netflix.bluespar.kato.deploy
 
-import com.netflix.bluespar.kato.deploy.DeployHandler
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.validation.Errors
 
-@Configuration
-class DefaultWebConfig {
-
-  @Bean
-  @ConditionalOnMissingBean(DeployHandler)
-  DeployHandler deployHandler() {
-
-  }
+public abstract class DescriptionValidator<T> {
+  abstract void validate(List priorDescriptions, T description, Errors errors)
 }

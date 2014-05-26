@@ -63,10 +63,15 @@ class KatoAWSConfig {
     }
   }
 
-  @Component
-  @ConfigurationProperties("deploy.defaults")
-  static class DeployDefaultConfigurationProperties {
+  static class DeployDefaults {
     String iamRole = "BaseIAMRole"
     String keyPair = "nf-test-keypair-a"
+  }
+
+  @Component
+  @ConfigurationProperties(value = "aws", locations = "classpath:aws.yml")
+  static class AwsConfigurationProperties {
+    List<String> regions
+    DeployDefaults defaults = new DeployDefaults()
   }
 }

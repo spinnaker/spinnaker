@@ -33,6 +33,7 @@ configurations.all {
 dependencies {
   compile project(":kato-manual")
   compile project(":kato-core")
+  compile project(":kato-aws")
   runtime commonDependencies.kork
   compile commonDependencies.eureka
   compile commonDependencies.springBootActuator

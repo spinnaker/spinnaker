@@ -17,17 +17,30 @@
 package com.netflix.bluespar.kato.controllers
 
 import com.netflix.bluespar.kato.data.task.Task
+import com.netflix.bluespar.kato.deploy.DescriptionValidationErrors
+import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
 import com.netflix.bluespar.kato.orchestration.AtomicOperationConverter
 import com.netflix.bluespar.kato.orchestration.AtomicOperationNotFoundException
 import com.netflix.bluespar.kato.orchestration.OrchestrationProcessor
+import groovy.transform.Canonical
+import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.http.HttpStatus
+import org.springframework.validation.Errors
 import org.springframework.web.bind.annotation.*
+
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("/ops")
 class OperationsController {
+  @Autowired
+  MessageSource messageSource
+
   @Autowired
   ApplicationContext applicationContext
 
@@ -36,16 +49,35 @@ class OperationsController {
 
   @RequestMapping(method = RequestMethod.POST)
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
-    List<AtomicOperation> atomicOperations = requestBody.collect { Map<String, Map> input ->
-      convert(input)
-    }?.flatten()
+    def atomicOperations = []
+    requestBody.each { Map<String, Map> input ->
+      collectAtomicOperations input, atomicOperations
+    }
     start atomicOperations
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   Map<String, String> atomic(@PathVariable("name") String name, @RequestBody Map requestBody) {
-    List<AtomicOperation> atomicOperations = convert([(name): requestBody])
+    def atomicOperations = []
+    collectAtomicOperations([(name): requestBody], atomicOperations)
     start atomicOperations
+  }
+
+  private void collectAtomicOperations(Map<String, Map> input, List<AtomicOperation> atomicOperations) {
+    def results = convert(input)
+    for (bindingResult in results) {
+      if (bindingResult.errors.hasErrors()) {
+        throw new ValidationException(bindingResult.errors)
+      } else {
+        atomicOperations.addAll bindingResult.atomicOperations
+      }
+    }
+  }
+
+  @ExceptionHandler(ValidationException)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Errors handleValidationException(HttpServletRequest req, ValidationException ex) {
+    ex.errors
   }
 
   private Map<String, String> start(List<AtomicOperation> atomicOperations) {
@@ -53,18 +85,33 @@ class OperationsController {
     [id: task.id, resourceUri: "/task/${task.id}".toString()]
   }
 
-  private List<AtomicOperation> convert(Map<String, Map> input) {
+  private List<AtomicOperationBindingResult> convert(Map<String, Map> input) {
+    def descriptions = []
     input.collect { k, v ->
-      AtomicOperationConverter converter = null
-      try {
-        converter = (AtomicOperationConverter) applicationContext.getBean(k)
-      } catch (IGNORE) {
+      def converter = (AtomicOperationConverter) applicationContext.getBean(k)
+      def description = converter.convertDescription(new HashMap(v))
+      descriptions << description
+      def errors = new DescriptionValidationErrors(description)
+      if (applicationContext.containsBean("${k}Validator")) {
+        def validator = (DescriptionValidator) applicationContext.getBean("${k}Validator")
+        validator.validate(descriptions, description, errors)
       }
-      if (!converter) {
+      AtomicOperation atomicOperation = converter.convertOperation(v)
+      if (!atomicOperation) {
         throw new AtomicOperationNotFoundException(k)
       }
-      converter.convertOperation v
+      new AtomicOperationBindingResult(atomicOperation, errors)
     }
   }
 
+  @Canonical
+  static class AtomicOperationBindingResult {
+    AtomicOperation atomicOperations
+    Errors errors
+  }
+
+  @Canonical
+  static class ValidationException extends RuntimeException {
+    Errors errors
+  }
 }
