@@ -22,7 +22,7 @@ import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-abstract class DeleteDestroyDisableDescriptionValidatorSpec extends Specification {
+abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
 
   @Shared
   DescriptionValidator validator = getDescriptionValidator()

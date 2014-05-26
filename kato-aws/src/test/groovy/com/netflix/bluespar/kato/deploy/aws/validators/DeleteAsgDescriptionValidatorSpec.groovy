@@ -19,7 +19,7 @@ package com.netflix.bluespar.kato.deploy.aws.validators
 import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.description.DeleteAsgDescription
 
-class DeleteAsgDescriptionValidatorSpec extends DeleteDestroyDisableDescriptionValidatorSpec {
+class DeleteAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
 
   @Override
   DescriptionValidator getDescriptionValidator() {
