@@ -21,6 +21,6 @@ package com.netflix.bluespar.kato.deploy.aws.description
  * ovverride will also be achieved.
  */
 class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  List<String> regions
   String asgName
+  List<String> regions
 }

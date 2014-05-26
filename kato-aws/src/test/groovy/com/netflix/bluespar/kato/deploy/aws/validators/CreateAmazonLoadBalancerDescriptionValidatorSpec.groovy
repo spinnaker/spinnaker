@@ -40,7 +40,6 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue("clusterName", _)
-      1 * errors.rejectValue("subnetType", _)
       1 * errors.rejectValue("availabilityZones", _)
       1 * errors.rejectValue("listeners", _)
   }

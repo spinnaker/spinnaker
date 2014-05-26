@@ -17,17 +17,16 @@
 package com.netflix.bluespar.kato.deploy.aws.validators
 
 import com.netflix.bluespar.kato.deploy.DescriptionValidator
-import com.netflix.bluespar.kato.deploy.aws.description.DeleteAsgDescription
+import com.netflix.bluespar.kato.deploy.aws.description.DisableAsgDescription
 
-class DeleteAsgDescriptionValidatorSpec extends DeleteDestroyDisableDescriptionValidatorSpec {
-
+class DisableAsgDescriptionValidatorSpec extends DeleteDestroyDisableDescriptionValidatorSpec {
   @Override
   DescriptionValidator getDescriptionValidator() {
-    new DeleteAsgDescriptionValidator()
+    new DisableAsgDescriptionValidator()
   }
 
   @Override
-  DeleteAsgDescription getDescription() {
-    new DeleteAsgDescription()
+  DisableAsgDescription getDescription() {
+    new DisableAsgDescription()
   }
 }

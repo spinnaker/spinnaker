@@ -16,49 +16,18 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig
+import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.description.DestroyAsgDescription
-import org.springframework.validation.Errors
-import spock.lang.Shared
-import spock.lang.Specification
 
-class DestroyAsgDescriptionValidatorSpec extends Specification {
-  @Shared
-  DestroyAsgDescriptionValidator validator
+class DestroyAsgDescriptionValidatorSpec extends DeleteDestroyDisableDescriptionValidatorSpec {
 
-  void setupSpec() {
-    validator = new DestroyAsgDescriptionValidator()
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
+  @Override
+  DescriptionValidator getDescriptionValidator() {
+    new DestroyAsgDescriptionValidator()
   }
 
-  void "empty description fails validation"() {
-    setup:
-    def description = new DestroyAsgDescription()
-    def errors = Mock(Errors)
-    when:
-    validator.validate([], description, errors)
-    then:
-    1 * errors.rejectValue("asgName", _)
-    1 * errors.rejectValue("regions", _)
-    0 * errors._
-  }
-
-  void "region is validates against configuration"() {
-    setup:
-    def description = new DestroyAsgDescription(regions: ["us-east-5"])
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue("regions", _)
-
-    when:
-    description.regions = validator.awsConfigurationProperties.regions
-    validator.validate([], description, errors)
-
-    then:
-    0 * errors.rejectValue("regions", _)
+  @Override
+  DestroyAsgDescription getDescription() {
+    new DestroyAsgDescription()
   }
 }
