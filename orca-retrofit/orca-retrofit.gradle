@@ -1,0 +1,8 @@
+apply from: "$rootDir/gradle/groovyModule.gradle"
+
+dependencies {
+    compile project(":orca-core")
+    compile commonDependencies.retrofit
+    compile commonDependencies.rxJava
+    compile commonDependencies.okHttp
+}

@@ -1,0 +1,15 @@
+apply plugin: "groovy"
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven { url 'http://repo.spring.io/milestone' }
+}
+
+dependencies {
+    compile commonDependencies.groovy
+    compile commonDependencies.guava
+    compile commonDependencies.slf4j
+    compile commonDependencies.logback
+    testCompile commonDependencies.spock
+}

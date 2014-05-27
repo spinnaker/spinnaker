@@ -1,0 +1,5 @@
+apply from: "$rootDir/gradle/groovyModule.gradle"
+
+dependencies {
+    compile commonDependencies.spock
+}

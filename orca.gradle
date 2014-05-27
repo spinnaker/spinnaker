@@ -1,0 +1,38 @@
+allprojects {
+    version = "1.0-SNAPSHOT"
+    group = "com.netflix.spinnaker.orca"
+
+    plugins.withType(JavaPlugin) {
+        sourceCompatibility = "1.6"
+        targetCompatibility = "1.6"
+    }
+
+    ext {
+        final GROOVY_VERSION = "2.3.0"
+        final SPRING_VERSION = "4.0.4.RELEASE"
+        final BATCH_VERSION = "3.0.0.RC1"
+        final GUAVA_VERSION = "17.0"
+        final RXJAVA_VERSION = "0.18.3"
+        final RETROFIT_VERSION = "1.5.1"
+        final SPOCK_VERSION = "0.7-groovy-2.0"
+        final LOGBACK_VERSION = "1.0.13"
+        final SLF4J_VERSION = "1.7.5"
+
+        commonDependencies = [
+            boneCpSpring   : dependencies.create("com.jolbox:bonecp-spring:0.8.0.RELEASE"),
+            groovy         : dependencies.create("org.codehaus.groovy:groovy-all:$GROOVY_VERSION:indy"),
+            guava          : dependencies.create("com.google.guava:guava:$GUAVA_VERSION"),
+            h2             : dependencies.create("com.h2database:h2:1.4.178"),
+            logback        : dependencies.create("ch.qos.logback:logback-classic:$LOGBACK_VERSION"),
+            okHttp         : dependencies.create("com.squareup.okhttp:okhttp:1.5.4"),
+            retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$RETROFIT_VERSION"),
+            rxJava         : dependencies.create("com.netflix.rxjava:rxjava-core:$RXJAVA_VERSION"),
+            slf4j          : dependencies.create("org.slf4j:jcl-over-slf4j:$SLF4J_VERSION"),
+            spock          : dependencies.create("org.spockframework:spock-core:$SPOCK_VERSION"),
+            spockSpring    : dependencies.create("org.spockframework:spock-spring:$SPOCK_VERSION"),
+            springBatch    : dependencies.create("org.springframework.batch:spring-batch-core:$BATCH_VERSION"),
+            springBatchTest: dependencies.create("org.springframework.batch:spring-batch-test:$BATCH_VERSION"),
+            springTest     : dependencies.create("org.springframework:spring-test:$SPRING_VERSION")
+        ]
+    }
+}

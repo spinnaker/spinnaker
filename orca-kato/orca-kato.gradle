@@ -1,0 +1,6 @@
+apply from: "$rootDir/gradle/groovyModule.gradle"
+
+dependencies {
+    compile project(":orca-retrofit")
+    testCompile project(":orca-test")
+}

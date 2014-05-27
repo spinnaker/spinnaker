@@ -1,0 +1,20 @@
+include "orca-core",
+    "orca-retrofit",
+    "orca-bakery",
+    "orca-kato",
+    "orca-test",
+    "orca-smoke-test"
+
+rootProject.name = "orca"
+
+def setBuildFile(project) {
+    project.buildFileName = "${project.name}.gradle"
+    project.children.each {
+        setBuildFile(it)
+    }
+}
+
+setBuildFile rootProject
+rootProject.children.each {
+    setBuildFile it
+}
