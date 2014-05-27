@@ -267,26 +267,12 @@ public class AmazonClientProvider {
       return getStringFromInputStream(response.getEntity().getContent());
     }
 
-    private static String getStringFromInputStream(InputStream is) {
-      BufferedReader br = null;
+    private static String getStringFromInputStream(InputStream is) throws IOException {
       StringBuilder sb = new StringBuilder();
       String line;
-      try {
-
-        br = new BufferedReader(new InputStreamReader(is));
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
         while ((line = br.readLine()) != null) {
           sb.append(line);
-        }
-
-      } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        if (br != null) {
-          try {
-            br.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
         }
       }
       return sb.toString();
