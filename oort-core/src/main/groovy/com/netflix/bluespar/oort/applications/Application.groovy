@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.oort.deployables
+package com.netflix.bluespar.oort.applications
 
 import com.netflix.bluespar.oort.clusters.ClusterProvider
 import com.netflix.bluespar.oort.clusters.Clusters

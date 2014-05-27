@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.oort.deployables.aws
+package com.netflix.bluespar.oort.applications.aws
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
-import com.netflix.bluespar.oort.deployables.Application
-import com.netflix.bluespar.oort.deployables.ApplicationProvider
+import com.netflix.bluespar.oort.applications.Application
+import com.netflix.bluespar.oort.applications.ApplicationProvider
 import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
 import com.netflix.frigga.Names
 import org.springframework.beans.factory.annotation.Autowired

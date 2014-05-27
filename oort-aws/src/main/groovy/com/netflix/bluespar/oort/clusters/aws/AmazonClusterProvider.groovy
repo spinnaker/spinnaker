@@ -16,6 +16,8 @@
 
 package com.netflix.bluespar.oort.clusters.aws
 
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest
+import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.oort.clusters.Cluster
 import com.netflix.bluespar.oort.clusters.ClusterProvider
@@ -24,9 +26,9 @@ import com.netflix.bluespar.oort.remoting.RemoteResource
 import com.netflix.bluespar.oort.spring.ApplicationContextHolder
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
-import groovy.util.logging.Log4j
 import org.apache.commons.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.util.StopWatch
@@ -40,22 +42,63 @@ import java.util.logging.Logger
 class AmazonClusterProvider implements ClusterProvider {
   private static final String SERVER_GROUP_TYPE = "Amazon"
 
+  @Value('${discovery.url.format:#{null}}')
+  String discoveryUrlFormat
+
+  @Autowired
+  AmazonClientProvider amazonClientProvider
+
   @Autowired
   AggregateRemoteResource edda
 
+  @Autowired
+  AmazonCredentials amazonCredentials
+
   @Override
   Map<String, List<Cluster>> get(String deployable) {
-    Cacher.get().get(deployable)
+    Map<String, List<Cluster>> clusterMap = Cacher.get().get(deployable) as Map
+    def clusters = new ArrayList<>(clusterMap.values()?.flatten())
+    clusters.each {
+      it.serverGroups.each { serverGroup ->
+        serverGroup.instances = serverGroup.instances.collect { getInstance(serverGroup.region, it.instanceId) + [eureka: getDiscoveryHealth(serverGroup.region, application, it.instanceId)]}
+        if (serverGroup.asg && serverGroup.asg.suspendedProcesses?.collect { it.processName }?.containsAll(["Terminate", "Launch"])) {
+          serverGroup.status = "DISABLED"
+        } else {
+          serverGroup.status = "ENABLED"
+        }
+      }
+    }
+    clusterMap
   }
 
   @Override
   List<Cluster> getByName(String deployable, String clusterName) {
-    Cacher.get().get(deployable)?.get(clusterName)
+    get(deployable)?.get(clusterName)
   }
 
   @Override
   List<Cluster> getByNameAndZone(String deployable, String clusterName, String zone) {
-    Cacher.get().get(deployable)?.get(clusterName)?.findAll { it.zone == zone }
+    get(deployable)?.get(clusterName)?.findAll { it.zone == zone }
+  }
+
+  def getInstance(String region, String instanceId) {
+    try {
+      def client = amazonClientProvider.getAmazonEC2(amazonCredentials, region)
+      def request = new DescribeInstancesRequest().withInstanceIds(instanceId)
+      def result = client.describeInstances(request)
+      new HashMap(result.reservations?.instances?.getAt(0)?.getAt(0)?.properties)
+    } catch (IGNORE) { [instanceId: instanceId, state: [name: "offline"]] }
+  }
+
+  def getDiscoveryHealth(String region, String application, String instanceId) {
+    if (!discoveryUrlFormat) return
+    try {
+      def map = edda.getRemoteResource(region) get "/REST/v2/discovery/applications/$application;_pp:(instances:(id,status,overriddenStatus))"
+      def instance = map.instances.find { it.id == instanceId }
+      if (instance) {
+        return [id: instanceId, status: instance.overriddenStatus?.name != "UNKNOWN" ? instance.overriddenStatus.name : instance.status.name]
+      }
+    } catch (IGNORE) { [instanceId: instanceId, state: [name: "unknown"]] }
   }
 
   @Component

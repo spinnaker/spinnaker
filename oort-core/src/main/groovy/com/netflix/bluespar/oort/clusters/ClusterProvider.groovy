@@ -17,7 +17,7 @@
 package com.netflix.bluespar.oort.clusters
 
 interface ClusterProvider {
-  Map<String, List<Cluster>> get(String deployable)
-  List<Cluster> getByName(String deployable, String clusterName)
-  List<Cluster> getByNameAndZone(String deployable, String clusterName, String zoneName)
+  Map<String, List<Cluster>> get(String application)
+  List<Cluster> getByName(String application, String clusterName)
+  List<Cluster> getByNameAndZone(String application, String clusterName, String zoneName)
 }

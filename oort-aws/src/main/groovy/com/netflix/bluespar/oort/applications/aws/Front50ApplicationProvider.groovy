@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.oort.deployables.aws
+package com.netflix.bluespar.oort.applications.aws
 
-import com.netflix.bluespar.oort.deployables.Application
-import com.netflix.bluespar.oort.deployables.ApplicationProvider
+import com.netflix.bluespar.oort.applications.Application
+import com.netflix.bluespar.oort.applications.ApplicationProvider
 import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
 import com.netflix.bluespar.oort.remoting.RemoteResource
 import org.springframework.beans.factory.annotation.Autowired
