@@ -40,7 +40,7 @@ class Application {
     if (!clusters) {
       Clusters clusters = new Clusters()
       for (provider in clusterProviders) {
-        def providerClusters = provider.get(this.name)
+        def providerClusters = provider.getSummary(this.name)
         if (providerClusters) {
           clusters.addAll providerClusters
         }

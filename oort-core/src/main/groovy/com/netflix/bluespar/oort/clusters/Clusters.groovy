@@ -17,21 +17,21 @@
 package com.netflix.bluespar.oort.clusters
 
 class Clusters {
-  private final Map<String, List<Cluster>> clusters
+  private final Map<String, List<ClusterSummary>> clusters
 
   Clusters() {
     this([:])
   }
 
-  Clusters(Map<String, List<Cluster>> clusters) {
+  Clusters(Map<String, List<ClusterSummary>> clusters) {
     this.clusters = clusters
   }
 
-  Cluster get(String clusterName) {
+  ClusterSummary get(String clusterName) {
     clusters.get(clusterName)
   }
 
-  List<Cluster> list() {
+  List<ClusterSummary> list() {
     clusters.values()?.flatten()
   }
 
@@ -39,7 +39,7 @@ class Clusters {
     clusters
   }
 
-  void addAll(Map<String, List<Cluster>> objs) {
+  void addAll(Map<String, List<ClusterSummary>> objs) {
     for (Map.Entry entry : objs) {
       def app = entry.key
       def clusters = entry.value

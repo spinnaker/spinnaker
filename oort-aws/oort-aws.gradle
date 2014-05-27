@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
   compile project(":oort-core")
-  compile "com.netflix.bluespar.amazon:amazoncomponents:0.4"
+  compile "com.netflix.bluespar.amazon:amazoncomponents:0.6"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile 'com.netflix.frigga:frigga:0.6'
   compile "com.amazonaws:aws-java-sdk:1.7.2"

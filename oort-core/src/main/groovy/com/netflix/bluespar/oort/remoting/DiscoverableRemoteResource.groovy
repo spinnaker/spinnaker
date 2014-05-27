@@ -25,13 +25,15 @@ import org.springframework.web.client.RestTemplate
 class DiscoverableRemoteResource implements RemoteResource {
   private static final String UP_STATUS = "UP"
 
-  RestTemplate restTemplate = new RestTemplate()
+  RestTemplate restTemplate
   ObjectMapper objectMapper = new ObjectMapper()
 
-  private final String location
+  private final String app
+  private final String discoveryUrl
 
   DiscoverableRemoteResource(String app, String discoveryUrl, RestTemplate restTemplate = new RestTemplate()) {
-    this.location = locateResource(app, discoveryUrl, restTemplate)
+    this.app = app
+    this.discoveryUrl = discoveryUrl
     this.restTemplate = restTemplate
   }
 
@@ -42,6 +44,10 @@ class DiscoverableRemoteResource implements RemoteResource {
   List query(String uri) {
     def json = restTemplate.getForObject("$location/$uri", String)
     objectMapper.readValue(json, List)
+  }
+
+  String getLocation() {
+    locateResource(app, discoveryUrl, restTemplate)
   }
 
   private static String locateResource(String app, String discoveryUrl, RestTemplate restTemplate) {

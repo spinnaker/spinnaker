@@ -18,7 +18,6 @@ package com.netflix.bluespar.oort.clusters.aws
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.bluespar.oort.clusters.Cluster
-import com.netflix.bluespar.oort.clusters.ServerGroup
 import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -30,5 +29,5 @@ class AmazonCluster implements Cluster {
   String name
   String zone
   String type = "Amazon"
-  List<ServerGroup> serverGroups
+  List<AmazonServerGroup> serverGroups
 }

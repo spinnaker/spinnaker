@@ -65,8 +65,20 @@ class ClusterController {
     }?.flatten()
   }
 
+  @RequestMapping(value = "/{cluster}/serverGroups", method = RequestMethod.GET)
+  def listServerGroups(@PathVariable("application") String application, @PathVariable("cluster") String clusterName) {
+    def serverGroups = []
+    for (provider in clusterProviders) {
+      def clusters = provider.getByName(application, clusterName)
+      for (cluster in clusters) {
+        serverGroups.addAll cluster.serverGroups
+      }
+    }
+    serverGroups
+  }
+
   @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}", method = RequestMethod.GET)
-  def getAsgs(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
+  def getServerGroup(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
               @PathVariable("serverGroup") String serverGroupName) {
     def serverGroups = []
     for (provider in clusterProviders) {
@@ -86,7 +98,7 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}/{zone}", method = RequestMethod.GET)
-  def getAsg(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
+  def getServerGroupWithZone(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
              @PathVariable("serverGroup") String serverGroupName, @PathVariable("zone") String zoneName) {
     def serverGroup
     for (provider in clusterProviders) {

@@ -16,9 +16,13 @@
 
 package com.netflix.bluespar.oort.clusters
 
-interface ClusterProvider {
-  Map<String, List<Cluster>> get(String application)
-  Map<String, List<Cluster>> getSummary(String application)
-  List<Cluster> getByName(String application, String clusterName)
-  List<Cluster> getByNameAndZone(String application, String clusterName, String zoneName)
+import com.fasterxml.jackson.annotation.JsonIgnore
+
+public interface ClusterSummary {
+  String getName()
+  Integer getServerGroupCount()
+  Integer getInstanceCount()
+  List<String> getServerGroups()
+  @JsonIgnore
+  Cluster getCluster()
 }

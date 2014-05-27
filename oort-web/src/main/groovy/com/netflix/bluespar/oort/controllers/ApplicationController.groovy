@@ -16,7 +16,6 @@
 
 package com.netflix.bluespar.oort.controllers
 
-import com.netflix.bluespar.oort.clusters.Cluster
 import com.netflix.bluespar.oort.applications.Application
 import com.netflix.bluespar.oort.applications.ApplicationProvider
 import groovy.transform.Canonical
@@ -40,18 +39,8 @@ class ApplicationController {
   Map<String, ApplicationViewModel> list() {
     List<Application> applicationProviderResults = applicationProviders.collectMany { it.list() ?: [] }
     def nameKeyedApplicationList = getMergedApplications(applicationProviderResults)
-
-    nameKeyedApplicationList.inject(new HashMap<>()) { Map<String, ApplicationViewModel> viewModels, String name, Application application ->
-      if (!viewModels.containsKey(name)) {
-        viewModels[name] = convertToModel(name, application)
-      }
-      application.clusters.list().each { Cluster cluster ->
-        viewModels[name].clusters = (viewModels[name].clusters ?: new HashSet()) << cluster.name
-        viewModels[name].clusterCount += 1
-        viewModels[name].serverGroupCount += cluster.serverGroups?.size()
-        viewModels[name].instanceCount += cluster.serverGroups?.collect { it.getInstanceCount() }?.sum() ?: 0
-      }
-      viewModels
+    nameKeyedApplicationList.collectEntries { String name, Application application ->
+      [(name): convertToModel(name, application)]
     }
   }
 
@@ -94,14 +83,13 @@ class ApplicationController {
 
   static ApplicationViewModel convertToModel(String name, Application application) {
     def clusters = application.clusters.list()
-    def serverGroupCount = (clusters.collect { it.serverGroups.size() }?.sum() ?: 0) as int
-    def instanceCount = clusters.inject(0) { int c, Cluster cluster -> c += (cluster.serverGroups?.collect { it.getInstanceCount() }?.sum() ?: 0); c }
+    def serverGroupCount = (clusters.collect { it.serverGroupCount }?.sum() ?: 0) as int
+    def instanceCount = (clusters.collect { it.instanceCount }?.sum() ?: 0) as int
 
     def model = new ApplicationViewModel(name: name)
     model.clusterCount = clusters.size()
     model.instanceCount = instanceCount
     model.serverGroupCount = serverGroupCount
-    model.instanceCount = instanceCount
     model.attributes = application.attributes
     model.clusters = (model.clusters ?: new HashSet())
     model.clusters.addAll(clusters.collect { it.name })

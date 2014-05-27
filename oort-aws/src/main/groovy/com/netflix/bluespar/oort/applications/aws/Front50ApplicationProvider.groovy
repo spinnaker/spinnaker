@@ -77,6 +77,7 @@ class Front50ApplicationProvider implements ApplicationProvider {
       }
       map = run
       lock.unlock()
+      stopwatch.stop()
       log.info "Done caching Front50 apps in ${stopwatch.shortSummary()}"
     }
   }

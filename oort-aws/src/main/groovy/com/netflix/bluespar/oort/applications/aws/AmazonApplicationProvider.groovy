@@ -22,7 +22,6 @@ import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.oort.applications.Application
 import com.netflix.bluespar.oort.applications.ApplicationProvider
-import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
 import com.netflix.frigga.Names
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
