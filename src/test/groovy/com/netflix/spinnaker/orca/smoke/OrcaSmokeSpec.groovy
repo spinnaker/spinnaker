@@ -8,6 +8,7 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -31,8 +32,17 @@ class OrcaSmokeSpec extends Specification {
     JobLauncherTestUtils jobLauncherTestUtils
 
     def "can bake and monitor to completion"() {
+        given:
+        def jobParameters = new JobParametersBuilder()
+            .addString("region", "us-west-1")
+            .addString("bake.user", "rfletcher")
+            .addString("bake.package", "oort")
+            .addString("bake.baseOs", "ubuntu")
+            .addString("bake.baseLabel", "release")
+            .toJobParameters()
+
         when:
-        def jobStatus = jobLauncherTestUtils.launchJob().status
+        def jobStatus = jobLauncherTestUtils.launchJob(jobParameters).status
 
         then:
         jobStatus == BatchStatus.COMPLETED
@@ -56,27 +66,15 @@ class SmokeSpecConfiguration {
 
     @Bean
     Job job() {
-        def step1 = steps.get("ConfigureBake")
-            .tasklet({ StepContribution contribution, ChunkContext chunkContext ->
-            chunkContext.stepContext.stepExecution.jobExecution.executionContext.with {
-                putString("region", "us-west-1")
-                putString("bake.user", "rfletcher")
-                putString("bake.package", "oort")
-                putString("bake.baseOs", "ubuntu")
-                putString("bake.baseLabel", "release")
-            }
-        })
-            .build()
-        def step2 = steps.get("CreateBakeStep")
+        def step1 = steps.get("CreateBakeStep")
             .tasklet(TaskTaskletAdapter.decorate(new CreateBakeTask(bakery: bakery)))
             .build()
-        def step3 = steps.get("MonitorBakeStep")
+        def step2 = steps.get("MonitorBakeStep")
             .tasklet(TaskTaskletAdapter.decorate(new MonitorBakeTask(bakery: bakery)))
             .build()
         jobs.get("BakeJob")
             .start(step1)
             .next(step2)
-            .next(step3)
             .build()
     }
 

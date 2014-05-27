@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.batch
 
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.test.MetaDataInstanceFactory
@@ -8,18 +9,22 @@ import spock.lang.Unroll
 
 class ChunkContextAdapterSpec extends Specification {
 
-    def stepExecution = MetaDataInstanceFactory.createStepExecution()
-    def stepContext = new StepContext(stepExecution)
-    def chunkContext = new ChunkContext(stepContext)
-
-    def stepExecutionContext = stepExecution.executionContext
-    def jobExecutionContext = stepExecution.jobExecution.executionContext
-
     @Unroll
-    def "traverses the heirarchy of contexts to retrieve values"() {
+    def "traverses the hierarchy of contexts to retrieve values"() {
         given:
-        if (stepValue) stepExecutionContext.put(key, stepValue)
-        if (jobValue) jobExecutionContext.put(key, jobValue)
+        def jobParametersBuilder = new JobParametersBuilder()
+        if (jobParamValue) jobParametersBuilder.addString(key, jobParamValue)
+        def stepExecution = MetaDataInstanceFactory.createStepExecution(jobParametersBuilder.toJobParameters())
+        def stepExecutionContext = stepExecution.executionContext
+        def jobExecutionContext = stepExecution.jobExecution.executionContext
+
+        and:
+        if (jobContextValue) jobExecutionContext.put(key, jobContextValue)
+        if (stepContextValue) stepExecutionContext.put(key, stepContextValue)
+
+        and:
+        def stepContext = new StepContext(stepExecution)
+        def chunkContext = new ChunkContext(stepContext)
 
         and:
         def context = new ChunkContextAdapter(chunkContext)
@@ -28,11 +33,13 @@ class ChunkContextAdapterSpec extends Specification {
         context.inputs[key] == expected
 
         where:
-        stepValue | jobValue || expected
-        "step"    | null     || "step"
-        null      | "job"    || "job"
-        null      | null     || null
-        "step"    | "job"    || "step"
+        stepContextValue | jobContextValue | jobParamValue || expected
+        "step"           | null            | null          || "step"
+        null             | "job"           | null          || "job"
+        null             | null            | "param"       || "param"
+        null             | null            | null          || null
+        "step"           | "job"           | "param"       || "step"
+        null             | "job"           | "param"       || "job"
 
         and:
         key = "foo"

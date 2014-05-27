@@ -12,6 +12,7 @@ class ChunkContextAdapter implements TaskContext {
 
     ChunkContextAdapter(ChunkContext chunkContext) {
         def entries = [:]
+        entries.putAll(chunkContext.stepContext.jobParameters)
         entries.putAll(chunkContext.stepContext.jobExecutionContext)
         entries.putAll(chunkContext.stepContext.stepExecutionContext)
         inputs = new ImmutableMap.Builder()
