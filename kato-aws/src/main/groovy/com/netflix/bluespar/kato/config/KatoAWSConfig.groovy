@@ -64,8 +64,8 @@ class KatoAWSConfig {
   }
 
   static class DeployDefaults {
-    String iamRole = "BaseIAMRole"
-    String keyPair = "nf-test-keypair-a"
+    String iamRole
+    String keyPair
   }
 
   @Component

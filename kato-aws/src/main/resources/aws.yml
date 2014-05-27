@@ -1,6 +1,7 @@
 aws:
   defaults:
       iamRole: BaseIAMRole
+      keyPair: nf-test-keypair-a
   regions:
    - us-east-1
    - us-west-1
