@@ -1,21 +1,10 @@
 package com.netflix.spinnaker.orca.smoke
 
-import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
-import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
-import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParametersBuilder
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.IgnoreIf
 import spock.lang.Specification

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca
 
 import com.google.common.collect.ImmutableMap
-import groovy.transform.CompileStatic
 
 interface TaskResult {
 
