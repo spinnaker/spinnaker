@@ -29,6 +29,10 @@ repositories {
   maven { url "http://dl.bintray.com/bluespar/bluespar"}
 }
 
+ext {
+  spockVersion = "0.7-groovy-2.0"
+}
+
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
@@ -38,7 +42,9 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
   compile "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}"
   testCompile "cglib:cglib-nodep:3.1"
-  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+  testCompile "org.spockframework:spock-core:${spockVersion}"
+  testCompile "org.spockframework:spring-spring:${spockVersion}"
+  testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }
 
 run {
