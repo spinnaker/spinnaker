@@ -16,7 +16,7 @@
 
 
 
-package com.netflix.bluespar.amazon
+package com.netflix.bluespar.amazon.security
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
@@ -30,7 +30,7 @@ import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import spock.lang.Specification
 
-class SecurityAmazonClientProviderSpec extends Specification {
+class AmazonClientProviderSpec extends Specification {
 
   void "client proxies to edda when available"() {
     setup:

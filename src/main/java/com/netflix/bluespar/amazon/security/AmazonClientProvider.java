@@ -201,6 +201,15 @@ public class AmazonClientProvider {
       return describeInstances(null);
     }
 
+    public DescribeImagesResult describeImages() {
+      return describeImages(null);
+    }
+
+    public DescribeImagesResult describeImages(DescribeImagesRequest request) {
+      return new DescribeImagesResult().withImages(describe(request, "imageIds", "images", Image.class, new TypeReference<List<Image>>() {
+      }));
+    }
+
     public DescribeInstancesResult describeInstances(DescribeInstancesRequest request) {
       List<Instance> instances = describe(request, "instanceIds", "../view/instances", Instance.class, new TypeReference<List<Instance>>() {
       });
