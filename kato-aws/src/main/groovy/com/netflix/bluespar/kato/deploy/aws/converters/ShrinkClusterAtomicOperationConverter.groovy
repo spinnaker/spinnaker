@@ -21,7 +21,6 @@ import com.netflix.bluespar.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
 import com.netflix.bluespar.kato.orchestration.AtomicOperation
 import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
-import org.springframework.validation.ValidationUtils
 
 @Component("shrinkClusterDescription")
 class ShrinkClusterAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

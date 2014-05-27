@@ -16,7 +16,6 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker.SubnetType
 import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker.SubnetTypeNotFoundException
 import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription

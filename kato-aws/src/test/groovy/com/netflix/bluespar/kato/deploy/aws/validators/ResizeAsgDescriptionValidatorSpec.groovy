@@ -18,7 +18,6 @@ package com.netflix.bluespar.kato.deploy.aws.validators
 
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.deploy.DescriptionValidator
-import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.bluespar.kato.deploy.aws.description.ResizeAsgDescription
 import org.springframework.validation.Errors
 

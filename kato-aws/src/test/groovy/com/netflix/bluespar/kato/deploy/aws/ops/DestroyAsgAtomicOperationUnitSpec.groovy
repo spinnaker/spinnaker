@@ -18,18 +18,14 @@ package com.netflix.bluespar.kato.deploy.aws.ops
 
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
-import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.*
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.DestroyAsgDescription
 import spock.lang.Specification
+
 import java.lang.Void as Should
 
 class DestroyAsgAtomicOperationUnitSpec extends Specification {

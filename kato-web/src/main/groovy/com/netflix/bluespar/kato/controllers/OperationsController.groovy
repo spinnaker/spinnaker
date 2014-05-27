@@ -24,13 +24,13 @@ import com.netflix.bluespar.kato.orchestration.AtomicOperationConverter
 import com.netflix.bluespar.kato.orchestration.AtomicOperationNotFoundException
 import com.netflix.bluespar.kato.orchestration.OrchestrationProcessor
 import groovy.transform.Canonical
-import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
+import org.springframework.validation.ObjectError
 import org.springframework.web.bind.annotation.*
 
 import javax.servlet.http.HttpServletRequest
@@ -76,8 +76,16 @@ class OperationsController {
 
   @ExceptionHandler(ValidationException)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Errors handleValidationException(HttpServletRequest req, ValidationException ex) {
-    ex.errors
+  Map handleValidationException(HttpServletRequest req, ValidationException ex) {
+    Locale locale = LocaleContextHolder.locale
+    def errorStrings = []
+    ex.errors.each { Errors errors->
+      errors.allErrors.each { ObjectError objectError ->
+        def message = messageSource.getMessage(objectError.code, objectError.arguments, objectError.code, locale)
+        errorStrings << message
+      }
+    }
+    [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
   }
 
   private Map<String, String> start(List<AtomicOperation> atomicOperations) {
