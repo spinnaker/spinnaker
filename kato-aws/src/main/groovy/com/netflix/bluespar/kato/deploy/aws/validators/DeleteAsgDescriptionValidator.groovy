@@ -16,27 +16,14 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig.AwsConfigurationProperties
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.description.DeleteAsgDescription
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("deleteAsgDescriptionValidator")
-class DeleteAsgDescriptionValidator extends DescriptionValidator<DeleteAsgDescription> {
-  @Autowired
-  AwsConfigurationProperties awsConfigurationProperties
-
+class DeleteAsgDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAsgDescription> {
   @Override
   void validate(List priorDescriptions, DeleteAsgDescription description, Errors errors) {
-    if (!description.asgName) {
-      errors.rejectValue("asgName", "deleteAsgDescription.asgName.empty")
-    }
-    if (!description.regions) {
-      errors.rejectValue("regions", "deleteAsgDescription.regions.empty")
-    } else if (description.regions && !awsConfigurationProperties.regions.containsAll(description.regions)) {
-      errors.rejectValue("regions", "deleteAsgDescription.regions.not.configured")
-    }
+    validateAsgNameAndRegions description, errors
   }
 }

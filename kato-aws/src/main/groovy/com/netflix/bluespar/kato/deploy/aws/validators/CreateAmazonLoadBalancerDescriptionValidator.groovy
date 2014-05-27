@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("createAmazonLoadBalancerDescriptionValidator")
-class CreateAmazonLoadBalancerDescriptionValidator extends DescriptionValidator<CreateAmazonLoadBalancerDescription> {
+class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<CreateAmazonLoadBalancerDescription> {
   @Override
   void validate(List priorDescriptions, CreateAmazonLoadBalancerDescription description, Errors errors) {
     if (!description.clusterName) {
@@ -34,7 +34,11 @@ class CreateAmazonLoadBalancerDescriptionValidator extends DescriptionValidator<
       errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones")
     }
     for (Map.Entry entry in description.availabilityZones) {
+      def region = entry.key
       def azs = entry.value
+      if (!awsConfigurationProperties.regions.contains(region)) {
+        errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.region.not.configured")
+      }
       if (!description.subnetType && !azs) {
         errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones")
         break

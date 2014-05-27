@@ -16,6 +16,7 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
+import com.netflix.bluespar.kato.config.KatoAWSConfig
 import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -27,7 +28,8 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   CreateAmazonLoadBalancerDescriptionValidator validator
 
   void setupSpec() {
-    this.validator = new CreateAmazonLoadBalancerDescriptionValidator()
+    validator = new CreateAmazonLoadBalancerDescriptionValidator()
+    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
   }
 
   void "empty parameters fails validation"() {
@@ -42,6 +44,19 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("clusterName", _)
       1 * errors.rejectValue("availabilityZones", _)
       1 * errors.rejectValue("listeners", _)
+  }
+
+  void "unconfigured region is rejected"() {
+    setup:
+    def description = new CreateAmazonLoadBalancerDescription()
+    description.availabilityZones = ["us-west-5": ["us-west-5a"]]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("availabilityZones", _)
   }
 
   void "subnetType supercedes availabilityZones"() {

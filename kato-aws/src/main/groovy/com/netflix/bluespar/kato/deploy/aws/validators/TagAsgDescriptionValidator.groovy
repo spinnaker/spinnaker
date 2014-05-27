@@ -16,14 +16,22 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.deploy.aws.description.DisableAsgDescription
+import com.netflix.bluespar.kato.deploy.aws.description.TagAsgDescription
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("disableAsgDescriptionValidator")
-class DisableAsgDescriptionValidator extends AmazonDescriptionValidationSupport<DisableAsgDescription> {
+@Component("tagAsgDescriptionValidator")
+class TagAsgDescriptionValidator extends AmazonDescriptionValidationSupport<TagAsgDescription> {
   @Override
-  void validate(List priorDescriptions, DisableAsgDescription description, Errors errors) {
+  void validate(List priorDescriptions, TagAsgDescription description, Errors errors) {
     validateAsgNameAndRegions description, errors
+    if (!description.tags) {
+      errors.rejectValue("tags", "tagAsgDescription.tags.empty")
+    }
+    description.tags.each { k, v ->
+      if (!k || !v) {
+        errors.rejectValue("tags", "tagAsgDescription.tag.invalid")
+      }
+    }
   }
 }

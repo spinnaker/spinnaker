@@ -16,19 +16,12 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("basicAmazonDeployDescriptionValidator")
-class BasicAmazonDeployDescriptionValidator extends DescriptionValidator<BasicAmazonDeployDescription> {
-  @Autowired
-  KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties
-
+class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationSupport<BasicAmazonDeployDescription> {
   @Override
   void validate(List priorDescriptions, BasicAmazonDeployDescription description, Errors errors) {
     if (!description.credentials) {
@@ -51,11 +44,6 @@ class BasicAmazonDeployDescriptionValidator extends DescriptionValidator<BasicAm
         errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
       }
     }
-    if (description.capacity.min > description.capacity.max) {
-      errors.rejectValue "capacity", "basicAmazonDeployDescription.capacity.transposed", [description.capacity.min, description.capacity.max] as String[], "Capacity min and max appear transposed"
-    }
-    if (description.capacity.desired < description.capacity.min || description.capacity.desired > description.capacity.max) {
-      errors.rejectValue "capacity", "basicAmazonDeployDescription.desired.capacity.not.in.range", [description.capacity.min, description.capacity.max, description.capacity.desired] as String[], "Desired capacity is not within min/max range"
-    }
+    validateCapacity description, errors
   }
 }

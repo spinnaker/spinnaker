@@ -55,7 +55,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('capacity', 'basicAmazonDeployDescription.capacity.transposed', ['5', '3'], 'Capacity min and max appear transposed')
+    1 * errors.rejectValue('capacity', _, ['5', '3', '0'], _)
 
     when:
     description.capacity.min = 3
@@ -64,7 +64,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('capacity', 'basicAmazonDeployDescription.desired.capacity.not.in.range', ['3', '5', '7'], 'Desired capacity is not within min/max range')
+    1 * errors.rejectValue('capacity', _, ['3', '5', '7'], _)
   }
 
   void "unconfigured region fails validation"() {
@@ -76,6 +76,6 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("availabilityZones", "basicAmazonDeployDescription.region.not.configured", ["eu-west-5"], 'Region eu-west-5 not configured')
+    1 * errors.rejectValue("availabilityZones", _, ["eu-west-5"], _)
   }
 }

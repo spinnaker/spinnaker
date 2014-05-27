@@ -38,8 +38,10 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     setup:
     def description = getDescription()
     def errors = Mock(Errors)
+
     when:
     validator.validate([], description, errors)
+
     then:
     1 * errors.rejectValue("asgName", _)
     1 * errors.rejectValue("regions", _)

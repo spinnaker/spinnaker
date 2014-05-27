@@ -16,33 +16,15 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig.AwsConfigurationProperties
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.description.ResizeAsgDescription
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("resizeAsgDescriptionValidator")
-class ResizeAsgDescriptionValidator extends DescriptionValidator<ResizeAsgDescription> {
-  @Autowired
-  AwsConfigurationProperties awsConfigurationProperties
-
+class ResizeAsgDescriptionValidator extends AmazonDescriptionValidationSupport<ResizeAsgDescription> {
   @Override
   void validate(List priorDescriptions, ResizeAsgDescription description, Errors errors) {
-    if (!description.asgName) {
-      errors.rejectValue("asgName", "resizeAsgDescription.asgName.empty")
-    }
-    if (!description.regions) {
-      errors.rejectValue("regions", "resizeAsgDescription.regions.empty")
-    } else if (!awsConfigurationProperties.regions.containsAll(description.regions)) {
-      errors.rejectValue("regions", "resizeAsgDescription.regions.not.configured")
-    }
-    if (description.capacity.min > description.capacity.max) {
-      errors.rejectValue "capacity", "resizeAsgDescription.capacity.transposed", [description.capacity.min, description.capacity.max] as String[], "Capacity min and max appear transposed"
-    }
-    if (description.capacity.desired < description.capacity.min || description.capacity.desired > description.capacity.max) {
-      errors.rejectValue "capacity", "resizeAsgDescription.desired.capacity.not.in.range", [description.capacity.min, description.capacity.max, description.capacity.desired] as String[], "Desired capacity is not within min/max range"
-    }
+    validateAsgNameAndRegions description, errors
+    validateCapacity description, errors
   }
 }

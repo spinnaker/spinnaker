@@ -16,18 +16,12 @@
 
 package com.netflix.bluespar.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
 import com.netflix.bluespar.kato.deploy.aws.description.ShrinkClusterDescription
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("shrinkClusterDescriptionValidator")
-class ShrinkClusterDescriptionValidator extends DescriptionValidator<ShrinkClusterDescription> {
-  @Autowired
-  KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties
-
+class ShrinkClusterDescriptionValidator extends AmazonDescriptionValidationSupport<ShrinkClusterDescription> {
   @Override
   void validate(List priorDescriptions, ShrinkClusterDescription description, Errors errors) {
     if (!description.application) {
@@ -36,10 +30,6 @@ class ShrinkClusterDescriptionValidator extends DescriptionValidator<ShrinkClust
     if (!description.clusterName) {
       errors.rejectValue("clusterName", "shrinkClusterDescription.clusterName.empty")
     }
-    if (!description.regions) {
-      errors.rejectValue("regions", "resizeAsgDescription.regions.empty")
-    } else if (!awsConfigurationProperties.regions.containsAll(description.regions)) {
-      errors.rejectValue("regions", "resizeAsgDescription.regions.not.configured")
-    }
+    validateRegions description, errors
   }
 }
