@@ -56,9 +56,6 @@ class AmazonApplicationProvider implements ApplicationProvider {
     private static def executorService = Executors.newFixedThreadPool(20)
 
     @Autowired
-    AggregateRemoteResource edda
-
-    @Autowired
     AmazonClientProvider amazonClientProvider
 
     @Autowired

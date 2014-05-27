@@ -18,7 +18,6 @@ package com.netflix.bluespar.oort.applications.aws
 
 import com.netflix.bluespar.oort.applications.Application
 import com.netflix.bluespar.oort.applications.ApplicationProvider
-import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
 import com.netflix.bluespar.oort.remoting.RemoteResource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -50,9 +49,6 @@ class Front50ApplicationProvider implements ApplicationProvider {
 
     @Autowired
     RemoteResource front50
-
-    @Autowired
-    AggregateRemoteResource edda
 
     static Map get() {
       lock.lock()

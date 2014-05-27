@@ -16,13 +16,16 @@
 
 package com.netflix.bluespar.oort.clusters.aws
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.oort.clusters.Cluster
 import com.netflix.bluespar.oort.clusters.ClusterProvider
 import com.netflix.bluespar.oort.remoting.AggregateRemoteResource
-import com.netflix.bluespar.oort.remoting.RemoteResource
 import com.netflix.bluespar.oort.spring.ApplicationContextHolder
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
@@ -91,14 +94,17 @@ class AmazonClusterProvider implements ClusterProvider {
   }
 
   def getDiscoveryHealth(String region, String application, String instanceId) {
-    if (!discoveryUrlFormat) return
+    def unknown = [instanceId: instanceId, state: [name: "unknown"]]
+    if (!discoveryUrlFormat) return unknown
     try {
       def map = edda.getRemoteResource(region) get "/REST/v2/discovery/applications/$application;_pp:(instances:(id,status,overriddenStatus))"
       def instance = map.instances.find { it.id == instanceId }
       if (instance) {
         return [id: instanceId, status: instance.overriddenStatus?.name != "UNKNOWN" ? instance.overriddenStatus.name : instance.status.name]
       }
-    } catch (IGNORE) { [instanceId: instanceId, state: [name: "unknown"]] }
+    } catch (IGNORE) {
+      return unknown
+    }
   }
 
   @Component
@@ -110,7 +116,7 @@ class AmazonClusterProvider implements ClusterProvider {
     private static def executorService = Executors.newFixedThreadPool(20)
 
     @Autowired
-    AggregateRemoteResource edda
+    AmazonClientProvider amazonClientProvider
 
     @Autowired
     AmazonCredentials amazonCredentials
@@ -132,28 +138,51 @@ class AmazonClusterProvider implements ClusterProvider {
       def stopwatch = new StopWatch()
       stopwatch.start()
       log.info "Beginning caching amazon clusters."
-      def asgCallable = { String region, RemoteResource remoteResource ->
+      def asgCallable = { String region ->
         try {
-          [(region): remoteResource.query("/REST/v2/aws/autoScalingGroups;_expand").collectEntries {
+          def autoScaling = amazonClientProvider.getAutoScaling(amazonCredentials, region)
+          def result = autoScaling.describeAutoScalingGroups()
+          List<AutoScalingGroup> asgs = []
+          while (true) {
+            asgs.addAll result.autoScalingGroups
+            if (result.nextToken) {
+              result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withNextToken(result.nextToken))
+            } else {
+              break
+            }
+          }
+          [(region): asgs.collectEntries {
             [(it.autoScalingGroupName): it]
           }]
-        } catch (Exception e) {
-          log.error "Problem retrieving ASGs for $region", e
+        } catch (Exception IGNORE) {
+          log.warning "Problem retrieving ASGs for $region"
         }
       }
-      def launchConfigCallable = { String region, RemoteResource remoteResource ->
-        [(region): remoteResource.query("/REST/v2/aws/launchConfigurations;_expand").collectEntries {
+      def launchConfigCallable = { String region ->
+        def autoScaling = amazonClientProvider.getAutoScaling(amazonCredentials, region)
+        def result = autoScaling.describeLaunchConfigurations()
+        List<LaunchConfiguration> launchConfigs = []
+        while (true) {
+          launchConfigs.addAll result.launchConfigurations
+          if (result.nextToken) {
+            result = autoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest().withNextToken(result.nextToken))
+          } else {
+            break
+          }
+        }
+        [(region): launchConfigs.collectEntries {
           [(it.launchConfigurationName): it]
         }]
       }
-      def imageCallable = { String region, RemoteResource remoteResource ->
-        [(region): remoteResource.query("/REST/v2/aws/images;_expand").collectEntries {
+      def imageCallable = { String region ->
+        def ec2 = amazonClientProvider.getAmazonEC2(amazonCredentials, region)
+        [(region): ec2.describeImages().images.collectEntries {
           [(it.imageId): it]
         }]
       }
       def callables = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect { region ->
         [asgCallable, launchConfigCallable, imageCallable].collect {
-          it.curry(region, edda.getRemoteResource(region))
+          it.curry(region)
         }
       }?.flatten()
 
