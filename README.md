@@ -1,4 +1,4 @@
-Bluespar Amazon Components
+Netflix Amazon Components
 ---
 
 This project provides common utilities for working with the Amazon AWS SDK.
@@ -14,11 +14,11 @@ From Gradle:
 
 ```groovy
 repositories {
-  jcenter()
+  mavenCentral()
 }
 dependencies {
-  compile 'com.amazonaws:aws-java-sdk:1.7.2'
-  compile 'com.netflix.bluespar.amazon:amazoncomponents:0.1'
+  compile 'com.amazonaws:aws-java-sdk:1.7.9'
+  compile 'com.netflix.amazoncomponents:amazoncomponents:0.8'
 }
 
 ```
@@ -26,7 +26,7 @@ dependencies {
 ... and then ...
 
 ```groovy
-import com.netflix.bluespar.amazon.security.*
+import com.netflix.amazoncomponents.security.*
 import com.amazonaws.auth.BasicAWSCredentials
 
 def credentials = new AmazonCredentials(new BasicAWSCredentials("accessId", "secretKey"), "test")
@@ -53,5 +53,6 @@ Dan Woods
 License and Copyright
 ---
 
-This project is licensed under the Apache Software License. See [LICENSE.txt](https://raw.githubusercontent.com/bluespar/amazoncomponents/master/LICENSE.txt) for futher information.
+This project is licensed under the Apache Software License. See [LICENSE](https://raw.githubusercontent.com/Netflix/amazoncomponents/master/LICENSE) for futher information.
 This project is Copyright (C) 2014 Netflix, Inc.
+

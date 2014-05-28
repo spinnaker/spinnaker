@@ -16,14 +16,14 @@
 
 
 
-package com.netflix.bluespar.amazon.security
+package com.netflix.amazoncomponents.security
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.amazoncomponents.security.AmazonCredentials
 import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse
 import org.apache.http.client.HttpClient

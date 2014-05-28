@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.amazon.security;
+package com.netflix.amazoncomponents.security;
 
 import com.amazonaws.auth.AWSCredentials;
 
