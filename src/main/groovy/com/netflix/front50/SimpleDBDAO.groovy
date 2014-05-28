@@ -21,10 +21,7 @@ class SimpleDBDAO implements ApplicationDAO {
 
     @Override
     boolean isHealthly() {
-        if (this.awsClient == null || listDomains().size() <= 0) {
-            return false
-        }
-        return true
+       (this.awsClient == null || listDomains().size() <= 0) ? false : true
     }
 
     private List<String> listDomains() {
@@ -87,5 +84,4 @@ class SimpleDBDAO implements ApplicationDAO {
     private List<Item> query(String query) {
         awsClient.select(new SelectRequest(query)).getItems()
     }
-
 }

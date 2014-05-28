@@ -7,3 +7,5 @@ out/
 
 gradle.properties
 .vagrant
+vendor/
+.bundle/
