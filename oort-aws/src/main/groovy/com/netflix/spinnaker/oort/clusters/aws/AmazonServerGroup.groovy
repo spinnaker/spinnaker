@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-repositories {
-  maven { url "http://dl.bintray.com/spinnaker/spinnaker/"}
-}
+package com.netflix.spinnaker.oort.clusters.aws
 
-dependencies {
-  compile project(":oort-core")
-  compile "com.netflix.bluespar.amazon:amazoncomponents:0.6"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile 'com.netflix.frigga:frigga:0.11'
-  compile "com.amazonaws:aws-java-sdk:1.7.2"
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+import com.netflix.spinnaker.oort.clusters.ServerGroup
+
+class AmazonServerGroup extends HashMap implements ServerGroup {
+  final String name
+  final String type = "Amazon"
+
+  AmazonServerGroup(String name, Map source) {
+    super(source)
+    this.name = name
+  }
+
+  int getInstanceCount() {
+    (this.get("instances") as List).size()
+  }
 }

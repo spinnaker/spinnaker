@@ -25,10 +25,6 @@ buildscript {
 
 apply plugin: 'spring-boot'
 
-repositories {
-  maven { url "http://dl.bintray.com/bluespar/bluespar"}
-}
-
 ext {
   spockVersion = "0.7-groovy-2.0"
 }
@@ -36,7 +32,7 @@ ext {
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
-  runtime "com.netflix.bluespar.kork:kork-core:1.7"
+  runtime "com.netflix.spinnaker.kork:kork-core:1.9"
   compile "com.netflix.eureka:eureka-client:1.1.128"
   compile "org.springsource.loaded:springloaded:1.2.0.BUILD-SNAPSHOT"
   compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
@@ -48,7 +44,7 @@ dependencies {
 
 run {
   systemProperties = System.getProperties()
-  main = 'com.netflix.bluespar.oort.Main'
+  main = 'com.netflix.spinnaker.oort.Main'
 }
 
-imposeIdeaConfig this, "com.netflix.bluespar.oort.Main"
+imposeIdeaConfig this, "com.netflix.spinnaker.oort.Main"
