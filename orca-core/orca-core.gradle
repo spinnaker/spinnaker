@@ -1,4 +1,4 @@
-apply from: "$rootDir/gradle/groovyModule.gradle"
+apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
     compile commonDependencies.springBatch
