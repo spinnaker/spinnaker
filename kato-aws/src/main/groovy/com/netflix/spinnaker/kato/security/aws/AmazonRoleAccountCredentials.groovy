@@ -31,12 +31,14 @@ class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCred
   private final String accountId
   private final String environment
   private final String role
+  private final String edda
 
-  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role) {
+  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda) {
     this.provider = provider
     this.accountId = accountId
     this.environment = environment
     this.role = role
+    this.edda = edda
   }
 
   @JsonIgnore
@@ -44,7 +46,7 @@ class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCred
   @Transient
   public AmazonCredentials getCredentials() {
     AWSCredentials credentials = new STSAssumeRoleSessionCredentialsProvider(provider, "arn:aws:iam::${accountId}:role/asgard", "Spinnaker")?.credentials
-    new AmazonCredentials(credentials, environment)
+    new AmazonCredentials(credentials, environment, edda)
   }
 
   @JsonIgnore

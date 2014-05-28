@@ -30,11 +30,23 @@ import org.springframework.context.annotation.Configuration
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static void main(_) {
-    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/internal.yml")
+    imposeInternalFileConfig()
+    imposeInternalClasspathConfig()
+    SpringApplication.run this, [] as String[]
+  }
+
+  static void imposeInternalFileConfig() {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/kato-internal.yml")
     if (internalConfig.exists()) {
       System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
     }
-    SpringApplication.run this, [] as String[]
+  }
+
+  static void imposeInternalClasspathConfig() {
+    def internalConfig = getClass().getResourceAsStream("/kato-internal.yml")
+    if (internalConfig) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/kato-internal.yml,classpath*:/kato-internal.yml")
+    }
   }
 
   @Override

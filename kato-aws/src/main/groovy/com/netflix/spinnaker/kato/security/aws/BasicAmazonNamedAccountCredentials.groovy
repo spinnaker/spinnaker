@@ -29,15 +29,17 @@ class BasicAmazonNamedAccountCredentials implements NamedAccountCredentials<Amaz
   @XmlTransient
   private final AWSCredentialsProvider provider
   private final String environment
+  private final String edda
 
-  BasicAmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment) {
+  BasicAmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment, String edda) {
     this.provider = provider
     this.environment = environment
+    this.edda = edda
   }
 
   @JsonIgnore
   @XmlTransient
   public AmazonCredentials getCredentials() {
-    new AmazonCredentials(provider.credentials, environment)
+    new AmazonCredentials(provider.credentials, environment, edda)
   }
 }

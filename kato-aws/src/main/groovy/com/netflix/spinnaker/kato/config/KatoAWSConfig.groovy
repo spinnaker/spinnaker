@@ -45,8 +45,8 @@ class KatoAWSConfig {
   }
 
   @Bean
-  AmazonClientProvider amazonClientProvider(@Value('${edda.host.format:#{null}}') String edda) {
-    new AmazonClientProvider(edda)
+  AmazonClientProvider amazonClientProvider() {
+    new AmazonClientProvider()
   }
 
   @Component
@@ -82,7 +82,7 @@ class KatoAWSConfig {
       def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
         bastionConfiguration.proxyRegion, bastionConfiguration.iamRole)
       for (account in awsConfigurationProperties.accounts) {
-        namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, bastionConfiguration.assumeRole))
+        namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, bastionConfiguration.assumeRole, account.edda))
       }
       provider
     }
@@ -102,7 +102,7 @@ class KatoAWSConfig {
 
     @PostConstruct
     void init() {
-      namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv))
+      namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, null))
     }
   }
 
@@ -114,6 +114,7 @@ class KatoAWSConfig {
   static class ManagedAccount {
     String name
     String accountId
+    String edda
   }
 
   @Component
