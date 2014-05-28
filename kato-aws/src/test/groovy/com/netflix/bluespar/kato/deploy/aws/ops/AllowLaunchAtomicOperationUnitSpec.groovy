@@ -20,12 +20,18 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.bluespar.kato.data.task.Task
+import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.description.AllowLaunchDescription
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
 import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
 import spock.lang.Specification
 
 class AllowLaunchAtomicOperationUnitSpec extends Specification {
+
+  def setupSpec() {
+    TaskRepository.threadLocalTask.set(Mock(Task))
+  }
 
   void "image attribute modification is invoked on request"() {
     setup:
@@ -34,6 +40,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     provider.getAmazonEC2(_, _) >> ec2
     def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(AmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = provider
     def accountHolder = Mock(NamedAccountCredentialsHolder)
     op.namedAccountCredentialsHolder = accountHolder
 

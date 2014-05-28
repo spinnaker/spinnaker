@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
+import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
 import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
@@ -55,7 +56,7 @@ class AmazonHealthIndicatorSpec extends Specification {
     def holder = Mock(NamedAccountCredentialsHolder)
     holder.getAccountNames() >> ["foo"]
     def creds = Mock(AmazonRoleAccountCredentials)
-    creds.getCredentials() >> Mock(AWSCredentials)
+    creds.getCredentials() >> Mock(AmazonCredentials)
     holder.getCredentials("foo") >> creds
     def mockEc2 = Mock(AmazonEC2)
     mockEc2.describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
@@ -76,7 +77,7 @@ class AmazonHealthIndicatorSpec extends Specification {
     def holder = Mock(NamedAccountCredentialsHolder)
     holder.getAccountNames() >> ["foo"]
     def creds = Mock(AmazonRoleAccountCredentials)
-    creds.getCredentials() >> Mock(AWSCredentials)
+    creds.getCredentials() >> Mock(AmazonCredentials)
     holder.getCredentials("foo") >> creds
     def mockEc2 = Mock(AmazonEC2)
     mockEc2.describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }

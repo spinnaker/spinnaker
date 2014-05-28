@@ -45,7 +45,6 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     then:
     1 * errors.rejectValue("asgName", _)
     1 * errors.rejectValue("regions", _)
-    0 * errors._
   }
 
   void "region is validates against configuration"() {

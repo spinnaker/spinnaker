@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.bluespar.kato.config.KatoAWSConfig
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
@@ -41,7 +42,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
     mockAmazonClientProvider.getAmazonEC2(_, _) >> Mock(AmazonEC2)
-    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider)
+    KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties()
+    awsConfigurationProperties.defaults.iamRole = "IamRole"
+    awsConfigurationProperties.defaults.keyPair = "keypair"
+    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties)
     this.task = Mock(Task)
     this.task.getResultObjects() >> []
     TaskRepository.threadLocalTask.set(task)
