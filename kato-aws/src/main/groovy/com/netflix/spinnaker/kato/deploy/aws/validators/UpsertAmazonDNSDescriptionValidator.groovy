@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.bluespar.kato.deploy.aws.description.UpsertAmazonDNSDescription
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.handlers
+package com.netflix.spinnaker.kato.deploy.aws.handlers
 
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.kato.config.KatoAWSConfig.AwsConfigurationProperties
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.DeployDescription
-import com.netflix.bluespar.kato.deploy.DeployHandler
-import com.netflix.bluespar.kato.deploy.DeploymentResult
-import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
-import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
-import com.netflix.bluespar.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.config.KatoAWSConfig.AwsConfigurationProperties
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.kato.deploy.DeployHandler
+import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
+import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

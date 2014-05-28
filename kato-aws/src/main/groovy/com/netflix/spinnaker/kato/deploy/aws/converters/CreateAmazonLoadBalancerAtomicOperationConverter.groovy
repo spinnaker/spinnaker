@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.converters
+package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.bluespar.amazon.security.AmazonCredentials
-import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
-import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
+import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

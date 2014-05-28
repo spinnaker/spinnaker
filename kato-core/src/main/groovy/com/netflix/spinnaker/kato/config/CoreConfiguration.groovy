@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.config
+package com.netflix.spinnaker.kato.config
 
-import com.netflix.bluespar.kato.data.task.InMemoryTaskRepository
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.DefaultDeployHandlerRegistry
-import com.netflix.bluespar.kato.deploy.DeployHandlerRegistry
-import com.netflix.bluespar.kato.orchestration.DefaultOrchestrationProcessor
-import com.netflix.bluespar.kato.orchestration.OrchestrationProcessor
-import com.netflix.bluespar.kato.security.DefaultNamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.NamedAccountCredentials
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.data.task.InMemoryTaskRepository
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DefaultDeployHandlerRegistry
+import com.netflix.spinnaker.kato.deploy.DeployHandlerRegistry
+import com.netflix.spinnaker.kato.orchestration.DefaultOrchestrationProcessor
+import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.NamedAccountCredentials
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.orchestration
+package com.netflix.spinnaker.kato.orchestration
 /**
  * Implementations of this interface will provide an object capable of converting a Map of input parameters to an
- * operation's description object and an {@link com.netflix.bluespar.kato.orchestration.AtomicOperation} instance.
+ * operation's description object and an {@link com.netflix.spinnaker.kato.orchestration.AtomicOperation} instance.
  *
  * @author Dan Woods
  */
 interface AtomicOperationConverter {
   /**
-   * This method takes a Map input and converts it to an {@link com.netflix.bluespar.kato.orchestration.AtomicOperation} instance.
+   * This method takes a Map input and converts it to an {@link com.netflix.spinnaker.kato.orchestration.AtomicOperation} instance.
    *
    * @param input
    * @return atomic operation

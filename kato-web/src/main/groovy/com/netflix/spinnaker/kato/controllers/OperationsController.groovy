@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.controllers
+package com.netflix.spinnaker.kato.controllers
 
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.deploy.DescriptionValidationErrors
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.orchestration.AtomicOperationConverter
-import com.netflix.bluespar.kato.orchestration.AtomicOperationNotFoundException
-import com.netflix.bluespar.kato.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationNotFoundException
+import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext

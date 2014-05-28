@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato
+package com.netflix.spinnaker.kato
 
 import com.netflix.appinfo.InstanceInfo
 import org.springframework.boot.SpringApplication
@@ -26,7 +26,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ComponentScan("com.netflix.bluespar.kato")
+@ComponentScan("com.netflix.spinnaker.kato")
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static void main(_) {

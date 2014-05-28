@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy
+package com.netflix.spinnaker.kato.deploy
 
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {

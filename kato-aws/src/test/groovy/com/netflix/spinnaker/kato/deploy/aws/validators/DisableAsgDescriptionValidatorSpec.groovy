@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
-import com.netflix.bluespar.kato.deploy.aws.description.DisableAsgDescription
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
+import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
 
 class DisableAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
   @Override

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy
+package com.netflix.spinnaker.kato.deploy
 
 /**
- * This is a marker interface for use by {@link com.netflix.bluespar.kato.deploy.DeployHandler} implementations.
+ * This is a marker interface for use by {@link com.netflix.spinnaker.kato.deploy.DeployHandler} implementations.
  *
- * @see com.netflix.bluespar.kato.deploy.DeployHandler
+ * @see com.netflix.spinnaker.kato.deploy.DeployHandler
  * @author Dan Woods
  */
 public interface DeployDescription {

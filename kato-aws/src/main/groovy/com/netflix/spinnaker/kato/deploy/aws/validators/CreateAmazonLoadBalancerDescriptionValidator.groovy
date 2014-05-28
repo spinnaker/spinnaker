@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker.SubnetType
-import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker.SubnetTypeNotFoundException
-import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker.SubnetType
+import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker.SubnetTypeNotFoundException
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 

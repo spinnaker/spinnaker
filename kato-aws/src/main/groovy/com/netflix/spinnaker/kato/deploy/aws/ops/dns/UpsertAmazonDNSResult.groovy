@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.ops.dns
+package com.netflix.spinnaker.kato.deploy.aws.ops.dns
 
 import groovy.transform.Immutable
 

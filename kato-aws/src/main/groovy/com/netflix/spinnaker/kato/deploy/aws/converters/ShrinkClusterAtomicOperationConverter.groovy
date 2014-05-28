@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.converters
+package com.netflix.spinnaker.kato.deploy.aws.converters
 
-import com.netflix.bluespar.kato.deploy.aws.description.ShrinkClusterDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.kato.deploy.aws.description.ShrinkClusterDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("shrinkClusterDescription")

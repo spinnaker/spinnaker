@@ -1,7 +1,7 @@
-package com.netflix.bluespar.kato.deploy.gce.description
+package com.netflix.spinnaker.kato.deploy.gce.description
 
-import com.netflix.bluespar.kato.deploy.DeployDescription
-import com.netflix.bluespar.kato.security.gce.GoogleCredentials
+import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class BasicGoogleDeployDescription implements DeployDescription {
   String application

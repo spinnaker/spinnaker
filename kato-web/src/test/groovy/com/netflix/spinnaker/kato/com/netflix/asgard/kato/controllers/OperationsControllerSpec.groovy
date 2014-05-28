@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.com.netflix.asgard.kato.controllers
+package com.netflix.spinnaker.kato.com.netflix.asgard.kato.controllers
 
-import com.netflix.bluespar.kato.controllers.OperationsController
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.orchestration.AtomicOperationConverter
-import com.netflix.bluespar.kato.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.kato.controllers.OperationsController
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.converters
+package com.netflix.spinnaker.kato.deploy.aws.converters
 
-import com.netflix.bluespar.kato.deploy.aws.description.ResizeAsgDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.ResizeAsgAtomicOperation
-import com.netflix.bluespar.kato.security.NamedAccountCredentials
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.ResizeAsgAtomicOperation
+import com.netflix.spinnaker.kato.security.NamedAccountCredentials
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import spock.lang.Shared
 import spock.lang.Specification
 

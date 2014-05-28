@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws
+package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.ec2.model.Tag
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class AutoScalingWorkerUnitSpec extends Specification {

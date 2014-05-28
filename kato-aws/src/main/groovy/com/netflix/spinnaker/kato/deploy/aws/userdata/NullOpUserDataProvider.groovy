@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.userdata
+package com.netflix.spinnaker.kato.deploy.aws.userdata
 
 class NullOpUserDataProvider implements UserDataProvider {
   @Override

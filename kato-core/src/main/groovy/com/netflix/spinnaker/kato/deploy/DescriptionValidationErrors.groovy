@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy
+package com.netflix.spinnaker.kato.deploy
 
 import org.springframework.validation.AbstractErrors
 import org.springframework.validation.Errors

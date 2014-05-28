@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.ops
+package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.ec2.model.LaunchPermission
 import com.amazonaws.services.ec2.model.LaunchPermissionModifications
 import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.aws.description.AllowLaunchDescription
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 
 class AllowLaunchAtomicOperation implements AtomicOperation<Void> {

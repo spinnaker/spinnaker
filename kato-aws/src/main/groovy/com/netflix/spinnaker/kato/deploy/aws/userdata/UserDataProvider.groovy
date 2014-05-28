@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.userdata
+package com.netflix.spinnaker.kato.deploy.aws.userdata
 
 /**
  * Implementations of this interface will provide user data to instances during the deployment process

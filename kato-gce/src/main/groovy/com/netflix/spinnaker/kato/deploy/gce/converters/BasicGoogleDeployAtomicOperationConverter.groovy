@@ -1,9 +1,9 @@
-package com.netflix.bluespar.kato.deploy.gce.converters
+package com.netflix.spinnaker.kato.deploy.gce.converters
 
-import com.netflix.bluespar.kato.deploy.DeployAtomicOperation
-import com.netflix.bluespar.kato.deploy.gce.description.BasicGoogleDeployDescription
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
-import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
+import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("basicGoogleDeployDescription")

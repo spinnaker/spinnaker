@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.config
+package com.netflix.spinnaker.kato.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.kato.deploy.aws.userdata.NullOpUserDataProvider
-import com.netflix.bluespar.kato.deploy.aws.userdata.UserDataProvider
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
-import com.netflix.bluespar.kato.security.aws.BasicAmazonNamedAccountCredentials
-import com.netflix.bluespar.kato.security.aws.BastionCredentialsProvider
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
+import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.spinnaker.kato.security.aws.BasicAmazonNamedAccountCredentials
+import com.netflix.spinnaker.kato.security.aws.BastionCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression

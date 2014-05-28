@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.data.task
+package com.netflix.spinnaker.kato.data.task
 /**
  * A TaskRepository is an implementation that allows Task objects to be created, retrieved, and listed on demand.
  *
- * @see com.netflix.bluespar.kato.data.task.Task
+ * @see com.netflix.spinnaker.kato.data.task.Task
  * @see InMemoryTaskRepository
  * @author Dan Woods
  */

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.orchestration
+package com.netflix.spinnaker.kato.orchestration
 
 /**
  * An AtomicOperation is the most fundamental, low-level unit of work in a workflow. Implementations of this interface
- * should perform the simplest form of work possible, often described by a description object (like {@link com.netflix.bluespar.kato.deploy.DeployDescription}
+ * should perform the simplest form of work possible, often described by a description object (like {@link com.netflix.spinnaker.kato.deploy.DeployDescription}
  *
  * @param the return type of the operation
  * @author Dan Woods

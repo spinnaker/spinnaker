@@ -1,4 +1,4 @@
-package com.netflix.bluespar.kato.security.gce
+package com.netflix.spinnaker.kato.security.gce
 
 import com.google.api.services.compute.Compute
 import groovy.transform.Canonical

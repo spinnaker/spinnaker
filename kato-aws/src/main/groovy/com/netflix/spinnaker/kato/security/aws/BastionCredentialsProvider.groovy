@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.security.aws
+package com.netflix.spinnaker.kato.security.aws
 
 import com.aestasit.ssh.SshOptions
 import com.aestasit.ssh.dsl.CommandOutput

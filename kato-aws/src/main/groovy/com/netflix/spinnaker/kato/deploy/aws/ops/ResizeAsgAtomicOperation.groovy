@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.ops
+package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.aws.description.ResizeAsgDescription
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeAsgAtomicOperation implements AtomicOperation<Void> {

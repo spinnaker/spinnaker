@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.data.task
+package com.netflix.spinnaker.kato.data.task
 
 /**
  * This interface is used to represent the status of a Task for a point in time. Often should be backed by a POGO, but

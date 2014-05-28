@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws
+package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
@@ -26,9 +26,9 @@ import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.frigga.Names
 import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64

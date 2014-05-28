@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.security.aws
+package com.netflix.spinnaker.kato.security.aws
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.bluespar.amazon.security.AmazonCredentials
-import com.netflix.bluespar.kato.security.NamedAccountCredentials
+import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 
 import javax.xml.bind.annotation.XmlTransient
 

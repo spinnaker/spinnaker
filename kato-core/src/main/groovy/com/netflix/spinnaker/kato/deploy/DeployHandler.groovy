@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy
+package com.netflix.spinnaker.kato.deploy
 
 /**
  * A DeployHandler takes a parameterized description object and performs some deployment operation based off of its

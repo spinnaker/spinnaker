@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.security
+package com.netflix.spinnaker.kato.security
 
-import com.netflix.bluespar.kato.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.data.task
+package com.netflix.spinnaker.kato.data.task
 
 /**
  * This interface represents the state of a given execution. Implementations must allow for updating and completing/failing

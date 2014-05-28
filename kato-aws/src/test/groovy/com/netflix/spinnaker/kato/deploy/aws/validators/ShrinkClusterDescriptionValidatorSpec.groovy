@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig
-import com.netflix.bluespar.kato.deploy.aws.description.ShrinkClusterDescription
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
+import com.netflix.spinnaker.kato.deploy.aws.description.ShrinkClusterDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification

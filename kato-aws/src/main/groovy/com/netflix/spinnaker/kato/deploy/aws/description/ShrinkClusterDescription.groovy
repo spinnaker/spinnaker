@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.description
+package com.netflix.spinnaker.kato.deploy.aws.description
 
 class ShrinkClusterDescription extends AbstractAmazonCredentialsDescription {
   String application

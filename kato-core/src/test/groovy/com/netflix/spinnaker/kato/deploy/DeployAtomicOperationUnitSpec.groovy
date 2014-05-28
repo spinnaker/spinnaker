@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy
+package com.netflix.spinnaker.kato.deploy
 
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class DeployAtomicOperationUnitSpec extends Specification {

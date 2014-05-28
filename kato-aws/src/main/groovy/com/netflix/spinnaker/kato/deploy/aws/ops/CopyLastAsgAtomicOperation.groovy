@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.ops
+package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
@@ -22,14 +22,14 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.DeploymentResult
-import com.netflix.bluespar.kato.deploy.aws.AutoScalingWorker
-import com.netflix.bluespar.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.bluespar.kato.deploy.aws.handlers.BasicAmazonDeployHandler
-import com.netflix.bluespar.kato.orchestration.AtomicOperation
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
+import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {

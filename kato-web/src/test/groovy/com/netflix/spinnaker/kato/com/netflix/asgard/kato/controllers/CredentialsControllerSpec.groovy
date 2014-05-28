@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.com.netflix.asgard.kato.controllers
+package com.netflix.spinnaker.kato.com.netflix.asgard.kato.controllers
 
-import com.netflix.bluespar.kato.controllers.CredentialsController
-import com.netflix.bluespar.kato.security.DefaultNamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.NamedAccountCredentials
+import com.netflix.spinnaker.kato.controllers.CredentialsController
+import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders

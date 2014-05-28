@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.health
+package com.netflix.spinnaker.kato.health
 
 import com.amazonaws.AmazonServiceException
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.amazon.security.AmazonCredentials
-import com.netflix.bluespar.kato.security.NamedAccountCredentials
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.security.NamedAccountCredentials
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.HealthIndicator

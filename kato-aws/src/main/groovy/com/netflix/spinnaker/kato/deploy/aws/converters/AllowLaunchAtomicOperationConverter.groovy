@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.converters
+package com.netflix.spinnaker.kato.deploy.aws.converters
 
-import com.netflix.bluespar.kato.deploy.aws.description.AllowLaunchDescription
-import com.netflix.bluespar.kato.deploy.aws.ops.AllowLaunchAtomicOperation
-import com.netflix.bluespar.kato.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.AllowLaunchAtomicOperation
+import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("allowLaunchDescription")

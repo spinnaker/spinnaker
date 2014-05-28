@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.deploy.aws.description.AllowLaunchDescription
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.validation.Errors
 import spock.lang.Specification
 

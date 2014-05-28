@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.data.task
+package com.netflix.spinnaker.kato.data.task
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import groovy.transform.Immutable

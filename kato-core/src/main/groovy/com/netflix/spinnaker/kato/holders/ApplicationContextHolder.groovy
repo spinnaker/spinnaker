@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.holders
+package com.netflix.spinnaker.kato.holders
 
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware

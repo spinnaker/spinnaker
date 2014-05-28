@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer
+package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.amazon.security.AmazonCredentials
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
 import spock.lang.Specification
 
 class CreateAmazonLoadBalancerAtomicOperationSpec extends Specification {

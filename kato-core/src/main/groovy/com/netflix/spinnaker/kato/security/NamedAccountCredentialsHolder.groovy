@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.security
+package com.netflix.spinnaker.kato.security
 /**
- * An implementation of this interface will provide a correlation of a string name to a {@link com.netflix.bluespar.kato.security.NamedAccountCredentials}
+ * An implementation of this interface will provide a correlation of a string name to a {@link com.netflix.spinnaker.kato.security.NamedAccountCredentials}
  * object, which can be used to credentials by an arbitrary name.
  *
  * @author Dan Woods
  */
 public interface NamedAccountCredentialsHolder {
   /**
-   * Retrieves a {@link com.netflix.bluespar.kato.security.NamedAccountCredentials} object by the supplied name.
+   * Retrieves a {@link com.netflix.spinnaker.kato.security.NamedAccountCredentials} object by the supplied name.
    *
    * @param name
    * @return a NamedAccountCredentials object.

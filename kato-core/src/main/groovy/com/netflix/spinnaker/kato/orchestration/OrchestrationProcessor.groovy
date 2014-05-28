@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.orchestration
+package com.netflix.spinnaker.kato.orchestration
 
-import com.netflix.bluespar.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.Task
 
 /**
  * Implementations of this interface should perform orchestration of operations in a workflow. Often will be used in
- * conjunction with {@link com.netflix.bluespar.kato.orchestration.AtomicOperation} instances.
+ * conjunction with {@link com.netflix.spinnaker.kato.orchestration.AtomicOperation} instances.
  *
  * @author Dan Woods
  */

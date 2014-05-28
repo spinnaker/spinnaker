@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.description
+package com.netflix.spinnaker.kato.deploy.aws.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.amazoncomponents.security.AmazonCredentials
 
 abstract class AbstractAmazonCredentialsDescription {
   @JsonIgnore

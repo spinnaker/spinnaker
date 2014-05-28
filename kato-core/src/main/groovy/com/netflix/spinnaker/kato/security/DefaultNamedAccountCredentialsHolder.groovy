@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.security
+package com.netflix.spinnaker.kato.security
 
 import java.util.concurrent.ConcurrentHashMap
 

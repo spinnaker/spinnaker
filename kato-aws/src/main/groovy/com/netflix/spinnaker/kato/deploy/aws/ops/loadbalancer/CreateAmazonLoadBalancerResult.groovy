@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.ops.loadbalancer
+package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
 import groovy.transform.Immutable
 

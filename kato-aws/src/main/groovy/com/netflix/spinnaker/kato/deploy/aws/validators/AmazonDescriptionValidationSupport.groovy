@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.kato.config.KatoAWSConfig.AwsConfigurationProperties
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
+import com.netflix.spinnaker.kato.config.KatoAWSConfig.AwsConfigurationProperties
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 

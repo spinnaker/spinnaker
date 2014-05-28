@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.controllers
+package com.netflix.spinnaker.kato.controllers
 
-import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod

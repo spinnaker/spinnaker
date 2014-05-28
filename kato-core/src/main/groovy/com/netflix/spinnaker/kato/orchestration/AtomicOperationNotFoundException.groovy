@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.orchestration
+package com.netflix.spinnaker.kato.orchestration
 
 import groovy.transform.InheritConstructors
 import org.springframework.http.HttpStatus

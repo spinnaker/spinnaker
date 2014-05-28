@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy
+package com.netflix.spinnaker.kato.deploy
 /**
- * A registry of {@link com.netflix.bluespar.kato.deploy.DeployHandler} instances.
+ * A registry of {@link com.netflix.spinnaker.kato.deploy.DeployHandler} instances.
  *
  * @author Dan Woods
  */

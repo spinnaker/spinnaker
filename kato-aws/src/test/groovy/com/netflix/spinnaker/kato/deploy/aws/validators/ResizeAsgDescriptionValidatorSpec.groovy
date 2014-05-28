@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.aws.validators
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.bluespar.amazon.security.AmazonCredentials
-import com.netflix.bluespar.kato.deploy.DescriptionValidator
-import com.netflix.bluespar.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
+import com.netflix.spinnaker.kato.deploy.aws.description.ResizeAsgDescription
 import org.springframework.validation.Errors
 
 class ResizeAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {

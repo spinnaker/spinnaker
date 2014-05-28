@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.deploy.gce.handlers
+package com.netflix.spinnaker.kato.deploy.gce.handlers
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.gce.description.BasicGoogleDeployDescription
-import com.netflix.bluespar.kato.security.gce.GoogleCredentials
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import spock.lang.Ignore
 import spock.lang.Specification
 

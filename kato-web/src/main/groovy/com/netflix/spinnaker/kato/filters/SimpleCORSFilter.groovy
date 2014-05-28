@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.kato.filters
+package com.netflix.spinnaker.kato.filters
 
 import org.springframework.stereotype.Component
 

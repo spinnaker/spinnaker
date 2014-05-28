@@ -1,16 +1,16 @@
-package com.netflix.bluespar.kato.deploy.gce.handlers
+package com.netflix.spinnaker.kato.deploy.gce.handlers
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AccessConfig
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Instance
-import com.netflix.bluespar.kato.data.task.Task
-import com.netflix.bluespar.kato.data.task.TaskRepository
-import com.netflix.bluespar.kato.deploy.DeployDescription
-import com.netflix.bluespar.kato.deploy.DeployHandler
-import com.netflix.bluespar.kato.deploy.DeploymentResult
-import com.netflix.bluespar.kato.deploy.gce.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.kato.deploy.DeployHandler
+import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
 import org.springframework.stereotype.Component
 
 @Component
