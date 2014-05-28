@@ -30,7 +30,7 @@ class AllowLaunchAtomicOperationConverter extends AbstractAtomicOperationsCreden
 
   @Override
   AllowLaunchDescription convertDescription(Map input) {
-    input.crendentials = getCredentialsObject(input.credentials as String)
+    input.credentials = getCredentialsObject(input.credentials as String)
     new AllowLaunchDescription(input)
   }
 }
