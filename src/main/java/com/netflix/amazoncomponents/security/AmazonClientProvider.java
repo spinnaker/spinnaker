@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.bluespar.amazon.security;
+package com.netflix.amazoncomponents.security;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceClient;
@@ -33,7 +33,7 @@ import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.bluespar.amazon.data.AmazonObjectMapper;
+import com.netflix.amazoncomponents.data.AmazonObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
