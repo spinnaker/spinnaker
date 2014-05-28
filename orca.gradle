@@ -8,7 +8,7 @@ allprojects {
     }
 
     ext {
-        final GROOVY_VERSION = "2.3.0"
+        final GROOVY_VERSION = "2.3.2"
         final SPRING_VERSION = "4.0.4.RELEASE"
         final BATCH_VERSION = "3.0.0.RC1"
         final GUAVA_VERSION = "17.0"
@@ -28,8 +28,12 @@ allprojects {
             retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$RETROFIT_VERSION"),
             rxJava         : dependencies.create("com.netflix.rxjava:rxjava-core:$RXJAVA_VERSION"),
             slf4j          : dependencies.create("org.slf4j:jcl-over-slf4j:$SLF4J_VERSION"),
-            spock          : dependencies.create("org.spockframework:spock-core:$SPOCK_VERSION"),
-            spockSpring    : dependencies.create("org.spockframework:spock-spring:$SPOCK_VERSION"),
+            spock          : dependencies.create("org.spockframework:spock-core:$SPOCK_VERSION") {
+                exclude module: "groovy-all"
+            },
+            spockSpring    : dependencies.create("org.spockframework:spock-spring:$SPOCK_VERSION") {
+                exclude module: "groovy-all"
+            },
             springBatch    : dependencies.create("org.springframework.batch:spring-batch-core:$BATCH_VERSION"),
             springBatchTest: dependencies.create("org.springframework.batch:spring-batch-test:$BATCH_VERSION"),
             springTest     : dependencies.create("org.springframework:spring-test:$SPRING_VERSION")
