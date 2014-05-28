@@ -18,8 +18,8 @@ package com.netflix.spinnaker.oort.applications.aws
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.oort.applications.Application
 import com.netflix.spinnaker.oort.applications.ApplicationProvider
 import com.netflix.frigga.Names

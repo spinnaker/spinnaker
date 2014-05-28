@@ -22,8 +22,8 @@ import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequ
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.Image
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.oort.clusters.Cluster
 import com.netflix.spinnaker.oort.clusters.ClusterProvider
 import com.netflix.spinnaker.oort.clusters.ClusterSummary

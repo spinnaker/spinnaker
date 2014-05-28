@@ -19,8 +19,8 @@ package com.netflix.spinnaker.oort.config
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
-import com.netflix.bluespar.amazon.security.AmazonClientProvider
-import com.netflix.bluespar.amazon.security.AmazonCredentials
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.oort.remoting.AggregateRemoteResource
 import com.netflix.spinnaker.oort.remoting.DiscoverableRemoteResource
 import com.netflix.spinnaker.oort.remoting.RemoteResource
