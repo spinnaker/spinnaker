@@ -23,10 +23,10 @@ class SmokeSpecConfiguration {
     private JobBuilderFactory jobs
 
     @Autowired
-    StepBuilderFactory steps
+    private StepBuilderFactory steps
 
     @Autowired
-    BakeryService bakery
+    private BakeryService bakery
 
     @Bean
     Job job() {
