@@ -17,7 +17,7 @@
 apply plugin: "groovy"
 
 dependencies {
-  groovy "org.codehaus.groovy:groovy-all:2.3.0"
+  groovy "org.codehaus.groovy:groovy-all:2.3.2"
 }
 
 configurations {

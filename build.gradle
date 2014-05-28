@@ -13,27 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
+// Establish version and status
+ext.githubProjectName = rootProject.name
+group = "com.netflix.${githubProjectName}"
 
 buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath 'com.netflix.bluespar:bluespar-gradle-project:1.9.2'
-  }
+    repositories {
+        mavenLocal()
+        mavenCentral() // maven { url 'http://jcenter.bintray.com' }
+    }
+    apply from: file('gradle/buildscript.gradle'), to: buildscript 
 }
 
-apply plugin: 'bluespar-gradle-project'
-apply from: 'gradle/javaModule.gradle'
-apply from: 'gradle/idea.gradle'
-
-group = "com.netflix.bluespar.amazon"
-
-repositories {
-  jcenter()
+allprojects {
+    repositories { 
+        mavenLocal()
+        mavenCentral() // maven { url: 'http://jcenter.bintray.com' }
+    }
 }
+
+apply from: file('gradle/javaModule.gradle')
+apply from: file('gradle/idea.gradle')
+apply from: file('gradle/convention.gradle')
+apply from: file('gradle/maven.gradle')
+apply from: file('gradle/check.gradle')
+apply from: file('gradle/license.gradle')
+apply from: file('gradle/release.gradle')
 
 dependencies {
   compile 'com.fasterxml.jackson.core:jackson-databind:2.3.3'
@@ -41,3 +46,4 @@ dependencies {
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
   testCompile 'cglib:cglib-nodep:3.1'
 }
+
