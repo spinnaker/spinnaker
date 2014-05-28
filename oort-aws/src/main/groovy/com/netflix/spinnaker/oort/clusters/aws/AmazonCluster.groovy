@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":oort-core")
-  compile "com.netflix.amazoncomponents:amazoncomponents:0.7"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile 'com.netflix.frigga:frigga:0.11'
-  compile "com.amazonaws:aws-java-sdk:1.7.9"
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+package com.netflix.spinnaker.oort.clusters.aws
+
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.oort.clusters.Cluster
+import com.netflix.spinnaker.oort.remoting.AggregateRemoteResource
+import org.springframework.beans.factory.annotation.Autowired
+
+class AmazonCluster implements Cluster {
+  @Autowired
+  @JsonIgnore
+  AggregateRemoteResource edda
+
+  String name
+  String zone
+  String type = "Amazon"
+  List<AmazonServerGroup> serverGroups
 }

@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":oort-core")
-  compile "com.netflix.amazoncomponents:amazoncomponents:0.7"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile 'com.netflix.frigga:frigga:0.11'
-  compile "com.amazonaws:aws-java-sdk:1.7.9"
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+package com.netflix.spinnaker.oort.spring
+
+import org.springframework.beans.BeansException
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.springframework.stereotype.Component
+
+@Component
+class ApplicationContextHolder implements ApplicationContextAware {
+  static ApplicationContext applicationContext
+
+  @Override
+  void setApplicationContext(ApplicationContext ctx) throws BeansException {
+    applicationContext = ctx
+  }
 }

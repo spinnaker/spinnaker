@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":oort-core")
-  compile "com.netflix.amazoncomponents:amazoncomponents:0.7"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-  compile 'com.netflix.frigga:frigga:0.11'
-  compile "com.amazonaws:aws-java-sdk:1.7.9"
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+package com.netflix.spinnaker.oort.clusters
+
+interface ClusterProvider {
+  Map<String, List<Cluster>> get(String application)
+  Map<String, List<Cluster>> getSummary(String application)
+  List<Cluster> getByName(String application, String clusterName)
+  List<Cluster> getByNameAndZone(String application, String clusterName, String zoneName)
 }
