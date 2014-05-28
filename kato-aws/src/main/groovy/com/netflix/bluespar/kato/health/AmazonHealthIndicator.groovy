@@ -21,7 +21,7 @@ import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonNamedAccountCredentials
+import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.HealthIndicator
@@ -42,7 +42,7 @@ class AmazonHealthIndicator implements HealthIndicator<String> {
   String health() {
     List<NamedAccountCredentials> amazonCredentials = namedAccountCredentialsHolder.accountNames.collect {
       namedAccountCredentialsHolder.getCredentials(it)
-    }.findAll { it instanceof AmazonNamedAccountCredentials }
+    }.findAll { it instanceof AmazonRoleAccountCredentials }
     if (!amazonCredentials) {
       throw new AmazonCredentialsNotFoundException()
     }

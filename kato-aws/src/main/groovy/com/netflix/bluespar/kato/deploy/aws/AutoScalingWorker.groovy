@@ -78,6 +78,7 @@ class AutoScalingWorker {
   private String ami
   private String instanceType
   private String iamRole
+  private String keyPair
   private SubnetType subnetType
   private List<String> loadBalancers
   private List<String> securityGroups
@@ -287,7 +288,7 @@ class AutoScalingWorker {
       .withUserData(userData)
       .withInstanceType(instanceType)
       .withSecurityGroups(securityGroups)
-      .withKeyName("nf-test-keypair-a")
+      .withKeyName(keyPair)
     autoScaling.createLaunchConfiguration(request)
 
     name

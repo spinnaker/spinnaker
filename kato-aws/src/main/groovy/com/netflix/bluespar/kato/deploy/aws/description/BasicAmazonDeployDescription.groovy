@@ -26,7 +26,8 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String stack
   String instanceType
   String subnetType
-  String iamRole = "BaseIAMRole"
+  String iamRole
+  String keyPair
   List<String> loadBalancers
   List<String> securityGroups
   Map<String, List<String>> availabilityZones = [:]

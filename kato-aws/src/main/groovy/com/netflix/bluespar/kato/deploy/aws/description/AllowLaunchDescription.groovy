@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-repositories {
-  mavenLocal()
-  maven { url "http://dl.bintray.com/bluespar/bluespar" }
-}
+package com.netflix.bluespar.kato.deploy.aws.description
 
-dependencies {
-  compile project(":kato-core")
-  compile commonDependencies.frigga
-  compile commonDependencies.springBootActuator
-  compile 'com.netflix.bluespar.amazon:amazoncomponents:0.3'
-  compile 'joda-time:joda-time:2.3'
-  compile 'com.amazonaws:aws-java-sdk:1.7.2'
-  compile 'org.apache.httpcomponents:httpclient:4.3.3'
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
-  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
-
-  testCompile commonDependencies.springBootTest
+class AllowLaunchDescription extends AbstractAmazonCredentialsDescription {
+  String account
+  String amiName
+  String region
 }

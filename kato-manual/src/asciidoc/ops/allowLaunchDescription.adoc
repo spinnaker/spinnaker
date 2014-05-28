@@ -1,0 +1,33 @@
+===== Allow Launch Description
+
+====== Key
+
++allowLaunchDescription+
+
+====== Description
+
+This description provides the inputs necessary to allow launch permissions of an AMI from another account via a supplied accountId.
+
+====== Example Request Body
+[source,javascript]
+----
+[{
+    "allowLaunchDescription": {
+        "amiName": "ami-123456",
+        "accountId": "1212121212",
+        "region": "us-west-1,
+        "credentials": "test"
+    }
+}]
+----
+
+====== Description of inputs
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Key               | Type   | Required | Value
+|amiName           | string | true     | The name of the AMI that exists in the target account, as defined by "credentials".
+|accountId         | string | true     | The ID of the account for which launch permissions of the specified AMI should be granted.
+|region            | string | true     | The region in which the specified AMI lives.
+|credentials       | string | true     | The named account credentials that are to be used for this operation.
+|======================

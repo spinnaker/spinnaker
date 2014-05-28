@@ -17,6 +17,7 @@
 package com.netflix.bluespar.kato.deploy.aws.handlers
 
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
+import com.netflix.bluespar.kato.config.KatoAWSConfig.AwsConfigurationProperties
 import com.netflix.bluespar.kato.data.task.Task
 import com.netflix.bluespar.kato.data.task.TaskRepository
 import com.netflix.bluespar.kato.deploy.DeployDescription
@@ -42,6 +43,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   @Autowired
   AmazonClientProvider amazonClientProvider
+
+  @Autowired
+  AwsConfigurationProperties awsConfigurationProperties
 
   @Override
   boolean handles(DeployDescription description) {
@@ -83,7 +87,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         maxInstances: description.capacity.max,
         desiredInstances: description.capacity.desired,
         securityGroups: description.securityGroups,
-        iamRole: description.iamRole,
+        iamRole: description.iamRole ?: awsConfigurationProperties.defaults.iamRole,
+        keyPair: description.keyPair ?: awsConfigurationProperties.defaults.keyPair,
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
         subnetType: subnetType,

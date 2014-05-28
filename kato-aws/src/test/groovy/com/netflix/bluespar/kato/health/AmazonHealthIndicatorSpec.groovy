@@ -23,7 +23,7 @@ import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonNamedAccountCredentials
+import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
 import org.springframework.http.HttpStatus
@@ -54,7 +54,7 @@ class AmazonHealthIndicatorSpec extends Specification {
     setup:
     def holder = Mock(NamedAccountCredentialsHolder)
     holder.getAccountNames() >> ["foo"]
-    def creds = Mock(AmazonNamedAccountCredentials)
+    def creds = Mock(AmazonRoleAccountCredentials)
     creds.getCredentials() >> Mock(AWSCredentials)
     holder.getCredentials("foo") >> creds
     def mockEc2 = Mock(AmazonEC2)
@@ -75,7 +75,7 @@ class AmazonHealthIndicatorSpec extends Specification {
     setup:
     def holder = Mock(NamedAccountCredentialsHolder)
     holder.getAccountNames() >> ["foo"]
-    def creds = Mock(AmazonNamedAccountCredentials)
+    def creds = Mock(AmazonRoleAccountCredentials)
     creds.getCredentials() >> Mock(AWSCredentials)
     holder.getCredentials("foo") >> creds
     def mockEc2 = Mock(AmazonEC2)

@@ -21,9 +21,12 @@ import com.netflix.bluespar.amazon.security.AmazonClientProvider
 import com.netflix.bluespar.kato.deploy.aws.userdata.NullOpUserDataProvider
 import com.netflix.bluespar.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.bluespar.kato.security.NamedAccountCredentialsHolder
-import com.netflix.bluespar.kato.security.aws.AmazonNamedAccountCredentials
+import com.netflix.bluespar.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.bluespar.kato.security.aws.BasicAmazonNamedAccountCredentials
+import com.netflix.bluespar.kato.security.aws.BastionCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -47,6 +50,46 @@ class KatoAWSConfig {
   }
 
   @Component
+  @ConfigurationProperties("bastion")
+  static class BastionConfiguration {
+    Boolean enabled
+    String host
+    String user
+    Integer port
+    String proxyCluster
+    String proxyRegion
+    String iamRole
+    String assumeRole
+  }
+
+  @Configuration
+  @ConditionalOnExpression('${bastion.enabled:false}')
+  static class BastionCredentialsInitializer {
+    @Value('${default.account.env:default}')
+    String defaultEnv
+
+    @Autowired
+    NamedAccountCredentialsHolder namedAccountCredentialsHolder
+
+    @Autowired
+    BastionConfiguration bastionConfiguration
+
+    @Autowired
+    AwsConfigurationProperties awsConfigurationProperties
+
+    @PostConstruct
+    void init() {
+      def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
+        bastionConfiguration.proxyRegion, bastionConfiguration.iamRole)
+      for (account in awsConfigurationProperties.accounts) {
+        namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, bastionConfiguration.assumeRole))
+      }
+      provider
+    }
+  }
+
+  @Component
+  @ConditionalOnExpression('${!bastion.enabled:false}')
   static class AmazonCredentialsInitializer {
     @Autowired
     AWSCredentialsProvider awsCredentialsProvider
@@ -59,7 +102,7 @@ class KatoAWSConfig {
 
     @PostConstruct
     void init() {
-      namedAccountCredentialsHolder.put(defaultEnv, new AmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv))
+      namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv))
     }
   }
 
@@ -68,10 +111,16 @@ class KatoAWSConfig {
     String keyPair
   }
 
+  static class ManagedAccount {
+    String name
+    String accountId
+  }
+
   @Component
-  @ConfigurationProperties(value = "aws", locations = "classpath:aws.yml")
+  @ConfigurationProperties("aws")
   static class AwsConfigurationProperties {
     List<String> regions
     DeployDefaults defaults = new DeployDefaults()
+    List<ManagedAccount> accounts
   }
 }

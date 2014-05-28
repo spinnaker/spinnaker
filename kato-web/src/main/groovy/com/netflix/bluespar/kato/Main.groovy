@@ -30,6 +30,10 @@ import org.springframework.context.annotation.Configuration
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static void main(_) {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/internal.yml")
+    if (internalConfig.exists()) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
+    }
     SpringApplication.run this, [] as String[]
   }
 

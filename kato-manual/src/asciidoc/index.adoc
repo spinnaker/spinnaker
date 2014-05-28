@@ -123,6 +123,8 @@ include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/destroyAsgDescription.adoc[]
 - - -
+include::src/asciidoc/ops/allowLaunchDescription.adoc[]
+- - -
 
 
 ==== Google Operations

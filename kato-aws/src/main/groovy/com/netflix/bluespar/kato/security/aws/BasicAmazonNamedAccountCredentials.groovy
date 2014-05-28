@@ -20,17 +20,24 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.bluespar.amazon.security.AmazonCredentials
 import com.netflix.bluespar.kato.security.NamedAccountCredentials
-import org.springframework.data.annotation.Transient
 
 import javax.xml.bind.annotation.XmlTransient
 
-class AmazonNamedAccountCredentials implements NamedAccountCredentials<AmazonCredentials> {
+class BasicAmazonNamedAccountCredentials implements NamedAccountCredentials<AmazonCredentials> {
+
   @JsonIgnore
   @XmlTransient
-  @Transient
-  final AmazonCredentials credentials
+  private final AWSCredentialsProvider provider
+  private final String environment
 
-  AmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment) {
-    this.credentials = new AmazonCredentials(provider.credentials, environment)
+  BasicAmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment) {
+    this.provider = provider
+    this.environment = environment
+  }
+
+  @JsonIgnore
+  @XmlTransient
+  public AmazonCredentials getCredentials() {
+    new AmazonCredentials(provider.credentials, environment)
   }
 }
