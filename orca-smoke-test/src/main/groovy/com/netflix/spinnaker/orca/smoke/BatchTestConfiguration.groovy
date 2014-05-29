@@ -2,7 +2,14 @@ package com.netflix.spinnaker.orca.smoke
 
 import com.jolbox.bonecp.BoneCPDataSource
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
+import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.batch.core.explore.support.JobExplorerFactoryBean
+import org.springframework.batch.core.launch.JobLauncher
+import org.springframework.batch.core.launch.JobOperator
+import org.springframework.batch.core.launch.support.SimpleJobOperator
+import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -40,5 +47,20 @@ class BatchTestConfiguration {
         DatabasePopulatorUtils.execute(populator, ds)
 
         return ds
+    }
+
+    @Bean
+    JobExplorerFactoryBean jobExplorerFactoryBean(DataSource dataSource) {
+        new JobExplorerFactoryBean(dataSource: dataSource)
+    }
+
+    @Bean
+    JobOperator jobOperator(JobLauncher jobLauncher, JobRepository jobRepository, JobExplorer jobExplorer, ListableJobLocator jobRegistry) {
+        def jobOperator = new SimpleJobOperator()
+        jobOperator.jobLauncher = jobLauncher
+        jobOperator.jobRepository = jobRepository
+        jobOperator.jobExplorer = jobExplorer
+        jobOperator.jobRegistry = jobRegistry
+        return jobOperator
     }
 }

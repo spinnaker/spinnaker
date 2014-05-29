@@ -66,10 +66,11 @@ class TaskTaskletAdapterSpec extends Specification {
         stepContribution.exitStatus == exitStatus
 
         where:
-        taskResultStatus          | repeatStatus             | exitStatus
-        SUCCEEDED                 | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-        TaskResult.Status.FAILED  | RepeatStatus.FINISHED    | ExitStatus.FAILED
-        TaskResult.Status.RUNNING | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+        taskResultStatus            | repeatStatus             | exitStatus
+        SUCCEEDED                   | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
+        TaskResult.Status.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
+        TaskResult.Status.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+        TaskResult.Status.SUSPENDED | RepeatStatus.FINISHED    | ExitStatus.STOPPED
     }
 
     @Unroll

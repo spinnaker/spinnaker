@@ -17,6 +17,8 @@ class BatchStepStatus {
         switch (result.status) {
             case TaskResult.Status.SUCCEEDED:
                 return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.COMPLETED)
+            case TaskResult.Status.SUSPENDED:
+                return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED)
             case TaskResult.Status.FAILED:
                 return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.FAILED)
             case TaskResult.Status.RUNNING:
