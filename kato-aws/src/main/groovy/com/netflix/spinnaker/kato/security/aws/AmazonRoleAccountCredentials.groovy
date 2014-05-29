@@ -32,13 +32,15 @@ class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCred
   private final String environment
   private final String role
   private final String edda
+  final List<String> regions
 
-  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda) {
+  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda, List<String> regions) {
     this.provider = provider
     this.accountId = accountId
     this.environment = environment
     this.role = role
     this.edda = edda
+    this.regions = regions
   }
 
   @JsonIgnore

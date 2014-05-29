@@ -19,17 +19,28 @@ package com.netflix.spinnaker.kato.deploy.aws.validators
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
 class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
+  private static final ACCOUNT_NAME = "auto"
 
   @Shared
   BasicAmazonDeployDescriptionValidator validator
 
+  @Shared
+  AmazonCredentials amazonCredentials = new AmazonCredentials(null, ACCOUNT_NAME)
+
   void setupSpec() {
-    validator = new BasicAmazonDeployDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"]))
+    validator = new BasicAmazonDeployDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1", "us-west-2"]))
+    def credentialsHolder = new DefaultNamedAccountCredentialsHolder()
+    def credentials = Mock(AmazonRoleAccountCredentials)
+    credentials.getRegions() >> ["us-west-1"]
+    credentialsHolder.put(ACCOUNT_NAME, credentials)
+    validator.namedAccountCredentialsHolder = credentialsHolder
   }
 
   void "null input fails valiidation"() {
@@ -46,7 +57,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
 
   void "invalid capacity fails validation"() {
     setup:
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: Mock(AmazonCredentials), availabilityZones: ["us-west-1": []])
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []])
     description.capacity.min = 5
     description.capacity.max = 3
     def errors = Mock(Errors)
@@ -69,7 +80,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
 
   void "unconfigured region fails validation"() {
     setup:
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: Mock(AmazonCredentials), availabilityZones: ["eu-west-5": []])
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["eu-west-5": []])
     def errors = Mock(Errors)
 
     when:
@@ -77,5 +88,17 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
 
     then:
     1 * errors.rejectValue("availabilityZones", _, ["eu-west-5"], _)
+  }
+
+  void "unconfigured account region fails validation"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-2": []])
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("availabilityZones", _, ["us-west-2"], _)
   }
 }

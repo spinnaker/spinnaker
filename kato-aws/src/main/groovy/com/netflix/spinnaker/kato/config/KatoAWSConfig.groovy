@@ -58,16 +58,11 @@ class KatoAWSConfig {
     Integer port
     String proxyCluster
     String proxyRegion
-    String iamRole
-    String assumeRole
   }
 
   @Configuration
   @ConditionalOnExpression('${bastion.enabled:false}')
   static class BastionCredentialsInitializer {
-    @Value('${default.account.env:default}')
-    String defaultEnv
-
     @Autowired
     NamedAccountCredentialsHolder namedAccountCredentialsHolder
 
@@ -80,15 +75,12 @@ class KatoAWSConfig {
     @PostConstruct
     void init() {
       def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
-        bastionConfiguration.proxyRegion, bastionConfiguration.iamRole)
-      for (account in awsConfigurationProperties.accounts) {
-        namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, bastionConfiguration.assumeRole, account.edda))
-      }
-      provider
+        bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
+      configureAccount provider, namedAccountCredentialsHolder, awsConfigurationProperties
     }
   }
 
-  @Component
+  @Configuration
   @ConditionalOnExpression('${!bastion.enabled:false}')
   static class AmazonCredentialsInitializer {
     @Autowired
@@ -97,12 +89,25 @@ class KatoAWSConfig {
     @Autowired
     NamedAccountCredentialsHolder namedAccountCredentialsHolder
 
+    @Autowired
+    AwsConfigurationProperties awsConfigurationProperties
+
     @Value('${default.account.env:default}')
     String defaultEnv
 
     @PostConstruct
     void init() {
-      namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, null))
+      if (!awsConfigurationProperties.accounts) {
+        namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, null))
+      } else {
+        configureAccount awsCredentialsProvider, namedAccountCredentialsHolder, awsConfigurationProperties
+      }
+    }
+  }
+
+  private static void configureAccount(AWSCredentialsProvider provider, NamedAccountCredentialsHolder namedAccountCredentialsHolder, AwsConfigurationProperties awsConfigurationProperties) {
+    for (account in awsConfigurationProperties.accounts) {
+      namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, awsConfigurationProperties.assumeRole, account.edda, account.regions))
     }
   }
 
@@ -115,6 +120,7 @@ class KatoAWSConfig {
     String name
     String accountId
     String edda
+    List<String> regions
   }
 
   @Component
@@ -122,6 +128,11 @@ class KatoAWSConfig {
   static class AwsConfigurationProperties {
     List<String> regions
     DeployDefaults defaults = new DeployDefaults()
+    // This is the IAM Role that Kato will be deployed under
+    String accountIamRole
+    // This is the IAM Role that Kato will assume within ManagedAccounts
+    String assumeRole
+    // These are accounts that have been configured with permissions under the above assumeRole for Kato to perform operations
     List<ManagedAccount> accounts
   }
 }

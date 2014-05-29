@@ -17,15 +17,27 @@
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
+import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("basicAmazonDeployDescriptionValidator")
 class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationSupport<BasicAmazonDeployDescription> {
+  @Autowired
+  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+
   @Override
   void validate(List priorDescriptions, BasicAmazonDeployDescription description, Errors errors) {
+    def namedAccountCredentials = null
+    def roleBasedCredentials = false
+
     if (!description.credentials) {
       errors.rejectValue "credentials", "basicAmazonDeployDescription.credentials.empty"
+    } else {
+      namedAccountCredentials = namedAccountCredentialsHolder.getCredentials(description?.credentials?.environment)
+      roleBasedCredentials = namedAccountCredentials instanceof AmazonRoleAccountCredentials
     }
     if (!description.application) {
       errors.rejectValue "application", "basicAmazonDeployDescription.application.empty"
@@ -40,7 +52,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.empty"
     }
     for (String region : description.availabilityZones.keySet()) {
-      if (!awsConfigurationProperties.regions.contains(region)) {
+      if (!awsConfigurationProperties.regions?.contains(region) || (roleBasedCredentials && !((AmazonRoleAccountCredentials)namedAccountCredentials).regions?.contains(region))) {
         errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
       }
     }
