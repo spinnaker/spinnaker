@@ -29,9 +29,12 @@ import org.springframework.context.annotation.Configuration
 @ComponentScan("com.netflix.spinnaker.kato")
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
-  static void main(_) {
+  static {
     imposeInternalFileConfig()
     imposeInternalClasspathConfig()
+  }
+
+  static void main(_) {
     SpringApplication.run this, [] as String[]
   }
 
