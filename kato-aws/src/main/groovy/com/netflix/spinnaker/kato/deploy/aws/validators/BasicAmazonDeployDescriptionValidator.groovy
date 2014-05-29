@@ -48,8 +48,11 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     if (!description.instanceType) {
       errors.rejectValue "instanceType", "basicAmazonDeployDescription.instanceType.empty"
     }
-    if (!description.availabilityZones && !description.subnetType) {
+    if (!description.availabilityZones) {
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.empty"
+    }
+    if (!description.availabilityZones.values()?.flatten() && !description.subnetType) {
+      errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.or.subnetType.not.supplied"
     }
     for (String region : description.availabilityZones.keySet()) {
       if (!awsConfigurationProperties.regions?.contains(region) || (roleBasedCredentials && !((AmazonRoleAccountCredentials)namedAccountCredentials).regions?.contains(region))) {
