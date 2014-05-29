@@ -55,6 +55,7 @@ subprojects { project ->
   }
 
   repositories {
+    mavenLocal()
     jcenter()
     mavenCentral()
     maven { url 'http://repo.spring.io/repo' }
