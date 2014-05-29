@@ -4,6 +4,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.job.builder.JobBuilder
 
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUSPENDED
@@ -51,7 +52,8 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
         1 * finalTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
     }
 
-    Job createJob() {
+    @Override
+    protected Job configureJob(JobBuilder jobBuilder) {
         def step1 = steps.get("PreInterventionStep")
             .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
             .build()
@@ -61,8 +63,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
         def step3 = steps.get("FinalStep")
             .tasklet(TaskTaskletAdapter.decorate(finalTask))
             .build()
-        jobs.get(jobName)
-            .start(step1)
+        jobBuilder.start(step1)
             .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
             .from(step1)
             .on(ExitStatus.COMPLETED.exitCode).to(step2)

@@ -4,6 +4,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.job.builder.JobBuilder
 
 import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
@@ -58,15 +59,14 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
     }
 
     @Override
-    Job createJob() {
+    protected Job configureJob(JobBuilder jobBuilder) {
         def step1 = steps.get("StartStep")
             .tasklet(TaskTaskletAdapter.decorate(startTask))
             .build()
         def step2 = steps.get("MonitorStep")
             .tasklet(TaskTaskletAdapter.decorate(monitorTask))
             .build()
-        jobs.get(jobName)
-            .start(step1)
+        jobBuilder.start(step1)
             .next(step2)
             .build()
     }
