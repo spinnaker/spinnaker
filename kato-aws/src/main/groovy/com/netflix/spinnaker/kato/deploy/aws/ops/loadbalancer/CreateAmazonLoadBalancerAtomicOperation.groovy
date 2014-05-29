@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
+import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
@@ -121,17 +123,24 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
 
   List<String> getSubnetIds(String subnetType, AmazonEC2 ec2) {
     DescribeSubnetsResult result = ec2.describeSubnets()
-    def mySubnets = []
+    List<Subnet> mySubnets = []
     for (subnet in result.subnets) {
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
         if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_PURPOSE_TYPE) {
-          mySubnets << subnet.subnetId
+          mySubnets << subnet
         }
       }
     }
-    mySubnets
+    def vpcId = description.vpcId
+    def vpcs = mySubnets.collect { it.vpcId }.unique { a, b -> a <=> b }
+    // If no VPC id is provided with the description, choose the first one.
+    // TODO: This may not be what we want...
+    if (vpcs.size() > 1) {
+      vpcId = vpcs[0]
+    }
+    mySubnets.findAll { it.vpcId == vpcId }?.subnetId
   }
 
   List<String> getSecurityGroupIds(AmazonEC2 ec2, String... names) {

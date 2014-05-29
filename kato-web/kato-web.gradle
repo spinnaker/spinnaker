@@ -31,6 +31,8 @@ configurations.all {
 }
 
 dependencies {
+  compile "com.netflix.spinnaker.kato:kato-perforce-udp:1.3.16"
+  compile 'com.perforce:p4java:2010.1.269249'
   compile project(":kato-manual")
   compile project(":kato-core")
   compile project(":kato-aws")

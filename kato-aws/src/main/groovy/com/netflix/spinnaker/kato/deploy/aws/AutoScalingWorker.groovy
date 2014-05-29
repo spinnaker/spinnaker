@@ -25,6 +25,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
+import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -79,6 +80,7 @@ class AutoScalingWorker {
   private String instanceType
   private String iamRole
   private String keyPair
+  private String vpcId
   private SubnetType subnetType
   private List<String> loadBalancers
   private List<String> securityGroups
@@ -168,18 +170,24 @@ class AutoScalingWorker {
    */
   List<String> getSubnetIds() {
     def response = amazonEC2.describeSubnets()
-    def subnets = []
+    List<Subnet> subnets = []
     response.subnets.each { subnet ->
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         def metadata = objectMapper.readValue metadataJson, Map
         if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
           && metadata.target == SUBNET_PURPOSE_TYPE) {
-          subnets << subnet.subnetId
+          subnets << subnet
         }
       }
     }
-    subnets
+    def vpcs = subnets.collect { it.vpcId }.unique { a, b -> a <=> b }
+    // If no VPC id is provided with the description, choose the first one.
+    // TODO: This may not be what we want...
+    if (vpcs.size() > 1) {
+      vpcId = vpcs[0]
+    }
+    subnets.findAll { it.vpcId == vpcId }?.subnetId
   }
 
   /**

@@ -91,6 +91,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         keyPair: description.keyPair ?: awsConfigurationProperties.defaults.keyPair,
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
+        vpcId: description.vpcId,
         subnetType: subnetType,
         amazonEC2: amazonEC2,
         autoScaling: autoScaling,

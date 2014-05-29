@@ -25,6 +25,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String amiName
   String stack
   String instanceType
+  String vpcId
   String subnetType
   String iamRole
   String keyPair

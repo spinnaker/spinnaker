@@ -56,6 +56,7 @@ subprojects { project ->
 
   repositories {
     mavenLocal()
+    maven { url "http://artifacts.netflix.com/build-gradle" }
     jcenter()
     mavenCentral()
     maven { url 'http://repo.spring.io/repo' }
