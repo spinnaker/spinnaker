@@ -5,6 +5,7 @@ import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
 
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUSPENDED
@@ -50,6 +51,25 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
         then:
         1 * postInterventionTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
         1 * finalTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    }
+
+    def "a completed job cannot be restarted"() {
+        given:
+        preInterventionTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+        postInterventionTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+        finalTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+        and:
+        def jobExecution = launchJob()
+
+        expect:
+        jobExecution.exitStatus == ExitStatus.COMPLETED
+
+        when:
+        resumeJob jobExecution
+
+        then:
+        thrown JobInstanceAlreadyCompleteException
     }
 
     @Override
