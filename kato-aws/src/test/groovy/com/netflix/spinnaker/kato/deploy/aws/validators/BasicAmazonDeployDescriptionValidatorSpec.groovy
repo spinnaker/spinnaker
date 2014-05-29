@@ -52,7 +52,12 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    5 * errors.rejectValue(_, _)
+    1 * errors.rejectValue('availabilityZones', _)
+    1 * errors.rejectValue('availabilityZones', _)
+    1 * errors.rejectValue('instanceType', _)
+    1 * errors.rejectValue('amiName', _)
+    1 * errors.rejectValue('application', _)
+    1 * errors.rejectValue('credentials', _)
   }
 
   void "invalid capacity fails validation"() {
