@@ -24,10 +24,18 @@ import com.amazonaws.auth.AWSCredentials;
 public class AmazonCredentials {
   private final AWSCredentials credentials;
   private final String environment;
+  private final String edda;
 
   public AmazonCredentials(AWSCredentials credentials, String environment) {
     this.credentials = credentials;
     this.environment = environment;
+    this.edda = null;
+  }
+
+  public AmazonCredentials(AWSCredentials credentials, String environment, String edda) {
+    this.credentials = credentials;
+    this.environment = environment;
+    this.edda = edda;
   }
 
   public AWSCredentials getCredentials() {
@@ -36,5 +44,13 @@ public class AmazonCredentials {
 
   public String getEnvironment() {
     return environment;
+  }
+
+  public String getEdda() {
+    return edda;
+  }
+
+  public boolean isEddaConfigured() {
+    return this.edda != null && this.edda.length() > 0;
   }
 }

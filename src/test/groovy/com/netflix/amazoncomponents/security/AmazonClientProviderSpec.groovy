@@ -22,8 +22,6 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse
 import org.apache.http.client.HttpClient
@@ -35,10 +33,10 @@ class AmazonClientProviderSpec extends Specification {
   void "client proxies to edda when available"() {
     setup:
     def mockHttp = Mock(HttpClient)
-    def provider = new AmazonClientProvider("edda", mockHttp)
+    def provider = new AmazonClientProvider(mockHttp)
 
     when:
-    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
+    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar", "edda"), "us-east-1")
     client.describeAutoScalingGroups()
 
     then:
@@ -56,10 +54,10 @@ class AmazonClientProviderSpec extends Specification {
     setup:
     def asgName = "foo"
     def mockHttp = Mock(HttpClient)
-    def provider = new AmazonClientProvider("edda", mockHttp)
+    def provider = new AmazonClientProvider(mockHttp)
 
     when:
-    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
+    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar", "edda"), "us-east-1")
     client.describeAutoScalingGroups()
 
     then:
@@ -90,39 +88,41 @@ class AmazonClientProviderSpec extends Specification {
 
   void "client goes directly to amazon when edda is unavailable"() {
     setup:
-    def provider = new AmazonClientProvider()
-    def count = 0
-    AmazonEC2.metaClass.describeSecurityGroups = { count++ }
+    def provider = Spy(AmazonClientProvider)
+    def ec2 = Mock(AmazonEC2)
+    provider.getAmazonEC2(_, _) >> ec2
 
     when:
     def client = provider.getAmazonEC2(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
     client.describeSecurityGroups()
 
     then:
-    count
+    client.is ec2
+    1 * ec2.describeSecurityGroups()
   }
 
   void "unmapped describe calls fall back to aws client"() {
     setup:
-    def provider = new AmazonClientProvider("edda")
-    def count = 0
-    AmazonEC2.metaClass.describeAccountAttributes = { count++ }
+    def provider = Spy(AmazonClientProvider)
+    def ec2 = Mock(AmazonEC2)
+    provider.getAmazonEC2(_, _) >> ec2
 
     when:
-    def client = provider.getAmazonEC2(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
+    def client = provider.getAmazonEC2(new AmazonCredentials(Mock(AWSCredentials), "bar", "foo"), "us-east-1")
     client.describeAccountAttributes()
 
     then:
-    count
+    client.is ec2
+    1 * ec2.describeAccountAttributes()
   }
 
-  void "describe call with no keys calls for the full list"() {
+  void "describe call with no collection ids calls for the full list when edda is configured"() {
     setup:
     def mockHttp = Mock(HttpClient)
-    def provider = new AmazonClientProvider("edda", mockHttp)
+    def provider = new AmazonClientProvider(mockHttp)
 
     when:
-    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar"), "us-east-1")
+    def client = provider.getAutoScaling(new AmazonCredentials(Mock(AWSCredentials), "bar", "edda"), "us-east-1")
     client.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest())
 
     then:

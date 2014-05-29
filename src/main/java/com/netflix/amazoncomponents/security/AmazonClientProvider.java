@@ -47,43 +47,41 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Provider of Amazon Clients. If an edda host is configured in the format: http://edda.<region>.<environment>.domain.com, its cache will be used for lookup calls.
+ * Provider of Amazon Clients.
  *
  * @author Dan Woods
  */
 public class AmazonClientProvider {
 
-  private final String edda;
   private final HttpClient httpClient;
   private final ObjectMapper objectMapper;
 
   public AmazonClientProvider() {
-    this(null);
+    this(new DefaultHttpClient());
   }
 
-  public AmazonClientProvider(String edda) {
-    this(edda, null);
+  public AmazonClientProvider(HttpClient httpClient) {
+    this(httpClient, new AmazonObjectMapper());
   }
 
-  public AmazonClientProvider(String edda, HttpClient httpClient) {
-    this(edda, httpClient, new AmazonObjectMapper());
+  public AmazonClientProvider(ObjectMapper objectMapper) {
+    this(null, objectMapper);
   }
 
-  public AmazonClientProvider(String edda, HttpClient httpClient, ObjectMapper objectMapper) {
-    this.edda = edda;
+  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
     this.httpClient = httpClient;
     this.objectMapper = objectMapper;
   }
 
   public AmazonEC2 getAmazonEC2(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
     AmazonEC2Client client = new AmazonEC2Client(amazonCredentials.getCredentials());
-    if (edda == null || edda.length() == 0) {
+    if (!amazonCredentials.isEddaConfigured()) {
       return client;
     } else {
       return (AmazonEC2) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonEC2.class},
@@ -93,8 +91,9 @@ public class AmazonClientProvider {
   }
 
   public AmazonAutoScaling getAutoScaling(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
     AmazonAutoScalingClient client = new AmazonAutoScalingClient(amazonCredentials.getCredentials());
-    if (edda == null || edda.length() == 0) {
+    if (!amazonCredentials.isEddaConfigured()) {
       return client;
     } else {
       return (AmazonAutoScaling) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonAutoScaling.class},
@@ -103,8 +102,9 @@ public class AmazonClientProvider {
 
   }
 
-  public AmazonRoute53 getAmazonRoute53(AmazonCredentials credentials, String region) {
-    AmazonRoute53Client amazonRoute53 = new AmazonRoute53Client(credentials.getCredentials());
+  public AmazonRoute53 getAmazonRoute53(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    AmazonRoute53Client amazonRoute53 = new AmazonRoute53Client(amazonCredentials.getCredentials());
     if (region != null && region.length() > 0) {
       amazonRoute53.setRegion(Region.getRegion(Regions.fromName(region)));
     }
@@ -112,8 +112,9 @@ public class AmazonClientProvider {
     return amazonRoute53;
   }
 
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(AmazonCredentials credentials, String region) {
-    AmazonElasticLoadBalancingClient amazonElasticLoadBalancing = new AmazonElasticLoadBalancingClient(credentials.getCredentials());
+  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    AmazonElasticLoadBalancingClient amazonElasticLoadBalancing = new AmazonElasticLoadBalancingClient(amazonCredentials.getCredentials());
     if (region != null && region.length() > 0) {
       amazonElasticLoadBalancing.setRegion(Region.getRegion(Regions.fromName(region)));
     }
@@ -126,7 +127,12 @@ public class AmazonClientProvider {
       client.setRegion(Region.getRegion(Regions.fromName(region)));
     }
 
-    return new GeneralAmazonClientInvocationHandler(client, String.format(edda, region, amazonCredentials.getEnvironment()), this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
+    return new GeneralAmazonClientInvocationHandler(client, String.format(amazonCredentials.getEdda(), region),
+      this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
+  }
+
+  private static void checkCredentials(AmazonCredentials amazonCredentials) {
+    if (amazonCredentials == null) throw new IllegalArgumentException("Credentials cannot be null");
   }
 
   public static class GeneralAmazonClientInvocationHandler implements InvocationHandler {
@@ -246,7 +252,7 @@ public class AmazonClientProvider {
           }
         }
       } catch (Exception e) {
-        AmazonServiceException ex = new AmazonServiceException("400 Bad Request -- Edda could not find one of the keys requested.", e);
+        AmazonServiceException ex = new AmazonServiceException("400 Bad Request -- Edda could not find one of the managed objects requested.", e);
         ex.setStatusCode(400);
         ex.setServiceName(delegate.getServiceName());
         ex.setErrorType(AmazonServiceException.ErrorType.Unknown);
@@ -255,11 +261,11 @@ public class AmazonClientProvider {
 
     }
 
-    private String getJson(String objectName) throws IOException, ProtocolException {
+    private String getJson(String objectName) throws IOException {
       return getJson(objectName, null);
     }
 
-    private String getJson(String objectName, String key) throws IOException, ProtocolException {
+    private String getJson(String objectName, String key) throws IOException {
       String url = key != null ? edda + "/REST/v2/aws/" + objectName + "/" +
         key : edda + "/REST/v2/aws/" + objectName + ";_expand";
       HttpGet get = new HttpGet(url);
