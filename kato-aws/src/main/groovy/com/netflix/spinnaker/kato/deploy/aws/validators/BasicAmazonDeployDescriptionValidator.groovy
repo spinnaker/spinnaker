@@ -48,7 +48,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     if (!description.instanceType) {
       errors.rejectValue "instanceType", "basicAmazonDeployDescription.instanceType.empty"
     }
-    if (!description.availabilityZones) {
+    if (!description.availabilityZones && !description.subnetType) {
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.empty"
     }
     for (String region : description.availabilityZones.keySet()) {
