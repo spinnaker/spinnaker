@@ -1,5 +1,3 @@
-[![Build Status](https://drone.io/github.com/spinnaker/kato/status.png)](https://drone.io/github.com/spinnaker/kato/latest)
-
 Kato
 ===
 
@@ -8,7 +6,7 @@ Deployment libraries for Spinnaker.
 Quick Use
 ===
 
-See [kato-server in the kato-samples directory](https://github.com/spinnaker/kato/tree/master/kato-samples/kato-server).
+`./gradlew build kato-web:bootRun`
 
 Documentation
 ===
