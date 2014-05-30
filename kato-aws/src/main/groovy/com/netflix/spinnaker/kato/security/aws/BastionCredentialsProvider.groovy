@@ -55,7 +55,7 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
     if (!expiration || expiration.before(new Date())) {
       this.credentials = getRemoteCredentials()
     }
-    this.remoteCredentials
+    this.credentials
   }
 
   @Override
