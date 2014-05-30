@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.security.aws
 
 import com.amazonaws.auth.AWSCredentialsProvider

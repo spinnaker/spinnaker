@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
@@ -27,10 +28,10 @@ import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
-import com.netflix.frigga.Names
 import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
@@ -231,7 +232,7 @@ class AutoScalingWorker {
     asgs.findAll { AutoScalingGroup asg ->
       def names = Names.parseName(asg.autoScalingGroupName)
       names.sequence >= 0 && application == names.app
-    }?.max( { a, b -> a.autoScalingGroupName <=> b.autoScalingGroupName } ) ?: null
+    }?.max({ a, b -> a.autoScalingGroupName <=> b.autoScalingGroupName }) ?: null
   }
 
   /**
@@ -319,7 +320,7 @@ class AutoScalingWorker {
    * @return the name of the cluster to be deployed to
    */
   String getClusterName() {
-    "${application}${stack ? '-'+stack?.replaceAll("$application-", "") : ''}"
+    "${application}${stack ? '-' + stack?.replaceAll("$application-", "") : ''}"
   }
 
   /**

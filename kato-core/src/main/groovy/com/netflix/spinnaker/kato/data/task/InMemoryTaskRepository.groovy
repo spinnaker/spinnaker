@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.data.task
 
 import java.util.concurrent.ConcurrentHashMap

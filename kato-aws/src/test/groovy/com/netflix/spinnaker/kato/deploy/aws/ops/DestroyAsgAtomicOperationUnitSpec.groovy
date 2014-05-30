@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.auth.BasicAWSCredentials
@@ -36,36 +37,36 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
 
   Should "get list of instances and execute a terminate and decrement operation against them"() {
     setup:
-      def description = new DestroyAsgDescription(asgName: "my-stack-v000", regions: ["us-east-1"], credentials: new AmazonCredentials(new BasicAWSCredentials("foo", "bar"), "baz"))
-      def provider = Mock(AmazonClientProvider)
-      def mockAutoScaling = Mock(AmazonAutoScaling)
-      provider.getAutoScaling(_, _) >> mockAutoScaling
-      def op = new DestroyAsgAtomicOperation(description)
-      op.amazonClientProvider = provider
-      def mock = Mock(AutoScalingGroup)
-      def inst = Mock(Instance)
-      inst.getInstanceId() >> "i-123456"
-      mock.getInstances() >> [inst]
-      def describeResult1 = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
-      def mock2 = Mock(AutoScalingGroup)
-      mock2.getInstances() >> []
-      def describeResult2 = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock2)
+    def description = new DestroyAsgDescription(asgName: "my-stack-v000", regions: ["us-east-1"], credentials: new AmazonCredentials(new BasicAWSCredentials("foo", "bar"), "baz"))
+    def provider = Mock(AmazonClientProvider)
+    def mockAutoScaling = Mock(AmazonAutoScaling)
+    provider.getAutoScaling(_, _) >> mockAutoScaling
+    def op = new DestroyAsgAtomicOperation(description)
+    op.amazonClientProvider = provider
+    def mock = Mock(AutoScalingGroup)
+    def inst = Mock(Instance)
+    inst.getInstanceId() >> "i-123456"
+    mock.getInstances() >> [inst]
+    def describeResult1 = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
+    def mock2 = Mock(AutoScalingGroup)
+    mock2.getInstances() >> []
+    def describeResult2 = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock2)
 
     when:
-      op.operate([])
+    op.operate([])
 
     then:
-      2 * mockAutoScaling.describeAutoScalingGroups(_) >>> [describeResult1, describeResult2]
-      1 * mockAutoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest request ->
-        assert !request.desiredCapacity
-        assert !request.minSize
-        assert !request.maxSize
-      }
-      1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(_) >> { TerminateInstanceInAutoScalingGroupRequest request ->
-        assert request.instanceId == "i-123456"
-      }
-      1 * mockAutoScaling.deleteAutoScalingGroup(_) >> { DeleteAutoScalingGroupRequest request ->
-        assert request.autoScalingGroupName == "my-stack-v000"
-      }
+    2 * mockAutoScaling.describeAutoScalingGroups(_) >>> [describeResult1, describeResult2]
+    1 * mockAutoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest request ->
+      assert !request.desiredCapacity
+      assert !request.minSize
+      assert !request.maxSize
+    }
+    1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(_) >> { TerminateInstanceInAutoScalingGroupRequest request ->
+      assert request.instanceId == "i-123456"
+    }
+    1 * mockAutoScaling.deleteAutoScalingGroup(_) >> { DeleteAutoScalingGroupRequest request ->
+      assert request.autoScalingGroupName == "my-stack-v000"
+    }
   }
 }

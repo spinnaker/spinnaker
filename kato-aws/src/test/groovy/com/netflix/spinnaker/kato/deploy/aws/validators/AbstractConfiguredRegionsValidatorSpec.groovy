@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
@@ -28,6 +29,7 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
   DescriptionValidator validator = getDescriptionValidator()
 
   abstract DescriptionValidator getDescriptionValidator()
+
   abstract Object getDescription()
 
   void setupSpec() {

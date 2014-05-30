@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.health
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider

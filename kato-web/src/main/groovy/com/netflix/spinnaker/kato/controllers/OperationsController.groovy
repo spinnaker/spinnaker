@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.controllers
 
 import com.netflix.spinnaker.kato.data.task.Task
@@ -79,7 +80,7 @@ class OperationsController {
   Map handleValidationException(HttpServletRequest req, ValidationException ex) {
     Locale locale = LocaleContextHolder.locale
     def errorStrings = []
-    ex.errors.each { Errors errors->
+    ex.errors.each { Errors errors ->
       errors.allErrors.each { ObjectError objectError ->
         def message = messageSource.getMessage(objectError.code, objectError.arguments, objectError.code, locale)
         errorStrings << message

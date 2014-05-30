@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest

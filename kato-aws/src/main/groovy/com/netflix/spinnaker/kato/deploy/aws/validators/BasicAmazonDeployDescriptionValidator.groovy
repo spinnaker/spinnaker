@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
@@ -55,7 +56,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.or.subnetType.not.supplied"
     }
     for (String region : description.availabilityZones.keySet()) {
-      if (!awsConfigurationProperties.regions?.contains(region) || (roleBasedCredentials && !((AmazonRoleAccountCredentials)namedAccountCredentials).regions?.contains(region))) {
+      if (!awsConfigurationProperties.regions?.contains(region) || (roleBasedCredentials && !((AmazonRoleAccountCredentials) namedAccountCredentials).regions?.contains(region))) {
         errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
       }
     }

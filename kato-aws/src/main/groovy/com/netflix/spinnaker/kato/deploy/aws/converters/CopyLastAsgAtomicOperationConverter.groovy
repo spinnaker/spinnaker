@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription

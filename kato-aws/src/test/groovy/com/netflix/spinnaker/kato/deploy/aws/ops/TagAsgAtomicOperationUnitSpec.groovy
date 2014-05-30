@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.auth.AWSCredentials
@@ -39,7 +40,7 @@ class TagAsgAtomicOperationUnitSpec extends Specification {
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
-    def description = new TagAsgDescription(asgName: "myasg-stack-v000", tags: ["key":"value"], regions: ["us-west-1"])
+    def description = new TagAsgDescription(asgName: "myasg-stack-v000", tags: ["key": "value"], regions: ["us-west-1"])
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
     def operation = new TagAsgAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider

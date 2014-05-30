@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
@@ -34,16 +35,16 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "empty parameters fails validation"() {
     setup:
-      def description = new CreateAmazonLoadBalancerDescription()
-      def errors = Mock(Errors)
+    def description = new CreateAmazonLoadBalancerDescription()
+    def errors = Mock(Errors)
 
     when:
-      validator.validate([], description, errors)
+    validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue("clusterName", _)
-      1 * errors.rejectValue("availabilityZones", _)
-      1 * errors.rejectValue("listeners", _)
+    1 * errors.rejectValue("clusterName", _)
+    1 * errors.rejectValue("availabilityZones", _)
+    1 * errors.rejectValue("listeners", _)
   }
 
   void "unconfigured region is rejected"() {
@@ -61,15 +62,15 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "subnetType supercedes availabilityZones"() {
     setup:
-      def description = new CreateAmazonLoadBalancerDescription()
-      description.subnetType = "internal"
-      def errors = Mock(Errors)
+    def description = new CreateAmazonLoadBalancerDescription()
+    description.subnetType = "internal"
+    def errors = Mock(Errors)
 
     when:
-      validator.validate([], description, errors)
+    validator.validate([], description, errors)
 
     then:
-      0 * errors.rejectValue("availabilityZones", _)
+    0 * errors.rejectValue("availabilityZones", _)
   }
 
   void "availabilityZones if not subnetType"() {

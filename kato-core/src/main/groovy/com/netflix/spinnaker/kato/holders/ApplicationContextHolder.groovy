@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.holders
 
 import org.springframework.context.ApplicationContext

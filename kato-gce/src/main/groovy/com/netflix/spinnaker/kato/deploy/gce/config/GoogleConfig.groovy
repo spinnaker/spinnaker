@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.gce.config
 
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder

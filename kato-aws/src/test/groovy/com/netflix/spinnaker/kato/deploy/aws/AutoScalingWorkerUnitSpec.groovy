@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.ec2.AmazonEC2

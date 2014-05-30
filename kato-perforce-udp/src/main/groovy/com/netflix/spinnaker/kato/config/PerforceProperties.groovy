@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties

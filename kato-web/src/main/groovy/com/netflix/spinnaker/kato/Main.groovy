@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato
 
 import com.netflix.appinfo.InstanceInfo

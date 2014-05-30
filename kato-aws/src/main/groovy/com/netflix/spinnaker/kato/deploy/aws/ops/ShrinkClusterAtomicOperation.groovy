@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.frigga.Names
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
 

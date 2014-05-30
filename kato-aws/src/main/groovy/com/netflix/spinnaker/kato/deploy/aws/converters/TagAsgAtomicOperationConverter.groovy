@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.netflix.spinnaker.kato.deploy.aws.description.TagAsgDescription
@@ -27,6 +28,7 @@ class TagAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentials
   AtomicOperation convertOperation(Map input) {
     new TagAsgAtomicOperation(convertDescription(input))
   }
+
   TagAsgDescription convertDescription(Map input) {
     input.credentials = getCredentialsObject(input.credentials as String)
     new TagAsgDescription(input)

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.deploy.aws.description
 
 class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
