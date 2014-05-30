@@ -48,7 +48,7 @@ class Main extends SpringBootServletInitializer {
   static void imposeInternalClasspathConfig() {
     def internalConfig = getClass().getResourceAsStream("/kato-internal.yml")
     if (internalConfig) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/kato-internal.yml,classpath*:/kato-internal.yml")
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/kato-internal.yml")
     }
   }
 
