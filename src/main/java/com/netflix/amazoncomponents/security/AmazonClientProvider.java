@@ -29,6 +29,9 @@ import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -221,6 +224,16 @@ public class AmazonClientProvider {
       });
       Reservation reservation = new Reservation().withReservationId("1234").withInstances(instances);
       return new DescribeInstancesResult().withReservations(reservation);
+    }
+
+    public DescribeLoadBalancersResult describeLoadBalancers() {
+      return describeLoadBalancers(null);
+    }
+
+    public DescribeLoadBalancersResult describeLoadBalancers(DescribeLoadBalancersRequest request) {
+      List<LoadBalancerDescription> loadBalancerDescriptions = describe(request, "loadBalancerNames", "loadBalancers", LoadBalancerDescription.class, new TypeReference<List<LoadBalancerDescription>>() {
+      });
+      return new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancerDescriptions);
     }
 
     public <T> T describe(Object request, String idKey, final String object, final Class singleType, TypeReference<T> collectionType) {
