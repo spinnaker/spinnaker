@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
+dependencies {
+  compile commonDependencies.groovy
+  compile commonDependencies.frigga
+  compile project(":kato-aws")
+  compile 'com.perforce:p4java:2010.1.269249'
 }

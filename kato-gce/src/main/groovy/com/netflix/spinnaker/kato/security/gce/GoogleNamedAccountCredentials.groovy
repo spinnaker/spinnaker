@@ -15,19 +15,25 @@ import org.springframework.web.client.RestTemplate
 import java.security.PrivateKey
 
 class GoogleNamedAccountCredentials implements NamedAccountCredentials {
+  private static final String APPLICATION_NAME = "Spinnaker"
+
+  private final String kmsServer
+  private final String pkcs12Password
   final GoogleCredentials credentials
 
-  GoogleNamedAccountCredentials(String projectName) {
+  GoogleNamedAccountCredentials(String kmsServer, String pkcs12Password, String projectName) {
+    this.kmsServer = kmsServer
+    this.pkcs12Password = pkcs12Password
     this.credentials = new GoogleCredentials(projectName, getCompute(projectName))
   }
 
-  private static Compute getCompute(String projectName) {
+  private Compute getCompute(String projectName) {
     JsonFactory JSON_FACTORY = JacksonFactory.defaultInstance
     HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     def rt = new RestTemplate()
-    def map = rt.getForObject("http://localhost:7909/credentials/${projectName}", Map)
+    def map = rt.getForObject("${kmsServer}/credentials/${projectName}", Map)
     def key = new ByteArrayInputStream(Base64.decodeBase64(map.key as String))
-    PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore, key, "notasecret", "privatekey", "notasecret")
+    PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore, key, pkcs12Password, "privatekey", pkcs12Password)
     def credential = new GoogleCredential.Builder().setTransport(httpTransport)
       .setJsonFactory(JSON_FACTORY)
       .setServiceAccountId(map.email as String)
@@ -35,7 +41,7 @@ class GoogleNamedAccountCredentials implements NamedAccountCredentials {
       .setServiceAccountPrivateKey(privateKey)
       .build()
     new Compute.Builder(
-      httpTransport, JSON_FACTORY, null).setApplicationName("asgard")
+      httpTransport, JSON_FACTORY, null).setApplicationName(APPLICATION_NAME)
       .setHttpRequestInitializer(credential).build()
   }
 

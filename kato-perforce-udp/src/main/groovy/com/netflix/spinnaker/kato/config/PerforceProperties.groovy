@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp"
+package com.netflix.spinnaker.kato.config
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
+@Component
+@ConfigurationProperties("perforce")
+class PerforceProperties {
+  String host = "perforce.netflix.com"
+  Integer port = 1666
+  String programName = "nac"
+  String userName = "rolem"
+  String udfRoot = '//depot/pd/xf/oq/cloud/apps/aws/udf'
 }
