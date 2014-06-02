@@ -38,8 +38,8 @@ subprojects {
   }
 
   repositories {
-    mavenLocal()
     jcenter()
+    maven { url "http://artifacts.netflix.com/libs-releases-local" }
     maven { url "http://repo.spring.io/repo" }
   }
 

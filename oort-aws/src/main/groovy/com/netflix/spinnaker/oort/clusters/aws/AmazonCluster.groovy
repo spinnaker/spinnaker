@@ -22,5 +22,6 @@ class AmazonCluster implements Cluster {
   String name
   String zone
   String type = "Amazon"
-  List<AmazonServerGroup> serverGroups
+  List<AmazonServerGroup> serverGroups = []
+  List<AmazonLoadBalancer> loadBalancers = []
 }

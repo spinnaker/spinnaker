@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
@@ -114,10 +115,8 @@ class AmazonClusterCachingAgent implements Callable<Map> {
             userData = launchConfig.userData ? new String(Base64.decodeBase64(launchConfig.userData as String)) : null
           }
 
-          def loadBalancers = asg.loadBalancerNames.collect { loadBalancerCache[region][it] }
-
-          def resp = [name   : names.group, type: SERVER_GROUP_TYPE, region: region, cluster: names.cluster, instances: asg.instances, loadBalancers: loadBalancers,
-                      created: asg.createdTime, launchConfig: launchConfig, userData: userData, capacity: [min: asg.minSize, max: asg.maxSize, desired: asg.desiredCapacity], asg: asg]
+          def resp = [name   : names.group, type: SERVER_GROUP_TYPE, region: region, cluster: names.cluster, instances: asg.instances, created: asg.createdTime, launchConfig: launchConfig,
+                      userData: userData, capacity: [min: asg.minSize, max: asg.maxSize, desired: asg.desiredCapacity], asg: asg]
 
           Image image = imageCache[region][launchConfig.imageId]
           def buildVersion = image?.tags?.find { it.key == "appversion" }?.value
@@ -132,6 +131,16 @@ class AmazonClusterCachingAgent implements Callable<Map> {
 
           def serverGroup = new AmazonServerGroup(names.group, resp)
           cluster.serverGroups << serverGroup
+
+          asg.loadBalancerNames.each {
+            LoadBalancerDescription elb = (LoadBalancerDescription)loadBalancerCache[region][it]
+            def loadBalancer = cluster.loadBalancers.find { it.name == elb.loadBalancerName }
+            if (!loadBalancer) {
+              loadBalancer = new AmazonLoadBalancer(elb.loadBalancerName)
+              cluster.loadBalancers << loadBalancer
+            }
+            loadBalancer.serverGroups << serverGroup.name
+          }
         } catch (Exception e) {
           log.info "Error, ${e.message}"
         }

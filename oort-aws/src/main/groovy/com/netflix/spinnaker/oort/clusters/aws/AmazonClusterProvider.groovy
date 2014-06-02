@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.util.StopWatch
-import rx.schedulers.Schedulers
+import org.springframework.web.client.RestTemplate
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -39,7 +39,9 @@ import java.util.logging.Logger
 
 @Component
 class AmazonClusterProvider implements ClusterProvider {
-  private static final JsonSlurper jsonSlurper = new JsonSlurper()
+  static final JsonSlurper jsonSlurper = new JsonSlurper()
+  static final RestTemplate restTemplate = new RestTemplate()
+  static def executorService = Executors.newFixedThreadPool(20)
 
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -55,21 +57,21 @@ class AmazonClusterProvider implements ClusterProvider {
   }
 
   private void extendServerGroups(String application, String account, List<AmazonCluster> clusters) {
-    NamedAccountCredentials<AmazonAccountObject> namedAccountCredentials = namedAccountCredentialsProvider.getAccount(account)
+    AmazonAccountObject amazonAccountObject = (AmazonAccountObject)namedAccountCredentialsProvider.getAccount(account)
 
-    rx.Observable.from(clusters).flatMap { clusterObj ->
-      rx.Observable.from(clusterObj).observeOn(Schedulers.io()).subscribe { cluster ->
-        cluster.serverGroups.each { AmazonServerGroup serverGroup ->
-          serverGroup.instances = serverGroup.instances.collect { getInstance(namedAccountCredentials.credentials.credentials, serverGroup.region as String, it.instanceId as String) +
-            [eureka: getDiscoveryHealth(namedAccountCredentials.credentials.discovery, application, it.instanceId as String)] }
-          if (serverGroup.asg && serverGroup.asg.suspendedProcesses?.collect { it.processName }?.containsAll(["Terminate", "Launch"])) {
-            serverGroup.status = "DISABLED"
-          } else {
-            serverGroup.status = "ENABLED"
-          }
-        }
+    def callable = { AmazonServerGroup serverGroup ->
+      String region = serverGroup.region as String
+      serverGroup.instances = serverGroup.instances.collect { getInstance(amazonAccountObject.credentials, region, it.instanceId as String) +
+        [eureka: getDiscoveryHealth(amazonAccountObject.discovery, region, application, it.instanceId as String)] }
+      if (serverGroup.asg && serverGroup.asg.suspendedProcesses?.collect { it.processName }?.containsAll(["Terminate", "Launch"])) {
+        serverGroup.status = "DISABLED"
+      } else {
+        serverGroup.status = "ENABLED"
       }
-    } toBlockingObservable()
+    }
+
+    def callables = clusters.serverGroups.flatten().collect { callable.curry(it) }
+    executorService.invokeAll(callables)*.get()
   }
 
   @Override
@@ -106,14 +108,14 @@ class AmazonClusterProvider implements ClusterProvider {
     }
   }
 
-  static def getDiscoveryHealth(String discovery, String application, String instanceId) {
+  static def getDiscoveryHealth(String discovery, String region, String application, String instanceId) {
     def unknown = [instanceId: instanceId, state: [name: "unknown"]]
     try {
-      def text = "$discovery/REST/v2/discovery/applications/$application;_pp:(instances:(id,status,overriddenStatus))".toURL().text
+      def text = restTemplate.getForObject(String.format("$discovery/discovery/v2/apps/$application", region), String)
       def json = jsonSlurper.parseText(text) as Map
-      def instance = json.instances.find { it.id == instanceId }
+      def instance = json.application.instance.find { it.dataCenterInfo.metadata.'instance-id' == instanceId }
       if (instance) {
-        return [id: instanceId, status: instance.overriddenStatus?.name != "UNKNOWN" ? instance.overriddenStatus.name : instance.status.name]
+        return [id: instanceId, status: instance.overriddenstatus != "UNKNOWN" ? instance.overriddenstatus : instance.status]
       }
     } catch (IGNORE) {
       return unknown
@@ -162,8 +164,6 @@ class AmazonClusterProvider implements ClusterProvider {
       }
     }
   }
-
-  static def executorService = Executors.newFixedThreadPool(20)
 
   static class AccountClusterCache {
     final String name

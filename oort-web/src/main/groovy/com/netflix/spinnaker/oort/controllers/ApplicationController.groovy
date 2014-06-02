@@ -75,7 +75,7 @@ class ApplicationController {
   @ExceptionHandler(ApplicationNotFoundException)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   Map handleApplicationNotFoundException(ApplicationNotFoundException ex) {
-    def message = messageSource.getMessage("application.not.found", [ex.name] as String[], LocaleContextHolder.locale)
+    def message = messageSource.getMessage("application.not.found", [ex.name] as String[], "Application $ex.name was not found", LocaleContextHolder.locale)
     [error: "Application not found", messages: [message], status: HttpStatus.NOT_FOUND]
   }
 

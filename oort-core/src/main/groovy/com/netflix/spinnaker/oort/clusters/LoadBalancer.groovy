@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.oort.clusters
 
-public interface Cluster {
+public interface LoadBalancer {
   String getName()
-  String getZone()
-  String getType()
   List<ServerGroup> getServerGroups()
-  List<LoadBalancer> getLoadBalancers()
 }

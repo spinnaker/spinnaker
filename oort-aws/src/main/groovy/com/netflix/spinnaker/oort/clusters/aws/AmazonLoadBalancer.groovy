@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.clusters
+package com.netflix.spinnaker.oort.clusters.aws
 
-public interface Cluster {
-  String getName()
-  String getZone()
-  String getType()
-  List<ServerGroup> getServerGroups()
-  List<LoadBalancer> getLoadBalancers()
+import com.netflix.spinnaker.oort.clusters.LoadBalancer
+
+class AmazonLoadBalancer extends HashMap implements LoadBalancer {
+  AmazonLoadBalancer(String name) {
+    setProperty("name", name)
+    setProperty("serverGroups", [])
+  }
+
+  String getName() {
+    name
+  }
+
+  List<AmazonServerGroup> getServerGroups() {
+    getProperty("serverGroups")
+  }
 }
