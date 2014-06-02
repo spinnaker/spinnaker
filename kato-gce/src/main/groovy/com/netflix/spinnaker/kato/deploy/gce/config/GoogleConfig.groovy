@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.deploy.gce.config
 
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.gce.GoogleNamedAccountCredentials
+import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
@@ -27,6 +28,8 @@ import javax.annotation.PostConstruct
 
 @Component
 class GoogleConfig {
+  private static final Logger log = Logger.getLogger(this.class.simpleName)
+
   @Autowired
   NamedAccountCredentialsHolder namedAccountCredentialsHolder
 
@@ -49,7 +52,11 @@ class GoogleConfig {
   @PostConstruct
   void init() {
     for (managedAccount in googleConfigurationProperties.accounts) {
-      namedAccountCredentialsHolder.put(managedAccount.name, new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.pkcs12Password, managedAccount.project))
+      try {
+        namedAccountCredentialsHolder.put(managedAccount.name, new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.pkcs12Password, managedAccount.project))
+      } catch (e) {
+        log.info "Could not load account ${managedAccount.name} for Google", e
+      }
     }
   }
 }
