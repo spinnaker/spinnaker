@@ -22,10 +22,13 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
+import org.apache.http.Header
 import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse
+import org.apache.http.StatusLine
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
+import org.apache.http.entity.ContentType
 import spock.lang.Specification
 
 class AmazonClientProviderSpec extends Specification {
@@ -42,11 +45,7 @@ class AmazonClientProviderSpec extends Specification {
     then:
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> {
-      def mock = Mock(HttpResponse)
-      def entity = Mock(HttpEntity)
-      entity.getContent() >> { new ByteArrayInputStream('[{ "autoScalingGroupName": "my-app-v000" }]'.bytes) }
-      mock.getEntity() >> entity
-      mock
+      mockResponse
     }
   }
 
@@ -64,11 +63,7 @@ class AmazonClientProviderSpec extends Specification {
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> { HttpGet get ->
       assert get.URI.rawPath.endsWith("_expand")
-      def mock = Mock(HttpResponse)
-      def entity = Mock(HttpEntity)
-      entity.getContent() >> { new ByteArrayInputStream('[{ "autoScalingGroupName": "my-app-v000" }]'.bytes) }
-      mock.getEntity() >> entity
-      mock
+      mockResponse
     }
 
     when:
@@ -78,11 +73,7 @@ class AmazonClientProviderSpec extends Specification {
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> { HttpGet get ->
       assert get.URI.rawPath.endsWith(asgName)
-      def mock = Mock(HttpResponse)
-      def entity = Mock(HttpEntity)
-      entity.getContent() >> { new ByteArrayInputStream('{ "autoScalingGroupName": "my-app-v000" }'.bytes) }
-      mock.getEntity() >> entity
-      mock
+      getMockResponse(OBJECT_ASG_CONTENT)
     }
   }
 
@@ -129,11 +120,24 @@ class AmazonClientProviderSpec extends Specification {
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> { HttpGet get ->
       assert get.URI.rawPath.endsWith("_expand")
-      def mock = Mock(HttpResponse)
-      def entity = Mock(HttpEntity)
-      entity.getContent() >> { new ByteArrayInputStream('[{ "autoScalingGroupName": "my-app-v000" }]'.bytes) }
-      mock.getEntity() >> entity
-      mock
+      mockResponse
     }
+  }
+
+  static def OBJECT_ASG_CONTENT = '{ "autoScalingGroupName": "my-app-v000" }'
+  static def ARRAY_ASG_CONTENT = "[$OBJECT_ASG_CONTENT]"
+
+  def getMockResponse(String content = ARRAY_ASG_CONTENT) {
+    def mock = Mock(HttpResponse)
+    def statusLine = Mock(StatusLine)
+    statusLine.getStatusCode() >> 200
+    mock.getStatusLine() >> statusLine
+    def entity = Mock(HttpEntity)
+    entity.getContent() >> { new ByteArrayInputStream(content.bytes) }
+    def header = Mock(Header)
+    header.getValue() >> ContentType.APPLICATION_JSON.getMimeType()
+    entity.getContentType() >> header
+    mock.getEntity() >> entity
+    mock
   }
 }

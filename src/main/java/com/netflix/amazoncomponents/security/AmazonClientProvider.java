@@ -37,10 +37,14 @@ import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,11 +65,11 @@ import java.util.List;
  */
 public class AmazonClientProvider {
 
-  private final HttpClient httpClient;
-  private final ObjectMapper objectMapper;
+  private HttpClient httpClient;
+  private ObjectMapper objectMapper;
 
   public AmazonClientProvider() {
-    this(new DefaultHttpClient());
+    this((HttpClient)null);
   }
 
   public AmazonClientProvider(HttpClient httpClient) {
@@ -84,6 +88,9 @@ public class AmazonClientProvider {
   public AmazonEC2 getAmazonEC2(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     AmazonEC2Client client = new AmazonEC2Client(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
     if (!amazonCredentials.isEddaConfigured()) {
       return client;
     } else {
@@ -96,6 +103,9 @@ public class AmazonClientProvider {
   public AmazonAutoScaling getAutoScaling(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     AmazonAutoScalingClient client = new AmazonAutoScalingClient(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
     if (!amazonCredentials.isEddaConfigured()) {
       return client;
     } else {
@@ -117,12 +127,16 @@ public class AmazonClientProvider {
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonElasticLoadBalancingClient amazonElasticLoadBalancing = new AmazonElasticLoadBalancingClient(amazonCredentials.getCredentials());
+    AmazonElasticLoadBalancingClient client = new AmazonElasticLoadBalancingClient(amazonCredentials.getCredentials());
     if (region != null && region.length() > 0) {
-      amazonElasticLoadBalancing.setRegion(Region.getRegion(Regions.fromName(region)));
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
     }
-
-    return amazonElasticLoadBalancing;
+    if (!amazonCredentials.isEddaConfigured()) {
+      return client;
+    } else {
+      return (AmazonElasticLoadBalancing) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonElasticLoadBalancing.class},
+        getInvocationHandler(client, region, amazonCredentials));
+    }
   }
 
   private GeneralAmazonClientInvocationHandler getInvocationHandler(AmazonWebServiceClient client, String region, AmazonCredentials amazonCredentials) {
@@ -259,7 +273,11 @@ public class AmazonClientProvider {
           }
         } else {
           try {
-            return (T) objectMapper.readValue(getJson(object, null), collectionType);
+            String json = getJson(object, null);
+            if (json == null) {
+              throw new RuntimeException(String.format("Could not retrieve JSON Data from Edda host (%s) for object (%s).", edda, object));
+            }
+            return (T) objectMapper.readValue(json, collectionType);
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
@@ -274,16 +292,19 @@ public class AmazonClientProvider {
 
     }
 
-    private String getJson(String objectName) throws IOException {
-      return getJson(objectName, null);
-    }
-
     private String getJson(String objectName, String key) throws IOException {
       String url = key != null ? edda + "/REST/v2/aws/" + objectName + "/" +
         key : edda + "/REST/v2/aws/" + objectName + ";_expand";
       HttpGet get = new HttpGet(url);
       HttpResponse response = httpClient.execute(get);
-      return getStringFromInputStream(response.getEntity().getContent());
+      HttpEntity entity = response.getEntity();
+      if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK || !entity.getContentType().getValue().equals(ContentType.APPLICATION_JSON.getMimeType())) {
+        return null;
+      } else {
+        String result = getStringFromInputStream(entity.getContent());
+        EntityUtils.consume(entity);
+        return result;
+      }
     }
 
     private static String getStringFromInputStream(InputStream is) throws IOException {
