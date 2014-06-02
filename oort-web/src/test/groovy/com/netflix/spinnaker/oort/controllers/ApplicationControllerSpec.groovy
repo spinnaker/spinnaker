@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.oort.applications.Application
 import com.netflix.spinnaker.oort.applications.ApplicationProvider
 import com.netflix.spinnaker.oort.clusters.Clusters
+import com.netflix.spinnaker.oort.security.NamedAccountCredentials
+import com.netflix.spinnaker.oort.security.NamedAccountCredentialsProvider
 import org.springframework.context.MessageSource
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
@@ -65,8 +67,10 @@ class ApplicationControllerSpec extends Specification {
     def controller = new ApplicationController()
     def messageSource = Mock(MessageSource)
     def mockAppProvider = Mock(ApplicationProvider)
+    def accountProvider = Mock(NamedAccountCredentialsProvider)
     controller.applicationProviders = [mockAppProvider]
     controller.messageSource = messageSource
+    controller.namedAccountCredentialsProvider = accountProvider
     def mvc = MockMvcBuilders.standaloneSetup(controller).setMessageConverters(new MappingJackson2HttpMessageConverter()).build()
 
     when:
@@ -74,10 +78,15 @@ class ApplicationControllerSpec extends Specification {
     def resp = objectMapper.readValue(result.response.contentAsString, Map)
 
     then:
+    1 * accountProvider.list() >> {
+      def mock = Mock(NamedAccountCredentials)
+      mock.getName() >> "test"
+      [mock]
+    }
     1 * mockAppProvider.get("foo") >> {
       def app = Mock(Application)
       app.getName() >> "foo"
-      app.getClusters() >> new Clusters()
+      app.getClusters("test") >> new Clusters()
       app.getAttributes() >> [pdfKeyId: "1234"]
       app
     }

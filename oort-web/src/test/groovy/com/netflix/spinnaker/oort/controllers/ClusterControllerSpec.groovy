@@ -39,13 +39,13 @@ class ClusterControllerSpec extends Specification {
     def clusters = Mock(Clusters)
 
     when:
-    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters")).andReturn()
+    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/test")).andReturn()
 
     then:
     1 * appProvider.get("foo") >> {
       def app = Mock(Application)
       app.getName() >> "foo"
-      app.getClusters() >> clusters
+      app.getClusters("test") >> clusters
       app
     }
     1 * clusters.list() >> [cluster]
@@ -57,16 +57,16 @@ class ClusterControllerSpec extends Specification {
     def mvc = MockMvcBuilders.standaloneSetup(new ClusterController(clusterProviders: [clusterProvider])).setMessageConverters(new MappingJackson2HttpMessageConverter()).build()
 
     when:
-    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/app-stack")).andReturn()
+    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/test/app-stack")).andReturn()
 
     then:
-    1 * clusterProvider.getByName("foo", "app-stack")
+    1 * clusterProvider.getByName("foo", "test", "app-stack")
 
     when:
-    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/app-stack?zone=us-east-1")).andReturn()
+    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/test/app-stack?zone=us-east-1")).andReturn()
 
     then:
-    1 * clusterProvider.getByNameAndZone("foo", "app-stack", "us-east-1")
+    1 * clusterProvider.getByNameAndZone("foo", "test", "app-stack", "us-east-1")
   }
 
   void "requesting server groups filters from cluster"() {
@@ -79,10 +79,10 @@ class ClusterControllerSpec extends Specification {
     serverGroup.getName() >> "app-stack-v000"
 
     when:
-    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/app-stack/serverGroups/app-stack-v000")).andReturn()
+    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/test/app-stack/serverGroups/app-stack-v000")).andReturn()
 
     then:
-    1 * clusterProvider.getByName("foo", "app-stack") >> [cluster]
+    1 * clusterProvider.getByName("foo", "test", "app-stack") >> [cluster]
   }
 
   void "requesting server groups by zone filters from server group list"() {
@@ -95,10 +95,10 @@ class ClusterControllerSpec extends Specification {
     serverGroup.getName() >> "app-stack-v000"
 
     when:
-    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/app-stack/serverGroups/app-stack-v000/us-east-1")).andReturn()
+    mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/test/app-stack/serverGroups/app-stack-v000/us-east-1")).andReturn()
 
     then:
-    1 * clusterProvider.getByNameAndZone("foo", "app-stack", "us-east-1") >> [cluster]
+    1 * clusterProvider.getByNameAndZone("foo", "test", "app-stack", "us-east-1") >> [cluster]
   }
 
   void "request for missing server group returns meaningful response"() {
@@ -110,11 +110,11 @@ class ClusterControllerSpec extends Specification {
     def cluster = Mock(Cluster)
 
     when:
-    def result = mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/app-stack/serverGroups/app-stack-v000")).andReturn()
+    def result = mvc.perform(MockMvcRequestBuilders.get("/applications/foo/clusters/test/app-stack/serverGroups/app-stack-v000")).andReturn()
     def resp = objectMapper.readValue(result.response.contentAsString, Map)
 
     then:
-    1 * clusterProvider.getByName("foo", "app-stack") >> [cluster]
+    1 * clusterProvider.getByName("foo", "test", "app-stack") >> [cluster]
     result.response.status == 404
     resp.error == "Server group not found"
   }
