@@ -102,7 +102,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def asgName = autoScalingWorker.deploy()
 
-      deploymentResult.serverGroupNames << "${region}:${asgName}"
+      deploymentResult.serverGroupNames << "${region}:${asgName}".toString()
     }
     deploymentResult
   }
