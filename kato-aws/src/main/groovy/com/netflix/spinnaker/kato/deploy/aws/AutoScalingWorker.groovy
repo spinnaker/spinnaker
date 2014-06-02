@@ -344,8 +344,10 @@ class AutoScalingWorker {
     // Favor subnetIds over availability zones
     def subnetIds = subnetIds?.join(',')
     if (subnetIds) {
+      task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
     } else {
+      task.updateStatus AWS_PHASE, " > Deploying to availabilityZones: $availabilityZones"
       request.withAvailabilityZones(availabilityZones)
     }
 

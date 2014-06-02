@@ -14,7 +14,7 @@ This description provides the inputs necessary to allow launch permissions of an
 [{
     "allowLaunchDescription": {
         "amiName": "ami-123456",
-        "accountId": "1212121212",
+        "account": "prod",
         "region": "us-west-1,
         "credentials": "test"
     }
@@ -27,7 +27,7 @@ This description provides the inputs necessary to allow launch permissions of an
 |======================
 |Key               | Type   | Required | Value
 |amiName           | string | true     | The name of the AMI that exists in the target account, as defined by "credentials".
-|accountId         | string | true     | The ID of the account for which launch permissions of the specified AMI should be granted.
+|account           | string | true     | The name of the account -- as configured within Kato -- for which launch permissions of the specified AMI should be granted.
 |region            | string | true     | The region in which the specified AMI lives.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================

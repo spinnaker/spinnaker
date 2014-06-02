@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-
-
-repositories {
-  mavenLocal()
-}
-
 dependencies {
   compile project(":kato-core")
   compile commonDependencies.frigga
   compile commonDependencies.springBootActuator
-  compile 'com.netflix.amazoncomponents:amazoncomponents:0.8'
+  compile 'com.netflix.amazoncomponents:amazoncomponents:0.9.3'
   compile 'joda-time:joda-time:2.3'
   compile 'com.amazonaws:aws-java-sdk:1.7.2'
   compile 'org.apache.httpcomponents:httpclient:4.3.3'
