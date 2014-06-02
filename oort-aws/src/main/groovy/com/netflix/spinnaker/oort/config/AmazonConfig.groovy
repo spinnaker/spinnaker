@@ -16,17 +16,20 @@
 
 package com.netflix.spinnaker.oort.config
 
-import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
-import com.netflix.spinnaker.oort.remoting.AggregateRemoteResource
 import com.netflix.spinnaker.oort.remoting.DiscoverableRemoteResource
 import com.netflix.spinnaker.oort.remoting.RemoteResource
+import com.netflix.spinnaker.oort.security.NamedAccountCredentialsProvider
+import com.netflix.spinnaker.oort.security.aws.AmazonAccountObject
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
 
 @Configuration
 class AmazonConfig {
@@ -40,28 +43,42 @@ class AmazonConfig {
   }
 
   @Bean
-  AggregateRemoteResource edda() {
-    def appName = "entrypoints_v2"
-    def remoteResources = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collectEntries {
-      [(it): new DiscoverableRemoteResource(appName, String.format(discoveryUrlFormat, it, appName))]
-    }
-    new AggregateRemoteResource(remoteResources)
+  AmazonClientProvider amazonClientProvider() {
+    new AmazonClientProvider()
   }
 
-  @Bean
-  AmazonClientProvider amazonClientProvider(@Value('${edda.url.format:#{null}}') String edda) {
-    new AmazonClientProvider(edda)
+  static class ManagedAccount {
+    String name
+    String edda
+    String discovery
+    List<String> regions
   }
 
-  @Bean
-  AmazonCredentials amazonCredentials(AWSCredentialsProvider awsCredentialsProvider, @Value('${environment:#{null}}') String environment) {
-    AWSCredentials awsCredentials
-    try {
-      awsCredentials = awsCredentialsProvider.credentials
-    } catch (IGNORE) {
-      // "Read-only" mode
-      awsCredentials = new BasicAWSCredentials("foo", "bar")
+  @Component
+  @ConfigurationProperties("aws")
+  static class AwsConfigurationProperties {
+    List<ManagedAccount> accounts
+  }
+
+  @Configuration
+  static class AmazonCredentialsInitializer {
+    @Autowired
+    AWSCredentialsProvider awsCredentialsProvider
+
+    @Autowired
+    AwsConfigurationProperties awsConfigurationProperties
+
+    @Autowired
+    NamedAccountCredentialsProvider namedAccountCredentialsProvider
+
+    @Autowired
+    AmazonClientProvider amazonClientProvider
+
+    @PostConstruct
+    void init() {
+      for (account in awsConfigurationProperties.accounts) {
+        namedAccountCredentialsProvider.putAccount(new AmazonAccountObject(awsCredentialsProvider, account.name, account.edda, account.discovery, account.regions))
+      }
     }
-    new AmazonCredentials(awsCredentials, environment)
   }
 }

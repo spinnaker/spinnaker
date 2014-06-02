@@ -26,8 +26,10 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
+import javax.servlet.http.HttpServletRequest
+
 @RestController
-@RequestMapping("/applications/{application}/clusters")
+@RequestMapping("/applications/{application}/clusters/{account}")
 class ClusterController {
 
   @Autowired
@@ -40,7 +42,7 @@ class ClusterController {
   List<ClusterProvider> clusterProviders
 
   @RequestMapping(method = RequestMethod.GET)
-  def list(@PathVariable("application") String application) {
+  def list(@PathVariable("account") String account, @PathVariable("application") String application) {
     Map<String, Application> applications = [:]
     applicationProviders.each {
       def applicationObject = it.get(application)
@@ -54,22 +56,22 @@ class ClusterController {
         applications[applicationObject.name] = applicationObject
       }
     }
-    applications.values()?.getAt(0)?.clusters?.list()
+    applications.values()?.getAt(0)?.getClusters(account)?.list()
   }
 
   @RequestMapping(value = "/{cluster}", method = RequestMethod.GET)
-  def get(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
+  def get(@PathVariable("account") String account, @PathVariable("application") String application, @PathVariable("cluster") String clusterName,
           @RequestParam(value = "zone", required = false) String zoneName) {
     clusterProviders.collect {
-      zoneName ? it.getByNameAndZone(application, clusterName, zoneName) : it.getByName(application, clusterName)
+      zoneName ? it.getByNameAndZone(application, account, clusterName, zoneName) : it.getByName(application, account, clusterName)
     }?.flatten()
   }
 
   @RequestMapping(value = "/{cluster}/serverGroups", method = RequestMethod.GET)
-  def listServerGroups(@PathVariable("application") String application, @PathVariable("cluster") String clusterName) {
+  def listServerGroups(@PathVariable("account") String account, @PathVariable("application") String application, @PathVariable("cluster") String clusterName) {
     def serverGroups = []
     for (provider in clusterProviders) {
-      def clusters = provider.getByName(application, clusterName)
+      def clusters = provider.getByName(application, account, clusterName)
       for (cluster in clusters) {
         serverGroups.addAll cluster.serverGroups
       }
@@ -78,11 +80,11 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}", method = RequestMethod.GET)
-  def getServerGroup(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
+  def getServerGroup(@PathVariable("account") String account, @PathVariable("application") String application, @PathVariable("cluster") String clusterName,
               @PathVariable("serverGroup") String serverGroupName) {
     def serverGroups = []
     for (provider in clusterProviders) {
-      def clusters = provider.getByName(application, clusterName)
+      def clusters = provider.getByName(application, account, clusterName)
       for (cluster in clusters) {
         def serverGroup = cluster.serverGroups.find { it.name == serverGroupName }
         if (serverGroup) {
@@ -91,18 +93,18 @@ class ClusterController {
       }
     }
     if (!serverGroups) {
-      throw new ServerGroupNotFoundException(serverGroupName)
+      throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
     } else {
       serverGroups
     }
   }
 
   @RequestMapping(value = "/{cluster}/serverGroups/{serverGroup}/{zone}", method = RequestMethod.GET)
-  def getServerGroupWithZone(@PathVariable("application") String application, @PathVariable("cluster") String clusterName,
+  def getServerGroupWithZone(@PathVariable("account") String account, @PathVariable("application") String application, @PathVariable("cluster") String clusterName,
              @PathVariable("serverGroup") String serverGroupName, @PathVariable("zone") String zoneName) {
     def serverGroup
     for (provider in clusterProviders) {
-      def clusters = provider.getByNameAndZone(application, clusterName, zoneName)
+      def clusters = provider.getByNameAndZone(application, account, clusterName, zoneName)
       serverGroup = clusters.serverGroups?.flatten()?.find { it.name == serverGroupName }
       if (serverGroup) {
         return serverGroup
@@ -113,8 +115,8 @@ class ClusterController {
 
   @ExceptionHandler(ServerGroupNotFoundException)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleServerGroupNotFoundException(ServerGroupNotFoundException ex) {
-    def message = messageSource.getMessage("serverGroup.not.found", [ex.serverGroupName] as String[], LocaleContextHolder.locale)
+  Map handleServerGroupNotFoundException(HttpServletRequest req, ServerGroupNotFoundException ex) {
+    def message = messageSource.getMessage("serverGroup.not.found", [ex.serverGroupName] as String[], "serverGroup.not.found", LocaleContextHolder.locale)
     [error: "Server group not found", messages: [message], status: HttpStatus.NOT_FOUND]
   }
 

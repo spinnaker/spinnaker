@@ -23,6 +23,8 @@ import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.oort.applications.Application
 import com.netflix.spinnaker.oort.applications.ApplicationProvider
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.oort.security.NamedAccountCredentialsProvider
+import com.netflix.spinnaker.oort.security.aws.AmazonAccountObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -58,7 +60,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
     AmazonClientProvider amazonClientProvider
 
     @Autowired
-    AmazonCredentials amazonCredentials
+    NamedAccountCredentialsProvider namedAccountCredentialsProvider
 
     static Map get() {
       lock.lock()
@@ -76,10 +78,10 @@ class AmazonApplicationProvider implements ApplicationProvider {
       def run = new ConcurrentHashMap()
       def stopwatch = new StopWatch()
       stopwatch.start()
-      log.info "Beginning caching."
+      log.info "Beginning caching Amazon Applications."
 
-      def c = { String region ->
-        def client = amazonClientProvider.getAutoScaling(amazonCredentials, region)
+      def c = { AmazonCredentials credentials, String region ->
+        def client = amazonClientProvider.getAutoScaling(credentials, region)
         def request = new DescribeAutoScalingGroupsRequest()
         def result = client.describeAutoScalingGroups(request)
 
@@ -100,7 +102,11 @@ class AmazonApplicationProvider implements ApplicationProvider {
           }
         }
       }
-      def callables = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect { c.curry(it) }
+      def callables = namedAccountCredentialsProvider.list().collectMany { AmazonAccountObject amazonAccountObject ->
+        amazonAccountObject.regions.collect { String region ->
+          c.curry(amazonAccountObject.credentials, region)
+        }
+      }
       executorService.invokeAll(callables)*.get()
       if (!lock.isLocked()) {
         lock.lock()
@@ -111,7 +117,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
         firstRun = false
       }
       stopwatch.stop()
-      log.info "Done caching in ${stopwatch.shortSummary()}"
+      log.info "Done caching Amazon Applications in ${stopwatch.toString()}"
     }
   }
 }

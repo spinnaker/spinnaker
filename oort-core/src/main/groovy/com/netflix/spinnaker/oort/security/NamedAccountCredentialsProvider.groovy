@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.clusters
+package com.netflix.spinnaker.oort.security
 
-interface ClusterProvider {
-  Map<String, List<Cluster>> getSummary(String application, String account)
-  List<Cluster> get(String application, String account)
-  List<Cluster> getByName(String application, String account, String clusterName)
-  List<Cluster> getByNameAndZone(String application, String account, String clusterName, String zoneName)
+public interface NamedAccountCredentialsProvider {
+  NamedAccountCredentials getAccount(String name)
+  void putAccount(NamedAccountCredentials account) throws IllegalArgumentException
+  void remove(NamedAccountCredentials account)
+  List<NamedAccountCredentials> list()
 }

@@ -63,22 +63,26 @@ class Front50ApplicationProvider implements ApplicationProvider {
         lock.lock()
       }
 
-      def run
       def stopwatch = new StopWatch()
       log.info "Begin First50 Application caching..."
       stopwatch.start()
-      List<Map> apps = (List<Map>) front50.query("/applications")
-      run = apps.collectEntries { Map obj ->
-        [(obj.name?.toLowerCase()): new Application(name: obj.name?.toLowerCase(), type: "Amazon",
-            attributes: (Map<String, String>)obj.collectEntries { k, v -> [(k): v]})]
+      try {
+        def run
+
+        List<Map> apps = (List<Map>) front50.query("/applications")
+        run = apps.collectEntries { Map obj ->
+          [(obj.name?.toLowerCase()): new Application(name: obj.name?.toLowerCase(), type: "Amazon",
+            attributes: (Map<String, String>) obj.collectEntries { k, v -> [(k): v] })]
+        }
+        if (!lock.isLocked()) {
+          lock.lock()
+        }
+        map = run
+      } finally {
+        lock.unlock()
+        stopwatch.stop()
+        log.info "Done caching Front50 apps in ${stopwatch.shortSummary()}"
       }
-      if (!lock.isLocked()) {
-        lock.lock()
-      }
-      map = run
-      lock.unlock()
-      stopwatch.stop()
-      log.info "Done caching Front50 apps in ${stopwatch.shortSummary()}"
     }
   }
 }

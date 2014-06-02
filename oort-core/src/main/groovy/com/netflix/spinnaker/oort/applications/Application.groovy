@@ -34,20 +34,20 @@ class Application {
   String type
   Map<String, String> attributes
 
-  private Clusters clusters
+  private Map<String, Clusters> accountClusters = [:]
 
-  Clusters getClusters() {
-    if (!clusters) {
+  Clusters getClusters(String account) {
+    if (!accountClusters.containsKey(account)) {
       Clusters clusters = new Clusters()
       for (provider in clusterProviders) {
-        def providerClusters = provider.getSummary(this.name)
+        def providerClusters = provider.getSummary(this.name, account)
         if (providerClusters) {
           clusters.addAll providerClusters
         }
       }
-      this.clusters = clusters
+      accountClusters[account] = clusters
     }
-    clusters
+    accountClusters[account]
   }
 
   static Application merge(Application a, Application b) {

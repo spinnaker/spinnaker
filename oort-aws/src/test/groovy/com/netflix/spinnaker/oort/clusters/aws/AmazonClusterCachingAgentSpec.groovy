@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.clusters
+package com.netflix.spinnaker.oort.clusters.aws
 
-interface ClusterProvider {
-  Map<String, List<Cluster>> getSummary(String application, String account)
-  List<Cluster> get(String application, String account)
-  List<Cluster> getByName(String application, String account, String clusterName)
-  List<Cluster> getByNameAndZone(String application, String account, String clusterName, String zoneName)
+import spock.lang.Shared
+import spock.lang.Specification
+
+class AmazonClusterCachingAgentSpec extends Specification {
+
+  @Shared
+  AmazonClusterCachingAgent clusterCachingAgent
+
 }

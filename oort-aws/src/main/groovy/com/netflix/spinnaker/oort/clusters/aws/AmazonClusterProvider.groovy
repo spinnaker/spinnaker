@@ -16,24 +16,17 @@
 
 package com.netflix.spinnaker.oort.clusters.aws
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.oort.clusters.Cluster
 import com.netflix.spinnaker.oort.clusters.ClusterProvider
 import com.netflix.spinnaker.oort.clusters.ClusterSummary
-import com.netflix.spinnaker.oort.remoting.AggregateRemoteResource
-import com.netflix.spinnaker.oort.spring.ApplicationContextHolder
-import com.netflix.frigga.Names
-import com.netflix.frigga.ami.AppVersion
-import org.apache.commons.codec.binary.Base64
+import com.netflix.spinnaker.oort.security.NamedAccountCredentials
+import com.netflix.spinnaker.oort.security.NamedAccountCredentialsProvider
+import com.netflix.spinnaker.oort.security.aws.AmazonAccountObject
+import groovy.json.JsonSlurper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.util.StopWatch
@@ -46,33 +39,29 @@ import java.util.logging.Logger
 
 @Component
 class AmazonClusterProvider implements ClusterProvider {
-  private static final String SERVER_GROUP_TYPE = "Amazon"
-
-  @Value('${discovery.url.format:#{null}}')
-  String discoveryUrlFormat
+  private static final JsonSlurper jsonSlurper = new JsonSlurper()
 
   @Autowired
   AmazonClientProvider amazonClientProvider
 
   @Autowired
-  AggregateRemoteResource edda
-
-  @Autowired
-  AmazonCredentials amazonCredentials
+  NamedAccountCredentialsProvider namedAccountCredentialsProvider
 
   @Override
-  Map<String, List<Cluster>> get(String application) {
-    Map<String, List<Cluster>> clusterMap = Cacher.get().get(application) as Map
-    def clusters = new ArrayList<>(clusterMap?.values()?.flatten() ?: [])
-    extendServerGroups(application, clusters)
-    clusterMap
+  List<Cluster> get(String application, String account) {
+    List<Cluster> clusters = Cacher.get().get(account).get().get(application)
+    extendServerGroups(application, account, clusters)
+    clusters
   }
 
-  private void extendServerGroups(String application, List<AmazonCluster> clusters) {
+  private void extendServerGroups(String application, String account, List<AmazonCluster> clusters) {
+    NamedAccountCredentials<AmazonAccountObject> namedAccountCredentials = namedAccountCredentialsProvider.getAccount(account)
+
     rx.Observable.from(clusters).flatMap { clusterObj ->
       rx.Observable.from(clusterObj).observeOn(Schedulers.io()).subscribe { cluster ->
         cluster.serverGroups.each { AmazonServerGroup serverGroup ->
-          serverGroup.instances = serverGroup.instances.collect { getInstance(serverGroup.region, it.instanceId) + [eureka: getDiscoveryHealth(serverGroup.region, application, it.instanceId)] }
+          serverGroup.instances = serverGroup.instances.collect { getInstance(namedAccountCredentials.credentials.credentials, serverGroup.region as String, it.instanceId as String) +
+            [eureka: getDiscoveryHealth(namedAccountCredentials.credentials.discovery, application, it.instanceId as String)] }
           if (serverGroup.asg && serverGroup.asg.suspendedProcesses?.collect { it.processName }?.containsAll(["Terminate", "Launch"])) {
             serverGroup.status = "DISABLED"
           } else {
@@ -84,9 +73,8 @@ class AmazonClusterProvider implements ClusterProvider {
   }
 
   @Override
-  Map<String, List<ClusterSummary>> getSummary(String application) {
-    Map<String, List<Cluster>> clusterMap = Cacher.get().get(application) as Map
-    def clusters = new ArrayList<>(clusterMap?.values()?.flatten() ?: [])
+  Map<String, List<ClusterSummary>> getSummary(String application, String account) {
+    List<Cluster> clusters = Cacher.get().get(account).get().get(application)?.values()?.flatten() ?: []
     clusters.collectEntries { Cluster cluster ->
       def instanceCount = (cluster.serverGroups.collect { it.getInstanceCount() }?.sum() ?: 0) as int
       def serverGroupNames = cluster.serverGroups.collect { it.name }
@@ -95,20 +83,19 @@ class AmazonClusterProvider implements ClusterProvider {
   }
 
   @Override
-  List<Cluster> getByName(String application, String clusterName) {
-    Map<String, List<Cluster>> clusterMap = Cacher.get().get(application) as Map
-    def clusters = new ArrayList<Cluster>(clusterMap?.values()?.flatten() ?: [])
-    def theseClusters = (clusters.findAll { it.name == clusterName } as List<AmazonCluster>)
-    extendServerGroups(application, theseClusters)
+  List<Cluster> getByName(String application, String account, String clusterName) {
+    List<Cluster> clusters = Cacher.get().get(account).get().get(application).values()?.flatten() ?: []
+    def theseClusters = clusters.findAll { it.name == clusterName }
+    extendServerGroups(application, account, theseClusters)
     theseClusters
   }
 
   @Override
-  List<Cluster> getByNameAndZone(String deployable, String clusterName, String zone) {
-    get(deployable)?.get(clusterName)?.findAll { it.zone == zone }
+  List<Cluster> getByNameAndZone(String application, String account, String clusterName, String zone) {
+    get(application, account)?.findAll { it.zone == zone }
   }
 
-  def getInstance(String region, String instanceId) {
+  def getInstance(AmazonCredentials amazonCredentials, String region, String instanceId) {
     try {
       def client = amazonClientProvider.getAmazonEC2(amazonCredentials, region)
       def request = new DescribeInstancesRequest().withInstanceIds(instanceId)
@@ -119,14 +106,12 @@ class AmazonClusterProvider implements ClusterProvider {
     }
   }
 
-  def getDiscoveryHealth(String region, String application, String instanceId) {
+  static def getDiscoveryHealth(String discovery, String application, String instanceId) {
     def unknown = [instanceId: instanceId, state: [name: "unknown"]]
-    if (!discoveryUrlFormat) {
-      return unknown
-    }
     try {
-      def map = edda.getRemoteResource(region) get "/REST/v2/discovery/applications/$application;_pp:(instances:(id,status,overriddenStatus))"
-      def instance = map.instances.find { it.id == instanceId }
+      def text = "$discovery/REST/v2/discovery/applications/$application;_pp:(instances:(id,status,overriddenStatus))".toURL().text
+      def json = jsonSlurper.parseText(text) as Map
+      def instance = json.instances.find { it.id == instanceId }
       if (instance) {
         return [id: instanceId, status: instance.overriddenStatus?.name != "UNKNOWN" ? instance.overriddenStatus.name : instance.status.name]
       }
@@ -140,20 +125,16 @@ class AmazonClusterProvider implements ClusterProvider {
     private static final Logger log = Logger.getLogger(this.class.simpleName)
     private static def firstRun = true
     private static def lock = new ReentrantLock()
-    private static def map = new ConcurrentHashMap()
-    private static def executorService = Executors.newFixedThreadPool(20)
+    private static ClusterCache clusterCache = new ClusterCache()
 
     @Autowired
     AmazonClientProvider amazonClientProvider
 
     @Autowired
-    AmazonCredentials amazonCredentials
+    NamedAccountCredentialsProvider namedAccountCredentialsProvider
 
-    static Map get() {
-      lock.lock()
-      def m = new HashMap(map)
-      lock.unlock()
-      m
+    static Map<String, AccountClusterCache> get() {
+      ClusterCache.asNative()
     }
 
     @Scheduled(fixedRate = 30000l)
@@ -161,118 +142,73 @@ class AmazonClusterProvider implements ClusterProvider {
       if (firstRun) {
         lock.lock()
       }
-
-      def run = new ConcurrentHashMap()
       def stopwatch = new StopWatch()
       stopwatch.start()
-      log.info "Beginning caching amazon clusters."
-      def asgCallable = { String region ->
-        def autoScaling = amazonClientProvider.getAutoScaling(amazonCredentials, region)
-        def result = autoScaling.describeAutoScalingGroups()
-        List<AutoScalingGroup> asgs = []
-        while (true) {
-          asgs.addAll result.autoScalingGroups
-          if (result.nextToken) {
-            result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withNextToken(result.nextToken))
-          } else {
-            break
-          }
-        }
-        [(region): asgs.collectEntries {
-          [(it.autoScalingGroupName): it]
-        }]
-      }
-      def launchConfigCallable = { String region ->
-        def autoScaling = amazonClientProvider.getAutoScaling(amazonCredentials, region)
-        def result = autoScaling.describeLaunchConfigurations()
-        List<LaunchConfiguration> launchConfigs = []
-        while (true) {
-          launchConfigs.addAll result.launchConfigurations
-          if (result.nextToken) {
-            result = autoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest().withNextToken(result.nextToken))
-          } else {
-            break
-          }
-        }
-        [(region): launchConfigs.collectEntries {
-          [(it.launchConfigurationName): it]
-        }]
-      }
-      def imageCallable = { String region ->
-        def ec2 = amazonClientProvider.getAmazonEC2(amazonCredentials, region)
-        [(region): ec2.describeImages().images.collectEntries {
-          [(it.imageId): it]
-        }]
-      }
-      def callables = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect { region ->
-        [asgCallable, launchConfigCallable, imageCallable].collect {
-          it.curry(region)
-        }
-      }?.flatten()
-
-      def results = executorService.invokeAll(callables)*.get()
-      def asgCache = results.getAt(0) + results.getAt(3) + results.getAt(6) + results.getAt(9)
-      def launchConfigCache = results.getAt(1) + results.getAt(4) + results.getAt(7) + results.getAt(10)
-      def imageCache = results.getAt(2) + results.getAt(5) + results.getAt(8) + results.getAt(11)
-
-      for (Map.Entry entry : asgCache) {
-        def region = entry.key
-        def asgs = entry.value?.values() as List
-
-        for (AutoScalingGroup asg in asgs) {
-          try {
-            def names = Names.parseName(asg.autoScalingGroupName)
-            if (!run.containsKey(names.app)) {
-              run[names.app] = [:]
-            }
-            if (!run[names.app].containsKey(names.cluster)) {
-              run[names.app][names.cluster] = []
-            }
-            Cluster cluster = run[names.app][names.cluster].find { it.zone == region }
-            if (!cluster) {
-              cluster = new AmazonCluster(name: names.cluster, zone: region, serverGroups: [])
-              run[names.app][names.cluster] << cluster
-            }
-            ApplicationContextHolder.applicationContext.autowireCapableBeanFactory.autowireBean(cluster)
-
-            LaunchConfiguration launchConfig = null
-            String userData = null
-            if (launchConfigCache.get(region).containsKey(asg.launchConfigurationName)) {
-              launchConfig = launchConfigCache.get(region).get(asg.launchConfigurationName) as LaunchConfiguration
-              userData = launchConfig.userData ? new String(Base64.decodeBase64(launchConfig.userData as String)) : null
-            }
-
-            def resp = [name   : names.group, type: SERVER_GROUP_TYPE, region: region, cluster: names.cluster, instances: asg.instances,
-                        created: asg.createdTime, launchConfig: launchConfig, userData: userData, capacity: [min: asg.minSize, max: asg.maxSize, desired: asg.desiredCapacity], asg: asg]
-
-            Image image = imageCache[region][launchConfig.imageId]
-            def buildVersion = image?.tags?.find { it.key == "appversion" }?.value
-            if (buildVersion) {
-              def props = AppVersion.parseName(buildVersion)?.properties
-              if (props) {
-                resp.buildInfo = ["buildNumber", "commit", "packageName", "buildJobName"].collectEntries {
-                  [(it): props[it]]
-                }
-              }
-            }
-
-            def serverGroup = new AmazonServerGroup(names.group, resp)
-            cluster.serverGroups << serverGroup
-          } catch (Exception e) {
-            log.info "Error, ${e.message}"
-          }
+      log.info "Initializing Amazon Cluster Caching..."
+      namedAccountCredentialsProvider.list().each { AmazonAccountObject accountCredentials ->
+        def accountClusterCache = clusterCache.get(accountCredentials.name)
+        if (!accountClusterCache) {
+          clusterCache.put(amazonClientProvider, accountCredentials)
         }
       }
-      if (!lock.isLocked()) {
-        lock.lock()
+      clusterCache.list()*.reload()
+      stopwatch.stop()
+      log.info "Done with Amazon Cluster Caching in ${stopwatch.toString()}."
+      if (lock.isLocked()) {
+        lock.unlock()
       }
-      map = run.sort { a, b -> a.key.toLowerCase() <=> b.key.toLowerCase() }
-      lock.unlock()
       if (firstRun) {
         firstRun = false
       }
-      stopwatch.stop()
-      log.info "Done caching amazon clusters in ${stopwatch.shortSummary()}"
+    }
+  }
+
+  static def executorService = Executors.newFixedThreadPool(20)
+
+  static class AccountClusterCache {
+    final String name
+    final AmazonClusterCachingAgent cachingAgent
+
+    AccountClusterCache(AmazonAccountObject account, AmazonClientProvider provider) {
+      this.name = account.name
+      this.cachingAgent = new AmazonClusterCachingAgent(provider, account)
+    }
+
+    private Map cache = new ConcurrentHashMap()
+
+    Map reload() {
+      this.cache = executorService.submit(cachingAgent).get()
+    }
+
+    Map<String, Map<String, List<AmazonCluster>>> get() {
+      if (!cache) {
+        this.cache = reload()
+      }
+      new HashMap<>(this.cache)
+    }
+  }
+
+  static class ClusterCache {
+    private static final Map<String, AccountClusterCache> accountClusterCacheMap = [:]
+
+    static AccountClusterCache get(String name) {
+      if (accountClusterCacheMap.containsKey(name)) {
+        accountClusterCacheMap.get(name)
+      } else {
+        null
+      }
+    }
+
+    static List<AccountClusterCache> list() {
+      accountClusterCacheMap.values() as List
+    }
+
+    static Map<String, AccountClusterCache> asNative() {
+      accountClusterCacheMap
+    }
+
+    static void put(AmazonClientProvider provider, AmazonAccountObject obj) {
+      accountClusterCacheMap.put(obj.name, new AccountClusterCache(obj, provider))
     }
   }
 

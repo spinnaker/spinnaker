@@ -16,16 +16,9 @@
 
 package com.netflix.spinnaker.oort.clusters.aws
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.oort.clusters.Cluster
-import com.netflix.spinnaker.oort.remoting.AggregateRemoteResource
-import org.springframework.beans.factory.annotation.Autowired
 
 class AmazonCluster implements Cluster {
-  @Autowired
-  @JsonIgnore
-  AggregateRemoteResource edda
-
   String name
   String zone
   String type = "Amazon"

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.clusters
+package com.netflix.spinnaker.oort.security
 
-interface ClusterProvider {
-  Map<String, List<Cluster>> getSummary(String application, String account)
-  List<Cluster> get(String application, String account)
-  List<Cluster> getByName(String application, String account, String clusterName)
-  List<Cluster> getByNameAndZone(String application, String account, String clusterName, String zoneName)
+public interface NamedAccountCredentials<T> {
+  String getName()
+  T getCredentials()
 }

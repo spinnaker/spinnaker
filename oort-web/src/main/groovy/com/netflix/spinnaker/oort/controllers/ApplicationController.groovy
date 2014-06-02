@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.controllers
 
 import com.netflix.spinnaker.oort.applications.Application
 import com.netflix.spinnaker.oort.applications.ApplicationProvider
+import com.netflix.spinnaker.oort.security.NamedAccountCredentialsProvider
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -35,24 +36,40 @@ class ApplicationController {
   @Autowired
   List<ApplicationProvider> applicationProviders
 
+  @Autowired
+  NamedAccountCredentialsProvider namedAccountCredentialsProvider
+
   @RequestMapping(method = RequestMethod.GET)
   Map<String, ApplicationViewModel> list() {
     List<Application> applicationProviderResults = applicationProviders.collectMany { it.list() ?: [] }
     def nameKeyedApplicationList = getMergedApplications(applicationProviderResults)
     nameKeyedApplicationList.collectEntries { String name, Application application ->
-      [(name): convertToModel(name, application)]
+      [(name): convertToModel(accountNames, name, application)]
     }
+  }
+
+  private List<String> getAccountNames() {
+    namedAccountCredentialsProvider.list()*.name
   }
 
   @RequestMapping(value = "/{name}")
   ApplicationViewModel get(@PathVariable("name") String name) {
+    getApplicationViewModel name
+  }
+
+  @RequestMapping(value = "/{name}/clusters")
+  Map getClusters(@PathVariable("name") String name) {
+    def viewModel = getApplicationViewModel(name)
+    viewModel.clusters
+  }
+
+  private ApplicationViewModel getApplicationViewModel(String name) {
     List<Application> applicationProviderResults = applicationProviders.collectMany { [it.get(name)] ?: [] }.findAll { Application application -> application } as List<Application>
     def nameKeyedApplicationList = getMergedApplications(applicationProviderResults)
     if (!nameKeyedApplicationList.containsKey(name)) {
       throw new ApplicationNotFoundException(name)
     }
-    def viewModel = convertToModel name, nameKeyedApplicationList[name]
-    return viewModel
+    convertToModel(accountNames, name, nameKeyedApplicationList[name])
   }
 
   @ExceptionHandler(ApplicationNotFoundException)
@@ -81,19 +98,10 @@ class ApplicationController {
     String name
   }
 
-  static ApplicationViewModel convertToModel(String name, Application application) {
-    def clusters = application.clusters.list()
-    def serverGroupCount = (clusters.collect { it.serverGroupCount }?.sum() ?: 0) as int
-    def instanceCount = (clusters.collect { it.instanceCount }?.sum() ?: 0) as int
-
-    def model = new ApplicationViewModel(name: name)
-    model.clusterCount = clusters.size()
-    model.instanceCount = instanceCount
-    model.serverGroupCount = serverGroupCount
-    model.attributes = application.attributes
-    model.clusters = (model.clusters ?: new HashSet())
-    model.clusters.addAll(clusters.collect { it.name })
-    model
+  static ApplicationViewModel convertToModel(List<String> accountNames, String name, Application application) {
+    def clusterInfo = getClusters(accountNames, application)
+    new ApplicationViewModel(name: name, clusterCount: clusterInfo.clusterCount, serverGroupCount: clusterInfo.serverGroupCount, instanceCount: clusterInfo.instanceCount,
+      attributes: application.attributes, clusters: clusterInfo.clusterNames)
   }
 
   static class ApplicationViewModel {
@@ -102,6 +110,27 @@ class ApplicationController {
     int instanceCount
     int serverGroupCount
     Map attributes
-    Set<String> clusters
+    Map<String, List<String>> clusters
+  }
+
+  static def getClusters(List<String> accountNames, Application application) {
+    def clusterCount = 0
+    def serverGroupCount = 0
+    def instanceCount = 0
+    def clusters = accountNames.collectEntries { String accountName ->
+      def clusters = application.getClusters(accountName).list()
+      clusterCount += clusters.size()
+      serverGroupCount += (clusters.collect { it.serverGroupCount }?.sum() ?: 0) as int
+      instanceCount += (clusters.collect { it.instanceCount }?.sum() ?: 0) as int
+      [(accountName): clusters.collect { it.name }]
+    }
+    new ClusterSummaryInfo(clusterCount: clusterCount, serverGroupCount: serverGroupCount, instanceCount: instanceCount, clusterNames: clusters)
+  }
+
+  static class ClusterSummaryInfo {
+    int clusterCount
+    int serverGroupCount
+    int instanceCount
+    Map<String, List<String>> clusterNames
   }
 }
