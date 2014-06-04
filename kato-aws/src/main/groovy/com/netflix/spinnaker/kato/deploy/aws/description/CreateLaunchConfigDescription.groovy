@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.kato.deploy.aws.description
 
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
+import com.netflix.spinnaker.kato.model.aws.LaunchConfigurationOptions
+
+class CreateLaunchConfigDescription  extends AbstractAmazonCredentialsDescription {
   String asgName
   List<String> regions
+  LaunchConfigurationOptions launchConfigOptions
 }

@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.kato.deploy.aws.validators
 
-package com.netflix.spinnaker.kato.deploy.aws.description
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateLaunchConfigDescription
+import org.springframework.stereotype.Component
+import org.springframework.validation.Errors
 
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
-  List<String> regions
+@Component("createLaunchConfigDescriptionValidator")
+class CreateLaunchConfigDescriptionValidator extends AmazonDescriptionValidationSupport<CreateLaunchConfigDescription> {
+  @Override
+  void validate(List priorDescriptions, CreateLaunchConfigDescription description, Errors errors) {
+    validateAsgNameAndRegions description, errors
+  }
 }

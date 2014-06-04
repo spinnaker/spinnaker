@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.kato.deploy.aws.validators
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateAsgDescription
 
-package com.netflix.spinnaker.kato.deploy.aws.description
+class CreateAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
+  @Override
+  DescriptionValidator getDescriptionValidator() {
+    new CreateAsgDescriptionValidator()
+  }
 
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
-  List<String> regions
+  @Override
+  CreateAsgDescription getDescription() {
+    new CreateAsgDescription()
+  }
 }

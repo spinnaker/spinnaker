@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.model.steps
 
+import com.netflix.spinnaker.kato.model.aws.AsgRoleInCluster
+import groovy.transform.Canonical
 
-package com.netflix.spinnaker.kato.deploy.aws.description
-
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
-  List<String> regions
+@Canonical
+class DeleteAsgStep implements DeploymentStep {
+    /** Indicates the ASG that will be targeted by this operation */
+    AsgRoleInCluster targetAsg
 }

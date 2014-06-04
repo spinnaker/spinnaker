@@ -62,7 +62,7 @@ class KatoAWSConfig {
   }
 
   @Configuration
-  @ConditionalOnExpression('#{${bastion.enabled}}')
+  @ConditionalOnExpression('${bastion.enabled:false}')
   static class BastionCredentialsInitializer {
     @Autowired
     NamedAccountCredentialsHolder namedAccountCredentialsHolder
@@ -82,7 +82,7 @@ class KatoAWSConfig {
   }
 
   @Configuration
-  @ConditionalOnExpression('#{!${bastion.enabled}}')
+  @ConditionalOnExpression('!${bastion.enabled:false}')
   static class AmazonCredentialsInitializer {
     @Autowired
     AWSCredentialsProvider awsCredentialsProvider

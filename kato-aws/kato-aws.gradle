@@ -18,12 +18,13 @@ dependencies {
   compile project(":kato-core")
   compile commonDependencies.frigga
   compile commonDependencies.springBootActuator
-  compile 'com.netflix.amazoncomponents:amazoncomponents:0.9.3'
+  compile commonDependencies.amazoncomponents
   compile 'joda-time:joda-time:2.3'
   compile 'com.amazonaws:aws-java-sdk:1.7.2'
   compile 'org.apache.httpcomponents:httpclient:4.3.3'
   compile 'com.netflix.rxjava:rxjava-core:0.16.0'
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+  compile 'com.google.guava:guava:14.0.1'
 
   testCompile commonDependencies.springBootTest
 }

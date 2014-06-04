@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
+dependencies {
+  compile commonDependencies.springBootActuator
+  compile project(":kato-aws")
 
-package com.netflix.spinnaker.kato.deploy.aws.description
-
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
-  List<String> regions
+  testCompile 'org.objenesis:objenesis:1.2'
 }
