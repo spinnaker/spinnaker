@@ -128,8 +128,8 @@ class DefaultApplicationLoader implements ApplicationLoader {
       if (!applicationCacheService.put(application.name, application, oortDefaults.applicationExpiration)) {
         log.info("Not enough space to save application!!")
       }
-    } catch (e) {
-      log.error "Exception caught", e
+    } catch (IGNORE) {
+      // this is probably fine...
     }
   }
 

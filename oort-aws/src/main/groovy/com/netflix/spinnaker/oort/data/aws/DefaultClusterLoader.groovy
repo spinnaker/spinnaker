@@ -103,7 +103,6 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
   }
 
   final Closure loadImagesCallable = { AmazonNamedAccount account, String region ->
-    log.info "Caching Amazon Images in $region for $account.name..."
     def ec2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
     def images = ec2.describeImages().images
     if (!imageCache.containsKey(region)) {
@@ -113,11 +112,9 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
     for (image in images) {
       cache[image.imageId] = image
     }
-    log.info "Finished caching Amazon Images in $region for $account.name."
   }
 
   final Closure loadLaunchConfigsCallable = { AmazonNamedAccount account, String region ->
-    log.info "Caching Amazon Launch Configurations in $region..."
     if (!launchConfigCache.containsKey(region)) {
       launchConfigCache[region] = new HashMap<>()
     }
@@ -136,11 +133,9 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
     for (launchConfig in launchConfigs) {
       cache[launchConfig.launchConfigurationName] = launchConfig
     }
-    log.info "Finsihed caching Amazon Launch Configurations in $region for $account.name."
   }
 
   final Closure loadLoadBalancersCallable = { AmazonNamedAccount account, String region ->
-    log.info "Caching Amazon Load Balancers in $region for $account.name..."
     if (!loadBalancerCache.containsKey(region)) {
       loadBalancerCache[region] = new HashMap<>()
     }
@@ -159,7 +154,6 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
     for (loadBalancer in loadBalancers) {
       cache[loadBalancer.loadBalancerName] = loadBalancer
     }
-    log.info "Finished caching Amazon Load Balancers in $region for $account.name."
   }
 
   @Override
@@ -173,11 +167,16 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
     def names = Names.parseName(asg.autoScalingGroupName)
 
     def key = "${event.amazonNamedAccount.name}:${names.cluster}".toString()
-    def cluster = clusterCacheService.retrieve(key) ?: new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
+    def cluster = clusterCacheService.retrieve(key)
+    if (!cluster) {
+      log.info "Adding new cluster ${event.amazonNamedAccount.name} ${names.cluster} ${names.group}"
+      cluster = new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
+    }
 
-    def serverGroup = cluster.serverGroups.find { it.name == names.group && it.type == "Amazon" && it.region == event.region }
+    def serverGroup = cluster.serverGroups.find { it.name == names.group && it.type == "aws" && it.region == event.region }
     if (!serverGroup) {
-      serverGroup = new AmazonServerGroup(names.group, "Amazon", event.region)
+      log.info " > Adding new server group ${event.amazonNamedAccount.name} ${names.cluster} ${names.group} ${event.region}"
+      serverGroup = new AmazonServerGroup(names.group, "aws", event.region)
       cluster.serverGroups << serverGroup
     }
     if (launchConfigCache.containsKey(event.region) && launchConfigCache[event.region].containsKey(asg.launchConfigurationName)) {
@@ -200,7 +199,6 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
         }
       }
     }
-    log.info "Saving ${event.region} ${cluster.accountName} ${cluster.name} ${asg.autoScalingGroupName}"
     clusterCacheService.put key, cluster, 300000
   }
 

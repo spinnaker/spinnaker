@@ -48,20 +48,17 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Override
   Map<String, Set<AmazonCluster>> getClusters(String application) {
     Map<String, Set<AmazonCluster>> result = new HashMap<>()
-    def app
-    if (!applicationCacheService.getPointer(application)) {
-      return result
-    } else {
-      app = applicationCacheService.retrieve(application)
-    }
+    def app = applicationCacheService.retrieve(application)
+    if (!app) return result
     for (e in app.clusterNames) {
       def entry = (Map.Entry<String, Set<String>>)e
       def account = entry.key
       def clusterNames = entry.value
       Set<AmazonCluster> clusters = new HashSet<>()
       for (clusterName in clusterNames) {
-        if (clusterCacheService.getPointer(clusterName)) {
-          clusters << clusterCacheService.retrieve(clusterName)
+        def cluster = clusterCacheService.retrieve(clusterName)
+        if (cluster) {
+          clusters << cluster
         }
       }
       result.put account, Collections.unmodifiableSet(clusters)

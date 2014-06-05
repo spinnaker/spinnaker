@@ -26,6 +26,6 @@ class AmazonCluster implements Cluster, Serializable {
   String name
   String type = "aws"
   String accountName
-  Set<AmazonServerGroup> serverGroups = new HashSet<>()
-  Set<AmazonLoadBalancer> loadBalancers = new HashSet<>()
+  Set<AmazonServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<AmazonServerGroup>())
+  Set<AmazonLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<AmazonLoadBalancer>())
 }

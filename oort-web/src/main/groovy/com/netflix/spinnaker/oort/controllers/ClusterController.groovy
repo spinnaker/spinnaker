@@ -86,24 +86,40 @@ class ClusterController {
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups", method = RequestMethod.GET)
   Set<ServerGroup> getServerGroups(@PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @RequestParam(value = "region", required = false) String region) {
     Cluster cluster = getForAccountAndNameAndType(account, clusterName, type)
-    region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups
+    def results = region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups
+    results ?: []
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
                              @RequestParam(value = "region", required = false) String region) {
     Set<ServerGroup> serverGroups = getServerGroups(account, clusterName, type, region)
-    serverGroups.find { it.name == serverGroupName }
+    def serverGroup = serverGroups.find { it.name == serverGroupName }
+    if (!serverGroup) {
+      throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
+    }
+    serverGroup
   }
 
   @ExceptionHandler
   @ResponseStatus(HttpStatus.NOT_FOUND)
   Map handleClusterNotFoundException(ClusterNotFoundException ex) {
-    def message = messageSource.getMessage("application.not.found", [ex.cluster] as String[], "cluster.not.found", LocaleContextHolder.locale)
+    def message = messageSource.getMessage("cluster.not.found", [ex.cluster] as String[], "cluster.not.found", LocaleContextHolder.locale)
     [error: "cluster.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleServerGroupNotFoundException(ServerGroupNotFoundException ex) {
+    def message = messageSource.getMessage("serverGroup.not.found", [ex.serverGroupName] as String[], "serverGroup.not.found", LocaleContextHolder.locale)
+    [error: "serverGroup.not.found", message: message, status: HttpStatus.NOT_FOUND]
   }
 
   static class ClusterNotFoundException extends RuntimeException {
     String cluster
+  }
+
+  static class ServerGroupNotFoundException extends RuntimeException {
+    String serverGroupName
   }
 }

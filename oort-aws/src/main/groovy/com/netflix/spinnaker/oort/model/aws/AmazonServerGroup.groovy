@@ -19,10 +19,8 @@ package com.netflix.spinnaker.oort.model.aws
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
-import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
-@EqualsAndHashCode(includes = ["name", "type", "region", "zones", "instances"])
 class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
 
   AmazonServerGroup(String name, String type, String region) {
