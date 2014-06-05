@@ -1,0 +1,7 @@
+dependencies {
+  compile (":oort-core")
+  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+  compile "com.netflix.amazoncomponents:amazoncomponents:0.9.3"
+  compile "com.netflix.frigga:frigga:0.11"
+  compile "com.amazonaws:aws-java-sdk:1.7.9"
+}
