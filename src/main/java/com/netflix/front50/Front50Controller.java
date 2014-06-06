@@ -128,7 +128,7 @@ public class Front50Controller extends SpringBootServletInitializer {
         }
     }
 
-    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Exception, baby")
+    @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Exception, baby")
     class ApplicationException extends RuntimeException {
         public ApplicationException(Throwable cause) {
             super(cause);
