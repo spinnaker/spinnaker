@@ -9,3 +9,5 @@ TestScript.groovy
 .idea/
 application.yml
 dist/
+vendor/
+.bundle/
