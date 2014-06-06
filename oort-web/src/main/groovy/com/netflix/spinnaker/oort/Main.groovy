@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.oort
 
+import com.netflix.appinfo.InstanceInfo
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.context.web.SpringBootServletInitializer
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
@@ -28,9 +32,19 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableAutoConfiguration
 @EnableScheduling
 @EnableAsync
-class Main {
+class Main extends SpringBootServletInitializer {
 
   static void main(_) {
     SpringApplication.run this, [] as String
+  }
+
+  @Override
+  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    application.sources Main
+  }
+
+  @Bean
+  InstanceInfo.InstanceStatus instanceStatus() {
+    InstanceInfo.InstanceStatus.UNKNOWN
   }
 }
