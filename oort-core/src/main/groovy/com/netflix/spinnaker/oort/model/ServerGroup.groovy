@@ -60,4 +60,12 @@ interface ServerGroup {
    */
   @Empty
   Set<Instance> getInstances()
+
+  /**
+   * A set of health results for the server group
+   *
+   * @see Health
+   * @return health objects
+   */
+  Set<Health> getHealth()
 }

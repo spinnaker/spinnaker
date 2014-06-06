@@ -52,7 +52,7 @@ class DefaultApplicationLoaderSpec extends Specification {
       def clientProvider = Mock(AmazonClientProvider)
       def autoScaling = Mock(AmazonAutoScaling)
       def accountProvider = Mock(NamedAccountProvider)
-      def account = new AmazonNamedAccount(Mock(AWSCredentialsProvider), "test", null, null, null, ["us-west-1"])
+      def account = new AmazonNamedAccount(Mock(AWSCredentialsProvider), "test", null, null, null, null, ["us-west-1"])
       def mockCtx= Mock(ApplicationContext)
       def cache = Mock(CacheService)
       def defaults = new OortDefaults()

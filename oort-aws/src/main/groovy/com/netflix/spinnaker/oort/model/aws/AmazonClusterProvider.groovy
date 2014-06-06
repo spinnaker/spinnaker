@@ -76,7 +76,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     if (app.clusterNames.containsKey(accountName)) {
       for (String clusterName in app.clusterNames[accountName]) {
         def key = "${accountName}:${clusterName}".toString()
-        if (clusterCacheService.getPointer(key)) {
+        def cluster = clusterCacheService.retrieve(key)
+        if (cluster) {
+
           clusters << clusterCacheService.retrieve(key)
         }
       }

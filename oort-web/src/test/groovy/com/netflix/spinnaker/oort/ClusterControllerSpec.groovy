@@ -73,7 +73,7 @@ class ClusterControllerSpec extends Specification {
       serverGroup.getName() >> "serverGroupName"
 
     when:
-      def result = clusterController.getServerGroup("account", "clusterName", "type", "serverGroupName", null)
+      def result = clusterController.getServerGroup("account", "clusterName", "type", "serverGroupName", null, null)
 
     then:
       1 * clusterProvider1.getCluster(_, _) >> {

@@ -18,14 +18,18 @@ package com.netflix.spinnaker.oort.data.aws
 
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.frigga.Names
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.config.OortDefaults
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
+import com.netflix.spinnaker.oort.model.aws.AmazonInstance
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
@@ -38,17 +42,18 @@ import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.web.client.RestTemplate
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @Component
-@CompileStatic
 class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, ClusterLoader {
   private static final Logger log = Logger.getLogger(this)
   private final ExecutorService clusterLoaderExecutor = Executors.newFixedThreadPool(200)
   final Map<String, Map<String, Image>> imageCache = [:]
+  final Map<String, Map<String, Instance>> instanceCache = [:]
   final Map<String, Map<String, LaunchConfiguration>> launchConfigCache = [:]
   final Map<String, Map<String, LoadBalancerDescription>> loadBalancerCache = [:]
 
@@ -57,6 +62,9 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
 
   @Autowired
   NamedAccountProvider namedAccountProvider
+
+  @Autowired
+  RestTemplate restTemplate
 
   @Autowired
   CacheService<String, AmazonCluster> clusterCacheService
@@ -71,6 +79,12 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
   @Scheduled(fixedRate = 30000l)
   void loadImages() {
     invokeMultiAccountMultiRegionClosure this.loadImagesCallable
+  }
+
+  @Async("taskExecutor")
+  @Scheduled(fixedRate = 30000l)
+  void loadInstances() {
+    invokeMultiAccountMultiRegionClosure this.loadInstancesCallable
   }
 
   @Async("taskExecutor")
@@ -111,6 +125,29 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
     def cache = imageCache[region]
     for (image in images) {
       cache[image.imageId] = image
+    }
+  }
+
+  final Closure loadInstancesCallable = { AmazonNamedAccount account, String region ->
+    def ec2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
+    def result = ec2.describeInstances()
+    List<Instance> instances = []
+    while (true) {
+      instances.addAll result.reservations*.instances?.flatten()
+      if (result.nextToken) {
+        result = ec2.describeInstances(new DescribeInstancesRequest().withNextToken(result.nextToken))
+      } else {
+        break
+      }
+    }
+
+    if (!instanceCache.containsKey(region)) {
+      instanceCache[region] = new HashMap<>()
+    }
+
+    def cache = instanceCache[region]
+    for (instance in instances) {
+      cache.put(instance.instanceId, instance)
     }
   }
 
@@ -163,47 +200,80 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
   }
 
   private final Closure loader = { AmazonDataLoadEvent event ->
-    def asg = event.autoScalingGroup
-    def names = Names.parseName(asg.autoScalingGroupName)
+    try {
+      def asg = event.autoScalingGroup
+      def names = Names.parseName(asg.autoScalingGroupName)
+      def key = "${event.amazonNamedAccount.name}:${names.cluster}".toString()
 
-    def key = "${event.amazonNamedAccount.name}:${names.cluster}".toString()
-    def cluster = clusterCacheService.retrieve(key)
-    if (!cluster) {
-      log.info "Adding new cluster ${event.amazonNamedAccount.name} ${names.cluster} ${names.group}"
-      cluster = new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
-    }
-
-    def serverGroup = cluster.serverGroups.find { it.name == names.group && it.type == "aws" && it.region == event.region }
-    if (!serverGroup) {
-      log.info " > Adding new server group ${event.amazonNamedAccount.name} ${names.cluster} ${names.group} ${event.region}"
-      serverGroup = new AmazonServerGroup(names.group, "aws", event.region)
-      cluster.serverGroups << serverGroup
-    }
-    if (launchConfigCache.containsKey(event.region) && launchConfigCache[event.region].containsKey(asg.launchConfigurationName)) {
-      LaunchConfiguration launchConfiguration = launchConfigCache[event.region][asg.launchConfigurationName]
-      serverGroup.launchConfiguration = launchConfiguration
-      if (imageCache.containsKey(event.region) && imageCache[event.region].containsKey(launchConfiguration.imageId)) {
-        Image image = imageCache[event.region][launchConfiguration.imageId]
-        serverGroup.image = image
+      def cluster = clusterCacheService.retrieve(key)
+      if (!cluster) {
+        log.info "Adding new cluster ${event.amazonNamedAccount.name} ${names.cluster} ${names.group}"
+        cluster = new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
       }
-    }
-    if (asg.loadBalancerNames) {
-      for (loadBalancerName in asg.loadBalancerNames) {
-        def loadBalancer = cluster.loadBalancers.find { it.name == loadBalancerName }
-        if (!loadBalancer) {
-          loadBalancer = new AmazonLoadBalancer(loadBalancerName)
-          cluster.loadBalancers << loadBalancer
-        }
-        if (loadBalancerCache.containsKey(event.region) && loadBalancerCache[event.region].containsKey(loadBalancerName)) {
-          loadBalancer.serverGroups << asg.autoScalingGroupName
+
+      def serverGroup = cluster.serverGroups.find { it.name == names.group && it.type == "aws" && it.region == event.region }
+      if (!serverGroup) {
+        log.info " > Adding new server group ${event.amazonNamedAccount.name} ${names.cluster} ${names.group} ${event.region}"
+        serverGroup = new AmazonServerGroup(names.group, "aws", event.region)
+        serverGroup.asg = asg
+        cluster.serverGroups << serverGroup
+      }
+      serverGroup.instances = new HashSet<>()
+      for (asgInstance in asg.instances) {
+        def instance = new AmazonInstance(asgInstance.instanceId)
+        if (instanceCache.containsKey(event.region) && instanceCache[event.region].containsKey(instance.name)) {
+          instance.instance = instanceCache[event.region][instance.name]
+          serverGroup.instances.add(instance)
         }
       }
+
+      if (launchConfigCache.containsKey(event.region) && launchConfigCache[event.region].containsKey(asg.launchConfigurationName)) {
+        LaunchConfiguration launchConfiguration = launchConfigCache[event.region][asg.launchConfigurationName]
+        serverGroup.launchConfiguration = launchConfiguration
+        if (imageCache.containsKey(event.region) && imageCache[event.region].containsKey(launchConfiguration.imageId)) {
+          Image image = imageCache[event.region][launchConfiguration.imageId]
+          def appVersionTag = image.tags.find { it.key == "appversion" }?.value
+          if (appVersionTag) {
+            def appVersion = AppVersion.parseName(appVersionTag)
+            if (appVersion) {
+              def buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit]
+              if (appVersion.buildJobName) {
+                buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
+              }
+              def buildHost = image.tags.find { it.key == "build_host" }?.value
+              if (buildHost) {
+                buildInfo.jenkins.host = buildHost
+              }
+              serverGroup.buildInfo = buildInfo
+            }
+          }
+          serverGroup.image = image
+        }
+      }
+
+      if (asg.loadBalancerNames) {
+        for (loadBalancerName in asg.loadBalancerNames) {
+          def loadBalancer = cluster.loadBalancers.find { it.name == loadBalancerName }
+          if (!loadBalancer) {
+            loadBalancer = new AmazonLoadBalancer(loadBalancerName)
+            cluster.loadBalancers << loadBalancer
+          }
+          if (loadBalancerCache.containsKey(event.region) && loadBalancerCache[event.region].containsKey(loadBalancerName)) {
+            loadBalancer.serverGroups << asg.autoScalingGroupName
+            loadBalancer.elb = loadBalancerCache[event.region][loadBalancerName]
+          }
+        }
+      }
+
+      clusterCacheService.put key, cluster, 300000
+    } catch (e) {
+      // This is probably ok.
     }
-    clusterCacheService.put key, cluster, 300000
   }
 
   protected void shutdownAndWait(int seconds) {
     clusterLoaderExecutor.shutdown()
     clusterLoaderExecutor.awaitTermination(seconds, TimeUnit.SECONDS)
   }
+
 }

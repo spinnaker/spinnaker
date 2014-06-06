@@ -44,6 +44,7 @@ class OortAwsConfig {
   static class ManagedAccount {
     String name
     String edda
+    String atlasHealth
     String front50
     String discovery
     List<String> regions
@@ -62,7 +63,7 @@ class OortAwsConfig {
 
   @Bean
   ExecutorService taskExecutor() {
-    Executors.newFixedThreadPool(20)
+    Executors.newFixedThreadPool(50)
   }
 
   @Bean
@@ -98,7 +99,7 @@ class OortAwsConfig {
     @PostConstruct
     void init() {
       for (account in awsConfigurationProperties.accounts) {
-        namedAccountProvider.put(new AmazonNamedAccount(awsCredentialsProvider, account.name, account.edda, account.front50, account.discovery, account.regions))
+        namedAccountProvider.put(new AmazonNamedAccount(awsCredentialsProvider, account.name, account.edda, account.atlasHealth, account.front50, account.discovery, account.regions))
       }
     }
   }

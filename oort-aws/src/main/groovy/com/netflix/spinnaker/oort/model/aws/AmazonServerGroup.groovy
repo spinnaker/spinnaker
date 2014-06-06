@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
@@ -29,6 +30,7 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
     setProperty "region", region
     setProperty "zones", new HashSet<>()
     setProperty "instances", new HashSet<>()
+    setProperty "health", new HashSet<>()
   }
 
   @Override
@@ -54,5 +56,10 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
   @Override
   Set<Instance> getInstances() {
     (Set<Instance>)getProperty("instances")
+  }
+
+  @Override
+  Set<Health> getHealth() {
+    (Set<Health>)getProperty("health")
   }
 }

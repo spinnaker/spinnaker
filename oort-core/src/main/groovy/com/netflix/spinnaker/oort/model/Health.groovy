@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.model
 
-import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.Scheduled
+/**
+ * Marker interface to represent a Health object. The concrete object will be serialized for consumers.
+ *
+ * @author Dan Woods
+ */
+public interface Health {
 
-public interface ClusterLoader {
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadImages()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadInstances()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadLaunchConfigs()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadLoadBalancers()
 }

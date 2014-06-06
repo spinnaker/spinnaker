@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.oort.controllers
 
 import com.netflix.spinnaker.oort.model.*
+import com.netflix.spinnaker.oort.security.NamedAccount
+import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.client.RestTemplate
 
 @RestController
 @RequestMapping("/applications/{application}/clusters")
@@ -31,10 +34,19 @@ class ClusterController {
   List<ApplicationProvider> applicationProviders
 
   @Autowired
+  NamedAccountProvider namedAccountProvider
+
+  @Autowired
   List<ClusterProvider> clusterProviders
 
   @Autowired
+  List<HealthProvider> healthProviders
+
+  @Autowired
   MessageSource messageSource
+
+  @Autowired
+  RestTemplate restTemplate
 
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Set<String>> list(@PathVariable String application) {
@@ -92,11 +104,14 @@ class ClusterController {
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
-                             @RequestParam(value = "region", required = false) String region) {
+                             @RequestParam(value = "region", required = false) String region, @RequestParam(value = "health", required = false) Boolean health) {
     Set<ServerGroup> serverGroups = getServerGroups(account, clusterName, type, region)
     def serverGroup = serverGroups.find { it.name == serverGroupName }
     if (!serverGroup) {
       throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
+    }
+    if (health) {
+      serverGroup.getHealth().addAll(healthProviders.collect { it.getHealth(account, serverGroup) })
     }
     serverGroup
   }

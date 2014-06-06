@@ -27,6 +27,7 @@ class AmazonNamedAccount implements NamedAccount<AmazonCredentials> {
   String edda
   String front50
   String discovery
+  String atlasHealth
   List<String> regions
   Class<AmazonCredentials> type = AmazonCredentials
 
@@ -40,12 +41,13 @@ class AmazonNamedAccount implements NamedAccount<AmazonCredentials> {
 
   }
 
-  AmazonNamedAccount(AWSCredentialsProvider provider, String name, String edda, String front50, String discovery, List<String> regions) {
+  AmazonNamedAccount(AWSCredentialsProvider provider, String name, String edda, String atlasHealth, String front50, String discovery, List<String> regions) {
     this.provider = provider
     this.name = name
     this.edda = edda
     this.front50 = front50
     this.discovery = discovery
+    this.atlasHealth = atlasHealth
     this.regions = regions
   }
 

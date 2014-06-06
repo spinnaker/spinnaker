@@ -33,7 +33,7 @@ class Front50ApplicationLoaderSpec extends Specification {
     loader = new Front50ApplicationLoader()
     def namedAccountProvider = Mock(NamedAccountProvider)
     namedAccountProvider.getAccountNames() >> ["test"]
-    namedAccountProvider.get("test") >> new AmazonNamedAccount(null, null, null, "front50", null, null)
+    namedAccountProvider.get("test") >> new AmazonNamedAccount(null, null, null, null, "front50", null, null)
     loader.namedAccountProvider = namedAccountProvider
   }
 

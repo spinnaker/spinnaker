@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.model
 
-import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.Scheduled
-
-public interface ClusterLoader {
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadImages()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadInstances()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadLaunchConfigs()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadLoadBalancers()
+interface HealthProvider {
+  Health getHealth(String account, ServerGroup serverGroup)
 }

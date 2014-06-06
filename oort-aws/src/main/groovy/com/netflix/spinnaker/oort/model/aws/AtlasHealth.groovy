@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.model.aws
 
-import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.Scheduled
+import com.netflix.spinnaker.oort.model.Health
+import groovy.transform.InheritConstructors
 
-public interface ClusterLoader {
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadImages()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadInstances()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadLaunchConfigs()
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
-  void loadLoadBalancers()
+@InheritConstructors
+class AtlasHealth extends HashMap implements Health, Serializable {
 }
