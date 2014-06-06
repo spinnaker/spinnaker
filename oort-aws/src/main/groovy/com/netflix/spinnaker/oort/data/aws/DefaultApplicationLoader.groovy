@@ -40,7 +40,7 @@ import java.util.concurrent.Executors
 @CompileStatic
 @Component
 class DefaultApplicationLoader implements ApplicationLoader {
-  private static final ExecutorService executorService = Executors.newFixedThreadPool(50)
+  static ExecutorService executorService = Executors.newFixedThreadPool(50)
   private static final Logger log = Logger.getLogger(this)
   @Autowired
   AmazonClientProvider amazonClientProvider

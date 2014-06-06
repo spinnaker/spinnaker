@@ -58,15 +58,15 @@ class DefaultApplicationLoaderSpec extends Specification {
       def defaults = new OortDefaults()
       loader.oortDefaults = defaults
       loader.applicationCacheService = cache
-      loader.taskExecutor = Executors.newSingleThreadExecutor()
+      loader.executorService = Executors.newSingleThreadExecutor()
       loader.applicationContext = mockCtx
       loader.amazonClientProvider = clientProvider
       loader.namedAccountProvider = accountProvider
 
     when:
       loader.load()
-      loader.taskExecutor.shutdown()
-      loader.taskExecutor.awaitTermination(5, TimeUnit.SECONDS)
+      loader.executorService.shutdown()
+      loader.executorService.awaitTermination(5, TimeUnit.SECONDS)
 
     then:
     1 * accountProvider.getAccountNames() >> [accountName]
