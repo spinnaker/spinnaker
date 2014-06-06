@@ -20,7 +20,5 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 
 public interface ApplicationLoader {
-  @Async("taskExecutor")
-  @Scheduled(fixedRate = 30000l)
   void load()
 }

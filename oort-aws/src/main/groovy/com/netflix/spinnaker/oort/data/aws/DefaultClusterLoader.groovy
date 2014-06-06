@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit
 @Component
 class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, ClusterLoader {
   private static final Logger log = Logger.getLogger(this)
+  private final ExecutorService executorService = Executors.newFixedThreadPool(50)
   private final ExecutorService clusterLoaderExecutor = Executors.newFixedThreadPool(200)
   final Map<String, Map<String, Image>> imageCache = [:]
   final Map<String, Map<String, Instance>> instanceCache = [:]
@@ -70,30 +71,27 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
   CacheService<String, AmazonCluster> clusterCacheService
 
   @Autowired
-  ExecutorService taskExecutor
-
-  @Autowired
   OortDefaults oortDefaults
 
-  @Async("taskExecutor")
+  @Async("taskScheduler")
   @Scheduled(fixedRate = 30000l)
   void loadImages() {
     invokeMultiAccountMultiRegionClosure this.loadImagesCallable
   }
 
-  @Async("taskExecutor")
+  @Async("taskScheduler")
   @Scheduled(fixedRate = 30000l)
   void loadInstances() {
     invokeMultiAccountMultiRegionClosure this.loadInstancesCallable
   }
 
-  @Async("taskExecutor")
+  @Async("taskScheduler")
   @Scheduled(fixedRate = 30000l)
   void loadLaunchConfigs() {
     invokeMultiAccountMultiRegionClosure this.loadLaunchConfigsCallable
   }
 
-  @Async("taskExecutor")
+  @Async("taskScheduler")
   @Scheduled(fixedRate = 30000l)
   void loadLoadBalancers() {
     invokeMultiAccountMultiRegionClosure this.loadLoadBalancersCallable
@@ -106,7 +104,7 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
         callables << closure.curry(account, region)
       }
     }
-    taskExecutor.invokeAll(callables)
+    executorService.invokeAll(callables)
   }
 
   private Collection<AmazonNamedAccount> getAccounts() {
@@ -265,9 +263,13 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent>, 
         }
       }
 
+      if (names.cluster == "abcloud" && event.amazonNamedAccount.name == "prod") {
+        println "abcloud"
+      }
+
       clusterCacheService.put key, cluster, 300000
     } catch (e) {
-      // This is probably ok.
+      log.error(e)
     }
   }
 

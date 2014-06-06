@@ -30,6 +30,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.TaskScheduler
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
@@ -62,8 +64,10 @@ class OortAwsConfig {
   }
 
   @Bean
-  ExecutorService taskExecutor() {
-    Executors.newFixedThreadPool(50)
+  TaskScheduler taskScheduler() {
+    def scheduler = new ThreadPoolTaskScheduler()
+    scheduler.poolSize = 50
+    scheduler
   }
 
   @Bean

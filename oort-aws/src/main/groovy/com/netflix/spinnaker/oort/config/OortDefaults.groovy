@@ -23,5 +23,5 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("defaults")
 class OortDefaults {
   Integer applicationExpiration = 600000 // 10 minutes, apps don't change that much
-  Integer clusterExpiration = 60000 // 1 minute, clusters change frequently
+  Integer clusterExpiration = 120000 // 2 minute, clusters change frequently
 }

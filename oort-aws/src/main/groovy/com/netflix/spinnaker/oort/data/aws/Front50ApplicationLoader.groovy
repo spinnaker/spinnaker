@@ -42,7 +42,7 @@ class Front50ApplicationLoader implements ApplicationLoader {
   @Autowired
   RestTemplate restTemplate
 
-  @Async("taskExecutor")
+  @Async("taskScheduler")
   @Scheduled(fixedRate = 30000l)
   void load() {
     log.info "Beginning Front50 Application Caching..."

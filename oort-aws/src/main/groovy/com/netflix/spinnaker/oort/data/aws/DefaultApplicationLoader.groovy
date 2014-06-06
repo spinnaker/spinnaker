@@ -35,10 +35,12 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @CompileStatic
 @Component
 class DefaultApplicationLoader implements ApplicationLoader {
+  private static final ExecutorService executorService = Executors.newFixedThreadPool(50)
   private static final Logger log = Logger.getLogger(this)
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -50,15 +52,12 @@ class DefaultApplicationLoader implements ApplicationLoader {
   ApplicationContext applicationContext
 
   @Autowired
-  ExecutorService taskExecutor
-
-  @Autowired
   CacheService<String, AmazonApplication> applicationCacheService
 
   @Autowired
   OortDefaults oortDefaults
 
-  @Async("taskExecutor")
+  @Async("taskScheduler")
   @Scheduled(fixedRate = 30000l)
   void load() {
     log.info "Beginning caching Amazon applications..."
@@ -74,7 +73,7 @@ class DefaultApplicationLoader implements ApplicationLoader {
       }
     }
 
-    taskExecutor.invokeAll(callables)
+    executorService.invokeAll(callables)
   }
 
   private final Closure loadData = { AmazonNamedAccount account, String region ->
@@ -92,11 +91,8 @@ class DefaultApplicationLoader implements ApplicationLoader {
       }
 
       for (asg in autoScalingGroups) {
-        taskExecutor.submit(appCreator.curry(account, region, asg))
-        def eventPublisher = eventPublisher.curry(region, account, asg)
-        Thread.start {
-          eventPublisher.call()
-        }
+        executorService.submit(appCreator.curry(account, region, asg))
+        eventPublisher(region, account, asg)
       }
     } catch (e) {
       log.error "THERE WAS AN ERROR WHILE LOADING APPLICATIONS!!", e
