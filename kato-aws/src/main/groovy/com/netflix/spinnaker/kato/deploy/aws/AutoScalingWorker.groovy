@@ -198,18 +198,20 @@ class AutoScalingWorker {
    * @return id of the vpc
    */
   String getVpcForSubnetType() {
-    def response = amazonEC2.describeSubnets()
-    for (subnet in response.subnets) {
-      def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
-      if (metadataJson) {
-        def metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
-          && metadata.target == SUBNET_PURPOSE_TYPE) {
-          return subnet.vpcId
+    if (!this.vpcId) {
+      def response = amazonEC2.describeSubnets()
+      for (subnet in response.subnets) {
+        def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
+        if (metadataJson) {
+          def metadata = objectMapper.readValue metadataJson, Map
+          if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
+            && metadata.target == SUBNET_PURPOSE_TYPE) {
+            this.vpcId = subnet.vpcId
+          }
         }
       }
     }
-    null
+    this.vpcId
   }
 
   /**
