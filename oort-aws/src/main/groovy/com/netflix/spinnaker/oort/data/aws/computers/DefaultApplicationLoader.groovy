@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.computers
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
@@ -22,6 +22,10 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.config.OortDefaults
+import com.netflix.spinnaker.oort.data.aws.AmazonDataLoadEvent
+import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.Loader
+import com.netflix.spinnaker.oort.data.aws.MultiAccountCachingSupport
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
@@ -40,7 +44,6 @@ import java.util.concurrent.Executors
 @CompileStatic
 @Component
 class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loader {
-  static ExecutorService executorService = Executors.newFixedThreadPool(50)
   private static final Logger log = Logger.getLogger(this)
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -57,8 +60,11 @@ class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loa
   @Autowired
   OortDefaults oortDefaults
 
+  @Autowired
+  ExecutorService executorService
+
   @Async("taskScheduler")
-  @Scheduled(fixedRate = 30000l)
+  @Scheduled(fixedRateString = '${cacheRefreshMs}')
   void load() {
     log.info "Beginning caching Amazon applications..."
     def accounts = (Collection<AmazonNamedAccount>) namedAccountProvider.accountNames.collectMany({ String name ->
@@ -92,7 +98,7 @@ class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loa
 
       for (asg in autoScalingGroups) {
         executorService.submit(appCreator.curry(account, region, asg))
-        eventPublisher(region, account, asg)
+        executorService.submit(eventPublisher.curry(region, account, asg))
       }
     } catch (e) {
       log.error "THERE WAS AN ERROR WHILE LOADING APPLICATIONS!!", e
@@ -109,11 +115,11 @@ class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loa
       def names = Names.parseName(asg.autoScalingGroupName)
       def appName = names.app.toLowerCase()
       application = (AmazonApplication) cacheService.retrieve(appName) ?: new AmazonApplication(name: appName)
-      if (!cacheService.put(application.name, application, oortDefaults.applicationExpiration)) {
+      if (!cacheService.put(Keys.getApplicationKey(application.name), application, oortDefaults.applicationExpiration)) {
         log.info("Not enough space to save application!!")
       }
-    } catch (IGNORE) {
-      // this is probably fine...
+    } catch (e) {
+      e.printStackTrace()
     }
   }
 }

@@ -30,6 +30,7 @@ import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.oort.config.OortDefaults
+import com.netflix.spinnaker.oort.data.aws.computers.DefaultClusterLoader
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.directmemory.cache.CacheService

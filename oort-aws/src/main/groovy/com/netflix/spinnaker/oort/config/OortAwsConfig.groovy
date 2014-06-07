@@ -25,6 +25,7 @@ import groovy.transform.CompileStatic
 import org.apache.directmemory.DirectMemory
 import org.apache.directmemory.cache.CacheService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -35,6 +36,8 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 import javax.annotation.PostConstruct
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @CompileStatic
 @Configuration
@@ -61,15 +64,23 @@ class OortAwsConfig {
   }
 
   @Bean
-  TaskScheduler taskScheduler() {
-    def scheduler = new ThreadPoolTaskScheduler()
-    scheduler.poolSize = 50
-    scheduler
+  ExecutorService taskScheduler() {
+    Executors.newFixedThreadPool(10)
+  }
+
+  @Bean
+  ExecutorService loaderExecutorService() {
+    Executors.newFixedThreadPool(10)
+  }
+
+  @Bean
+  ExecutorService executorService(@Value('${computeThreadPoolSize}') Integer poolSize) {
+    Executors.newFixedThreadPool(poolSize)
   }
 
   @Bean
   CacheService<String, Object> cacheService() {
-    new DirectMemory<String, AmazonCluster>().setNumberOfBuffers(1).setSize(50000000).setInitialCapacity(1000000).setConcurrencyLevel(1).setDisposalTime(600000).newCacheService()
+    new DirectMemory<String, AmazonCluster>().setNumberOfBuffers(10).setSize(100 * 1024 * 1024).setInitialCapacity(10000).setConcurrencyLevel(1).setDisposalTime(600000).newCacheService()
   }
 
   @Bean

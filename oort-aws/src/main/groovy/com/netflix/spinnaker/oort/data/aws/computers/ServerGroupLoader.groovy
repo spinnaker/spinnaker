@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.computers
 
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.oort.data.aws.AmazonDataLoadEvent
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.aws.AmazonInstance
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import org.apache.directmemory.cache.CacheService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
-
-import java.util.logging.Logger
+import org.apache.log4j.Logger
 
 @Component
 class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
+  private static final Logger log = Logger.getLogger(this)
 
   @Autowired
   CacheService<String, Object> cacheService
@@ -44,7 +45,7 @@ class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
   void onApplicationEvent(AmazonDataLoadEvent event) {
     def asg = event.autoScalingGroup
     def names = Names.parseName(asg.autoScalingGroupName)
-    log.info "Loading Server Group -- ${names.group}"
+    //log.info "Loading Server Group -- ${names.group}"
 
     def launchConfig = (LaunchConfiguration) cacheService.map.keySet().findAll { it.startsWith(Keys.getLaunchConfigKey(asg.launchConfigurationName, event.region)) }.collect {
       cacheService.retrieve(it)
@@ -76,14 +77,11 @@ class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
     serverGroup.image = image
     serverGroup.buildInfo = buildInfo
     for (instance in asg.instances) {
-      def modelInstance = new AmazonInstance(instance.instanceId)
-      def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.instanceId, event.region))
-      if (amazonInstance) {
-        modelInstance.instance = amazonInstance
-      }
-      serverGroup.getInstances().add(modelInstance)
+      serverGroup.instances.add(new AmazonInstance(instance.instanceId))
     }
-    cacheService.put(Keys.getServerGroupKey(names.group, event.amazonNamedAccount.name, event.region), serverGroup)
+    if (!cacheService.put(Keys.getServerGroupKey(names.group, event.amazonNamedAccount.name, event.region), serverGroup)) {
+      log.info "Out of space!!"
+    }
   }
 
 }

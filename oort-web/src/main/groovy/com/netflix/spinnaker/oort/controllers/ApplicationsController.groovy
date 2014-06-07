@@ -52,15 +52,18 @@ class ApplicationsController {
       if (!apps) {
         throw new ApplicationNotFoundException(name: name)
       } else {
-        Application result = null
+        def attributes = [:]
+        ApplicationViewModel result = null
         for (Application app in apps) {
+          attributes << app.attributes
           if (!result) {
-            result = new ApplicationViewModel(name: app.name, attributes: app.attributes, clusterNames: app.clusterNames)
+            result = new ApplicationViewModel(name: app.name, clusterNames: app.clusterNames)
           } else {
             def clusterNames = Application.mergeClusters.curry(app, result).call()
-            result = new ApplicationViewModel(name: app.name, attributes: app.attributes + result.attributes, clusterNames: clusterNames)
+            result = new ApplicationViewModel(name: app.name, clusterNames: clusterNames)
           }
         }
+        result.attributes = attributes
         result
       }
     } catch (IGNORE) {

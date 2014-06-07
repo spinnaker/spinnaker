@@ -23,29 +23,30 @@ import com.netflix.spinnaker.oort.data.aws.MultiAccountCachingSupport
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.directmemory.cache.CacheService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.logging.Logger
+import org.apache.log4j.Logger
 
 @Component
 class ImageCacher extends MultiAccountCachingSupport implements Loader {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-  final ExecutorService executorService = Executors.newFixedThreadPool(50)
-
   @Autowired
   CacheService<String, Object> cacheService
 
   @Autowired
   AmazonClientProvider amazonClientProvider
 
+  @Autowired
+  @Qualifier("loaderExecutorService")
+  ExecutorService executorService
+
   @Async("taskScheduler")
-  @Scheduled(fixedRate = 30000l)
+  @Scheduled(fixedRateString = '${cacheRefreshMs}')
   void load() {
-    log.info "Caching images..."
     invokeMultiAccountMultiRegionClosure loadImagesCallable
   }
 

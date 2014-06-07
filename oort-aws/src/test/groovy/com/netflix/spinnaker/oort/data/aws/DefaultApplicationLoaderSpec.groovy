@@ -22,6 +22,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.oort.config.OortDefaults
+import com.netflix.spinnaker.oort.data.aws.computers.DefaultApplicationLoader
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount

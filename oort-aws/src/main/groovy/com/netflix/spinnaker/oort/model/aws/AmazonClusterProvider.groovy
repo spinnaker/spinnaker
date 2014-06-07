@@ -55,7 +55,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     def keys = cacheService.map.keySet()
     def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
     if (cluster) {
-      cluster.serverGroups = (Set<AmazonServerGroup>) keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}:") }.collect { cacheService.retrieve(it) } as Set
+      def withServerGroups = getClustersWithServerGroups(keys, [cluster])
+      cluster = withServerGroups[account]?.getAt(0)
     }
     cluster
   }
@@ -63,7 +64,16 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   private Map<String, Set<AmazonCluster>> getClustersWithServerGroups(Set<String> keys, List<AmazonCluster> clusters) {
     Map<String, Set<AmazonCluster>> result = new HashMap<>()
     for (cluster in clusters) {
-      cluster.serverGroups = (Set<AmazonServerGroup>) keys.findAll { it.startsWith("clusters:${cluster.name}:${cluster.accountName}") }.collect { cacheService.retrieve(it) } as Set
+      cluster.serverGroups = (Set<AmazonServerGroup>) keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}") }.collect {
+        def serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
+        for (AmazonInstance instance in (Set<AmazonInstance>)serverGroup.instances) {
+          def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.name, serverGroup.region))
+          if (amazonInstance) {
+            instance.instance = amazonInstance
+          }
+        }
+        serverGroup
+      } as Set
       if (!result.containsKey(cluster.accountName)) {
         result[cluster.accountName] = new HashSet<>()
       }

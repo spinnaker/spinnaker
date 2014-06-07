@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
+import com.netflix.spinnaker.oort.data.aws.computers.Front50ApplicationLoader
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.springframework.web.client.RestTemplate

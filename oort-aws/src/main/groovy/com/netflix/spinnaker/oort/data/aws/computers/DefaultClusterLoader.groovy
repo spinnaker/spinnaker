@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.computers
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.config.OortDefaults
+import com.netflix.spinnaker.oort.data.aws.AmazonDataLoadEvent
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.apache.directmemory.cache.CacheService
@@ -35,7 +37,6 @@ import java.util.concurrent.TimeUnit
 @Component
 class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent> {
   private static final Logger log = Logger.getLogger(this)
-  private final ExecutorService clusterLoaderExecutor = Executors.newFixedThreadPool(200)
 
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -52,11 +53,14 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent> {
   @Autowired
   CacheService<String, Object> cacheService
 
+  @Autowired
+  ExecutorService executorService
+
   @Override
   void onApplicationEvent(AmazonDataLoadEvent event) {
-    log.info "Loading Cluster Data"
+    //log.info "Loading Cluster Data"
     def loader = loader.curry(event)
-    clusterLoaderExecutor.submit(loader)
+    executorService.submit(loader)
   }
 
   private final Closure loader = { AmazonDataLoadEvent event ->
@@ -68,15 +72,17 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent> {
         log.info "Adding new cluster ${event.amazonNamedAccount.name} ${names.cluster} ${names.group}"
         cluster = new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
       }
-      cacheService.put Keys.getClusterKey(names.cluster, names.app, event.amazonNamedAccount.name), cluster, 300000
+      if (!cacheService.put(Keys.getClusterKey(names.cluster, names.app, event.amazonNamedAccount.name), cluster)) {
+        log.info "Out of space!"
+      }
     } catch (e) {
       log.error(e)
     }
   }
 
   protected void shutdownAndWait(int seconds) {
-    clusterLoaderExecutor.shutdown()
-    clusterLoaderExecutor.awaitTermination(seconds, TimeUnit.SECONDS)
+    executorService.shutdown()
+    executorService.awaitTermination(seconds, TimeUnit.SECONDS)
   }
 
 }

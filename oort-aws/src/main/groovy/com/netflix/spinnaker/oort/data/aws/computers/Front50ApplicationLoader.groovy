@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.computers
 
+import com.netflix.spinnaker.oort.data.aws.ApplicationLoader
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
@@ -43,7 +45,7 @@ class Front50ApplicationLoader implements ApplicationLoader {
   RestTemplate restTemplate
 
   @Async("taskScheduler")
-  @Scheduled(fixedRate = 30000l)
+  @Scheduled(fixedRateString = '${cacheRefreshMs}')
   void load() {
     log.info "Beginning Front50 Application Caching..."
     for (name in namedAccountProvider.accountNames) {
@@ -57,9 +59,9 @@ class Front50ApplicationLoader implements ApplicationLoader {
           def list = (List<Map<String, String>>) restTemplate.getForObject("${account.front50}/applications", List)
           for (Map<String, String> input in list) {
             def appName = input.name.toLowerCase()
-            AmazonApplication application = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey("applications:${appName}")) ?: new AmazonApplication(name: appName)
+            AmazonApplication application = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey("applications:${appName}")) ?: new AmazonApplication(name: appName, attributes: [:])
             application.attributes += input
-            if (!cacheService.put("applications:${appName}".toString(), application, 300000)) {
+            if (!cacheService.put(Keys.getApplicationKey(application.name), application)) {
               log.info("Not enough space to save application!!")
             }
           }

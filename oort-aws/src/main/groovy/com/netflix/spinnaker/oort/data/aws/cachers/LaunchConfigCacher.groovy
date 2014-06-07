@@ -25,6 +25,7 @@ import com.netflix.spinnaker.oort.data.aws.MultiAccountCachingSupport
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.directmemory.cache.CacheService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -34,16 +35,18 @@ import java.util.concurrent.Executors
 
 @Component
 class LaunchConfigCacher extends MultiAccountCachingSupport implements Loader {
-  final ExecutorService executorService = Executors.newFixedThreadPool(50)
-
   @Autowired
   AmazonClientProvider amazonClientProvider
 
   @Autowired
   CacheService<String, Object> cacheService
 
+  @Autowired
+  @Qualifier("loaderExecutorService")
+  ExecutorService executorService
+
   @Async("taskScheduler")
-  @Scheduled(fixedRate = 30000l)
+  @Scheduled(fixedRateString = '${cacheRefreshMs}')
   void load() {
     invokeMultiAccountMultiRegionClosure loadLaunchConfigsCallable
   }
