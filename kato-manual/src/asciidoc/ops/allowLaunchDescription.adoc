@@ -15,7 +15,7 @@ This description provides the inputs necessary to allow launch permissions of an
     "allowLaunchDescription": {
         "amiName": "ami-123456",
         "account": "prod",
-        "region": "us-west-1,
+        "region": "us-west-1",
         "credentials": "test"
     }
 }]
