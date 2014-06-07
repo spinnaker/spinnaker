@@ -18,6 +18,8 @@ package com.netflix.spinnaker.oort.security
 
 interface NamedAccount<T> {
   String getName()
+
   T getCredentials()
+
   Class<T> getType()
 }

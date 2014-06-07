@@ -35,34 +35,34 @@ class ApplicationControllerSpec extends Specification {
 
   Should "call all application providers on listing"() {
     setup:
-      def appProvider1 = Mock(ApplicationProvider)
-      def appProvider2 = Mock(ApplicationProvider)
-      applicationsController.applicationProviders = [appProvider1, appProvider2]
+    def appProvider1 = Mock(ApplicationProvider)
+    def appProvider2 = Mock(ApplicationProvider)
+    applicationsController.applicationProviders = [appProvider1, appProvider2]
 
     when:
-      applicationsController.list()
+    applicationsController.list()
 
     then:
-      1 * appProvider1.getApplications()
-      1 * appProvider2.getApplications()
+    1 * appProvider1.getApplications()
+    1 * appProvider2.getApplications()
   }
 
   Should "merge clusterNames and attributes when multiple apps are found"() {
     setup:
-      def appProvider1 = Mock(ApplicationProvider)
-      def appProvider2 = Mock(ApplicationProvider)
-      applicationsController.applicationProviders = [appProvider1, appProvider2]
-      def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
-      def app2 = new AmazonApplication(name: "foo", clusterNames: [test: ["baz"] as Set], attributes: [:])
+    def appProvider1 = Mock(ApplicationProvider)
+    def appProvider2 = Mock(ApplicationProvider)
+    applicationsController.applicationProviders = [appProvider1, appProvider2]
+    def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
+    def app2 = new AmazonApplication(name: "foo", clusterNames: [test: ["baz"] as Set], attributes: [:])
 
     when:
-      def result = applicationsController.get("foo")
+    def result = applicationsController.get("foo")
 
     then:
-      appProvider1.getApplication("foo") >> app1
-      appProvider2.getApplication("foo") >> app2
-      result.name == "foo"
-      result.clusterNames == [test: ["bar", "baz"] as Set]
-      result.attributes == [tag: "val"]
+    appProvider1.getApplication("foo") >> app1
+    appProvider2.getApplication("foo") >> app2
+    result.name == "foo"
+    result.clusterNames == [test: ["bar", "baz"] as Set]
+    result.attributes == [tag: "val"]
   }
 }

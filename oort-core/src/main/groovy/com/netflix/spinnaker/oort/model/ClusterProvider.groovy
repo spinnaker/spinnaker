@@ -64,5 +64,5 @@ interface ClusterProvider<T extends Cluster> {
    * @return cluster or null if none exists
    */
   @Nullable
-  T getCluster(String account, String name)
+  T getCluster(String application, String account, String name)
 }

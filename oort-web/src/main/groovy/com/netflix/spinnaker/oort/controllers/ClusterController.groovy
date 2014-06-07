@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.oort.controllers
 
 import com.netflix.spinnaker.oort.model.*
-import com.netflix.spinnaker.oort.security.NamedAccount
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -50,7 +49,7 @@ class ClusterController {
 
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Set<String>> list(@PathVariable String application) {
-    def apps = ((List<Application>)applicationProviders.collectMany {
+    def apps = ((List<Application>) applicationProviders.collectMany {
       [it.getApplication(application)] ?: []
     }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
     def clusterNames = [:]
@@ -77,17 +76,17 @@ class ClusterController {
 
 
   @RequestMapping(value = "/{account}/{name}", method = RequestMethod.GET)
-  Set<Cluster> getForAccountAndName(@PathVariable String account, @PathVariable String name) {
+  Set<Cluster> getForAccountAndName(@PathVariable String application, @PathVariable String account, @PathVariable String name) {
     def clusters = clusterProviders.collect {
-      it.getCluster(account, name)
+      it.getCluster(application, account, name)
     }
     clusters.removeAll([null])
     clusters
   }
 
   @RequestMapping(value = "/{account}/{name}/{type}", method = RequestMethod.GET)
-  Cluster getForAccountAndNameAndType(@PathVariable String account, @PathVariable String name, @PathVariable String type) {
-    Set<Cluster> allClusters = getForAccountAndName(account, name)
+  Cluster getForAccountAndNameAndType(@PathVariable String application, @PathVariable String account, @PathVariable String name, @PathVariable String type) {
+    Set<Cluster> allClusters = getForAccountAndName(application, account, name)
     def cluster = allClusters.find { it.type == type }
     if (!cluster) {
       throw new ClusterNotFoundException(cluster: name)
@@ -96,16 +95,17 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups", method = RequestMethod.GET)
-  Set<ServerGroup> getServerGroups(@PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @RequestParam(value = "region", required = false) String region) {
-    Cluster cluster = getForAccountAndNameAndType(account, clusterName, type)
+  Set<ServerGroup> getServerGroups(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type,
+                                   @RequestParam(value = "region", required = false) String region) {
+    Cluster cluster = getForAccountAndNameAndType(application, account, clusterName, type)
     def results = region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups
     results ?: []
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
-  ServerGroup getServerGroup(@PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
+  ServerGroup getServerGroup(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
                              @RequestParam(value = "region", required = false) String region, @RequestParam(value = "health", required = false) Boolean health) {
-    Set<ServerGroup> serverGroups = getServerGroups(account, clusterName, type, region)
+    Set<ServerGroup> serverGroups = getServerGroups(application, account, clusterName, type, region)
     def serverGroup = serverGroups.find { it.name == serverGroupName }
     if (!serverGroup) {
       throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)

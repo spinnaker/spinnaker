@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import groovy.transform.CompileStatic
 import org.apache.directmemory.cache.CacheService
@@ -26,69 +27,48 @@ import org.springframework.stereotype.Component
 @Component
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Autowired
-  CacheService<String, AmazonApplication> applicationCacheService
-
-  @Autowired
-  CacheService<String, AmazonCluster> clusterCacheService
+  CacheService<String, Object> cacheService
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
-    Map<String, Set<AmazonCluster>> result = new HashMap<>()
+    def keys = cacheService.map.keySet()
+    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters") }.collect { cacheService.retrieve(it) }
+    getClustersWithServerGroups keys, clusters
+  }
 
-    for (key in clusterCacheService.map.keySet()) {
-      def cluster = clusterCacheService.retrieve(key)
+  @Override
+  Map<String, Set<AmazonCluster>> getClusters(String application) {
+    def keys = cacheService.map.keySet()
+    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:${application}") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+    getClustersWithServerGroups keys, clusters
+  }
+
+  @Override
+  Set<AmazonCluster> getClusters(String application, String accountName) {
+    def keys = cacheService.map.keySet()
+    def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+    (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.values()
+  }
+
+  @Override
+  AmazonCluster getCluster(String application, String account, String name) {
+    def keys = cacheService.map.keySet()
+    def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
+    if (cluster) {
+      cluster.serverGroups = (Set<AmazonServerGroup>) keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}:") }.collect { cacheService.retrieve(it) } as Set
+    }
+    cluster
+  }
+
+  private Map<String, Set<AmazonCluster>> getClustersWithServerGroups(Set<String> keys, List<AmazonCluster> clusters) {
+    Map<String, Set<AmazonCluster>> result = new HashMap<>()
+    for (cluster in clusters) {
+      cluster.serverGroups = (Set<AmazonServerGroup>) keys.findAll { it.startsWith("clusters:${cluster.name}:${cluster.accountName}") }.collect { cacheService.retrieve(it) } as Set
       if (!result.containsKey(cluster.accountName)) {
         result[cluster.accountName] = new HashSet<>()
       }
       result[cluster.accountName] << cluster
     }
     result
-  }
-
-  @Override
-  Map<String, Set<AmazonCluster>> getClusters(String application) {
-    Map<String, Set<AmazonCluster>> result = new HashMap<>()
-    def app = applicationCacheService.retrieve(application)
-    if (!app) return result
-    for (e in app.clusterNames) {
-      def entry = (Map.Entry<String, Set<String>>)e
-      def account = entry.key
-      def clusterNames = entry.value
-      Set<AmazonCluster> clusters = new HashSet<>()
-      for (clusterName in clusterNames) {
-        def cluster = clusterCacheService.retrieve(clusterName)
-        if (cluster) {
-          clusters << cluster
-        }
-      }
-      result.put account, Collections.unmodifiableSet(clusters)
-    }
-    result
-  }
-
-  @Override
-  Set<AmazonCluster> getClusters(String application, String accountName) {
-    Set<AmazonCluster> clusters = new HashSet<>()
-    def app = applicationCacheService.retrieve(application)
-    if (!app) {
-      return clusters
-    }
-    if (app.clusterNames.containsKey(accountName)) {
-      for (String clusterName in app.clusterNames[accountName]) {
-        def key = "${accountName}:${clusterName}".toString()
-        def cluster = clusterCacheService.retrieve(key)
-        if (cluster) {
-
-          clusters << clusterCacheService.retrieve(key)
-        }
-      }
-    }
-    Collections.unmodifiableSet(clusters)
-  }
-
-  @Override
-  AmazonCluster getCluster(String account, String name) {
-    def key = "${account}:${name}".toString()
-    clusterCacheService.getPointer(key) ? clusterCacheService.retrieve(key) : null
   }
 }

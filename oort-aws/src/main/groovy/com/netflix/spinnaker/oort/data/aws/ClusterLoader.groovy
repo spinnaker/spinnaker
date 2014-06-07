@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
-import org.springframework.scheduling.annotation.Async
-import org.springframework.scheduling.annotation.Scheduled
-
 public interface ClusterLoader {
   void loadImages()
+
   void loadInstances()
+
   void loadLaunchConfigs()
+
   void loadLoadBalancers()
 }

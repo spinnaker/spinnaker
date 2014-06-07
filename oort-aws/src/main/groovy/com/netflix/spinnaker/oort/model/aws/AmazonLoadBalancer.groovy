@@ -36,6 +36,6 @@ class AmazonLoadBalancer extends HashMap implements LoadBalancer {
 
   @Override
   Set<String> getServerGroups() {
-    (Set<String>)getProperty("serverGroups")
+    (Set<String>) getProperty("serverGroups")
   }
 }

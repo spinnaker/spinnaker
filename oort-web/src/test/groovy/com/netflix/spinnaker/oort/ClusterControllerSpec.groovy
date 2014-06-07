@@ -34,54 +34,54 @@ class ClusterControllerSpec extends Specification {
 
   Should "call all application providers to get and merge the cluster names"() {
     setup:
-      def appProvider1 = Mock(ApplicationProvider)
-      def appProvider2 = Mock(ApplicationProvider)
-      def app1 = Mock(Application)
-      app1.getName() >> "app"
-      def app2 = Mock(Application)
-      app2.getName() >> "app"
-      clusterController.applicationProviders = [appProvider1, appProvider2]
+    def appProvider1 = Mock(ApplicationProvider)
+    def appProvider2 = Mock(ApplicationProvider)
+    def app1 = Mock(Application)
+    app1.getName() >> "app"
+    def app2 = Mock(Application)
+    app2.getName() >> "app"
+    clusterController.applicationProviders = [appProvider1, appProvider2]
 
     when:
-      def result = clusterController.list("app")
+    def result = clusterController.list("app")
 
     then:
-      _ * app1.getClusterNames() >> ["test": ["foo", "bar"] as Set]
-      _ * app2.getClusterNames() >> ["prod": ["baz"] as Set]
-      1 * appProvider1.getApplication("app") >> app1
-      1 * appProvider2.getApplication("app") >> app2
-      result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set]
+    _ * app1.getClusterNames() >> ["test": ["foo", "bar"] as Set]
+    _ * app2.getClusterNames() >> ["prod": ["baz"] as Set]
+    1 * appProvider1.getApplication("app") >> app1
+    1 * appProvider2.getApplication("app") >> app2
+    result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set]
   }
 
   Should "throw exception when looking for specific cluster that doesnt exist"() {
     setup:
-      def clusterProvider1 = Mock(ClusterProvider)
-      clusterController.clusterProviders = [clusterProvider1]
+    def clusterProvider1 = Mock(ClusterProvider)
+    clusterController.clusterProviders = [clusterProvider1]
 
     when:
-      clusterController.getForAccountAndNameAndType("test", "cluster", "aws")
+    clusterController.getForAccountAndNameAndType("test", "cluster", "aws")
 
     then:
-      thrown ClusterController.ClusterNotFoundException
+    thrown ClusterController.ClusterNotFoundException
   }
 
   Should "return specific serverGroup"() {
     setup:
-      def clusterProvider1 = Mock(ClusterProvider)
-      clusterController.clusterProviders = [clusterProvider1]
-      def serverGroup = Mock(ServerGroup)
-      serverGroup.getName() >> "serverGroupName"
+    def clusterProvider1 = Mock(ClusterProvider)
+    clusterController.clusterProviders = [clusterProvider1]
+    def serverGroup = Mock(ServerGroup)
+    serverGroup.getName() >> "serverGroupName"
 
     when:
-      def result = clusterController.getServerGroup("account", "clusterName", "type", "serverGroupName", null, null)
+    def result = clusterController.getServerGroup("account", "clusterName", "type", "serverGroupName", null, null)
 
     then:
-      1 * clusterProvider1.getCluster(_, _) >> {
-        def cluster = Mock(Cluster)
-        cluster.getType() >> "type"
-        cluster.getServerGroups() >> [serverGroup]
-        cluster
-      }
-      result.is(serverGroup)
+    1 * clusterProvider1.getCluster(_, _) >> {
+      def cluster = Mock(Cluster)
+      cluster.getType() >> "type"
+      cluster.getServerGroups() >> [serverGroup]
+      cluster
+    }
+    result.is(serverGroup)
   }
 }

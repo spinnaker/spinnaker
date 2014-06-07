@@ -18,7 +18,10 @@ package com.netflix.spinnaker.oort.security
 
 interface NamedAccountProvider {
   List<String> getAccountNames()
+
   NamedAccount get(String name)
+
   void remove(String name)
+
   void put(NamedAccount namedAccount)
 }

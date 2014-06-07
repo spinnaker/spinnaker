@@ -39,13 +39,13 @@ class Front50ApplicationLoaderSpec extends Specification {
 
   Should "call front50 to get application details"() {
     setup:
-      def restTemplate = Mock(RestTemplate)
-      loader.restTemplate = restTemplate
+    def restTemplate = Mock(RestTemplate)
+    loader.restTemplate = restTemplate
 
     when:
-      loader.load()
+    loader.load()
 
     then:
-      1 * restTemplate.getForObject("front50/applications", List) >> []
+    1 * restTemplate.getForObject("front50/applications", List) >> []
   }
 }

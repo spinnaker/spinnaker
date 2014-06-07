@@ -16,6 +16,6 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
-public interface ApplicationLoader {
+public interface Loader {
   void load()
 }

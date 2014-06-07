@@ -39,7 +39,7 @@ import java.util.concurrent.Executors
 
 @CompileStatic
 @Component
-class DefaultApplicationLoader implements ApplicationLoader {
+class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loader {
   static ExecutorService executorService = Executors.newFixedThreadPool(50)
   private static final Logger log = Logger.getLogger(this)
   @Autowired
@@ -52,7 +52,7 @@ class DefaultApplicationLoader implements ApplicationLoader {
   ApplicationContext applicationContext
 
   @Autowired
-  CacheService<String, AmazonApplication> applicationCacheService
+  CacheService<String, Object> cacheService
 
   @Autowired
   OortDefaults oortDefaults
@@ -108,28 +108,12 @@ class DefaultApplicationLoader implements ApplicationLoader {
     try {
       def names = Names.parseName(asg.autoScalingGroupName)
       def appName = names.app.toLowerCase()
-      application = applicationCacheService.retrieve(appName) ?: new AmazonApplication(name: appName)
-      // Check if the clusters are expired now...
-      def clusterAccounts = application.clusterNames.collect { acct, name -> acct }
-      for (clusterAccount in clusterAccounts) {
-        def clusterNames = application.clusterNames[clusterAccount]
-        if (new Date().time - ((ExpiringHashSet) clusterNames).created > oortDefaults.clusterExpiration) {
-          application.clusterNames.remove(clusterAccount)
-        }
-      }
-      if (!application.clusterNames.containsKey(account.name)) {
-        application.clusterNames[account.name] = new ExpiringHashSet<>()
-      }
-      application.clusterNames[account.name] << names.cluster
-      if (!applicationCacheService.put(application.name, application, oortDefaults.applicationExpiration)) {
+      application = (AmazonApplication) cacheService.retrieve(appName) ?: new AmazonApplication(name: appName)
+      if (!cacheService.put(application.name, application, oortDefaults.applicationExpiration)) {
         log.info("Not enough space to save application!!")
       }
     } catch (IGNORE) {
       // this is probably fine...
     }
-  }
-
-  static class ExpiringHashSet<E> extends HashSet<E> {
-    final long created = new Date().time
   }
 }

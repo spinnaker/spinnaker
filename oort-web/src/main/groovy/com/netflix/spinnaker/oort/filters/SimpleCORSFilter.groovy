@@ -15,8 +15,6 @@
  */
 
 
-
-
 package com.netflix.spinnaker.oort.filters
 
 import org.springframework.stereotype.Component

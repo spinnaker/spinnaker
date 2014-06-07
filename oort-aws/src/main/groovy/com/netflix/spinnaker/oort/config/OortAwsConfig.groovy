@@ -18,7 +18,6 @@ package com.netflix.spinnaker.oort.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
@@ -36,8 +35,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 import javax.annotation.PostConstruct
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @CompileStatic
 @Configuration
@@ -71,13 +68,8 @@ class OortAwsConfig {
   }
 
   @Bean
-  CacheService<String, AmazonCluster> clusterCacheService() {
+  CacheService<String, Object> cacheService() {
     new DirectMemory<String, AmazonCluster>().setNumberOfBuffers(1).setSize(50000000).setInitialCapacity(1000000).setConcurrencyLevel(1).setDisposalTime(600000).newCacheService()
-  }
-
-  @Bean
-  CacheService<String, AmazonApplication> applicationCacheService() {
-    new DirectMemory<String, AmazonApplication>().setNumberOfBuffers(1).setSize(50000000).setInitialCapacity(1000000).setConcurrencyLevel(1).setDisposalTime(600000).newCacheService()
   }
 
   @Bean

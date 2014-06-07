@@ -29,39 +29,39 @@ class DefaultNamedAccountProviderSpec extends Specification {
 
   Should "have account name in list after being added"() {
     setup:
-      def accountName = "account"
-      def account = new TestNamedAccount(accountName, [:])
+    def accountName = "account"
+    def account = new TestNamedAccount(accountName, [:])
 
     when:
-      provider.put account
+    provider.put account
 
     then:
-      provider.accountNames.contains accountName
+    provider.accountNames.contains accountName
   }
 
   Should "be able to get account object by name"() {
     setup:
-      def accountName = "account"
-      def credentials = [key: "1234"]
-      def account = new TestNamedAccount(accountName, credentials)
+    def accountName = "account"
+    def credentials = [key: "1234"]
+    def account = new TestNamedAccount(accountName, credentials)
 
     when:
-      provider.put account
+    provider.put account
 
     then:
-      provider.get(accountName).is(account)
+    provider.get(accountName).is(account)
   }
 
   Should "be able to remove an account by name"() {
     setup:
-      def accountName = "account"
-      def account = new TestNamedAccount(accountName, [:])
-      provider.put account
+    def accountName = "account"
+    def account = new TestNamedAccount(accountName, [:])
+    provider.put account
 
     when:
-      provider.remove accountName
+    provider.remove accountName
 
     then:
-      !provider.get(accountName)
+    !provider.get(accountName)
   }
 }

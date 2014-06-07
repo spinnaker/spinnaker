@@ -36,9 +36,13 @@ class AtlasHealthProvider implements HealthProvider {
 
   @Override
   Health getHealth(String account, ServerGroup serverGroup) {
-    if (!(serverGroup instanceof AmazonServerGroup)) return null
-    AmazonNamedAccount amazonNamedAccount = (AmazonNamedAccount)namedAccountProvider.get(account)
-    if (!amazonNamedAccount.atlasHealth) return null
+    if (!(serverGroup instanceof AmazonServerGroup)) {
+      return null
+    }
+    AmazonNamedAccount amazonNamedAccount = (AmazonNamedAccount) namedAccountProvider.get(account)
+    if (!amazonNamedAccount.atlasHealth) {
+      return null
+    }
     def names = Names.parseName(serverGroup.name)
     def url = String.format(amazonNamedAccount.atlasHealth, serverGroup.region)
     def result = new AtlasHealth()
@@ -49,7 +53,7 @@ class AtlasHealthProvider implements HealthProvider {
   }
 
   private Map getAtlasHealth(String url, String cluster) {
-    def result = [serverGroups:[:], loadBalancers:[:]]
+    def result = [serverGroups: [:], loadBalancers: [:]]
     try {
       def list = restTemplate.getForObject("${url}/api/v1/instance?q=cluster,$cluster,:eq", List)
       list.each { Map input ->
@@ -64,7 +68,8 @@ class AtlasHealthProvider implements HealthProvider {
           }
         }
       }
-    } catch (IGNORE) {}
+    } catch (IGNORE) {
+    }
     result
   }
 

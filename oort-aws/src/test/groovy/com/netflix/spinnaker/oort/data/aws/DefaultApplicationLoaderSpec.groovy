@@ -46,27 +46,27 @@ class DefaultApplicationLoaderSpec extends Specification {
 
   Should "call to aws for a list of asgs and derive applications from frigga-naming for all Amazon accounts and store them in the indexed cache, then fire a data load event"() {
     setup:
-      def accountName = "account"
-      def appName = "oort"
-      def asgName = "$appName-stack-v000"
-      def clientProvider = Mock(AmazonClientProvider)
-      def autoScaling = Mock(AmazonAutoScaling)
-      def accountProvider = Mock(NamedAccountProvider)
-      def account = new AmazonNamedAccount(Mock(AWSCredentialsProvider), "test", null, null, null, null, ["us-west-1"])
-      def mockCtx= Mock(ApplicationContext)
-      def cache = Mock(CacheService)
-      def defaults = new OortDefaults()
-      loader.oortDefaults = defaults
-      loader.applicationCacheService = cache
-      loader.executorService = Executors.newSingleThreadExecutor()
-      loader.applicationContext = mockCtx
-      loader.amazonClientProvider = clientProvider
-      loader.namedAccountProvider = accountProvider
+    def accountName = "account"
+    def appName = "oort"
+    def asgName = "$appName-stack-v000"
+    def clientProvider = Mock(AmazonClientProvider)
+    def autoScaling = Mock(AmazonAutoScaling)
+    def accountProvider = Mock(NamedAccountProvider)
+    def account = new AmazonNamedAccount(Mock(AWSCredentialsProvider), "test", null, null, null, null, ["us-west-1"])
+    def mockCtx = Mock(ApplicationContext)
+    def cache = Mock(CacheService)
+    def defaults = new OortDefaults()
+    loader.oortDefaults = defaults
+    loader.applicationCacheService = cache
+    loader.executorService = Executors.newSingleThreadExecutor()
+    loader.applicationContext = mockCtx
+    loader.amazonClientProvider = clientProvider
+    loader.namedAccountProvider = accountProvider
 
     when:
-      loader.load()
-      loader.executorService.shutdown()
-      loader.executorService.awaitTermination(5, TimeUnit.SECONDS)
+    loader.load()
+    loader.executorService.shutdown()
+    loader.executorService.awaitTermination(5, TimeUnit.SECONDS)
 
     then:
     1 * accountProvider.getAccountNames() >> [accountName]

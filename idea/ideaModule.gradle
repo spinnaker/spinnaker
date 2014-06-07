@@ -11,14 +11,14 @@ def getSpringloadedJvmArgs(project) {
 
 def imposeIdeaConfig(project, className) {
   rootProject.idea.workspace.iws {
-        withXml { provider ->
-          def node = provider.asNode()
-          def runManagerConfig = node['component'].find { it.'@name' == 'RunManager' } as Node
-          if (!runManagerConfig) {
-            runManagerConfig = node.appendNode('component', [name: 'RunManager'])
-          }
+    withXml { provider ->
+      def node = provider.asNode()
+      def runManagerConfig = node['component'].find { it.'@name' == 'RunManager' } as Node
+      if (!runManagerConfig) {
+        runManagerConfig = node.appendNode('component', [name: 'RunManager'])
+      }
 
-          runManagerConfig.append(new XmlParser().parseText("""
+      runManagerConfig.append(new XmlParser().parseText("""
               <configuration default="false" name="Run ${project.name}" type="Application" factoryName="Application">
                 <extension name="coverage" enabled="false" merge="false" />
                 <option name="MAIN_CLASS_NAME" value="${className}" />
@@ -44,7 +44,7 @@ def imposeIdeaConfig(project, className) {
               </configuration>
           """))
 
-        }
+    }
   }
 }
 
@@ -52,6 +52,7 @@ class JarFinder {
   static File find(String className, Collection<File> classpath) {
     findJarFile(maybeLoadClass(className, toClassLoader(classpath)))
   }
+
   private static File findJarFile(Class<?> targetClass) {
     if (targetClass) {
       String absolutePath = targetClass.getResource('/' + targetClass.getName().replace(".", "/") + ".class").path
@@ -61,20 +62,24 @@ class JarFinder {
       null
     }
   }
+
   private static ClassLoader toClassLoader(Collection<File> classpath) {
     List<URL> urls = new ArrayList<URL>(classpath.size())
     for (File file in classpath) {
       try {
         urls.add(file.toURI().toURL())
-      } catch (MalformedURLException ignore) {}
+      } catch (MalformedURLException ignore) {
+      }
     }
     new URLClassLoader(urls as URL[])
   }
+
   private static Class<?> maybeLoadClass(String className, ClassLoader classLoader) {
     if (classLoader) {
       try {
         return classLoader.loadClass(className)
-      } catch (ClassNotFoundException ignore) {}
+      } catch (ClassNotFoundException ignore) {
+      }
     }
     null
   }

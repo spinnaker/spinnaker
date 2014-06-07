@@ -50,16 +50,16 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   Set<String> getZones() {
-    (Set<String>)getProperty("zones")
+    (Set<String>) getProperty("zones")
   }
 
   @Override
   Set<Instance> getInstances() {
-    (Set<Instance>)getProperty("instances")
+    (Set<Instance>) getProperty("instances")
   }
 
   @Override
   Set<Health> getHealth() {
-    (Set<Health>)getProperty("health")
+    (Set<Health>) getProperty("health")
   }
 }
