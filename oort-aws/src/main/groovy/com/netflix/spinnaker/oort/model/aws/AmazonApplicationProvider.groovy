@@ -40,7 +40,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
         def app = (AmazonApplication)cacheService.retrieve(key)
         if (app) {
           def appClusters = [:]
-          clusterKeys.findAll { it.startsWith("clusters:${app.name}") }.each {
+          clusterKeys.findAll { it.startsWith("clusters:${app.name}:") }.each {
             def parts = it.split(':')
             if (!appClusters.containsKey(parts[2])) {
               appClusters[parts[2]] = new HashSet<>()

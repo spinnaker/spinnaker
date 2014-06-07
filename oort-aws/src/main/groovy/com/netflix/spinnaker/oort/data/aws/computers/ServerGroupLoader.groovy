@@ -26,10 +26,13 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.aws.AmazonInstance
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import org.apache.directmemory.cache.CacheService
+import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
-import org.apache.log4j.Logger
+
+import javax.annotation.PostConstruct
 
 @Component
 class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
@@ -41,12 +44,20 @@ class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
+  private Integer cacheTime
+
+  @Value('${cacheRefreshMs}')
+  Integer cacheRefreshMs
+
+  @PostConstruct
+  void init() {
+    this.cacheTime = cacheRefreshMs * 3
+  }
+
   @Override
   void onApplicationEvent(AmazonDataLoadEvent event) {
     def asg = event.autoScalingGroup
     def names = Names.parseName(asg.autoScalingGroupName)
-    //log.info "Loading Server Group -- ${names.group}"
-
     def launchConfig = (LaunchConfiguration) cacheService.map.keySet().findAll { it.startsWith(Keys.getLaunchConfigKey(asg.launchConfigurationName, event.region)) }.collect {
       cacheService.retrieve(it)
     }?.getAt(0)
@@ -79,7 +90,7 @@ class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
     for (instance in asg.instances) {
       serverGroup.instances.add(new AmazonInstance(instance.instanceId))
     }
-    if (!cacheService.put(Keys.getServerGroupKey(names.group, event.amazonNamedAccount.name, event.region), serverGroup)) {
+    if (!cacheService.put(Keys.getServerGroupKey(names.group, event.amazonNamedAccount.name, event.region), serverGroup, cacheTime)) {
       log.info "Out of space!!"
     }
   }

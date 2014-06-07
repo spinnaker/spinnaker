@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.controllers
 
 import com.netflix.spinnaker.oort.model.*
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
+import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -66,11 +67,15 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{account}")
-  Set<String> getForAccount(@PathVariable String application, @PathVariable String account) {
-    def clusters = clusterProviders.collectMany {
-      it.getClusters(application, account)
-    }
-    clusters.removeAll([null])
+  Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
+    def clusters = (Set<ClusterViewModel>)clusterProviders.collect {
+      def clusters = (Set<Cluster>)it.getClusters(application, account)
+      def clusterViews = []
+      for (cluster in clusters) {
+        clusterViews << new ClusterViewModel(name: cluster.name, account: cluster.accountName, loadBalancers: cluster.loadBalancers.collect { it.name }, serverGroups: cluster.serverGroups.collect { it.name })
+      }
+      clusterViews
+    }?.flatten() as Set
     clusters
   }
 
@@ -136,5 +141,13 @@ class ClusterController {
 
   static class ServerGroupNotFoundException extends RuntimeException {
     String serverGroupName
+  }
+
+  @Canonical
+  static class ClusterViewModel {
+    String name
+    String account
+    List<String> loadBalancers
+    List<String> serverGroups
   }
 }

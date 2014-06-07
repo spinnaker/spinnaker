@@ -22,6 +22,7 @@ import com.netflix.spinnaker.oort.config.OortDefaults
 import com.netflix.spinnaker.oort.data.aws.AmazonDataLoadEvent
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
+import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.apache.directmemory.cache.CacheService
 import org.apache.log4j.Logger
@@ -31,7 +32,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -58,7 +58,6 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent> {
 
   @Override
   void onApplicationEvent(AmazonDataLoadEvent event) {
-    //log.info "Loading Cluster Data"
     def loader = loader.curry(event)
     executorService.submit(loader)
   }
@@ -72,7 +71,8 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent> {
         log.info "Adding new cluster ${event.amazonNamedAccount.name} ${names.cluster} ${names.group}"
         cluster = new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
       }
-      if (!cacheService.put(Keys.getClusterKey(names.cluster, names.app, event.amazonNamedAccount.name), cluster)) {
+      cluster.loadBalancers = asg.loadBalancerNames.collect { new AmazonLoadBalancer(it, event.region) }
+      if (!cacheService.put(Keys.getClusterKey(names.cluster, names.app, event.amazonNamedAccount.name), cluster, 900000)) {
         log.info "Out of space!"
       }
     } catch (e) {

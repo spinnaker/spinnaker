@@ -24,7 +24,6 @@ import com.netflix.spinnaker.oort.data.aws.Loader
 import com.netflix.spinnaker.oort.data.aws.MultiAccountCachingSupport
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.directmemory.cache.CacheService
-import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Async
@@ -32,7 +31,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @Component
 class InstanceCacher extends MultiAccountCachingSupport implements Loader {
@@ -66,7 +64,7 @@ class InstanceCacher extends MultiAccountCachingSupport implements Loader {
     }
 
     for (instance in instances) {
-      cacheService.put(Keys.getInstanceKey(instance.instanceId, region), instance)
+      cacheService.put(Keys.getInstanceKey(instance.instanceId, region), instance, 600000)
     }
   }
 

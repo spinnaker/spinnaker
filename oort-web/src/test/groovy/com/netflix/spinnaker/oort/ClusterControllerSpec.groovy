@@ -59,7 +59,7 @@ class ClusterControllerSpec extends Specification {
     clusterController.clusterProviders = [clusterProvider1]
 
     when:
-    clusterController.getForAccountAndNameAndType("test", "cluster", "aws")
+    clusterController.getForAccountAndNameAndType("app", "test", "cluster", "aws")
 
     then:
     thrown ClusterController.ClusterNotFoundException
@@ -73,10 +73,10 @@ class ClusterControllerSpec extends Specification {
     serverGroup.getName() >> "serverGroupName"
 
     when:
-    def result = clusterController.getServerGroup("account", "clusterName", "type", "serverGroupName", null, null)
+    def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "serverGroupName", null, null)
 
     then:
-    1 * clusterProvider1.getCluster(_, _) >> {
+    1 * clusterProvider1.getCluster(_, _, _) >> {
       def cluster = Mock(Cluster)
       cluster.getType() >> "type"
       cluster.getServerGroups() >> [serverGroup]

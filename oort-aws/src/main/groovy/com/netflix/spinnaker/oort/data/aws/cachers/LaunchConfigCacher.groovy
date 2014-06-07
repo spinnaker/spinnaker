@@ -31,7 +31,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @Component
 class LaunchConfigCacher extends MultiAccountCachingSupport implements Loader {
@@ -65,7 +64,7 @@ class LaunchConfigCacher extends MultiAccountCachingSupport implements Loader {
       }
     }
     for (launchConfig in launchConfigs) {
-      cacheService.put(Keys.getLaunchConfigKey(launchConfig.launchConfigurationName, region), launchConfig)
+      cacheService.put(Keys.getLaunchConfigKey(launchConfig.launchConfigurationName, region), launchConfig, 600000)
     }
   }
 }

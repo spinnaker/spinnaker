@@ -47,7 +47,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   Set<AmazonCluster> getClusters(String application, String accountName) {
     def keys = cacheService.map.keySet()
     def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}") }.collect { (AmazonCluster) cacheService.retrieve(it) }
-    (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.values()
+    (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.get(accountName)
   }
 
   @Override
@@ -63,22 +63,34 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private Map<String, Set<AmazonCluster>> getClustersWithServerGroups(Set<String> keys, List<AmazonCluster> clusters) {
     Map<String, Set<AmazonCluster>> result = new HashMap<>()
+    clusters.collect { Thread.startDaemon(clusterFiller.curry(keys, it)) }*.join()
     for (cluster in clusters) {
-      cluster.serverGroups = (Set<AmazonServerGroup>) keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}") }.collect {
-        def serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
-        for (AmazonInstance instance in (Set<AmazonInstance>)serverGroup.instances) {
-          def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.name, serverGroup.region))
-          if (amazonInstance) {
-            instance.instance = amazonInstance
-          }
-        }
-        serverGroup
-      } as Set
       if (!result.containsKey(cluster.accountName)) {
         result[cluster.accountName] = new HashSet<>()
       }
       result[cluster.accountName] << cluster
     }
     result
+  }
+
+  final Closure clusterFiller = { Set<String> keys, AmazonCluster cluster ->
+    def serverGroups = keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}") }
+    if (!serverGroups) return
+    for (loadBalancer in cluster.loadBalancers) {
+      def elb = keys.find { it == "loadBalancers:${loadBalancer.region}:${loadBalancer.name}" }
+      if (elb) {
+        loadBalancer.elb = cacheService.retrieve(elb)
+      }
+    }
+    cluster.serverGroups = serverGroups.collect {
+      def serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
+      for (AmazonInstance instance in (Set<AmazonInstance>)serverGroup.instances) {
+        def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.name, serverGroup.region))
+        if (amazonInstance) {
+          instance.instance = amazonInstance
+        }
+      }
+      serverGroup
+    } as Set
   }
 }

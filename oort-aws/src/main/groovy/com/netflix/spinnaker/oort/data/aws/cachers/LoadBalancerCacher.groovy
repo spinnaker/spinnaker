@@ -31,7 +31,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @Component
 class LoadBalancerCacher extends MultiAccountCachingSupport implements Loader {
@@ -64,7 +63,7 @@ class LoadBalancerCacher extends MultiAccountCachingSupport implements Loader {
       }
     }
     for (loadBalancer in loadBalancers) {
-      cacheService.put(Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, region), loadBalancer)
+      cacheService.put(Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, region), loadBalancer, 600000)
     }
   }
 

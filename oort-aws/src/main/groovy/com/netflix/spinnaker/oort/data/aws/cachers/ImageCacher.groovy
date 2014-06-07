@@ -29,8 +29,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import org.apache.log4j.Logger
 
 @Component
 class ImageCacher extends MultiAccountCachingSupport implements Loader {
@@ -54,7 +52,7 @@ class ImageCacher extends MultiAccountCachingSupport implements Loader {
     def ec2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
     def images = ec2.describeImages().images
     for (image in images) {
-      cacheService.put(Keys.getImageKey(image.imageId, region), image)
+      cacheService.put(Keys.getImageKey(image.imageId, region), image, 600000)
     }
   }
 }

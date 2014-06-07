@@ -58,7 +58,7 @@ class DefaultApplicationLoaderSpec extends Specification {
     def cache = Mock(CacheService)
     def defaults = new OortDefaults()
     loader.oortDefaults = defaults
-    loader.applicationCacheService = cache
+    loader.cacheService = cache
     loader.executorService = Executors.newSingleThreadExecutor()
     loader.applicationContext = mockCtx
     loader.amazonClientProvider = clientProvider
@@ -90,8 +90,8 @@ class DefaultApplicationLoaderSpec extends Specification {
     if (!cache.put("foo", new AmazonApplication())) {
       assert false
     }
-    loader.applicationCacheService = cache
-    loader.oortDefaults = new OortDefaults(applicationExpiration: 120000, clusterExpiration: 100)
+    loader.cacheService = cache
+    loader.oortDefaults = new OortDefaults(applicationExpiration: 120000, clusterExpiration: 1000)
     def account = Mock(AmazonNamedAccount)
     def asg1 = Mock(AutoScalingGroup)
     def asg2 = Mock(AutoScalingGroup)
@@ -106,7 +106,7 @@ class DefaultApplicationLoaderSpec extends Specification {
     cache.retrieve("my").clusterNames.values()?.flatten() == ["my-stack"]
 
     when:
-    Thread.start { sleep 300 }?.join()
+    Thread.start { sleep 1000 }?.join()
     loader.appCreator(account, "region", asg2)
     loader.appCreator(account, "region", asg3)
 

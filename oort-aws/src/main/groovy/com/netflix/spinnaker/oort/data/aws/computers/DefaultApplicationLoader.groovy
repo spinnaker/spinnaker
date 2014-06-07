@@ -39,7 +39,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @CompileStatic
 @Component
@@ -114,12 +113,13 @@ class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loa
     try {
       def names = Names.parseName(asg.autoScalingGroupName)
       def appName = names.app.toLowerCase()
-      application = (AmazonApplication) cacheService.retrieve(appName) ?: new AmazonApplication(name: appName)
-      if (!cacheService.put(Keys.getApplicationKey(application.name), application, oortDefaults.applicationExpiration)) {
+      if (!appName) return
+      application = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(appName)) ?: new AmazonApplication(name: appName)
+      if (!cacheService.put(Keys.getApplicationKey(application.name), application)) {
         log.info("Not enough space to save application!!")
       }
     } catch (e) {
-      e.printStackTrace()
+      // these are cache misses
     }
   }
 }
