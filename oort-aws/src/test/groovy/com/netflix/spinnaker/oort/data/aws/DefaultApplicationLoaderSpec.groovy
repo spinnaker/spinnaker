@@ -78,43 +78,9 @@ class DefaultApplicationLoaderSpec extends Specification {
       mock.getAutoScalingGroupName() >> asgName
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
     }
-    1 * cache.put(_, _, _)
+    1 * cache.put(_, _)
     1 * mockCtx.publishEvent(_) >> { AmazonDataLoadEvent event ->
       assert event.autoScalingGroup.autoScalingGroupName == asgName
     }
-  }
-
-  Should "expire cluster names after expiration time"() {
-    setup:
-    def cache = new DirectMemory<String, AmazonApplication>().setNumberOfBuffers(1).setSize(50000000).setInitialCapacity(1000000).setConcurrencyLevel(4).setDisposalTime(600000).newCacheService()
-    if (!cache.put("foo", new AmazonApplication())) {
-      assert false
-    }
-    loader.cacheService = cache
-    loader.oortDefaults = new OortDefaults(applicationExpiration: 120000, clusterExpiration: 1000)
-    def account = Mock(AmazonNamedAccount)
-    def asg1 = Mock(AutoScalingGroup)
-    def asg2 = Mock(AutoScalingGroup)
-    def asg3 = Mock(AutoScalingGroup)
-
-    when:
-    loader.appCreator(account, "region", asg1)
-
-    then:
-    1 * asg1.getAutoScalingGroupName() >> "my-stack-v000"
-    _ * account.getName() >> "test"
-    cache.retrieve("my").clusterNames.values()?.flatten() == ["my-stack"]
-
-    when:
-    Thread.start { sleep 1000 }?.join()
-    loader.appCreator(account, "region", asg2)
-    loader.appCreator(account, "region", asg3)
-
-    then:
-    _ * account.getName() >> "prod"
-    1 * asg2.getAutoScalingGroupName() >> "my-foo-v000"
-    1 * asg3.getAutoScalingGroupName() >> "my-bar-v000"
-    !cache.retrieve("my").clusterNames.containsKey("test")
-    cache.retrieve("my").clusterNames.values()?.flatten() == ["my-bar", "my-foo"]
   }
 }
