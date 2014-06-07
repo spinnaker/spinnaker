@@ -85,7 +85,7 @@ dependencies {
     compile 'com.amazonaws:aws-java-sdk:1.7.8'
     compile 'org.codehaus.groovy:groovy-all:2.2.2'
     compile 'com.netflix.rxjava:rxjava-groovy:0.17.5'
-    compile 'com.netflix.eureka:eureka-client:1.1.128'
+    compile 'com.netflix.eureka:eureka-client:1.1.132'
 
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
