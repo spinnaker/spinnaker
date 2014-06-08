@@ -180,7 +180,7 @@ class DefaultClusterLoaderSpec extends Specification {
     1 * cache.retrieve(Keys.getClusterKey("app-stack", "app", "test")) >> {
       null
     }
-    1 * cache.put(_, _, _) >> { AmazonCluster cluster ->
+    1 * cache.put(_, _) >> { AmazonCluster cluster ->
       assert cluster.name == "app-stack"
       assert cluster.serverGroups.size()
       assert cluster.serverGroups.first().name == "app-stack-v000"

@@ -78,7 +78,8 @@ class DefaultApplicationLoaderSpec extends Specification {
       mock.getAutoScalingGroupName() >> asgName
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
     }
-    1 * cache.put(_, _)
+    1 * cache.getMap() >> [:]
+    1 * cache.put(_, _) >> true
     1 * mockCtx.publishEvent(_) >> { AmazonDataLoadEvent event ->
       assert event.autoScalingGroup.autoScalingGroupName == asgName
     }

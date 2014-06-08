@@ -72,11 +72,11 @@ class DefaultClusterLoader implements ApplicationListener<AmazonDataLoadEvent> {
         cluster = new AmazonCluster(name: names.cluster, accountName: event.amazonNamedAccount.name)
       }
       cluster.loadBalancers = asg.loadBalancerNames.collect { new AmazonLoadBalancer(it, event.region) }
-      if (!cacheService.put(Keys.getClusterKey(names.cluster, names.app, event.amazonNamedAccount.name), cluster, 900000)) {
+      if (!cacheService.put(Keys.getClusterKey(names.cluster, names.app, event.amazonNamedAccount.name), cluster)) {
         log.info "Out of space!"
       }
     } catch (e) {
-      log.error(e)
+      // These are ok.
     }
   }
 

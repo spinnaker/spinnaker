@@ -44,16 +44,6 @@ class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
-  private Integer cacheTime
-
-  @Value('${cacheRefreshMs}')
-  Integer cacheRefreshMs
-
-  @PostConstruct
-  void init() {
-    this.cacheTime = cacheRefreshMs * 3
-  }
-
   @Override
   void onApplicationEvent(AmazonDataLoadEvent event) {
     def asg = event.autoScalingGroup
@@ -90,7 +80,7 @@ class ServerGroupLoader implements ApplicationListener<AmazonDataLoadEvent> {
     for (instance in asg.instances) {
       serverGroup.instances.add(new AmazonInstance(instance.instanceId))
     }
-    if (!cacheService.put(Keys.getServerGroupKey(names.group, event.amazonNamedAccount.name, event.region), serverGroup, cacheTime)) {
+    if (!cacheService.put(Keys.getServerGroupKey(names.group, event.amazonNamedAccount.name, event.region), serverGroup)) {
       log.info "Out of space!!"
     }
   }

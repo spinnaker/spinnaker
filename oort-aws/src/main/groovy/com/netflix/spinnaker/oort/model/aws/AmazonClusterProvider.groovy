@@ -84,13 +84,16 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     }
     cluster.serverGroups = serverGroups.collect {
       def serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
-      for (AmazonInstance instance in (Set<AmazonInstance>)serverGroup.instances) {
-        def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.name, serverGroup.region))
-        if (amazonInstance) {
-          instance.instance = amazonInstance
+      if (serverGroup) {
+        for (AmazonInstance instance in (Set<AmazonInstance>) serverGroup.instances) {
+          def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.name, serverGroup.region))
+          if (amazonInstance) {
+            instance.instance = amazonInstance
+          }
         }
       }
       serverGroup
     } as Set
+    cluster.serverGroups.removeAll([null])
   }
 }

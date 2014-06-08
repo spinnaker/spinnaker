@@ -47,26 +47,22 @@ class AtlasHealthProvider implements HealthProvider {
     def url = String.format(amazonNamedAccount.atlasHealth, serverGroup.region)
     def result = new AtlasHealth()
     if (url) {
-      result << getAtlasHealth(url, names.cluster)
+      def health = getAtlasHealth(url, names.cluster, serverGroup.name)
+      if (health.containsKey(serverGroup.name)) {
+        result.serverGroupHealth = health[serverGroup.name] ? "healthy" : "unhealthy"
+      } else {
+        result.serverGroupHealth = "unknown"
+      }
     }
     result
   }
 
-  private Map getAtlasHealth(String url, String cluster) {
-    def result = [serverGroups: [:], loadBalancers: [:]]
+  private Map getAtlasHealth(String url, String cluster, String serverGroup) {
+    def result = [:]
     try {
-      def list = restTemplate.getForObject("${url}/api/v1/instance?q=cluster,$cluster,:eq", List)
+      def list = restTemplate.getForObject("${url}/api/v1/instance?q=cluster,$cluster,:eq,asg,$serverGroup,:eq,:and", List)
       list.each { Map input ->
-        if (!result.serverGroups.containsKey(input.asg)) {
-          result.serverGroups[input.asg] = [instances: [:]]
-        }
-        result.serverGroups[input.asg]["instances"][input.id] = [healthy: input.isHealthy, discovery: input.discovery?.isHealthy]
-
-        input.loadBalancers.each { Map elb ->
-          if (!result.loadBalancers.containsKey(elb.name)) {
-            result.loadBalancers[elb.name] = [healthy: elb.isHealthy]
-          }
-        }
+        result[input.asg] = input.isHealthy
       }
     } catch (IGNORE) {
     }

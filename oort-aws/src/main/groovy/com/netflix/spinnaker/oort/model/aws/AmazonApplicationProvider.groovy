@@ -66,7 +66,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
     def app = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(name)) ?: null
     if (app) {
       def clusters = [:]
-      cacheService.map.keySet().findAll { it.startsWith("clusters:${name}") }.each {
+      cacheService.map.keySet().findAll { it.startsWith("clusters:${name}:") }.each {
         def parts = it.split(':')
         def account = parts[2]
         def clusterName = parts[3]

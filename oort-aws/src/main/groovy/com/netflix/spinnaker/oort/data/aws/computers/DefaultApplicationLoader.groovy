@@ -95,9 +95,23 @@ class DefaultApplicationLoader extends MultiAccountCachingSupport implements Loa
         }
       }
 
+      def serverGroupNames = []
       for (asg in autoScalingGroups) {
         executorService.submit(appCreator.curry(account, region, asg))
         executorService.submit(eventPublisher.curry(region, account, asg))
+        serverGroupNames << asg.autoScalingGroupName
+      }
+
+      def cacheKeys = cacheService.map.keySet()
+      def cachedServerGroupKeys = cacheKeys.findAll { it.startsWith("serverGroups") && it.contains(":$region:") && it.contains(":${account.name}:")}.collect { it.split(':')[-1]}
+      def vanishedGroups = cachedServerGroupKeys - serverGroupNames
+      for (String serverGroupName in vanishedGroups) {
+        def names = Names.parseName(serverGroupName)
+        def ptr = cacheService.getPointer(Keys.getServerGroupKey(names.group, account.name, region))
+        if (ptr) {
+          log.info "Cleaning up $names.group."
+          cacheService.free(ptr)
+        }
       }
     } catch (e) {
       log.error "THERE WAS AN ERROR WHILE LOADING APPLICATIONS!!", e
