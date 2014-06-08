@@ -20,6 +20,8 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
@@ -33,10 +35,12 @@ class DisableAsgAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  void "operation invokes update to autoscaling group"() {
+  void "operation invokes update to autoscaling group and deregisters instances from the load balancers"() {
     setup:
     def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockLoadBalancing = Mock(AmazonElasticLoadBalancing)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> mockLoadBalancing
     mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new DisableAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
@@ -48,6 +52,10 @@ class DisableAsgAtomicOperationUnitSpec extends Specification {
     operation.operate([])
 
     then:
+    1 * mockLoadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest request ->
+      assert request.loadBalancerName == "myasg-stack-frontend"
+      assert request.instances.first().instanceId == "i-123456"
+    }
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
       assert request.autoScalingGroupNames == ["myasg-stack-v000"]
       def mock = Mock(AutoScalingGroup)
@@ -55,6 +63,7 @@ class DisableAsgAtomicOperationUnitSpec extends Specification {
       def instance = Mock(Instance)
       instance.getInstanceId() >> "i-123456"
       mock.getInstances() >> [instance]
+      mock.getLoadBalancerNames() >> ["myasg-stack-frontend"]
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
     }
     1 * mockAutoScaling.suspendProcesses(_) >> { SuspendProcessesRequest request ->

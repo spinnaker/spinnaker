@@ -19,6 +19,8 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
+import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
@@ -55,17 +57,28 @@ class DisableAsgAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing Disable ASG operation for $description.asgName..."
     for (region in description.regions) {
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
+
       def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
       if (!result.autoScalingGroups) {
         task.updateStatus BASE_PHASE, "No ASG named $description.asgName found in $region"
         continue
       }
+
+      task.updateStatus BASE_PHASE, "Deregistering instances from Load Balancers..."
+      def asg = result.autoScalingGroups.getAt(0)
+      if (asg.loadBalancerNames) {
+        def lbInstances = asg.instances.collect { new Instance().withInstanceId(it.instanceId) }
+        for (loadBalancerName in asg.loadBalancerNames) {
+          loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, lbInstances))
+        }
+      }
+
       task.updateStatus BASE_PHASE, "Disabling Launch, Terminate, and AddToLoadBalancer for $description.asgName in $region."
       def request = new SuspendProcessesRequest().withScalingProcesses("Launch", "Terminate", "AddToLoadBalancer").withAutoScalingGroupName(description.asgName)
       autoScaling.suspendProcesses(request)
       if (discoveryHostFormat) {
         task.updateStatus BASE_PHASE, "Beginning discovery disable for $description.asgName"
-        def asg = result.autoScalingGroups.getAt(0)
         def names = Names.parseName(asg.autoScalingGroupName)
         if (!names.app) {
           task.updateStatus BASE_PHASE, "! Couldn't figure out app name from ASG name. Can't disable in Discovery!"
