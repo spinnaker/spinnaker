@@ -38,7 +38,7 @@ sourceSets {
 
 configurations.all {
     resolutionStrategy {
-        force 'com.netflix.platform:NFSpring:1.47.0'
+//        force 'com.netflix.platform:NFSpring:1.47.0'
         force 'org.apache.log4j:log4j:1.2.17'
         force 'com.google.guava:guava:14.0.1'
         force 'commons-codec:commons-codec:1.7'
@@ -92,6 +92,9 @@ dependencies {
     testCompile "org.springframework.boot:spring-boot-starter-test:${bootVersion}"
 
     runtime 'com.netflix.spinnaker.netflixplatform:netflixplatform:1.2-SNAPSHOT'
+    runtime 'com.netflix.platform:NFSpring:1.50.0'
+    runtime 'com.netflix.platform:NFSpring:1.50.0'
+    runtime 'netflix:base-server:1.94.0'
 }
 
 nebula {
