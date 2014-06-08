@@ -31,25 +31,27 @@ import org.springframework.context.annotation.Configuration
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static {
-    imposeInternalFileConfig()
-    imposeInternalClasspathConfig()
+    imposeSpinnakerFileConfig("kato-internal.yml")
+    imposeSpinnakerFileConfig("kato-local.yml")
+    imposeSpinnakerClasspathConfig("kato-internal.yml")
+    imposeSpinnakerClasspathConfig("kato-local.yml")
   }
 
   static void main(_) {
     SpringApplication.run this, [] as String[]
   }
 
-  static void imposeInternalFileConfig() {
-    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/kato-internal.yml")
+  static void imposeSpinnakerFileConfig(String file) {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
     if (internalConfig.exists()) {
       System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
     }
   }
 
-  static void imposeInternalClasspathConfig() {
-    def internalConfig = getClass().getResourceAsStream("/kato-internal.yml")
+  static void imposeSpinnakerClasspathConfig(String resource) {
+    def internalConfig = getClass().getResourceAsStream("/${resource}")
     if (internalConfig) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/kato-internal.yml")
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/${resource}")
     }
   }
 

@@ -121,26 +121,22 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
     operationResult
   }
 
-  List<String> getSubnetIds(String subnetType, AmazonEC2 ec2) {
-    DescribeSubnetsResult result = ec2.describeSubnets()
+  List<String> getSubnetIds(String subnetType, List<String> availabilityZones, AmazonEC2 amazonEC2) {
+    DescribeSubnetsResult result = amazonEC2.describeSubnets()
     List<Subnet> mySubnets = []
     for (subnet in result.subnets) {
+      if (availabilityZones && !availabilityZones.contains(subnet.availabilityZone)) {
+        continue
+      }
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_PURPOSE_TYPE) {
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType.type && metadata.target == SUBNET_PURPOSE_TYPE) {
           mySubnets << subnet
         }
       }
     }
-    def vpcId = description.vpcId
-    def vpcs = mySubnets.collect { it.vpcId }.unique { a, b -> a <=> b }
-    // If no VPC id is provided with the description, choose the first one.
-    // TODO: This may not be what we want...
-    if (vpcs.size() > 1) {
-      vpcId = vpcs[0]
-    }
-    mySubnets.findAll { it.vpcId == vpcId }?.subnetId
+    mySubnets.subnetId
   }
 
   List<String> getSecurityGroupIds(AmazonEC2 ec2, String... names) {

@@ -26,6 +26,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
+import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
@@ -170,25 +171,25 @@ class AutoScalingWorker {
    * @return list of subnet ids applicable to this deployment.
    */
   List<String> getSubnetIds() {
-    def response = amazonEC2.describeSubnets()
-    List<Subnet> subnets = []
-    response.subnets.each { subnet ->
+    getSubnets().subnetId
+  }
+
+  private List<Subnet> getSubnets() {
+    DescribeSubnetsResult result = amazonEC2.describeSubnets()
+    List<Subnet> mySubnets = []
+    for (subnet in result.subnets) {
+      if (availabilityZones && !availabilityZones.contains(subnet.availabilityZone)) {
+        continue
+      }
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
-        def metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
-          && metadata.target == SUBNET_PURPOSE_TYPE) {
-          subnets << subnet
+        Map metadata = objectMapper.readValue metadataJson, Map
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType.type && metadata.target == SUBNET_PURPOSE_TYPE) {
+          mySubnets << subnet
         }
       }
     }
-    def vpcs = subnets.collect { it.vpcId }.unique { a, b -> a <=> b }
-    // If no VPC id is provided with the description, choose the first one.
-    // TODO: This may not be what we want...
-    if (vpcs.size() > 1) {
-      vpcId = vpcs[0]
-    }
-    subnets.findAll { it.vpcId == vpcId }?.subnetId
+    mySubnets
   }
 
   /**
@@ -199,16 +200,9 @@ class AutoScalingWorker {
    */
   String getVpcForSubnetType() {
     if (!this.vpcId) {
-      def response = amazonEC2.describeSubnets()
-      for (subnet in response.subnets) {
-        def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
-        if (metadataJson) {
-          def metadata = objectMapper.readValue metadataJson, Map
-          if (metadata.containsKey("purpose") && metadata.purpose == subnetType?.type
-            && metadata.target == SUBNET_PURPOSE_TYPE) {
-            this.vpcId = subnet.vpcId
-          }
-        }
+      def vpcs = getSubnets()*.vpcId?.flatten()
+      if (vpcs.size() > 1) {
+        throw new RuntimeException("Two VPCs found for this deployment, you MUST specify 'vpcId' with the request description with one of ($vpcs)!")
       }
     }
     this.vpcId
@@ -348,6 +342,8 @@ class AutoScalingWorker {
     if (subnetIds) {
       task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
+    } else if (subnetType == SubnetType.INTERNAL && !subnets) {
+      throw new RuntimeException("No suitable subnet was found for internal subnet type!!")
     } else {
       task.updateStatus AWS_PHASE, " > Deploying to availabilityZones: $availabilityZones"
       request.withAvailabilityZones(availabilityZones)
