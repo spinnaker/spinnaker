@@ -1,5 +1,6 @@
-package com.netflix.spinnaker.orca.smoke
+package com.netflix.spinnaker.orca
 
+import javax.sql.DataSource
 import com.jolbox.bonecp.BoneCPDataSource
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
@@ -19,13 +20,11 @@ import org.springframework.core.io.ResourceLoader
 import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 
-import javax.sql.DataSource
-
 @Configuration
 @EnableBatchProcessing
 @PropertySource("classpath:batch.properties")
 @CompileStatic
-class BatchTestConfiguration {
+class CassandraRepositoryConfiguration {
 
     @Autowired
     private Environment env

@@ -1,0 +1,10 @@
+apply from: "$rootDir/gradle/groovy-module.gradle"
+
+dependencies {
+    compile project(":orca-core")
+    testCompile commonDependencies.springBatchTest
+    testCompile commonDependencies.boneCpSpring // TODO: take this out
+    testRuntime commonDependencies.spockSpring
+    testRuntime commonDependencies.springTest
+    testRuntime commonDependencies.h2 // TODO: take this out
+}
