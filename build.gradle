@@ -93,7 +93,6 @@ dependencies {
 
     runtime 'com.netflix.spinnaker.netflixplatform:netflixplatform:1.2-SNAPSHOT'
     runtime 'com.netflix.platform:NFSpring:1.50.0'
-    runtime 'com.netflix.platform:NFSpring:1.50.0'
     runtime 'netflix:base-server:1.94.0'
 }
 
