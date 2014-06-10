@@ -1,12 +1,13 @@
 package com.netflix.spinnaker.orca
 
+import com.netflix.spinnaker.orca.cassandra.config.CassandraConfig
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 
-@ContextConfiguration(classes = [SimpleJobConfiguration])
+@ContextConfiguration(classes = [CassandraConfig, SimpleJobConfiguration])
 class CassandraBackedRepositorySpec extends Specification {
 
     @Autowired
