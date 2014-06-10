@@ -14,14 +14,36 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.model
 
-public interface ClusterLoader {
-  void loadImages()
+import java.util.concurrent.ConcurrentHashMap
 
-  void loadInstances()
+class InMemoryCacheService implements CacheService {
+  private static final Map<String, Object> cache = new ConcurrentHashMap<>()
 
-  void loadLaunchConfigs()
+  @Override
+  Object retrieve(String key) {
+    cache.get key
+  }
 
-  void loadLoadBalancers()
+  @Override
+  boolean put(String key, Object object) {
+    def v = cache.put key, object
+    v != null
+  }
+
+  @Override
+  void free(String key) {
+    cache.remove key
+  }
+
+  @Override
+  boolean exists(String key) {
+    cache.containsKey key
+  }
+
+  @Override
+  Set<String> keys() {
+    cache.keySet()
+  }
 }

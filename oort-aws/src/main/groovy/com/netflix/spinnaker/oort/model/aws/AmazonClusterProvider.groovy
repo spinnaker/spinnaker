@@ -16,43 +16,48 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.amazonaws.services.ec2.model.Image
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import groovy.transform.CompileStatic
-import org.apache.directmemory.cache.CacheService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import rx.schedulers.Schedulers
+import rx.util.functions.Func2
 
-@CompileStatic
 @Component
+@CompileStatic
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Autowired
-  CacheService<String, Object> cacheService
+  CacheService cacheService
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
-    def keys = cacheService.map.keySet()
-    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters") }.collect { cacheService.retrieve(it) }
+    def keys = cacheService.keys()
+    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:") }.collect { cacheService.retrieve(it) }
     getClustersWithServerGroups keys, clusters
   }
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters(String application) {
-    def keys = cacheService.map.keySet()
-    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:${application}") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+    def keys = cacheService.keys()
+    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:${application}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
     getClustersWithServerGroups keys, clusters
   }
 
   @Override
   Set<AmazonCluster> getClusters(String application, String accountName) {
-    def keys = cacheService.map.keySet()
-    def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+    def keys = cacheService.keys()
+    def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
     (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.get(accountName)
   }
 
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
-    def keys = cacheService.map.keySet()
+    def keys = cacheService.keys()
     def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
     if (cluster) {
       def withServerGroups = getClustersWithServerGroups(keys, [cluster])
@@ -62,33 +67,67 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   private Map<String, Set<AmazonCluster>> getClustersWithServerGroups(Set<String> keys, List<AmazonCluster> clusters) {
-    Map<String, Set<AmazonCluster>> result = new HashMap<>()
-    clusters.collect { Thread.startDaemon(clusterFiller.curry(keys, it)) }*.join()
-    for (cluster in clusters) {
-      if (!result.containsKey(cluster.accountName)) {
-        result[cluster.accountName] = new HashSet<>()
+    rx.Observable.from(clusters).flatMap {
+      rx.Observable.from(it).observeOn(Schedulers.io()).map { cluster ->
+        clusterFiller(keys, cluster as AmazonCluster)
+        cluster
       }
-      result[cluster.accountName] << cluster
-    }
-    result
+    }.reduce([:], { Map results, AmazonCluster cluster ->
+      if (!results.containsKey(cluster.accountName)) {
+        results[cluster.accountName] = new HashSet<>()
+      }
+      ((Set)results[cluster.accountName as String]) << cluster
+      results
+    } as Func2<Map, ? super AmazonCluster, Map>).toBlockingObservable().first()
   }
 
-  final Closure clusterFiller = { Set<String> keys, AmazonCluster cluster ->
-    def serverGroups = keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}") }
+  void clusterFiller(Set<String> keys, AmazonCluster cluster) {
+    def serverGroups = keys.findAll { it.startsWith("serverGroups:${cluster.name}:${cluster.accountName}:") }
     if (!serverGroups) return
     for (loadBalancer in cluster.loadBalancers) {
-      def elb = keys.find { it == "loadBalancers:${loadBalancer.region}:${loadBalancer.name}" }
+      def elb = keys.find { it == "loadBalancers:${loadBalancer.region}:${loadBalancer.name}:" }
       if (elb) {
         loadBalancer.elb = cacheService.retrieve(elb)
       }
     }
     cluster.serverGroups = serverGroups.collect {
-      def serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
+      AmazonServerGroup serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
       if (serverGroup) {
-        for (AmazonInstance instance in (Set<AmazonInstance>) serverGroup.instances) {
-          def amazonInstance = cacheService.retrieve(Keys.getInstanceKey(instance.name, serverGroup.region))
-          if (amazonInstance) {
-            instance.instance = amazonInstance
+        def launchConfigKey = Keys.getLaunchConfigKey(serverGroup.launchConfigName as String, serverGroup.region)
+        if (keys.contains(launchConfigKey)) {
+          LaunchConfiguration launchConfig = (LaunchConfiguration)cacheService.retrieve(launchConfigKey)
+          serverGroup.launchConfig = launchConfig
+          def imageKey = Keys.getImageKey(launchConfig.imageId, serverGroup.region)
+          if (keys.contains(imageKey)) {
+            Map<Object, Object> buildInfo = [:]
+            def image = (Image) cacheService.retrieve(imageKey)
+            if (image) {
+              def appVersionTag = image.tags.find { it.key == "appversion" }?.value
+              if (appVersionTag) {
+                def appVersion = AppVersion.parseName(appVersionTag)
+                if (appVersion) {
+                  buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+                  if (appVersion.buildJobName) {
+                    buildInfo.jenkins = [:] << [name: appVersion.buildJobName, number: appVersion.buildNumber]
+                  }
+                  def buildHost = image.tags.find { it.key == "build_host" }?.value
+                  if (buildHost) {
+                    ((Map)buildInfo.jenkins).host = buildHost
+                  }
+                }
+              }
+            }
+            serverGroup.buildInfo = buildInfo
+            serverGroup.image = image
+          }
+        }
+        def instanceIds = keys.findAll { it.startsWith("serverGroupsInstance:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
+        for (instanceId in instanceIds) {
+          def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region))
+          if (ec2Instance) {
+            def modelInstance = new AmazonInstance(instanceId)
+            modelInstance.instance = ec2Instance
+            serverGroup.instances << modelInstance
           }
         }
       }

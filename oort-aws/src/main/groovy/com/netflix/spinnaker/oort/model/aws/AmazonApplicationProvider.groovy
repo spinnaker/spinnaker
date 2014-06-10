@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.model.aws
 
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.ApplicationProvider
-import org.apache.directmemory.cache.CacheService
+import com.netflix.spinnaker.oort.model.CacheService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.schedulers.Schedulers
@@ -27,13 +27,13 @@ import rx.schedulers.Schedulers
 class AmazonApplicationProvider implements ApplicationProvider {
 
   @Autowired
-  CacheService<String, Object> cacheService
+  CacheService cacheService
 
   @Override
   Set<AmazonApplication> getApplications() {
-    def keys = cacheService.map.keySet()
-    def appKeys = keys.findAll { it.startsWith("applications") }
-    def clusterKeys = keys.findAll { it.startsWith("clusters") }
+    def keys = cacheService.keys()
+    def appKeys = keys.findAll { it.startsWith("applications:") }
+    def clusterKeys = keys.findAll { it.startsWith("clusters:") }
 
     def apps = (List<AmazonApplication>)rx.Observable.from(appKeys).flatMap {
       rx.Observable.from(it).observeOn(Schedulers.io()).map { String key ->
@@ -66,7 +66,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
     def app = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(name)) ?: null
     if (app) {
       def clusters = [:]
-      cacheService.map.keySet().findAll { it.startsWith("clusters:${name}:") }.each {
+      cacheService.keys().findAll { it.startsWith("clusters:${name}:") }.each {
         def parts = it.split(':')
         def account = parts[2]
         def clusterName = parts[3]

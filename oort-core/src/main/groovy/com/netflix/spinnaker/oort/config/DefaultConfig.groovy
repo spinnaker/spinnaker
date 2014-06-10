@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.oort.config
 
+import com.netflix.spinnaker.oort.model.CacheService
+import com.netflix.spinnaker.oort.model.InMemoryCacheService
 import com.netflix.spinnaker.oort.security.DefaultNamedAccountProvider
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -29,5 +31,11 @@ class DefaultConfig {
   @ConditionalOnMissingBean(NamedAccountProvider)
   NamedAccountProvider namedAccountProvider() {
     new DefaultNamedAccountProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(CacheService)
+  InMemoryCacheService cacheService() {
+    new InMemoryCacheService()
   }
 }

@@ -1,3 +1,0 @@
-dependencies {
-  compile 'org.apache.directmemory:directmemory-cache:0.2'
-}

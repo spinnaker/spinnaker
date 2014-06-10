@@ -29,6 +29,11 @@ class Keys {
     "serverGroups:${names.cluster}:${account}:${region}:${names.group}"
   }
 
+  static String getServerGroupInstanceKey(String autoScalingGroupName, String instanceId, String account, String region) {
+    Names names = Names.parseName(autoScalingGroupName)
+    "serverGroupsInstance:${names.cluster}:${account}:${region}:${names.group}:${instanceId}"
+  }
+
   static String getInstanceKey(String instanceId, String region) {
     "instances:${region}:${instanceId}"
   }

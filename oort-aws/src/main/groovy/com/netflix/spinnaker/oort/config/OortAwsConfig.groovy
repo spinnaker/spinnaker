@@ -18,26 +18,28 @@ package com.netflix.spinnaker.oort.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.oort.model.aws.AmazonCluster
+import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
+import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
-import org.apache.directmemory.DirectMemory
-import org.apache.directmemory.cache.CacheService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import reactor.core.Environment
+import reactor.core.Reactor
+import reactor.core.spec.Reactors
+import reactor.spring.context.config.EnableReactor
 
 import javax.annotation.PostConstruct
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @CompileStatic
+@EnableReactor
 @Configuration
 class OortAwsConfig {
 
@@ -62,23 +64,8 @@ class OortAwsConfig {
   }
 
   @Bean
-  ExecutorService taskScheduler() {
-    Executors.newFixedThreadPool(10)
-  }
-
-  @Bean
-  ExecutorService loaderExecutorService() {
-    Executors.newFixedThreadPool(10)
-  }
-
-  @Bean
-  ExecutorService executorService(@Value('${computeThreadPoolSize}') Integer poolSize) {
-    Executors.newFixedThreadPool(poolSize)
-  }
-
-  @Bean
-  CacheService<String, Object> cacheService() {
-    new DirectMemory<String, AmazonCluster>().setNumberOfBuffers(10).setSize(100 * 1024 * 1024).setInitialCapacity(10000).setConcurrencyLevel(1).setDisposalTime(600000).newCacheService()
+  Reactor reactor() {
+    Reactors.reactor(new Environment())
   }
 
   @Bean
@@ -88,7 +75,7 @@ class OortAwsConfig {
   }
 
   @Configuration
-  static class AmazonCredentialsInitializer {
+  static class AmazonInitializer {
     @Autowired
     AWSCredentialsProvider awsCredentialsProvider
 
@@ -101,11 +88,27 @@ class OortAwsConfig {
     @Autowired
     AmazonClientProvider amazonClientProvider
 
+    @Autowired
+    ApplicationContext applicationContext
+
     @PostConstruct
     void init() {
       for (account in awsConfigurationProperties.accounts) {
-        namedAccountProvider.put(new AmazonNamedAccount(awsCredentialsProvider, account.name, account.edda, account.atlasHealth, account.front50, account.discovery, account.regions))
+        def namedAccount = new AmazonNamedAccount(awsCredentialsProvider, account.name, account.edda, account.atlasHealth, account.front50, account.discovery, account.regions)
+        namedAccountProvider.put(namedAccount)
+        for (region in namedAccount.regions) {
+          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region)
+        }
       }
+    }
+
+    private void autowireAndInitialize(InfrastructureCachingAgent agent) {
+      applicationContext.autowireCapableBeanFactory.autowireBean(agent)
+      agent.init()
     }
   }
 }

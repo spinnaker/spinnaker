@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
-public interface Loader {
+public interface InfrastructureCachingAgent {
+  void init()
   void load()
 }

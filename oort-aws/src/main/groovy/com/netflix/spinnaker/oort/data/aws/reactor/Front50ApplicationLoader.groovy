@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws.computers
+package com.netflix.spinnaker.oort.data.aws.reactor
 
 import com.netflix.spinnaker.oort.data.aws.ApplicationLoader
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
-import org.apache.directmemory.cache.CacheService
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
@@ -39,12 +39,12 @@ class Front50ApplicationLoader implements ApplicationLoader {
   NamedAccountProvider namedAccountProvider
 
   @Autowired
-  CacheService<String, Object> cacheService
+  CacheService cacheService
 
   @Autowired
   RestTemplate restTemplate
 
-  @Async("taskScheduler")
+  @Async
   @Scheduled(fixedRateString = '${cacheRefreshMs}')
   void load() {
     log.info "Beginning Front50 Application Caching..."
@@ -61,9 +61,7 @@ class Front50ApplicationLoader implements ApplicationLoader {
             def appName = input.name.toLowerCase()
             AmazonApplication application = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey("applications:${appName}")) ?: new AmazonApplication(name: appName, attributes: [:])
             application.attributes += input
-            if (!cacheService.put(Keys.getApplicationKey(application.name), application)) {
-              log.info("Not enough space to save application!!")
-            }
+            cacheService.put(Keys.getApplicationKey(application.name), application)
           }
         } catch (e) {
           log.error "ERROR LOADING APPLICATION METADATA FROM FRONT50!!", e
