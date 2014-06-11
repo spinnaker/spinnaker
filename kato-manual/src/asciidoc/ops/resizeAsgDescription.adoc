@@ -14,7 +14,7 @@ This description provides the inputs necessary to handle a capacity change for a
 [{
     "resizeAsgDescription": {
         "asgName": "kato-main-v000",
-        "region": "us-east-1",
+        "regions": ["us-east-1"],
         "capacity": {
           "min": 2,
           "max": 5,
@@ -31,7 +31,7 @@ This description provides the inputs necessary to handle a capacity change for a
 |======================
 |Key               | Type   | Required | Value
 |asgName           | string | true     | The name of the asg that the process will delete.
-|region            | string | true     | The region in which the specified ASG lives.
+|regions           | array  | true     | The regions in which the specified ASG lives.
 |capacity          | object | true     | This field is a complex object, which specifies the new capacity for the specified AutoScaling group. The valid fields within this object are: "min" -- the minimum number of instances the ASG should have; "max" -- the maximum number of instances that the ASG should have; "desired" -- the desired number of instances.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================
