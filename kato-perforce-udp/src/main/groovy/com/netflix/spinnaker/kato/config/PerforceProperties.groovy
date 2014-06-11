@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties("perforce")
 class PerforceProperties {
+  Boolean enabled = Boolean.FALSE
   String host = "perforce.netflix.com"
   Integer port = 1666
   String programName = "nac"

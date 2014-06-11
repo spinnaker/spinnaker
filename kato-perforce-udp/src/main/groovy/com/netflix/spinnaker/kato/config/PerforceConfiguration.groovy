@@ -17,13 +17,17 @@
 
 package com.netflix.spinnaker.kato.config
 
+import com.netflix.spinnaker.kato.deploy.aws.userdata.PerforceUserDataProvider
+import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import com.perforce.p4java.option.UsageOptions
 import com.perforce.p4java.server.IOptionsServer
 import com.perforce.p4java.server.ServerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@ConditionalOnExpression('${perforce.enabled}')
 class PerforceConfiguration {
   @Bean
   IOptionsServer p4server(PerforceProperties perforceProperties) {
@@ -32,5 +36,10 @@ class PerforceConfiguration {
     p4server.userName = perforceProperties.userName
     p4server.connect()
     p4server
+  }
+
+  @Bean
+  UserDataProvider perforceUserDataProvider() {
+    new PerforceUserDataProvider()
   }
 }

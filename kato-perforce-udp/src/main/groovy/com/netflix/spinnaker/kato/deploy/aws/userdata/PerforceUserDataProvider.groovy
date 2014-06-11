@@ -27,7 +27,6 @@ import com.perforce.p4java.server.IOptionsServer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@Component
 class PerforceUserDataProvider implements UserDataProvider {
   private static final INSERTION_MARKER = '\nexport EC2_REGION='
 
