@@ -23,6 +23,7 @@ import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import reactor.event.Event
 
+import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 import static reactor.event.selector.Selectors.object
 
 @CompileStatic
@@ -43,8 +44,8 @@ class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
     def launchConfigs = autoScaling.describeLaunchConfigurations()
     def allLaunchConfigs = launchConfigs.launchConfigurations.collectEntries { LaunchConfiguration launchConfiguration -> [(launchConfiguration.launchConfigurationName): launchConfiguration] }
     Map<String, Integer> launchConfigsThisRun = (Map<String, Integer>)allLaunchConfigs.collectEntries { launchConfigName, launchConfig -> [(launchConfigName): launchConfig.hashCode()] }
-    def newLaunchConfigs = launchConfigsThisRun.specialSubtract(lastKnownLaunchConfigs)
-    def missingLaunchConfigs = lastKnownLaunchConfigs.keySet() - launchConfigsThisRun.keySet()
+    Map<String, Integer> newLaunchConfigs = specialSubtract(launchConfigsThisRun, lastKnownLaunchConfigs)
+    Set<String> missingLaunchConfigs = lastKnownLaunchConfigs.keySet() - launchConfigsThisRun.keySet()
 
     if (newLaunchConfigs) {
       log.info "$cachePrefix - Loading ${newLaunchConfigs.size()} new or changedlaunch configs"

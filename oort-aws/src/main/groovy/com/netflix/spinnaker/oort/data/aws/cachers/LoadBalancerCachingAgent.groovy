@@ -22,6 +22,7 @@ import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import reactor.event.Event
+import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 
 import static reactor.event.selector.Selectors.object
 
@@ -44,8 +45,8 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
     def loadBalancers = loadBalancing.describeLoadBalancers()
     def allLoadBalancers = loadBalancers.loadBalancerDescriptions.collectEntries { LoadBalancerDescription loadBalancerDescription -> [(loadBalancerDescription.loadBalancerName): loadBalancerDescription] }
     Map<String, Integer> loadBalancersThisRun = (Map<String, Integer>)allLoadBalancers.collectEntries { loadBalancerName, loadBalancer -> [(loadBalancerName): loadBalancer.hashCode()]}
-    def newLoadBalancers = loadBalancersThisRun.specialSubtract(lastKnownLoadBalancers)
-    def missingLoadBalancers = lastKnownLoadBalancers.keySet() - loadBalancersThisRun.keySet()
+    Map<String, Integer> newLoadBalancers = specialSubtract(loadBalancersThisRun, lastKnownLoadBalancers)
+    Set<String> missingLoadBalancers = lastKnownLoadBalancers.keySet() - loadBalancersThisRun.keySet()
 
     if (newLoadBalancers) {
       log.info "$cachePrefix - Loading ${newLoadBalancers.size()} new load balancers"

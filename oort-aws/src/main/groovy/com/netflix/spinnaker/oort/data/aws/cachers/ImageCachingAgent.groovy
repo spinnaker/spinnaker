@@ -22,6 +22,7 @@ import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import reactor.event.Event
+import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 
 import static reactor.event.selector.Selectors.object
 
@@ -41,8 +42,8 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
     def images = amazonEC2.describeImages()
     def allImages = images.images.collectEntries { Image image -> [(image.imageId): image] }
     Map<String, Integer> imagesThisRun = (Map<String, Integer>)allImages.collectEntries { imageId, image -> [(imageId): image.hashCode()] }
-    def newImages =  imagesThisRun.specialSubtract(lastKnownImages)
-    def missingImages = lastKnownImages.keySet() - imagesThisRun.keySet()
+    Map<String, Integer> newImages =  specialSubtract(imagesThisRun, lastKnownImages)
+    Set<String> missingImages = lastKnownImages.keySet() - imagesThisRun.keySet()
 
     if (newImages) {
       log.info "$cachePrefix - Loading ${newImages.size()} new images."

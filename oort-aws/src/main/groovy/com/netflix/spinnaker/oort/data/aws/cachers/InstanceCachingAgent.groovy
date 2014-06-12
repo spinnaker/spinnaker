@@ -23,6 +23,7 @@ import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import reactor.event.Event
 
+import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 import static reactor.event.selector.Selectors.object
 
 @CompileStatic
@@ -47,8 +48,8 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
     def instances = amazonEC2.describeInstances()
     def allInstances = ((List<Instance>)instances.reservations.collectMany { it.instances ?: [] }).collectEntries { Instance instance -> [(instance.instanceId): instance]}
     Map<String, Integer> instancesThisRun = (Map<String, Integer>)allInstances.collectEntries { instanceId, instance -> [(instanceId): instance.hashCode()] }
-    def newInstances = instancesThisRun.specialSubtract(lastKnownInstances)
-    def missingInstances = lastKnownInstances.keySet() - instancesThisRun.keySet()
+    Map<String, Integer> newInstances = specialSubtract(instancesThisRun, lastKnownInstances)
+    Set<String> missingInstances = lastKnownInstances.keySet() - instancesThisRun.keySet()
 
     if (newInstances) {
       log.info "$cachePrefix - Loading ${newInstances.size()} new or changes instances."

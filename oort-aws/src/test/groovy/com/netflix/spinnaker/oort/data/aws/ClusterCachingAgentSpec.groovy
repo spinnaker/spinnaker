@@ -121,7 +121,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def names = Names.parseName(asgName)
     def region = "us-east-1"
     def event = Event.wrap(new ClusterCachingAgent.FriggaWrappedAutoScalingGroup(account, asg, names, region))
-    [account: accountName, accountObj: account, asgname: asgName, names: names, launchConfigName: launchConfigName, region: region, event: event]
+    [account: accountName, accountObj: account, asgName: asgName, names: names, launchConfigName: launchConfigName, region: region, event: event]
   }
 
 }

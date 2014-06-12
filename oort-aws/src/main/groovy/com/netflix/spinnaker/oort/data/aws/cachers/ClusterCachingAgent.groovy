@@ -28,6 +28,7 @@ import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import reactor.event.Event
 
+import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 import static reactor.event.selector.Selectors.object
 
 @CompileStatic
@@ -48,8 +49,8 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     def asgs = autoScaling.describeAutoScalingGroups()
     def allAsgs = asgs.autoScalingGroups.collectEntries { AutoScalingGroup asg -> [(asg.autoScalingGroupName): asg] }
     def asgsThisRun = (Map<String, Integer>)allAsgs.collectEntries { asgName, asg -> [(asgName): asg.hashCode()] }
-    def changedAsgNames = asgsThisRun.specialSubtract(lastKnownAsgs)
-    def missingAsgNames = lastKnownAsgs.keySet() - asgsThisRun.keySet()
+    Map<String, Integer> changedAsgNames = specialSubtract(asgsThisRun, lastKnownAsgs)
+    Set<String> missingAsgNames = lastKnownAsgs.keySet() - asgsThisRun.keySet()
 
     if (changedAsgNames) {
       log.info "$cachePrefix - Loading ${changedAsgNames.size()} new or changed server groups"
