@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws.reactor
+package com.netflix.spinnaker.oort.data.aws.front50
 
 import com.netflix.spinnaker.oort.data.aws.ApplicationLoader
 import com.netflix.spinnaker.oort.data.aws.Keys

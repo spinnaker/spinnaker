@@ -100,15 +100,22 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     1 * cacheService.put(Keys.getClusterKey(mocks.names.cluster, mocks.names.app, mocks.account), _)
   }
 
-  void "should remove server group from cache"() {
+  void "should remove server group from cache and clean-up cluster if no more server groups"() {
     setup:
     def mocks = getCommonMocks()
+    def serverGroupKey = Keys.getServerGroupKey(mocks.names.group, mocks.account, mocks.region)
+    def clusterKey = Keys.getClusterKey(mocks.names.cluster, mocks.names.app, mocks.account)
+    def keys = [serverGroupKey, clusterKey]
 
     when:
     ((ClusterCachingAgent)agent).removeServerGroup(Event.wrap(new ClusterCachingAgent.RemoveServerGroupNotification(mocks.accountObj, mocks.names.group, mocks.region)))
 
     then:
-    1 * cacheService.free(Keys.getServerGroupKey(mocks.names.group, mocks.account, mocks.region))
+    1 * cacheService.keys() >> keys
+    1 * cacheService.free(serverGroupKey) >> {
+      keys.remove serverGroupKey
+    }
+    1 * cacheService.free(clusterKey)
   }
 
   private def getCommonMocks() {

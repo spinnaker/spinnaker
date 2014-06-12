@@ -115,6 +115,13 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     def region = event.data.region
 
     cacheService.free(Keys.getServerGroupKey(asgName, account, region))
+
+    // Check if we need to clean up this cluster
+    def names = Names.parseName(asgName)
+    def clusterServerGroups = cacheService.keys().find { it.startsWith "serverGroups:${names.cluster}:${account}:"}
+    if (!clusterServerGroups) {
+      cacheService.free(Keys.getClusterKey(names.cluster, names.app, account))
+    }
   }
 
   @Canonical
