@@ -65,7 +65,7 @@ class ClusterControllerSpec extends Specification {
     thrown ClusterController.ClusterNotFoundException
   }
 
-  Should "return specific serverGroup"() {
+  Should "return specific named serverGroup"() {
     setup:
     def clusterProvider1 = Mock(ClusterProvider)
     clusterController.clusterProviders = [clusterProvider1]
@@ -82,6 +82,6 @@ class ClusterControllerSpec extends Specification {
       cluster.getServerGroups() >> [serverGroup]
       cluster
     }
-    result.is(serverGroup)
+    result == [serverGroup] as Set
   }
 }

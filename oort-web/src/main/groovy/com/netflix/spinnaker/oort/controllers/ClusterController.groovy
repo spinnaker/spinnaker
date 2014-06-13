@@ -68,11 +68,13 @@ class ClusterController {
 
   @RequestMapping(value = "/{account}")
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
-    def clusters = (Set<ClusterViewModel>)clusterProviders.collect {
-      def clusters = (Set<Cluster>)it.getClusters(application, account)
+    def clusters = (Set<ClusterViewModel>) clusterProviders.collect {
+      def clusters = (Set<Cluster>) it.getClusters(application, account)
       def clusterViews = []
       for (cluster in clusters) {
-        clusterViews << new ClusterViewModel(name: cluster.name, account: cluster.accountName, loadBalancers: cluster.loadBalancers.collect { it.name }, serverGroups: cluster.serverGroups.collect { it.name })
+        clusterViews << new ClusterViewModel(name: cluster.name, account: cluster.accountName, loadBalancers: cluster.loadBalancers.collect { it.name }, serverGroups: cluster.serverGroups.collect {
+          it.name
+        })
       }
       clusterViews
     }?.flatten() as Set
@@ -108,17 +110,22 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
-  ServerGroup getServerGroup(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
-                             @RequestParam(value = "region", required = false) String region, @RequestParam(value = "health", required = false) Boolean health) {
-    Set<ServerGroup> serverGroups = getServerGroups(application, account, clusterName, type, region)
-    def serverGroup = serverGroups.find { it.name == serverGroupName }
-    if (!serverGroup) {
+  def getServerGroup(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
+                     @RequestParam(value = "region", required = false) String region, @RequestParam(value = "health", required = false) Boolean health) {
+    def serverGroups = getServerGroups(application, account, clusterName, type, region).findAll { region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName }
+    if (!serverGroups) {
       throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
     }
-    if (health) {
-      serverGroup.getHealth().addAll(healthProviders.collect { it.getHealth(account, serverGroup) })
+    if (health && healthProviders) {
+      imposeHealth serverGroups
     }
-    serverGroup
+    region ? serverGroups?.getAt(0) : serverGroups
+  }
+
+  private void imposeHealth(Set<ServerGroup> serverGroups) {
+    serverGroups.each { sg ->
+      sg.getHealth().addAll(healthProviders.collect { it.getHealth(account, sg) })
+    }
   }
 
   @ExceptionHandler
