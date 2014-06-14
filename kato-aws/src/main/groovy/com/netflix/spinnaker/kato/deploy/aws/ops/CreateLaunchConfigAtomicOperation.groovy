@@ -14,53 +14,46 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.CreateLaunchConfigDescription
+import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
-  private static final String PHASE = "RESIZE"
+class CreateLaunchConfigAtomicOperation implements AtomicOperation<Void> {
+  private static final String BASE_PHASE = "CREATE_LAUNCH_CONFIG"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
   @Autowired
+  BasicAmazonDeployHandler basicAmazonDeployHandler
+
+  @Autowired
   AmazonClientProvider amazonClientProvider
 
-  final ResizeAsgDescription description
 
-  ResizeAsgAtomicOperation(ResizeAsgDescription description) {
+  final CreateLaunchConfigDescription description
+
+  CreateLaunchConfigAtomicOperation(CreateLaunchConfigDescription description) {
     this.description = description
   }
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus PHASE, "Initializing Resize Operation for ${description.asgName} in ${description.regions}."
-
+    task.updateStatus BASE_PHASE, "Initializing Create Launch Config Operation..."
     for (String region : description.regions) {
-      task.updateStatus PHASE, "Beginning resize of ${description.asgName} in ${region}."
+      def launchConfigOptions = description.launchConfigOptions
+      // TODO: Anything special with block device mappings like Asgard had for m3 instances?
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
-      resize autoScaling
-      task.updateStatus PHASE, "Completed resize of ${description.asgName} in ${region}."
+      autoScaling.createLaunchConfiguration(launchConfigOptions.createLaunchConfigurationRequest)
     }
-
-    task.updateStatus PHASE, "Done resizing ${description.asgName} in ${description.regions}."
     null
   }
 
-  void resize(AmazonAutoScaling autoScaling) {
-    def request = new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName)
-      .withMinSize(description.capacity.min).withMaxSize(description.capacity.max)
-      .withDesiredCapacity(description.capacity.desired)
-    autoScaling.updateAutoScalingGroup request
-  }
 }

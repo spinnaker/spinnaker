@@ -16,7 +16,7 @@
 
 
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp"
+include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-deploy", "kato-swf"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

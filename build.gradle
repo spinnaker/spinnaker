@@ -40,7 +40,8 @@ ext {
     frigga            : "com.netflix.frigga:frigga:0.11",
     groovy            : "org.codehaus.groovy:groovy-all:2.3.2",
     eureka            : "com.netflix.eureka:eureka-client:1.1.132",
-    kork              : "com.netflix.spinnaker.kork:kork-core:1.9"
+    kork              : "com.netflix.spinnaker.kork:kork-core:1.9",
+    amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.4-SNAPSHOT'
   ]
 }
 
@@ -60,6 +61,7 @@ subprojects { project ->
     jcenter()
     mavenCentral()
     maven { url 'http://repo.spring.io/repo' }
+    mavenLocal()
   }
 
   dependencies {

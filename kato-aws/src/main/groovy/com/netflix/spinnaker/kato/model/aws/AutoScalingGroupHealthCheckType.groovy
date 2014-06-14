@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.model.aws
 
+enum AutoScalingGroupHealthCheckType {
+  EC2('Replace terminated instances'),
+  ELB('Replace instances that fail ELB health check')
 
-package com.netflix.spinnaker.kato.deploy.aws.description
+  String description
 
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
-  List<String> regions
+  AutoScalingGroupHealthCheckType(String description) {
+    this.description = description
+  }
+
+  static AutoScalingGroupHealthCheckType by(String value) {
+    values().find { it.name() == value }
+  }
+
+  String toString() {
+    this.name()
+  }
 }

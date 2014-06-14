@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.model.aws
 
+/** Partitions subnets by the type of AWS objects they can be applied to.*/
+enum SubnetTarget {
+  /** The subnet can be applied only to AWS machine instances. */
+  EC2('ec2'),
+  /** The subnet can be applied only to AWS Elastic Load Balancers. */
+  ELB('elb')
 
-package com.netflix.spinnaker.kato.deploy.aws.description
+  private final String text
 
-/**
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
- */
-class DisableAsgDescription extends AbstractAmazonCredentialsDescription {
-  String asgName
-  List<String> regions
+  SubnetTarget(String text) {
+    this.text = text
+  }
+
+  static SubnetTarget forText(String text) {
+    values().find() { it.text == text }
+  }
 }
