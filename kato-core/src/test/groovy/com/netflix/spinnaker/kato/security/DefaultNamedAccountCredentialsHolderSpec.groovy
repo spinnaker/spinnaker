@@ -50,6 +50,6 @@ class DefaultNamedAccountCredentialsHolderSpec extends Specification {
     def l = credentialsHolder.accountNames
 
     then:
-    l == ["test"]
+    l == ["test", "auto"]
   }
 }
