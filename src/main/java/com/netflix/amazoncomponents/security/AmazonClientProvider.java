@@ -18,11 +18,14 @@ package com.netflix.amazoncomponents.security;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.*;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
@@ -34,6 +37,8 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
+import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
+import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
@@ -137,6 +142,33 @@ public class AmazonClientProvider {
       return (AmazonElasticLoadBalancing) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonElasticLoadBalancing.class},
         getInvocationHandler(client, region, amazonCredentials));
     }
+  }
+
+  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    AmazonSimpleWorkflowClient client = new AmazonSimpleWorkflowClient(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
+    return client;
+  }
+
+  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AWSCredentialsProviderChain providerChain, String region) {
+    if (providerChain == null) throw new IllegalArgumentException("Provider chain cannot be null");
+    AmazonSimpleWorkflowClient client = new AmazonSimpleWorkflowClient(providerChain);
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
+    return client;
+  }
+
+  public AmazonCloudWatch getAmazonCloudWatch(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    AmazonCloudWatchClient client = new AmazonCloudWatchClient(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
+    return client;
   }
 
   private GeneralAmazonClientInvocationHandler getInvocationHandler(AmazonWebServiceClient client, String region, AmazonCredentials amazonCredentials) {
