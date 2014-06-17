@@ -16,57 +16,27 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
-import com.netflix.frigga.Names
+import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
+import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
 import com.netflix.spinnaker.oort.model.ServerGroup
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestTemplate
 
 @Component
 class AtlasHealthProvider implements HealthProvider {
-  @Autowired
-  RestTemplate restTemplate
 
   @Autowired
-  NamedAccountProvider namedAccountProvider
+  CacheService cacheService
 
   @Override
-  Health getHealth(String account, ServerGroup serverGroup) {
+  Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
     if (!(serverGroup instanceof AmazonServerGroup)) {
       return null
     }
-    AmazonNamedAccount amazonNamedAccount = (AmazonNamedAccount) namedAccountProvider.get(account)
-    if (!amazonNamedAccount.atlasHealth) {
-      return null
-    }
-    def names = Names.parseName(serverGroup.name)
-    def url = String.format(amazonNamedAccount.atlasHealth, serverGroup.region)
-    def result = new AtlasHealth()
-    if (url) {
-      def health = getAtlasHealth(url, names.cluster, serverGroup.name)
-      if (health.containsKey(serverGroup.name)) {
-        result.serverGroupHealth = health[serverGroup.name] ? "healthy" : "unhealthy"
-      } else {
-        result.serverGroupHealth = "unknown"
-      }
-    }
-    result
+    Map health = (Map)cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME))
+    health ? new AtlasHealth(health) : null
   }
-
-  private Map getAtlasHealth(String url, String cluster, String serverGroup) {
-    def result = [:]
-    try {
-      def list = restTemplate.getForObject("${url}/api/v1/instance?q=cluster,$cluster,:eq,asg,$serverGroup,:eq,:and", List)
-      list.each { Map input ->
-        result[input.asg] = input.isHealthy
-      }
-    } catch (IGNORE) {
-    }
-    result
-  }
-
 }

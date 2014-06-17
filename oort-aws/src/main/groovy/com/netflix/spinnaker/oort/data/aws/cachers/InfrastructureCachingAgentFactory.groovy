@@ -34,6 +34,10 @@ class InfrastructureCachingAgentFactory {
     new InstanceCachingAgent(account, region)
   }
 
+  static InfrastructureCachingAgent getAtlasHealthCachingAgent(AmazonNamedAccount account, String region) {
+    new AtlasHealthCachingAgent(account, region)
+  }
+
   static InfrastructureCachingAgent getLaunchConfigCachingAgent(AmazonNamedAccount account, String region) {
     new LaunchConfigCachingAgent(account, region)
   }

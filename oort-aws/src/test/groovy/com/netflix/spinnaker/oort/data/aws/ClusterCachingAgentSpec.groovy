@@ -21,7 +21,6 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.ClusterCachingAgent
-import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import reactor.event.Event
 

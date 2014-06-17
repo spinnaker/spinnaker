@@ -28,4 +28,9 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   String getName() {
     getProperty "name"
   }
+
+  @Override
+  Boolean isHealthy() {
+    getProperty "isHealthy"
+  }
 }

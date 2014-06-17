@@ -53,4 +53,8 @@ class Keys {
   static String getApplicationKey(String application) {
     "applications:${application}"
   }
+
+  static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
+    "health:${instanceId}:${account}:${region}:${provider}"
+  }
 }

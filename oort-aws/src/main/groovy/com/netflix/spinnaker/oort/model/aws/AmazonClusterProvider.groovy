@@ -22,6 +22,8 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.Health
+import com.netflix.spinnaker.oort.model.HealthProvider
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,6 +35,9 @@ import rx.util.functions.Func2
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Autowired
   CacheService cacheService
+
+  @Autowired
+  List<HealthProvider> healthProviders
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
@@ -127,6 +132,8 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
           if (ec2Instance) {
             def modelInstance = new AmazonInstance(instanceId)
             modelInstance.instance = ec2Instance
+            modelInstance.health = healthProviders.collect { it.getHealth(cluster.accountName, serverGroup, instanceId) }
+            modelInstance.isHealthy = !((List<Health>)modelInstance.health).find { !it.isHealthy() }
             serverGroup.instances << modelInstance
           }
         }

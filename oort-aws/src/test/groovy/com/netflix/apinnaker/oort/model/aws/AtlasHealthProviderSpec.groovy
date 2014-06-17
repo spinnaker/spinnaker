@@ -16,6 +16,10 @@
 
 package com.netflix.apinnaker.oort.model.aws
 
+import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
+import com.netflix.spinnaker.oort.model.CacheService
+import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import com.netflix.spinnaker.oort.model.aws.AtlasHealthProvider
@@ -31,30 +35,26 @@ class AtlasHealthProviderSpec extends Specification {
   AtlasHealthProvider provider
 
   @Shared
-  RestTemplate restTemplate
+  CacheService cacheService
 
   def setup() {
     provider = new AtlasHealthProvider()
-    def namedAccountProvider = Mock(NamedAccountProvider)
-    def namedAccount = Mock(AmazonNamedAccount)
-    namedAccount.getAtlasHealth() >> "atlas"
-    namedAccountProvider.get("test") >> namedAccount
-    provider.namedAccountProvider = namedAccountProvider
-    restTemplate = Mock(RestTemplate)
-    provider.restTemplate = restTemplate
+    cacheService = Mock(CacheService)
+    provider.cacheService = cacheService
   }
 
-  void "getting health makes external call to atlas"() {
+  void "health is retrieved from cache"() {
     setup:
-    def cluster = "kato-main"
     def serverGroupName = "kato-main-v000"
     def region = "us-east-1"
     def serverGroup = new AmazonServerGroup(serverGroupName, "aws", region)
 
     when:
-    provider.getHealth("test", serverGroup)
+    def result = provider.getHealth("test", serverGroup, "i-12345")
 
     then:
-    1 * restTemplate.getForObject("atlas/api/v1/instance?q=cluster,$cluster,:eq,asg,$serverGroupName,:eq,:and", _)
+    result instanceof Health
+    result.id == "i-12345"
+    1 * cacheService.retrieve(Keys.getInstanceHealthKey("i-12345", "test", region, AtlasHealthCachingAgent.PROVIDER_NAME)) >> [id: "i-12345", isHealthy: true]
   }
 }

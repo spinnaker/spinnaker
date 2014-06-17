@@ -16,13 +16,8 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
-import com.amazonaws.services.ec2.model.DescribeInstancesResult
-import com.amazonaws.services.ec2.model.Instance
-import com.amazonaws.services.ec2.model.InstanceState
-import com.amazonaws.services.ec2.model.Reservation
-import com.amazonaws.services.ec2.model.Tag
+import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent
-import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import reactor.event.Event
 

@@ -22,7 +22,6 @@ import com.amazonaws.services.ec2.model.Image
 import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
-import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonClusterProvider
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
@@ -38,7 +37,7 @@ class AmazonClusterProviderSpec extends Specification {
   CacheService cacheService
 
   def setup() {
-    provider = new AmazonClusterProvider()
+    provider = new AmazonClusterProvider(healthProviders: [])
     cacheService = Mock(CacheService)
     provider.cacheService = cacheService
   }

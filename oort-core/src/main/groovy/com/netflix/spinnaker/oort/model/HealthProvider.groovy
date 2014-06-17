@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.oort.model
 
 interface HealthProvider {
-  Health getHealth(String account, ServerGroup serverGroup)
+  Health getHealth(String account, ServerGroup serverGroup, String instanceId)
 }

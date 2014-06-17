@@ -14,7 +14,9 @@ configurations.all {
   exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
-
+ideaConfig {
+  appClassName = 'com.netflix.spinnaker.oort.Main'
+}
 
 dependencies {
   compile project(":oort-core")

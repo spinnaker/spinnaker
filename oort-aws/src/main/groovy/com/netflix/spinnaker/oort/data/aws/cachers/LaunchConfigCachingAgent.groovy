@@ -48,7 +48,7 @@ class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
     Set<String> missingLaunchConfigs = lastKnownLaunchConfigs.keySet() - launchConfigsThisRun.keySet()
 
     if (newLaunchConfigs) {
-      log.info "$cachePrefix - Loading ${newLaunchConfigs.size()} new or changedlaunch configs"
+      log.info "$cachePrefix - Loading ${newLaunchConfigs.size()} new or changed launch configs"
       for (launchConfigName in newLaunchConfigs.keySet()) {
         LaunchConfiguration launchConfig = (LaunchConfiguration)allLaunchConfigs[launchConfigName]
         reactor.notify("newLaunchConfig", Event.wrap(new NewLaunchConfigNotification(launchConfig, region)))

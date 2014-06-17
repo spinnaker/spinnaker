@@ -100,6 +100,7 @@ class OortAwsConfig {
           autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region)
           autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region)
           autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getAtlasHealthCachingAgent(namedAccount, region)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region)
         }

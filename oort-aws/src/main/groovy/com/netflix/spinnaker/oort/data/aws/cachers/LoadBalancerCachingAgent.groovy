@@ -22,8 +22,8 @@ import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import reactor.event.Event
-import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 
+import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 import static reactor.event.selector.Selectors.object
 
 @CompileStatic

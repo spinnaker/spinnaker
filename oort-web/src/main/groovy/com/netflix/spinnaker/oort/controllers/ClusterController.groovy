@@ -40,9 +40,6 @@ class ClusterController {
   List<ClusterProvider> clusterProviders
 
   @Autowired
-  List<HealthProvider> healthProviders
-
-  @Autowired
   MessageSource messageSource
 
   @Autowired
@@ -116,16 +113,7 @@ class ClusterController {
     if (!serverGroups) {
       throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
     }
-    if (health && healthProviders) {
-      imposeHealth serverGroups
-    }
     region ? serverGroups?.getAt(0) : serverGroups
-  }
-
-  private void imposeHealth(Set<ServerGroup> serverGroups) {
-    serverGroups.each { sg ->
-      sg.getHealth().addAll(healthProviders.collect { it.getHealth(account, sg) })
-    }
   }
 
   @ExceptionHandler

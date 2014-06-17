@@ -21,4 +21,8 @@ import groovy.transform.InheritConstructors
 
 @InheritConstructors
 class AtlasHealth extends HashMap implements Health, Serializable {
+  @Override
+  Boolean isHealthy() {
+    (Boolean)getProperty("isHealthy")
+  }
 }
