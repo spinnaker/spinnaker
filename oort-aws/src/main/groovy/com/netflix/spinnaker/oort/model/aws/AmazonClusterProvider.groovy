@@ -28,6 +28,7 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.schedulers.Schedulers
+import rx.util.functions.Func1
 import rx.util.functions.Func2
 
 @Component
@@ -95,51 +96,89 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         loadBalancer.elb = cacheService.retrieve(elb)
       }
     }
-    cluster.serverGroups = serverGroups.collect {
-      AmazonServerGroup serverGroup = (AmazonServerGroup)cacheService.retrieve(it)
-      if (serverGroup) {
+
+    cluster.serverGroups = (Set)rx.Observable.from(serverGroups)
+      .map({ String name -> (AmazonServerGroup)cacheService.retrieve(name) })
+      .filter({ it != null })
+      .map(attributePopulator.curry(keys) as Func1)
+      .map(instancePopulator.curry(keys, cluster) as Func1)
+      .reduce(new HashSet<AmazonServerGroup>(), { Set<AmazonServerGroup> objs, AmazonServerGroup obj -> objs << obj })
+      .toBlockingObservable()
+      .firstOrDefault(new HashSet<AmazonServerGroup>()) as Set
+  }
+
+  final Closure attributePopulator = { Set<String> keys, AmazonServerGroup serverGroup ->
+    def serverAttributes = new ServerGroupAttributeBuilder(keys, serverGroup)
+    serverGroup.launchConfig = serverAttributes.launchConfig
+    serverGroup.image = serverAttributes.image
+    serverGroup.buildInfo = serverAttributes.buildInfo
+    serverGroup
+  }
+
+  final Closure instancePopulator = { Set<String> keys, AmazonCluster cluster, AmazonServerGroup serverGroup ->
+    def instanceIds = keys.findAll { it.startsWith("serverGroupsInstance:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
+    for (instanceId in instanceIds) {
+      def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region))
+      if (ec2Instance) {
+        def modelInstance = new AmazonInstance(instanceId)
+        modelInstance.instance = ec2Instance
+        modelInstance.health = healthProviders.collect { it.getHealth(cluster.accountName, serverGroup, instanceId) }
+        modelInstance.isHealthy = !((List<Health>)modelInstance.health)?.find { !it?.isHealthy() ?: false }
+        serverGroup.instances << modelInstance
+      }
+    }
+    serverGroup
+  }
+
+  private class ServerGroupAttributeBuilder {
+    Set<String> keys
+    AmazonServerGroup serverGroup
+
+    ServerGroupAttributeBuilder(Set<String> keys, AmazonServerGroup serverGroup) {
+      this.keys = keys
+      this.serverGroup = serverGroup
+    }
+
+    private LaunchConfiguration launchConfiguration
+    private Image image
+    private Map buildInfo
+
+    LaunchConfiguration getLaunchConfig() {
+      if (!this.launchConfiguration) {
         def launchConfigKey = Keys.getLaunchConfigKey(serverGroup.launchConfigName as String, serverGroup.region)
-        if (keys.contains(launchConfigKey)) {
-          LaunchConfiguration launchConfig = (LaunchConfiguration)cacheService.retrieve(launchConfigKey)
-          serverGroup.launchConfig = launchConfig
-          def imageKey = Keys.getImageKey(launchConfig.imageId, serverGroup.region)
-          if (keys.contains(imageKey)) {
-            Map<Object, Object> buildInfo = [:]
-            def image = (Image) cacheService.retrieve(imageKey)
-            if (image) {
-              def appVersionTag = image.tags.find { it.key == "appversion" }?.value
-              if (appVersionTag) {
-                def appVersion = AppVersion.parseName(appVersionTag)
-                if (appVersion) {
-                  buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
-                  if (appVersion.buildJobName) {
-                    buildInfo.jenkins = [:] << [name: appVersion.buildJobName, number: appVersion.buildNumber]
-                  }
-                  def buildHost = image.tags.find { it.key == "build_host" }?.value
-                  if (buildHost) {
-                    ((Map)buildInfo.jenkins).host = buildHost
-                  }
-                }
-              }
+        this.launchConfiguration = keys.contains(launchConfigKey) ? (LaunchConfiguration) cacheService.retrieve(launchConfigKey) : null
+      }
+      this.launchConfiguration
+    }
+
+    Image getImage() {
+      if (!this.image) {
+        def launchConfig = getLaunchConfig()
+        if (!launchConfig) return null
+        def imageKey = Keys.getImageKey(launchConfig.imageId, serverGroup.region)
+        this.image = keys.contains(imageKey) ? (Image) cacheService.retrieve(imageKey) : null
+      }
+      this.image
+    }
+
+    Map getBuildInfo() {
+      if (!this.buildInfo) {
+        def appVersionTag = image?.tags?.find { it.key == "appversion" }?.value
+        if (appVersionTag) {
+          def appVersion = AppVersion.parseName(appVersionTag)
+          if (appVersion) {
+            buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+            if (appVersion.buildJobName) {
+              buildInfo.jenkins = [:] << [name: appVersion.buildJobName, number: appVersion.buildNumber]
             }
-            serverGroup.buildInfo = buildInfo
-            serverGroup.image = image
-          }
-        }
-        def instanceIds = keys.findAll { it.startsWith("serverGroupsInstance:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
-        for (instanceId in instanceIds) {
-          def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region))
-          if (ec2Instance) {
-            def modelInstance = new AmazonInstance(instanceId)
-            modelInstance.instance = ec2Instance
-            modelInstance.health = healthProviders.collect { it.getHealth(cluster.accountName, serverGroup, instanceId) }
-            modelInstance.isHealthy = !((List<Health>)modelInstance.health).find { !it.isHealthy() }
-            serverGroup.instances << modelInstance
+            def buildHost = image.tags.find { it.key == "build_host" }?.value
+            if (buildHost) {
+              ((Map) buildInfo.jenkins).host = buildHost
+            }
           }
         }
       }
-      serverGroup
-    } as Set
-    cluster.serverGroups.removeAll([null])
+      buildInfo
+    }
   }
 }
