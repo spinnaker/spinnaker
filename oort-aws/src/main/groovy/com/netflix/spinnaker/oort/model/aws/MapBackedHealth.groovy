@@ -20,7 +20,7 @@ import com.netflix.spinnaker.oort.model.Health
 import groovy.transform.InheritConstructors
 
 @InheritConstructors
-class AtlasHealth extends HashMap implements Health, Serializable {
+class MapBackedHealth extends HashMap implements Health, Serializable {
   @Override
   Boolean isHealthy() {
     (Boolean)getProperty("isHealthy")

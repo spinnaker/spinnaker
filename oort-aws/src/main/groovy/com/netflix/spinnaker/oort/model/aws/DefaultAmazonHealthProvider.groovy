@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.amazonaws.services.ec2.model.Instance
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
@@ -26,17 +26,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class AtlasHealthProvider implements HealthProvider {
+class DefaultAmazonHealthProvider implements HealthProvider {
+  private static final int RUNNING = 16
 
   @Autowired
   CacheService cacheService
 
   @Override
   Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
-    if (!(serverGroup instanceof AmazonServerGroup)) {
-      return null
-    }
-    Map health = (Map)cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME))
-    health ? new MapBackedHealth(health) : null
+    def cacheKey = Keys.getInstanceKey(instanceId, serverGroup.region)
+    def instance = (Instance)cacheService.retrieve(cacheKey)
+    def running = instance.state.code == RUNNING
+    new MapBackedHealth([isHealthy: running])
   }
 }
