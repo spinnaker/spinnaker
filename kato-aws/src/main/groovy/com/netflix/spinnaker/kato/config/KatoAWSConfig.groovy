@@ -121,7 +121,7 @@ class KatoAWSConfig {
     String name
     String accountId
     String edda
-    List<String> regions
+    List<AwsRegion> regions
   }
 
   @Component

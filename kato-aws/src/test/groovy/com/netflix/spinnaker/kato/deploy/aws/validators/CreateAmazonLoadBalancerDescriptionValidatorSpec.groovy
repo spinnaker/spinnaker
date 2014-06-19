@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
+import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -28,14 +30,31 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   @Shared
   CreateAmazonLoadBalancerDescriptionValidator validator
 
+  CreateAmazonLoadBalancerDescription description
+
   void setupSpec() {
     validator = new CreateAmazonLoadBalancerDescriptionValidator()
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
+    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(
+      regions: ["us-west-1"],
+      accounts: [
+        new KatoAWSConfig.ManagedAccount(
+          name: 'test',
+          regions: [
+            new AmazonRoleAccountCredentials.AwsRegion(
+              name: "us-west-1",
+              availabilityZones: ["us-west-1a"]
+            )
+          ]
+        )
+      ])
+  }
+
+  void setup() {
+    description = new CreateAmazonLoadBalancerDescription(credentials: new AmazonCredentials(null, 'test'))
   }
 
   void "empty parameters fails validation"() {
     setup:
-    def description = new CreateAmazonLoadBalancerDescription()
     def errors = Mock(Errors)
 
     when:
@@ -49,7 +68,6 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "unconfigured region is rejected"() {
     setup:
-    def description = new CreateAmazonLoadBalancerDescription()
     description.availabilityZones = ["us-west-5": ["us-west-5a"]]
     def errors = Mock(Errors)
 
@@ -60,9 +78,21 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue("availabilityZones", _)
   }
 
+  void "availability zone not configured for account is rejected"() {
+    setup:
+    description.availabilityZones = ["us-west-1": ["us-west-1b"]]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("availabilityZones", _)
+
+  }
+
   void "subnetType supercedes availabilityZones"() {
     setup:
-    def description = new CreateAmazonLoadBalancerDescription()
     description.subnetType = "internal"
     def errors = Mock(Errors)
 
@@ -75,7 +105,6 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "availabilityZones if not subnetType"() {
     setup:
-    def description = new CreateAmazonLoadBalancerDescription()
     description.availabilityZones = ["us-west-1": ["us-west-1a"]]
     def errors = Mock(Errors)
 
@@ -89,7 +118,6 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "invalid subnet fails validation"() {
     setup:
-    def description = new CreateAmazonLoadBalancerDescription()
     description.subnetType = "lol"
     def errors = Mock(Errors)
 
