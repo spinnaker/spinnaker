@@ -28,8 +28,8 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.schedulers.Schedulers
-import rx.util.functions.Func1
-import rx.util.functions.Func2
+import rx.functions.Func1
+import rx.functions.Func2
 
 @Component
 @CompileStatic

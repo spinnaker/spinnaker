@@ -11,7 +11,7 @@ buildscript {
 }
 
 ext {
-  springBootVersion = "1.0.2.RELEASE"
+  springBootVersion = "1.1.1.RELEASE"
 }
 
 allprojects {
@@ -32,6 +32,7 @@ subprojects {
     resolutionStrategy {
       cacheChangingModulesFor 0, 'seconds'
       force 'com.google.guava:guava:14.0.1'
+      force 'org.codehaus.groovy:groovy-all:2.3.3'
     }
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: "org.slf4j", module: "slf4j-log4j12"
@@ -46,8 +47,8 @@ subprojects {
 
   dependencies {
     compile "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-    compile 'org.codehaus.groovy:groovy-all:2.3.2'
-    compile 'com.netflix.rxjava:rxjava-core:0.16.0'
+    compile 'org.codehaus.groovy:groovy-all:2.3.3'
+    compile 'com.netflix.rxjava:rxjava-core:0.19.1'
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
     testCompile "cglib:cglib-nodep:3.1"
   }

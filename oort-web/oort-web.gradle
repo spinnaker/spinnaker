@@ -21,8 +21,8 @@ ideaConfig {
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
-  runtime "com.netflix.spinnaker.kork:kork-core:1.9"
-  compile "com.netflix.eureka:eureka-client:1.1.128"
+  runtime "com.netflix.spinnaker.kork:kork-core:1.11"
+  compile "com.netflix.eureka:eureka-client:1.1.134"
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
   compile "org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion"
 }
