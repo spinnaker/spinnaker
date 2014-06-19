@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.TaskContext
+import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -9,30 +8,26 @@ import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 import static java.util.UUID.randomUUID
 
 class MonitorBakeTaskSpec extends Specification {
 
-    @Subject
-    def task = new MonitorBakeTask()
+    @Subject task = new MonitorBakeTask()
+    def context = new SimpleTaskContext()
 
-    final region = "us-west-1"
-
-    def inputs = [region: region]
-    def context = [
-        getInputs: ImmutableMap.&copyOf.curry(inputs)
-    ] as TaskContext
+    def setup() {
+        context.region = "us-west-1"
+    }
 
     @Unroll
     def "should return #taskStatus if bake is #bakeState"() {
         given:
         def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-        inputs."bake.status" = previousStatus
+        context."bake.status" = previousStatus
 
         and:
         task.bakery = Stub(BakeryService) {
-            lookupStatus(region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
+            lookupStatus(context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
         }
 
         expect:
@@ -52,11 +47,11 @@ class MonitorBakeTaskSpec extends Specification {
     def "outputs the updated bake status"() {
         given:
         def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-        inputs."bake.status" = previousStatus
+        context."bake.status" = previousStatus
 
         and:
         task.bakery = Stub(BakeryService) {
-            lookupStatus(region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
+            lookupStatus(context.region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
         }
 
         when:
