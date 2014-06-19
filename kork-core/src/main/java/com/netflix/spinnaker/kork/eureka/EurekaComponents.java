@@ -28,11 +28,15 @@ import com.netflix.discovery.shared.LookupService;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import(StandardEurekaComponents.class)
 public class EurekaComponents {
+
     @Bean
     public ApplicationInfoManagerFactoryBean applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
         return new ApplicationInfoManagerFactoryBean(eurekaInstanceConfig);

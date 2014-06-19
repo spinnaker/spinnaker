@@ -28,6 +28,10 @@ buildscript {
   }
 }
 
+allprojects {
+ apply plugin: 'idea'
+}
+
 subprojects {
   
   repositories {
@@ -65,7 +69,7 @@ project(':kork-core') {
     compile 'com.netflix.astyanax:astyanax-cassandra:1.56.48'
     compile 'com.netflix.astyanax:astyanax-thrift:1.56.48'
     compile 'com.amazonaws:aws-java-sdk:1.7.12'
-    testCompile 'org.codehaus.groovy:groovy-all:2.3.2'
+    testCompile 'org.codehaus.groovy:groovy-all:2.3.3'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'junit:junit:4.11'
     testRuntime 'org.slf4j:slf4j-simple:1.7.7'
