@@ -17,8 +17,11 @@
 
 package com.netflix.spinnaker.kato.controllers
 
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
+import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -30,8 +33,17 @@ class CredentialsController {
   @Autowired
   NamedAccountCredentialsHolder namedAccountCredentialsHolder
 
+  @Autowired
+  KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties
+
   @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
     namedAccountCredentialsHolder.accountNames
   }
+
+  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
+  NamedAccountCredentials getAccount(@PathVariable("name") String name) {
+    namedAccountCredentialsHolder.getCredentials name
+  }
+
 }

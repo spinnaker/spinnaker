@@ -36,12 +36,18 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
     for (Map.Entry entry in description.availabilityZones) {
       def region = entry.key
       def azs = entry.value
+      def acct = awsConfigurationProperties.accounts.find { it.name == description.credentialAccount }
+      def acctRegion = acct ? acct.regions.find { it.name == region } : null
+
       if (!awsConfigurationProperties.regions.contains(region)) {
         errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.region.not.configured")
       }
       if (!description.subnetType && !azs) {
         errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones")
         break
+      }
+      if (!description.subnetType && acctRegion && !acctRegion.availabilityZones.containsAll(azs)) {
+        errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.zone.not.configured")
       }
     }
     if (description.subnetType) {

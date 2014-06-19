@@ -22,6 +22,7 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 import org.springframework.data.annotation.Transient
 
@@ -33,9 +34,9 @@ class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCred
   private final String environment
   private final String role
   private final String edda
-  final List<String> regions
+  final List<AwsRegion> regions
 
-  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda, List<String> regions) {
+  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda, List<AwsRegion> regions) {
     this.provider = provider
     this.accountId = accountId
     this.environment = environment
