@@ -45,7 +45,7 @@ class Front50ApplicationLoader implements ApplicationLoader {
   RestTemplate restTemplate
 
   @Async
-  @Scheduled(fixedRateString = '${cacheRefreshMs}')
+  @Scheduled(fixedRateString = '${cacheRefreshMs:60000}')
   void load() {
     log.info "Beginning Front50 Application Caching..."
     for (name in namedAccountProvider.accountNames) {
