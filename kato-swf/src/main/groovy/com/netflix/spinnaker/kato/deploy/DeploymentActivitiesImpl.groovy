@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.deploy
+
 import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
 import com.amazonaws.services.elasticloadbalancing.model.InstanceState
@@ -27,11 +28,11 @@ import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.*
 import com.netflix.spinnaker.kato.deploy.aws.ops.*
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.model.aws.AsgDeploymentNames
 import com.netflix.spinnaker.kato.model.aws.AutoScalingGroupOptions
 import com.netflix.spinnaker.kato.model.aws.LaunchConfigurationOptions
 import com.netflix.spinnaker.kato.model.aws.OperationContext
+import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeploymentActivitiesImpl implements DeploymentActivities {

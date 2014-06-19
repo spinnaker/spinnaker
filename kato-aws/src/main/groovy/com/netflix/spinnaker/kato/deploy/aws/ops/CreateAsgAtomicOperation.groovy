@@ -22,9 +22,9 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateAsgDescription
 import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.model.aws.AutoScalingGroupOptions
 import com.netflix.spinnaker.kato.model.aws.Subnets
+import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class CreateAsgAtomicOperation implements AtomicOperation<Void> {

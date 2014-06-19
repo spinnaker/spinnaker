@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kato.model.aws
 
-import com.netflix.asgard.deployment.steps.DeploymentStep
 import com.netflix.spinnaker.kato.model.steps.DeploymentStep
 import groovy.transform.Canonical
 

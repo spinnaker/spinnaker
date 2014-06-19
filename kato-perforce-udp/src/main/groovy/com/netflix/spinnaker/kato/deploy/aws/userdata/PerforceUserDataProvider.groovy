@@ -25,7 +25,6 @@ import com.perforce.p4java.exception.P4JavaError
 import com.perforce.p4java.option.server.GetDepotFilesOptions
 import com.perforce.p4java.server.IOptionsServer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
 class PerforceUserDataProvider implements UserDataProvider {
   private static final INSERTION_MARKER = '\nexport EC2_REGION='

@@ -18,9 +18,9 @@
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -40,7 +40,7 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
         new KatoAWSConfig.ManagedAccount(
           name: 'test',
           regions: [
-            new AmazonRoleAccountCredentials.AwsRegion(
+            new AwsRegion(
               name: "us-west-1",
               availabilityZones: ["us-west-1a"]
             )

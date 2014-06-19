@@ -15,12 +15,7 @@
  */
 package com.netflix.spinnaker.kato.model.aws
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.ResumeProcessesRequest
-import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
-import com.amazonaws.services.autoscaling.model.Tag
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.*
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import groovy.transform.Canonical

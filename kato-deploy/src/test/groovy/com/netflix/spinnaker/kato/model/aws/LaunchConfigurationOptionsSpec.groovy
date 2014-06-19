@@ -15,11 +15,7 @@
  */
 package com.netflix.spinnaker.kato.model.aws
 
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.Ebs
-import com.amazonaws.services.autoscaling.model.InstanceMonitoring
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.amazonaws.services.autoscaling.model.*
 import spock.lang.Specification
 
 class LaunchConfigurationOptionsSpec extends Specification {
