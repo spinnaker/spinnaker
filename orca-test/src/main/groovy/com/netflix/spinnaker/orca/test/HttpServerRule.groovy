@@ -1,14 +1,12 @@
 package com.netflix.spinnaker.orca.test
 
 import com.netflix.spinnaker.orca.test.httpserver.HandlerResponseBuilder
-import com.netflix.spinnaker.orca.test.httpserver.MethodFilteringHttpHandler
-import com.sun.net.httpserver.HttpExchange
+import com.netflix.spinnaker.orca.test.httpserver.HttpHandlerChain
 import com.sun.net.httpserver.HttpServer
 import groovy.transform.CompileStatic
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import static java.net.HttpURLConnection.HTTP_BAD_METHOD
 
 /**
  * A JUnit Rule for tests that need a running HTTP server. The server is automatically started and stopped
@@ -48,6 +46,9 @@ class HttpServerRule implements TestRule {
      * @return the URI of the root of the web server.
      */
     final String getBaseURI() {
+        if (!server) {
+            throw new IllegalStateException("Cannot get base URI until the server is started")
+        }
         baseURI
     }
 
@@ -63,17 +64,7 @@ class HttpServerRule implements TestRule {
      */
     final ResponseConfiguration expect(String method, String path) {
         def responseBuilder = new HandlerResponseBuilder()
-        server.createContext path, { HttpExchange exchange ->
-            try {
-                if (exchange.requestMethod == method) {
-                    responseBuilder.handle(exchange)
-                } else {
-                    exchange.sendResponseHeaders HTTP_BAD_METHOD, 0
-                }
-            } finally {
-                exchange.close()
-            }
-        }
+        server.createContext path, HttpHandlerChain.builder().withMethodFilter(method).withFinalHandler(responseBuilder).build()
         return new ResponseConfiguration(responseBuilder)
     }
 

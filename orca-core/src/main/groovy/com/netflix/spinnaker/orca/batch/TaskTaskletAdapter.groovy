@@ -2,7 +2,9 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.Task
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
+import org.springframework.batch.core.listener.ExecutionContextPromotionListener
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
