@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.front50
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
@@ -14,74 +30,74 @@ import org.springframework.stereotype.Component
 @Component
 class SimpleDBDAO implements ApplicationDAO {
 
-    @Autowired
-    AmazonSimpleDB awsClient
+  @Autowired
+  AmazonSimpleDB awsClient
 
-    final String DOMAIN = "RESOURCE_REGISTRY"
+  final String DOMAIN = "RESOURCE_REGISTRY"
 
-    @Override
-    boolean isHealthly() {
-       (this.awsClient == null || listDomains().size() <= 0) ? false : true
+  @Override
+  boolean isHealthly() {
+    (this.awsClient == null || listDomains().size() <= 0) ? false : true
+  }
+
+  private List<String> listDomains() {
+    awsClient.listDomains(new ListDomainsRequest().withMaxNumberOfDomains(1)).getDomainNames()
+  }
+
+  @Override
+  Application create(String id, Map<String, String> properties) {
+    properties['createTs'] = System.currentTimeMillis() as String
+    awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
+      withItemName(id).withAttributes(buildAttributes(properties, false)))
+    Application application = new Application(properties)
+    application.name = id
+    return application
+  }
+
+  @Override
+  void delete(String id) {
+    awsClient.deleteAttributes(
+      new DeleteAttributesRequest().withDomainName(DOMAIN).withItemName(id))
+  }
+
+  @Override
+  void update(String id, Map<String, String> properties) {
+    properties['updateTs'] = System.currentTimeMillis() as String
+    awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
+      withItemName(id).withAttributes(buildAttributes(properties, true)))
+  }
+
+  @Override
+  Application findByName(String name) {
+    def items = query "select * from `${DOMAIN}` where itemName()='${name}'"
+    if (items.size() > 0) {
+      return mapToApp(items[0])
+    } else {
+      throw new NotFoundException("No Application found by name of ${name} in domain ${DOMAIN}")
     }
+  }
 
-    private List<String> listDomains() {
-        awsClient.listDomains(new ListDomainsRequest().withMaxNumberOfDomains(1)).getDomainNames()
+  @Override
+  List<Application> all() {
+    def items = query "select * from `${DOMAIN}` limit 2500"
+    if (items.size() > 0) {
+      return items.collect { mapToApp(it) }
+    } else {
+      throw new NotFoundException("No Applications found in domain ${DOMAIN}")
     }
+  }
 
-    @Override
-    Application create(String id, Map<String, String> properties) {
-        properties['createTs'] = System.currentTimeMillis() as String
-        awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
-                withItemName(id).withAttributes(buildAttributes(properties, false)))
-        Application application = new Application(properties)
-        application.name = id
-        return application
-    }
+  Collection<ReplaceableAttribute> buildAttributes(def properties, boolean replace) {
+    properties.collectMany { key, value -> [new ReplaceableAttribute(key, value, replace)] }
+  }
 
-    @Override
-    void delete(String id) {
-        awsClient.deleteAttributes(
-                new DeleteAttributesRequest().withDomainName(DOMAIN).withItemName(id))
-    }
+  private Application mapToApp(Item item) {
+    Map<String, String> map = item.attributes.collectEntries { [it.name, it.value] }
+    map['name'] = item.name
+    return new Application(map)
+  }
 
-    @Override
-    void update(String id, Map<String, String> properties) {
-        properties['updateTs'] = System.currentTimeMillis() as String
-        awsClient.putAttributes(new PutAttributesRequest().withDomainName(DOMAIN).
-                withItemName(id).withAttributes(buildAttributes(properties, true)))
-    }
-
-    @Override
-    Application findByName(String name) {
-        def items = query "select * from `${DOMAIN}` where itemName()='${name}'"
-        if (items.size() > 0) {
-            return mapToApp(items[0])
-        } else {
-            throw new NotFoundException("No Application found by name of ${name} in domain ${DOMAIN}")
-        }
-    }
-
-    @Override
-    List<Application> all() {
-        def items = query "select * from `${DOMAIN}` limit 2500"
-        if (items.size() > 0) {
-            return items.collect { mapToApp(it) }
-        } else {
-            throw new NotFoundException("No Applications found in domain ${DOMAIN}")
-        }
-    }
-
-    Collection<ReplaceableAttribute> buildAttributes(def properties, boolean replace) {
-        properties.collectMany { key, value -> [new ReplaceableAttribute(key, value, replace)] }
-    }
-
-    private Application mapToApp(Item item) {
-        Map<String, String> map = item.attributes.collectEntries { [it.name, it.value] }
-        map['name'] = item.name
-        return new Application(map)
-    }
-
-    private List<Item> query(String query) {
-        awsClient.select(new SelectRequest(query)).getItems()
-    }
+  private List<Item> query(String query) {
+    awsClient.select(new SelectRequest(query)).getItems()
+  }
 }

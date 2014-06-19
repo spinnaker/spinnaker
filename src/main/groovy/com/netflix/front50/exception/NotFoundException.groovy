@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.exception;
 
 /**
- * Created by aglover on 4/22/14.
+ * Created by aglover on 4/23/14.
  */
-public interface ApplicationDAO {
-  Application findByName(String name)
+public class NotFoundException extends Exception {
+  public NotFoundException(String message) {
+    super(message);
+  }
 
-  List<Application> all()
-
-  Application create(String id, Map<String, String> attributes)
-
-  void update(String id, Map<String, String> attributes)
-
-  void delete(String id)
-
-  boolean isHealthly()
+  public NotFoundException(Throwable cause) {
+    super(cause);
+  }
 }

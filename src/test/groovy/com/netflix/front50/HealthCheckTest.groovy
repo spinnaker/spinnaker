@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.front50
 
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
@@ -15,35 +31,35 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
  */
 class HealthCheckTest extends Specification {
 
-    MockMvc mockMvc
-    HealthCheck healthCheck
+  MockMvc mockMvc
+  HealthCheck healthCheck
 
-    void setup() {
-        this.healthCheck = new HealthCheck()
-        this.mockMvc = standaloneSetup(new EndpointMvcAdapter(
-                new HealthEndpoint(this.healthCheck))).setMessageConverters new MappingJackson2HttpMessageConverter() build()
-    }
+  void setup() {
+    this.healthCheck = new HealthCheck()
+    this.mockMvc = standaloneSetup(new EndpointMvcAdapter(
+      new HealthEndpoint(this.healthCheck))).setMessageConverters new MappingJackson2HttpMessageConverter() build()
+  }
 
-    void 'health check should return 5xx error if dao is not working'() {
-        def application = Mock(SimpleDBDAO)
-        this.healthCheck.dao = application
+  void 'health check should return 5xx error if dao is not working'() {
+    def application = Mock(SimpleDBDAO)
+    this.healthCheck.dao = application
 
-        when:
-        def response = mockMvc.perform(get("/health"))
+    when:
+    def response = mockMvc.perform(get("/health"))
 
-        then:
-        response.andExpect status().is5xxServerError()
-    }
+    then:
+    response.andExpect status().is5xxServerError()
+  }
 
-    void 'health check should return Ok'() {
-        def application = Mock(SimpleDBDAO)
-        application.isHealthly() >> true
-        this.healthCheck.dao = application
+  void 'health check should return Ok'() {
+    def application = Mock(SimpleDBDAO)
+    application.isHealthly() >> true
+    this.healthCheck.dao = application
 
-        when:
-        def response = mockMvc.perform(get("/health"))
+    when:
+    def response = mockMvc.perform(get("/health"))
 
-        then:
-        response.andExpect status().isOk()
-    }
+    then:
+    response.andExpect status().isOk()
+  }
 }
