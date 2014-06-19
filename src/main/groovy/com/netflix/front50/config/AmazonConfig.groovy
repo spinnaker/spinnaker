@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 
 /**
  * Created by aglover on 4/23/14.
  */
-@Component
-class AWSConnectionFactory {
+@Configuration
+class AmazonConfig {
 
   @Bean
-  public AmazonSimpleDB manufacture(AWSCredentialsProvider provider) {
-    return new AmazonSimpleDBClient(provider);
+  AmazonSimpleDB awsSimpleDBClient(AWSCredentialsProvider awsCredentialsProvider) {
+    new AmazonSimpleDBClient(awsCredentialsProvider)
   }
+
 }

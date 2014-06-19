@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.config
 
+import com.netflix.front50.model.application.DefaultApplicationDAO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.http.HttpStatus
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 public class HealthCheck implements HealthIndicator<String> {
 
   @Autowired
-  SimpleDBDAO dao;
+  DefaultApplicationDAO dao;
 
   @Override
   public String health() {

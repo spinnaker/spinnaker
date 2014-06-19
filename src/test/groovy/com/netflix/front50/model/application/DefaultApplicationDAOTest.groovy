@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.model.application
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.*
@@ -23,15 +23,15 @@ import spock.lang.Specification
 /**
  * Created by aglover on 4/22/14.
  */
-class SimpleDBDAOTest extends Specification {
+class DefaultApplicationDAOTest extends Specification {
 
   void 'should update an existing record'() {
     def awsClient = Mock(AmazonSimpleDB)
     def attributes = [
       "group": "tst-group",
       "tags" : "[1,ok, test]"]
-    def dao = new SimpleDBDAO()
-    dao.awsClient = awsClient
+    def dao = new DefaultApplicationDAO()
+    dao.awsSimpleDBClient = awsClient
     when:
     dao.update("SampleApp1", attributes)
     then:
@@ -47,7 +47,7 @@ class SimpleDBDAOTest extends Specification {
       "email"      : "web@netflix.com",
       "updateTs"   : "1265752693581",
       "tags"       : "[1,ok, test]"]
-    def dao = new SimpleDBDAO()
+    def dao = new DefaultApplicationDAO()
     def values = dao.buildAttributes(attributes, false)
     def attr = values.find { it.name == "description" }
     expect:
@@ -59,14 +59,14 @@ class SimpleDBDAOTest extends Specification {
 
   void 'should delete an item'() {
     def awsClient = Mock(AmazonSimpleDB)
-    def dao = new SimpleDBDAO()
-    dao.awsClient = awsClient
+    def dao = new DefaultApplicationDAO()
+    dao.awsSimpleDBClient = awsClient
 
     when:
     dao.delete("TEST")
 
     then:
-    1 * awsClient.deleteAttributes(new DeleteAttributesRequest().withDomainName(dao.DOMAIN).withItemName("TEST"))
+    1 * awsClient.deleteAttributes(new DeleteAttributesRequest().withDomainName(dao.domain).withItemName("TEST"))
   }
 
   void 'should save'() {
@@ -80,8 +80,8 @@ class SimpleDBDAOTest extends Specification {
       "email"      : "web@netflix.com",
       "updateTs"   : "1265752693581",
       "tags"       : "[1,ok, test]"]
-    def dao = new SimpleDBDAO()
-    dao.awsClient = awsClient
+    def dao = new DefaultApplicationDAO()
+    dao.awsSimpleDBClient = awsClient
     when:
     def application = dao.create("SampleApp1", attributes)
     then:
@@ -93,11 +93,11 @@ class SimpleDBDAOTest extends Specification {
   void 'should throw exception if no application is found'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new SimpleDBDAO()
+    def dao = new DefaultApplicationDAO(domain: "RESOURCE_REGISTRY")
     List<Item> outItems = new ArrayList<Item>() //nothing was found
     result.getItems() >> outItems
     awsClient.select(_) >> result
-    dao.awsClient = awsClient
+    dao.awsSimpleDBClient = awsClient
     when:
     dao.findByName("SAMPLEAPP")
 
@@ -109,11 +109,11 @@ class SimpleDBDAOTest extends Specification {
   void 'should throw exception if no applications exist'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new SimpleDBDAO()
+    def dao = new DefaultApplicationDAO(domain: "RESOURCE_REGISTRY")
     List<Item> outItems = new ArrayList<Item>() //nothing was found
     result.getItems() >> outItems
     awsClient.select(_) >> result
-    dao.awsClient = awsClient
+    dao.awsSimpleDBClient = awsClient
     when:
     dao.all()
 
@@ -125,7 +125,7 @@ class SimpleDBDAOTest extends Specification {
   void 'should find one application by name'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new SimpleDBDAO()
+    def dao = new DefaultApplicationDAO()
     List<Item> outItems = new ArrayList<Item>()
     Item item = new Item().withName("SAMPLEAPP").withAttributes(
       new Attribute("email", "web@netflix.com"), new Attribute("createTs", "1265752693581"),
@@ -135,7 +135,7 @@ class SimpleDBDAOTest extends Specification {
     result.getItems() >> outItems
     awsClient.select(_) >> result
 
-    dao.awsClient = awsClient
+    dao.awsSimpleDBClient = awsClient
 
     def app = dao.findByName("SAMPLEAPP")
 
@@ -150,7 +150,7 @@ class SimpleDBDAOTest extends Specification {
   void 'should find all applications'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new SimpleDBDAO()
+    def dao = new DefaultApplicationDAO()
 
     List<Item> outItems = new ArrayList<Item>()
     outItems << new Item().withName("SAMPLEAPP").withAttributes(
@@ -165,7 +165,7 @@ class SimpleDBDAOTest extends Specification {
     result.getItems() >> outItems
     awsClient.select(_) >> result
 
-    dao.awsClient = awsClient
+    dao.awsSimpleDBClient = awsClient
 
     def apps = dao.all()
 

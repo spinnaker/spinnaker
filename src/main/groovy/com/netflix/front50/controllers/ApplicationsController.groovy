@@ -16,11 +16,10 @@
 
 package com.netflix.front50.controllers
 
-import com.netflix.front50.Application
 import com.netflix.front50.exception.NoPrimaryKeyException
 import com.netflix.front50.exception.NotFoundException
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.netflix.front50.model.application.Application
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.http.HttpStatus
@@ -28,10 +27,10 @@ import org.springframework.web.bind.annotation.*
 
 import javax.servlet.http.HttpServletResponse
 
+@Slf4j
 @RestController
 @RequestMapping("/applications")
 public class ApplicationsController extends SpringBootServletInitializer {
-  static final Logger LOG = LoggerFactory.getLogger(ApplicationsController.class)
 
   @Autowired
   Application application
@@ -41,10 +40,10 @@ public class ApplicationsController extends SpringBootServletInitializer {
     try {
       return application.findAll()
     } catch (NotFoundException e) {
-      LOG.error("GET(/applications) -> NotFoundException occurred: ", e)
+      log.error("GET(/applications) -> NotFoundException occurred: ", e)
       throw new NoApplicationsFoundException(e)
     } catch (Throwable thr) {
-      LOG.error("GET(/applications) -> Throwable occurred: ", thr)
+      log.error("GET(/applications) -> Throwable occurred: ", thr)
       throw new ApplicationException(thr)
     }
   }
@@ -59,7 +58,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
       application.initialize(foundApp).withName(app.getName()).update(app.allSetColumnProperties())
       return application
     } catch (NotFoundException e) {
-      LOG.error("PUT::App not found: " + app.getName(), e)
+      log.error("PUT::App not found: " + app.getName(), e)
       throw new ApplicationNotFoundException(e)
     }
   }
@@ -69,10 +68,10 @@ public class ApplicationsController extends SpringBootServletInitializer {
     try {
       return application.initialize(app).withName(app.getName()).save()
     } catch (NoPrimaryKeyException e) {
-      LOG.error("POST:: cannot create app as name and/or email is missing: " + app, e)
+      log.error("POST:: cannot create app as name and/or email is missing: " + app, e)
       throw new ApplicationWithoutNameException(e)
     } catch (Throwable thr) {
-      LOG.error("POST:: throwable occurred: " + app.getName(), thr)
+      log.error("POST:: throwable occurred: " + app.getName(), thr)
       throw new ApplicationException(thr)
     }
   }
@@ -83,7 +82,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
       application.initialize(new Application().withName(name)).delete()
       response.sendError HttpStatus.ACCEPTED.value()
     } catch (NoPrimaryKeyException e) {
-      LOG.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e)
+      log.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e)
       throw new ApplicationNotFoundException(e)
     }
   }
@@ -93,10 +92,10 @@ public class ApplicationsController extends SpringBootServletInitializer {
     try {
       return application.findByName(name)
     } catch (NotFoundException e) {
-      LOG.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e)
+      log.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e)
       throw new ApplicationNotFoundException(e)
     } catch (Throwable thr) {
-      LOG.error("GET(/name/{name}) -> Throwable occurred: ", thr)
+      log.error("GET(/name/{name}) -> Throwable occurred: ", thr)
       throw new ApplicationException(thr)
     }
   }

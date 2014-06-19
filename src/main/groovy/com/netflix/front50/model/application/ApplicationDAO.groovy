@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.model.application
 
 /**
  * Created by aglover on 4/22/14.
@@ -22,7 +22,7 @@ package com.netflix.front50
 public interface ApplicationDAO {
   Application findByName(String name)
 
-  List<Application> all()
+  Set<Application> all()
 
   Application create(String id, Map<String, String> attributes)
 

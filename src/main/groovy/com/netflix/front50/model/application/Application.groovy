@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.model.application
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore

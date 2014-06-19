@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.config
 
+import com.netflix.front50.config.HealthCheck
+import com.netflix.front50.model.application.DefaultApplicationDAO
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
@@ -41,7 +43,7 @@ class HealthCheckTest extends Specification {
   }
 
   void 'health check should return 5xx error if dao is not working'() {
-    def application = Mock(SimpleDBDAO)
+    def application = Mock(DefaultApplicationDAO)
     this.healthCheck.dao = application
 
     when:
@@ -52,7 +54,7 @@ class HealthCheckTest extends Specification {
   }
 
   void 'health check should return Ok'() {
-    def application = Mock(SimpleDBDAO)
+    def application = Mock(DefaultApplicationDAO)
     application.isHealthly() >> true
     this.healthCheck.dao = application
 

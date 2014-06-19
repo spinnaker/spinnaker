@@ -107,6 +107,7 @@ dependencies {
   compile 'org.codehaus.groovy:groovy-all:2.2.2'
   compile 'com.netflix.rxjava:rxjava-groovy:0.17.5'
   compile 'com.netflix.eureka:eureka-client:1.1.132'
+  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
   testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'

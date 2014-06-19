@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+package com.netflix.front50.model.application
 
 import com.netflix.front50.exception.NoPrimaryKeyException
+import com.netflix.front50.model.application.Application
+import com.netflix.front50.model.application.ApplicationDAO
 import spock.lang.Specification
 
 /**
