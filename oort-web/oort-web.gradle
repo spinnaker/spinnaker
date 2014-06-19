@@ -21,7 +21,6 @@ ideaConfig {
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
-  compile "com.netflix.eureka:eureka-client:1.1.134"
   runtime spinnaker.dependency("kork")
   spinnaker.group("bootWeb")
 }
