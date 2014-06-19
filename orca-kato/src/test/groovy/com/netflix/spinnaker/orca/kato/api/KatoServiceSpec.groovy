@@ -11,31 +11,31 @@ import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static retrofit.Endpoints.newFixedEndpoint
 import static retrofit.RestAdapter.LogLevel.FULL
 
-class AmazonServiceSpec extends Specification {
+class KatoServiceSpec extends Specification {
 
     @Rule HttpServerRule httpServer = new HttpServerRule()
 
-    @Subject AmazonService amazonService
+    @Subject KatoService service
 
     final taskId = "e1jbn3"
 
     def setup() {
-        amazonService = new KatoConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
-            .amazonService(newFixedEndpoint(httpServer.baseURI))
+        service = new KatoConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
+            .katoDeployService(newFixedEndpoint(httpServer.baseURI))
     }
 
     def "can interpret the response from an operation request"() {
         given: "kato accepts an operations request"
-        httpServer.expect("POST", "/ops", HTTP_ACCEPTED) {
+        httpServer.expect("POST", "/ops").andRespond().withStatus(HTTP_ACCEPTED).withJsonContent {
             id taskId
             resourceLink "/task/$taskId"
         }
 
         and: "we request a deployment"
-        def operation = new DeployDescription()
+        def operation = new DeployOperation()
 
         expect: "kato should return the details of the task it created"
-        with(amazonService.requestOperations([operation]).toBlockingObservable().first()) {
+        with(service.requestOperations([operation]).toBlockingObservable().first()) {
             it.id == taskId
         }
     }

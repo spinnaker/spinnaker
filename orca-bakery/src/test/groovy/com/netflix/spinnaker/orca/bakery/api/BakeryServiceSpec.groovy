@@ -41,7 +41,7 @@ class BakeryServiceSpec extends Specification {
 
     def "can lookup a bake status"() {
         given:
-        httpServer.expect("GET", "$statusPath/$statusId", HTTP_OK) {
+        httpServer.expect("GET", "$statusPath/$statusId").andRespond().withStatus(HTTP_OK).withJsonContent {
             state "COMPLETED"
             progress 100
             status "SUCCESS"
@@ -64,7 +64,7 @@ class BakeryServiceSpec extends Specification {
 
     def "looking up an unknown status id will throw an exception"() {
         given:
-        httpServer.expect("GET", "$statusPath/$statusId", HTTP_NOT_FOUND)
+        httpServer.expect("GET", "$statusPath/$statusId").andRespond().withStatus(HTTP_NOT_FOUND)
 
         when:
         bakery.lookupStatus(region, statusId).toBlockingObservable().first()
@@ -76,7 +76,7 @@ class BakeryServiceSpec extends Specification {
 
     def "should return status of newly created bake"() {
         given: "the bakery accepts a new bake"
-        httpServer.expect("POST", bakePath, HTTP_ACCEPTED) {
+        httpServer.expect("POST", bakePath).andRespond().withStatus(HTTP_ACCEPTED).withJsonContent {
             state "PENDING"
             progress 0
             resource_uri "$bakeURI/$bakeId"
@@ -97,8 +97,8 @@ class BakeryServiceSpec extends Specification {
 
     def "should handle a repeat create bake response"() {
         given: "the POST to /bake redirects to the status of an existing bake"
-        httpServer.expect "POST", bakePath, HTTP_SEE_OTHER, [(LOCATION): "$statusURI/$statusId"]
-        httpServer.expect("GET", "$statusPath/$statusId", HTTP_OK) {
+        httpServer.expect("POST", bakePath).andRespond().withStatus(HTTP_SEE_OTHER).withHeader(LOCATION, "$statusURI/$statusId")
+        httpServer.expect("GET", "$statusPath/$statusId").andRespond().withStatus(HTTP_OK).withJsonContent {
             state "RUNNING"
             progress 1
             resource_uri "$bakeURI/$bakeId"

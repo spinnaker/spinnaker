@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.kato.config
 
-import com.netflix.spinnaker.orca.kato.api.AmazonService
+import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,13 +28,13 @@ class KatoConfiguration {
     }
 
     @Bean
-    AmazonService amazonService(Endpoint katoEndpoint) {
+    KatoService katoDeployService(Endpoint katoEndpoint) {
         new RestAdapter.Builder()
             .setEndpoint(katoEndpoint)
             .setClient(retrofitClient)
             .setLogLevel(retrofitLogLevel)
             .build()
-            .create(AmazonService)
+            .create(KatoService)
     }
 
 }

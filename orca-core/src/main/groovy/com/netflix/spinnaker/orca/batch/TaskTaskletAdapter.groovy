@@ -29,6 +29,7 @@ class TaskTaskletAdapter implements Tasklet {
 
         def result = task.execute(new ChunkContextAdapter(chunkContext))
 
+        // TODO: could consider extending ExecutionContextPromotionListener in order to do this but then we need to know exactly which keys to promote
         def executionContext = result.status.complete ? jobExecutionContext : stepExecutionContext
         result.outputs.each { k, v ->
             executionContext.put(k, v)
@@ -38,6 +39,5 @@ class TaskTaskletAdapter implements Tasklet {
         contribution.exitStatus = batchStepStatus.exitStatus
         return batchStepStatus.repeatStatus
     }
-
 }
 

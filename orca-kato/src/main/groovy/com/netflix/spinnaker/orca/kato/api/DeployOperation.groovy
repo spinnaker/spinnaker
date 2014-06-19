@@ -4,7 +4,7 @@ import com.google.common.base.Optional
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class DeployDescription extends Operation {
+class DeployOperation extends Operation {
     String application
     String amiName
     Optional<String> stack

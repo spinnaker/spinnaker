@@ -9,7 +9,7 @@ import rx.Observable
 /**
  * An interface to the Kato REST API for Amazon cloud. See {@link http://kato.test.netflix.net:7001/manual/index.html}.
  */
-interface AmazonService {
+interface KatoService {
 
     @POST("/ops")
     Observable<TaskId> requestOperations(@Body Collection<Operation> operations)
