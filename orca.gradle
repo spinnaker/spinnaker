@@ -3,8 +3,12 @@ allprojects {
     group = "com.netflix.spinnaker.orca"
 
     plugins.withType(JavaPlugin) {
-        sourceCompatibility = "1.6"
-        targetCompatibility = "1.6"
+        sourceCompatibility = "1.7"
+        targetCompatibility = "1.7"
+    }
+
+    tasks.withType(GroovyCompile) {
+        groovyOptions.optimizationOptions.indy = true
     }
 
     ext {
