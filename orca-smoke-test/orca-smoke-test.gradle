@@ -3,7 +3,6 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 dependencies {
     compile project(":orca-bakery")
     compile commonDependencies.springBatchTest
-    compile commonDependencies.boneCpSpring
     runtime commonDependencies.h2
     testCompile project(":orca-test")
     testRuntime commonDependencies.spockSpring

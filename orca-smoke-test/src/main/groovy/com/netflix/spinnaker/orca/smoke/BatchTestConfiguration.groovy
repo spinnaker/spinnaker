@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.smoke
 
-import com.jolbox.bonecp.BoneCPDataSource
+import javax.sql.DataSource
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
@@ -16,10 +16,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ResourceLoader
+import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
-
-import javax.sql.DataSource
 
 /**
  * This is a bare-bones configuration for running end-to-end Spring batch tests.
@@ -36,14 +35,13 @@ class BatchTestConfiguration {
     @Autowired
     private ResourceLoader resourceLoader
 
-    @Bean(destroyMethod = "close")
+    @Bean(destroyMethod = "destroy")
     DataSource dataSource() {
-        def ds = new BoneCPDataSource(
-            driverClass: env.getProperty("batch.jdbc.driver"),
-            jdbcUrl: env.getProperty("batch.jdbc.url"),
-            username: env.getProperty("batch.jdbc.user"),
-            password: env.getProperty("batch.jdbc.password")
-        )
+        def ds = new SingleConnectionDataSource()
+        ds.driverClassName = env.getProperty("batch.jdbc.driver")
+        ds.url = env.getProperty("batch.jdbc.url")
+        ds.username = env.getProperty("batch.jdbc.user")
+        ds.password = env.getProperty("batch.jdbc.password")
 
         def populator = new ResourceDatabasePopulator()
         populator.addScript(resourceLoader.getResource(env.getProperty("batch.schema.script")))
