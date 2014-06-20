@@ -1,5 +1,4 @@
 include "orca-core",
-    "orca-cassandra",
     "orca-retrofit",
     "orca-bakery",
     "orca-kato",
