@@ -21,6 +21,9 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 
 import javax.sql.DataSource
 
+/**
+ * This is a bare-bones configuration for running end-to-end Spring batch tests.
+ */
 @Configuration
 @EnableBatchProcessing
 @PropertySource("classpath:batch.properties")

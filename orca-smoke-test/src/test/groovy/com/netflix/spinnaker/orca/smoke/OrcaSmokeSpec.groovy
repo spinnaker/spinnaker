@@ -1,8 +1,12 @@
 package com.netflix.spinnaker.orca.smoke
 
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.bakery.job.BakeJobBuilder
 import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParametersBuilder
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
+import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
@@ -12,14 +16,24 @@ import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.Network.isReachable
 
 @IgnoreIf({ !isReachable("http://bakery.test.netflix.net:7001") })
-@ContextConfiguration(classes = [BakeryConfiguration, SmokeSpecConfiguration])
+@ContextConfiguration(classes = [BakeryConfiguration, BatchTestConfiguration])
 class OrcaSmokeSpec extends Specification {
 
     @Autowired
-    JobLauncherTestUtils jobLauncherTestUtils
+    JobLauncher jobLauncher
+
+    @Autowired
+    BakeJobBuilder bakeJobBuilder
+
+    @Autowired
+    JobBuilderFactory jobs
 
     def "can bake and monitor to completion"() {
         given:
+        def jobBuilder = jobs.get("${getClass().simpleName}Job")
+        def job = bakeJobBuilder.build(jobBuilder).build()
+
+        and:
         def jobParameters = new JobParametersBuilder()
             .addString("region", "us-west-1")
             .addString("bake.user", "rfletcher")
@@ -29,7 +43,7 @@ class OrcaSmokeSpec extends Specification {
             .toJobParameters()
 
         when:
-        def jobStatus = jobLauncherTestUtils.launchJob(jobParameters).status
+        def jobStatus = jobLauncher.run(job, jobParameters).status
 
         then:
         jobStatus == BatchStatus.COMPLETED
