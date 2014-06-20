@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
  * A convenient implementation of {@link TaskContext} that just wraps a plain <em>Map</em>. Use this for testing.
  */
 @CompileStatic
-class SimpleTaskContext extends ForwardingMap<String, Object> implements TaskContext {
+final class SimpleTaskContext extends ForwardingMap<String, Object> implements TaskContext {
 
     private final Map<String, Object> delegate = [:]
 

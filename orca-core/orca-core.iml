@@ -17,7 +17,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="orca-test" scope="TEST" />
-    <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.2-indy" level="project" />
     <orderEntry type="library" exported="" name="Gradle: guava-17.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jcl-over-slf4j-1.7.5" level="project" />
     <orderEntry type="library" exported="" name="Gradle: logback-classic-1.0.13" level="project" />
@@ -50,6 +49,8 @@
     <orderEntry type="library" scope="TEST" name="Gradle: hamcrest-all-1.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spring-jdbc-4.0.4.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spring-test-4.0.4.RELEASE" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.3-indy" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.3" level="project" />
   </component>
 </module>
 
