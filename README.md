@@ -25,6 +25,23 @@ None
 
 ### Extensions Provided
 
-None
+**Dependencies**
 
+```groovy
+dependencies {
+  spinnaker.group("bootWeb")
+  compile spinnaker.dependency("bootActuator")
+}
+```
 
+spinnaker#group will resolve a group of dependencies as defined in src/main/resources/dependencies.yml
+spinnaker#dependency will resolve a specific named dependency as defined in src/main/resources/dependencies.yml
+
+**IDEA Config**
+
+```groovy
+ideaConfig {
+  mainClassName = 'com.netflix.spinnaker.myApp.Main'
+  codeStyleXml = file('gradle/codeStyle.xml')
+}
+```
