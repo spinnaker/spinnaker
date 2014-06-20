@@ -24,6 +24,10 @@ class TaskTaskletAdapter implements Tasklet {
         new TaskTaskletAdapter(task)
     }
 
+    Class<? extends Task> getTaskType() {
+        task.getClass()
+    }
+
     @Override
     RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         def jobExecutionContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
