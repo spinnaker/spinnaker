@@ -2,8 +2,11 @@ package com.netflix.spinnaker.orca.bakery.config
 
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.bakery.job.BakeJobBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -44,6 +47,11 @@ class BakeryConfiguration {
             .setLogLevel(retrofitLogLevel)
             .build()
             .create(BakeryService)
+    }
+
+    @Bean
+    BakeJobBuilder bakeJobBuilder(StepBuilderFactory steps, BakeryService bakery) {
+        new BakeJobBuilder(steps: steps, bakery: bakery)
     }
 
 }
