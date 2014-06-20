@@ -50,8 +50,8 @@ class BakeryConfiguration {
     }
 
     @Bean
-    BakeJobBuilder bakeJobBuilder(StepBuilderFactory steps, BakeryService bakery) {
-        new BakeJobBuilder(steps: steps, bakery: bakery)
+    BakeJobBuilder bakeJobBuilder() {
+        new BakeJobBuilder()
     }
 
 }

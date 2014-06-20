@@ -1,43 +1,55 @@
 package com.netflix.spinnaker.orca.bakery.job
 
-import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
+import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @Component
 @CompileStatic
 class BakeJobBuilder {
 
-    @Autowired
+    private ApplicationContext applicationContext
     private StepBuilderFactory steps
-
-    @Autowired
-    private BakeryService bakery
 
     SimpleJobBuilder build(JobBuilder jobBuilder) {
         def step1 = steps.get("CreateBakeStep")
-            .tasklet(TaskTaskletAdapter.decorate(new CreateBakeTask(bakery: bakery)))
+            .tasklet(buildTask(CreateBakeTask))
             .build()
         def step2 = steps.get("MonitorBakeStep")
-            .tasklet(TaskTaskletAdapter.decorate(new MonitorBakeTask(bakery: bakery)))
+            .tasklet(buildTask(MonitorBakeTask))
             .build()
         jobBuilder
             .start(step1)
             .next(step2)
     }
 
+    private Tasklet buildTask(Class<? extends Task> taskType) {
+        def task = taskType.newInstance()
+        autowire task
+        decorate task
+    }
+
+    // TODO: great candidate for a trait
+    void autowire(obj) {
+        applicationContext.autowireCapableBeanFactory.autowireBean(obj)
+    }
+
+    @Autowired
     void setSteps(StepBuilderFactory steps) {
         this.steps = steps
     }
 
-    void setBakery(BakeryService bakery) {
-        this.bakery = bakery
+    @Autowired
+    void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext
     }
 }

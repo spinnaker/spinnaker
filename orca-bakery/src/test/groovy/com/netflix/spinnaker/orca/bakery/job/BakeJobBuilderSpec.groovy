@@ -9,7 +9,9 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.job.SimpleJob
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.tasklet.TaskletStep
-import org.springframework.jdbc.datasource.DataSourceTransactionManager
+import org.springframework.beans.factory.support.GenericBeanDefinition
+import org.springframework.context.support.StaticApplicationContext
+import org.springframework.transaction.PlatformTransactionManager
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -17,15 +19,19 @@ class BakeJobBuilderSpec extends Specification {
 
     @Subject builder = new BakeJobBuilder()
 
-    def txMan = new DataSourceTransactionManager()
+    def applicationContext = new StaticApplicationContext()
+    def txMan = Stub(PlatformTransactionManager)
     def repository = Stub(JobRepository)
     def jobs = new JobBuilderFactory(repository)
     def steps = new StepBuilderFactory(repository, txMan)
+
     def bakery = Mock(BakeryService)
 
     def setup() {
+        registerMockBean("bakery", bakery)
+
         builder.steps = steps
-        builder.bakery = bakery
+        builder.applicationContext = applicationContext
     }
 
     def "builds a bake workflow"() {
@@ -43,4 +49,7 @@ class BakeJobBuilderSpec extends Specification {
         steps.tasklet.taskType == [CreateBakeTask, MonitorBakeTask]
     }
 
+    private void registerMockBean(String name, bean) {
+        applicationContext.registerBeanDefinition name, new GenericBeanDefinition(source: bean)
+    }
 }
