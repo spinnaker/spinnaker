@@ -10,7 +10,7 @@ This description provides the inputs necessary to forcibly destroy a specified A
 
 CAUTION: This is a mortal finale to the AutoScaling group's existence. Even if Scaling Policies are suspended, or instances exist within the AutoScaling group, this operation will DEFINITIVELY, IRRECOVERABLY destroy the AutoScaling group.
 
-TIP: Only use this operation if you're execting that everything (EVERYTHING) in the AutoScaling group will go bye-bye.
+TIP: Only use this operation if you're expecting that everything (EVERYTHING) in the AutoScaling group will go bye-bye.
 
 ====== Example Request Body
 [source,javascript]

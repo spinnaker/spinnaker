@@ -190,13 +190,14 @@ NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts t
 
 [width="100%",frame="topbot",options="header,footer"]
 |======================
-|Request Type | Endpoint     | Description
-|GET          | /credentials | Returns an array of strings that represent the configured credential account names
+|Request Type | Endpoint            | Description
+|GET          | /credentials        | Returns an array of strings that represent the configured credential account names
+|GET          | /credentials/:name  | Returns the details of the specified credentials
 |======================
 
 ==== Example
 
-.Listing 1.3
+.Listing 1.4
 [source,javascript]
 ----
 GET /credentials
@@ -204,6 +205,20 @@ GET /credentials
 	"test",
 	"prod"
 ]
+
+GET /credentials/test
+{
+  regions: [
+    {
+      name: "us-east-1",
+      availabilityZones: [
+        "us-east-1c",
+        "us-east-1d",
+        "us-east-1e"
+      ]
+    }
+  ]
+}
 ----
 
 == Extending Kato
