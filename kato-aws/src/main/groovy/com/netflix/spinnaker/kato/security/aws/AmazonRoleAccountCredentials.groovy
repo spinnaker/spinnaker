@@ -34,7 +34,7 @@ class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCred
   private final String environment
   private final String role
   private final String edda
-  final List<AwsRegion> regions
+  private final List<AwsRegion> regions
 
   AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda, List<AwsRegion> regions) {
     this.provider = provider
@@ -58,5 +58,9 @@ class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCred
   @Transient
   public String getAccountId() {
     accountId
+  }
+
+  public List<AwsRegion> getRegions() {
+    regions
   }
 }

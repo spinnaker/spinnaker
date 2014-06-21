@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
@@ -39,9 +40,22 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator = new BasicAmazonDeployDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1", "us-west-2"]))
     def credentialsHolder = new DefaultNamedAccountCredentialsHolder()
     def credentials = Mock(AmazonRoleAccountCredentials)
-    credentials.getRegions() >> ["us-west-1"]
+    credentials.getRegions() >> [new AwsRegion("us-west-1", ["us-west-1a", "us-west-1b"])]
     credentialsHolder.put(ACCOUNT_NAME, credentials)
     validator.namedAccountCredentialsHolder = credentialsHolder
+  }
+
+  void "pass validation with proper description inputs"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
+    capacity: [min: 1, max: 1, desired: 1], subnetType: "internal")
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors._
   }
 
   void "null input fails valiidation"() {
@@ -53,8 +67,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('availabilityZones', _)
-    1 * errors.rejectValue('availabilityZones', _)
+    2 * errors.rejectValue('availabilityZones', _)
     1 * errors.rejectValue('instanceType', _)
     1 * errors.rejectValue('amiName', _)
     1 * errors.rejectValue('application', _)

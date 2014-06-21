@@ -39,12 +39,11 @@ class InMemoryTaskRepository implements TaskRepository {
   }
 
   private String getNextId() {
-    def maybeNext = new BigInteger(new Random().nextInt(Integer.MAX_VALUE)).toString(36)
     while (true) {
+      def maybeNext = new BigInteger(new Random().nextInt(Integer.MAX_VALUE)).toString(36)
       if (!repository.containsKey(maybeNext)) {
-        break
+        return maybeNext
       }
     }
-    maybeNext
   }
 }

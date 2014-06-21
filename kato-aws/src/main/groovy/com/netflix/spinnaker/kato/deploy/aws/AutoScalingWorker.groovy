@@ -196,9 +196,11 @@ class AutoScalingWorker {
    */
   String getVpcForSubnetType() {
     if (!this.vpcId) {
-      def vpcs = getSubnets()*.vpcId?.flatten()
+      def vpcs = getSubnets()*.vpcId?.flatten()?.unique()
       if (vpcs.size() > 1) {
         throw new RuntimeException("Two VPCs found for this deployment, you MUST specify 'vpcId' with the request description with one of ($vpcs)!")
+      } else {
+        this.vpcId = vpcs[0]
       }
     }
     this.vpcId

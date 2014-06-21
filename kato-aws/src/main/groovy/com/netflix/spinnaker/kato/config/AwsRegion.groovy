@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.kato.config
 
+import groovy.transform.Canonical
+
+@Canonical
 class AwsRegion {
   String name
   List<String> availabilityZones

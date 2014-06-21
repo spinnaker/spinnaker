@@ -22,10 +22,14 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeoutException
 
 class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION"
+
+  protected ExecutorService executorService = Executors.newCachedThreadPool()
 
   @Autowired
   TaskRepository taskRepository
@@ -35,7 +39,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
 
   Task process(List<AtomicOperation> atomicOperations) {
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...")
-    Thread.start {
+    executorService.submit {
       // Autowire the atomic operations
       atomicOperations.each { autowire it }
       TaskRepository.threadLocalTask.set(task)
@@ -45,14 +49,18 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
           try {
             results << atomicOperation.operate(results)
+            task.updateStatus(TASK_PHASE, "Orchestration completed successfully.")
+            task.complete()
           } catch (e) {
             e.printStackTrace()
-            task.updateStatus TASK_PHASE, "operation failed: ${atomicOperation.class.simpleName} -- ${e.message}"
+            def stringWriter = new StringWriter()
+            def printWriter = new PrintWriter(stringWriter)
+            e.printStackTrace(printWriter)
+            task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} -- ${stringWriter.toString()}"
+            task.fail()
           }
         }
         task.resultObjects.addAll(results)
-        task.updateStatus(TASK_PHASE, "Orchestration is complete.")
-        task.complete()
       } catch (TimeoutException IGNORE) {
         task.updateStatus "INIT", "Orchestration timed out."
         task.fail()
