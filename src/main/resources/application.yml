@@ -1,0 +1,10 @@
+spinnaker:
+  cassandra:
+    cluster: 'spinnaker'
+    keyspace: 'echo'
+netflix:
+  appinfo:
+    name: 'spinnaker-echo'
+
+server:
+    port: 8080
