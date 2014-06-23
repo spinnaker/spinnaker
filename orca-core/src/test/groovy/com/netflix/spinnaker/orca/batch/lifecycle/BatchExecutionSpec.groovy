@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch
+package com.netflix.spinnaker.orca.batch.lifecycle
 
 import spock.lang.Specification
-import com.netflix.spinnaker.orca.smoke.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.configuration.JobFactory

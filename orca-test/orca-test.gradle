@@ -18,4 +18,6 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
   compile commonDependencies.spock
+  compile commonDependencies.springBatch
+  compile commonDependencies.springJdbc
 }

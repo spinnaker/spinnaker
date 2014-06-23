@@ -20,6 +20,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Specification
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.bakery.job.BakeJobBuilder
+import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory

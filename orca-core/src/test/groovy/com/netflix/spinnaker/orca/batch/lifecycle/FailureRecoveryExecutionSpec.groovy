@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch
+package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
+import static com.netflix.spinnaker.orca.TaskResult.Status.FAILED
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 
-class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
+class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
   def startTask = Stub(Task)
-  def monitorTask = Mock(Task)
+  def recoveryTask = Mock(Task)
+  def endTask = Mock(Task)
 
-  def "can start an external service and monitor until completed"() {
+  def "if the first task completes normally the recovery task does not run"() {
     given:
     startTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
 
@@ -37,40 +39,28 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
     def jobExecution = launchJob()
 
     then:
-    3 * monitorTask.execute(_) >> new DefaultTaskResult(RUNNING) >> new DefaultTaskResult(RUNNING) >> new DefaultTaskResult(SUCCEEDED)
+    1 * endTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+    and:
+    0 * recoveryTask._
 
     and:
     jobExecution.exitStatus == ExitStatus.COMPLETED
   }
 
-  def "abandons monitoring if the monitor task fails"() {
+  def "if the first task fails the recovery task is run"() {
     given:
-    startTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    startTask.execute(_) >> new DefaultTaskResult(FAILED)
 
     when:
     def jobExecution = launchJob()
 
     then:
-    2 * monitorTask.execute(_) >> new DefaultTaskResult(RUNNING) >> {
-      throw new RuntimeException("something went wrong")
-    }
+    1 * recoveryTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * endTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
 
     and:
-    jobExecution.exitStatus == ExitStatus.FAILED
-  }
-
-  def "does not start monitoring if the start task fails"() {
-    given:
-    startTask.execute(_) >> { throw new RuntimeException("something went wrong") }
-
-    when:
-    def jobExecution = launchJob()
-
-    then:
-    0 * monitorTask._
-
-    and:
-    jobExecution.exitStatus == ExitStatus.FAILED
+    jobExecution.exitStatus == ExitStatus.COMPLETED
   }
 
   @Override
@@ -78,11 +68,16 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
     def step1 = steps.get("StartStep")
       .tasklet(TaskTaskletAdapter.decorate(startTask))
       .build()
-    def step2 = steps.get("MonitorStep")
-      .tasklet(TaskTaskletAdapter.decorate(monitorTask))
+    def step2 = steps.get("RecoveryStep")
+      .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
+      .build()
+    def step3 = steps.get("EndStep")
+      .tasklet(TaskTaskletAdapter.decorate(endTask))
       .build()
     jobBuilder.start(step1)
-      .next(step2)
+      .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
+      .from(step1).next(step3)
+      .build()
       .build()
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.smoke
+package com.netflix.spinnaker.orca.test.batch
 
 import javax.sql.DataSource
 import groovy.transform.CompileStatic

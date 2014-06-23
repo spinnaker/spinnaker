@@ -55,6 +55,7 @@ ext {
     spockSpring      : dependencies.create("org.spockframework:spock-spring:$versions.spock"),
     springBatch      : dependencies.create("org.springframework.batch:spring-batch-core:$versions.batch"),
     springBatchTest  : dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
+    springJdbc       : dependencies.create("org.springframework:spring-jdbc:$versions.spring"),
     springTest       : dependencies.create("org.springframework:spring-test:$versions.spring")
   ]
 }
