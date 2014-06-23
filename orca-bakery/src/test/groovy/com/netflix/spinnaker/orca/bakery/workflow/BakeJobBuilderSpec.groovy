@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.bakery.job
+package com.netflix.spinnaker.orca.bakery.workflow
 
 import spock.lang.Specification
 import spock.lang.Subject

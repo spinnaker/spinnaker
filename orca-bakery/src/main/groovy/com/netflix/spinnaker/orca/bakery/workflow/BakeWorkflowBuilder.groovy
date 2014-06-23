@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.bakery.job
+package com.netflix.spinnaker.orca.bakery.workflow
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
