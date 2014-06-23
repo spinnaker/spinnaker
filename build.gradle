@@ -1,0 +1,89 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+  repositories {
+    jcenter()
+    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+  }
+  dependencies {
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.3'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-ideaconfig-plugin:0.3'
+  }
+}
+
+ext {
+  versions = [
+    groovy  : "2.3.3",
+    spring  : "4.0.4.RELEASE",
+    batch   : "3.0.0.RC1",
+    guava   : "17.0",
+    rx      : "0.18.3",
+    retrofit: "1.5.1",
+    spock   : "0.7-groovy-2.0",
+    logback : "1.0.13",
+    slf4j   : "1.7.5"
+  ]
+
+  commonDependencies = [
+    astyanaxCassandra: dependencies.create("com.netflix.astyanax:astyanax-cassandra:1.56.48"),
+    astyanaxThrift   : dependencies.create("com.netflix.astyanax:astyanax-thrift:1.56.48"),
+    boneCpSpring     : dependencies.create("com.jolbox:bonecp-spring:0.8.0.RELEASE"),
+    groovy           : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy:indy"),
+    guava            : dependencies.create("com.google.guava:guava:$versions.guava"),
+    h2               : dependencies.create("com.h2database:h2:1.4.178"),
+    kork             : dependencies.create("com.netflix.spinnaker.kork:kork-core:1.9"),
+    logback          : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
+    okHttp           : dependencies.create("com.squareup.okhttp:okhttp:1.5.4"),
+    retrofit         : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),
+    rxJava           : dependencies.create("com.netflix.rxjava:rxjava-core:$versions.rx"),
+    slf4j            : dependencies.create("org.slf4j:jcl-over-slf4j:$versions.slf4j"),
+    spock            : dependencies.create("org.spockframework:spock-core:$versions.spock"),
+    spockSpring      : dependencies.create("org.spockframework:spock-spring:$versions.spock"),
+    springBatch      : dependencies.create("org.springframework.batch:spring-batch-core:$versions.batch"),
+    springBatchTest  : dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
+    springTest       : dependencies.create("org.springframework:spring-test:$versions.spring")
+  ]
+}
+
+allprojects {
+  apply plugin: 'spinnaker-gradle-project'
+  apply plugin: 'spinnaker-ideaconfig'
+  group = "com.netflix.spinnaker.orca"
+}
+
+ideaConfig {
+  codeStyleXml = file('idea/codeStyle.xml')
+}
+
+subprojects {
+  plugins.withType(JavaPlugin) {
+    sourceCompatibility = "1.7"
+    targetCompatibility = "1.7"
+  }
+
+  tasks.withType(GroovyCompile) {
+    groovyOptions.optimizationOptions.indy = true
+  }
+
+  configurations.all {
+    resolutionStrategy {
+      force "org.codehaus.groovy:groovy-all:$versions.groovy:indy"
+    }
+  }
+}
+
+defaultTasks "build"

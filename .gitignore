@@ -2,3 +2,6 @@
 /.idea/
 build/
 /.gradletasknamecache
+*.iml
+*.ipr
+*.iws
