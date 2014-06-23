@@ -1,0 +1,64 @@
+versions:
+  springBoot: 1.1.1.RELEASE
+  kork: 1.9
+  groovy: 2.3.2
+  astyanax: 1.56.48
+  rxJava: 0.18.3
+  spock: 0.7-groovy-2.0
+  batch: 3.0.0.RC1
+  frigga: 0.13
+  cglib: 3.1
+  amazoncomponents: 0.9.4
+  aws: 1.7.2
+  httpclient: 4.3.3
+  retrofit: 1.5.1
+  guava: 17.0
+  slf4j: 1.7.5
+  okHttp: 1.5.4
+  objenesis: 2.1
+
+groups:
+  bootWeb:
+    compile:
+      - bootActuator
+      - bootWeb
+      - bootDataRest
+  test:
+    testCompile:
+      - bootTest
+      - spock
+      - spockSpring
+      - cglib
+      - objenesis
+  cassandra:
+    compile:
+      - astyanaxCassandra
+      - astyanaxThrift
+  amazon:
+    compile:
+      - amazoncomponents
+      - aws
+
+dependencies:
+  bootActuator: "org.springframework.boot:spring-boot-starter-actuator:${versions.springBoot}"
+  bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+  bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
+  bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
+  kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
+  groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}:indy"
+  astyanaxCassandra: "com.netflix.astyanax:astyanax-cassandra:${versions.astyanax}"
+  astyanaxThrift: "com.netflix.astyanax:astyanax-thrift:${versions.astyanax}"
+  rxJava: "com.netflix.rxjava:rxjava-core:${versions.rxJava}"
+  spock: "org.spockframework:spock-core:${versions.spock}"
+  spockSpring: "org.spockframework:spock-spring:${versions.spock}"
+  batch: "org.springframework.batch:spring-batch-core:${versions.batch}"
+  frigga: "com.netflix.frigga:frigga:${versions.frigga}"
+  cglib: "cglib:cglib-nodep:${versions.cglib}"
+  amazoncomponents: "com.netflix.amazoncomponents:amazoncomponents:${versions.amazoncomponents}"
+  aws: "com.amazonaws:aws-java-sdk:${versions.aws}"
+  httpclient: "org.apache.httpcomponents:httpclient:${versions.httpclient}"
+  retrofit: "com.squareup.retrofit:retrofit:${versions.retrofit}"
+  guava: "com.google.guava:guava:${versions.guava}"
+  slf4j: "org.slf4j:jcl-over-slf4j:${versions.slf4j}"
+  okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
+  objenesis: "org.objenesis:objenesis:${versions.objenesis}"

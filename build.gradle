@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 buildscript {
-    repositories { jcenter() }
-    dependencies { classpath 'com.netflix.nebula:nebula-plugin-plugin:1.9.11' }
+  repositories { jcenter() }
+  dependencies { classpath 'com.netflix.nebula:nebula-plugin-plugin:1.9.11' }
 }
 
 group = 'com.netflix.spinnaker'
 description 'Build conventions for spinnaker Gradle projects'
 apply plugin: 'nebula-plugin'
+apply plugin: 'idea'
 
 bintray {
   pkg {
@@ -33,5 +34,7 @@ bintray {
 dependencies {
   compile 'com.netflix.nebula:nebula-plugin-plugin:1.9.11'
   compile 'com.netflix.nebula:nebula-project-plugin:1.9.6'
+  compile 'org.yaml:snakeyaml:1.13'
+  testCompile "org.spockframework:spock-core:0.7-groovy-1.8"
 }
 
