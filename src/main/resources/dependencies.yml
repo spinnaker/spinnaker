@@ -1,19 +1,19 @@
 versions:
   springBoot: 1.1.1.RELEASE
-  kork: 1.9
-  groovy: 2.3.2
+  kork: 1.12
+  groovy: 2.3.3
   astyanax: 1.56.48
-  rxJava: 0.18.3
+  rxJava: 0.19.1
   spock: 0.7-groovy-2.0
-  batch: 3.0.0.RC1
+  batch: 3.0.0.RELEASE
   frigga: 0.13
   cglib: 3.1
   amazoncomponents: 0.9.4
-  aws: 1.7.2
+  aws: 1.7.13
   httpclient: 4.3.3
   retrofit: 1.5.1
   guava: 17.0
-  slf4j: 1.7.5
+  slf4j: 1.7.7
   okHttp: 1.5.4
   objenesis: 2.1
 
@@ -62,3 +62,4 @@ dependencies:
   slf4j: "org.slf4j:jcl-over-slf4j:${versions.slf4j}"
   okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
   objenesis: "org.objenesis:objenesis:${versions.objenesis}"
+
