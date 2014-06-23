@@ -17,25 +17,18 @@
 package com.netflix.spinnaker.orca.bakery.job
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
-import org.springframework.batch.core.step.tasklet.Tasklet
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @Component
 @CompileStatic
-class BakeJobBuilder {
+class BakeWorkflowBuilder extends WorkflowBuilder {
 
-  private ApplicationContext applicationContext
-  private StepBuilderFactory steps
-
+  @Override
   SimpleJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("CreateBakeStep")
       .tasklet(buildTask(CreateBakeTask))
@@ -46,26 +39,5 @@ class BakeJobBuilder {
     jobBuilder
       .start(step1)
       .next(step2)
-  }
-
-  private Tasklet buildTask(Class<? extends Task> taskType) {
-    def task = taskType.newInstance()
-    autowire task
-    decorate task
-  }
-
-  // TODO: great candidate for a trait
-  void autowire(obj) {
-    applicationContext.autowireCapableBeanFactory.autowireBean(obj)
-  }
-
-  @Autowired
-  void setSteps(StepBuilderFactory steps) {
-    this.steps = steps
-  }
-
-  @Autowired
-  void setApplicationContext(ApplicationContext applicationContext) {
-    this.applicationContext = applicationContext
   }
 }

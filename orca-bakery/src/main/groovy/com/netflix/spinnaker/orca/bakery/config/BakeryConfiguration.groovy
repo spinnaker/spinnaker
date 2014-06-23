@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.bakery.config
 import groovy.transform.CompileStatic
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.bakery.job.BakeJobBuilder
+import com.netflix.spinnaker.orca.bakery.job.BakeWorkflowBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -65,8 +65,8 @@ class BakeryConfiguration {
   }
 
   @Bean
-  BakeJobBuilder bakeJobBuilder() {
-    new BakeJobBuilder()
+  BakeWorkflowBuilder bakeJobBuilder() {
+    new BakeWorkflowBuilder()
   }
 
 }

@@ -33,7 +33,7 @@ import org.springframework.transaction.PlatformTransactionManager
 
 class BakeJobBuilderSpec extends Specification {
 
-  @Subject builder = new BakeJobBuilder()
+  @Subject builder = new BakeWorkflowBuilder()
 
   def applicationContext = new StaticApplicationContext()
   def txMan = Stub(PlatformTransactionManager)
