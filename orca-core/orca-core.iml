@@ -49,7 +49,6 @@
     <orderEntry type="library" scope="TEST" name="Gradle: spring-jdbc-4.0.4.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spring-test-4.0.4.RELEASE" level="project" />
     <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.3-indy" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.3" level="project" />
     <orderEntry type="module" module-name="orca-test" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: h2-1.4.178" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spock-spring-0.7-groovy-2.0" level="project" />

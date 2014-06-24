@@ -36,7 +36,6 @@
     <orderEntry type="library" scope="TEST" name="Gradle: junit-dep-4.10" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spock-spring-0.7-groovy-2.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.3-indy" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.3" level="project" />
     <orderEntry type="module" module-name="orca-test" scope="TEST" />
     <orderEntry type="module" module-name="orca-bakery" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: spring-batch-test-3.0.0.RC1" level="project" />

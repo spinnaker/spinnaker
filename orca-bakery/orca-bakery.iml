@@ -34,7 +34,6 @@
     <orderEntry type="library" scope="TEST" name="Gradle: hamcrest-core-1.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: junit-dep-4.10" level="project" />
     <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.3-indy" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.3" level="project" />
     <orderEntry type="module" module-name="orca-retrofit" exported="" />
     <orderEntry type="module" module-name="orca-test" scope="TEST" />
   </component>
