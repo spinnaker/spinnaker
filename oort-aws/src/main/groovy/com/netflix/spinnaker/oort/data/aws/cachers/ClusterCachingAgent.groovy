@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
@@ -118,7 +119,7 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
 
     // Check if we need to clean up this cluster
     def names = Names.parseName(asgName)
-    def clusterServerGroups = cacheService.keys().find { it.startsWith "serverGroups:${names.cluster}:${account}:"}
+    def clusterServerGroups = cacheService.keysByType(Namespace.SERVER_GROUPS).find { it.startsWith "${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:"}
     if (!clusterServerGroups) {
       cacheService.free(Keys.getClusterKey(names.cluster, names.app, account))
     }

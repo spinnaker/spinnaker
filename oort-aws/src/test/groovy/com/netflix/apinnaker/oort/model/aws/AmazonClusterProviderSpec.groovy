@@ -22,6 +22,7 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
 import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonClusterProvider
@@ -57,7 +58,10 @@ class AmazonClusterProviderSpec extends Specification {
 
     then:
     clusters[objects.accountName][0].is(objects.cluster)
-    1 * cacheService.keys() >> objects.keys
+    1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
+    1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
@@ -74,7 +78,10 @@ class AmazonClusterProviderSpec extends Specification {
 
     then:
     clusters[objects.accountName][0].is(objects.cluster)
-    1 * cacheService.keys() >> objects.keys
+    1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
+    1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
@@ -86,7 +93,7 @@ class AmazonClusterProviderSpec extends Specification {
 
     then:
     !clusters
-    1 * cacheService.keys() >> objects.keys
+    1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
   }
 
   void "getting cluster for a specific application and account returns cluster set fully populated"() {
@@ -98,7 +105,10 @@ class AmazonClusterProviderSpec extends Specification {
 
     then:
     clusters[0].is(objects.cluster)
-    1 * cacheService.keys() >> objects.keys
+    1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
+    1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
@@ -115,7 +125,9 @@ class AmazonClusterProviderSpec extends Specification {
 
     then:
     cluster.is(objects.cluster)
-    1 * cacheService.keys() >> objects.keys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
+    1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
@@ -128,7 +140,7 @@ class AmazonClusterProviderSpec extends Specification {
     def objects = getCommonObjects()
 
     when:
-    provider.clusterFiller(objects.keys, objects.cluster)
+    provider.clusterFiller(objects.serverGroupKeys, objects.loadBalancerKeys, objects.serverGroupInstanceKeys, objects.cluster)
 
     then:
     1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
@@ -168,10 +180,17 @@ class AmazonClusterProviderSpec extends Specification {
     def clusterKey = Keys.getClusterKey(clusterName, appName, account)
     def cluster = new AmazonCluster(name: clusterName, accountName: account)
     def keys = [serverGroupKey, instanceKey, imageKey, launchConfigKey, instanceServerGroupKey, clusterKey] as Set
+    def serverGroupKeys = [serverGroupKey] as Set
+    def loadBalancerKeys = [] as Set
+    def serverGroupInstanceKeys = [instanceServerGroupKey] as Set
+    def clusterKeys = [clusterKey] as Set
+
     [serverGroupKey: serverGroupKey, serverGroup: serverGroup, launchConfigKey: launchConfigKey, launchConfig: launchConfig,
       imageKey: imageKey, image: image, instanceKey: instanceKey, instance: instance, keys: keys, cluster: cluster,
       serverGroupName: serverGroupName, instanceId: instanceId, appName: appName, clusterName: clusterName,
-      accountName: account, clusterKey: clusterKey]
+      accountName: account, clusterKey: clusterKey, clusterKeys: clusterKeys, serverGroupKeys: serverGroupKeys,
+      loadBalancerKeys: loadBalancerKeys, serverGroupInstanceKeys: serverGroupInstanceKeys]
+
   }
 
 }

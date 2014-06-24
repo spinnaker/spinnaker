@@ -60,4 +60,17 @@ public interface CacheService {
    * @return set of keys
    */
   Set<String> keys()
+
+  /**
+   * Retrieves a subset of keys by the key namespace
+   */
+  Set<String> keysByType(String type)
+
+  /**
+   * Retrieves a subset of keys by the key namespace.
+   *
+   * Converts the type to string to determine namespace.
+   */
+  Set<String> keysByType(Object type)
+
 }

@@ -18,6 +18,7 @@ package com.netflix.apinnaker.oort.model.aws
 
 import com.codahale.metrics.Timer
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonApplicationProvider
@@ -69,7 +70,8 @@ class AmazonApplicationProviderSpec extends Specification {
     def appName2 = "oort"
     def cluster2 = "oort-main"
     def account2 = "prod"
-    cacheService.keys() >> [Keys.getApplicationKey(appName1), Keys.getClusterKey(cluster1, appName1, account1), Keys.getApplicationKey(appName2), Keys.getClusterKey(cluster2, appName2, account2)]
+    cacheService.keysByType(Namespace.APPLICATIONS) >> [Keys.getApplicationKey(appName1), Keys.getApplicationKey(appName2)]
+    cacheService.keysByType(Namespace.CLUSTERS) >> [Keys.getClusterKey(cluster1, appName1, account1), Keys.getClusterKey(cluster2, appName2, account2)]
 
     when:
     def apps = provider.getApplications()
