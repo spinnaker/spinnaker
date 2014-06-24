@@ -18,12 +18,14 @@ package com.netflix.spinnaker.oort.model.aws
 
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
+import com.codahale.metrics.Timer
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
+import com.ryantenney.metrics.annotation.Metric
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -40,36 +42,56 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Autowired
   List<HealthProvider> healthProviders
 
+  @Metric
+  Timer allClusters
+
+  @Metric
+  Timer clustersByApplication
+
+  @Metric
+  Timer clustersByApplicationAndAccount
+
+  @Metric
+  Timer clustersById
+
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
-    def keys = cacheService.keys()
-    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:") }.collect { cacheService.retrieve(it) }
-    getClustersWithServerGroups keys, clusters
+    allClusters.time {
+      def keys = cacheService.keys()
+      def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:") }.collect { cacheService.retrieve(it) }
+      getClustersWithServerGroups keys, clusters
+    }
   }
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters(String application) {
-    def keys = cacheService.keys()
-    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:${application}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
-    getClustersWithServerGroups keys, clusters
+    clustersByApplication.time {
+      def keys = cacheService.keys()
+      def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:${application}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+      getClustersWithServerGroups keys, clusters
+    }
   }
 
   @Override
   Set<AmazonCluster> getClusters(String application, String accountName) {
-    def keys = cacheService.keys()
-    def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
-    (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.get(accountName)
+    clustersByApplicationAndAccount.time {
+      def keys = cacheService.keys()
+      def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+      (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.get(accountName)
+    }
   }
 
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
-    def keys = cacheService.keys()
-    def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
-    if (cluster) {
-      def withServerGroups = getClustersWithServerGroups(keys, [cluster])
-      cluster = withServerGroups[account]?.getAt(0)
+    clustersById.time {
+      def keys = cacheService.keys()
+      def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
+      if (cluster) {
+        def withServerGroups = getClustersWithServerGroups(keys, [cluster])
+        cluster = withServerGroups[account]?.getAt(0)
+      }
+      cluster
     }
-    cluster
   }
 
   private Map<String, Set<AmazonCluster>> getClustersWithServerGroups(Set<String> keys, List<AmazonCluster> clusters) {

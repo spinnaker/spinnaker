@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.codahale.metrics.Timer
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.model.CacheService
+import com.ryantenney.metrics.annotation.Metric
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.schedulers.Schedulers
@@ -29,54 +31,66 @@ class AmazonApplicationProvider implements ApplicationProvider {
   @Autowired
   CacheService cacheService
 
+  @Metric
+  Timer applications
+
+  @Metric
+  Timer applicationsByName
+
+
+
   @Override
   Set<AmazonApplication> getApplications() {
-    def keys = cacheService.keys()
-    def appKeys = keys.findAll { it.startsWith("applications:") }
-    def clusterKeys = keys.findAll { it.startsWith("clusters:") }
+    applications.time {
+      def keys = cacheService.keys()
+      def appKeys = keys.findAll { it.startsWith("applications:") }
+      def clusterKeys = keys.findAll { it.startsWith("clusters:") }
 
-    def apps = (List<AmazonApplication>)rx.Observable.from(appKeys).flatMap {
-      rx.Observable.from(it).observeOn(Schedulers.io()).map { String key ->
-        def app = (AmazonApplication)cacheService.retrieve(key)
-        if (app) {
-          def appClusters = [:]
-          clusterKeys.findAll { it.startsWith("clusters:${app.name}:") }.each {
-            def parts = it.split(':')
-            if (!appClusters.containsKey(parts[2])) {
-              appClusters[parts[2]] = new HashSet<>()
+      def apps = (List<AmazonApplication>) rx.Observable.from(appKeys).flatMap {
+        rx.Observable.from(it).observeOn(Schedulers.io()).map { String key ->
+          def app = (AmazonApplication) cacheService.retrieve(key)
+          if (app) {
+            def appClusters = [:]
+            clusterKeys.findAll { it.startsWith("clusters:${app.name}:") }.each {
+              def parts = it.split(':')
+              if (!appClusters.containsKey(parts[2])) {
+                appClusters[parts[2]] = new HashSet<>()
+              }
+              appClusters[parts[2]] << parts[3]
             }
-            appClusters[parts[2]] << parts[3]
+            app.clusterNames = appClusters
           }
-          app.clusterNames = appClusters
+          app
         }
-        app
-      }
-    }.reduce([], { apps, app ->
-      if (app) {
-        apps << app
-      }
-      apps
-    }).toBlockingObservable().first()
+      }.reduce([], { apps, app ->
+        if (app) {
+          apps << app
+        }
+        apps
+      }).toBlockingObservable().first()
 
-    Collections.unmodifiableSet(apps as Set)
+      Collections.unmodifiableSet(apps as Set)
+    }
   }
 
   @Override
   AmazonApplication getApplication(String name) {
-    def app = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(name)) ?: null
-    if (app) {
-      def clusters = [:]
-      cacheService.keys().findAll { it.startsWith("clusters:${name}:") }.each {
-        def parts = it.split(':')
-        def account = parts[2]
-        def clusterName = parts[3]
-        if (!clusters.containsKey(account)) {
-          clusters[account] = new HashSet()
+    applicationsByName.time {
+      def app = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(name)) ?: null
+      if (app) {
+        def clusters = [:]
+        cacheService.keys().findAll { it.startsWith("clusters:${name}:") }.each {
+          def parts = it.split(':')
+          def account = parts[2]
+          def clusterName = parts[3]
+          if (!clusters.containsKey(account)) {
+            clusters[account] = new HashSet()
+          }
+          clusters[account] << clusterName
         }
-        clusters[account] << clusterName
+        app.clusterNames = clusters
       }
-      app.clusterNames = clusters
+      app
     }
-    app
   }
 }
