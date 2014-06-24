@@ -28,7 +28,7 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
-import static com.netflix.spinnaker.orca.test.Network.isReachable
+import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
 @IgnoreIf({ !isReachable("http://bakery.test.netflix.net:7001") })

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.test
+package com.netflix.spinnaker.orca.test.httpserver
 
 import groovy.transform.TupleConstructor
 

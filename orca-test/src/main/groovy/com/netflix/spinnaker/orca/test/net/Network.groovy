@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.test
+package com.netflix.spinnaker.orca.test.net
 
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized

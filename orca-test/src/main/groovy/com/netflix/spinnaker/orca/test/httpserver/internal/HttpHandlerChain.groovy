@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.test.httpserver
+package com.netflix.spinnaker.orca.test.httpserver.internal
 
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope

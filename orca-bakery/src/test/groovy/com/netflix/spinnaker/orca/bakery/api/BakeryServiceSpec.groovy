@@ -21,7 +21,7 @@ import spock.lang.Subject
 import com.netflix.spinnaker.orca.bakery.api.Bake.Label
 import com.netflix.spinnaker.orca.bakery.api.Bake.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
-import com.netflix.spinnaker.orca.test.HttpServerRule
+import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
 import retrofit.RetrofitError
 import retrofit.client.OkClient

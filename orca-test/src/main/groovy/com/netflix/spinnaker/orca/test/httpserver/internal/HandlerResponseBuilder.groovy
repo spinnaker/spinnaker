@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.test.httpserver
+package com.netflix.spinnaker.orca.test.httpserver.internal
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
 import com.google.common.base.Optional
-import com.netflix.spinnaker.orca.test.ResponseBuilder
+import com.netflix.spinnaker.orca.test.httpserver.ResponseBuilder
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE

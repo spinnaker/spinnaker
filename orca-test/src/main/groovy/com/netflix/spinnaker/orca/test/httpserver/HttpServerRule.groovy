@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.test
+package com.netflix.spinnaker.orca.test.httpserver
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.test.httpserver.HandlerResponseBuilder
-import com.netflix.spinnaker.orca.test.httpserver.HttpHandlerChain
+import com.netflix.spinnaker.orca.test.httpserver.internal.HandlerResponseBuilder
+import com.netflix.spinnaker.orca.test.httpserver.internal.HttpHandlerChain
 import com.sun.net.httpserver.HttpServer
 import org.junit.rules.TestRule
 import org.junit.runner.Description
