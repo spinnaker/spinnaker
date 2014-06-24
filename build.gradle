@@ -31,6 +31,7 @@ ext {
     spring  : "4.0.4.RELEASE",
     batch   : "3.0.0.RC1",
     guava   : "17.0",
+    jackson: "2.3.3",
     rx      : "0.18.3",
     retrofit: "1.5.1",
     spock   : "0.7-groovy-2.0",
@@ -45,6 +46,7 @@ ext {
     groovy           : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy:indy"),
     guava            : dependencies.create("com.google.guava:guava:$versions.guava"),
     h2               : dependencies.create("com.h2database:h2:1.4.178"),
+    jacksonDatabind: dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
     kork             : dependencies.create("com.netflix.spinnaker.kork:kork-core:1.9"),
     logback          : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
     okHttp           : dependencies.create("com.squareup.okhttp:okhttp:1.5.4"),
@@ -82,12 +84,6 @@ subprojects {
 
   tasks.withType(GroovyCompile) {
     groovyOptions.optimizationOptions.indy = true
-  }
-
-  configurations.all {
-    resolutionStrategy {
-      force "org.codehaus.groovy:groovy-all:$versions.groovy:indy"
-    }
   }
 }
 
