@@ -65,7 +65,7 @@ class BakeryConfiguration {
   }
 
   @Bean
-  BakeWorkflowBuilder bakeJobBuilder() {
+  BakeWorkflowBuilder bakeWorkflowBuilder() {
     new BakeWorkflowBuilder()
   }
 

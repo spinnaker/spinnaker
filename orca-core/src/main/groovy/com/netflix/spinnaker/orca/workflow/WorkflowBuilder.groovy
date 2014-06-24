@@ -16,20 +16,13 @@
 
 package com.netflix.spinnaker.orca.workflow
 
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
-import org.springframework.batch.core.step.tasklet.Tasklet
-import org.springframework.beans.factory.annotation.Autowired
 
 /**
- * Base class for a component that constructs a workflow to be run as (part of) a +Job+.
+ * An object that constructs steps for a job relating to a specific logical workflow.
  */
-@CompileStatic
-abstract class WorkflowBuilder extends AutowiredComponentBuilder {
+interface WorkflowBuilder {
 
   /**
    * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+.
@@ -39,23 +32,4 @@ abstract class WorkflowBuilder extends AutowiredComponentBuilder {
    */
   abstract SimpleJobBuilder build(JobBuilder jobBuilder)
 
-  protected StepBuilderFactory steps
-
-  /**
-   * Builds and autowires a task.
-   *
-   * @param taskType The +Task+ implementation class.
-   * @return a +Tasklet+ that wraps the task implementation. This can be appended to the job as a tasklet step.
-   * @see org.springframework.batch.core.step.builder.StepBuilder#tasklet(org.springframework.batch.core.step.tasklet.Tasklet)
-   */
-  protected Tasklet buildTask(Class<? extends Task> taskType) {
-    def task = taskType.newInstance()
-    autowire task
-    TaskTaskletAdapter.decorate task
-  }
-
-  @Autowired
-  void setSteps(StepBuilderFactory steps) {
-    this.steps = steps
-  }
 }

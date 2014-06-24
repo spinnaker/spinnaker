@@ -19,14 +19,14 @@ package com.netflix.spinnaker.orca.bakery.workflow
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
+import com.netflix.spinnaker.orca.workflow.WorkflowBuilderSupport
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class BakeWorkflowBuilder extends WorkflowBuilder {
+class BakeWorkflowBuilder extends WorkflowBuilderSupport {
 
   @Override
   SimpleJobBuilder build(JobBuilder jobBuilder) {

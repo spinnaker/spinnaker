@@ -52,6 +52,9 @@
     <orderEntry type="module" module-name="orca-test" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle: h2-1.4.178" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spock-spring-0.7-groovy-2.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: jackson-databind-2.3.3" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: jackson-annotations-2.3.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: jackson-core-2.3.3" level="project" />
   </component>
 </module>
 
