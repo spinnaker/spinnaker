@@ -23,4 +23,6 @@ dependencies {
   compile project(":oort-aws")
   runtime spinnaker.dependency("kork")
   spinnaker.group("bootWeb")
+  compile 'com.codahale.metrics:metrics-core:3.0.2'
+  runtime 'com.netflix.spinnaker.kork:kork-core:1.12'
 }

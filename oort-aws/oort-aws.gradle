@@ -7,4 +7,5 @@ dependencies {
   compile spinnaker.dependency("frigga")
   compile 'org.projectreactor:reactor-core:1.1.2.RELEASE'
   compile 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
+  compile 'com.codahale.metrics:metrics-core:3.0.2'
 }

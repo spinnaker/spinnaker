@@ -20,6 +20,8 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.log4j.Logger
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.Timer
 import org.springframework.beans.factory.annotation.Autowired
 import reactor.core.Reactor
 
@@ -29,6 +31,9 @@ import java.util.concurrent.TimeUnit
 
 abstract class AbstractInfrastructureCachingAgent implements InfrastructureCachingAgent {
   protected static final Logger log = Logger.getLogger(this)
+
+  @Autowired
+  MetricRegistry metricRegistry
 
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -49,9 +54,19 @@ abstract class AbstractInfrastructureCachingAgent implements InfrastructureCachi
 
   @PostConstruct
   void init() {
-    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-      { load() }, 0, 60, TimeUnit.SECONDS
-    )
+    final Timer loadTimer = metricRegistry.timer("timer.${MetricRegistry.name(getClass(), 'load')}")
+    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
+      try {
+        def ctx = loadTimer.time()
+        try {
+          load()
+        } finally {
+          ctx.stop()
+        }
+      } catch (Throwable t) {
+        t.printStackTrace()
+      }
+    }, 0, 60, TimeUnit.SECONDS)
   }
 
   abstract void load()

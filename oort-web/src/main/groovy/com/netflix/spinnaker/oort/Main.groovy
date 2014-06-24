@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.oort
 
+import com.codahale.metrics.JmxReporter
+import com.codahale.metrics.MetricRegistry
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -24,6 +27,10 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.oort")
@@ -39,5 +46,25 @@ class Main extends SpringBootServletInitializer {
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     application.sources Main
+  }
+
+  @Component
+  static class JmxReporterBean {
+    @Autowired
+    MetricRegistry metricRegistry
+
+    JmxReporter reporter
+
+    @PostConstruct
+    void init() {
+      reporter = JmxReporter.forRegistry(metricRegistry).build()
+      reporter.start()
+    }
+
+    @PreDestroy
+    void destroy() {
+      reporter.stop()
+      reporter = null
+    }
   }
 }
