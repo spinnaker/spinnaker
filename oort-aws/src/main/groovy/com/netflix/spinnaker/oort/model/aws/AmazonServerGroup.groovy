@@ -23,6 +23,10 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
 
+  AmazonServerGroup() {
+    this(null, null, null)
+  }
+
   AmazonServerGroup(String name, String type, String region) {
     setProperty "name", name
     setProperty "type", type

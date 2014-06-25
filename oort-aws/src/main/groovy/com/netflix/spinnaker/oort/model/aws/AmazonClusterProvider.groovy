@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
@@ -27,9 +29,9 @@ import com.netflix.spinnaker.oort.model.HealthProvider
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import rx.schedulers.Schedulers
 import rx.functions.Func1
 import rx.functions.Func2
+import rx.schedulers.Schedulers
 
 @Component
 @CompileStatic
@@ -43,28 +45,28 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
     def keys = cacheService.keys()
-    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:") }.collect { cacheService.retrieve(it) }
+    def clusters = keys.findAll { it.startsWith("clusters:") }.collect { cacheService.retrieve(it, AmazonCluster) }
     getClustersWithServerGroups keys, clusters
   }
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters(String application) {
     def keys = cacheService.keys()
-    def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("clusters:${application}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+    def clusters = keys.findAll { it.startsWith("clusters:${application}:") }.collect { cacheService.retrieve(it, AmazonCluster) }
     getClustersWithServerGroups keys, clusters
   }
 
   @Override
   Set<AmazonCluster> getClusters(String application, String accountName) {
     def keys = cacheService.keys()
-    def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+    def clusters = keys.findAll { it.startsWith("clusters:${application}:${accountName}:") }.collect { cacheService.retrieve(it, AmazonCluster) }
     (Set<AmazonCluster>) getClustersWithServerGroups(keys, clusters)?.get(accountName)
   }
 
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
     def keys = cacheService.keys()
-    def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
+    def cluster = cacheService.retrieve(Keys.getClusterKey(name, application, account), AmazonCluster)
     if (cluster) {
       def withServerGroups = getClustersWithServerGroups(keys, [cluster])
       cluster = withServerGroups[account]?.getAt(0)
@@ -84,7 +86,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
       }
       ((Set)results[cluster.accountName as String]) << cluster
       results
-    } as Func2<Map, ? super AmazonCluster, Map>).toBlockingObservable().first()
+    } as Func2<Map, ? super AmazonCluster, Map>).toBlocking().first()
   }
 
   void clusterFiller(Set<String> keys, AmazonCluster cluster) {
@@ -93,17 +95,18 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     for (loadBalancer in cluster.loadBalancers) {
       def elb = keys.find { it == "loadBalancers:${loadBalancer.region}:${loadBalancer.name}:" }
       if (elb) {
-        loadBalancer.elb = cacheService.retrieve(elb)
+        loadBalancer.elb = cacheService.retrieve(elb, LoadBalancerDescription)
       }
     }
 
     cluster.serverGroups = (Set)rx.Observable.from(serverGroups)
-      .map({ String name -> (AmazonServerGroup)cacheService.retrieve(name) })
+      .map({ String name -> cacheService.retrieve(name, AmazonServerGroup) })
       .filter({ it != null })
       .map(attributePopulator.curry(keys) as Func1)
       .map(instancePopulator.curry(keys, cluster) as Func1)
       .reduce(new HashSet<AmazonServerGroup>(), { Set<AmazonServerGroup> objs, AmazonServerGroup obj -> objs << obj })
-      .toBlockingObservable()
+      .doOnError({ Throwable t -> t.printStackTrace() })
+      .toBlocking()
       .firstOrDefault(new HashSet<AmazonServerGroup>()) as Set
   }
 
@@ -118,7 +121,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   final Closure instancePopulator = { Set<String> keys, AmazonCluster cluster, AmazonServerGroup serverGroup ->
     def instanceIds = keys.findAll { it.startsWith("serverGroupsInstance:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
     for (instanceId in instanceIds) {
-      def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region))
+      def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region), Instance)
       if (ec2Instance) {
         def modelInstance = new AmazonInstance(instanceId)
         modelInstance.instance = ec2Instance
@@ -146,7 +149,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     LaunchConfiguration getLaunchConfig() {
       if (!this.launchConfiguration) {
         def launchConfigKey = Keys.getLaunchConfigKey(serverGroup.launchConfigName as String, serverGroup.region)
-        this.launchConfiguration = keys.contains(launchConfigKey) ? (LaunchConfiguration) cacheService.retrieve(launchConfigKey) : null
+        this.launchConfiguration = keys.contains(launchConfigKey) ? cacheService.retrieve(launchConfigKey, LaunchConfiguration) : null
       }
       this.launchConfiguration
     }
@@ -156,7 +159,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         def launchConfig = getLaunchConfig()
         if (!launchConfig) return null
         def imageKey = Keys.getImageKey(launchConfig.imageId, serverGroup.region)
-        this.image = keys.contains(imageKey) ? (Image) cacheService.retrieve(imageKey) : null
+        this.image = keys.contains(imageKey) ? cacheService.retrieve(imageKey, Image) : null
       }
       this.image
     }

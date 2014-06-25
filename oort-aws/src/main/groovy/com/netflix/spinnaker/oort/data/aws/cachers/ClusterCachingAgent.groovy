@@ -79,7 +79,7 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     if (!appName) {
       return
     }
-    def application = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(appName)) ?: new AmazonApplication(name: appName)
+    def application = cacheService.retrieve(Keys.getApplicationKey(appName), AmazonApplication) ?: new AmazonApplication(name: appName)
     cacheService.put(Keys.getApplicationKey(application.name), application)
   }
 
@@ -89,7 +89,7 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     def names = event.data.names
     def region = event.data.region
 
-    def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(names.cluster, names.app, account.name))
+    def cluster = cacheService.retrieve(Keys.getClusterKey(names.cluster, names.app, account.name), AmazonCluster)
     if (!cluster) {
       cluster = new AmazonCluster(name: names.cluster, accountName: account.name)
     }

@@ -22,7 +22,7 @@ class InMemoryCacheService implements CacheService {
   private static final Map<String, Object> cache = new ConcurrentHashMap<>()
 
   @Override
-  Object retrieve(String key) {
+  public <T> T retrieve(String key, Class<T> type) {
     cache.get key
   }
 

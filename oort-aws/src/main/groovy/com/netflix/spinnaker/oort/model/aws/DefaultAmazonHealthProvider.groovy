@@ -22,10 +22,12 @@ import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
 import com.netflix.spinnaker.oort.model.ServerGroup
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class DefaultAmazonHealthProvider implements HealthProvider {
   private static final int RUNNING = 16
 
@@ -35,7 +37,7 @@ class DefaultAmazonHealthProvider implements HealthProvider {
   @Override
   Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
     def cacheKey = Keys.getInstanceKey(instanceId, serverGroup.region)
-    def instance = (Instance)cacheService.retrieve(cacheKey)
+    def instance = cacheService.retrieve(cacheKey, Instance)
     def running = instance.state.code == RUNNING
     new MapBackedHealth([isHealthy: running])
   }

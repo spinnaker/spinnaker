@@ -37,7 +37,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
 
     def apps = (List<AmazonApplication>)rx.Observable.from(appKeys).flatMap {
       rx.Observable.from(it).observeOn(Schedulers.io()).map { String key ->
-        def app = (AmazonApplication)cacheService.retrieve(key)
+        def app = cacheService.retrieve(key, AmazonApplication)
         if (app) {
           def appClusters = [:]
           clusterKeys.findAll { it.startsWith("clusters:${app.name}:") }.each {
@@ -63,7 +63,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
 
   @Override
   AmazonApplication getApplication(String name) {
-    def app = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(name)) ?: null
+    def app = cacheService.retrieve(Keys.getApplicationKey(name), AmazonApplication) ?: null
     if (app) {
       def clusters = [:]
       cacheService.keys().findAll { it.startsWith("clusters:${name}:") }.each {
