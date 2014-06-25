@@ -1,10 +1,10 @@
 dependencies {
   compile project(":oort-core")
+
+  spinnaker.group("bootWeb")
+  spinnaker.group("amazon")
+
+  compile spinnaker.dependency("frigga")
   compile 'org.projectreactor:reactor-core:1.1.2.RELEASE'
   compile 'org.projectreactor:reactor-spring:1.0.1.RELEASE'
-  compile 'org.objenesis:objenesis:2.1'
-  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-  compile "com.netflix.amazoncomponents:amazoncomponents:0.9.4"
-  compile "com.netflix.frigga:frigga:0.13"
-  compile "com.amazonaws:aws-java-sdk:1.7.13"
 }
