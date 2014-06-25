@@ -29,7 +29,7 @@ public interface CacheService {
    * @param key
    * @return object
    */
-  Object retrieve(String key)
+  public <T> T retrieve(String key, Class<T> type)
 
   /**
    * Stores a keyed value in cache. Returns a true/false depending on whether the insertion succeeded or failed

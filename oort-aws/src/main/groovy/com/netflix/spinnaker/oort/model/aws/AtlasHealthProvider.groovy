@@ -22,9 +22,11 @@ import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
 import com.netflix.spinnaker.oort.model.ServerGroup
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@CompileStatic
 @Component
 class AtlasHealthProvider implements HealthProvider {
 
@@ -36,7 +38,7 @@ class AtlasHealthProvider implements HealthProvider {
     if (!(serverGroup instanceof AmazonServerGroup)) {
       return null
     }
-    Map health = (Map)cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME))
+    Map health = cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME), Map)
     health ? new MapBackedHealth(health) : null
   }
 }

@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.codahale.metrics.Timer
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.data.aws.Keys
@@ -30,9 +32,9 @@ import com.ryantenney.metrics.annotation.Metric
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import rx.schedulers.Schedulers
 import rx.functions.Func1
 import rx.functions.Func2
+import rx.schedulers.Schedulers
 
 
 @Component
@@ -60,7 +62,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   Map<String, Set<AmazonCluster>> getClusters() {
     allClusters.time {
       def keys = cacheService.keysByType(Namespace.CLUSTERS)
-      def clusters = (List<AmazonCluster>) keys.collect { cacheService.retrieve(it) }
+      def clusters = (List<AmazonCluster>) keys.collect { cacheService.retrieve(it, AmazonCluster) }
       clusters ? getClustersWithServerGroups(clusters) : [:]
     }
   }
@@ -69,7 +71,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   Map<String, Set<AmazonCluster>> getClusters(String application) {
     clustersByApplication.time {
       def keys = cacheService.keysByType(Namespace.CLUSTERS)
-      def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("${Namespace.CLUSTERS}:${application}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+      def clusters = (List<AmazonCluster>) keys.findAll { it.startsWith("${Namespace.CLUSTERS}:${application}:") }.collect { cacheService.retrieve(it, AmazonCluster) }
       clusters ? getClustersWithServerGroups(clusters) : [:]
     }
   }
@@ -78,7 +80,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   Set<AmazonCluster> getClusters(String application, String accountName) {
     clustersByApplicationAndAccount.time {
       def keys = cacheService.keysByType(Namespace.CLUSTERS)
-      def clusters = keys.findAll { it.startsWith("${Namespace.CLUSTERS}:${application}:${accountName}:") }.collect { (AmazonCluster) cacheService.retrieve(it) }
+      def clusters = keys.findAll { it.startsWith("${Namespace.CLUSTERS}:${application}:${accountName}:") }.collect { cacheService.retrieve(it, AmazonCluster) }
       (Set<AmazonCluster>) (clusters ? getClustersWithServerGroups(clusters)?.get(accountName) : [])
     }
   }
@@ -86,7 +88,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
     clustersById.time {
-      def cluster = (AmazonCluster) cacheService.retrieve(Keys.getClusterKey(name, application, account))
+      def cluster = cacheService.retrieve(Keys.getClusterKey(name, application, account), AmazonCluster)
       if (cluster) {
         def withServerGroups = getClustersWithServerGroups([cluster])
         cluster = withServerGroups[account]?.getAt(0)
@@ -110,7 +112,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
       }
       ((Set)results[cluster.accountName as String]) << cluster
       results
-    } as Func2<Map, ? super AmazonCluster, Map>).toBlockingObservable().first()
+    } as Func2<Map, ? super AmazonCluster, Map>).toBlocking().first()
   }
 
   void clusterFiller(Set<String> serverGroupKeys, Set<String> loadBalancerKeys, Set<String> serverGroupInstanceKeys, AmazonCluster cluster) {
@@ -119,17 +121,18 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     for (loadBalancer in cluster.loadBalancers) {
       def elb = loadBalancerKeys.find { it == "${Namespace.LOAD_BALANCERS}:${loadBalancer.region}:${loadBalancer.name}:" }
       if (elb) {
-        loadBalancer.elb = cacheService.retrieve(elb)
+        loadBalancer.elb = cacheService.retrieve(elb, LoadBalancerDescription)
       }
     }
 
     cluster.serverGroups = (Set)rx.Observable.from(serverGroups)
-      .map({ String name -> (AmazonServerGroup)cacheService.retrieve(name) })
+      .map({ String name -> cacheService.retrieve(name, AmazonServerGroup) })
       .filter({ it != null })
       .map(attributePopulator as Func1)
       .map(instancePopulator.curry(serverGroupInstanceKeys, cluster) as Func1)
       .reduce(new HashSet<AmazonServerGroup>(), { Set<AmazonServerGroup> objs, AmazonServerGroup obj -> objs << obj })
-      .toBlockingObservable()
+      .doOnError({ Throwable t -> t.printStackTrace() })
+      .toBlocking()
       .firstOrDefault(new HashSet<AmazonServerGroup>()) as Set
   }
 
@@ -144,7 +147,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   final Closure instancePopulator = { Set<String> keys, AmazonCluster cluster, AmazonServerGroup serverGroup ->
     def instanceIds = keys.findAll { it.startsWith("${Namespace.SERVER_GROUP_INSTANCE}:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
     for (instanceId in instanceIds) {
-      def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region))
+      def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region), Instance)
       if (ec2Instance) {
         def modelInstance = new AmazonInstance(instanceId)
         modelInstance.instance = ec2Instance
@@ -170,7 +173,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     LaunchConfiguration getLaunchConfig() {
       if (!this.launchConfiguration) {
         def launchConfigKey = Keys.getLaunchConfigKey(serverGroup.launchConfigName as String, serverGroup.region)
-        this.launchConfiguration = (LaunchConfiguration) cacheService.retrieve(launchConfigKey)
+        this.launchConfiguration = cacheService.retrieve(launchConfigKey, LaunchConfiguration)
       }
       this.launchConfiguration
     }
@@ -180,7 +183,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         def launchConfig = getLaunchConfig()
         if (!launchConfig) return null
         def imageKey = Keys.getImageKey(launchConfig.imageId, serverGroup.region)
-        this.image = (Image) cacheService.retrieve(imageKey)
+        this.image = cacheService.retrieve(imageKey, Image)
       }
       this.image
     }

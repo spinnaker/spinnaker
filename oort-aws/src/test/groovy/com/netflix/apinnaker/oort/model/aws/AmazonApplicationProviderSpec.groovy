@@ -57,7 +57,7 @@ class AmazonApplicationProviderSpec extends Specification {
 
     then:
     _ * app1.getName() >> appName
-    1 * cacheService.retrieve(Keys.getApplicationKey(appName)) >> app1
+    1 * cacheService.retrieve(Keys.getApplicationKey(appName), _) >> app1
   }
 
   void "compose application-cluster relationship from cache keys for all applications"() {
@@ -80,8 +80,8 @@ class AmazonApplicationProviderSpec extends Specification {
     "should check that the app is actually still around"
     _ * app1.getName() >> appName1
     _ * app2.getName() >> appName2
-    1 * cacheService.retrieve(Keys.getApplicationKey(appName1)) >> app1
-    1 * cacheService.retrieve(Keys.getApplicationKey(appName2)) >> app2
+    1 * cacheService.retrieve(Keys.getApplicationKey(appName1), _) >> app1
+    1 * cacheService.retrieve(Keys.getApplicationKey(appName2), _) >> app2
     1 * app1.setProperty('clusterNames', [(account1): [cluster1] as Set])
     1 * app2.setProperty('clusterNames', [(account2): [cluster2] as Set])
     apps.size() == 2

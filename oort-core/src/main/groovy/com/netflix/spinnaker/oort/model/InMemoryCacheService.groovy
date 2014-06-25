@@ -23,8 +23,9 @@ class InMemoryCacheService implements CacheService {
   private static final ConcurrentMap<String, ConcurrentMap<String, Object>> caches = new ConcurrentHashMap<>()
 
   @Override
-  Object retrieve(String key) {
+  public <T> T retrieve(String key, Class<T> type) {
     getCache(key)?.get key
+    cache.get key
   }
 
   @Override

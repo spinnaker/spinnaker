@@ -64,11 +64,11 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
-    1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
-    1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
-    1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
-    1 * cacheService.retrieve(objects.imageKey) >> objects.image
-    1 * cacheService.retrieve(objects.instanceKey) >> objects.instance
+    1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
+    1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
+    1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
+    1 * cacheService.retrieve(objects.imageKey, _) >> objects.image
+    1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
   }
 
   void "getting cluster for a specific application is keyed on account and fully populated"() {
@@ -84,11 +84,11 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
-    1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
-    1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
-    1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
-    1 * cacheService.retrieve(objects.imageKey) >> objects.image
-    1 * cacheService.retrieve(objects.instanceKey) >> objects.instance
+    1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
+    1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
+    1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
+    1 * cacheService.retrieve(objects.imageKey, _) >> objects.image
+    1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
 
     when:
     clusters = provider.getClusters("oort")
@@ -111,11 +111,11 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
-    1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
-    1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
-    1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
-    1 * cacheService.retrieve(objects.imageKey) >> objects.image
-    1 * cacheService.retrieve(objects.instanceKey) >> objects.instance
+    1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
+    1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
+    1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
+    1 * cacheService.retrieve(objects.imageKey, _) >> objects.image
+    1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
   }
 
   void "getting a specific cluster for a specific application in a specific account returns the fully populated cluster"() {
@@ -130,11 +130,11 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
-    1 * cacheService.retrieve(objects.clusterKey) >> objects.cluster
-    1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
-    1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
-    1 * cacheService.retrieve(objects.imageKey) >> objects.image
-    1 * cacheService.retrieve(objects.instanceKey) >> objects.instance
+    1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
+    1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
+    1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
+    1 * cacheService.retrieve(objects.imageKey, _) >> objects.image
+    1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
   }
 
   void "cluster filler should aggreagte all known data about a cluster"() {
@@ -145,10 +145,10 @@ class AmazonClusterProviderSpec extends Specification {
     provider.clusterFiller(objects.serverGroupKeys, objects.loadBalancerKeys, objects.serverGroupInstanceKeys, objects.cluster)
 
     then:
-    1 * cacheService.retrieve(objects.serverGroupKey) >> objects.serverGroup
-    1 * cacheService.retrieve(objects.launchConfigKey) >> objects.launchConfig
-    1 * cacheService.retrieve(objects.imageKey) >> objects.image
-    1 * cacheService.retrieve(objects.instanceKey) >> objects.instance
+    1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
+    1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
+    1 * cacheService.retrieve(objects.imageKey, _) >> objects.image
+    1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
     objects.cluster.serverGroups
     objects.cluster.serverGroups[0].name == objects.serverGroupName
     objects.cluster.serverGroups[0].buildInfo.package_name == "kato"

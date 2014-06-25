@@ -24,6 +24,10 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "serverGroups"])
 class AmazonLoadBalancer extends HashMap implements LoadBalancer {
 
+  AmazonLoadBalancer() {
+    this(null, null)
+  }
+
   AmazonLoadBalancer(String name, String region) {
     setProperty "name", name
     setProperty "region", region

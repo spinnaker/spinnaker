@@ -1,0 +1,4 @@
+dependencies {
+  compile project(":oort-core")
+  compile 'redis.clients:jedis:2.5.1'
+}
