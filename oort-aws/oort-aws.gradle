@@ -1,6 +1,5 @@
 dependencies {
   compile project(":oort-core")
-  compile project(":oort-redis")
 
   spinnaker.group("bootWeb")
   spinnaker.group("amazon")

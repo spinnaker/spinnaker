@@ -35,6 +35,7 @@ subprojects {
   repositories {
     jcenter()
     maven { url "http://repo.spring.io/repo" }
+    maven { url 'http://clojars.org/repo' }
   }
 
   dependencies {

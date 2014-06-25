@@ -1,4 +1,12 @@
+configurations {
+  all {
+    exclude module: 'guava-io'
+  }
+}
+
 dependencies {
   compile project(":oort-core")
   compile 'redis.clients:jedis:2.5.1'
+  compile 'redis.embedded:embedded-redis:0.2'
+  runtime 'com.google.guava:guava:17.0'
 }

@@ -21,6 +21,7 @@ ideaConfig {
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
+  runtime project(":oort-redis")
   runtime spinnaker.dependency("kork")
   spinnaker.group("bootWeb")
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'

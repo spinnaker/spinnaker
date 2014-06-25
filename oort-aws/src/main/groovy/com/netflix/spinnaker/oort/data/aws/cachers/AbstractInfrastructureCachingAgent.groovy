@@ -26,7 +26,6 @@ import reactor.core.Reactor
 import javax.annotation.PostConstruct
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class AbstractInfrastructureCachingAgent implements InfrastructureCachingAgent {
   protected static final Logger log = Logger.getLogger(this)
