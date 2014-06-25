@@ -42,7 +42,7 @@ class JedisCacheService implements CacheService {
   @Override
   public <T> T retrieve(String key, Class<T> klazz) {
     def json = withJedis {
-      hget cacheKey, key
+      hget cacheForKey(key), key
     }
     json ? objectMapper.readValue(json, klazz) : null
   }
@@ -50,29 +50,59 @@ class JedisCacheService implements CacheService {
   @Override
   boolean put(String key, Object object) {
     withJedis {
-      hset cacheKey, key, objectMapper.writeValueAsString(object)
+      hset cacheForKey(key), key, objectMapper.writeValueAsString(object)
     }
   }
 
   @Override
   void free(String key) {
     withJedis {
-      hdel cacheKey, key
+      hdel cacheForKey(key), key
     }
   }
 
   @Override
   boolean exists(String key) {
     withJedis {
-      hexists cacheKey, key
+      hexists cacheForKey(key), key
     }
   }
 
   @Override
   Set<String> keys() {
+    log.warn("This is bad, and you should feel bad", new Exception().fillInStackTrace())
     withJedis {
-      hkeys cacheKey
+      keys(cacheKey + "*").inject([] as Set) { Set accum, String typeCache ->
+        accum.addAll(hkeys(typeCache))
+      }
     }
+  }
+
+  Set<String> keysByType(String type) {
+    withJedis {
+      hkeys cacheForType(type)
+    }
+  }
+
+  Set<String> keysByType(Object type) {
+    keysByType(type as String)
+  }
+
+  String typeForKey(String key) {
+    int typeIndex = key.indexOf(':')
+    if (typeIndex == -1) {
+      throw new IllegalStateException("Expected type prefix in key ${key}")
+    }
+    key.substring(0, typeIndex)
+  }
+
+
+  String cacheForKey(String key) {
+    cacheForType(typeForKey(key))
+  }
+
+  String cacheForType(String type) {
+    "${cacheKey}:${type}"
   }
 
   private <T> T withJedis(@DelegatesTo(Jedis) Closure<T> closure) {
