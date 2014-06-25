@@ -16,6 +16,7 @@
 
 package com.netflix.apinnaker.oort.model.aws
 
+import com.codahale.metrics.Timer
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
@@ -36,10 +37,15 @@ class AmazonClusterProviderSpec extends Specification {
   @Shared
   CacheService cacheService
 
+  Timer timer = new Timer()
+
   def setup() {
     provider = new AmazonClusterProvider(healthProviders: [])
     cacheService = Mock(CacheService)
     provider.cacheService = cacheService
+    AmazonClusterProvider.declaredFields.findAll { it.type == Timer }.each {
+      provider.setProperty(it.name, timer)
+    }
   }
 
   void "getting all clusters is keyed on account and fully populated"() {

@@ -16,6 +16,7 @@
 
 package com.netflix.apinnaker.oort.model.aws
 
+import com.codahale.metrics.Timer
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
@@ -31,10 +32,15 @@ class AmazonApplicationProviderSpec extends Specification {
   @Shared
   CacheService cacheService
 
+  Timer timer = new Timer()
+
   def setup() {
     provider = new AmazonApplicationProvider()
     cacheService = Mock(CacheService)
     provider.cacheService = cacheService
+    AmazonApplicationProvider.declaredFields.findAll { it.type == Timer }.each {
+      provider.setProperty(it.name, timer)
+    }
   }
 
   void "compose application-cluster relationship from cache keys"() {
