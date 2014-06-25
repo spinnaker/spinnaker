@@ -17,22 +17,19 @@
 package com.netflix.spinnaker.orca.batch.workflow
 
 import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.JobStarter
 import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
-import org.springframework.context.ApplicationContext
+import org.springframework.context.support.StaticApplicationContext
 
 class WorkflowConfigurationSpec extends Specification {
 
-  @Subject jobStarter = new JobStarter()
+  def jobStarter = new JobStarter()
   def fooWorkflowBuilder = Mock(WorkflowBuilder)
 
   def setup() {
-    // TODO: using a Stub here seems wrong but Spring doesn't provide an impl where you can just register an object (Grails has it, so I may steal some code from there)
-    def applicationContext = Stub(ApplicationContext) {
-      getBean("fooWorkflowBuilder", *_) >> fooWorkflowBuilder
-    }
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("fooWorkflowBuilder", fooWorkflowBuilder)
 
     jobStarter.applicationContext = applicationContext
   }
