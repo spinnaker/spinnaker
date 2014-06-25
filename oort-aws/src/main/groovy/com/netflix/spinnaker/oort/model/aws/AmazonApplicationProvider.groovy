@@ -47,7 +47,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
       def clusterKeys = cacheService.keysByType(Namespace.CLUSTERS)
 
       def apps = (List<AmazonApplication>)rx.Observable.from(appKeys).flatMap {
-        rx.Observable.from(it).observeOn(Schedulers.io()).map { String key ->
+        rx.Observable.from(it).observeOn(Schedulers.computation()).map { String key ->
           def app = (AmazonApplication)cacheService.retrieve(key)
           if (app) {
             def appClusters = [:]
@@ -67,8 +67,8 @@ class AmazonApplicationProvider implements ApplicationProvider {
           apps
         }).toBlockingObservable().first()
 
-        Collections.unmodifiableSet(apps as Set)
       }
+      Collections.unmodifiableSet(apps as Set)
     }
   }
 
@@ -87,8 +87,8 @@ class AmazonApplicationProvider implements ApplicationProvider {
           }
           app.clusterNames = clusters
         }
-        app
       }
+      app
     }
   }
 }

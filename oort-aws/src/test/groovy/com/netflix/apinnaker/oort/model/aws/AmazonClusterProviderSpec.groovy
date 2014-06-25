@@ -30,6 +30,8 @@ import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
+
 class AmazonClusterProviderSpec extends Specification {
 
   @Shared

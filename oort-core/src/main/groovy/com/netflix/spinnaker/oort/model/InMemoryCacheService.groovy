@@ -30,7 +30,7 @@ class InMemoryCacheService implements CacheService {
   @Override
   boolean put(String key, Object object) {
     ConcurrentMap<String, Object> typeMap = new ConcurrentHashMap<>()
-    ConcurrentMap<String, Object> existing = caches.putIfAbsent(key, typeMap)
+    ConcurrentMap<String, Object> existing = caches.putIfAbsent(getCacheType(key), typeMap)
     def v = (existing ?: typeMap).put key, object
     v != null
   }

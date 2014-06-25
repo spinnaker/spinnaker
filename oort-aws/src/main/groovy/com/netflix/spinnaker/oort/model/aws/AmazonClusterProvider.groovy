@@ -91,6 +91,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
         def withServerGroups = getClustersWithServerGroups([cluster])
         cluster = withServerGroups[account]?.getAt(0)
       }
+      cluster
     }
   }
 
