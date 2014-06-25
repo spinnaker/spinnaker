@@ -46,9 +46,9 @@ class AmazonApplicationProvider implements ApplicationProvider {
       def appKeys = cacheService.keysByType(Namespace.APPLICATIONS)
       def clusterKeys = cacheService.keysByType(Namespace.CLUSTERS)
 
-      def apps = (List<AmazonApplication>)rx.Observable.from(appKeys).flatMap {
+      def apps = (List<AmazonApplication>) rx.Observable.from(appKeys).flatMap {
         rx.Observable.from(it).observeOn(Schedulers.computation()).map { String key ->
-          def app = (AmazonApplication)cacheService.retrieve(key)
+          def app = (AmazonApplication) cacheService.retrieve(key)
           if (app) {
             def appClusters = [:]
             clusterKeys.findAll { it.startsWith("${Namespace.CLUSTERS}:${app.name}:") }.each {
@@ -56,18 +56,19 @@ class AmazonApplicationProvider implements ApplicationProvider {
               if (!appClusters.containsKey(parts[2])) {
                 appClusters[parts[2]] = new HashSet<>()
               }
-              app.clusterNames = appClusters
+              appClusters[parts[2]] << parts[3]
             }
-            app
+            app.clusterNames = appClusters
           }
-        }.reduce([], { apps, app ->
-          if (app) {
-            apps << app
-          }
-          apps
-        }).toBlockingObservable().first()
+          app
+        }
+      }.reduce([], { apps, app ->
+        if (app) {
+          apps << app
+        }
+        apps
+      }).toBlockingObservable().first()
 
-      }
       Collections.unmodifiableSet(apps as Set)
     }
   }
@@ -78,15 +79,16 @@ class AmazonApplicationProvider implements ApplicationProvider {
       def app = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey(name)) ?: null
       if (app) {
         def clusters = [:]
-        cacheService.keysByType(Namespace.CLUSTERS).findAll { it.startsWith("${Namespace.CLUSTERS}:${name}:") }.each {
+        cacheService.keys().findAll { it.startsWith("${Namespace.CLUSTERS}:${name}:") }.each {
           def parts = it.split(':')
           def account = parts[2]
           def clusterName = parts[3]
           if (!clusters.containsKey(account)) {
             clusters[account] = new HashSet()
           }
-          app.clusterNames = clusters
+          clusters[account] << clusterName
         }
+        app.clusterNames = clusters
       }
       app
     }
