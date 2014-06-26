@@ -36,10 +36,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class JobStarter {
 
-  @Autowired ApplicationContext applicationContext
-  @Autowired JobLauncher launcher
-  @Autowired JobBuilderFactory jobs
-  @Autowired ObjectMapper mapper
+  @Autowired private ApplicationContext applicationContext
+  @Autowired private JobLauncher launcher
+  @Autowired private JobBuilderFactory jobs
+  @Autowired private ObjectMapper mapper
 
   void start(String config) {
     launcher.run(buildJobFrom(config), new JobParameters())
