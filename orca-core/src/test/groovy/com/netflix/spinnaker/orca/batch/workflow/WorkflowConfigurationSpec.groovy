@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch.workflow
 
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.JobStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -43,47 +45,40 @@ class WorkflowConfigurationSpec extends Specification {
   @Autowired JobLauncher jobLauncher
   @Autowired JobRepository jobRepository
 
-  def jobStarter = new JobStarter()
+  @Subject jobStarter = new JobStarter()
+
   def fooTasklet = Mock(Tasklet)
   def barTasklet = Mock(Tasklet)
   def bazTasklet = Mock(Tasklet)
 
-  def mapper = new ObjectMapper()
+  @Shared mapper = new ObjectMapper()
 
   def setup() {
     applicationContext.beanFactory.with {
-      registerSingleton("mapper", mapper)
-      registerSingleton("fooWorkflowBuilder", new TestWorkflowBuilder(fooTasklet, steps))
-      registerSingleton("barWorkflowBuilder", new TestWorkflowBuilder(barTasklet, steps))
-      registerSingleton("bazWorkflowBuilder", new TestWorkflowBuilder(bazTasklet, steps))
-    }
+      registerSingleton "mapper", mapper
+      registerSingleton "fooWorkflowBuilder", new TestWorkflowBuilder(fooTasklet, steps)
+      registerSingleton "barWorkflowBuilder", new TestWorkflowBuilder(barTasklet, steps)
+      registerSingleton "bazWorkflowBuilder", new TestWorkflowBuilder(bazTasklet, steps)
 
-    applicationContext.autowireCapableBeanFactory.autowireBean(jobStarter)
+      autowireBean jobStarter
+    }
   }
 
   def "a single workflow step is constructed from mayo's json config"() {
-    given:
-    def config = mapper.writeValueAsString([
-      [type: "foo"]
-    ])
-
     when:
-    jobStarter.start(config)
+    jobStarter.start configJson
 
     then:
     1 * fooTasklet.execute(*_) >> FINISHED
+
+    where:
+    config = [[type: "foo"]]
+    configJson = mapper.writeValueAsString(config)
   }
 
   def "multiple workflow steps are constructed from mayo's json config"() {
-    given:
-    def config = mapper.writeValueAsString([
-      [type: "foo"],
-      [type: "bar"],
-      [type: "baz"]
-    ])
-
     when:
-    jobStarter.start(config)
+    jobStarter.start configJson
 
     then:
     1 * fooTasklet.execute(*_) >> FINISHED
@@ -93,6 +88,14 @@ class WorkflowConfigurationSpec extends Specification {
 
     then:
     1 * bazTasklet.execute(*_) >> FINISHED
+
+    where:
+    config = [
+      [type: "foo"],
+      [type: "bar"],
+      [type: "baz"]
+    ]
+    configJson = mapper.writeValueAsString(config)
   }
 
   def "config values are converted to job parameters"() {
@@ -103,16 +106,14 @@ class WorkflowConfigurationSpec extends Specification {
       FINISHED
     }
 
-    and:
-    def config = mapper.writeValueAsString([parameters])
-
     when:
-    jobStarter.start(config)
+    jobStarter.start configJson
 
     then:
-    mapper.readValue(jobParameters.foo, Map) == parameters
+    mapper.readValue(jobParameters.foo, Map) == config[0]
 
     where:
-    parameters = [type: "foo", region: "us-west-1", os: "ubuntu"]
+    config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
+    configJson = mapper.writeValueAsString(config)
   }
 }
