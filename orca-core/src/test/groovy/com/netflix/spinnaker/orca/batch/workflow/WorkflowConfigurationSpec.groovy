@@ -63,7 +63,6 @@ class WorkflowConfigurationSpec extends Specification {
 
   def "a single workflow step is constructed from mayo's json config"() {
     given:
-    def mapper = new ObjectMapper()
     def config = mapper.writeValueAsString([
       [type: "foo"]
     ])
@@ -77,7 +76,6 @@ class WorkflowConfigurationSpec extends Specification {
 
   def "multiple workflow steps are constructed from mayo's json config"() {
     given:
-    def mapper = new ObjectMapper()
     def config = mapper.writeValueAsString([
       [type: "foo"],
       [type: "bar"],
@@ -106,10 +104,7 @@ class WorkflowConfigurationSpec extends Specification {
     }
 
     and:
-    def mapper = new ObjectMapper()
-    def config = mapper.writeValueAsString([
-      [type: "foo"] + parameters
-    ])
+    def config = mapper.writeValueAsString([parameters])
 
     when:
     jobStarter.start(config)
