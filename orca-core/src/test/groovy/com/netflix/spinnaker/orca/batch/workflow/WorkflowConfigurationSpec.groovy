@@ -85,7 +85,11 @@ class WorkflowConfigurationSpec extends Specification {
 
     then:
     1 * fooTasklet.execute(*_) >> FINISHED
+
+    then:
     1 * barTasklet.execute(*_) >> FINISHED
+
+    then:
     1 * bazTasklet.execute(*_) >> FINISHED
   }
 }
