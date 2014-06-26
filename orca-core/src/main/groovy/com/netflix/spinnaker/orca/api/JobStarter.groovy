@@ -16,36 +16,39 @@
 
 package com.netflix.spinnaker.orca.api
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
-import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
+import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class JobStarter implements ApplicationContextAware {
+class JobStarter {
 
-  private ApplicationContext applicationContext
-
-  @Autowired private JobBuilder jobs
-
-  private final ObjectMapper mapper = new ObjectMapper() // TODO: ensure this is thread-safe
+  @Autowired ApplicationContext applicationContext
+  @Autowired JobLauncher launcher
+  @Autowired JobBuilderFactory jobs
+  private final ObjectMapper mapper = new ObjectMapper()
 
   void start(String config) {
+    launcher.run(buildJobFrom(config), new JobParameters())
+  }
+
+  @CompileDynamic
+  private Job buildJobFrom(String config) {
     def steps = mapper.readValue(config, new TypeReference<List<Map>>() {})
-    steps.inject(jobs) { JobBuilder jobBuilder, Map stepConfig ->
+    def builder = steps.inject(jobs.get("xxx")) { jobBuilder, Map stepConfig ->
       def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
       workflowBuilder.build(jobBuilder)
     }
-  }
-
-  @Override
-  void setApplicationContext(ApplicationContext applicationContext) {
-    this.applicationContext = applicationContext
+    builder.build()
   }
 }

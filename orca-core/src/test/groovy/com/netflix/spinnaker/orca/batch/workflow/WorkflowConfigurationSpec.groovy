@@ -19,19 +19,42 @@ package com.netflix.spinnaker.orca.batch.workflow
 import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.JobStarter
-import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
-import org.springframework.context.support.StaticApplicationContext
+import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.launch.JobLauncher
+import org.springframework.batch.core.repository.JobRepository
+import org.springframework.batch.core.step.tasklet.Tasklet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ContextConfiguration
+import static org.springframework.batch.repeat.RepeatStatus.FINISHED
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
+@ContextConfiguration(classes = [BatchTestConfiguration])
+@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class WorkflowConfigurationSpec extends Specification {
 
+  @Autowired ApplicationContext applicationContext
+  @Autowired JobBuilderFactory jobs
+  @Autowired StepBuilderFactory steps
+  @Autowired JobLauncher jobLauncher
+  @Autowired JobRepository jobRepository
+
   def jobStarter = new JobStarter()
-  def fooWorkflowBuilder = Mock(WorkflowBuilder)
+  def fooTasklet = Mock(Tasklet)
+  def barTasklet = Mock(Tasklet)
+  def bazTasklet = Mock(Tasklet)
 
   def setup() {
-    def applicationContext = new StaticApplicationContext()
-    applicationContext.beanFactory.registerSingleton("fooWorkflowBuilder", fooWorkflowBuilder)
+    applicationContext.autowireCapableBeanFactory.with {
+      registerSingleton("fooWorkflowBuilder", new TestWorkflowBuilder(fooTasklet, steps))
+      registerSingleton("barWorkflowBuilder", new TestWorkflowBuilder(barTasklet, steps))
+      registerSingleton("bazWorkflowBuilder", new TestWorkflowBuilder(bazTasklet, steps))
+    }
 
-    jobStarter.applicationContext = applicationContext
+    applicationContext.autowireCapableBeanFactory.autowireBean(jobStarter)
   }
 
   def "a single workflow step is constructed from mayo's json config"() {
@@ -45,7 +68,24 @@ class WorkflowConfigurationSpec extends Specification {
     jobStarter.start(config)
 
     then:
-    1 * fooWorkflowBuilder.build(_)
+    1 * fooTasklet.execute(*_) >> FINISHED
   }
 
+  def "multiple workflow steps are constructed from mayo's json config"() {
+    given:
+    def mapper = new ObjectMapper()
+    def config = mapper.writeValueAsString([
+      [type: "foo"],
+      [type: "bar"],
+      [type: "baz"]
+    ])
+
+    when:
+    jobStarter.start(config)
+
+    then:
+    1 * fooTasklet.execute(*_) >> FINISHED
+    1 * barTasklet.execute(*_) >> FINISHED
+    1 * bazTasklet.execute(*_) >> FINISHED
+  }
 }
