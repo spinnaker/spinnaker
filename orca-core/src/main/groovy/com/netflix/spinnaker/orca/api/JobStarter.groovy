@@ -18,13 +18,16 @@ package com.netflix.spinnaker.orca.api
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.job.builder.FlowJobBuilder
+import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.launch.JobLauncher
@@ -42,30 +45,60 @@ class JobStarter {
   @Autowired private ObjectMapper mapper
 
   void start(String config) {
-    launcher.run(buildJobFrom(config), new JobParameters())
+    def context = buildJobFrom(config)
+    launcher.run(context.job, context.parameters)
   }
 
-  private Job buildJobFrom(String config) {
+  private WorkflowContext buildJobFrom(String config) {
     def steps = mapper.readValue(config, new TypeReference<List<Map>>() {})
-    def builder = steps.inject(jobs.get("xxx"), this.&foo)
-
-    // Have to do some horror here as we don't know what type of builder we'll end up with.
-    // Two of them have a build method that returns a Job but it's not on a common superclass.
-    // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
-    switch (builder) {
-      case SimpleJobBuilder:
-        return (builder as SimpleJobBuilder).build()
-      case FlowJobBuilder:
-        return (builder as FlowJobBuilder).build()
-      default:
-        // (╯°□°)╯︵ ┻━┻
-        throw new IllegalStateException("Cannot build a Job using a ${builder.getClass()} - did you add any steps to it?")
-    }
+    def context = new WorkflowContext(jobs.get("xxx"))
+    (WorkflowContext) steps.inject(context, this.&foo)
   }
 
   @CompileDynamic
-  private JobBuilderHelper foo(JobBuilderHelper jobBuilder, Map stepConfig) {
+  private WorkflowContext foo(WorkflowContext context, Map stepConfig) {
     def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
-    workflowBuilder.build(jobBuilder)
+    context.withStep(workflowBuilder).withParameters(stepConfig.type, stepConfig)
+  }
+}
+
+@CompileStatic
+class WorkflowContext {
+  private JobBuilderHelper jobBuilder
+  private JobParametersBuilder parametersBuilder = new JobParametersBuilder()
+
+  WorkflowContext(JobBuilder jobBuilder) {
+    this.jobBuilder = jobBuilder
+  }
+
+  @CompileDynamic
+  @TypeChecked
+  WorkflowContext withStep(WorkflowBuilder workflowBuilder) {
+    jobBuilder = workflowBuilder.build(jobBuilder)
+    return this
+  }
+
+  WorkflowContext withParameters(String key, Map config) {
+    parametersBuilder.addString(key, new ObjectMapper().writeValueAsString(config))
+    return this
+  }
+
+  Job getJob() {
+    // Have to do some horror here as we don't know what type of builder we'll end up with.
+    // Two of them have a build method that returns a Job but it's not on a common superclass.
+    // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
+    switch (jobBuilder) {
+      case SimpleJobBuilder:
+        return (jobBuilder as SimpleJobBuilder).build()
+      case FlowJobBuilder:
+        return (jobBuilder as FlowJobBuilder).build()
+      default:
+        // (╯°□°)╯︵ ┻━┻
+        throw new IllegalStateException("Cannot build a Job using a ${jobBuilder.getClass()} - did you add any steps to it?")
+    }
+  }
+
+  JobParameters getParameters() {
+    parametersBuilder.toJobParameters()
   }
 }

@@ -24,9 +24,10 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.repository.JobRepository
+import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
+import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
@@ -36,7 +37,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class WorkflowConfigurationSpec extends Specification {
 
-  @Autowired ApplicationContext applicationContext
+  @Autowired AbstractApplicationContext applicationContext
   @Autowired JobBuilderFactory jobs
   @Autowired StepBuilderFactory steps
   @Autowired JobLauncher jobLauncher
@@ -47,9 +48,11 @@ class WorkflowConfigurationSpec extends Specification {
   def barTasklet = Mock(Tasklet)
   def bazTasklet = Mock(Tasklet)
 
+  def mapper = new ObjectMapper()
+
   def setup() {
-    applicationContext.autowireCapableBeanFactory.with {
-      registerSingleton("mapper", new ObjectMapper())
+    applicationContext.beanFactory.with {
+      registerSingleton("mapper", mapper)
       registerSingleton("fooWorkflowBuilder", new TestWorkflowBuilder(fooTasklet, steps))
       registerSingleton("barWorkflowBuilder", new TestWorkflowBuilder(barTasklet, steps))
       registerSingleton("bazWorkflowBuilder", new TestWorkflowBuilder(bazTasklet, steps))
@@ -92,5 +95,29 @@ class WorkflowConfigurationSpec extends Specification {
 
     then:
     1 * bazTasklet.execute(*_) >> FINISHED
+  }
+
+  def "config values are converted to job parameters"() {
+    given:
+    def jobParameters
+    fooTasklet.execute(*_) >> { _, ChunkContext chunkContext ->
+      jobParameters = chunkContext.stepContext.jobParameters
+      FINISHED
+    }
+
+    and:
+    def mapper = new ObjectMapper()
+    def config = mapper.writeValueAsString([
+      [type: "foo"] + parameters
+    ])
+
+    when:
+    jobStarter.start(config)
+
+    then:
+    mapper.readValue(jobParameters.foo, Map) == parameters
+
+    where:
+    parameters = [type: "foo", region: "us-west-1", os: "ubuntu"]
   }
 }
