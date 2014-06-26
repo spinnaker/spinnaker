@@ -49,6 +49,7 @@ class WorkflowConfigurationSpec extends Specification {
 
   def setup() {
     applicationContext.autowireCapableBeanFactory.with {
+      registerSingleton("mapper", new ObjectMapper())
       registerSingleton("fooWorkflowBuilder", new TestWorkflowBuilder(fooTasklet, steps))
       registerSingleton("barWorkflowBuilder", new TestWorkflowBuilder(barTasklet, steps))
       registerSingleton("bazWorkflowBuilder", new TestWorkflowBuilder(bazTasklet, steps))

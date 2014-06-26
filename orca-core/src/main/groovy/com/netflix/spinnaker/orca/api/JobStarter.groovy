@@ -39,7 +39,7 @@ class JobStarter {
   @Autowired ApplicationContext applicationContext
   @Autowired JobLauncher launcher
   @Autowired JobBuilderFactory jobs
-  private final ObjectMapper mapper = new ObjectMapper()
+  @Autowired ObjectMapper mapper
 
   void start(String config) {
     launcher.run(buildJobFrom(config), new JobParameters())
