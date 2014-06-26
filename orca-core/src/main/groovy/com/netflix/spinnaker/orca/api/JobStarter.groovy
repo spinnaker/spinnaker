@@ -24,6 +24,9 @@ import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
+import org.springframework.batch.core.job.builder.FlowJobBuilder
+import org.springframework.batch.core.job.builder.JobBuilderHelper
+import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -42,13 +45,27 @@ class JobStarter {
     launcher.run(buildJobFrom(config), new JobParameters())
   }
 
-  @CompileDynamic
   private Job buildJobFrom(String config) {
     def steps = mapper.readValue(config, new TypeReference<List<Map>>() {})
-    def builder = steps.inject(jobs.get("xxx")) { jobBuilder, Map stepConfig ->
-      def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
-      workflowBuilder.build(jobBuilder)
+    def builder = steps.inject(jobs.get("xxx"), this.&foo)
+
+    // Have to do some horror here as we don't know what type of builder we'll end up with.
+    // Two of them have a build method that returns a Job but it's not on a common superclass.
+    // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
+    switch (builder) {
+      case SimpleJobBuilder:
+        return (builder as SimpleJobBuilder).build()
+      case FlowJobBuilder:
+        return (builder as FlowJobBuilder).build()
+      default:
+        // (╯°□°)╯︵ ┻━┻
+        throw new IllegalStateException("Cannot build a Job using a ${builder.getClass()} - did you add any steps to it?")
     }
-    builder.build()
+  }
+
+  @CompileDynamic
+  private JobBuilderHelper foo(JobBuilderHelper jobBuilder, Map stepConfig) {
+    def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
+    workflowBuilder.build(jobBuilder)
   }
 }

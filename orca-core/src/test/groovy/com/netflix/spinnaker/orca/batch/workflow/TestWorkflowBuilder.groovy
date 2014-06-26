@@ -22,6 +22,7 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
+import org.springframework.batch.core.step.tasklet.TaskletStep
 
 @CompileStatic
 class TestWorkflowBuilder extends WorkflowBuilderSupport<SimpleJobBuilder> {
@@ -35,13 +36,15 @@ class TestWorkflowBuilder extends WorkflowBuilderSupport<SimpleJobBuilder> {
 
   @Override
   SimpleJobBuilder build(JobBuilder jobBuilder) {
-    def step = steps.get(UUID.randomUUID().toString()).tasklet(tasklet).build()
-    jobBuilder.start(step)
+    jobBuilder.start(buildStep())
   }
 
   @Override
   SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
-    def step = steps.get(UUID.randomUUID().toString()).tasklet(tasklet).build()
-    jobBuilder.next(step)
+    jobBuilder.next(buildStep())
+  }
+
+  private TaskletStep buildStep() {
+    steps.get(UUID.randomUUID().toString()).tasklet(tasklet).build()
   }
 }
