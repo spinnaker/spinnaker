@@ -18,13 +18,12 @@ package com.netflix.spinnaker.orca.smoke
 
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.api.JobStarter
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
-import com.netflix.spinnaker.orca.bakery.workflow.BakeWorkflowBuilder
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.JobParametersBuilder
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
-import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
@@ -36,30 +35,28 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
-  @Autowired JobLauncher jobLauncher
-  @Autowired BakeWorkflowBuilder bakeJobBuilder
-  @Autowired JobBuilderFactory jobs
+  @Autowired JobStarter jobStarter
+  @Autowired ObjectMapper mapper
 
   def "can bake and monitor to completion"() {
     given:
-    def jobBuilder = jobs.get("${getClass().simpleName}Job")
-    def job = bakeJobBuilder.build(jobBuilder).build()
-
-    and:
-    def jobParameters = new JobParametersBuilder()
-      .addString("region", "us-west-1")
-      .addString("bake.user", "rfletcher")
-      .addString("bake.package", "oort")
-      .addString("bake.baseOs", "ubuntu")
-      .addString("bake.baseLabel", "release")
-      .toJobParameters()
+    def configJson = mapper.writeValueAsString(config)
 
     when:
-    def jobStatus = jobLauncher.run(job, jobParameters).status
+    def jobStatus = jobStarter.start(configJson).status
 
     then:
     jobStatus == BatchStatus.COMPLETED
-  }
 
+    where:
+    config = [[
+        type            : "bake",
+        region          : "us-west-1",
+        "bake.user"     : "rfletcher",
+        "bake.package"  : "oort",
+        "bake.baseOs"   : "ubuntu",
+        "bake.baseLabel": "release"
+    ]]
+  }
 }
 

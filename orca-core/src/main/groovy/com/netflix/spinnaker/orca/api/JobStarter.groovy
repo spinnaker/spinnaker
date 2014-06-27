@@ -21,8 +21,11 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -44,7 +47,7 @@ class JobStarter {
   @Autowired private JobBuilderFactory jobs
   @Autowired private ObjectMapper mapper
 
-  void start(String config) {
+  JobExecution start(String config) {
     def context = buildJobFrom(config)
     launcher.run(context.job, context.parameters)
   }
@@ -58,7 +61,7 @@ class JobStarter {
   @CompileDynamic
   private WorkflowContext foo(WorkflowContext context, Map stepConfig) {
     def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
-    context.withStep(workflowBuilder).withParameters(stepConfig.type, stepConfig)
+    context.withStep(workflowBuilder).withParameters(stepConfig)
   }
 }
 
@@ -78,8 +81,13 @@ class WorkflowContext {
     return this
   }
 
-  WorkflowContext withParameters(String key, Map config) {
-    parametersBuilder.addString(key, new ObjectMapper().writeValueAsString(config))
+  @CompileDynamic
+  WorkflowContext withParameters(Map<String, ?> config) {
+    Maps.filterKeys(config) {
+      it != "type"
+    } each {
+      parametersBuilder.addParameter(it.key, new JobParameter(it.value))
+    }
     return this
   }
 

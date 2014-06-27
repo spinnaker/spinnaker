@@ -20,6 +20,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.api.JobStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -91,9 +92,9 @@ class WorkflowConfigurationSpec extends Specification {
 
     where:
     config = [
-      [type: "foo"],
-      [type: "bar"],
-      [type: "baz"]
+        [type: "foo"],
+        [type: "bar"],
+        [type: "baz"]
     ]
     configJson = mapper.writeValueAsString(config)
   }
@@ -101,7 +102,7 @@ class WorkflowConfigurationSpec extends Specification {
   def "config values are converted to job parameters"() {
     given:
     def jobParameters
-    fooTasklet.execute(*_) >> { _, ChunkContext chunkContext ->
+    1 * fooTasklet.execute(*_) >> { _, ChunkContext chunkContext ->
       jobParameters = chunkContext.stepContext.jobParameters
       FINISHED
     }
@@ -110,10 +111,11 @@ class WorkflowConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    mapper.readValue(jobParameters.foo, Map) == config[0]
+    jobParameters == expectedParameters
 
     where:
     config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     configJson = mapper.writeValueAsString(config)
+    expectedParameters = Maps.filterKeys(config[0]) { it != "type" }
   }
 }

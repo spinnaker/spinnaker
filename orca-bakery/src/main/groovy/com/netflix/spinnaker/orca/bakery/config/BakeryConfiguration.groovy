@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.workflow.BakeWorkflowBuilder
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -34,14 +35,12 @@ import static com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
-@Import(RetrofitConfiguration)
+@Import([OrcaConfiguration, RetrofitConfiguration])
 @CompileStatic
 class BakeryConfiguration {
 
-  @Autowired
-  Client retrofitClient
-  @Autowired
-  LogLevel retrofitLogLevel
+  @Autowired Client retrofitClient
+  @Autowired LogLevel retrofitLogLevel
 
   @Bean
   Endpoint bakeryEndpoint() {
@@ -51,17 +50,17 @@ class BakeryConfiguration {
   @Bean
   BakeryService bakery(Endpoint bakeryEndpoint) {
     def gson = new GsonBuilder()
-      .setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
-      .setDateFormat("YYYYMMDDHHmm")
-      .create()
+        .setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
+        .setDateFormat("YYYYMMDDHHmm")
+        .create()
 
     new RestAdapter.Builder()
-      .setEndpoint(bakeryEndpoint)
-      .setConverter(new GsonConverter(gson))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .build()
-      .create(BakeryService)
+        .setEndpoint(bakeryEndpoint)
+        .setConverter(new GsonConverter(gson))
+        .setClient(retrofitClient)
+        .setLogLevel(retrofitLogLevel)
+        .build()
+        .create(BakeryService)
   }
 
   @Bean
