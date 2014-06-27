@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.oort.redis
 
+import com.codahale.metrics.Timer
+import com.ryantenney.metrics.annotation.Metric
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.oort.model.CacheService
 import groovy.util.logging.Log4j
@@ -38,6 +40,9 @@ class JedisCacheService implements CacheService {
   @Autowired
   @Qualifier('amazonObjectMapper')
   ObjectMapper objectMapper
+
+  @Metric
+  Timer poolRetrievalTime
 
   @Override
   public <T> T retrieve(String key, Class<T> klazz) {
@@ -106,7 +111,7 @@ class JedisCacheService implements CacheService {
   }
 
   private <T> T withJedis(@DelegatesTo(Jedis) Closure<T> closure) {
-    def jedis = jedisPool.resource
+    def jedis = poolRetrievalTime.time { jedisPool.resource }
     try {
       closure.delegate = jedis
       return closure.call()
