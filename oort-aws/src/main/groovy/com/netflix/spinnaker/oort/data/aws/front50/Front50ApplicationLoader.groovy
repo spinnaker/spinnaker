@@ -59,7 +59,7 @@ class Front50ApplicationLoader implements ApplicationLoader {
           def list = (List<Map<String, String>>) restTemplate.getForObject("${account.front50}/applications", List)
           for (Map<String, String> input in list) {
             def appName = input.name.toLowerCase()
-            AmazonApplication application = (AmazonApplication) cacheService.retrieve(Keys.getApplicationKey("applications:${appName}")) ?: new AmazonApplication(name: appName, attributes: [:])
+            AmazonApplication application = cacheService.retrieve(Keys.getApplicationKey("${Keys.Namespace.APPLICATIONS}:${appName}"), AmazonApplication) ?: new AmazonApplication(name: appName, attributes: [:])
             application.attributes += input
             cacheService.put(Keys.getApplicationKey(application.name), application)
           }

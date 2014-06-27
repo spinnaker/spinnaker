@@ -16,7 +16,9 @@
 
 package com.netflix.apinnaker.oort.model.aws
 
+import com.codahale.metrics.Timer
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonApplicationProvider
@@ -31,10 +33,15 @@ class AmazonApplicationProviderSpec extends Specification {
   @Shared
   CacheService cacheService
 
+  Timer timer = new Timer()
+
   def setup() {
     provider = new AmazonApplicationProvider()
     cacheService = Mock(CacheService)
     provider.cacheService = cacheService
+    AmazonApplicationProvider.declaredFields.findAll { it.type == Timer }.each {
+      provider.setProperty(it.name, timer)
+    }
   }
 
   void "compose application-cluster relationship from cache keys"() {
@@ -50,7 +57,7 @@ class AmazonApplicationProviderSpec extends Specification {
 
     then:
     _ * app1.getName() >> appName
-    1 * cacheService.retrieve(Keys.getApplicationKey(appName)) >> app1
+    1 * cacheService.retrieve(Keys.getApplicationKey(appName), _) >> app1
   }
 
   void "compose application-cluster relationship from cache keys for all applications"() {
@@ -63,7 +70,8 @@ class AmazonApplicationProviderSpec extends Specification {
     def appName2 = "oort"
     def cluster2 = "oort-main"
     def account2 = "prod"
-    cacheService.keys() >> [Keys.getApplicationKey(appName1), Keys.getClusterKey(cluster1, appName1, account1), Keys.getApplicationKey(appName2), Keys.getClusterKey(cluster2, appName2, account2)]
+    cacheService.keysByType(Namespace.APPLICATIONS) >> [Keys.getApplicationKey(appName1), Keys.getApplicationKey(appName2)]
+    cacheService.keysByType(Namespace.CLUSTERS) >> [Keys.getClusterKey(cluster1, appName1, account1), Keys.getClusterKey(cluster2, appName2, account2)]
 
     when:
     def apps = provider.getApplications()
@@ -72,8 +80,8 @@ class AmazonApplicationProviderSpec extends Specification {
     "should check that the app is actually still around"
     _ * app1.getName() >> appName1
     _ * app2.getName() >> appName2
-    1 * cacheService.retrieve(Keys.getApplicationKey(appName1)) >> app1
-    1 * cacheService.retrieve(Keys.getApplicationKey(appName2)) >> app2
+    1 * cacheService.retrieve(Keys.getApplicationKey(appName1), _) >> app1
+    1 * cacheService.retrieve(Keys.getApplicationKey(appName2), _) >> app2
     1 * app1.setProperty('clusterNames', [(account1): [cluster1] as Set])
     1 * app2.setProperty('clusterNames', [(account2): [cluster2] as Set])
     apps.size() == 2

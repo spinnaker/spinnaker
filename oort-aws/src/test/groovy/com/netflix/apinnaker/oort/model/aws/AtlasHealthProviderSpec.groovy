@@ -20,12 +20,8 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
-import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import com.netflix.spinnaker.oort.model.aws.AtlasHealthProvider
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -55,6 +51,6 @@ class AtlasHealthProviderSpec extends Specification {
     then:
     result instanceof Health
     result.id == "i-12345"
-    1 * cacheService.retrieve(Keys.getInstanceHealthKey("i-12345", "test", region, AtlasHealthCachingAgent.PROVIDER_NAME)) >> [id: "i-12345", isHealthy: true]
+    1 * cacheService.retrieve(Keys.getInstanceHealthKey("i-12345", "test", region, AtlasHealthCachingAgent.PROVIDER_NAME), _) >> [id: "i-12345", isHealthy: true]
   }
 }

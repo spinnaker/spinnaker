@@ -17,33 +17,58 @@
 package com.netflix.spinnaker.oort.model
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 class InMemoryCacheService implements CacheService {
-  private static final Map<String, Object> cache = new ConcurrentHashMap<>()
+  private static final ConcurrentMap<String, ConcurrentMap<String, Object>> caches = new ConcurrentHashMap<>()
 
   @Override
-  Object retrieve(String key) {
+  public <T> T retrieve(String key, Class<T> type) {
+    getCache(key)?.get key
     cache.get key
   }
 
   @Override
   boolean put(String key, Object object) {
-    def v = cache.put key, object
+    ConcurrentMap<String, Object> typeMap = new ConcurrentHashMap<>()
+    ConcurrentMap<String, Object> existing = caches.putIfAbsent(getCacheType(key), typeMap)
+    def v = (existing ?: typeMap).put key, object
     v != null
   }
 
   @Override
   void free(String key) {
-    cache.remove key
+    getCache(key)?.remove(key)
   }
 
   @Override
   boolean exists(String key) {
-    cache.containsKey key
+    getCache(key)?.containsKey key
   }
 
   @Override
   Set<String> keys() {
-    cache.keySet()
+    caches.values().collect { it.keySet() }.flatten()
+  }
+
+  @Override
+  Set<String> keysByType(String type) {
+    caches.get(type)?.keySet() ?: []
+  }
+
+  Set<String> keysByType(Object type) {
+    keysByType(type as String)
+  }
+
+  String getCacheType(String key) {
+    int typeIndex = key.indexOf(':')
+    if (typeIndex == -1) {
+      throw new IllegalStateException("Expected type prefix in key ${key}")
+    }
+    key.substring(0, typeIndex)
+  }
+
+  ConcurrentMap<String, Object> getCache(String key) {
+    caches.get(getCacheType(key))
   }
 }

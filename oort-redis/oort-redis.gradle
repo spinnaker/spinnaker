@@ -1,0 +1,14 @@
+configurations {
+  all {
+    exclude module: 'guava-io'
+  }
+}
+
+dependencies {
+  compile project(":oort-core")
+  compile 'redis.clients:jedis:2.5.1'
+  compile 'redis.embedded:embedded-redis:0.2'
+  compile 'com.codahale.metrics:metrics-core:3.0.2'
+  compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
+  runtime 'com.google.guava:guava:17.0'
+}

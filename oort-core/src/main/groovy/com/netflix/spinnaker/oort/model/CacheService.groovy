@@ -29,7 +29,7 @@ public interface CacheService {
    * @param key
    * @return object
    */
-  Object retrieve(String key)
+  public <T> T retrieve(String key, Class<T> type)
 
   /**
    * Stores a keyed value in cache. Returns a true/false depending on whether the insertion succeeded or failed
@@ -60,4 +60,17 @@ public interface CacheService {
    * @return set of keys
    */
   Set<String> keys()
+
+  /**
+   * Retrieves a subset of keys by the key namespace
+   */
+  Set<String> keysByType(String type)
+
+  /**
+   * Retrieves a subset of keys by the key namespace.
+   *
+   * Converts the type to string to determine namespace.
+   */
+  Set<String> keysByType(Object type)
+
 }

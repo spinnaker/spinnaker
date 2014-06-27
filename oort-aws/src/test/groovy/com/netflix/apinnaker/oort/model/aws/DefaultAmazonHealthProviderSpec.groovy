@@ -52,7 +52,7 @@ class DefaultAmazonHealthProviderSpec extends Specification {
     then:
     result instanceof MapBackedHealth
     result.isHealthy()
-    1 * cacheService.retrieve(Keys.getInstanceKey("i-123456", region)) >> {
+    1 * cacheService.retrieve(Keys.getInstanceKey("i-123456", region), _) >> {
       def mock = Mock(Instance)
       mock.getState() >> new InstanceState().withCode(16)
       mock

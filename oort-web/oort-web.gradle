@@ -21,7 +21,9 @@ ideaConfig {
 dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
-  compile "com.netflix.eureka:eureka-client:1.1.134"
+  runtime project(":oort-redis")
   runtime spinnaker.dependency("kork")
   spinnaker.group("bootWeb")
+  compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
+  compile 'com.codahale.metrics:metrics-core:3.0.2'
 }

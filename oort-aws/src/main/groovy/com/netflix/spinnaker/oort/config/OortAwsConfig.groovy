@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.oort.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
@@ -24,6 +26,7 @@ import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
@@ -72,6 +75,11 @@ class OortAwsConfig {
   @ConditionalOnMissingBean(RestTemplate)
   RestTemplate restTemplate() {
     new RestTemplate()
+  }
+
+  @Bean
+  ObjectMapper amazonObjectMapper() {
+    new AmazonObjectMapper()
   }
 
   @Configuration

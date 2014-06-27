@@ -49,9 +49,13 @@ abstract class AbstractInfrastructureCachingAgent implements InfrastructureCachi
 
   @PostConstruct
   void init() {
-    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
-      { load() }, 0, 60, TimeUnit.SECONDS
-    )
+    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
+      try {
+        load()
+      } catch (Throwable t) {
+        t.printStackTrace()
+      }
+    }, 0, 60, TimeUnit.SECONDS)
   }
 
   abstract void load()

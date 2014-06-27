@@ -20,41 +20,66 @@ import com.netflix.frigga.Names
 
 class Keys {
 
+  static enum Namespace {
+    IMAGES,
+    SERVER_GROUPS,
+    SERVER_GROUP_INSTANCE,
+    INSTANCES,
+    LAUNCH_CONFIGS,
+    LOAD_BALANCERS,
+    CLUSTERS,
+    APPLICATIONS,
+    HEALTH
+
+    final String ns
+
+    private Namespace() {
+      def parts = name().split('_')
+
+      ns = parts.tail().inject(new StringBuilder(parts.head().toLowerCase())) { val, next -> val.append(next.charAt(0)).append(next.substring(1).toLowerCase()) }
+    }
+
+    String toString() {
+      ns
+    }
+  }
+
+
   static String getImageKey(String imageId, String region) {
-    "images:${region}:${imageId}"
+    "${Namespace.IMAGES}:${region}:${imageId}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "serverGroups:${names.cluster}:${account}:${region}:${names.group}"
+    "${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
   static String getServerGroupInstanceKey(String autoScalingGroupName, String instanceId, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "serverGroupsInstance:${names.cluster}:${account}:${region}:${names.group}:${instanceId}"
+    "${Namespace.SERVER_GROUP_INSTANCE}:${names.cluster}:${account}:${region}:${names.group}:${instanceId}"
   }
 
   static String getInstanceKey(String instanceId, String region) {
-    "instances:${region}:${instanceId}"
+    "${Namespace.INSTANCES}:${region}:${instanceId}"
   }
 
   static String getLaunchConfigKey(String launchConfigName, String region) {
-    "launchConfigs:${region}:${launchConfigName}"
+    "${Namespace.LAUNCH_CONFIGS}:${region}:${launchConfigName}"
   }
 
   static String getLoadBalancerKey(String loadBalancerName, String region) {
-    "loadBalancers:${region}:${loadBalancerName}"
+    "${Namespace.LOAD_BALANCERS}:${region}:${loadBalancerName}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
-    "clusters:${application}:${account}:${clusterName}"
+    "${Namespace.CLUSTERS}:${application}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "applications:${application}"
+    "${Namespace.APPLICATIONS}:${application}"
   }
 
   static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
-    "health:${instanceId}:${account}:${region}:${provider}"
+    "${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
   }
 }

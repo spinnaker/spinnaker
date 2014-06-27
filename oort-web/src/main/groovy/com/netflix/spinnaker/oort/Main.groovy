@@ -16,7 +16,13 @@
 
 package com.netflix.spinnaker.oort
 
-import com.netflix.appinfo.InstanceInfo
+import com.codahale.metrics.JmxReporter
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.health.HealthCheckRegistry
+import com.ryantenney.metrics.spring.config.annotation.EnableMetrics
+import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurationSupport
+import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -26,12 +32,17 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.oort")
 @EnableAutoConfiguration
 @EnableScheduling
 @EnableAsync
+@EnableMetrics
 class Main extends SpringBootServletInitializer {
 
   static void main(_) {
@@ -43,8 +54,47 @@ class Main extends SpringBootServletInitializer {
     application.sources Main
   }
 
-  @Bean
-  InstanceInfo.InstanceStatus instanceStatus() {
-    InstanceInfo.InstanceStatus.UNKNOWN
+  @Component
+  static class JmxReporterBean {
+    @Autowired
+    MetricRegistry metricRegistry
+
+    JmxReporter reporter
+
+    @PostConstruct
+    void init() {
+      reporter = JmxReporter.forRegistry(metricRegistry).build()
+      reporter.start()
+    }
+
+    @PreDestroy
+    void destroy() {
+      reporter.stop()
+      reporter = null
+    }
+  }
+
+  @Configuration
+  static class MetricsConfigurerConfig {
+
+    @Bean
+    MetricsConfigurer metricsConfigurer(final MetricRegistry metricRegistry) {
+      new MetricsConfigurer() {
+        @Override
+        void configureReporters(MetricRegistry reg) {
+
+        }
+
+        @Override
+        MetricRegistry getMetricRegistry() {
+          return metricRegistry
+        }
+
+        @Override
+        HealthCheckRegistry getHealthCheckRegistry() {
+          return null
+        }
+      }
+    }
   }
 }
