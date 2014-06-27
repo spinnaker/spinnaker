@@ -14,10 +14,10 @@
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/groovy" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/groovy" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
@@ -25,17 +25,17 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="Gradle: guava-17.0" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: jcl-over-slf4j-1.7.5" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: logback-classic-1.0.13" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: slf4j-api-1.7.5" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: logback-core-1.0.13" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: spock-core-0.7-groovy-2.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: hamcrest-core-1.3" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: junit-dep-4.10" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.3-indy" level="project" />
     <orderEntry type="module" module-name="orca-retrofit" exported="" />
     <orderEntry type="module" module-name="orca-test" scope="TEST" />
+    <orderEntry type="library" exported="" name="Gradle: org.codehaus.groovy:groovy-all:2.3.3" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: com.google.guava:guava:17.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.slf4j:jcl-over-slf4j:1.7.5" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: ch.qos.logback:logback-classic:1.0.13" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.slf4j:slf4j-api:1.7.5" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: ch.qos.logback:logback-core:1.0.13" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.spockframework:spock-core:1.0-groovy-2.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.hamcrest:hamcrest-core:1.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: junit:junit:4.11" level="project" />
   </component>
 </module>
 
