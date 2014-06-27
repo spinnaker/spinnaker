@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,55 +16,22 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.workflow.WorkflowBuilderSupport
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.Job
+import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.TaskResult.Status.FAILED
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
+import org.springframework.batch.core.job.builder.SimpleJobBuilder
 
-class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
+@CompileStatic
+class FailureRecoveryWorkflowBuilder extends WorkflowBuilderSupport<FlowJobBuilder> {
 
-  def startTask = Stub(Task)
-  def recoveryTask = Mock(Task)
-  def endTask = Mock(Task)
-
-  def "if the first task completes normally the recovery task does not run"() {
-    given:
-    startTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-
-    when:
-    def jobExecution = launchJob()
-
-    then:
-    1 * endTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-
-    and:
-    0 * recoveryTask._
-
-    and:
-    jobExecution.exitStatus == ExitStatus.COMPLETED
-  }
-
-  def "if the first task fails the recovery task is run"() {
-    given:
-    startTask.execute(_) >> new DefaultTaskResult(FAILED)
-
-    when:
-    def jobExecution = launchJob()
-
-    then:
-    1 * recoveryTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    1 * endTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-
-    and:
-    jobExecution.exitStatus == ExitStatus.COMPLETED
-  }
+  Task startTask, recoveryTask, endTask
 
   @Override
-  protected Job configureJob(JobBuilder jobBuilder) {
+  FlowJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("StartStep")
         .tasklet(TaskTaskletAdapter.decorate(startTask))
         .build()
@@ -78,6 +45,10 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
         .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
         .from(step1).next(step3)
         .build()
-        .build()
+  }
+
+  @Override
+  FlowJobBuilder build(SimpleJobBuilder jobBuilder) {
+    throw new UnsupportedOperationException()
   }
 }

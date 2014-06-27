@@ -45,11 +45,8 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 @CompileStatic
 class BatchTestConfiguration {
 
-  @Autowired
-  private Environment env
-
-  @Autowired
-  private ResourceLoader resourceLoader
+  @Autowired private Environment env
+  @Autowired private ResourceLoader resourceLoader
 
   @Bean(destroyMethod = "destroy")
   DataSource dataSource() {
@@ -66,8 +63,7 @@ class BatchTestConfiguration {
     return ds
   }
 
-  @Bean
-  JobExplorerFactoryBean jobExplorerFactoryBean(DataSource dataSource) {
+  @Bean JobExplorerFactoryBean jobExplorerFactoryBean(DataSource dataSource) {
     new JobExplorerFactoryBean(dataSource: dataSource)
   }
 

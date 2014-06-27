@@ -34,24 +34,20 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 class KatoConfiguration {
 
-  @Autowired
-  Client retrofitClient
-  @Autowired
-  LogLevel retrofitLogLevel
+  @Autowired Client retrofitClient
+  @Autowired LogLevel retrofitLogLevel
 
-  @Bean
-  Endpoint katoEndpoint() {
+  @Bean Endpoint katoEndpoint() {
     newFixedEndpoint("http://kato.test.netflix.net:7001")
   }
 
-  @Bean
-  KatoService katoDeployService(Endpoint katoEndpoint) {
+  @Bean KatoService katoDeployService(Endpoint katoEndpoint) {
     new RestAdapter.Builder()
-      .setEndpoint(katoEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .build()
-      .create(KatoService)
+        .setEndpoint(katoEndpoint)
+        .setClient(retrofitClient)
+        .setLogLevel(retrofitLogLevel)
+        .build()
+        .create(KatoService)
   }
 
 }
