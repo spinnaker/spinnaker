@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.workflow
+package com.netflix.spinnaker.orca.spring
 
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 
-// TODO: great candidate for a trait
 /**
  * A base class for components that want to construct beans at runtime and autowire them using the application context.
  */
 @CompileStatic
-abstract class AutowiredComponentBuilder implements ApplicationContextAware {
+trait AutowiredComponentBuilder implements ApplicationContextAware {
 
   private ApplicationContext applicationContext
 
-  protected void autowire(bean) {
+  void autowire(bean) {
     applicationContext.autowireCapableBeanFactory.autowireBean(bean)
   }
 

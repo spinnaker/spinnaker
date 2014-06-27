@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.workflow
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -28,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * Base class for a component that constructs a workflow to be run as (part of) a +Job+.
  */
 @CompileStatic
-abstract class WorkflowBuilderSupport<B extends JobBuilderHelper<B>> extends AutowiredComponentBuilder implements WorkflowBuilder<B> {
+abstract class WorkflowBuilderSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, WorkflowBuilder<B> {
 
   protected StepBuilderFactory steps
 
