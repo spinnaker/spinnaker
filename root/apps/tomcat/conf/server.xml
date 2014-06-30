@@ -1,31 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Netflix, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <Server className="org.apache.catalina.core.StandardServer" debug="0" port="7531"
         shutdown="SHUTDOWN">
-   <Service className="org.apache.catalina.core.StandardService" debug="0"
-            name="Tomcat-Standalone">
-      <Connector acceptCount="300" bufferSize="2048" compression="off" connectionLinger="-1"
-                 connectionTimeout="4000"
-                 debug="0"
-                 disableUploadTimeout="true"
-                 enableLookups="false"
-                 maxKeepAliveRequests="100"
-                 protocol="org.apache.coyote.http11.Http11NioProtocol"
-                 scheme="http"
-                 secure="false"
-                 tcpNoDelay="true"
-                 useURIValidationHack="false"
-                 port="7101"
-                 maxThreads="200"
-                 minSpareThreads="50"
-                 address="0.0.0.0"
-                 proxyPort="">
-         <Factory className="org.apache.catalina.net.DefaultServerSocketFactory"/>
-      </Connector>
-      <Engine defaultHost="localhost" name="Standalone">
-         <Host appBase="webapps" autoDeploy="true" liveDeploy="true" name="localhost"
-               unpackWARs="true"
-               xmlValidation="false"
-               xmlNamespaceAware="false"/>
-      </Engine>
-   </Service>
+  <Service className="org.apache.catalina.core.StandardService" debug="0"
+           name="Tomcat-Standalone">
+    <Connector acceptCount="300" bufferSize="2048" compression="off" connectionLinger="-1"
+               connectionTimeout="4000"
+               debug="0"
+               disableUploadTimeout="true"
+               enableLookups="false"
+               maxKeepAliveRequests="100"
+               protocol="org.apache.coyote.http11.Http11NioProtocol"
+               scheme="http"
+               secure="false"
+               tcpNoDelay="true"
+               useURIValidationHack="false"
+               port="7101"
+               maxThreads="200"
+               minSpareThreads="50"
+               address="0.0.0.0"
+               proxyPort="">
+      <Factory className="org.apache.catalina.net.DefaultServerSocketFactory"/>
+    </Connector>
+    <Engine defaultHost="localhost" name="Standalone">
+      <Host appBase="webapps" autoDeploy="true" liveDeploy="true" name="localhost"
+            unpackWARs="true"
+            xmlValidation="false"
+            xmlNamespaceAware="false"/>
+    </Engine>
+  </Service>
 </Server>
