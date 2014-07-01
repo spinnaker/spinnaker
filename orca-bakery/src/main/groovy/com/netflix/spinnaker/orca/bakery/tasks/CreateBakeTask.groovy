@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
@@ -33,6 +34,9 @@ class CreateBakeTask implements Task {
   @Autowired
   BakeryService bakery
 
+  @Autowired
+  ObjectMapper mapper
+
   @Override
   TaskResult execute(TaskContext context) {
     def region = context.inputs.region as String
@@ -44,12 +48,6 @@ class CreateBakeTask implements Task {
   }
 
   private Bake bakeFromContext(TaskContext context) {
-    // TODO: use a Groovy 2.3 @Builder
-    new Bake(
-      context.inputs."bake.user" as String,
-      context.inputs."bake.package" as String,
-      Label.valueOf(context.inputs."bake.baseLabel" as String),
-      OperatingSystem.valueOf(context.inputs."bake.baseOs" as String)
-    )
+    mapper.readValue(context.inputs.bake as String, Bake)
   }
 }

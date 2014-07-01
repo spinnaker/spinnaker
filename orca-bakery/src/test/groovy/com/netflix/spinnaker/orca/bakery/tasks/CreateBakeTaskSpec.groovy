@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import spock.lang.Specification
 import spock.lang.Subject
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
@@ -30,14 +31,21 @@ class CreateBakeTaskSpec extends Specification {
 
   @Subject task = new CreateBakeTask()
   def context = new SimpleTaskContext()
+  def mapper = new ObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
+  def bakeConfig = [
+      package: "hodor",
+      user: "bran",
+      baseOs: Bake.OperatingSystem.ubuntu.name(),
+      baseLabel: Bake.Label.release.name()
+  ]
+
   def setup() {
+    task.mapper = mapper
+
     context.region = "us-west-1"
-    context."bake.package" = "hodor"
-    context."bake.user" = "bran"
-    context."bake.baseOs" = Bake.OperatingSystem.ubuntu.name()
-    context."bake.baseLabel" = Bake.Label.release.name()
+    context.bake = mapper.writeValueAsString(bakeConfig)
   }
 
   def "creates a bake for the correct region"() {
@@ -65,10 +73,10 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    bake.user == context."bake.user"
-    bake.packageName == context."bake.package"
-    bake.baseOs.name() == context."bake.baseOs"
-    bake.baseLabel.name() == context."bake.baseLabel"
+    bake.user == bakeConfig.user
+    bake.packageName == bakeConfig.package
+    bake.baseOs.name() == bakeConfig.baseOs
+    bake.baseLabel.name() == bakeConfig.baseLabel
   }
 
   def "outputs the status of the bake"() {

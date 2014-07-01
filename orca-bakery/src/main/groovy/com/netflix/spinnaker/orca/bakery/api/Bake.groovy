@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.bakery.api
 
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
 
 @Immutable
@@ -25,7 +26,7 @@ import com.google.gson.annotations.SerializedName
 class Bake {
 
   String user
-  @SerializedName("package") String packageName
+  @JsonProperty("package") @SerializedName("package") String packageName
   Label baseLabel
   OperatingSystem baseOs
 
