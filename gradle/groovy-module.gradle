@@ -19,7 +19,8 @@ apply plugin: "groovy"
 repositories {
   jcenter()
   mavenCentral()
-  maven { url 'http://repo.spring.io/milestone' }
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots" } // for spock snapshot
+  maven { url "http://repo.spring.io/milestone" }
 }
 
 dependencies {
