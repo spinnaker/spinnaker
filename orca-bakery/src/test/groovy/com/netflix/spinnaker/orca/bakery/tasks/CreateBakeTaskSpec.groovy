@@ -53,19 +53,22 @@ class CreateBakeTaskSpec extends Specification {
 
   def "gets bake configuration from job context"() {
     given:
-    task.bakery = Mock(BakeryService)
+    def bake
+    task.bakery = Mock(BakeryService) {
+      1 * createBake(*_) >> {
+        bake = it[1]
+        Observable.from(runningStatus)
+      }
+    }
 
     when:
     task.execute(context)
 
     then:
-    1 * task.bakery.createBake(*_) >> { String region, Bake bake ->
-      assert bake.user == context."bake.user"
-      assert bake.packageName == context."bake.package"
-      assert bake.baseOs.name() == context."bake.baseOs"
-      assert bake.baseLabel.name() == context."bake.baseLabel"
-      Observable.from(runningStatus)
-    }
+    bake.user == context."bake.user"
+    bake.packageName == context."bake.package"
+    bake.baseOs.name() == context."bake.baseOs"
+    bake.baseLabel.name() == context."bake.baseLabel"
   }
 
   def "outputs the status of the bake"() {
