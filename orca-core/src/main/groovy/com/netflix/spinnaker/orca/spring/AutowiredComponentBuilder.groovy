@@ -22,7 +22,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 
 /**
- * A base class for components that want to construct beans at runtime and autowire them using the application context.
+ * Implemented by components that want to construct beans at runtime and autowire them using the application context.
  */
 @CompileStatic
 trait AutowiredComponentBuilder implements ApplicationContextAware {

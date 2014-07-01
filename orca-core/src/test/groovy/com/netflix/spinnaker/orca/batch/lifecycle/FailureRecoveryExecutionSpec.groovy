@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -65,19 +64,8 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def step1 = steps.get("StartStep")
-        .tasklet(TaskTaskletAdapter.decorate(startTask))
-        .build()
-    def step2 = steps.get("RecoveryStep")
-        .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
-        .build()
-    def step3 = steps.get("EndStep")
-        .tasklet(TaskTaskletAdapter.decorate(endTask))
-        .build()
-    jobBuilder.start(step1)
-        .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-        .from(step1).next(step3)
-        .build()
+    new FailureRecoveryWorkflowBuilder(steps: steps, startTask: startTask, recoveryTask: recoveryTask, endTask: endTask)
+        .build(jobBuilder)
         .build()
   }
 }

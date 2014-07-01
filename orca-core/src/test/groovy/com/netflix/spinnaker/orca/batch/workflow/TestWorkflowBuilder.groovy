@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch.workflow
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.workflow.WorkflowBuilderSupport
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.workflow
 
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
 
 /**
  * An object that constructs steps for a job relating to a specific logical workflow.
@@ -26,7 +25,8 @@ import org.springframework.batch.core.job.builder.SimpleJobBuilder
 interface WorkflowBuilder<B extends JobBuilderHelper<B>> {
 
   /**
-   * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+.
+   * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+. This method
+   * is typically called when the workflow is the first in the job.
    *
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
@@ -34,11 +34,11 @@ interface WorkflowBuilder<B extends JobBuilderHelper<B>> {
   abstract B build(JobBuilder jobBuilder)
 
   /**
-   * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+.
+   * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+. This method
+   * is typically called when the workflow is not the first in the job.
    *
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  abstract B build(SimpleJobBuilder jobBuilder)
-
+  abstract B build(B jobBuilder)
 }

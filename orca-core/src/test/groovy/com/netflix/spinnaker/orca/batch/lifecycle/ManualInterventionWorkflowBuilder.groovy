@@ -23,27 +23,28 @@ import com.netflix.spinnaker.orca.workflow.WorkflowBuilderSupport
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
 
 @CompileStatic
-class FailureRecoveryWorkflowBuilder extends WorkflowBuilderSupport<FlowJobBuilder> {
+class ManualInterventionWorkflowBuilder extends WorkflowBuilderSupport<FlowJobBuilder> {
 
-  Task startTask, recoveryTask, endTask
+  Task preInterventionTask, postInterventionTask, finalTask
 
   @Override
   FlowJobBuilder build(JobBuilder jobBuilder) {
-    def step1 = steps.get("StartStep")
-        .tasklet(TaskTaskletAdapter.decorate(startTask))
+    def step1 = steps.get("PreInterventionStep")
+        .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
         .build()
-    def step2 = steps.get("RecoveryStep")
-        .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
+    def step2 = steps.get("PostInterventionStep")
+        .tasklet(TaskTaskletAdapter.decorate(postInterventionTask))
         .build()
-    def step3 = steps.get("EndStep")
-        .tasklet(TaskTaskletAdapter.decorate(endTask))
+    def step3 = steps.get("FinalStep")
+        .tasklet(TaskTaskletAdapter.decorate(finalTask))
         .build()
     jobBuilder.start(step1)
-        .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-        .from(step1).next(step3)
+        .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
+        .from(step1)
+        .on(ExitStatus.COMPLETED.exitCode).to(step2)
+        .next(step3)
         .build()
   }
 
