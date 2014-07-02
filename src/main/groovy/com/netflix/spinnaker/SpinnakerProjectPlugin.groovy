@@ -37,7 +37,7 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
 
   @Override
   void apply(Project project) {
-    defaultCodeStyleXml = getClass().getResourceAsStream("/defaultCodeStyle.xml").text
+    defaultCodeStyleXml = SpinnakerProjectPlugin.getResourceAsStream("/defaultCodeStyle.xml").text
 
     project.status = project.version.toString().endsWith('-SNAPSHOT') ? 'integration' : 'release'
     project.plugins.apply(NebulaResponsiblePlugin)

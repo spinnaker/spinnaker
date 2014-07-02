@@ -15,7 +15,7 @@
  */
 buildscript {
   repositories { jcenter() }
-  dependencies { classpath 'com.netflix.nebula:nebula-plugin-plugin:1.9.11' }
+  dependencies { classpath 'com.netflix.nebula:nebula-plugin-plugin:1.12.2' }
 }
 
 group = 'com.netflix.spinnaker'
@@ -32,8 +32,7 @@ bintray {
 }
 
 dependencies {
-  compile 'com.netflix.nebula:nebula-plugin-plugin:1.9.11'
-  compile 'com.netflix.nebula:nebula-project-plugin:1.9.6'
+  compile 'com.netflix.nebula:nebula-plugin-plugin:1.12.2'
   compile 'org.yaml:snakeyaml:1.13'
   testCompile "org.spockframework:spock-core:0.7-groovy-1.8"
 }

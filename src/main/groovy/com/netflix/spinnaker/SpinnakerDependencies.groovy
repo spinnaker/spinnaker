@@ -13,7 +13,7 @@ class SpinnakerDependencies {
 
   SpinnakerDependencies(Project project) {
     this.project = project
-    def deps = getClass().getResourceAsStream("/dependencies.yml").text
+    def deps = SpinnakerDependencies.getResourceAsStream("/dependencies.yml").text
     def yaml = new Yaml()
     config = (Map) yaml.load(deps)
   }
