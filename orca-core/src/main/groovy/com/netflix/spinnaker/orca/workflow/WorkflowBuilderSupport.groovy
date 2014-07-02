@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.orca.workflow
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
+import org.springframework.batch.core.JobParameter
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -49,5 +53,19 @@ abstract class WorkflowBuilderSupport<B extends JobBuilderHelper<B>> implements 
   @Autowired
   void setSteps(StepBuilderFactory steps) {
     this.steps = steps
+  }
+
+  /**
+   * Default implementation simply creates a +JobParameter+ for every entry in +configuration+. Implementations can
+   * override this as necessary.
+   */
+  @Override
+  @CompileDynamic
+  void appendConfiguration(Map<String, ?> configuration, JobParametersBuilder parametersBuilder) {
+    Maps.filterKeys configuration, {
+      it != "type"
+    } each {
+      parametersBuilder.addParameter(it.key, new JobParameter(it.value))
+    }
   }
 }

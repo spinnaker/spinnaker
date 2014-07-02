@@ -55,20 +55,21 @@ class JobStarter {
   private WorkflowContext buildJobFrom(String config) {
     def steps = mapper.readValue(config, new TypeReference<List<Map>>() {})
     def context = new WorkflowContext(jobs.get("xxx"))
-    (WorkflowContext) steps.inject(context, this.&foo)
+    (WorkflowContext) steps.inject(context, this.&buildWorkflowFromConfig)
   }
 
   @CompileDynamic
-  private WorkflowContext foo(WorkflowContext context, Map stepConfig) {
+  private WorkflowContext buildWorkflowFromConfig(WorkflowContext context, Map stepConfig) {
     def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
-    context.withStep(workflowBuilder).withParameters(stepConfig)
+    context.apply(workflowBuilder, stepConfig)
   }
 }
 
 @CompileStatic
 class WorkflowContext {
+
   private JobBuilderHelper jobBuilder
-  private JobParametersBuilder parametersBuilder = new JobParametersBuilder()
+  private final JobParametersBuilder parametersBuilder = new JobParametersBuilder()
 
   WorkflowContext(JobBuilder jobBuilder) {
     this.jobBuilder = jobBuilder
@@ -76,18 +77,9 @@ class WorkflowContext {
 
   @CompileDynamic
   @TypeChecked
-  WorkflowContext withStep(WorkflowBuilder workflowBuilder) {
+  WorkflowContext apply(WorkflowBuilder workflowBuilder, Map<String, ?> stepConfig) {
     jobBuilder = workflowBuilder.build(jobBuilder)
-    return this
-  }
-
-  @CompileDynamic
-  WorkflowContext withParameters(Map<String, ?> config) {
-    Maps.filterKeys(config) {
-      it != "type"
-    } each {
-      parametersBuilder.addParameter(it.key, new JobParameter(it.value))
-    }
+    workflowBuilder.appendConfiguration(stepConfig, parametersBuilder)
     return this
   }
 

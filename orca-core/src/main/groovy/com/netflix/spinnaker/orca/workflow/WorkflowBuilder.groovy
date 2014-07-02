@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.workflow
 
+import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 
 /**
- * An object that constructs steps for a job relating to a specific logical workflow.
+ * An object that constructs steps for a job relating to a specific workflow.
  */
 interface WorkflowBuilder<B extends JobBuilderHelper<B>> {
 
@@ -41,4 +43,6 @@ interface WorkflowBuilder<B extends JobBuilderHelper<B>> {
    * @return the resulting builder after any steps are appended.
    */
   abstract B build(B jobBuilder)
+
+  void appendConfiguration(Map<String, ?> configuration, JobParametersBuilder parametersBuilder)
 }
