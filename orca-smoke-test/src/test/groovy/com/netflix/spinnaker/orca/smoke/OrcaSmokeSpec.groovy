@@ -21,7 +21,6 @@ import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.JobStarter
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,12 +49,12 @@ class OrcaSmokeSpec extends Specification {
 
     where:
     config = [[
-        type            : "bake",
-        region          : "us-west-1",
-        "bake.user"     : "rfletcher",
-        "bake.package"  : "oort",
-        "bake.baseOs"   : "ubuntu",
-        "bake.baseLabel": "release"
+        type     : "bake",
+        region   : "us-west-1",
+        user     : "rfletcher",
+        package  : "oort",
+        baseOs   : "ubuntu",
+        baseLabel: "release"
     ]]
   }
 }

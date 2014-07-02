@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.Bake
-import com.netflix.spinnaker.orca.bakery.api.Bake.Label
-import com.netflix.spinnaker.orca.bakery.api.Bake.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -39,7 +38,7 @@ class CreateBakeTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    def region = context.inputs.region as String
+    def region = context.inputs."bake.region" as String
     def bake = bakeFromContext(context)
 
     def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
@@ -48,6 +47,7 @@ class CreateBakeTask implements Task {
   }
 
   private Bake bakeFromContext(TaskContext context) {
-    mapper.readValue(context.inputs.bake as String, Bake)
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    mapper.convertValue(context.getInputs("bake"), Bake)
   }
 }

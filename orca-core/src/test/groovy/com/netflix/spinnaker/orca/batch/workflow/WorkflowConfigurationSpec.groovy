@@ -20,7 +20,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.api.JobStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -116,6 +115,6 @@ class WorkflowConfigurationSpec extends Specification {
     where:
     config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     configJson = mapper.writeValueAsString(config)
-    expectedParameters = Maps.filterKeys(config[0]) { it != "type" }
+    expectedParameters = ["foo.region": config[0].region, "foo.os": config[0].os]
   }
 }

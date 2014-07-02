@@ -35,17 +35,19 @@ class CreateBakeTaskSpec extends Specification {
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
   def bakeConfig = [
-      package: "hodor",
-      user: "bran",
-      baseOs: Bake.OperatingSystem.ubuntu.name(),
+      region   : "us-west-1",
+      package  : "hodor",
+      user     : "bran",
+      baseOs   : Bake.OperatingSystem.ubuntu.name(),
       baseLabel: Bake.Label.release.name()
   ]
 
   def setup() {
     task.mapper = mapper
 
-    context.region = "us-west-1"
-    context.bake = mapper.writeValueAsString(bakeConfig)
+    bakeConfig.each {
+      context."bake.$it.key" = it.value
+    }
   }
 
   def "creates a bake for the correct region"() {
@@ -56,7 +58,7 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    1 * task.bakery.createBake(context.region, _ as Bake) >> Observable.from(runningStatus)
+    1 * task.bakery.createBake(bakeConfig.region, _ as Bake) >> Observable.from(runningStatus)
   }
 
   def "gets bake configuration from job context"() {

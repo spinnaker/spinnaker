@@ -18,8 +18,20 @@ package com.netflix.spinnaker.orca
 
 import com.google.common.collect.ImmutableMap
 
-interface TaskContext {
+trait TaskContext {
 
-  ImmutableMap<String, Object> getInputs()
+  abstract ImmutableMap<String, Object> getInputs()
+
+  ImmutableMap<String, Object> getInputs(String prefix) {
+    def prefixWithDot = "$prefix."
+
+    def map = getInputs().findAll {
+      it.key.startsWith(prefixWithDot)
+    } collectEntries {
+      [(it.key.substring(prefixWithDot.length())): it.value]
+    }
+
+    ImmutableMap.copyOf map
+  }
 
 }

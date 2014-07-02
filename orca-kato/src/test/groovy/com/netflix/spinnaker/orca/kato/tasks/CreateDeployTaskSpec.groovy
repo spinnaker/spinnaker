@@ -18,9 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import spock.lang.Specification
 import spock.lang.Subject
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.DeployOperation
@@ -35,19 +33,18 @@ class CreateDeployTaskSpec extends Specification {
   def mapper = new ObjectMapper()
 
   def deployConfig = [
-      application: "hodor",
-      amiName: "hodor-ubuntu-1",
-      instanceType: "large",
-      securityGroups: ["a", "b", "c"],
+      region           : "us-west-1",
+      application      : "hodor",
+      amiName          : "hodor-ubuntu-1",
+      instanceType     : "large",
+      securityGroups   : ["a", "b", "c"],
       availabilityZones: ["us-east-1": ["a", "d"]],
-      capacity: [
-          min: 1,
-          max: 20,
+      capacity         : [
+          min    : 1,
+          max    : 20,
           desired: 5
       ],
-      credentials: "fzlem",
-      stack: null,
-      subnetType: null
+      credentials      : "fzlem"
   ]
 
   def setup() {
@@ -55,8 +52,9 @@ class CreateDeployTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    context.region = "us-west-1"
-    context.deploy = mapper.writeValueAsString(deployConfig)
+    deployConfig.each {
+      context."deploy.$it.key" = it.value
+    }
   }
 
   def "creates a deployment based on job parameters"() {

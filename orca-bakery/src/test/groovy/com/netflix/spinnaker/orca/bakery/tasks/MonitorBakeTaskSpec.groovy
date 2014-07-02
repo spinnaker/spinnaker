@@ -32,7 +32,7 @@ class MonitorBakeTaskSpec extends Specification {
   def context = new SimpleTaskContext()
 
   def setup() {
-    context.region = "us-west-1"
+    context."bake.region" = "us-west-1"
   }
 
   @Unroll
@@ -43,7 +43,7 @@ class MonitorBakeTaskSpec extends Specification {
 
     and:
     task.bakery = Stub(BakeryService) {
-      lookupStatus(context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
+      lookupStatus(context."bake.region", id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
     }
 
     expect:
@@ -67,7 +67,7 @@ class MonitorBakeTaskSpec extends Specification {
 
     and:
     task.bakery = Stub(BakeryService) {
-      lookupStatus(context.region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
+      lookupStatus(context."bake.region", id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
     }
 
     when:

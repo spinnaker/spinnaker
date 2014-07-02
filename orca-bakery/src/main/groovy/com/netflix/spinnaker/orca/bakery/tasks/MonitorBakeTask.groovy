@@ -33,7 +33,7 @@ class MonitorBakeTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    def region = context.inputs.region as String
+    def region = context.inputs."bake.region" as String
     def previousStatus = context.inputs."bake.status" as BakeStatus
 
     def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()

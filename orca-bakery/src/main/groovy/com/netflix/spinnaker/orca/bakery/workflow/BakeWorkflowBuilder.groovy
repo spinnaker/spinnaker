@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
 import com.netflix.spinnaker.orca.workflow.WorkflowBuilderSupport
-import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.stereotype.Component
@@ -32,18 +31,19 @@ class BakeWorkflowBuilder extends WorkflowBuilderSupport<SimpleJobBuilder> {
   @Override
   SimpleJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("CreateBakeStep")
-      .tasklet(buildTask(CreateBakeTask))
-      .build()
+        .tasklet(buildTask(CreateBakeTask))
+        .build()
     def step2 = steps.get("MonitorBakeStep")
-      .tasklet(buildTask(MonitorBakeTask))
-      .build()
+        .tasklet(buildTask(MonitorBakeTask))
+        .build()
     jobBuilder
-      .start(step1)
-      .next(step2)
+        .start(step1)
+        .next(step2)
   }
 
   @Override
   SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
-    throw new UnsupportedOperationException() // TODO: need to implement this with some tests. It should basically do whe the other method does but use next rather than start
+    throw new UnsupportedOperationException()
+    // TODO: need to implement this with some tests. It should basically do whe the other method does but use next rather than start
   }
 }

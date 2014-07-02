@@ -62,10 +62,11 @@ abstract class WorkflowBuilderSupport<B extends JobBuilderHelper<B>> implements 
   @Override
   @CompileDynamic
   void appendConfiguration(Map<String, ?> configuration, JobParametersBuilder parametersBuilder) {
+    def type = configuration.type
     Maps.filterKeys configuration, {
       it != "type"
     } each {
-      parametersBuilder.addParameter(it.key, new JobParameter(it.value))
+      parametersBuilder.addParameter("$type.$it.key", new JobParameter(it.value))
     }
   }
 }

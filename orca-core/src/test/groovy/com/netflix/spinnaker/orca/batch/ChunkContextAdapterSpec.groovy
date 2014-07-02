@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -49,7 +50,7 @@ class ChunkContextAdapterSpec extends Specification {
     def chunkContext = new ChunkContext(stepContext)
 
     and:
-    def context = new ChunkContextAdapter(chunkContext)
+    @Subject context = new ChunkContextAdapter(chunkContext)
 
     expect:
     context.inputs[key] == expected
@@ -65,6 +66,26 @@ class ChunkContextAdapterSpec extends Specification {
 
     and:
     key = "foo"
+  }
+
+  def "can get a subset of the inputs based on a prefix"() {
+    given:
+    def stepExecution = MetaDataInstanceFactory.createStepExecution()
+    def stepContext = new StepContext(stepExecution)
+    def chunkContext = new ChunkContext(stepContext)
+
+    and:
+    stepExecution.executionContext.put("foo.a", "a")
+    stepExecution.executionContext.put("foo.b", "b")
+    stepExecution.executionContext.put("bar.c", "c")
+    stepExecution.executionContext.put("bar.d", "d")
+
+    when:
+    @Subject context = new ChunkContextAdapter(chunkContext)
+
+    then:
+    context.getInputs("foo") == [a: "a", b: "b"]
+    context.getInputs("bar") == [c: "c", d: "d"]
   }
 
 }

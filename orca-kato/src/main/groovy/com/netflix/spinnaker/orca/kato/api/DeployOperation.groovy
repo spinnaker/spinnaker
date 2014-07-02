@@ -23,10 +23,10 @@ import com.google.common.base.Optional
 class DeployOperation extends Operation {
   String application
   String amiName
-  Optional<String> stack
+  Optional<String> stack = Optional.absent()
   String instanceType
   List<String> securityGroups
-  Optional<String> subnetType
+  Optional<String> subnetType = Optional.absent()
   Map<String, List<String>> availabilityZones
   ASGCapacity capacity
   String credentials

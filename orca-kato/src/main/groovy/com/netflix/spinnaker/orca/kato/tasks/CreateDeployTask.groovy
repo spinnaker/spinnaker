@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.base.Optional
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
@@ -45,13 +45,7 @@ class CreateDeployTask implements Task {
   }
 
   private DeployOperation deployOperationFromContext(TaskContext context) {
-    mapper.readValue(context.inputs.deploy as String, DeployOperation)
-//    new DeployOperation(
-//        application: context.inputs."deploy.application" as String,
-//        amiName: context.inputs."deploy.amiName" as String,
-//        stack: Optional.fromNullable(context.inputs."deploy.stack" as String),
-//        instanceType: context.inputs."deploy.instanceType" as String
-//        securityGroups: context.inputs.
-//    )
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    mapper.convertValue(context.getInputs("deploy"), DeployOperation)
   }
 }
