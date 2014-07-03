@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.smoke
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.api.JobStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
@@ -34,7 +34,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
-  @Autowired JobStarter jobStarter
+  @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
 
   def "can bake and monitor to completion"() {

@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.api
+package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.Maps
-import com.netflix.spinnaker.orca.workflow.WorkflowBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -40,7 +37,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class JobStarter {
+class PipelineStarter {
 
   @Autowired private ApplicationContext applicationContext
   @Autowired private JobLauncher launcher
@@ -48,38 +45,38 @@ class JobStarter {
   @Autowired private ObjectMapper mapper
 
   JobExecution start(String config) {
-    def context = buildJobFrom(config)
+    def context = buildPipelineFrom(config)
     launcher.run(context.job, context.parameters)
   }
 
-  private WorkflowContext buildJobFrom(String config) {
+  private PipelineContext buildPipelineFrom(String config) {
     def steps = mapper.readValue(config, new TypeReference<List<Map>>() {})
-    def context = new WorkflowContext(jobs.get("xxx"))
-    (WorkflowContext) steps.inject(context, this.&buildWorkflowFromConfig)
+    def context = new PipelineContext(jobs.get("xxx"))
+    (PipelineContext) steps.inject(context, this.&buildStageFromConfig)
   }
 
   @CompileDynamic
-  private WorkflowContext buildWorkflowFromConfig(WorkflowContext context, Map stepConfig) {
-    def workflowBuilder = applicationContext.getBean("${stepConfig.type}WorkflowBuilder", WorkflowBuilder)
-    context.apply(workflowBuilder, stepConfig)
+  private PipelineContext buildStageFromConfig(PipelineContext context, Map stepConfig) {
+    def stageBuilder = applicationContext.getBean("${stepConfig.type}StageBuilder", StageBuilder)
+    context.apply(stageBuilder, stepConfig)
   }
 }
 
 @CompileStatic
-class WorkflowContext {
+class PipelineContext {
 
   private JobBuilderHelper jobBuilder
   private final JobParametersBuilder parametersBuilder = new JobParametersBuilder()
 
-  WorkflowContext(JobBuilder jobBuilder) {
+  PipelineContext(JobBuilder jobBuilder) {
     this.jobBuilder = jobBuilder
   }
 
   @CompileDynamic
   @TypeChecked
-  WorkflowContext apply(WorkflowBuilder workflowBuilder, Map<String, ?> stepConfig) {
-    jobBuilder = workflowBuilder.build(jobBuilder)
-    workflowBuilder.appendConfiguration(stepConfig, parametersBuilder)
+  PipelineContext apply(StageBuilder stageBuilder, Map<String, ?> stepConfig) {
+    jobBuilder = stageBuilder.build(jobBuilder)
+    stageBuilder.appendConfiguration(stepConfig, parametersBuilder)
     return this
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.workflow
+package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -30,10 +30,10 @@ import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
- * Base class for a component that constructs a workflow to be run as (part of) a +Job+.
+ * Base class for a component that constructs a _stage_ to be run as (part of) a _pipeline_.
  */
 @CompileStatic
-abstract class WorkflowBuilderSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, WorkflowBuilder<B> {
+abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, StageBuilder<B> {
 
   protected StepBuilderFactory steps
 

@@ -25,7 +25,7 @@ interface TaskResult {
   ImmutableMap<String, Object> getOutputs()
 
   /**
-   * Indicates the state of the workflow at the end of a call to {@link Task#execute}.
+   * Indicates the state at the end of a call to {@link Task#execute}.
    */
   static enum Status {
     /**
@@ -34,17 +34,17 @@ interface TaskResult {
     RUNNING(false),
 
     /**
-     * The task is complete but the workflow should now be stopped pending a trigger of some kind.
+     * The task is complete but the pipeline should now be stopped pending a trigger of some kind.
      */
       SUSPENDED(false),
 
     /**
-     * The task executed successfully and the workflow may now proceed to the next task.
+     * The task executed successfully and the pipeline may now proceed to the next task.
      */
       SUCCEEDED(true),
 
     /**
-     * The task failed and the workflow should stop with an error.
+     * The task failed and the pipeline should stop with an error.
      */
       FAILED(true)
 

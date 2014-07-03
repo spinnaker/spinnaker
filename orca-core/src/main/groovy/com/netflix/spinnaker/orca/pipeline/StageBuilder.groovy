@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.workflow
+package com.netflix.spinnaker.orca.pipeline
 
-import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 
 /**
- * An object that constructs steps for a job relating to a specific workflow.
+ * An object that constructs steps for a Spring Batch +Job+ relating to a specific Orca _stage_.
  */
-interface WorkflowBuilder<B extends JobBuilderHelper<B>> {
+interface StageBuilder<B extends JobBuilderHelper<B>> {
 
   /**
-   * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+. This method
-   * is typically called when the workflow is the first in the job.
+   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
+   * is typically called when the stage is the first in the pipeline.
    *
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
@@ -36,8 +35,8 @@ interface WorkflowBuilder<B extends JobBuilderHelper<B>> {
   abstract B build(JobBuilder jobBuilder)
 
   /**
-   * Implementations should construct any steps necessary for the workflow and append them to +jobBuilder+. This method
-   * is typically called when the workflow is not the first in the job.
+   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
+   * is typically called when the stage is not the first in the pipeline.
    *
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.

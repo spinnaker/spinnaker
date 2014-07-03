@@ -18,10 +18,9 @@ package com.netflix.spinnaker.orca.config
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.api.JobStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @Configuration
 @CompileStatic
@@ -31,7 +30,7 @@ class OrcaConfiguration {
     new ObjectMapper()
   }
 
-  @Bean JobStarter jobStarter() {
-    new JobStarter()
+  @Bean PipelineStarter jobStarter() {
+    new PipelineStarter()
   }
 }

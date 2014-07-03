@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch.workflow
+package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.workflow.WorkflowBuilderSupport
+import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
 
 @CompileStatic
-class TestWorkflowBuilder extends WorkflowBuilderSupport<SimpleJobBuilder> {
+class TestStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
 
   private final Tasklet tasklet
 
-  TestWorkflowBuilder(Tasklet tasklet, StepBuilderFactory steps) {
+  TestStageBuilder(Tasklet tasklet, StepBuilderFactory steps) {
     this.tasklet = tasklet
     this.steps = steps
   }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.bakery.workflow
+package com.netflix.spinnaker.orca.bakery.pipeline
 
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,9 +31,9 @@ import org.springframework.beans.factory.support.GenericBeanDefinition
 import org.springframework.context.support.StaticApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 
-class BakeJobBuilderSpec extends Specification {
+class BakeStageBuilderSpec extends Specification {
 
-  @Subject builder = new BakeWorkflowBuilder()
+  @Subject builder = new BakeStageBuilder()
 
   def applicationContext = new StaticApplicationContext()
   def txMan = Stub(PlatformTransactionManager)
@@ -50,7 +50,7 @@ class BakeJobBuilderSpec extends Specification {
     builder.applicationContext = applicationContext
   }
 
-  def "builds a bake workflow"() {
+  def "builds a bake stage and its tasks"() {
     when:
     def job = builder.build(jobs.get("BakeJobBuilderSpecJob")).build()
 

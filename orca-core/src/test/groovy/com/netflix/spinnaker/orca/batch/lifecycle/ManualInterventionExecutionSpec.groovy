@@ -31,7 +31,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
   def postInterventionTask = Mock(Task)
   def finalTask = Mock(Task)
 
-  def "workflow will stop if the first task suspends the job"() {
+  def "pipeline will stop if the first task suspends the job"() {
     given:
     preInterventionTask.execute(_) >> new DefaultTaskResult(SUSPENDED)
 
@@ -43,7 +43,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
     0 * finalTask._
   }
 
-  def "workflow will resume if the job is restarted"() {
+  def "pipeline will resume if the job is restarted"() {
     given:
     preInterventionTask.execute(_) >> new DefaultTaskResult(SUSPENDED)
     def jobExecution = launchJob()
@@ -89,7 +89,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    new ManualInterventionWorkflowBuilder(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
+    new ManualInterventionStageBuilder(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
         .build(jobBuilder)
         .build()
   }
