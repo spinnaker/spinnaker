@@ -21,7 +21,7 @@ import com.amazonaws.services.ec2.model.Tag
 import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
-class SubnetsSpec extends Specification {
+class SubnetAnalyzerSpec extends Specification {
 
   static SubnetData subnet(String id, String zone, String purpose, SubnetTarget target, String vpcId = 'vpc-1') {
     new SubnetData(subnetId: id, availabilityZone: zone, purpose: purpose, target: target, vpcId: vpcId)
@@ -31,8 +31,8 @@ class SubnetsSpec extends Specification {
     new SecurityGroup(groupId: id, groupName: id, vpcId: vpcId)
   }
 
-  Subnets subnets
-  Subnets subnetsForEc2Classic
+  SubnetAnalyzer subnets
+  SubnetAnalyzer subnetsForEc2Classic
 
   void setup() {
 
@@ -44,14 +44,14 @@ class SubnetsSpec extends Specification {
       subnet('subnet-c1e8b2b1', 'us-east-1b', 'internal', SubnetTarget.EC2, 'vpc-abcd'),
       subnet('subnet-c1e8b2b2', 'us-east-1b', 'external', SubnetTarget.EC2, 'vpc-feed'),
     ]
-    subnetsForEc2Classic = new Subnets(subnetDatasForEc2Classic)
+    subnetsForEc2Classic = new SubnetAnalyzer(subnetDatasForEc2Classic)
 
     List<SubnetData> subnetDatas = subnetDatasForEc2Classic + [
       subnet('subnet-a3770585', 'us-east-1a', null, null, 'vpc-def'),
       subnet('subnet-a3770586', 'us-east-1b', null, null, 'vpc-def'),
       subnet('subnet-a3770587', 'us-east-1c', null, null, 'vpc-def'),
     ]
-    subnets = new Subnets(subnetDatas, 'vpc-def')
+    subnets = new SubnetAnalyzer(subnetDatas, 'vpc-def')
   }
 
   def 'should create Subnets from AWS objects'() {
@@ -65,7 +65,7 @@ class SubnetsSpec extends Specification {
         cidrBlock: '10.10.1.0/21', availableIpAddressCount: 42, availabilityZone: 'us-east-1a',
         purpose: 'internal', target: SubnetTarget.EC2)
     )
-    expect: expectedSubnets == Subnets.from(awsSubnets).allSubnets
+    expect: expectedSubnets == SubnetAnalyzer.from(awsSubnets).allSubnets
   }
 
   def 'should create subnet without target from AWS object with invalid target'() {
@@ -79,7 +79,7 @@ class SubnetsSpec extends Specification {
         cidrBlock: '10.10.1.0/21', availableIpAddressCount: 42, availabilityZone: 'us-east-1a',
         purpose: 'internal')
     )
-    expect: expectedSubnets == Subnets.from(awsSubnets).allSubnets
+    expect: expectedSubnets == SubnetAnalyzer.from(awsSubnets).allSubnets
   }
 
   def 'should get subnet IDs'() {
@@ -98,7 +98,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should find subnets by VPC ID'() {
-    Subnets expectedSubnets = Subnets.from([
+    SubnetAnalyzer expectedSubnets = SubnetAnalyzer.from([
       new Subnet(subnetId: 'subnet-a3770585', availabilityZone: 'us-east-1a', vpcId: 'vpc-def'),
       new Subnet(subnetId: 'subnet-a3770586', availabilityZone: 'us-east-1b', vpcId: 'vpc-def'),
       new Subnet(subnetId: 'subnet-a3770587', availabilityZone: 'us-east-1c', vpcId: 'vpc-def'),
@@ -176,7 +176,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return subnet without target if none specified'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'internal', null),
     ])
@@ -184,7 +184,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return subnets without a target in addition to targeted ones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1b', 'internal', SubnetTarget.ELB),
       subnet('subnet-e9b0a3a3', 'us-east-1c', 'internal', null),
@@ -197,7 +197,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should fail to return multiple subnets with same purpose and zone'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-c1e8b2c1', 'us-east-1c', 'internal', SubnetTarget.EC2),
       subnet('subnet-c1e8b2c3', 'us-east-1c', 'internal', SubnetTarget.EC2),
     ])
@@ -211,14 +211,14 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should not return subnets without purpose'() {
-    subnets = Subnets.from([
+    subnets = SubnetAnalyzer.from([
       new Subnet(subnetId: 'subnet-e9b0a3a2', availabilityZone: 'us-east-1a'),
     ])
     expect: subnets.getSubnetIdsForZones(['us-east-1a'], '').isEmpty()
   }
 
   def 'should construct VPC Zone Identifier for zones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'internal', SubnetTarget.ELB),
@@ -237,7 +237,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should construct null VPC Zone Identifier for subnets without purpose'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'internal', SubnetTarget.ELB),
@@ -284,7 +284,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return only purposes without target when not specified'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', null),
     ])
@@ -292,7 +292,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return union of purposes without a target in addition to targeted ones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.ELB),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'vulnerable', null),
@@ -304,7 +304,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return union of purposes for zones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a4', 'us-east-1a', 'external', null),
       subnet('subnet-c1e8b2b1', 'us-east-1b', 'internal', SubnetTarget.EC2),
@@ -329,7 +329,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return zones grouped by purpose'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'internal', SubnetTarget.ELB),
@@ -348,7 +348,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return zones grouped by purpose filtered by specified zones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'internal', SubnetTarget.ELB),
@@ -367,7 +367,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return zones grouped by purpose including extra specified zones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'internal', SubnetTarget.ELB),
@@ -386,7 +386,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return only zones without a target when not specified'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1b', 'internal', null),
     ])
@@ -399,7 +399,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should return zones without a target in addition to targeted ones'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1b', 'internal', SubnetTarget.ELB),
       subnet('subnet-e9b0a3a3', 'us-east-1c', 'internal', null),
@@ -456,7 +456,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should map purpose to VPC ID'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'external', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'internal', SubnetTarget.ELB),
@@ -478,7 +478,7 @@ class SubnetsSpec extends Specification {
   }
 
   def 'should omit purposes in multiple VPCs'() {
-    subnets = new Subnets([
+    subnets = new SubnetAnalyzer([
       subnet('subnet-e9b0a3a1', 'us-east-1a', 'internal', SubnetTarget.EC2),
       subnet('subnet-e9b0a3a2', 'us-east-1a', 'internal', SubnetTarget.ELB),
       subnet('subnet-e9b0a3a3', 'us-east-1a', 'external', SubnetTarget.EC2),

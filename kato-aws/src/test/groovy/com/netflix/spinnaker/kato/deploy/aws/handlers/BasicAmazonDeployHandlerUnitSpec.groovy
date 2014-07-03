@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -46,7 +47,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties()
     awsConfigurationProperties.defaults.iamRole = "IamRole"
     awsConfigurationProperties.defaults.keyPair = "keypair"
-    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties)
+    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties,
+      regionScopedProviderFactory: Mock(RegionScopedProviderFactory))
+    handler.regionScopedProviderFactory.forRegion(_, _) >> Mock(RegionScopedProviderFactory.RegionScopedProvider)
     this.task = Mock(Task)
     this.task.getResultObjects() >> []
     TaskRepository.threadLocalTask.set(task)
