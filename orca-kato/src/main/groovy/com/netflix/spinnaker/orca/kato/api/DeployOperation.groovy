@@ -18,15 +18,16 @@ package com.netflix.spinnaker.orca.kato.api
 
 import groovy.transform.CompileStatic
 import com.google.common.base.Optional
+import static com.google.common.base.Optional.absent
 
 @CompileStatic
 class DeployOperation extends Operation {
   String application
   String amiName
-  Optional<String> stack = Optional.absent()
+  Optional<String> stack = absent()
   String instanceType
   List<String> securityGroups
-  Optional<String> subnetType = Optional.absent()
+  Optional<String> subnetType = absent()
   Map<String, List<String>> availabilityZones
   ASGCapacity capacity
   String credentials

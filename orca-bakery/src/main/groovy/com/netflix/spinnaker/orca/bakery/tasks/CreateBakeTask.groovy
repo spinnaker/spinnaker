@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import org.springframework.beans.factory.annotation.Autowired
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
 class CreateBakeTask implements Task {
@@ -47,7 +47,8 @@ class CreateBakeTask implements Task {
   }
 
   private Bake bakeFromContext(TaskContext context) {
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    mapper.convertValue(context.getInputs("bake"), Bake)
+    mapper.copy()
+        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .convertValue(context.getInputs("bake"), Bake)
   }
 }

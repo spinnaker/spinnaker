@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import org.springframework.beans.factory.annotation.Autowired
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
 class CreateDeployTask implements Task {
@@ -45,7 +45,8 @@ class CreateDeployTask implements Task {
   }
 
   private DeployOperation deployOperationFromContext(TaskContext context) {
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    mapper.convertValue(context.getInputs("deploy"), DeployOperation)
+    mapper.copy()
+        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .convertValue(context.getInputs("deploy"), DeployOperation)
   }
 }

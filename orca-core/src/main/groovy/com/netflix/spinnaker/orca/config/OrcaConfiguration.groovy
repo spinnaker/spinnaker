@@ -21,18 +21,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.JobStarter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @Configuration
 @CompileStatic
 class OrcaConfiguration {
 
   @Bean ObjectMapper mapper() {
-    println "mapper()"
     new ObjectMapper()
   }
 
   @Bean JobStarter jobStarter() {
-    println "jobStarter()"
     new JobStarter()
   }
 }

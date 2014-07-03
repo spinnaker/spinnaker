@@ -33,5 +33,4 @@ trait TaskContext {
 
     ImmutableMap.copyOf map
   }
-
 }
