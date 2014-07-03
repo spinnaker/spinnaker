@@ -21,6 +21,7 @@ import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.SimpleTaskContext
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -31,6 +32,7 @@ class CreateDeployTaskSpec extends Specification {
   @Subject task = new CreateDeployTask()
   def context = new SimpleTaskContext()
   def mapper = new ObjectMapper()
+  def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deployConfig = [
       region           : "us-west-1",
@@ -63,7 +65,7 @@ class CreateDeployTaskSpec extends Specification {
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
         operations = it[0]
-        Observable.from(new TaskId(UUID.randomUUID().toString()))
+        Observable.from(taskId)
       }
     }
 
@@ -87,5 +89,19 @@ class CreateDeployTaskSpec extends Specification {
       !stack.present
       !subnetType.present
     }
+  }
+
+  def "returns a success status with the kato task id"() {
+    given:
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> Observable.from(taskId)
+    }
+
+    when:
+    def result = task.execute(context)
+
+    then:
+    result.status == TaskResult.Status.SUCCEEDED
+    result.outputs."deploy.task.id" == taskId
   }
 }

@@ -22,4 +22,12 @@ import groovy.transform.Immutable
 @Immutable
 @CompileStatic
 class Task {
+
+  String id
+  Status status
+
+  @Immutable
+  static class Status {
+    boolean completed
+  }
 }

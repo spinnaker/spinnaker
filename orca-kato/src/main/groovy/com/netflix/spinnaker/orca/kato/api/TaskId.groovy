@@ -22,5 +22,5 @@ import groovy.transform.Immutable
 @Immutable
 @CompileStatic
 class TaskId {
-  final String id
+  String id
 }
