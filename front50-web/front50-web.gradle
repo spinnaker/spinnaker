@@ -1,0 +1,10 @@
+ideaConfig {
+  mainClassName = 'com.netflix.front50.Main'
+}
+
+dependencies {
+  compile project(":front50-aws")
+  spinnaker.group "bootWeb"
+  compile spinnaker.dependency("kork")
+  compile spinnaker.dependency("rxJava")
+}

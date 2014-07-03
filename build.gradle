@@ -14,117 +14,37 @@
  * limitations under the License.
  */
 
-apply plugin: 'nebula'
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'idea'
-apply plugin: 'groovy'
-apply plugin: 'vagrant'
-apply plugin: 'spring-boot'
-apply plugin: 'nebula-ospackage-tomcat'
-apply plugin: 'war'
-apply plugin: 'docker'
-apply plugin: 'spinnaker-ideaconfig'
-
 buildscript {
-  project.ext {
-    bootVersion = '1.0.2.RELEASE'
-    ver = '1.2'
-    rxJavaVersion = '0.17.5'
-    servoVersion = '0.7.2'
-  }
   repositories {
     jcenter()
-    maven { url "http://repo.spring.io/libs-snapshot" }
-    mavenLocal()
-    mavenCentral()
+    maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-ideaconfig-plugin:0.3'
-    classpath 'org.gradle.api.plugins:gradle-vagrant-plugin:0.5'
-    classpath("org.springframework.boot:spring-boot-gradle-plugin:${project.bootVersion}")
-    classpath 'se.transmode.gradle:gradle-docker:1.1'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.4'
   }
 }
 
-ideaConfig {
-  codeStyleXml = file('idea/codeStyle.xml')
-}
+allprojects { project ->
+  apply plugin: 'spinnaker-gradle-project'
+  apply plugin: 'groovy'
+  apply plugin: 'idea'
 
-sourceSets {
-  main {
-    java { srcDirs = [] }    // no source dirs for the java compiler
-    groovy { srcDirs += ["src/main/java", "src/main/groovy"] }  // compile everything in src/ with groovy
+  group = "com.netflix.spinnaker.front50"
+
+  repositories {
+    jcenter()
   }
-}
 
-configurations.all {
-  resolutionStrategy {
-    force 'org.apache.log4j:log4j:1.2.17'
-    force 'com.google.guava:guava:14.0.1'
-    force 'commons-codec:commons-codec:1.7'
-    eachDependency { DependencyResolveDetails details ->
-      if (details.requested.group == 'com.netflix.servo') {
-        details.useVersion servoVersion
-      }
-      if (details.requested.group == 'com.netflix.rxjava') {
-        details.useVersion rxJavaVersion
-      }
-    }
+  dependencies {
+    compile spinnaker.dependency("groovy")
+    spinnaker.group("test")
   }
-  exclude group: 'javax.servlet', module: 'servlet-api'
-  exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-  exclude group: 'ch.qos.logback', module: 'logback-classic'
-  exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
-  exclude group: 'commons-logging', module: 'commons-logging'
-}
 
-run {
-  systemProperty 'aws.secret', project.hasProperty('awsSecret') ? project.awsSecret : null
-  systemProperty 'aws.key', project.hasProperty('awsKey') ? project.awsKey : null
-}
-
-repositories {
-  maven { url 'http://artifacts.netflix.com/build-gradle' }
-  maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
-}
-
-test {
-  systemProperty 'aws.secret', project.hasProperty('awsSecret') ? project.awsSecret : null
-  systemProperty 'aws.key', project.hasProperty('awsKey') ? project.awsKey : null
-  systemProperty 'env', 'local-test'
-  testLogging {
-    events 'passed'
-    exceptionFormat 'full'
-
+  configurations.all {
+    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+    exclude group: "org.mortbay.jetty", module: "servlet-api"
   }
-}
 
-dependencies {
-  compile "org.springframework.boot:spring-boot-starter-web:${bootVersion}"
-  compile "org.springframework.boot:spring-boot-starter-actuator:${bootVersion}"
-  compile 'com.amazonaws:aws-java-sdk:1.7.8'
-  compile 'org.codehaus.groovy:groovy-all:2.2.2'
-  compile 'com.netflix.rxjava:rxjava-groovy:0.17.5'
-  compile 'com.netflix.eureka:eureka-client:1.1.132'
-  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
 
-  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
-  testCompile 'com.jayway.awaitility:awaitility-groovy:1.4.0'
-  testCompile "org.springframework.boot:spring-boot-starter-test:${bootVersion}"
-
-  runtime 'com.netflix.spinnaker.netflixplatform:netflixplatform:1.2-SNAPSHOT'
-  runtime 'com.netflix.platform:NFSpring:1.52.0'
-  runtime 'netflix:platform:2.615.7'
-  runtime 'netflix:base-server:1.169.4'
-}
-
-nebula {
-  readyForJava7 = true
-}
-
-mainClassName = 'com.netflix.front50.Front50Controller'
-
-distDocker {
-  exposePort 8080
 }

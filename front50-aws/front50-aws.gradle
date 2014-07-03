@@ -1,0 +1,7 @@
+dependencies {
+  compile project(":front50-core")
+
+  spinnaker.group "amazon"
+  compile spinnaker.dependency("rxJava")
+  compile spinnaker.dependency("frigga")
+}
