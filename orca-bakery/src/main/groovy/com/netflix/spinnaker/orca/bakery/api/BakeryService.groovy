@@ -30,10 +30,10 @@ interface BakeryService {
   @POST("/api/v1/{region}/bake")
   Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake)
 
-  @GET("/api/v1/{region}/status/{id}")
-  Observable<BakeStatus> lookupStatus(@Path("region") String region, @Path("id") String id)
+  @GET("/api/v1/{region}/status/{statusId}")
+  Observable<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId)
 
-  @GET("/api/v1/{region}/bake/{id}")
-  Observable<Bake> lookupBake(@Path("region") String region, @Path("id") String id)
+  @GET("/api/v1/{region}/bake/{bakeId}")
+  Observable<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
 
 }
