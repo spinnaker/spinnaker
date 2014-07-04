@@ -17,19 +17,24 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import groovy.transform.CompileStatic
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.ToString
+import groovy.transform.Immutable
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.annotations.SerializedName
 
+@Immutable
 @CompileStatic
-@EqualsAndHashCode(includes = "id")
-@ToString(includeNames = true)
-class BakeStatus {
+class BakeRequest {
 
-  String id
-  State state
-  String resourceId
+  String user
+  @JsonProperty("package") @SerializedName("package") String packageName
+  Label baseLabel
+  OperatingSystem baseOs
 
-  static enum State {
-    PENDING, RUNNING, COMPLETED, SUSPENDED, CANCELLED
+  enum Label {
+    release, candidate
+  }
+
+  enum OperatingSystem {
+    centos, ubuntu
   }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,35 +17,30 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.bakery.api.BakeRequest
+import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import retrofit.RetrofitError
 
 @CompileStatic
-class CreateBakeTask implements Task {
+class CompletedBakeTask implements Task {
 
   @Autowired BakeryService bakery
-  @Autowired ObjectMapper mapper
 
   @Override
   TaskResult execute(TaskContext context) {
     def region = context.inputs."bake.region" as String
-    def bake = bakeFromContext(context)
-
-    def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
-
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.status": bakeStatus])
-  }
-
-  private BakeRequest bakeFromContext(TaskContext context) {
-    mapper.copy()
-        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .convertValue(context.getInputs("bake"), BakeRequest)
+    def bakeStatus = context.inputs."bake.status" as BakeStatus
+    try {
+      def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlockingObservable().first()
+      new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.ami": bake.ami])
+    } catch (RetrofitError e) {
+      // TODO: attach some reporting info here
+      new DefaultTaskResult(TaskResult.Status.FAILED)
+    }
   }
 }

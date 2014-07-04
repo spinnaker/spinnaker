@@ -28,12 +28,15 @@ import rx.Observable
 interface BakeryService {
 
   @POST("/api/v1/{region}/bake")
-  Observable<BakeStatus> createBake(@Path("region") String region, @Body Bake bake)
+  Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake)
 
   @POST("/api/v1/{region}/bake")
   Observable<BakeStatus> createBake(@Path("region") String region)
 
   @GET("/api/v1/{region}/status/{id}")
   Observable<BakeStatus> lookupStatus(@Path("region") String region, @Path("id") String id)
+
+  @GET("/api/v1/{region}/bake/{id}")
+  Observable<Bake> lookupBake(@Path("region") String region, @Path("id") String id)
 
 }

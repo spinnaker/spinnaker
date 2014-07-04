@@ -28,13 +28,14 @@ import org.springframework.beans.factory.annotation.Autowired
 @CompileStatic
 class MonitorBakeTask implements Task {
 
-  @Autowired
-  BakeryService bakery
+  @Autowired BakeryService bakery
 
   @Override
   TaskResult execute(TaskContext context) {
     def region = context.inputs."bake.region" as String
     def previousStatus = context.inputs."bake.status" as BakeStatus
+
+    // TODO: could skip the lookup if it's already complete as it will be for a previously requested bake
 
     def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
 

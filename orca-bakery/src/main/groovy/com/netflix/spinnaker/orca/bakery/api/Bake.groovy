@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,24 +17,13 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import groovy.transform.CompileStatic
-import groovy.transform.Immutable
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.annotations.SerializedName
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
-@Immutable
 @CompileStatic
+@EqualsAndHashCode(includes = "id")
+@ToString(includeNames = true)
 class Bake {
-
-  String user
-  @JsonProperty("package") @SerializedName("package") String packageName
-  Label baseLabel
-  OperatingSystem baseOs
-
-  enum Label {
-    release, candidate
-  }
-
-  enum OperatingSystem {
-    centos, ubuntu
-  }
+  String id
+  String ami
 }

@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.bakery.api
 
 import spock.lang.Specification
 import spock.lang.Subject
-import com.netflix.spinnaker.orca.bakery.api.Bake.Label
-import com.netflix.spinnaker.orca.bakery.api.Bake.OperatingSystem
+import com.netflix.spinnaker.orca.bakery.api.BakeRequest.Label
+import com.netflix.spinnaker.orca.bakery.api.BakeRequest.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
@@ -37,7 +37,7 @@ class BakeryServiceSpec extends Specification {
   @Subject BakeryService bakery
 
   final region = "us-west-1"
-  final bake = new Bake("rfletcher", "orca", Label.release, OperatingSystem.ubuntu)
+  final bake = new BakeRequest("rfletcher", "orca", Label.release, OperatingSystem.ubuntu)
   final bakePath = "/api/v1/$region/bake"
   final statusPath = "/api/v1/$region/status"
   final bakeId = "b-123456789"
@@ -61,6 +61,7 @@ class BakeryServiceSpec extends Specification {
       progress 100
       status "SUCCESS"
       code 0
+      resource_id bakeId
       resource_uri "$bakeURI/$bakeId"
       uri "$statusURI/$statusId"
       id statusId
@@ -74,6 +75,7 @@ class BakeryServiceSpec extends Specification {
     with(bakery.lookupStatus(region, statusId).toBlockingObservable().first()) {
       id == statusId
       state == BakeStatus.State.COMPLETED
+      resourceId == bakeId
     }
   }
 
@@ -94,6 +96,7 @@ class BakeryServiceSpec extends Specification {
     httpServer.expect("POST", bakePath).andRespond().withStatus(HTTP_ACCEPTED).withJsonContent {
       state "PENDING"
       progress 0
+      resource_id bakeId
       resource_uri "$bakeURI/$bakeId"
       uri "$statusURI/$statusId"
       id statusId
@@ -107,6 +110,7 @@ class BakeryServiceSpec extends Specification {
     with(bakery.createBake(region, bake).toBlockingObservable().first()) {
       id == statusId
       state == BakeStatus.State.PENDING
+      resourceId == bakeId
     }
   }
 
@@ -116,6 +120,7 @@ class BakeryServiceSpec extends Specification {
     httpServer.expect("GET", "$statusPath/$statusId").andRespond().withStatus(HTTP_OK).withJsonContent {
       state "RUNNING"
       progress 1
+      resource_id bakeId
       resource_uri "$bakeURI/$bakeId"
       uri "$statusURI/$statusId"
       id statusId
@@ -129,6 +134,7 @@ class BakeryServiceSpec extends Specification {
     with(bakery.createBake(region, bake).toBlockingObservable().first()) {
       id == statusId
       state == BakeStatus.State.RUNNING
+      resourceId == bakeId // TODO: would we actually get a bake id if it was incomplete?
     }
   }
 

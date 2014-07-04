@@ -20,7 +20,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.bakery.api.Bake
+import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import rx.Observable
@@ -38,8 +38,8 @@ class CreateBakeTaskSpec extends Specification {
       region   : "us-west-1",
       package  : "hodor",
       user     : "bran",
-      baseOs   : Bake.OperatingSystem.ubuntu.name(),
-      baseLabel: Bake.Label.release.name()
+      baseOs   : BakeRequest.OperatingSystem.ubuntu.name(),
+      baseLabel: BakeRequest.Label.release.name()
   ]
 
   def setup() {
@@ -58,7 +58,7 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region, _ as Bake) >> Observable.from(runningStatus)
+    1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest) >> Observable.from(runningStatus)
   }
 
   def "gets bake configuration from job context"() {
