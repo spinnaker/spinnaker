@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.bakery.pipeline
 import spock.lang.Specification
 import spock.lang.Subject
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -59,10 +60,10 @@ class BakeStageBuilderSpec extends Specification {
     def steps = job.stepNames.collect {
       job.getStep(it)
     }
-    steps.size() == 2
+    steps.size() == 3
     steps.every { it instanceof TaskletStep }
     steps.every { ((TaskletStep) it).tasklet instanceof TaskTaskletAdapter }
-    steps.tasklet.taskType == [CreateBakeTask, MonitorBakeTask]
+    steps.tasklet.taskType == [CreateBakeTask, MonitorBakeTask, CompletedBakeTask]
   }
 
   private void registerMockBean(String name, bean) {

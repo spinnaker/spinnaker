@@ -20,13 +20,27 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
+/**
+ * The state of a bake as returned by the Bakery API when a bake is created. Once complete it provides a link to the
+ * details of the actual bake via {@link BakeStatus#resourceId}.
+ */
 @CompileStatic
 @EqualsAndHashCode(includes = "id")
 @ToString(includeNames = true)
 class BakeStatus {
 
+  /**
+   * The bake status id.
+   */
   String id
+
   State state
+
+  /**
+   * The bake id that can be used to find the details of the bake.
+   *
+   * @see BakeryService#lookupBake
+   */
   String resourceId
 
   static enum State {

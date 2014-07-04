@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
 import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
@@ -36,9 +37,13 @@ class BakeStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
     def step2 = steps.get("MonitorBakeStep")
         .tasklet(buildTask(MonitorBakeTask))
         .build()
+    def step3 = steps.get("CompletedBakeStep")
+        .tasklet(buildTask(CompletedBakeTask))
+        .build()
     jobBuilder
         .start(step1)
         .next(step2)
+        .next(step3)
   }
 
   @Override

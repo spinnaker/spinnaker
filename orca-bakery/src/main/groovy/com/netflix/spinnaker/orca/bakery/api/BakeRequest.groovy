@@ -21,6 +21,11 @@ import groovy.transform.Immutable
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
 
+/**
+ * A request to bake a new AMI.
+ *
+ * @see BakeryService#createBake
+ */
 @Immutable
 @CompileStatic
 class BakeRequest {
