@@ -47,7 +47,7 @@ abstract class AbstractAmazonAccountCredentials implements NamedAccount<AmazonCr
   @XmlTransient
   @Override
   Application getApplication() {
-    def dao = new AmazonApplicationDAO(awsSimpleDBClient: new AmazonSimpleDBClient(provider), domain: simpleDBDomain)
+    def dao = new AmazonApplicationDAO(awsSimpleDBClient: new AmazonSimpleDBClient(getCredentials().credentials), domain: simpleDBDomain)
     new Application(dao: dao)
   }
 }
