@@ -18,21 +18,16 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.*
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import groovy.transform.Canonical
 
 /**
  * Created by aglover on 4/22/14.
  */
-@Component("SimpleDB")
-class DefaultApplicationDAO implements ApplicationDAO {
+@Canonical
+class AmazonApplicationDAO implements ApplicationDAO {
 
-  @Autowired
-  AmazonSimpleDB awsSimpleDBClient
-
-  @Value('${application.simpledb.domain:RESOURCE_REGISTRY}')
-  String domain
+  protected AmazonSimpleDB awsSimpleDBClient
+  protected String domain
 
   @Override
   boolean isHealthly() {

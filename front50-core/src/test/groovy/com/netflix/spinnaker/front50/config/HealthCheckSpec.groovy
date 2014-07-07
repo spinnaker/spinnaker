@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.front50.config
 
+import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.security.NamedAccount
+import com.netflix.spinnaker.front50.security.NamedAccountProvider
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
 import org.springframework.boot.actuate.health.OrderedHealthAggregator
@@ -41,34 +46,44 @@ class HealthCheckSpec extends Specification {
   @Shared
   HealthCheck healthCheck
 
+  @Shared
+  ApplicationDAO dao
+
   void setup() {
-    this.healthCheck = new HealthCheck()
+    healthCheck = new HealthCheck()
+    def namedAccountProvider = Mock(NamedAccountProvider)
+    namedAccountProvider.getAccountNames() >> ["test"]
+    healthCheck.namedAccountProvider = namedAccountProvider
+    dao = Mock(ApplicationDAO)
+    namedAccountProvider.get("test") >> {
+      def mock = Mock(NamedAccount)
+      def mockApp = Mock(Application)
+      mock.getApplication() >> mockApp
+      mockApp.getDao() >> dao
+      mock
+    }
     this.mockMvc = standaloneSetup(new EndpointMvcAdapter(
       new HealthEndpoint(new OrderedHealthAggregator(), [health: this.healthCheck]))).setMessageConverters new MappingJackson2HttpMessageConverter() build()
   }
 
   void 'health check should return 5xx error if dao is not working'() {
     setup:
-    def application = Mock(ApplicationDAO)
-    healthCheck.dao = application
+
 
     when:
     def result = mockMvc.perform(get("/health")).andReturn()
 
     then:
+    1 * dao.isHealthly() >> false
     result.response.status == HttpStatus.SERVICE_UNAVAILABLE.value()
   }
 
   void 'health check should return Ok'() {
-    setup:
-    def application = Mock(ApplicationDAO)
-    application.isHealthly() >> true
-    healthCheck.dao = application
-
     when:
     def response = mockMvc.perform(get("/health"))
 
     then:
+    1 * dao.isHealthly() >> true
     response.andExpect status().isOk()
   }
 }

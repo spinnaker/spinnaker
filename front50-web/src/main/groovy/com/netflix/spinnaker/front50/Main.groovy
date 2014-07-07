@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.front50
+
+
+package com.netflix.spinnaker.front50
 
 import com.netflix.appinfo.InstanceInfo
-import com.netflix.front50.controllers.ApplicationsController
+import com.netflix.spinnaker.front50.controllers.ApplicationsController
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -28,28 +30,35 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan("com.netflix.front50")
+@ComponentScan("com.netflix.spinnaker.front50")
 public class Main extends SpringBootServletInitializer {
 
-  static void main(_) {
-    initializeEnv()
-    SpringApplication.run this, [] as String[]
-  }
-
-  private static void initializeEnv() {
+  static {
     if (!System.properties["netflix.environment"]) {
       System.setProperty("netflix.environment", "test")
     }
+    imposeSpinnakerFileConfig("front50-internal.yml")
+    imposeSpinnakerFileConfig("front50-local.yml")
+  }
+
+  static void main(_) {
+    SpringApplication.run this, [] as String[]
   }
 
   @Override
   protected SpringApplicationBuilder configure(final SpringApplicationBuilder application) {
-    initializeEnv()
     application.sources(ApplicationsController)
   }
 
   @Bean
   public InstanceInfo.InstanceStatus instanceStatus() {
     return InstanceInfo.InstanceStatus.UNKNOWN;
+  }
+
+  static void imposeSpinnakerFileConfig(String file) {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
+    if (internalConfig.exists()) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
+    }
   }
 }

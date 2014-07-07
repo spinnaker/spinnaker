@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.security.NamedAccountProvider
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
@@ -32,13 +34,16 @@ import org.springframework.web.bind.annotation.ResponseStatus
 public class HealthCheck implements HealthIndicator {
 
   @Autowired
-  ApplicationDAO dao
+  NamedAccountProvider namedAccountProvider
 
   @Override
   public Health health() {
     try {
-      if (!dao.healthly) {
-        throw new RuntimeException()
+      for (accountName in namedAccountProvider.accountNames) {
+        def namedAccount = namedAccountProvider.get(accountName)
+        if (!namedAccount.application.dao.isHealthly()) {
+          throw new RuntimeException()
+        }
       }
       new Health.Builder().up() build()
     } catch (IGNORE) {

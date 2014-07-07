@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.front50.model.application
 
 import com.fasterxml.jackson.annotation.JsonCreator
@@ -33,8 +35,6 @@ import java.lang.reflect.Modifier
 /**
  * Created by aglover on 4/20/14.
  */
-@Component
-@Configurable
 @ToString
 class Application {
   String name
@@ -51,8 +51,6 @@ class Application {
   String regions
 
   @JsonIgnore
-  @Autowired
-  @Qualifier("SimpleDB")
   ApplicationDAO dao
 
   Application() {} //forces Groovy to add LinkedHashMap constructor

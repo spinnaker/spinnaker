@@ -83,7 +83,6 @@
     <orderEntry type="library" exported="" name="Gradle: netflix-infix-0.1.2" level="project" />
     <orderEntry type="library" exported="" name="Gradle: netflix-eventbus-0.1.2" level="project" />
     <orderEntry type="library" exported="" name="Gradle: httpcore-4.2.1" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: commons-codec-1.6" level="project" />
     <orderEntry type="library" exported="" name="Gradle: httpclient-4.2.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jersey-client-1.11" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jersey-apache-client4-1.11" level="project" />
@@ -146,6 +145,7 @@
     <orderEntry type="library" exported="" name="Gradle: log4j-1.2.16" level="project" />
     <orderEntry type="module" module-name="front50-aws" exported="" />
     <orderEntry type="library" exported="" name="Gradle: aws-java-sdk-1.7.13" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-codec-1.9" level="project" />
   </component>
 </module>
 

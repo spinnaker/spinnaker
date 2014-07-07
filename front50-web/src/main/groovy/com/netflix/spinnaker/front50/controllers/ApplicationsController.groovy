@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.front50.controllers
+
+
+package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.front50.exception.NoPrimaryKeyException
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.security.NamedAccountProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.web.SpringBootServletInitializer
@@ -29,14 +32,16 @@ import javax.servlet.http.HttpServletResponse
 
 @Slf4j
 @RestController
-@RequestMapping("/applications")
+@RequestMapping("/{account}/applications")
 public class ApplicationsController extends SpringBootServletInitializer {
 
   @Autowired
-  Application application
+  NamedAccountProvider namedAccountProvider
 
   @RequestMapping(method = RequestMethod.GET)
-  Collection<Application> applications() {
+  Collection<Application> applications(@PathVariable String account) {
+    def namedAccount = namedAccountProvider.get(account)
+    def application  = namedAccount.application
     try {
       return application.findAll()
     } catch (NotFoundException e) {
@@ -49,7 +54,9 @@ public class ApplicationsController extends SpringBootServletInitializer {
   }
 
   @RequestMapping(method = RequestMethod.PUT)
-  Application put(@RequestBody final Application app) {
+  Application put(@PathVariable String account, @RequestBody final Application app) {
+    def namedAccount = namedAccountProvider.get(account)
+    def application = namedAccount.application
     try {
       if (app.getName() == null || app.getName().equals("")) {
         throw new ApplicationWithoutNameException("Application must have a name")
@@ -64,7 +71,9 @@ public class ApplicationsController extends SpringBootServletInitializer {
   }
 
   @RequestMapping(method = RequestMethod.POST, value = "/name/{name}")
-  Application post(@RequestBody final Application app) {
+  Application post(@PathVariable String account, @RequestBody final Application app) {
+    def namedAccount = namedAccountProvider.get(account)
+    def application = namedAccount.application
     try {
       return application.initialize(app).withName(app.getName()).save()
     } catch (NoPrimaryKeyException e) {
@@ -77,7 +86,9 @@ public class ApplicationsController extends SpringBootServletInitializer {
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name}")
-  void delete(@PathVariable final String name, HttpServletResponse response) {
+  void delete(@PathVariable String account, @PathVariable String name, HttpServletResponse response) {
+    def namedAccount = namedAccountProvider.get(account)
+    def application = namedAccount.application
     try {
       application.initialize(new Application().withName(name)).delete()
       response.sendError HttpStatus.ACCEPTED.value()
@@ -88,7 +99,9 @@ public class ApplicationsController extends SpringBootServletInitializer {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/name/{name}")
-  Application getByName(@PathVariable final String name) {
+  Application getByName(@PathVariable String account, @PathVariable final String name) {
+    def namedAccount = namedAccountProvider.get(account)
+    def application = namedAccount.application
     try {
       return application.findByName(name)
     } catch (NotFoundException e) {

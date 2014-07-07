@@ -16,12 +16,14 @@
 
 
 
-package com.netflix.spinnaker.front50.exception
+package com.netflix.spinnaker.front50.security
 
-import groovy.transform.InheritConstructors;
+interface NamedAccountProvider {
+  List<String> getAccountNames()
 
-/**
- * Created by aglover on 4/23/14.
- */
-@InheritConstructors
-public class NotFoundException extends RuntimeException {}
+  NamedAccount get(String name)
+
+  void remove(String name)
+
+  void put(NamedAccount namedAccount)
+}
