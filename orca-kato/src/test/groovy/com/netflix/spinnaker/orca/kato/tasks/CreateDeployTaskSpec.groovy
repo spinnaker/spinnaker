@@ -91,6 +91,29 @@ class CreateDeployTaskSpec extends Specification {
     }
   }
 
+  def "can use the AMI output by a bake"() {
+    given:
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        Observable.from(taskId)
+      }
+    }
+
+    and:
+    context."bake.ami" = amiName
+
+    when:
+    task.execute(context)
+
+    then:
+    operations[0].amiName == amiName
+
+    where:
+    amiName = "ami-name-from-bake"
+  }
+
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {

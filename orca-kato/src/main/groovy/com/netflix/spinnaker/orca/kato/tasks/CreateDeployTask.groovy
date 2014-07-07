@@ -46,8 +46,12 @@ class CreateDeployTask implements Task {
   }
 
   private DeployOperation deployOperationFromContext(TaskContext context) {
-    mapper.copy()
+    def operation = mapper.copy()
         .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         .convertValue(context.getInputs("deploy"), DeployOperation)
+    if (context.inputs."bake.ami") {
+      operation.amiName = context.inputs."bake.ami"
+    }
+    return operation
   }
 }
