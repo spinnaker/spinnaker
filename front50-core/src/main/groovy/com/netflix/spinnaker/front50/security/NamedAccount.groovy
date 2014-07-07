@@ -16,12 +16,17 @@
 
 
 
-package com.netflix.spinnaker.front50.exception
+package com.netflix.spinnaker.front50.security
 
-import groovy.transform.InheritConstructors;
+import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 
-/**
- * Created by aglover on 4/23/14.
- */
-@InheritConstructors
-public class NotFoundException extends RuntimeException {}
+public interface NamedAccount<T> {
+  String getName()
+
+  T getCredentials()
+
+  Class<T> getType()
+
+  Application getApplication()
+}

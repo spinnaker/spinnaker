@@ -20,7 +20,6 @@
     <orderEntry type="library" exported="" name="Gradle: rxjava-core-0.19.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: frigga-0.13" level="project" />
     <orderEntry type="library" exported="" name="Gradle: httpcore-4.2" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: commons-codec-1.6" level="project" />
     <orderEntry type="library" exported="" name="Gradle: httpclient-4.2" level="project" />
     <orderEntry type="library" exported="" name="Gradle: joda-time-2.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spring-boot-starter-test-1.1.1.RELEASE" level="project" />
@@ -35,12 +34,20 @@
     <orderEntry type="library" scope="TEST" name="Gradle: spring-core-4.0.5.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: spring-test-4.0.5.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: junit-dep-4.10" level="project" />
-    <orderEntry type="library" scope="TEST" name="Gradle: groovy-all-2.3.3" level="project" />
     <orderEntry type="module" module-name="front50-core" exported="" />
     <orderEntry type="library" exported="" name="Gradle: commons-logging-1.1.3" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jackson-core-2.3.3" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jackson-databind-2.3.3" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jackson-annotations-2.3.3" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: sshoogr-0.9.15" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-codec-1.9" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: jsch-0.1.50" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-io-1.4" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: groovy-all-2.3.3" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: slf4j-api-1.7.7" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: jcl-over-slf4j-1.7.7" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: logback-core-1.1.2" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: logback-classic-1.1.2" level="project" />
   </component>
 </module>
 

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.front50.model.application
 
 public interface ApplicationDAO {

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.front50.model.application
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
@@ -30,7 +32,7 @@ class DefaultApplicationDAOSpec extends Specification {
     def attributes = [
       "group": "tst-group",
       "tags" : "[1,ok, test]"]
-    def dao = new DefaultApplicationDAO()
+    def dao = new AmazonApplicationDAO()
     dao.awsSimpleDBClient = awsClient
     when:
     dao.update("SampleApp1", attributes)
@@ -47,7 +49,7 @@ class DefaultApplicationDAOSpec extends Specification {
       "email"      : "web@netflix.com",
       "updateTs"   : "1265752693581",
       "tags"       : "[1,ok, test]"]
-    def dao = new DefaultApplicationDAO()
+    def dao = new AmazonApplicationDAO()
     def values = dao.buildAttributes(attributes, false)
     def attr = values.find { it.name == "description" }
     expect:
@@ -59,7 +61,7 @@ class DefaultApplicationDAOSpec extends Specification {
 
   void 'should delete an item'() {
     def awsClient = Mock(AmazonSimpleDB)
-    def dao = new DefaultApplicationDAO()
+    def dao = new AmazonApplicationDAO()
     dao.awsSimpleDBClient = awsClient
 
     when:
@@ -80,7 +82,7 @@ class DefaultApplicationDAOSpec extends Specification {
       "email"      : "web@netflix.com",
       "updateTs"   : "1265752693581",
       "tags"       : "[1,ok, test]"]
-    def dao = new DefaultApplicationDAO()
+    def dao = new AmazonApplicationDAO()
     dao.awsSimpleDBClient = awsClient
     when:
     def application = dao.create("SampleApp1", attributes)
@@ -93,7 +95,7 @@ class DefaultApplicationDAOSpec extends Specification {
   void 'should throw exception if no application is found'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new DefaultApplicationDAO(domain: "RESOURCE_REGISTRY")
+    def dao = new AmazonApplicationDAO(domain: "RESOURCE_REGISTRY")
     List<Item> outItems = new ArrayList<Item>() //nothing was found
     result.getItems() >> outItems
     awsClient.select(_) >> result
@@ -109,7 +111,7 @@ class DefaultApplicationDAOSpec extends Specification {
   void 'should throw exception if no applications exist'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new DefaultApplicationDAO(domain: "RESOURCE_REGISTRY")
+    def dao = new AmazonApplicationDAO(domain: "RESOURCE_REGISTRY")
     List<Item> outItems = new ArrayList<Item>() //nothing was found
     result.getItems() >> outItems
     awsClient.select(_) >> result
@@ -125,7 +127,7 @@ class DefaultApplicationDAOSpec extends Specification {
   void 'should find one application by name'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new DefaultApplicationDAO()
+    def dao = new AmazonApplicationDAO()
     List<Item> outItems = new ArrayList<Item>()
     Item item = new Item().withName("SAMPLEAPP").withAttributes(
       new Attribute("email", "web@netflix.com"), new Attribute("createTs", "1265752693581"),
@@ -150,7 +152,7 @@ class DefaultApplicationDAOSpec extends Specification {
   void 'should find all applications'() {
     def awsClient = Mock(AmazonSimpleDB)
     def result = Mock(SelectResult)
-    def dao = new DefaultApplicationDAO()
+    def dao = new AmazonApplicationDAO()
 
     List<Item> outItems = new ArrayList<Item>()
     outItems << new Item().withName("SAMPLEAPP").withAttributes(

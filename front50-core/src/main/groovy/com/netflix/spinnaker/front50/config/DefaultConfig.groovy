@@ -16,12 +16,20 @@
 
 
 
-package com.netflix.spinnaker.front50.exception
+package com.netflix.spinnaker.front50.config
 
-import groovy.transform.InheritConstructors;
+import com.netflix.spinnaker.front50.security.DefaultNamedAccountProvider
+import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
-/**
- * Created by aglover on 4/23/14.
- */
-@InheritConstructors
-public class NotFoundException extends RuntimeException {}
+@Configuration
+class DefaultConfig {
+
+  @Bean
+  @ConditionalOnMissingBean(NamedAccountProvider)
+  NamedAccountProvider namedAccountProvider() {
+    new DefaultNamedAccountProvider()
+  }
+}
