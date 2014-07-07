@@ -30,5 +30,5 @@ import groovy.transform.ToString
 @ToString(includeNames = true)
 class Bake {
   String id
-  String ami
+  String amiName
 }

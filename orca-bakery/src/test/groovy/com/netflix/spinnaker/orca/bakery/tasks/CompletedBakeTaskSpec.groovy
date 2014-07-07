@@ -44,7 +44,7 @@ class CompletedBakeTaskSpec extends Specification {
   def "finds the AMI created by a bake"() {
     given:
     task.bakery = Stub(BakeryService) {
-      lookupBake(region, bakeId) >> Observable.from(new Bake(id: bakeId, ami: ami))
+      lookupBake(region, bakeId) >> Observable.from(new Bake(id: bakeId, amiName: ami))
     }
 
     and:
