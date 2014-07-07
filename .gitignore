@@ -4,8 +4,6 @@ front50.i*
 out/
 .gradle/
 .vagrant/
-
-gradle.properties
 .vagrant
 vendor/
 .bundle/
