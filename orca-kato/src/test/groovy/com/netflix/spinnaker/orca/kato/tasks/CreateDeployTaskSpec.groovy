@@ -91,6 +91,34 @@ class CreateDeployTaskSpec extends Specification {
     }
   }
 
+  def "can include optional parameters"() {
+    given:
+    context."deploy.stack" = stackValue
+    context."deploy.subnetType" = subnetTypeValue
+
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        Observable.from(taskId)
+      }
+    }
+
+    when:
+    task.execute(context)
+
+    then:
+    operations.size() == 1
+    with(operations[0]) {
+      stack.get() == stackValue
+      subnetType.get() == subnetTypeValue
+    }
+
+    where:
+    stackValue = "the-stack-value"
+    subnetTypeValue = "the-subnet-type-value"
+  }
+
   def "can use the AMI output by a bake"() {
     given:
     def operations
