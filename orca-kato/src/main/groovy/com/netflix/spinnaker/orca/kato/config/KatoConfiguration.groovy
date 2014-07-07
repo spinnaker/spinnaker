@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.config
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.pipeline.DeployStageBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -48,6 +49,10 @@ class KatoConfiguration {
         .setLogLevel(retrofitLogLevel)
         .build()
         .create(KatoService)
+  }
+
+  @Bean DeployStageBuilder deployStageBuilder() {
+    new DeployStageBuilder()
   }
 
 }
