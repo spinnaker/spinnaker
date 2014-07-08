@@ -27,14 +27,14 @@ import groovy.transform.Canonical
 /**
  * These are nontrivial queries we like to perform on subnets.
  */
-@Canonical class Subnets {
+@Canonical class SubnetAnalyzer {
   /** All of the subnets contained in this object. */
   final Collection<SubnetData> allSubnets
 
   /** The identifier of the default VPC of the account-region, if available. */
   final String defaultVpcId
 
-  private Subnets(Collection<SubnetData> allSubnets, String defaultVpcId = null) {
+  private SubnetAnalyzer(Collection<SubnetData> allSubnets, String defaultVpcId = null) {
     this.defaultVpcId = defaultVpcId
     this.allSubnets = ImmutableSet.copyOf(allSubnets)
   }
@@ -46,8 +46,8 @@ import groovy.transform.Canonical
    * @param defaultVpcId the identifier of the default VPC, if available
    * @return a new immutable Subnets based off the subnets
    */
-  public static Subnets from(Collection<Subnet> subnets, String defaultVpcId = null) {
-    new Subnets(subnets.collect() { SubnetData.from(it) }, defaultVpcId)
+  public static SubnetAnalyzer from(Collection<Subnet> subnets, String defaultVpcId = null) {
+    new SubnetAnalyzer(subnets.collect() { SubnetData.from(it) }, defaultVpcId)
   }
 
   /**
@@ -75,8 +75,8 @@ import groovy.transform.Canonical
    * @param vpcId id of the VPC the subnet belongs to
    * @return wrapped set of SubnetData representations of subnets associated with the specified VPC
    */
-  Subnets findSubnetsByVpc(String vpcId) {
-    new Subnets(allSubnets.findAll { it.vpcId == vpcId })
+  SubnetAnalyzer findSubnetsByVpc(String vpcId) {
+    new SubnetAnalyzer(allSubnets.findAll { it.vpcId == vpcId })
   }
 
   /**

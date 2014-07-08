@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class AutoScalingGroupOptionsSpec extends Specification {
 
-  Subnets subnets = Mock(Subnets)
+  SubnetAnalyzer subnets = Mock(SubnetAnalyzer)
 
   AutoScalingGroupOptions asgOptions = new AutoScalingGroupOptions(
     autoScalingGroupName: 'autoScalingGroupName1',

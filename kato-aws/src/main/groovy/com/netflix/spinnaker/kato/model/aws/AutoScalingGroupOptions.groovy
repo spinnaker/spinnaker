@@ -106,7 +106,7 @@ import groovy.transform.Canonical
     } as Set
   }
 
-  private String constructVpcZoneIdentifier(Subnets subnets) {
+  private String constructVpcZoneIdentifier(SubnetAnalyzer subnets) {
     subnets.constructNewVpcZoneIdentifierForPurposeAndZones(subnetPurpose, availabilityZones)
   }
 
@@ -143,7 +143,7 @@ import groovy.transform.Canonical
    * @param subnets for VPC zone identifier identification
    * @return a deep copy of the group
    */
-  static AutoScalingGroupOptions from(AutoScalingGroup group, Subnets subnets) {
+  static AutoScalingGroupOptions from(AutoScalingGroup group, SubnetAnalyzer subnets) {
     String subnetPurpose = null
     if (group.getVPCZoneIdentifier()) {
       subnetPurpose = subnets.getPurposeFromVpcZoneIdentifier(group.getVPCZoneIdentifier())
@@ -178,7 +178,7 @@ import groovy.transform.Canonical
    * @param subnets for VPC zone identifier generation
    * @return a CreateAutoScalingGroupRequest based on these options
    */
-  CreateAutoScalingGroupRequest getCreateAutoScalingGroupRequest(Subnets subnets) {
+  CreateAutoScalingGroupRequest getCreateAutoScalingGroupRequest(SubnetAnalyzer subnets) {
     String vpcZoneIdentifier = constructVpcZoneIdentifier(subnets)
     new CreateAutoScalingGroupRequest(
       autoScalingGroupName: autoScalingGroupName,
@@ -204,7 +204,7 @@ import groovy.transform.Canonical
    * @param subnets for VPC zone identifier generation
    * @return a UpdateAutoScalingGroupRequest based on these options
    */
-  UpdateAutoScalingGroupRequest getUpdateAutoScalingGroupRequest(Subnets subnets) {
+  UpdateAutoScalingGroupRequest getUpdateAutoScalingGroupRequest(SubnetAnalyzer subnets) {
     String vpcZoneIdentifier = null
     if (subnetPurpose != null) {
       vpcZoneIdentifier = constructVpcZoneIdentifier(subnets)

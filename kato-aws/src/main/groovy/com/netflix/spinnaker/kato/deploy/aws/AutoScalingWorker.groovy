@@ -29,6 +29,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.services.SecurityGroupService
 import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
@@ -85,6 +86,7 @@ class AutoScalingWorker {
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
+  private SecurityGroupService securityGroupService
 
   private int minInstances
   private int maxInstances
@@ -113,14 +115,14 @@ class AutoScalingWorker {
     task.updateStatus AWS_PHASE, "Beginning Amazon deployment."
 
     task.updateStatus AWS_PHASE, "Checking for security package."
-    String applicationSecurityGroup = getSecurityGroupForApplication()
+    String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application)
     if (!applicationSecurityGroup) {
-      applicationSecurityGroup = createSecurityGroup()
+      applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType?.type)
     }
 
     task.updateStatus AWS_PHASE, "Looking up security groups..."
     if (securityGroups) {
-      securityGroups = getSecurityGroupIds(securityGroups as String[])
+      securityGroups = securityGroupService.getSecurityGroupIds(securityGroups)
     } else {
       securityGroups = []
     }
@@ -230,51 +232,6 @@ class AutoScalingWorker {
   }
 
   /**
-   * Find a security group that matches the name of this deployable.
-   *
-   * @return
-   */
-  String getSecurityGroupForApplication() {
-    try {
-      getSecurityGroupIds([application] as String[])?.getAt(0)
-    } catch (SecurityGroupNotFoundException IGNORE) {
-      null
-    }
-  }
-
-  /**
-   * Find security group ids for an array of provided security group names
-   *
-   * @param names
-   * @return list of group ids that correspond to the provided security group names
-   */
-  List<String> getSecurityGroupIds(String... names) {
-    DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups()
-    def securityGroups = result.securityGroups.findAll { names.contains(it.groupName) }.collectEntries {
-      [(it.groupName): it.groupId]
-    }
-    if (names.minus(securityGroups.keySet()).size() > 0) {
-      throw new SecurityGroupNotFoundException()
-    }
-    securityGroups.values() as List
-  }
-
-  /**
-   * Create a security group for this this deployable. Security Group name will equal the deployable's
-   * (ie. "application") name.
-   *
-   * @return group id of the security group
-   */
-  String createSecurityGroup() {
-    CreateSecurityGroupRequest request = new CreateSecurityGroupRequest(application, "Security Group for $application")
-    if (subnetType) {
-      request.withVpcId(vpcForSubnetType)
-    }
-    CreateSecurityGroupResult result = amazonEC2.createSecurityGroup(request)
-    result.groupId
-  }
-
-  /**
    * Creates a launch configuration from this deployment with supplied name, userdata, and security groups.
    *
    * @param name
@@ -366,10 +323,6 @@ class AutoScalingWorker {
     }?.join("\n")
     data ? new String(Base64.encodeBase64(data?.bytes)) : null
   }
-
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "could not find all supplied security groups!")
-  @InheritConstructors
-  static class SecurityGroupNotFoundException extends RuntimeException {}
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "subnet not found for the provided subnetType")
   @InheritConstructors
