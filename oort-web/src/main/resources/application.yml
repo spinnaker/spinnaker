@@ -20,4 +20,16 @@ aws:
         - us-west-1
         - us-west-2
         - eu-west-1
+    - name: mcetest
+      edda: http://edda-mce.%s.test.netflix.net:7001
+      discovery: http://%s.discoverytest.netflix.net:7001
+      atlasHealth: http://atlas-healthcheck-mce.%s.dyntest.netflix.net:7001
+      regions:
+        - us-east-1
+    - name: mceprod
+      edda: http://edda-mce.%s.prod.netflix.net:7001
+      discovery: http://%s.discoveryprod.netflix.net:7001
+      atlasHealth: http://atlas-healthcheck-mce.%s.dynprod.netflix.net:7001
+      regions:
+        - us-east-1
 
