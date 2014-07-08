@@ -19,6 +19,7 @@ ideaConfig {
 }
 
 dependencies {
+  compile project(":front50-core")
   compile project(":front50-aws")
   spinnaker.group "bootWeb"
   compile spinnaker.dependency("kork")
