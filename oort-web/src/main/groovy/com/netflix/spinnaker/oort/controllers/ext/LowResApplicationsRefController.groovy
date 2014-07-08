@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.controllers.ext
 
+import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.model.CacheService
@@ -25,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.Reactor
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -47,9 +47,6 @@ class LowResApplicationsRefController {
   @Autowired
   CacheService cacheService
 
-  @Autowired
-  Reactor reactor
-
   @RequestMapping(method = RequestMethod.GET)
   def list() {
     def apps = (List<Application>) applicationProviders.collectMany {
@@ -68,7 +65,7 @@ class LowResApplicationsRefController {
     app.clusters = (List<LowResClusterViewModel>)application.clusterNames.collectMany { account, clusterNames ->
       clusterNames.collect { clusterName ->
         def serverGroups = [:]
-        def key = "serverGroups:${clusterName}:${account}:".toString()
+        def key = "${Namespace.SERVER_GROUPS}:${clusterName}:${account}:".toString()
         keys.findAll { it.startsWith(key) }.each {
           def parts = it.split(':')
           def region = parts[3]

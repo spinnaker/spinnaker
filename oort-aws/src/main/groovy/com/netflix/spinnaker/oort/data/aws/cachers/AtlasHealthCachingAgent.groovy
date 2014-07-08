@@ -18,14 +18,11 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
-import reactor.event.Event
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
-import static reactor.event.selector.Selectors.object
 
 @CompileStatic
 class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
@@ -44,26 +41,24 @@ class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     if (!account.atlasHealth) return
 
-    reactor.on(object("newHealth"), this.&loadHealth)
-    reactor.on(object("missingHealth"), this.&removeHealth)
-
     def healths = (List<Map>)getAtlasHealth(String.format(account.atlasHealth, region))
     Map<String, Map> allHealths = healths.collectEntries { Map input -> [(input.id): input]}
     Map<String, Boolean> healthsThisRun = (Map<String, Boolean>)allHealths.collectEntries { instanceId, input -> [(instanceId): ((Map)input).isHealthy]}
     Map<String, Boolean> newHealths = specialSubtract(healthsThisRun, lastKnownHealths)
-    Set<String> missingHealths = lastKnownHealths.keySet() - healthsThisRun.keySet()
+    Set<String> missingHealths = new HashSet<String>(lastKnownHealths.keySet())
+    missingHealths.removeAll(healthsThisRun.keySet())
 
     if (newHealths) {
       log.info "$cachePrefix - Adding ${newHealths.size()} new or changed Atlas Healths."
       for (instanceId in newHealths.keySet()) {
         def health = allHealths[instanceId]
-        reactor.notify("newHealth", Event.wrap(new HealthContext(instanceId, health, region, account.name)))
+        loadHealth(instanceId, region, account.name, health)
       }
     }
     if (missingHealths) {
       log.info "$cachePrefix - Removing ${missingHealths.size()} removed Atlas Healths."
       for (instanceId in missingHealths) {
-        reactor.notify("missingHealth", Event.wrap(new HealthContext(instanceId, null, region, account.name)))
+        removeHealth(instanceId, region, account.name)
       }
     }
     if (!newHealths && !missingHealths) {
@@ -73,22 +68,12 @@ class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownHealths = healthsThisRun
   }
 
-  void loadHealth(Event<HealthContext> event) {
-    def data = event.data
-    cacheService.put(Keys.getInstanceHealthKey(data.instanceId, data.account, data.region, PROVIDER_NAME), data.health)
+  void loadHealth(String instanceId, String region, String account, Map health) {
+    cacheService.put(Keys.getInstanceHealthKey(instanceId, account, region, PROVIDER_NAME), health)
   }
 
-  void removeHealth(Event<HealthContext> event) {
-    def data = event.data
-    cacheService.free(Keys.getInstanceHealthKey(data.instanceId, data.account, data.region, PROVIDER_NAME))
-  }
-
-  @Canonical
-  static class HealthContext {
-    String instanceId
-    Map health
-    String region
-    String account
+  void removeHealth(String instanceId, String region, String account) {
+    cacheService.free(Keys.getInstanceHealthKey(instanceId, account, region, PROVIDER_NAME))
   }
 
   List getAtlasHealth(String baseUrl) {

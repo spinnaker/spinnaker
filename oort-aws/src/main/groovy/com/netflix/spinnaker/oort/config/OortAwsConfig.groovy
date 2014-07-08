@@ -26,7 +26,6 @@ import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
@@ -34,15 +33,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import reactor.core.Environment
-import reactor.core.Reactor
-import reactor.core.spec.Reactors
-import reactor.spring.context.config.EnableReactor
 
 import javax.annotation.PostConstruct
 
 @CompileStatic
-@EnableReactor
 @Configuration
 class OortAwsConfig {
 
@@ -64,11 +58,6 @@ class OortAwsConfig {
   @Bean
   AmazonClientProvider amazonClientProvider() {
     new AmazonClientProvider()
-  }
-
-  @Bean
-  Reactor reactor() {
-    Reactors.reactor(new Environment())
   }
 
   @Bean

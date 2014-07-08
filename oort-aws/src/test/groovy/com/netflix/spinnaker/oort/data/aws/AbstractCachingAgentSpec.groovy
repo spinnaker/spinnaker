@@ -23,19 +23,18 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
-import reactor.core.Reactor
 import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractCachingAgentSpec extends Specification {
 
+  static final String REGION = 'us-east-1'
+  static final String ACCOUNT = 'test'
+
   abstract AbstractInfrastructureCachingAgent getCachingAgent()
 
   @Shared
   InfrastructureCachingAgent agent
-
-  @Shared
-  Reactor reactor
 
   @Shared
   AmazonEC2 amazonEC2
@@ -51,8 +50,6 @@ abstract class AbstractCachingAgentSpec extends Specification {
 
   def setup() {
     agent = getCachingAgent()
-    reactor = Mock(Reactor)
-    agent.reactor = reactor
     def amazonClientProvider = Mock(AmazonClientProvider)
     amazonEC2 = Mock(AmazonEC2)
     amazonAutoScaling = Mock(AmazonAutoScaling)

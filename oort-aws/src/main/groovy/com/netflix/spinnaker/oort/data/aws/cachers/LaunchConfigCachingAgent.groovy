@@ -19,12 +19,9 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
-import reactor.event.Event
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
-import static reactor.event.selector.Selectors.object
 
 @CompileStatic
 class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
@@ -38,26 +35,25 @@ class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     log.info "$cachePrefix - Beginning Launch Config Cache Load."
 
-    reactor.on(object("newLaunchConfig"), this.&loadNewLaunchConfig)
-
     def autoScaling = amazonClientProvider.getAutoScaling(account.credentials, region)
     def launchConfigs = autoScaling.describeLaunchConfigurations()
     def allLaunchConfigs = launchConfigs.launchConfigurations.collectEntries { LaunchConfiguration launchConfiguration -> [(launchConfiguration.launchConfigurationName): launchConfiguration] }
     Map<String, Integer> launchConfigsThisRun = (Map<String, Integer>)allLaunchConfigs.collectEntries { launchConfigName, launchConfig -> [(launchConfigName): launchConfig.hashCode()] }
     Map<String, Integer> newLaunchConfigs = specialSubtract(launchConfigsThisRun, lastKnownLaunchConfigs)
-    Set<String> missingLaunchConfigs = lastKnownLaunchConfigs.keySet() - launchConfigsThisRun.keySet()
+    Set<String> missingLaunchConfigs = new HashSet<String>(lastKnownLaunchConfigs.keySet())
+    missingLaunchConfigs.removeAll(launchConfigsThisRun.keySet())
 
     if (newLaunchConfigs) {
       log.info "$cachePrefix - Loading ${newLaunchConfigs.size()} new or changed launch configs"
       for (launchConfigName in newLaunchConfigs.keySet()) {
         LaunchConfiguration launchConfig = (LaunchConfiguration)allLaunchConfigs[launchConfigName]
-        reactor.notify("newLaunchConfig", Event.wrap(new NewLaunchConfigNotification(launchConfig, region)))
+        loadNewLaunchConfig(launchConfig, region)
       }
     }
     if (missingLaunchConfigs) {
       log.info "$cachePrefix - Removing ${missingLaunchConfigs.size()} missing launch configs"
       for (launchConfigName in missingLaunchConfigs) {
-        reactor.notify("missingLaunchConfig", Event.wrap(launchConfigName))
+        removeLaunchConfig(launchConfigName, region)
       }
     }
     if (!newLaunchConfigs && !missingLaunchConfigs) {
@@ -67,16 +63,12 @@ class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownLaunchConfigs = launchConfigsThisRun
   }
 
-  @Canonical
-  static class NewLaunchConfigNotification {
-    LaunchConfiguration launchConfiguration
-    String region
+  void loadNewLaunchConfig(LaunchConfiguration launchConfig, String region) {
+    cacheService.put(Keys.getLaunchConfigKey(launchConfig.launchConfigurationName, region), launchConfig)
   }
 
-  void loadNewLaunchConfig(Event<NewLaunchConfigNotification> event) {
-    def launchConfig = event.data.launchConfiguration
-    def region = event.data.region
-    cacheService.put(Keys.getLaunchConfigKey(launchConfig.launchConfigurationName, region), launchConfig)
+  void removeLaunchConfig(String launchConfigName, String region) {
+    cacheService.free(Keys.getLaunchConfigKey(launchConfigName, region))
   }
 
   private String getCachePrefix() {

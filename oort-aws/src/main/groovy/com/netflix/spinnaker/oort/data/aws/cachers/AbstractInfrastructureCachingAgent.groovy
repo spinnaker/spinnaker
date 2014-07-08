@@ -21,7 +21,6 @@ import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
-import reactor.core.Reactor
 
 import javax.annotation.PostConstruct
 import java.util.concurrent.Executors
@@ -35,9 +34,6 @@ abstract class AbstractInfrastructureCachingAgent implements InfrastructureCachi
 
   @Autowired
   CacheService cacheService
-
-  @Autowired
-  Reactor reactor
 
   final AmazonNamedAccount account
   final String region
