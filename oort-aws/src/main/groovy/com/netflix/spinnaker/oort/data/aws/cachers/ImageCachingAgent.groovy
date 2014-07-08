@@ -19,12 +19,9 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
-import reactor.event.Event
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
-import static reactor.event.selector.Selectors.object
 
 @CompileStatic
 class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
@@ -36,26 +33,26 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
 
   void load() {
     log.info "$cachePrefix - Beginning Image Cache Load."
-    reactor.on(object("newImage"), this.&loadNewImage)
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
 
     def images = amazonEC2.describeImages()
     def allImages = images.images.collectEntries { Image image -> [(image.imageId): image] }
     Map<String, Integer> imagesThisRun = (Map<String, Integer>)allImages.collectEntries { imageId, image -> [(imageId): image.hashCode()] }
     Map<String, Integer> newImages =  specialSubtract(imagesThisRun, lastKnownImages)
-    Set<String> missingImages = lastKnownImages.keySet() - imagesThisRun.keySet()
+    Set<String> missingImages = new HashSet<String>(lastKnownImages.keySet())
+    missingImages.removeAll(imagesThisRun.keySet())
 
     if (newImages) {
       log.info "$cachePrefix - Loading ${newImages.size()} new images."
       for (imageId in newImages.keySet()) {
         Image image = (Image)allImages[imageId]
-        reactor.notify("newImage", Event.wrap(new NewImageNotification(image, region)))
+        loadNewImage(image, region)
       }
     }
     if (missingImages) {
       log.info "$cachePrefix - Removing ${missingImages.size()} missing images."
       for (imageId in missingImages) {
-        reactor.notify("missingImage", Event.wrap(imageId))
+        removeImage(imageId, region)
       }
     }
     if (!newImages && !missingImages) {
@@ -65,16 +62,12 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownImages = imagesThisRun
   }
 
-  @Canonical
-  static class NewImageNotification {
-    Image image
-    String region
+  void loadNewImage(Image image, String region) {
+    cacheService.put(Keys.getImageKey(image.imageId, region), image)
   }
 
-  void loadNewImage(Event<NewImageNotification> event) {
-    def image = event.data.image
-    def region = event.data.region
-    cacheService.put(Keys.getImageKey(image.imageId, region), image)
+  void removeImage(String imageId, String region) {
+    cacheService.free(Keys.getImageKey(imageId, region))
   }
 
   private String getCachePrefix() {

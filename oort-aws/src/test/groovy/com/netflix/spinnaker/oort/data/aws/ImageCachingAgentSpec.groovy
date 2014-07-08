@@ -20,13 +20,12 @@ import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.spinnaker.oort.data.aws.cachers.ImageCachingAgent
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import reactor.event.Event
 
 class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
 
   @Override
   ImageCachingAgent getCachingAgent() {
-    new ImageCachingAgent(Mock(AmazonNamedAccount), "us-east-1")
+    new ImageCachingAgent(Mock(AmazonNamedAccount), REGION)
   }
 
   void "load new images and remove images that have disappeared since the last run"() {
@@ -41,18 +40,17 @@ class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonEC2.describeImages() >> result
-    2 * reactor.notify("newImage", _)
+    1 * cacheService.put(Keys.getImageKey(image1.imageId, REGION), image1)
+    1 * cacheService.put(Keys.getImageKey(image2.imageId, REGION), image2)
 
     when:
-    "one of them is deleted, it should fire missingImage"
+    "one of them is deleted, it is cleared from the cache"
     agent.load()
 
     then:
     1 * amazonEC2.describeImages() >> result.withImages([image2])
-    0 * reactor.notify("newImage", _)
-    1 * reactor.notify("missingImage", _) >> { eventname, Event<String> event ->
-      assert event.data == "ami-12345"
-    }
+    0 * cacheService.put(_, _)
+    1 * cacheService.free(Keys.getImageKey(image1.imageId, REGION))
 
     when:
     "the same results come back, it shouldnt do anything"
@@ -60,20 +58,29 @@ class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonEC2.describeImages() >> result
-    0 * reactor.notify(_, _)
+    0 * cacheService.put(_, _)
   }
 
   void "new images should be stored in cache"() {
     setup:
     def imageId = "ami-12345"
-    def region = "us-east-1"
     def image = new Image().withImageId(imageId)
-    def event = Event.wrap(new ImageCachingAgent.NewImageNotification(image, region))
 
     when:
-    ((ImageCachingAgent)agent).loadNewImage(event)
+    ((ImageCachingAgent)agent).loadNewImage(image, REGION)
 
     then:
-    1 * cacheService.put(Keys.getImageKey(imageId, region), image)
+    1 * cacheService.put(Keys.getImageKey(imageId, REGION), image)
+  }
+
+  void "removed image should be freed from cache"() {
+    setup:
+    def imageId = "ami-12345"
+
+    when:
+    ((ImageCachingAgent)agent).removeImage(imageId, REGION)
+
+    then:
+    1 * cacheService.free(Keys.getImageKey(imageId, REGION))
   }
 }

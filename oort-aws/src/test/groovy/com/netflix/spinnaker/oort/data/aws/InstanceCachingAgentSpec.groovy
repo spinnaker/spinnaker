@@ -18,21 +18,19 @@ package com.netflix.spinnaker.oort.data.aws
 
 import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent
+import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent.InstanceStateValue
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import reactor.event.Event
 
 class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
   InstanceCachingAgent getCachingAgent() {
-    new InstanceCachingAgent(Mock(AmazonNamedAccount), "us-east-1")
+    new InstanceCachingAgent(Mock(AmazonNamedAccount), REGION)
   }
 
   void "new instances should fire newInstance event"() {
     setup:
-    def reservation = Mock(Reservation)
-    def instance = Mock(Instance)
-    instance.getState() >> new InstanceState().withCode(16)
-    reservation.getInstances() >> [instance]
+    def instance = new Instance().withInstanceId('i-12345').withState(InstanceStateValue.Running.buildInstanceState())
+    def reservation = new Reservation().withInstances(instance)
     def result = new DescribeInstancesResult().withReservations(reservation)
 
     when:
@@ -40,16 +38,14 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonEC2.describeInstances() >> result
-    1 * reactor.notify("newInstance", _)
-    0 * reactor.notify("missingInstance", _)
+    1 * cacheService.put(Keys.getInstanceKey(instance.instanceId, REGION), instance)
   }
 
   void "terminated instances should be removed"() {
     setup:
-    def reservation = Mock(Reservation)
-    def instance1 = new Instance().withInstanceId("i-12345").withState(new InstanceState().withCode(16))
-    def instance2 = new Instance().withInstanceId("i-67890").withState(new InstanceState().withCode(16))
-    reservation.getInstances() >> [instance1, instance2]
+    def instance1 = new Instance().withInstanceId("i-12345").withState(InstanceStateValue.Running.buildInstanceState())
+    def instance2 = new Instance().withInstanceId("i-67890").withState(InstanceStateValue.Running.buildInstanceState())
+    def reservation = new Reservation().withInstances(instance1, instance2)
     def result = new DescribeInstancesResult().withReservations(reservation)
 
     when:
@@ -58,19 +54,18 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonEC2.describeInstances() >> result
-    2 * reactor.notify("newInstance", _)
+    1 * cacheService.put(Keys.getInstanceKey(instance1.instanceId, REGION), instance1)
+    1 * cacheService.put(Keys.getInstanceKey(instance2.instanceId, REGION), instance2)
 
     when:
     "one of them is terminated, it should fire missingInstance"
-    instance1.withState(new InstanceState().withCode(InstanceCachingAgent.TERMINATED))
+    instance1.setState(InstanceStateValue.Terminated.buildInstanceState())
     agent.load()
 
     then:
     1 * amazonEC2.describeInstances() >> result
-    0 * reactor.notify("newInstance", _)
-    1 * reactor.notify("missingInstance", _) >> { eventname, Event<InstanceCachingAgent.InstanceNotification> event ->
-      assert event.data.instance.instanceId == "i-12345"
-    }
+    0 * cacheService.put(_, _)
+    1 * cacheService.free(Keys.getInstanceKey(instance1.instanceId, REGION))
 
     when:
     "the same results come back, it shouldnt do anything"
@@ -78,25 +73,26 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonEC2.describeInstances() >> result
-    0 * reactor.notify(_, _)
+    0 * cacheService.put(_, _)
+    0 * cacheService.free(_)
   }
 
   void "save and remove instances from cache"() {
     setup:
     def account = Mock(AmazonNamedAccount)
-    def accountName = "test"
-    account.getName() >> accountName
+    account.getName() >> ACCOUNT
     def instanceId = "i-12345"
-    def region = "us-east-1"
     def asgName = "oort-main-v000"
-    def instance = new Instance().withInstanceId(instanceId).withTags(new Tag(InstanceCachingAgent.ASG_TAG_NAME, asgName))
-    def event = Event.wrap(new InstanceCachingAgent.InstanceNotification(account, instance, region))
-    def instanceCacheKey = Keys.getInstanceKey(instanceId, region)
-    def instanceServerGroupCacheKey = Keys.getServerGroupInstanceKey(asgName, instanceId, accountName, region)
+    def instance = new Instance()
+      .withInstanceId(instanceId)
+      .withTags(new Tag(InstanceCachingAgent.ASG_TAG_NAME, asgName))
+      .withState(InstanceStateValue.Running.buildInstanceState())
+    def instanceCacheKey = Keys.getInstanceKey(instanceId, REGION)
+    def instanceServerGroupCacheKey = Keys.getServerGroupInstanceKey(asgName, instanceId, ACCOUNT, REGION)
 
     when:
     "loading a new instance stores the instance in cache and associates it with the server group as a key reference"
-    ((InstanceCachingAgent)agent).loadNewInstance(event)
+    ((InstanceCachingAgent)agent).loadNewInstance(account, instance, REGION)
 
     then:
     1 * cacheService.put(instanceCacheKey, instance)
@@ -104,7 +100,7 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
     when:
     "removing an instance frees it and its server group reference from cache"
-    ((InstanceCachingAgent)agent).removeMissingInstance(event)
+    ((InstanceCachingAgent)agent).removeMissingInstance(account, instance, REGION)
 
     then:
     1 * cacheService.free(instanceCacheKey)

@@ -30,10 +30,10 @@ class AtlasHealthCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
     def account = Mock(AmazonNamedAccount)
-    account.getName() >> "test"
+    account.getName() >> ACCOUNT
     account.getAtlasHealth() >> 'atlas-%s'
     restTemplate = Mock(RestTemplate)
-    def agent = new AtlasHealthCachingAgent(account, "us-east-1")
+    def agent = new AtlasHealthCachingAgent(account, REGION)
     agent.restTemplate = restTemplate
     agent
   }
@@ -41,30 +41,27 @@ class AtlasHealthCachingAgentSpec extends AbstractCachingAgentSpec {
   void "load new health when new ones are available, remove missing ones, and do nothing when theres nothing new to process"() {
     setup:
     def health = [id: "i-12345", isHealthy: true]
+    def key = Keys.getInstanceHealthKey(health.id, ACCOUNT, REGION, AtlasHealthCachingAgent.PROVIDER_NAME)
 
     when:
     agent.load()
 
     then:
     1 * restTemplate.getForObject("atlas-us-east-1/api/v1/instance", _) >> [health]
-    1 * reactor.notify('newHealth', _) >> { eventName, healthContext ->
-      assert healthContext.data.instanceId == health.id
-    }
+    1 * cacheService.put(key, health)
 
     when:
     agent.load()
 
     then:
     1 * restTemplate.getForObject("atlas-us-east-1/api/v1/instance", _) >> []
-    1 * reactor.notify('missingHealth', _) >> { eventName, healthContext ->
-      assert healthContext.data.instanceId == health.id
-    }
+    1 * cacheService.free(key)
 
     when:
     agent.load()
 
     then:
     1 * restTemplate.getForObject("atlas-us-east-1/api/v1/instance", _) >> []
-    0 * reactor.notify(_, _)
+    0 * cacheService.free(_)
   }
 }

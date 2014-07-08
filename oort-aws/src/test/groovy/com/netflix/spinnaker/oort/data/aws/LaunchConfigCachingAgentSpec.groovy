@@ -21,12 +21,11 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.LaunchConfigCachingAgent
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import reactor.event.Event
 
 class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    new LaunchConfigCachingAgent(Mock(AmazonNamedAccount), "us-east-1")
+    new LaunchConfigCachingAgent(Mock(AmazonNamedAccount), REGION)
   }
 
   void "load new launch configs and remove those that have disappeared since the last run"() {
@@ -42,34 +41,47 @@ class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonAutoScaling.describeLaunchConfigurations() >> result
-    2 * reactor.notify("newLaunchConfig", _)
+    1 * cacheService.put(Keys.getLaunchConfigKey(launchConfigName1, REGION), launchConfig1)
+    1 * cacheService.put(Keys.getLaunchConfigKey(launchConfigName2, REGION), launchConfig2)
 
     when:
+    result.setLaunchConfigurations([launchConfig1])
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeLaunchConfigurations() >> result.withLaunchConfigurations([launchConfig1])
-    0 * reactor.notify("newLaunchConfig", _)
-    1 * reactor.notify("missingLaunchConfig", _)
+    1 * amazonAutoScaling.describeLaunchConfigurations() >> result
+    0 * cacheService.put(_, _)
+    1 * cacheService.free(Keys.getLaunchConfigKey(launchConfigName2, REGION))
 
     when:
     agent.load()
 
     then:
     1 * amazonAutoScaling.describeLaunchConfigurations() >> result
-    0 * reactor.notify(_, _)
+    0 * cacheService.put(_, _)
+    0 * cacheService.free(_)
   }
 
   void "new launch config should save to cache"() {
     setup:
     def launchConfigName = "kato-main-v000-123456"
-    def region = "us-east-1"
     def launchConfig1 = new LaunchConfiguration().withLaunchConfigurationName(launchConfigName)
 
     when:
-    ((LaunchConfigCachingAgent)agent).loadNewLaunchConfig(Event.wrap(new LaunchConfigCachingAgent.NewLaunchConfigNotification(launchConfig1, region)))
+    ((LaunchConfigCachingAgent)agent).loadNewLaunchConfig(launchConfig1, REGION)
 
     then:
-    1 * cacheService.put(Keys.getLaunchConfigKey(launchConfigName, region), _)
+    1 * cacheService.put(Keys.getLaunchConfigKey(launchConfigName, REGION), _)
+  }
+
+  void "missing launch config should be freed from cache"() {
+    setup:
+    def launchConfigName = "kato-main-v000-123456"
+
+    when:
+    ((LaunchConfigCachingAgent) agent).removeLaunchConfig(launchConfigName, REGION)
+
+    then:
+    1 * cacheService.free(Keys.getLaunchConfigKey(launchConfigName, REGION))
   }
 }

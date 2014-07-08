@@ -17,19 +17,56 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.ec2.model.Instance
+import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.InstanceStateName
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
-import reactor.event.Event
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
-import static reactor.event.selector.Selectors.object
 
 @CompileStatic
 class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
-  static final Integer TERMINATED = 48
-  static final Integer SHUTDOWN = 32
+
+  static enum InstanceStateValue {
+
+    Pending(0, InstanceStateName.Pending),
+    Running(16, InstanceStateName.Running),
+    ShuttingDown(32, InstanceStateName.ShuttingDown),
+    Terminated(48, InstanceStateName.Terminated),
+    Stopping(64, InstanceStateName.Stopping),
+    Stopped(80, InstanceStateName.Stopped)
+
+    static final Set<InstanceStateValue> MISSING = Collections.unmodifiableSet([ShuttingDown, Terminated] as Set)
+
+    final int code
+    final InstanceStateName name
+
+    private InstanceStateValue(int code, InstanceStateName name) {
+      this.code = code
+      this.name = name
+    }
+
+    InstanceState buildInstanceState() {
+      new InstanceState().withCode(code).withName(name)
+    }
+
+    static InstanceStateValue fromInstanceState(InstanceState instanceState) {
+      InstanceStateValue value = null
+
+      if (instanceState.code != null) {
+        value = values().find { it.code == instanceState.code }
+      } else if (instanceState.name != null) {
+        value = values().find { it.name == instanceState.name }
+      }
+
+      if (!value) {
+        throw new IllegalArgumentException("unknown InstanceState")
+      }
+
+      value
+    }
+  }
   static final String ASG_TAG_NAME = "aws:autoscaling:groupName"
 
   InstanceCachingAgent(AmazonNamedAccount account, String region) {
@@ -41,24 +78,22 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     log.info "$cachePrefix - Beginning Instance Cache Load."
 
-    reactor.on(object("newInstance"), this.&loadNewInstance)
-    reactor.on(object("missingInstance"), this.&removeMissingInstance)
-
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
     def instances = amazonEC2.describeInstances()
     def allInstances = ((List<Instance>)instances.reservations.collectMany { it.instances ?: [] }).collectEntries { Instance instance -> [(instance.instanceId): instance]}
     Map<String, Integer> instancesThisRun = (Map<String, Integer>)allInstances.collectEntries { instanceId, instance -> [(instanceId): instance.hashCode()] }
     Map<String, Integer> newInstances = specialSubtract(instancesThisRun, lastKnownInstances)
-    Set<String> missingInstances = lastKnownInstances.keySet() - instancesThisRun.keySet()
+    Set<String> missingInstances = new HashSet<String>(lastKnownInstances.keySet())
+    missingInstances.removeAll(instancesThisRun.keySet())
 
     if (newInstances) {
       log.info "$cachePrefix - Loading ${newInstances.size()} new or changes instances."
       for (instanceId in newInstances.keySet()) {
         Instance instance = (Instance)allInstances[instanceId]
-        if (instance.state.code == TERMINATED || instance.state.code == SHUTDOWN) {
+        if (InstanceStateValue.MISSING.contains(InstanceStateValue.fromInstanceState(instance.state))) {
           missingInstances << instance.instanceId
         } else {
-          reactor.notify("newInstance", Event.wrap(new InstanceNotification(account, instance, region)))
+          loadNewInstance(account, instance, region)
         }
       }
     }
@@ -66,7 +101,7 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
       log.info "$cachePrefix - Removing ${missingInstances.size()} missing or terminated instances."
       for (instanceId in missingInstances) {
         def instance = (Instance)allInstances[instanceId]
-        reactor.notify("missingInstance", Event.wrap(new InstanceNotification(account, instance, region)))
+        removeMissingInstance(account, instance, region)
       }
     }
     if (!newInstances && !missingInstances) {
@@ -76,17 +111,7 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownInstances = instancesThisRun
   }
 
-  @Canonical
-  static class InstanceNotification {
-    AmazonNamedAccount account
-    Instance instance
-    String region
-  }
-
-  void loadNewInstance(Event<InstanceNotification> event) {
-    def account = event.data.account
-    def instance = event.data.instance
-    def region = event.data.region
+  void loadNewInstance(AmazonNamedAccount account, Instance instance, String region) {
     cacheService.put(Keys.getInstanceKey(instance.instanceId, region), instance)
     def serverGroup = getServerGroupName(instance)
     if (serverGroup) {
@@ -96,11 +121,9 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
     }
   }
 
-  void removeMissingInstance(Event<InstanceNotification> event) {
-    def account = event.data.account
-    Instance instance = event.data.instance
+  void removeMissingInstance(AmazonNamedAccount account, Instance instance, String region) {
     if (instance) {
-      cacheService.free(Keys.getInstanceKey(instance.instanceId, event.data.region))
+      cacheService.free(Keys.getInstanceKey(instance.instanceId, region))
       def serverGroup = getServerGroupName(instance)
       if (serverGroup) {
         def sgInstanceKey = Keys.getServerGroupInstanceKey(serverGroup, instance.instanceId, account.name, region)

@@ -19,12 +19,9 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
-import reactor.event.Event
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
-import static reactor.event.selector.Selectors.object
 
 @CompileStatic
 class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
@@ -38,27 +35,25 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     log.info "$cachePrefix - Beginning Load Balancer Cache Load."
 
-    reactor.on(object("newLoadBalancer"), this.&loadNewLoadBalancer)
-    reactor.on(object("missingLoadBalancer"), this.&removeMissingLoadBalancer)
-
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account.credentials, region)
     def loadBalancers = loadBalancing.describeLoadBalancers()
     def allLoadBalancers = loadBalancers.loadBalancerDescriptions.collectEntries { LoadBalancerDescription loadBalancerDescription -> [(loadBalancerDescription.loadBalancerName): loadBalancerDescription] }
     Map<String, Integer> loadBalancersThisRun = (Map<String, Integer>)allLoadBalancers.collectEntries { loadBalancerName, loadBalancer -> [(loadBalancerName): loadBalancer.hashCode()]}
     Map<String, Integer> newLoadBalancers = specialSubtract(loadBalancersThisRun, lastKnownLoadBalancers)
-    Set<String> missingLoadBalancers = lastKnownLoadBalancers.keySet() - loadBalancersThisRun.keySet()
+    Set<String> missingLoadBalancers = new HashSet<String>(lastKnownLoadBalancers.keySet())
+    missingLoadBalancers.removeAll(loadBalancersThisRun.keySet())
 
     if (newLoadBalancers) {
       log.info "$cachePrefix - Loading ${newLoadBalancers.size()} new load balancers"
       for (loadBalancerName in loadBalancersThisRun.keySet()) {
         LoadBalancerDescription loadBalancer = (LoadBalancerDescription)allLoadBalancers[loadBalancerName]
-        reactor.notify("newLoadBalancer", Event.wrap(new LoadBalancerNotification(loadBalancer.loadBalancerName, loadBalancer, region)))
+        loadNewLoadBalancer(loadBalancer, region)
       }
     }
     if (missingLoadBalancers) {
       log.info "$cachePrefix - Removing ${missingLoadBalancers.size()} missing load balancers"
       for (loadBalancerName in missingLoadBalancers) {
-        reactor.notify("missingLoadBalancer", Event.wrap(new LoadBalancerNotification(loadBalancerName, null, region)))
+        removeMissingLoadBalancer(loadBalancerName, region)
       }
     }
     if (!newLoadBalancers && !missingLoadBalancers) {
@@ -68,19 +63,12 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownLoadBalancers = loadBalancersThisRun
   }
 
-  @Canonical
-  static class LoadBalancerNotification {
-    String loadBalancerName
-    LoadBalancerDescription loadBalancerDescription
-    String region
+  void loadNewLoadBalancer(LoadBalancerDescription loadBalancerDescription, String region) {
+    cacheService.put(Keys.getLoadBalancerKey(loadBalancerDescription.loadBalancerName, region), loadBalancerDescription)
   }
 
-  void loadNewLoadBalancer(Event<LoadBalancerNotification> event) {
-    cacheService.put(Keys.getLoadBalancerKey(event.data.loadBalancerName, event.data.region), event.data.loadBalancerDescription)
-  }
-
-  void removeMissingLoadBalancer(Event<LoadBalancerNotification> event) {
-    cacheService.free(Keys.getLoadBalancerKey(event.data.loadBalancerName, event.data.region))
+  void removeMissingLoadBalancer(String loadBalancerName, String region) {
+    cacheService.free(Keys.getLoadBalancerKey(loadBalancerName, region))
   }
 
   private String getCachePrefix() {

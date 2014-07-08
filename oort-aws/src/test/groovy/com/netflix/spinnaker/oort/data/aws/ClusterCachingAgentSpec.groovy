@@ -21,13 +21,16 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.ClusterCachingAgent
+import com.netflix.spinnaker.oort.model.aws.AmazonApplication
+import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
-import reactor.event.Event
 
 class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    new ClusterCachingAgent(Mock(AmazonNamedAccount), "us-east-1")
+    def acct = Mock(AmazonNamedAccount)
+    acct.getName() >> ACCOUNT
+    new ClusterCachingAgent(acct, REGION)
   }
 
   void "load new asgs, remove ones that have disappeared, and do nothing when nothing has changed"() {
@@ -37,6 +40,11 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def asgName2 = "kato-main-v001"
     def asg2 = new AutoScalingGroup().withAutoScalingGroupName(asgName2)
     def result = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg1, asg2)
+    def app = new AmazonApplication(name: 'kato')
+    def appKey = Keys.getApplicationKey('kato')
+    def clusterKey = Keys.getClusterKey('kato-main', 'kato', ACCOUNT)
+    def cluster = new AmazonCluster(name: 'kato-main', accountName: ACCOUNT)
+
 
     when:
     "should fire the newAsg event when new asgs are found"
@@ -44,7 +52,12 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonAutoScaling.describeAutoScalingGroups() >> result
-    2 * reactor.notify("newAsg", _)
+    2 * cacheService.retrieve(appKey, AmazonApplication) >> app
+    2 * cacheService.put(appKey, app)
+    2 * cacheService.retrieve(clusterKey, AmazonCluster) >> cluster
+    2 * cacheService.put(clusterKey, cluster)
+    1 * cacheService.put(Keys.getServerGroupKey('kato-main-v000', ACCOUNT, REGION), _)
+    1 * cacheService.put(Keys.getServerGroupKey('kato-main-v001', ACCOUNT, REGION), _)
 
     when:
     "one asg goes missing, should fire the missingAsg event"
@@ -52,10 +65,9 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg1])
-    0 * reactor.notify("newAsg", _)
-    1 * reactor.notify("missingAsg", _) >> { name, event ->
-      assert event.data.asgName == asgName2
-    }
+    1 * cacheService.free(Keys.getServerGroupKey(asg2.autoScalingGroupName, ACCOUNT, REGION))
+    1 * cacheService.keysByType(Keys.Namespace.SERVER_GROUPS) >> [Keys.getServerGroupKey(asg1.autoScalingGroupName, ACCOUNT, REGION)]
+    0 * cacheService.free(clusterKey)
 
     when:
     "nothing has changed, shouldn't do anything"
@@ -63,7 +75,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonAutoScaling.describeAutoScalingGroups() >> result
-    0 * reactor.notify(_, _)
+    0 * cacheService.retrieve(_, _)
   }
 
   void "store an application in cache"() {
@@ -71,7 +83,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def mocks = getCommonMocks()
 
     when:
-    ((ClusterCachingAgent)agent).loadApp(mocks.event)
+    ((ClusterCachingAgent)agent).loadApp(mocks.names)
 
     then:
     1 * cacheService.put(Keys.getApplicationKey(mocks.names.app), _)
@@ -82,7 +94,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def mocks = getCommonMocks()
 
     when:
-    ((ClusterCachingAgent)agent).loadServerGroups(mocks.event)
+    ((ClusterCachingAgent)agent).loadServerGroups(mocks.accountObj, mocks.asg, mocks.names, mocks.region)
 
     then:
     1 * cacheService.put(Keys.getServerGroupKey(mocks.asgName, mocks.account, mocks.region), _)
@@ -93,7 +105,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def mocks = getCommonMocks()
 
     when:
-    ((ClusterCachingAgent)agent).loadCluster(mocks.event)
+    ((ClusterCachingAgent)agent).loadCluster(mocks.accountObj, mocks.asg, mocks.names, mocks.region)
 
     then:
     1 * cacheService.put(Keys.getClusterKey(mocks.names.cluster, mocks.names.app, mocks.account), _)
@@ -106,7 +118,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def clusterKey = Keys.getClusterKey(mocks.names.cluster, mocks.names.app, mocks.account)
 
     when:
-    ((ClusterCachingAgent)agent).removeServerGroup(Event.wrap(new ClusterCachingAgent.RemoveServerGroupNotification(mocks.accountObj, mocks.names.group, mocks.region)))
+    ((ClusterCachingAgent)agent).removeServerGroup(mocks.accountObj, mocks.names.group, mocks.region)
 
     then:
     1 * cacheService.free(serverGroupKey)
@@ -116,15 +128,12 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
 
   private def getCommonMocks() {
     def account = Mock(AmazonNamedAccount)
-    def accountName = "test"
-    account.getName() >> accountName
+    account.getName() >> ACCOUNT
     def asgName = "kato-main-v000"
     def launchConfigName = "kato-main-v000-123456"
     def asg = new AutoScalingGroup().withAutoScalingGroupName(asgName).withLaunchConfigurationName(launchConfigName)
     def names = Names.parseName(asgName)
-    def region = "us-east-1"
-    def event = Event.wrap(new ClusterCachingAgent.FriggaWrappedAutoScalingGroup(account, asg, names, region))
-    [account: accountName, accountObj: account, asgName: asgName, names: names, launchConfigName: launchConfigName, region: region, event: event]
+    [account: ACCOUNT, accountObj: account, asgName: asgName, asg: asg, names: names, launchConfigName: launchConfigName, region: REGION]
   }
 
 }
