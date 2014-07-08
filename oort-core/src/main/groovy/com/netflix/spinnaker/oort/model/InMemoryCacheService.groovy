@@ -25,7 +25,6 @@ class InMemoryCacheService implements CacheService {
   @Override
   public <T> T retrieve(String key, Class<T> type) {
     getCache(key)?.get key
-    cache.get key
   }
 
   @Override

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
-import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.codahale.metrics.Timer
 import com.netflix.frigga.ami.AppVersion

@@ -16,8 +16,8 @@
 
 package com.netflix.apinnaker.oort.model.aws
 
+import com.amazonaws.services.ec2.model.Instance
 import com.codahale.metrics.Timer
-import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
 import com.amazonaws.services.ec2.model.Tag
@@ -29,8 +29,6 @@ import com.netflix.spinnaker.oort.model.aws.AmazonClusterProvider
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.util.concurrent.Callable
 
 class AmazonClusterProviderSpec extends Specification {
 
