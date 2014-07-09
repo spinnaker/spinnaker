@@ -129,7 +129,6 @@ include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
 - - -
 
 
-
 ==== Google Operations
 
 TODO
