@@ -115,6 +115,7 @@ class KatoAWSConfig {
   static class DeployDefaults {
     String iamRole
     String keyPair
+    List<BlockDevice> blockDeviceDefaults = []
   }
 
   static class ManagedAccount {

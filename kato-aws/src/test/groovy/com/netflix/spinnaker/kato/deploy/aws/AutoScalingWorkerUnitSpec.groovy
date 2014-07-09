@@ -17,10 +17,13 @@
 
 package com.netflix.spinnaker.kato.deploy.aws
 
+import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.ec2.model.Tag
+import com.netflix.spinnaker.kato.config.BlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
@@ -108,6 +111,22 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     results.first() == "123"
+  }
+
+  void "block device mappings are applied when available"() {
+    setup:
+    def autoscaling = Mock(AmazonAutoScaling)
+    def worker = new AutoScalingWorker(autoScaling: autoscaling, blockDevices: [new BlockDevice(deviceName: "/dev/sdb", size: 125)])
+
+    when:
+    worker.createLaunchConfiguration(null, null, null)
+
+    then:
+    1 * autoscaling.createLaunchConfiguration(_) >> { CreateLaunchConfigurationRequest request ->
+      assert request.blockDeviceMappings
+      assert request.blockDeviceMappings.first().deviceName == "/dev/sdb"
+      assert request.blockDeviceMappings.first().ebs.volumeSize == 125
+    }
   }
 
 }

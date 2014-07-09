@@ -19,13 +19,21 @@ package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.Ebs
+import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
+import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
+import com.amazonaws.services.ec2.model.DescribeSubnetsResult
+import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kato.config.BlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
@@ -85,6 +93,7 @@ class AutoScalingWorker {
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
+  private List<BlockDevice> blockDevices
 
   private int minInstances
   private int maxInstances
@@ -286,12 +295,22 @@ class AutoScalingWorker {
     CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
       .withImageId(ami)
       .withIamInstanceProfile(iamRole)
-      .withInstanceMonitoring(new com.amazonaws.services.autoscaling.model.InstanceMonitoring().withEnabled(true))
+      .withInstanceMonitoring(new InstanceMonitoring().withEnabled(true))
       .withLaunchConfigurationName(name)
       .withUserData(userData)
       .withInstanceType(instanceType)
       .withSecurityGroups(securityGroups)
       .withKeyName(keyPair)
+
+    if (blockDevices) {
+      for (blockDeviceDefault in blockDevices) {
+        request.withBlockDeviceMappings(
+          new BlockDeviceMapping(
+            deviceName: blockDeviceDefault.deviceName,
+            ebs: new Ebs(volumeSize: blockDeviceDefault.size)))
+      }
+    }
+
     autoScaling.createLaunchConfiguration(request)
 
     name
@@ -364,6 +383,9 @@ class AutoScalingWorker {
     def data = userDataProviders.collect { udp ->
       udp.getUserData(asgName, launchConfigName, region, environment)
     }?.join("\n")
+    if (data.startsWith("\n")) {
+      data = data.substring(1)
+    }
     data ? new String(Base64.encodeBase64(data?.bytes)) : null
   }
 
