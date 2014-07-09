@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+rootProject.name="kato"
 
 include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-deploy", "kato-swf"
 
