@@ -17,6 +17,10 @@
 package com.netflix.spinnaker.orca.retrofit
 
 import groovy.transform.CompileStatic
+import com.google.common.base.Optional
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.netflix.spinnaker.orca.retrofit.gson.GsonOptionalDeserializer
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -33,6 +37,12 @@ class RetrofitConfiguration {
   }
 
   @Bean LogLevel retrofitLogLevel() {
-    LogLevel.BASIC
+    LogLevel.FULL
+  }
+
+  @Bean Gson gson() {
+    new GsonBuilder()
+        .registerTypeAdapter(Optional, new GsonOptionalDeserializer())
+        .create()
   }
 }

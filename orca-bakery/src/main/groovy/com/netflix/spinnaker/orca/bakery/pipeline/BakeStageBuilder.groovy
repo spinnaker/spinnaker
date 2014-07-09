@@ -31,6 +31,12 @@ class BakeStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
 
   @Override
   SimpleJobBuilder build(JobBuilder jobBuilder) {
+    throw new UnsupportedOperationException()
+    // TODO: need to implement this with some tests. It should basically do whe the other method does but use start rather than next
+  }
+
+  @Override
+  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
     def step1 = steps.get("CreateBakeStep")
         .tasklet(buildTask(CreateBakeTask))
         .build()
@@ -41,14 +47,8 @@ class BakeStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
         .tasklet(buildTask(CompletedBakeTask))
         .build()
     jobBuilder
-        .start(step1)
+        .next(step1)
         .next(step2)
         .next(step3)
-  }
-
-  @Override
-  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
-    throw new UnsupportedOperationException()
-    // TODO: need to implement this with some tests. It should basically do whe the other method does but use next rather than start
   }
 }

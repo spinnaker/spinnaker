@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.orca.smoke
 
-import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,8 +30,8 @@ import org.springframework.test.context.ContextConfiguration
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
-@IgnoreIf({ !isReachable("http://bakery.test.netflix.net:7001") })
-@ContextConfiguration(classes = [BakeryConfiguration, BatchTestConfiguration])
+@Requires({ isReachable("http://bakery.test.netflix.net:7001") })
+@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
@@ -48,14 +49,28 @@ class OrcaSmokeSpec extends Specification {
     jobStatus == BatchStatus.COMPLETED
 
     where:
-    config = [[
-        type     : "bake",
-        region   : "us-west-1",
-        user     : "rfletcher",
-        package  : "oort",
-        baseOs   : "ubuntu",
-        baseLabel: "release"
-    ]]
+    app = "front50"
+    region = "us-west-1"
+    config = [
+        [
+            type     : "bake",
+            region   : region,
+            user     : "rfletcher",
+            package  : app,
+            baseOs   : "ubuntu",
+            baseLabel: "release"
+        ], [
+            type             : "deploy",
+            application      : app,
+            stack            : "main",
+            instanceType     : "m1.medium",
+            securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
+            subnetType       : "internal",
+            availabilityZones: [(region): []],
+            capacity         : [min: 1, max: 1, desired: 1],
+            credentials      : "test"
+        ]
+    ]
   }
 }
 

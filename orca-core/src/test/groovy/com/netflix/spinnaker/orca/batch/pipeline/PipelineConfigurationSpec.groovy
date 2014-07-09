@@ -98,11 +98,11 @@ class PipelineConfigurationSpec extends Specification {
     configJson = mapper.writeValueAsString(config)
   }
 
-  def "config values are converted to job parameters"() {
+  def "config is serialized to job execution context"() {
     given:
-    def jobParameters
+    def jobExecutionContext
     1 * fooTasklet.execute(*_) >> { _, ChunkContext chunkContext ->
-      jobParameters = chunkContext.stepContext.jobParameters
+      jobExecutionContext = chunkContext.stepContext.jobExecutionContext
       FINISHED
     }
 
@@ -110,11 +110,11 @@ class PipelineConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    jobParameters == expectedParameters
+    jobExecutionContext == expectedContext
 
     where:
     config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     configJson = mapper.writeValueAsString(config)
-    expectedParameters = ["foo.region": config[0].region, "foo.os": config[0].os]
+    expectedContext = ["foo.region": config[0].region, "foo.os": config[0].os, "foo.type": "foo"]
   }
 }

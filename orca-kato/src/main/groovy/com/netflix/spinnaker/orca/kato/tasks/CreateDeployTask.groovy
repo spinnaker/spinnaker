@@ -38,9 +38,9 @@ class CreateDeployTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    def taskId = kato.requestOperations([
-        deployOperationFromContext(context)
-    ]).toBlockingObservable().first()
+    def taskId = kato.requestOperations([[
+        basicAmazonDeployDescription: deployOperationFromContext(context)
+    ]]).toBlockingObservable().first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["deploy.task.id": taskId])
   }

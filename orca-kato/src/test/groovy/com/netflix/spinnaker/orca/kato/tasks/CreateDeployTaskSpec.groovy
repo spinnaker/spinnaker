@@ -111,7 +111,7 @@ class CreateDeployTaskSpec extends Specification {
     operations.size() == 1
     with(operations[0]) {
       stack.get() == context."deploy.stack"
-      subnetType.get() == contxt."deploy.subnetType"
+      subnetType.get() == context."deploy.subnetType"
     }
 
     where:

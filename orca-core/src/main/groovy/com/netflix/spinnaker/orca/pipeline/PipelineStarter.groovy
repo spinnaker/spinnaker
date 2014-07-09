@@ -24,13 +24,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
-import org.springframework.batch.core.JobParametersBuilder
+import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.FlowJobBuilder
-import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.launch.JobLauncher
+import org.springframework.batch.core.scope.context.ChunkContext
+import org.springframework.batch.core.step.tasklet.Tasklet
+import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
@@ -42,17 +45,28 @@ class PipelineStarter {
   @Autowired private ApplicationContext applicationContext
   @Autowired private JobLauncher launcher
   @Autowired private JobBuilderFactory jobs
+  @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
   JobExecution start(String config) {
     def context = buildPipelineFrom(config)
-    launcher.run(context.job, context.parameters)
+    launcher.run(context.job, new JobParameters())
   }
 
   private PipelineContext buildPipelineFrom(String config) {
-    def steps = mapper.readValue(config, new TypeReference<List<Map>>() {})
-    def context = new PipelineContext(jobs.get("xxx"))
-    (PipelineContext) steps.inject(context, this.&buildStageFromConfig)
+    def configMap = mapper.readValue(config, new TypeReference<List<Map>>() {})
+    def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
+    // TODO: can we get any kind of meaningful identifier from the mayo config?
+    def configStep = steps.get("orca-config-step").tasklet({ StepContribution contribution, ChunkContext chunkContext ->
+      configMap.each { Map<String, ?> entry ->
+        entry.each {
+          chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("$entry.type.$it.key", it.value)
+        }
+      }
+      return RepeatStatus.FINISHED
+    } as Tasklet).build()
+    def context = new PipelineContext(jobBuilder.start(configStep))
+    (PipelineContext) configMap.inject(context, this.&buildStageFromConfig)
   }
 
   @CompileDynamic
@@ -62,13 +76,13 @@ class PipelineStarter {
   }
 }
 
+// TODO: can this class be inlined?
 @CompileStatic
 class PipelineContext {
 
   private JobBuilderHelper jobBuilder
-  private final JobParametersBuilder parametersBuilder = new JobParametersBuilder()
 
-  PipelineContext(JobBuilder jobBuilder) {
+  PipelineContext(SimpleJobBuilder jobBuilder) {
     this.jobBuilder = jobBuilder
   }
 
@@ -76,7 +90,6 @@ class PipelineContext {
   @TypeChecked
   PipelineContext apply(StageBuilder stageBuilder, Map<String, ?> stepConfig) {
     jobBuilder = stageBuilder.build(jobBuilder)
-    stageBuilder.appendConfiguration(stepConfig, parametersBuilder)
     return this
   }
 
@@ -93,9 +106,5 @@ class PipelineContext {
         // (╯°□°)╯︵ ┻━┻
         throw new IllegalStateException("Cannot build a Job using a ${jobBuilder.getClass()} - did you add any steps to it?")
     }
-  }
-
-  JobParameters getParameters() {
-    parametersBuilder.toJobParameters()
   }
 }

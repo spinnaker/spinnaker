@@ -25,6 +25,7 @@ import org.springframework.batch.core.job.builder.JobBuilderHelper
  */
 interface StageBuilder<B extends JobBuilderHelper<B>> {
 
+  // TODO: may not need this method if we always have a config handling step first
   /**
    * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
    * is typically called when the stage is the first in the pipeline.

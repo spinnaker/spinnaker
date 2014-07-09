@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 dependencies {
   compile commonDependencies.springBatch
   compile commonDependencies.jacksonDatabind
+  compile commonDependencies.jacksonGuava
   testCompile project(":orca-test")
   testCompile commonDependencies.springBatchTest
   testRuntime commonDependencies.h2

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.config
 
 import groovy.transform.CompileStatic
+import com.google.gson.Gson
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStageBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
@@ -28,6 +29,7 @@ import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
+import retrofit.converter.GsonConverter
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
@@ -39,14 +41,15 @@ class KatoConfiguration {
   @Autowired LogLevel retrofitLogLevel
 
   @Bean Endpoint katoEndpoint() {
-    newFixedEndpoint("http://kato.test.netflix.net:7001")
+    newFixedEndpoint("http://kato.prod.netflix.net")
   }
 
-  @Bean KatoService katoDeployService(Endpoint katoEndpoint) {
+  @Bean KatoService katoDeployService(Endpoint katoEndpoint, Gson gson) {
     new RestAdapter.Builder()
         .setEndpoint(katoEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setConverter(new GsonConverter(gson))
         .build()
         .create(KatoService)
   }
@@ -54,5 +57,4 @@ class KatoConfiguration {
   @Bean DeployStageBuilder deployStageBuilder() {
     new DeployStageBuilder()
   }
-
 }

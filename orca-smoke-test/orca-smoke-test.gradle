@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 dependencies {
   testCompile project(":orca-test")
   testCompile project(":orca-bakery")
+  testCompile project(":orca-kato")
   testCompile commonDependencies.springBatchTest
   testRuntime commonDependencies.h2
   testRuntime commonDependencies.spockSpring
