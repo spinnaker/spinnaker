@@ -29,9 +29,12 @@ class AmazonApplicationDAO implements ApplicationDAO {
   protected AmazonSimpleDB awsSimpleDBClient
   protected String domain
 
+  /**
+   * TODO improve this logic...
+   */
   @Override
   boolean isHealthly() {
-    this.awsSimpleDBClient == null || listDomains().size() <= 0
+    this.awsSimpleDBClient != null
   }
 
   private List<String> listDomains() {

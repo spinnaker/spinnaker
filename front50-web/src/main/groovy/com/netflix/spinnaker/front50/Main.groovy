@@ -19,7 +19,6 @@
 package com.netflix.spinnaker.front50
 
 import com.netflix.appinfo.InstanceInfo
-import com.netflix.spinnaker.front50.controllers.ApplicationsController
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -47,11 +46,11 @@ public class Main extends SpringBootServletInitializer {
 
   @Override
   protected SpringApplicationBuilder configure(final SpringApplicationBuilder application) {
-    application.sources this
+    application.sources Main
   }
 
   @Bean
-  public InstanceInfo.InstanceStatus instanceStatus() {
+  InstanceInfo.InstanceStatus instanceStatus() {
     return InstanceInfo.InstanceStatus.UNKNOWN;
   }
 
