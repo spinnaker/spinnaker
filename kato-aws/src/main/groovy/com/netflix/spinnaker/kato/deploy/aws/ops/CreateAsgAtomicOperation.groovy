@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateAsgDescription
 import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.model.aws.AutoScalingGroupOptions
-import com.netflix.spinnaker.kato.model.aws.Subnets
+import com.netflix.spinnaker.kato.model.aws.SubnetAnalyzer
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -59,7 +59,7 @@ class CreateAsgAtomicOperation implements AtomicOperation<Void> {
       def amazonEc2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       String defaultVpc = amazonEc2.describeVpcs().vpcs.find { it.isDefault }?.vpcId
-      def subnets = Subnets.from(amazonEc2.describeSubnets().subnets, defaultVpc)
+      def subnets = SubnetAnalyzer.from(amazonEc2.describeSubnets().subnets, defaultVpc)
       CreateAutoScalingGroupRequest request = asgOptions.getCreateAutoScalingGroupRequest(subnets)
       autoScaling.createAutoScalingGroup(request)
       SuspendProcessesRequest suspendProcessesRequest = new SuspendProcessesRequest(

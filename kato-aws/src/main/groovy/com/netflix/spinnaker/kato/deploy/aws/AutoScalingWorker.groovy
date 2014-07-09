@@ -18,17 +18,8 @@
 package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
-import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.Ebs
-import com.amazonaws.services.autoscaling.model.InstanceMonitoring
+import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -37,6 +28,7 @@ import com.netflix.spinnaker.kato.config.BlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.services.SecurityGroupService
 import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
@@ -86,7 +78,6 @@ class AutoScalingWorker {
   private String instanceType
   private String iamRole
   private String keyPair
-  private String vpcId
   private SubnetType subnetType
   private List<String> loadBalancers
   private List<String> securityGroups
@@ -94,6 +85,7 @@ class AutoScalingWorker {
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
   private List<BlockDevice> blockDevices
+  private SecurityGroupService securityGroupService
 
   private int minInstances
   private int maxInstances
@@ -122,14 +114,14 @@ class AutoScalingWorker {
     task.updateStatus AWS_PHASE, "Beginning Amazon deployment."
 
     task.updateStatus AWS_PHASE, "Checking for security package."
-    String applicationSecurityGroup = getSecurityGroupForApplication()
+    String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application)
     if (!applicationSecurityGroup) {
-      applicationSecurityGroup = createSecurityGroup()
+      applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType?.type)
     }
 
     task.updateStatus AWS_PHASE, "Looking up security groups..."
     if (securityGroups) {
-      securityGroups = getSecurityGroupIds(securityGroups as String[])
+      securityGroups = securityGroupService.getSecurityGroupIds(securityGroups).values()
     } else {
       securityGroups = []
     }
@@ -198,24 +190,6 @@ class AutoScalingWorker {
   }
 
   /**
-   * This will return the VPC id for the subnet type provided, and derived from Netflix rules. This may be used to
-   * ensure that a newly created security group is available in the same VPC as our instances.
-   *
-   * @return id of the vpc
-   */
-  String getVpcForSubnetType() {
-    if (!this.vpcId) {
-      def vpcs = getSubnets()*.vpcId?.flatten()?.unique()
-      if (vpcs.size() > 1) {
-        throw new RuntimeException("Two VPCs found for this deployment, you MUST specify 'vpcId' with the request description with one of ($vpcs)!")
-      } else {
-        this.vpcId = vpcs[0]
-      }
-    }
-    this.vpcId
-  }
-
-  /**
    * Will lookup an existing ASG for this deployable, based off of Netflix ASG naming conventions.
    *
    * @return map depicting the ASG data structure.
@@ -236,51 +210,6 @@ class AutoScalingWorker {
       def names = Names.parseName(asg.autoScalingGroupName)
       names.sequence >= 0 && application == names.app
     }?.max({ a, b -> a.autoScalingGroupName <=> b.autoScalingGroupName }) ?: null
-  }
-
-  /**
-   * Find a security group that matches the name of this deployable.
-   *
-   * @return
-   */
-  String getSecurityGroupForApplication() {
-    try {
-      getSecurityGroupIds([application] as String[])?.getAt(0)
-    } catch (SecurityGroupNotFoundException IGNORE) {
-      null
-    }
-  }
-
-  /**
-   * Find security group ids for an array of provided security group names
-   *
-   * @param names
-   * @return list of group ids that correspond to the provided security group names
-   */
-  List<String> getSecurityGroupIds(String... names) {
-    DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups()
-    def securityGroups = result.securityGroups.findAll { names.contains(it.groupName) }.collectEntries {
-      [(it.groupName): it.groupId]
-    }
-    if (names.minus(securityGroups.keySet()).size() > 0) {
-      throw new SecurityGroupNotFoundException()
-    }
-    securityGroups.values() as List
-  }
-
-  /**
-   * Create a security group for this this deployable. Security Group name will equal the deployable's
-   * (ie. "application") name.
-   *
-   * @return group id of the security group
-   */
-  String createSecurityGroup() {
-    CreateSecurityGroupRequest request = new CreateSecurityGroupRequest(application, "Security Group for $application")
-    if (subnetType) {
-      request.withVpcId(vpcForSubnetType)
-    }
-    CreateSecurityGroupResult result = amazonEC2.createSecurityGroup(request)
-    result.groupId
   }
 
   /**
@@ -388,10 +317,6 @@ class AutoScalingWorker {
     }
     data ? new String(Base64.encodeBase64(data?.bytes)) : null
   }
-
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "could not find all supplied security groups!")
-  @InheritConstructors
-  static class SecurityGroupNotFoundException extends RuntimeException {}
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "subnet not found for the provided subnetType")
   @InheritConstructors

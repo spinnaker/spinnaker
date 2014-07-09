@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -44,6 +45,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   @Autowired
   AmazonClientProvider amazonClientProvider
+
+  @Autowired
+  RegionScopedProviderFactory regionScopedProviderFactory
 
   @Autowired
   AwsConfigurationProperties awsConfigurationProperties
@@ -77,6 +81,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
 
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
@@ -93,12 +98,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         blockDevices: description.blockDevices ?: awsConfigurationProperties.defaults.blockDeviceDefaults,
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
-        vpcId: description.vpcId,
         subnetType: subnetType,
         amazonEC2: amazonEC2,
         autoScaling: autoScaling,
         loadBalancers: description.loadBalancers,
-        userDataProviders: userDataProviders
+        userDataProviders: userDataProviders,
+        securityGroupService: regionScopedProvider.securityGroupService
       )
 
       def asgName = autoScalingWorker.deploy()
