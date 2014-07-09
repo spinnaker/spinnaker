@@ -101,30 +101,33 @@ It is the "resourceLink" piece of this response that defines the endpoint that c
 NOTE: Kato's AWS module (+kato-aws+) provides operations that are relevant for deployments and deployment-related function with Amazon.
 
 - - -
+include::src/asciidoc/ops/allowLaunchDescription.adoc[]
+- - -
 include::src/asciidoc/ops/basicAmazonDeployDescription.adoc[]
 - - -
 include::src/asciidoc/ops/copyLastAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/createAmazonLoadBalancerDescription.adoc[]
 - - -
+include::src/asciidoc/ops/createNetworkInterfaceDescription.adoc[]
+- - -
 include::src/asciidoc/ops/deleteAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/destroyAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/disableAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/resizeAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/shrinkClusterDescription.adoc[]
 - - -
-include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
-- - -
-include::src/asciidoc/ops/disableAsgDescription.adoc[]
-- - -
 include::src/asciidoc/ops/tagAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
-include::src/asciidoc/ops/destroyAsgDescription.adoc[]
+include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
 - - -
-include::src/asciidoc/ops/allowLaunchDescription.adoc[]
-- - -
+
 
 
 ==== Google Operations
