@@ -47,7 +47,7 @@ public class Main extends SpringBootServletInitializer {
 
   @Override
   protected SpringApplicationBuilder configure(final SpringApplicationBuilder application) {
-    application.sources(ApplicationsController)
+    application.sources this
   }
 
   @Bean
