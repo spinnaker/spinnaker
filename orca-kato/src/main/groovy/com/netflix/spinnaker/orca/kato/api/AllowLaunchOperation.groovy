@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.kato.api
 
+import groovy.transform.CompileStatic
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
-dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  testCompile project(":orca-test")
+@CompileStatic
+class AllowLaunchOperation extends Operation {
+  String account
+  String credentials
+  String region
+  String ami
 }

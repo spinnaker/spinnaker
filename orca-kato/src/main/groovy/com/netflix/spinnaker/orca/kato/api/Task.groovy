@@ -27,6 +27,7 @@ class Task {
 
   String id
   Status status
+  List<Map> resultObjects
 
   @Immutable
   static class Status {

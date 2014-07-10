@@ -19,8 +19,6 @@
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
   compile project(":orca-retrofit")
-  compile project(":orca-oort")
   testCompile project(":orca-test")
 }

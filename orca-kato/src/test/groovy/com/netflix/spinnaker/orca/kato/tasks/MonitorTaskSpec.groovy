@@ -28,7 +28,7 @@ import rx.Observable
 
 class MonitorTaskSpec extends Specification {
 
-  @Subject task = new MonitorTask()
+  @Subject task = new MonitorKatoTask()
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
