@@ -46,11 +46,13 @@ import javax.annotation.PreDestroy
 class Main extends SpringBootServletInitializer {
 
   static void main(_) {
+    System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     SpringApplication.run this, [] as String
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     application.sources Main
   }
 
