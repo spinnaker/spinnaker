@@ -38,7 +38,6 @@ class CreateDeployTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deployConfig = [
-      region           : "us-west-1",
       application      : "hodor",
       amiName          : "hodor-ubuntu-1",
       instanceType     : "large",
@@ -59,7 +58,7 @@ class CreateDeployTaskSpec extends Specification {
     task.defaultBakeAccount = "test"
 
     deployConfig.each {
-      context."deploy.$it.key" = it.value
+      context."deploy.${it.key}" = it.value
     }
   }
 

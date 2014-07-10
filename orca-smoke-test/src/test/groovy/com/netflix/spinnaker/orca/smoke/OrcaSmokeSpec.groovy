@@ -20,6 +20,7 @@
 
 package com.netflix.spinnaker.orca.smoke
 
+import spock.lang.Ignore
 import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.Ignore
@@ -82,6 +83,26 @@ class OrcaSmokeSpec extends Specification {
             credentials      : "test"
         ]
     ]
+  }
+
+  @Ignore
+  def "can deploy next ASG"() {
+      def config = [[
+              type: 'copyLastAsg',
+              application      : "mimirdemo",
+              stack            : "test",
+              availabilityZones: ['us-east-1': []],
+              credentials      : 'test'
+      ]]
+
+      def configJson = mapper.writeValueAsString(config)
+
+      when:
+      def execution = jobStarter.start(configJson)
+
+      then:
+      execution.status == BatchStatus.COMPLETED
+      execution.exitStatus == ExitStatus.COMPLETED
   }
 }
 
