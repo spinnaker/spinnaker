@@ -60,7 +60,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.fail()
           }
         }
-        task.resultObjects.addAll(results)
+        task.addResultObjects(results)
       } catch (TimeoutException IGNORE) {
         task.updateStatus "INIT", "Orchestration timed out."
         task.fail()
