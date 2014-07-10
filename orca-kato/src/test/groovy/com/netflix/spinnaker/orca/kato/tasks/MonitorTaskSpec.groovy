@@ -39,7 +39,7 @@ class MonitorTaskSpec extends Specification {
 
     and:
     def context = new SimpleTaskContext()
-    context."deploy.task.id" = new TaskId(taskId)
+    context."kato.task.id" = new TaskId(taskId)
 
     expect:
     task.execute(context).status == expectedResult
