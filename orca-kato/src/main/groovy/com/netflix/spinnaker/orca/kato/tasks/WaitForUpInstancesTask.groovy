@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
@@ -32,14 +33,34 @@ class WaitForUpInstancesTask implements RetryableTask {
   @Autowired
   OortService oortService
 
+  @Autowired
+  ObjectMapper objectMapper
+
   @Override
   TaskResult execute(TaskContext context) {
     String account = context.inputs."deploy.account.name"
-    Map<String, String> serverGroups = (Map<String, String>)context.inputs."deploy.server.groups"
-    if (!serverGroups) {
+    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context.inputs."deploy.server.groups"
+    if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(TaskResult.Status.FAILED)
     }
-    Names names = Names.parseName(serverGroups.values()[0])
-    oortService.getCluster()
+    Names names = Names.parseName(serverGroups.values().flatten()[0])
+    def response = oortService.getCluster(names.app, account, names.cluster)
+    if (response.status != 200) {
+      return new DefaultTaskResult(TaskResult.Status.RUNNING)
+    }
+    def clusters = objectMapper.readValue(response.body.in().text, List)
+    if (!clusters) {
+      return new DefaultTaskResult(TaskResult.Status.RUNNING)
+    }
+    Map cluster = (Map)clusters[0]
+    for (Map serverGroup in cluster.serverGroups) {
+      String region = serverGroup.region
+      String name = serverGroup.name
+
+      if (!serverGroups[region].contains(name)) {
+        return new DefaultTaskResult(TaskResult.Status.RUNNING)
+      }
+    }
+
   }
 }

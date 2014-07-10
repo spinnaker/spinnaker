@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import rx.Observable
 
-class MonitorTaskSpec extends Specification {
+class MonitorKatoTaskSpec extends Specification {
 
   @Subject task = new MonitorKatoTask()
 
@@ -34,7 +34,7 @@ class MonitorTaskSpec extends Specification {
   def "result depends on Kato task status"() {
     given:
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed)))
+      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), []))
     }
 
     and:
