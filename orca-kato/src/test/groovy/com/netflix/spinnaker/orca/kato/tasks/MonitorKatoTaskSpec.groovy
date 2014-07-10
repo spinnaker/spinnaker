@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import rx.Observable
 
-class MonitorTaskSpec extends Specification {
+class MonitorKatoTaskSpec extends Specification {
 
   @Subject task = new MonitorKatoTask()
 
