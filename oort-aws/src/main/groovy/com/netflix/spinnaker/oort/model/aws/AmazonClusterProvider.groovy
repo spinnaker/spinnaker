@@ -158,8 +158,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   AmazonInstance constructInstance(Instance ec2Instance, AmazonServerGroup serverGroup, String accountName) {
     def modelInstance = new AmazonInstance(ec2Instance.instanceId)
     modelInstance.instance = ec2Instance
-    modelInstance.health = healthProviders.collect { it.getHealth(accountName, serverGroup, ec2Instance.instanceId) }
-    modelInstance.isHealthy = !((List<Health>)modelInstance.health)?.find { !it?.isHealthy() ?: false }
+    List<Health> healths = healthProviders.collect {
+      it.getHealth(accountName, serverGroup, ec2Instance.instanceId)
+    }
+    modelInstance.health = healths
+    modelInstance.isHealthy = healths.find { it?.isHealthy() } as boolean
     modelInstance
   }
 

@@ -170,7 +170,7 @@ class AmazonClusterProviderSpec extends Specification {
     health                  | isHealthy
     ({ true } as Health)    | true
     ({ false } as Health)   | false
-    null                    | true
+    null                    | false
   }
 
   def getCommonObjects() {
