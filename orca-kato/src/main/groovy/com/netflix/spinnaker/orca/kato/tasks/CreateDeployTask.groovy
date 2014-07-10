@@ -42,7 +42,7 @@ class CreateDeployTask implements Task {
         basicAmazonDeployDescription: deployOperationFromContext(context)
     ]]).toBlockingObservable().first()
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["deploy.task.id": taskId])
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["kato.task.id": taskId])
   }
 
   private DeployOperation deployOperationFromContext(TaskContext context) {

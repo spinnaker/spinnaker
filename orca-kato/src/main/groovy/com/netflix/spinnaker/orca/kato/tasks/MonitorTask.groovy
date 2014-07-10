@@ -33,7 +33,7 @@ class MonitorTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    TaskId taskId = context.inputs."deploy.task.id" as TaskId
+    TaskId taskId = context.inputs."kato.task.id" as TaskId
     kato.lookupTask(taskId.id).toBlockingObservable().first().with {
       new DefaultTaskResult(katoStatusToTaskStatus(status))
     }
