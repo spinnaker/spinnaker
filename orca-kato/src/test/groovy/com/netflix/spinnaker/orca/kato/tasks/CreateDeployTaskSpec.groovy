@@ -153,6 +153,6 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     result.status == TaskResult.Status.SUCCEEDED
-    result.outputs."deploy.task.id" == taskId
+    result.outputs."kato.task.id" == taskId
   }
 }
