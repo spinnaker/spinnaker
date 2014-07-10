@@ -45,8 +45,14 @@ class CreateDeployTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    def taskId = deploy(deployOperationFromContext(context))
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["kato.task.id": taskId])
+    def deployOperations = deployOperationFromContext(context)
+    def taskId = deploy(deployOperations)
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
+        [
+            "kato.task.id": taskId,
+            "deploy.account.name": deployOperations.credentials,
+        ]
+    )
   }
 
   private DeployOperation deployOperationFromContext(TaskContext context) {

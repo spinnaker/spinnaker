@@ -42,7 +42,7 @@ class MonitorKatoTask implements RetryableTask {
     def katoTask = kato.lookupTask(taskId.id).toBlockingObservable().first()
     def status = katoStatusToTaskStatus(katoTask.status)
     status.complete ?
-        new DefaultTaskResult(status, [serverGroups: getServerGroupNames(katoTask)]) :
+        new DefaultTaskResult(status, ["deploy.server.groups": getServerGroupNames(katoTask)]) :
         new DefaultTaskResult(TaskResult.Status.RUNNING)
   }
 
