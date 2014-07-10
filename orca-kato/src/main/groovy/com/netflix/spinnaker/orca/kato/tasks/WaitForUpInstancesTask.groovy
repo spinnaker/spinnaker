@@ -57,10 +57,20 @@ class WaitForUpInstancesTask implements RetryableTask {
       String region = serverGroup.region
       String name = serverGroup.name
 
-      if (!serverGroups[region].contains(name)) {
+      List instances = serverGroup.instances
+      Map asg = serverGroup.asg
+      int minSize = asg.minSize
+
+      if (!serverGroups[region].contains(name) || minSize < instances.size()) {
+        continue
+      }
+
+      def allHealthy = !instances.health.find { !it.isHealthy }
+      if (!allHealthy) {
         return new DefaultTaskResult(TaskResult.Status.RUNNING)
       }
     }
 
+    return new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
   }
 }

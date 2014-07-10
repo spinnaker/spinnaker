@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.RetryableTaskTaskletAdapter
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -38,6 +39,9 @@ class DeployStageBuilder extends LinearStageBuilder {
     def step2 = steps.get("MonitorDeployStep")
         .tasklet(buildTask(MonitorKatoTask))
         .build()
+/*    def step3 = steps.get("WaitForUpInstancesStep")
+        .tasklet(buildTask(WaitForUpInstancesTask))
+        .build()*/
     [step1, step2]
   }
 

@@ -22,19 +22,22 @@ import spock.lang.Requires
 import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
+import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
 @Requires({ isReachable("http://bakery.test.netflix.net:7001") })
-@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration])
+@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
