@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.oort
 
+import retrofit.client.Response
+import retrofit.http.GET
+import retrofit.http.Path
+import retrofit.http.Query
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
-dependencies {
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  testCompile project(":orca-test")
+interface OortService {
+  @GET("/applications/{app}/clusters/{account}/{cluster}/aws/serverGroups/{serverGroup}")
+  Response getServerGroup(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster,
+                          @Path("serverGroup") String serverGroup, @Query("region") String region)
 }
