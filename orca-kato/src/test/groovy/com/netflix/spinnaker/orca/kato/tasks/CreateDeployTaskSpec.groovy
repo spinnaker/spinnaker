@@ -53,9 +53,22 @@ class CreateDeployTaskSpec extends Specification {
     mapper.registerModule(new GuavaModule())
 
     task.mapper = mapper
+    task.defaultBakeAccount = "test"
 
     deployConfig.each {
       context."deploy.$it.key" = it.value
+    }
+  }
+
+  def "should allow launch, then execute the basic amazon deployment"() {
+    when:
+    task.execute(context)
+    task.kato = Mock(KatoService)
+
+    then:
+    1 * task.kato.requestOperations(_) >> {
+      assert it[0].allowLaunchDescription.region == "us-west-1"
+      Observable.from(taskId)
     }
   }
 

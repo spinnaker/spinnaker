@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.api
 
 import groovy.transform.CompileStatic
-import groovy.transform.Immutable
 
-@Immutable
 @CompileStatic
-class Task {
-
-  String id
-  Status status
-  List<Map> resultObjects
-
-  @Immutable
-  static class Status {
-    boolean completed
-    boolean failed
-  }
+class AllowLaunchOperation extends Operation {
+  String account
+  String credentials
+  String region
+  String ami
 }
