@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.EnableAsgTask
-import com.netflix.spinnaker.orca.kato.tasks.MonitorTask
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
 import org.springframework.batch.core.Step
-
 
 class EnableAsgStageBuilder extends LinearStageBuilder {
   @Override
@@ -13,7 +12,7 @@ class EnableAsgStageBuilder extends LinearStageBuilder {
         .tasklet(buildTask(EnableAsgTask))
         .build()
     def step2 = steps.get("MonitorAsgStep")
-        .tasklet(buildTask(MonitorTask))
+        .tasklet(buildTask(MonitorKatoTask))
         .build()
     [step1, step2]
   }
