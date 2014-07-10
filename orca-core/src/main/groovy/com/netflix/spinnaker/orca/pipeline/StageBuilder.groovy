@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 
@@ -44,5 +43,4 @@ interface StageBuilder<B extends JobBuilderHelper<B>> {
    */
   abstract B build(B jobBuilder)
 
-  void appendConfiguration(Map<String, ?> configuration, JobParametersBuilder parametersBuilder)
 }

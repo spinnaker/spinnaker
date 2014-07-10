@@ -16,14 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
-import org.springframework.batch.core.JobParameter
-import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -59,14 +55,4 @@ abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements Aut
    * Default implementation simply creates a +JobParameter+ for every entry in +configuration+. Implementations can
    * override this as necessary.
    */
-  @Override
-  @CompileDynamic
-  void appendConfiguration(Map<String, ?> configuration, JobParametersBuilder parametersBuilder) {
-    def type = configuration.type
-    Maps.filterKeys configuration, {
-      it != "type"
-    } each {
-      parametersBuilder.addParameter("$type.$it.key", new JobParameter(it.value))
-    }
-  }
 }
