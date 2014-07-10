@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.ExitStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
@@ -38,15 +39,16 @@ class OrcaSmokeSpec extends Specification {
   @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
 
-  def "can bake and monitor to completion"() {
+  def "can bake and deploy"() {
     given:
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def jobStatus = jobStarter.start(configJson).status
+    def execution = jobStarter.start(configJson)
 
     then:
-    jobStatus == BatchStatus.COMPLETED
+    execution.status == BatchStatus.COMPLETED
+    execution.exitStatus.exitCode == ExitStatus.COMPLETED
 
     where:
     app = "front50"

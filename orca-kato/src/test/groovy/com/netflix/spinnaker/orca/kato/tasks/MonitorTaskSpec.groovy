@@ -34,7 +34,7 @@ class MonitorTaskSpec extends Specification {
   def "result depends on Kato task status"() {
     given:
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed)))
+      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed)))
     }
 
     and:
@@ -45,9 +45,10 @@ class MonitorTaskSpec extends Specification {
     task.execute(context).status == expectedResult
 
     where:
-    completed | expectedResult
-    true      | TaskResult.Status.SUCCEEDED
-    false     | TaskResult.Status.RUNNING
+    completed | failed | expectedResult
+    true      | false  | TaskResult.Status.SUCCEEDED
+    false     | false  | TaskResult.Status.RUNNING
+    true      | true   | TaskResult.Status.FAILED
 
     taskId = "kato-task-id"
     katoStatus = completed ? "completed" : "incomplete"

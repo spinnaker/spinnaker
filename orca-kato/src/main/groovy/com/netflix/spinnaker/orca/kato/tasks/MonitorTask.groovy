@@ -35,7 +35,17 @@ class MonitorTask implements Task {
   TaskResult execute(TaskContext context) {
     TaskId taskId = context.inputs."deploy.task.id" as TaskId
     kato.lookupTask(taskId.id).toBlockingObservable().first().with {
-      return new DefaultTaskResult(status.completed ? TaskResult.Status.SUCCEEDED : TaskResult.Status.RUNNING)
+      new DefaultTaskResult(katoStatusToTaskStatus(status))
+    }
+  }
+
+  private TaskResult.Status katoStatusToTaskStatus(com.netflix.spinnaker.orca.kato.api.Task.Status katoStatus) {
+    if (katoStatus.failed) {
+      return TaskResult.Status.FAILED
+    } else if (katoStatus.completed) {
+      return TaskResult.Status.SUCCEEDED
+    } else {
+      return TaskResult.Status.RUNNING
     }
   }
 }

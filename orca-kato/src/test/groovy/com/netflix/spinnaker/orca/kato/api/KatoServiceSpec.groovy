@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
 import retrofit.client.OkClient
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
+import static java.net.HttpURLConnection.HTTP_OK
 import static retrofit.Endpoints.newFixedEndpoint
 import static retrofit.RestAdapter.LogLevel.FULL
 
@@ -39,7 +40,7 @@ class KatoServiceSpec extends Specification {
 
   def setup() {
     service = new KatoConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
-      .katoDeployService(newFixedEndpoint(httpServer.baseURI), new Gson())
+        .katoDeployService(newFixedEndpoint(httpServer.baseURI), new Gson())
   }
 
   def "can interpret the response from an operation request"() {
@@ -55,6 +56,24 @@ class KatoServiceSpec extends Specification {
     expect: "kato should return the details of the task it created"
     with(service.requestOperations([operation]).toBlockingObservable().first()) {
       it.id == taskId
+    }
+  }
+
+  def "can interpret the response from a task lookup"() {
+    given:
+    httpServer.expect("GET", "/task/$taskId").andRespond().withStatus(HTTP_OK).withJsonContent {
+      id taskId
+      status {
+        completed true
+        failed true
+      }
+    }
+
+    expect:
+    with(service.lookupTask(taskId).toBlockingObservable().first()) {
+      id == taskId
+      status.completed
+      status.failed
     }
   }
 

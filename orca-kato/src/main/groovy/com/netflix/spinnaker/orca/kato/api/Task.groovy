@@ -29,5 +29,6 @@ class Task {
   @Immutable
   static class Status {
     boolean completed
+    boolean failed
   }
 }
