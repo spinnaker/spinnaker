@@ -20,20 +20,19 @@ import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.AllowLaunchOperation
 import com.netflix.spinnaker.orca.kato.api.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.api.TaskId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
-class CreateDeployTask implements RetryableTask {
-
-  long backoffPeriod = 1000
-  long timeout = 300000
+class CreateDeployTask implements Task {
 
   @Autowired
   KatoService kato
@@ -60,13 +59,13 @@ class CreateDeployTask implements RetryableTask {
     return operation
   }
 
-  private String deploy(DeployOperation deployOperation) {
+  private TaskId deploy(DeployOperation deployOperation) {
     deployOperation.securityGroups.addAll((deployOperation.subnetType) ? ["nf-infrastructure-vpc", "nf-datacenter-vpc"] : ["nf-infrastructure", "nf-datacenter"])
     deployOperation.availabilityZones.each { String region, List<String> azs ->
       kato.requestOperations([[allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]]).toBlockingObservable()
     }
     def result = kato.requestOperations([[basicAmazonDeployDescription: deployOperation]]).toBlockingObservable().first()
-    result.id
+    result
   }
 
   private static AllowLaunchOperation convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {

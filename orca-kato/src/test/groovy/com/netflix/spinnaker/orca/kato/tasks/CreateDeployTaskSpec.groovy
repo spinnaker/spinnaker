@@ -84,7 +84,7 @@ class CreateDeployTaskSpec extends Specification {
       application == deployConfig.application
       amiName == deployConfig.amiName
       instanceType == deployConfig.instanceType
-      securityGroups == deployConfig.securityGroups + ['nf-datacenter-vpc']
+      securityGroups == deployConfig.securityGroups + ['nf-infrastructure-vpc', 'nf-datacenter-vpc']
       availabilityZones == deployConfig.availabilityZones
       capacity.min == deployConfig.capacity.min
       capacity.max == deployConfig.capacity.max
@@ -101,10 +101,10 @@ class CreateDeployTaskSpec extends Specification {
     context."deploy.stack" = stackValue
     context."deploy.subnetType" = subnetTypeValue
 
-    def operations
+    def operations = []
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0].basicAmazonDeployDescription
+      2 * requestOperations(*_) >> {
+        operations << it[0][0]
         Observable.from(taskId)
       }
     }
@@ -113,8 +113,8 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    operations.size() == 1
-    with(operations[0]) {
+    operations.size() == 2
+    with(operations[1].basicAmazonDeployDescription) {
       stack.get() == context."deploy.stack"
       subnetType.get() == context."deploy.subnetType"
     }
@@ -126,10 +126,10 @@ class CreateDeployTaskSpec extends Specification {
 
   def "can use the AMI output by a bake"() {
     given:
-    def operations
+    def operations = []
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      2 * requestOperations(*_) >> {
+        operations << it[0][0]
         Observable.from(taskId)
       }
     }
@@ -141,7 +141,7 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    operations[0].basicAmazonDeployDescription.amiName == amiName
+    operations[1].basicAmazonDeployDescription.amiName == amiName
 
     where:
     amiName = "ami-name-from-bake"
@@ -158,6 +158,6 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     result.status == TaskResult.Status.SUCCEEDED
-    result.outputs."deploy.task.id" == taskId
+    result.outputs."kato.task.id" == taskId
   }
 }

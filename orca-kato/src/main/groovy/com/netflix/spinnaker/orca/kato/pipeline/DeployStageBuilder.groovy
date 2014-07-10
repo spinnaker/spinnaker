@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.RetryableTaskTaskletAdapter
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
-import com.netflix.spinnaker.orca.kato.tasks.MonitorTask
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -33,10 +33,10 @@ class DeployStageBuilder extends LinearStageBuilder {
   @Override
   protected List<Step> buildSteps() {
     def step1 = steps.get("CreateDeployStep")
-        .tasklet(buildTask(CreateDeployTask))
+        .tasklet(super.buildTask(CreateDeployTask))
         .build()
     def step2 = steps.get("MonitorDeployStep")
-        .tasklet(buildTask(MonitorTask))
+        .tasklet(buildTask(MonitorKatoTask))
         .build()
     [step1, step2]
   }
