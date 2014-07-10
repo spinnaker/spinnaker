@@ -22,35 +22,46 @@ import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import com.netflix.spinnaker.oort.model.aws.AtlasHealthProvider
-import spock.lang.Shared
 import spock.lang.Specification
 
 class AtlasHealthProviderSpec extends Specification {
 
-  @Shared
-  AtlasHealthProvider provider
+  def mockCacheService = Mock(CacheService)
+  def provider = new AtlasHealthProvider(cacheService: mockCacheService)
 
-  @Shared
-  CacheService cacheService
+  def serverGroupName = "kato-main-v000"
+  def region = "us-east-1"
+  def serverGroup = new AmazonServerGroup(serverGroupName, "aws", region)
+  def instanceHealthKey = Keys.getInstanceHealthKey("i-12345", "test", region, AtlasHealthCachingAgent.PROVIDER_NAME)
 
-  def setup() {
-    provider = new AtlasHealthProvider()
-    cacheService = Mock(CacheService)
-    provider.cacheService = cacheService
-  }
-
-  void "health is retrieved from cache"() {
-    setup:
-    def serverGroupName = "kato-main-v000"
-    def region = "us-east-1"
-    def serverGroup = new AmazonServerGroup(serverGroupName, "aws", region)
-
+  void "should retrieved health from cache"() {
     when:
     def result = provider.getHealth("test", serverGroup, "i-12345")
 
     then:
     result instanceof Health
     result.id == "i-12345"
-    1 * cacheService.retrieve(Keys.getInstanceHealthKey("i-12345", "test", region, AtlasHealthCachingAgent.PROVIDER_NAME), _) >> [id: "i-12345", isHealthy: true]
+    result.isHealthy() == isHealthy
+
+    and:
+    1 * mockCacheService.retrieve(instanceHealthKey, _) >> health
+
+    where:
+    health                            | isHealthy
+    [id: "i-12345", isHealthy: true]  | true
+    [id: "i-12345", isHealthy: false] | false
   }
+
+  void "should indicate unknown when health is not cached"() {
+    when:
+    def result = provider.getHealth("test", serverGroup, "i-12345")
+
+    then:
+    result == null
+    !result?.isHealthy()
+
+    and:
+    1 * mockCacheService.retrieve(instanceHealthKey, _)
+  }
+
 }
