@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.kato.api.AllowLaunchOperation
 import com.netflix.spinnaker.orca.kato.api.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -60,24 +61,12 @@ class CreateDeployTaskSpec extends Specification {
     }
   }
 
-  def "should allow launch, then execute the basic amazon deployment"() {
-    when:
-    task.execute(context)
-    task.kato = Mock(KatoService)
-
-    then:
-    1 * task.kato.requestOperations(_) >> {
-      assert it[0].allowLaunchDescription.region == "us-west-1"
-      Observable.from(taskId)
-    }
-  }
-
   def "creates a deployment based on job parameters"() {
     given:
-    def operations
+    def operations = []
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      2 * requestOperations(*_) >> {
+        operations << it[0][0]
         Observable.from(taskId)
       }
     }
@@ -86,13 +75,16 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    operations.size() == 1
-    with(operations[0].basicAmazonDeployDescription) {
+    operations.size() == 2
+    with(operations[0].allowLaunchDescription) {
+      it instanceof AllowLaunchOperation
+    }
+    with(operations[1].basicAmazonDeployDescription) {
       it instanceof DeployOperation
       application == deployConfig.application
       amiName == deployConfig.amiName
       instanceType == deployConfig.instanceType
-      securityGroups == deployConfig.securityGroups
+      securityGroups == deployConfig.securityGroups + ['nf-datacenter-vpc']
       availabilityZones == deployConfig.availabilityZones
       capacity.min == deployConfig.capacity.min
       capacity.max == deployConfig.capacity.max
