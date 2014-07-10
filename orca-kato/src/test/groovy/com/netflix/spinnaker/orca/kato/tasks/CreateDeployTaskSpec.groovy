@@ -74,7 +74,7 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0]) {
+    with(operations[0].basicAmazonDeployDescription) {
       it instanceof DeployOperation
       application == deployConfig.application
       amiName == deployConfig.amiName
@@ -99,7 +99,7 @@ class CreateDeployTaskSpec extends Specification {
     def operations
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
-        operations = it[0]
+        operations = it[0].basicAmazonDeployDescription
         Observable.from(taskId)
       }
     }
@@ -136,7 +136,7 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    operations[0].amiName == amiName
+    operations[0].basicAmazonDeployDescription.amiName == amiName
 
     where:
     amiName = "ami-name-from-bake"

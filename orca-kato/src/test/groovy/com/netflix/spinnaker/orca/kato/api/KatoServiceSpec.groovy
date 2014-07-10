@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.api
 
 import spock.lang.Specification
 import spock.lang.Subject
+import com.google.gson.Gson
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
@@ -38,7 +39,7 @@ class KatoServiceSpec extends Specification {
 
   def setup() {
     service = new KatoConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
-      .katoDeployService(newFixedEndpoint(httpServer.baseURI))
+      .katoDeployService(newFixedEndpoint(httpServer.baseURI), new Gson())
   }
 
   def "can interpret the response from an operation request"() {

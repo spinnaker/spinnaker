@@ -141,21 +141,18 @@ class BakeryServiceSpec extends Specification {
   def "can lookup the details of a bake"() {
     given:
     httpServer.expect("GET", "$bakePath/$bakeId").andRespond().withStatus(HTTP_OK).withJsonContent {
-      ami "ami-e3d3d5a6"
-      base_ami "ami-fe3a3dbb"
-      ami_suffix "201406212028-ubuntu-pv"
-      base_name "ubuntubase-x86_64-201406110156-ebs"
-      ami_name resultAmiName
+      ami "ami"
+      base_ami "base_ami"
+      ami_suffix "ami_suffix"
+      base_name "base_name"
+      ami_name "ami_name"
       id bakeId
     }
 
     expect:
     with(bakery.lookupBake(region, bakeId).toBlockingObservable().first()) {
       id == bakeId
-      amiName == resultAmiName
+      ami == "ami"
     }
-
-    where:
-    resultAmiName = "kato-1.0-h36.272747e-x86_64-201406212028-ubuntu-pv-ebs"
   }
 }

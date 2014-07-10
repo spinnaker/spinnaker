@@ -20,23 +20,16 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
-import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
+import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
+import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class BakeStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
+class BakeStageBuilder extends LinearStageBuilder {
 
   @Override
-  SimpleJobBuilder build(JobBuilder jobBuilder) {
-    throw new UnsupportedOperationException()
-    // TODO: need to implement this with some tests. It should basically do whe the other method does but use start rather than next
-  }
-
-  @Override
-  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
+  protected List<Step> buildSteps() {
     def step1 = steps.get("CreateBakeStep")
         .tasklet(buildTask(CreateBakeTask))
         .build()
@@ -46,9 +39,6 @@ class BakeStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
     def step3 = steps.get("CompletedBakeStep")
         .tasklet(buildTask(CompletedBakeTask))
         .build()
-    jobBuilder
-        .next(step1)
-        .next(step2)
-        .next(step3)
+    [step1, step2, step3]
   }
 }

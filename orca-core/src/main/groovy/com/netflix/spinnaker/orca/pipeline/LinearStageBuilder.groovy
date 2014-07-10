@@ -14,30 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
-import com.netflix.spinnaker.orca.kato.tasks.MonitorTask
-import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
-import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
-import org.springframework.stereotype.Component
 
-@Component
+/**
+ * A base class for +StageBuilder+ implementations that just need to wire a linear sequence of steps.
+ */
 @CompileStatic
-class DeployStageBuilder extends LinearStageBuilder {
+abstract class LinearStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
+
+  protected abstract List<Step> buildSteps()
 
   @Override
-  protected List<Step> buildSteps() {
-    def step1 = steps.get("CreateDeployStep")
-        .tasklet(buildTask(CreateDeployTask))
-        .build()
-    def step2 = steps.get("MonitorDeployStep")
-        .tasklet(buildTask(MonitorTask))
-        .build()
-    [step1, step2]
+  SimpleJobBuilder build(JobBuilder jobBuilder) {
+    def steps = buildSteps()
+    wireSteps(jobBuilder.start(steps.first()), steps.tail())
+  }
+
+  @Override
+  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
+    wireSteps(jobBuilder, buildSteps())
+  }
+
+  private SimpleJobBuilder wireSteps(SimpleJobBuilder jobBuilder, List<Step> steps) {
+    (SimpleJobBuilder) steps.inject(jobBuilder) { SimpleJobBuilder builder, Step step ->
+      builder.next(step)
+    }
   }
 }
