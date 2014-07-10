@@ -21,7 +21,7 @@ package com.netflix.spinnaker.orca
  */
 interface RetryableTask extends Task {
 
-  Long getBackoffPeriod()
+  long getBackoffPeriod()
 
-  Long getTimeout()
+  long getTimeout()
 }
