@@ -33,17 +33,11 @@ class DeployStageBuilder extends LinearStageBuilder {
   @Override
   protected List<Step> buildSteps() {
     def step1 = steps.get("CreateDeployStep")
-        .tasklet(super.buildTask(CreateDeployTask))
+        .tasklet(buildTask(CreateDeployTask))
         .build()
     def step2 = steps.get("MonitorDeployStep")
         .tasklet(buildTask(MonitorKatoTask))
         .build()
     [step1, step2]
-  }
-
-  protected Tasklet buildTask(Class<? extends Task> taskType) {
-    def task = taskType.newInstance()
-    autowire task
-    RetryableTaskTaskletAdapter.decorate task
   }
 }

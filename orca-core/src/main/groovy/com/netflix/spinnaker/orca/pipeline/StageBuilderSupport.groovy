@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.RetryableTaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -43,7 +45,11 @@ abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements Aut
   protected Tasklet buildTask(Class<? extends Task> taskType) {
     def task = taskType.newInstance()
     autowire task
-    TaskTaskletAdapter.decorate task
+    if (task instanceof RetryableTask) {
+      RetryableTaskTaskletAdapter.decorate task
+    } else {
+      TaskTaskletAdapter.decorate task
+    }
   }
 
   @Autowired
