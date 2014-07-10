@@ -17,16 +17,21 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
-class MonitorTask implements Task {
+class MonitorKatoTask implements RetryableTask {
+
+  long backoffPeriod = 1000
+  long timeout = 300000
 
   @Autowired
   KatoService kato
@@ -34,12 +39,14 @@ class MonitorTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     TaskId taskId = context.inputs."kato.task.id" as TaskId
-    kato.lookupTask(taskId.id).toBlockingObservable().first().with {
-      new DefaultTaskResult(katoStatusToTaskStatus(status))
-    }
+    def katoTask = kato.lookupTask(taskId.id).toBlockingObservable().first()
+    def status = katoStatusToTaskStatus(katoTask.status)
+    status.complete ?
+        new DefaultTaskResult(status, ["deploy.server.groups": getServerGroupNames(katoTask)]) :
+        new DefaultTaskResult(TaskResult.Status.RUNNING)
   }
 
-  private TaskResult.Status katoStatusToTaskStatus(com.netflix.spinnaker.orca.kato.api.Task.Status katoStatus) {
+  private static TaskResult.Status katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
       return TaskResult.Status.FAILED
     } else if (katoStatus.completed) {
@@ -47,5 +54,28 @@ class MonitorTask implements Task {
     } else {
       return TaskResult.Status.RUNNING
     }
+  }
+
+  // This is crappy logic
+  // TODO clean this up in Kato
+  @CompileStatic(TypeCheckingMode.SKIP)
+  private static Map<String, List<String>> getServerGroupNames(Task task) {
+    def result = [:]
+    def resultObjects = task.resultObjects ?: []
+    resultObjects.removeAll([null])
+    resultObjects.each {
+      if (it.serverGroupNames) {
+        it.serverGroupNames.each {
+          def parts = it.split(':')
+          def region = parts[0]
+          def serverGroup = parts[1]
+          if (!result.containsKey(region)) {
+            result[region] = []
+          }
+          result[region] << serverGroup
+        }
+      }
+    }
+    result
   }
 }
