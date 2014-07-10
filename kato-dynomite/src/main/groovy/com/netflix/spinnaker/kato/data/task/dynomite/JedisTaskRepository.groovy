@@ -78,7 +78,7 @@ class JedisTaskRepository implements TaskRepository {
 
   List<Object> getResultObjects(JedisTask task) {
     List<Object> list = []
-    jedis.keys("taskResult:${task.id}:*").each { key ->
+    jedis.keys("taskResult:${task.id}:*").sort { it.split(':').last() as long }.each { key ->
       Map<String, String> results = jedis.hgetAll(key)
       list << mapper.readValue(results.value, Class.forName(results.type))
     }
@@ -93,7 +93,7 @@ class JedisTaskRepository implements TaskRepository {
 
   List<Status> getHistory(JedisTask task) {
     List<Status> history = []
-    jedis.keys("taskHistory:${task.id}:*").each { key ->
+    jedis.keys("taskHistory:${task.id}:*").sort { it.split(':').last() as long }.each { key ->
       Map<String, String> entry = jedis.hgetAll(key)
       history << new DefaultTask.TaskDisplayStatus(entry.phase, entry.status)
     }

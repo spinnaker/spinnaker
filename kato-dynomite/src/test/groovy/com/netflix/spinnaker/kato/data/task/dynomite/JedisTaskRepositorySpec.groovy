@@ -88,7 +88,7 @@ class JedisTaskRepositorySpec extends Specification {
     t2.status.isFailed()
   }
 
-  void "listing tasks returns all avilable tasks"() {
+  void "listing tasks returns all available tasks"() {
     setup:
     def t1 = taskRepository.create "TEST", "Test Status"
     def t2 = taskRepository.create "TEST", "Test Status"
@@ -125,18 +125,34 @@ class JedisTaskRepositorySpec extends Specification {
     resultObjects.size() == 2
   }
 
+  void "ResultObjects are retrieved in insertion order"() {
+    given:
+    def t1 = taskRepository.create "Test", "Test Status"
+    4.times {
+      taskRepository.addResultObject("Object${it}" as String, t1)
+    }
+    expect:
+    taskRepository.getResultObjects(t1) == ['Object0', 'Object1', 'Object2', 'Object3']
+  }
+
   void "task history is correctly persisted"() {
     given:
     def t1 = taskRepository.create "Test", "Test Status"
-    taskRepository.addToHistory('Orchestration', 'started', t1)
     def history = taskRepository.getHistory(t1)
-    def firstEntry = history.first()
 
     expect:
     history.size() == 1
-    firstEntry.class.simpleName == 'TaskDisplayStatus'
-    firstEntry.phase == 'Orchestration'
-    firstEntry.status == 'started'
+
+    when:
+    taskRepository.addToHistory('Orchestration', 'started', t1)
+    history = taskRepository.getHistory(t1)
+    def newEntry = history[1]
+
+    then:
+    history.size() == 2
+    newEntry.class.simpleName == 'TaskDisplayStatus'
+    newEntry.phase == 'Orchestration'
+    newEntry.status == 'started'
 
     when:
     3.times {
@@ -144,7 +160,7 @@ class JedisTaskRepositorySpec extends Specification {
     }
 
     then:
-    taskRepository.getHistory(t1).size() == 4
+    taskRepository.getHistory(t1).size() == 5
   }
 
 }

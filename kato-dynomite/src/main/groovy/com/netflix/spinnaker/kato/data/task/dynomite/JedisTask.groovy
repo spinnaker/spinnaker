@@ -20,12 +20,12 @@ import com.netflix.spinnaker.kato.data.task.DefaultTask
 
 class JedisTask extends DefaultTask {
 
-  transient JedisTaskRepository repository
+  JedisTaskRepository repository
 
   JedisTask(String id, String phase, String status, JedisTaskRepository repository = null) {
     super(id, phase, status)
     this.repository = repository
-    save()
+    updateStatus(phase, status)
   }
 
   JedisTask(String id, String phase, String status, long startTimeMs, Boolean complete, Boolean failed) {
@@ -43,19 +43,13 @@ class JedisTask extends DefaultTask {
   @Override
   void updateStatus(String phase, String status) {
     super.updateStatus(phase, status)
-    save()
     repository?.addToHistory(phase, status, this)
+    save()
   }
 
   @Override
   void complete() {
     super.complete()
-    save()
-  }
-
-  @Override
-  void fail() {
-    super.fail()
     save()
   }
 
