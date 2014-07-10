@@ -49,11 +49,10 @@ class PipelineStarter {
   @Autowired private ObjectMapper mapper
 
   JobExecution start(String config) {
-    def context = buildPipelineFrom(config)
-    launcher.run(context.job, new JobParameters())
+    launcher.run(buildPipelineFrom(config), new JobParameters())
   }
 
-  private PipelineContext buildPipelineFrom(String config) {
+  private Job buildPipelineFrom(String config) {
     def configMap = mapper.readValue(config, new TypeReference<List<Map>>() {})
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
     // TODO: can we get any kind of meaningful identifier from the mayo config?
@@ -65,35 +64,17 @@ class PipelineStarter {
       }
       return RepeatStatus.FINISHED
     } as Tasklet).build()
-    def context = new PipelineContext(jobBuilder.start(configStep))
-    (PipelineContext) configMap.inject(context, this.&buildStageFromConfig)
+    jobBuilder = (JobBuilderHelper) configMap.inject(jobBuilder.start(configStep), this.&buildStageFromConfig)
+    getJob(jobBuilder)
   }
 
   @CompileDynamic
-  private PipelineContext buildStageFromConfig(PipelineContext context, Map stepConfig) {
+  private JobBuilderHelper buildStageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
     def stageBuilder = applicationContext.getBean("${stepConfig.type}StageBuilder", StageBuilder)
-    context.apply(stageBuilder, stepConfig)
-  }
-}
-
-// TODO: can this class be inlined?
-@CompileStatic
-class PipelineContext {
-
-  private JobBuilderHelper jobBuilder
-
-  PipelineContext(SimpleJobBuilder jobBuilder) {
-    this.jobBuilder = jobBuilder
+    stageBuilder.build(jobBuilder)
   }
 
-  @CompileDynamic
-  @TypeChecked
-  PipelineContext apply(StageBuilder stageBuilder, Map<String, ?> stepConfig) {
-    jobBuilder = stageBuilder.build(jobBuilder)
-    return this
-  }
-
-  Job getJob() {
+  private Job getJob(JobBuilderHelper jobBuilder) {
     // Have to do some horror here as we don't know what type of builder we'll end up with.
     // Two of them have a build method that returns a Job but it's not on a common superclass.
     // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
