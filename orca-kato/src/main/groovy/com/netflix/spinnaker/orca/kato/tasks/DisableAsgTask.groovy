@@ -24,7 +24,7 @@ class DisableAsgTask implements Task {
     def taskId = kato.requestOperations(
         [[disableAsgDescription: operationFromContext(context)]]
     ).toBlockingObservable().first()
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["disableAsg.task.id": taskId])
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["kato.task.id": taskId])
   }
 
   private EnableOrDisableAsgOperation operationFromContext(TaskContext context) {
