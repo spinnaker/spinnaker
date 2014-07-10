@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import groovy.transform.TypeChecked
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.batch.core.Job
@@ -33,6 +31,7 @@ import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
+import org.springframework.batch.core.step.tasklet.TaskletStep
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -48,33 +47,50 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
-  JobExecution start(String config) {
-    launcher.run(buildPipelineFrom(config), new JobParameters())
+  /**
+   * Builds and executes a _pipeline_ based on the
+   * @param configJson
+   * @return
+   */
+  JobExecution start(String configJson) {
+    launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
   }
 
-  private Job buildPipelineFrom(String config) {
-    def configMap = mapper.readValue(config, new TypeReference<List<Map>>() {})
-    def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
+  private List<Map<String, ?>> parseConfig(String configJson) {
+    mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
+  }
+
+  private Job pipelineFrom(List<Map<String, ?>> config) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def configStep = steps.get("orca-config-step").tasklet({ StepContribution contribution, ChunkContext chunkContext ->
+    def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
+                         .start(configStep(config))
+    jobBuilder = (JobBuilderHelper) config.inject(jobBuilder, this.&stageFromConfig)
+    job(jobBuilder)
+  }
+
+  private TaskletStep configStep(configMap) {
+    steps.get("orca-config-step")
+         .tasklet(configTasklet(configMap))
+         .build()
+  }
+
+  private Tasklet configTasklet(configMap) {
+    { StepContribution contribution, ChunkContext chunkContext ->
       configMap.each { Map<String, ?> entry ->
         entry.each {
           chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("$entry.type.$it.key", it.value)
         }
       }
       return RepeatStatus.FINISHED
-    } as Tasklet).build()
-    jobBuilder = (JobBuilderHelper) configMap.inject(jobBuilder.start(configStep), this.&buildStageFromConfig)
-    getJob(jobBuilder)
+    } as Tasklet
   }
 
-  @CompileDynamic
-  private JobBuilderHelper buildStageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
+  private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
     def stageBuilder = applicationContext.getBean("${stepConfig.type}StageBuilder", StageBuilder)
     stageBuilder.build(jobBuilder)
   }
 
-  private Job getJob(JobBuilderHelper jobBuilder) {
+  private Job job(JobBuilderHelper jobBuilder) {
     // Have to do some horror here as we don't know what type of builder we'll end up with.
     // Two of them have a build method that returns a Job but it's not on a common superclass.
     // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
