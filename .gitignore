@@ -5,3 +5,4 @@ build/
 *.iml
 *.ipr
 *.iws
+out/
