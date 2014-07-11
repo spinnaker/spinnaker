@@ -22,7 +22,7 @@ import retrofit.http.Path
 import retrofit.http.Query
 
 interface OortService {
-  @GET("/applications/{app}/clusters/{account}/{cluster}/aws/serverGroups/{serverGroup}")
+  @GET("/applications/{app}/clusters/{account}/{cluster}")
   Response getCluster(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/aws/serverGroups/{serverGroup}")
