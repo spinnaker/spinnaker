@@ -38,7 +38,6 @@ dependencies {
   compile project(":kato-aws")
   compile project(":kato-gce")
   compile project(":kato-perforce-udp")
-  compile project(":kato-dynomite")
   runtime commonDependencies.kork
   compile commonDependencies.eureka
   compile commonDependencies.springBootActuator
