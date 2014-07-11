@@ -23,7 +23,6 @@ package com.netflix.spinnaker.orca.smoke
 import spock.lang.Ignore
 import spock.lang.Requires
 import spock.lang.Specification
-import spock.lang.Ignore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.kato.api.KatoService
