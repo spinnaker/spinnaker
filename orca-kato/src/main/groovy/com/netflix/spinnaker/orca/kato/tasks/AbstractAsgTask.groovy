@@ -28,10 +28,10 @@ abstract class AbstractAsgTask implements Task {
     def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]])
         .toBlockingObservable().first()
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED, [
-        "kato.task.id"                     : taskId,
-        "deploy.account.name"              : operation.credentials,
-        "targetop.asg.${asgAction}.name"   : operation.asgName,
-        "targetop.asg.${asgAction}.regions": operation.regions
+        "kato.task.id"                                  : taskId,
+        "deploy.account.name"                           : operation.credentials,
+        ("targetop.asg.${asgAction}.name".toString())   : operation.asgName,
+        ("targetop.asg.${asgAction}.regions".toString()): operation.regions
     ])
   }
 

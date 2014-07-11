@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.kato.api
 
-import com.netflix.spinnaker.orca.TaskContext
+class ResizeAsgOperation {
+  String asgName
+  String region
 
-class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
+  Capacity capacity = new Capacity()
 
-  @Override
-  protected Map<String, List<String>> getServerGroups(TaskContext context) {
-    (Map<String, List<String>>) context.inputs."deploy.server.groups"
+  static class Capacity {
+    int min
+    int max
   }
-
-  @Override
-  protected boolean hasSucceeded(List instances) {
-    !instances.find { !it.isHealthy }
-  }
-
 }

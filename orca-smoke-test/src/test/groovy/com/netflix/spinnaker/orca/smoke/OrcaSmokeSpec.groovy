@@ -53,7 +53,7 @@ class OrcaSmokeSpec extends Specification {
 
     then:
     execution.status == BatchStatus.COMPLETED
-    execution.exitStatus.exitCode == ExitStatus.COMPLETED
+    execution.exitStatus == ExitStatus.COMPLETED
 
     where:
     app = "front50"

@@ -21,13 +21,9 @@ import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.Task
-import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.oort.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedInput
-import rx.Observable
 
 class WaitForUpInstancesTaskSpec extends Specification {
 
