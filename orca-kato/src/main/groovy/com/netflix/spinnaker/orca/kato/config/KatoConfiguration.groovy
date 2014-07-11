@@ -25,6 +25,10 @@ import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStageBuilder
+import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStageBuilder
+import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStageBuilder
+import com.netflix.spinnaker.orca.kato.pipeline.EnableAsgStageBuilder
+import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStageBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -65,5 +69,21 @@ class KatoConfiguration {
 
   @Bean CopyLastAsgStageBuilder copyLastAsgStageBuilder() {
     new CopyLastAsgStageBuilder()
+  }
+
+  @Bean DestroyAsgStageBuilder destroyAsgStageBuilder() {
+    new DestroyAsgStageBuilder()
+  }
+
+  @Bean DisableAsgStageBuilder disableAsgStageBuilder() {
+    new DisableAsgStageBuilder()
+  }
+
+  @Bean EnableAsgStageBuilder enableAsgStageBuilder() {
+    new EnableAsgStageBuilder()
+  }
+
+  @Bean ResizeAsgStageBuilder resizeAsgStageBuilder() {
+    new ResizeAsgStageBuilder()
   }
 }
