@@ -14,13 +14,6 @@ ext {
 
 allprojects {
   apply plugin: "spinnaker-gradle-project"
-}
-
-ideaConfig {
-  codeStyleXml = file('idea/codeStyle.xml')
-}
-
-subprojects {
   apply plugin: "groovy"
 
   group = "com.netflix.spinnaker.oort"
@@ -45,3 +38,9 @@ subprojects {
   }
 
 }
+
+ideaConfig {
+  codeStyleXml = file('idea/codeStyle.xml')
+}
+
+

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import com.ryantenney.metrics.annotation.Metric
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -145,6 +146,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   final Closure instancePopulator = { Set<String> keys, AmazonCluster cluster, AmazonServerGroup serverGroup ->
+    serverGroup.instances.clear()
     def instanceIds = keys.findAll { it.startsWith("${Namespace.SERVER_GROUP_INSTANCE}:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
     for (instanceId in instanceIds) {
       def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region), Instance)
@@ -159,8 +161,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     List<Health> healths = healthProviders.collect {
       it.getHealth(accountName, serverGroup, ec2Instance.instanceId)
     }
-    Health health = healths[0] // TODO: find a better way to decide which health provider to trust
-    def modelInstance = new AmazonInstance(ec2Instance.instanceId, health)
+    def modelInstance = new AmazonInstance(ec2Instance.instanceId)
+    modelInstance._health = healths
+    modelInstance.isHealthy = !healths.find { it.state != HealthState.Up }
     modelInstance.instance = ec2Instance
     modelInstance
   }

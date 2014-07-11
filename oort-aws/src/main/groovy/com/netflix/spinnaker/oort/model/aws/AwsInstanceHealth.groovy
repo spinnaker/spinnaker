@@ -21,6 +21,7 @@ import groovy.transform.Canonical
 
 @Canonical
 class AwsInstanceHealth implements Health {
+  String type
   HealthState state
   String id
 }

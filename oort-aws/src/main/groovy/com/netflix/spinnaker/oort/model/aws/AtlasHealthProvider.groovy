@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component
 @CompileStatic
 @Component
 class AtlasHealthProvider implements HealthProvider {
+  private static final String HEALTH_TYPE = "Atlas"
 
   @Autowired
   CacheService cacheService
@@ -42,11 +43,11 @@ class AtlasHealthProvider implements HealthProvider {
     }
     Map health = cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME), Map)
     if (!health) {
-      return new AwsInstanceHealth(id: instanceId, state: HealthState.Unknown)
+      return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Unknown)
     }
     if (health.isHealthy) {
-      return new AwsInstanceHealth(id: instanceId, state: HealthState.Up)
+      return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Up)
     }
-    return new AwsInstanceHealth(id: instanceId, state: HealthState.Down)
+    return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Down)
   }
 }

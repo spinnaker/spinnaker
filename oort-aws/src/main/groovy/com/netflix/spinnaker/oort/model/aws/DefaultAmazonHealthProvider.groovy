@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DefaultAmazonHealthProvider implements HealthProvider {
+  private static final String HEALTH_TYPE = "Amazon"
   private static final int RUNNING = 16
 
   @Autowired
@@ -40,12 +41,12 @@ class DefaultAmazonHealthProvider implements HealthProvider {
     def cacheKey = Keys.getInstanceKey(instanceId, serverGroup.region)
     def instance = cacheService.retrieve(cacheKey, Instance)
     if (!instance) {
-      return new AwsInstanceHealth(id: instanceId, state: HealthState.Unknown)
+      return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Unknown)
     }
     def running = instance.state.code == RUNNING
     if (running) {
-      return new AwsInstanceHealth(id: instanceId, state: HealthState.Up)
+      return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Up)
     }
-    return new AwsInstanceHealth(id: instanceId, state: HealthState.Down)
+    return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Down)
   }
 }
