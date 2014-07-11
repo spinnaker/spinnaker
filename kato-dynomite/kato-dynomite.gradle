@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+repositories {
+    maven { url 'http://clojars.org/repo' }
+}
+
 dependencies {
   compile project(":kato-core")
   compile 'redis.embedded:embedded-redis:0.2'
