@@ -103,22 +103,22 @@ class JedisTaskRepositorySpec extends Specification {
   void "Can add a result object and retrieve it"() {
     setup:
     def t1 = taskRepository.create "Test", "Test Status"
-    final String s = 'bah'
+    final TestObject s = new TestObject(name:'blimp', value:'bah')
 
     expect:
     taskRepository.getResultObjects(t1).empty
 
     when:
-    String result = s
-    taskRepository.addResultObject(result, t1)
+    taskRepository.addResultObject(s, t1)
     List<Object> resultObjects = taskRepository.getResultObjects(t1)
 
     then:
     resultObjects.size() == 1
-    resultObjects.first() == s
+    resultObjects.first().name == s.name
+    resultObjects.first().value == s.value
 
     when:
-    taskRepository.addResultObject("new String", t1)
+    taskRepository.addResultObject(new TestObject(name:"t1", value:'h2'), t1)
     resultObjects = taskRepository.getResultObjects(t1)
 
     then:
@@ -129,10 +129,10 @@ class JedisTaskRepositorySpec extends Specification {
     given:
     def t1 = taskRepository.create "Test", "Test Status"
     4.times {
-      taskRepository.addResultObject("Object${it}" as String, t1)
+      taskRepository.addResultObject(new TestObject(name:"Object${it}", value:'value'), t1)
     }
     expect:
-    taskRepository.getResultObjects(t1) == ['Object0', 'Object1', 'Object2', 'Object3']
+    taskRepository.getResultObjects(t1).collect{it.name} == ['Object0', 'Object1', 'Object2', 'Object3']
   }
 
   void "task history is correctly persisted"() {
@@ -161,6 +161,11 @@ class JedisTaskRepositorySpec extends Specification {
 
     then:
     taskRepository.getHistory(t1).size() == 5
+  }
+
+  class TestObject{
+    String name
+    String value
   }
 
 }

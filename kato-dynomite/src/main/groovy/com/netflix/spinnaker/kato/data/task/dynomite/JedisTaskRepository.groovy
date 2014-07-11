@@ -33,7 +33,7 @@ class JedisTaskRepository implements TaskRepository {
 
   @Override
   Task create(String phase, String status) {
-    String taskId = jedis.incr('task_counter')
+    String taskId = jedis.incr('taskCounter')
     new JedisTask(taskId, phase, status, this)
   }
 
@@ -72,15 +72,13 @@ class JedisTaskRepository implements TaskRepository {
 
   void addResultObject(Object o, JedisTask task) {
     String resultId = "taskResult:${task.id}:${jedis.incr('taskResultCounter')}"
-    jedis.hset(resultId, 'type', o.class.canonicalName)
-    jedis.hset(resultId, 'value', mapper.writeValueAsString(o))
+    jedis.set(resultId, mapper.writeValueAsString(o))
   }
 
   List<Object> getResultObjects(JedisTask task) {
-    List<Object> list = []
+    List<Map> list = []
     jedis.keys("taskResult:${task.id}:*").sort { it.split(':').last() as long }.each { key ->
-      Map<String, String> results = jedis.hgetAll(key)
-      list << mapper.readValue(results.value, Class.forName(results.type))
+      list << mapper.readValue(jedis.get(key) as String, Map)
     }
     list
   }
