@@ -32,7 +32,6 @@ import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
@@ -58,21 +57,21 @@ class OrcaSmokeSpec extends Specification {
     execution.exitStatus == ExitStatus.COMPLETED
 
     where:
-    app = "front50"
+    app = "mimirdemo"
     region = "us-west-1"
     config = [
         [
             type     : "bake",
             region   : region,
-            user     : "rfletcher",
+            user     : "danw",
             package  : app,
             baseOs   : "ubuntu",
             baseLabel: "release"
         ], [
             type             : "deploy",
             application      : app,
-            stack            : "main",
-            instanceType     : "m1.medium",
+            stack            : "test",
+            instanceType     : "m3.large",
             securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
             subnetType       : "internal",
             availabilityZones: [(region): []],

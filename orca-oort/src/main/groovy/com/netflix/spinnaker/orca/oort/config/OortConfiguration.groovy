@@ -41,7 +41,7 @@ class OortConfiguration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint oortEndpoint() {
-    newFixedEndpoint("http://oort.prod.netflix.net")
+    newFixedEndpoint("http://localhost:8080")
   }
 
   @Bean OortService oortDeployService(Endpoint oortEndpoint, Gson gson) {

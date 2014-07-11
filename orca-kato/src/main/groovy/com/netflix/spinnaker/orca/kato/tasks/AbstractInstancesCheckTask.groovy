@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractInstancesCheckTask implements RetryableTask {
   long backoffPeriod = 1000
-  long timeout = 30000
+  long timeout = 600000
 
   @Autowired
   OortService oortService
@@ -54,9 +54,10 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       return new DefaultTaskResult(TaskResult.Status.RUNNING)
     }
     def cluster = objectMapper.readValue(response.body.in().text, Map)
-    if (!cluster) {
+    if (!cluster || !cluster.serverGroups) {
       return new DefaultTaskResult(TaskResult.Status.RUNNING)
     }
+    Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
     for (Map serverGroup in cluster.serverGroups) {
       String region = serverGroup.region
       String name = serverGroup.name
@@ -65,17 +66,21 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       Map asg = serverGroup.asg
       int minSize = asg.minSize
 
-      if (!serverGroups[region].contains(name) || minSize > instances.size()) {
+      if (!serverGroups.containsKey(region) || !serverGroups[region].contains(name) || minSize > instances.size()) {
         continue
       }
 
+      seenServerGroup[name] = true
       def isComplete = hasSucceeded(instances)
       if (!isComplete) {
         return new DefaultTaskResult(TaskResult.Status.RUNNING)
       }
     }
-
-    return new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+    if (seenServerGroup.values().contains(false)) {
+      new DefaultTaskResult(TaskResult.Status.RUNNING)
+    } else {
+      new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+    }
   }
 
 }
