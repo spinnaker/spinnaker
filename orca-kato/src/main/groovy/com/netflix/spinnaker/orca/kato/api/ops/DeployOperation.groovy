@@ -35,6 +35,8 @@ class DeployOperation extends Operation {
   List<String> securityGroups
   Optional<String> subnetType = absent()
   Map<String, List<String>> availabilityZones
+  List<String> loadBalancers
+  String iamRole = absent()
   ASGCapacity capacity
   String credentials
 }
