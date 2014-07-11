@@ -20,9 +20,10 @@ import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.InstanceState
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.ServerGroup
+import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
 import com.netflix.spinnaker.oort.model.aws.DefaultAmazonHealthProvider
-import com.netflix.spinnaker.oort.model.aws.MapBackedHealth
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -50,12 +51,13 @@ class DefaultAmazonHealthProviderSpec extends Specification {
     def result = provider.getHealth("test", serverGroup, "i-123456")
 
     then:
-    result instanceof MapBackedHealth
-    result.isHealthy()
+    result == new AwsInstanceHealth(id: "i-123456", state: HealthState.Up)
+
+    and:
     1 * cacheService.retrieve(Keys.getInstanceKey("i-123456", region), _) >> {
-      def mock = Mock(Instance)
-      mock.getState() >> new InstanceState().withCode(16)
-      mock
+      Mock(Instance) {
+        getState() >> new InstanceState().withCode(16)
+      }
     }
   }
 }

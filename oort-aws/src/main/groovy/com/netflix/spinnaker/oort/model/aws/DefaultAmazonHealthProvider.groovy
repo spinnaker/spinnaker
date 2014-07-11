@@ -21,6 +21,7 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +39,13 @@ class DefaultAmazonHealthProvider implements HealthProvider {
   Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
     def cacheKey = Keys.getInstanceKey(instanceId, serverGroup.region)
     def instance = cacheService.retrieve(cacheKey, Instance)
+    if (!instance) {
+      return new AwsInstanceHealth(id: instanceId, state: HealthState.Unknown)
+    }
     def running = instance.state.code == RUNNING
-    new MapBackedHealth([isHealthy: running])
+    if (running) {
+      return new AwsInstanceHealth(id: instanceId, state: HealthState.Up)
+    }
+    return new AwsInstanceHealth(id: instanceId, state: HealthState.Down)
   }
 }

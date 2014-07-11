@@ -40,7 +40,7 @@ class AtlasHealthCachingAgentSpec extends AbstractCachingAgentSpec {
 
   void "load new health when new ones are available, remove missing ones, and do nothing when theres nothing new to process"() {
     setup:
-    def health = [id: "i-12345", isHealthy: true]
+    def health = [id: "i-12345", status: true]
     def key = Keys.getInstanceHealthKey(health.id, ACCOUNT, REGION, AtlasHealthCachingAgent.PROVIDER_NAME)
 
     when:
