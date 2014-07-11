@@ -22,6 +22,7 @@ package com.netflix.spinnaker.orca.smoke
 
 import spock.lang.Requires
 import spock.lang.Specification
+import spock.lang.Ignore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.kato.api.KatoService
@@ -37,6 +38,7 @@ import org.springframework.test.context.ContextConfiguration
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
+@Ignore
 @Requires({ isReachable("http://bakery.test.netflix.net:7001") })
 @ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
@@ -45,6 +47,7 @@ class OrcaSmokeSpec extends Specification {
   @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
 
+  @Ignore
   def "can bake and deploy"() {
     given:
     def configJson = mapper.writeValueAsString(config)
