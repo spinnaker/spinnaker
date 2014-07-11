@@ -33,7 +33,7 @@ import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {
+class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "COPY_LAST_ASG"
 
   private static Task getTask() {
@@ -56,9 +56,10 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {
   }
 
   @Override
-  Void operate(List priorOutputs) {
+  DeploymentResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Copy Last ASG Operation..."
-    List<DeploymentResult> results = []
+
+    DeploymentResult result = new DeploymentResult()
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       def region = entry.key
       task.updateStatus BASE_PHASE, "Looking up last ASG in ${region} for ${description.application}-${description.stack}."
@@ -84,13 +85,14 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<Void> {
       newDescription.capacity.desired = ancestorAsg.desiredCapacity
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
-      def result = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
+      def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
+      result.serverGroupNames.addAll(thisResult.serverGroupNames)
+      result.messages.addAll(thisResult.messages)
       task.updateStatus BASE_PHASE, "Deployment complete in $region. New ASGs = ${result.serverGroupNames}"
-      results << result
     }
-    task.updateStatus BASE_PHASE, "Finished copying last ASG for ${description.application}-${description.stack}. New ASGs = ${results*.serverGroupNames}."
+    task.updateStatus BASE_PHASE, "Finished copying last ASG for ${description.application}-${description.stack}. New ASGs = ${result.serverGroupNames}."
 
-    null
+    result
   }
 
   AutoScalingGroup getAncestorAsg(String region) {
