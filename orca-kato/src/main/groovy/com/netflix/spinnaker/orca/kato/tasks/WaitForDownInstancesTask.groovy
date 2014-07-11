@@ -25,7 +25,7 @@ class WaitForDownInstancesTask implements RetryableTask{
   @Override
   TaskResult execute(TaskContext context) {
     String account = context.inputs."deploy.account.name"
-    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context.inputs."deploy.server.groups"
+    Map<String, List<String>> serverGroups = getServerGroups(context)
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(TaskResult.Status.FAILED)
     }
@@ -58,5 +58,10 @@ class WaitForDownInstancesTask implements RetryableTask{
     }
 
     return new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+  }
+
+  private Map<String, List<String>> getServerGroups(TaskContext context) {
+    Map<String, List<String>> serverGroups = (Map<String, List<String>>) context.inputs."deploy.server.groups"
+    serverGroups
   }
 }

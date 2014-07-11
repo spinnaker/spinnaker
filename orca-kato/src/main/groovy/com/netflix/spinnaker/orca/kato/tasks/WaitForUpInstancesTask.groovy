@@ -39,7 +39,7 @@ class WaitForUpInstancesTask implements RetryableTask {
   @Override
   TaskResult execute(TaskContext context) {
     String account = context.inputs."deploy.account.name"
-    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context.inputs."deploy.server.groups"
+    Map<String, List<String>> serverGroups = (Map<String, List<String>>) context.inputs."deploy.server.groups"
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(TaskResult.Status.FAILED)
     }
@@ -52,7 +52,7 @@ class WaitForUpInstancesTask implements RetryableTask {
     if (!clusters) {
       return new DefaultTaskResult(TaskResult.Status.RUNNING)
     }
-    Map cluster = (Map)clusters[0]
+    Map cluster = (Map) clusters[0]
     for (Map serverGroup in cluster.serverGroups) {
       String region = serverGroup.region
       String name = serverGroup.name

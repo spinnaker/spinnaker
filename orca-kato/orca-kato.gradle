@@ -23,4 +23,5 @@ dependencies {
   compile project(":orca-retrofit")
   compile project(":orca-oort")
   testCompile project(":orca-test")
+  testCompile commonDependencies.objenesis
 }
