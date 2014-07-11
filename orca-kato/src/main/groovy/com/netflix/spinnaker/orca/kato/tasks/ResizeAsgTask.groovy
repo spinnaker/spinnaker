@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -31,7 +29,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 class ResizeAsgTask implements Task {
 
   @Autowired
-  KatoService katoService
+  KatoService kato
 
   @Autowired
   ObjectMapper mapper
@@ -39,13 +37,12 @@ class ResizeAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def resizeAsgOperation = convert(context)
-    katoService.requestOperations([[resizeAsgDescription: [asgName    : resizeAsgOperation.asgName,
-                                                           regions    : [resizeAsgOperation.asgName],
-                                                           credentials: resizeAsgOperation.credentials,
-                                                           capacity   : resizeAsgOperation.capacity
-    ]]])
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["deploy.account.name": resizeAsgOperation.credentials,
-                                                        "deploy.server.groups": [(resizeAsgOperation.region): [resizeAsgOperation.asgName]]])
+    def taskId = kato.requestOperations([
+        [resizeAsgDescription: resizeAsgOperation]]).toBlockingObservable().first()
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
+        ["deploy.account.name" : resizeAsgOperation.credentials,
+         "kato.task.id"        : taskId,
+         "deploy.server.groups": [(resizeAsgOperation.region): [resizeAsgOperation.asgName]]])
   }
 
   ResizeAsgOperation convert(TaskContext context) {
