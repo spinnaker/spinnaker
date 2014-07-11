@@ -25,7 +25,6 @@ import com.google.common.base.Optional
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.retrofit.gson.GsonOptionalDeserializer
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.RestAdapter.LogLevel
@@ -33,7 +32,6 @@ import retrofit.client.Client
 import retrofit.client.OkClient
 
 @Configuration
-@EnableBatchProcessing
 @CompileStatic
 class RetrofitConfiguration {
   @Bean Client retrofitClient() {
