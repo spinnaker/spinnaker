@@ -35,7 +35,7 @@ class JedisTaskRepositorySpec extends Specification {
   def setupSpec() {
     taskRepository = new JedisTaskRepository()
     config = new JedisConfig()
-    jedis = config.jedis(0, '127.0.0.1', 'none')
+    jedis = config.jedis(0, '', 'redis://redistogo:9301e6a6073903ff02efc594420b83be@angelfish.redistogo.com:10439/')
     JedisTask.metaClass.getRepository = { taskRepository }
     taskRepository.jedis = jedis
   }
