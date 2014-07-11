@@ -208,7 +208,7 @@ class AutoScalingWorker {
     }
     asgs.findAll { AutoScalingGroup asg ->
       def names = Names.parseName(asg.autoScalingGroupName)
-      names.sequence >= 0 && application == names.app && stack == names.stack
+      names.sequence >= 0 && application == names.app && (stack ? stack == names.stack : true)
     }?.max({ a, b -> a.autoScalingGroupName <=> b.autoScalingGroupName }) ?: null
   }
 
