@@ -23,7 +23,7 @@ import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@Component("regionScopedProviderFactory")
+@Component
 class RegionScopedProviderFactory {
 
   @Autowired

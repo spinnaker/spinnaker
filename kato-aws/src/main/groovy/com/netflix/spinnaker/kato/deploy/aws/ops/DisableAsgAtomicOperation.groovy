@@ -26,6 +26,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
+import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -74,8 +75,9 @@ class DisableAsgAtomicOperation implements AtomicOperation<Void> {
         }
       }
 
-      task.updateStatus BASE_PHASE, "Disabling Launch, Terminate, and AddToLoadBalancer for $description.asgName in $region."
-      def request = new SuspendProcessesRequest().withScalingProcesses("Launch", "Terminate", "AddToLoadBalancer").withAutoScalingGroupName(description.asgName)
+      List<String> disableProcessNames = AutoScalingProcessType.getDisableProcesses()*.name().sort()
+      task.updateStatus BASE_PHASE, "Disabling processes (${disableProcessNames.join(", ")}) for $description.asgName in $region."
+      def request = new SuspendProcessesRequest().withScalingProcesses(disableProcessNames).withAutoScalingGroupName(description.asgName)
       autoScaling.suspendProcesses(request)
       if (discoveryHostFormat) {
         task.updateStatus BASE_PHASE, "Beginning discovery disable for $description.asgName"

@@ -24,13 +24,14 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.EnableAsgDescription
+import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.client.RestTemplate
 
 class EnableAsgAtomicOperation implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "Enable_ASG"
+  private static final String BASE_PHASE = "ENABLE_ASG"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -72,8 +73,9 @@ class EnableAsgAtomicOperation implements AtomicOperation<Void> {
         }
       }
 
-      task.updateStatus BASE_PHASE, "Enabling Launch, Terminate, and AddToLoadBalancer for $description.asgName in $region."
-      def request = new ResumeProcessesRequest().withScalingProcesses("Launch", "Terminate", "AddToLoadBalancer").withAutoScalingGroupName(description.asgName)
+      List<String> disableProcessNames = AutoScalingProcessType.getDisableProcesses()*.name().sort()
+      task.updateStatus BASE_PHASE, "Enabling processes (${disableProcessNames.join(", ")}) for $description.asgName in $region."
+      def request = new ResumeProcessesRequest().withScalingProcesses(disableProcessNames).withAutoScalingGroupName(description.asgName)
       autoScaling.resumeProcesses(request)
       if (discoveryHostFormat) {
         task.updateStatus BASE_PHASE, "Beginning discovery enable for $description.asgName"

@@ -21,7 +21,7 @@ class TagsNotCreatedException<T> extends RuntimeException {
 
   final T objectToTag
 
-  static TagsNotCreatedException<T> of(Throwable cause, T objectToTag) {
+  static <R> TagsNotCreatedException<R> of(Throwable cause, R objectToTag) {
     String msg = "Failed to create tags for ${objectToTag}."
     new TagsNotCreatedException(cause, msg, objectToTag)
   }
