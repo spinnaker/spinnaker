@@ -49,7 +49,7 @@ class RegionScopedProviderFactory {
     }
 
     SecurityGroupService getSecurityGroupService() {
-      new SecurityGroupService(amazonEC2)
+      new SecurityGroupService(amazonEC2, subnetAnalyzer)
     }
 
     NetworkInterfaceService getNetworkInterfaceService() {
