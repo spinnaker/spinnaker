@@ -42,7 +42,6 @@ class WaitForUpInstancesTaskSpec extends Specification {
       def input = Mock(TypedInput)
       input.in() >> {
         def jsonObj = [
-            [
                 name: "front50",
                 serverGroups: [
                     [
@@ -58,7 +57,6 @@ class WaitForUpInstancesTaskSpec extends Specification {
                         ]
                     ]
                 ]
-            ]
         ]
         new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
       }
