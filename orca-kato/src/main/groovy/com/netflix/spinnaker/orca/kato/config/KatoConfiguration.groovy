@@ -20,6 +20,7 @@
 
 package com.netflix.spinnaker.orca.kato.config
 
+import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStageBuilder
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.kato.api.KatoService
@@ -60,5 +61,9 @@ class KatoConfiguration {
 
   @Bean DeployStageBuilder deployStageBuilder() {
     new DeployStageBuilder()
+  }
+
+  @Bean CopyLastAsgStageBuilder copyLastAsgStageBuilder() {
+    new CopyLastAsgStageBuilder()
   }
 }
