@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
@@ -34,7 +32,7 @@ class ChunkContextAdapter implements TaskContext {
     entries.putAll(chunkContext.stepContext.jobExecutionContext)
     entries.putAll(chunkContext.stepContext.stepExecutionContext)
     inputs = new ImmutableMap.Builder()
-      .putAll(entries)
-      .build()
+        .putAll(entries)
+        .build()
   }
 }

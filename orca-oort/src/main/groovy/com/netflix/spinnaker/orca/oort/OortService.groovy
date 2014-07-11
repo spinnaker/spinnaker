@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.orca.oort
 
 import retrofit.client.Response
@@ -22,7 +24,7 @@ import retrofit.http.Path
 import retrofit.http.Query
 
 interface OortService {
-  @GET("/applications/{app}/clusters/{account}/{cluster}")
+  @GET("/applications/{app}/clusters/{account}/{cluster}/aws")
   Response getCluster(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/aws/serverGroups/{serverGroup}")

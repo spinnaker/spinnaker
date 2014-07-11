@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.orca.kato.api
 
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class DestroyAsgOperation {
+  String credentials
   String asgName
   String region
 }

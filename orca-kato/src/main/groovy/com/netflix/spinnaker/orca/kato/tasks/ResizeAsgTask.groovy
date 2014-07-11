@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.DestroyAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ResizeAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,10 +39,16 @@ class ResizeAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def resizeAsgOperation = convert(context)
-    katoService.requestOperations([])
+    katoService.requestOperations([[resizeAsgDescription: [asgName    : resizeAsgOperation.asgName,
+                                                           regions    : [resizeAsgOperation.asgName],
+                                                           credentials: resizeAsgOperation.credentials,
+                                                           capacity   : resizeAsgOperation.capacity
+    ]]])
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["deploy.account.name": resizeAsgOperation.credentials,
+                                                        "deploy.server.groups": [(resizeAsgOperation.region): [resizeAsgOperation.asgName]]])
   }
 
-  DestroyAsgOperation convert(TaskContext context) {
+  ResizeAsgOperation convert(TaskContext context) {
     mapper.copy()
         .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         .convertValue(context.getInputs("resizeAsg"), ResizeAsgOperation)
