@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 class DestroyAsgTask implements Task {
 
   @Autowired
-  KatoService katoService
+  KatoService kato
 
   @Autowired
   ObjectMapper mapper
@@ -38,13 +36,18 @@ class DestroyAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def operation = convert(context)
-    katoService.requestOperations([[deleteAsgDescription: [asgName: operation.asgName, regions: [operation.region], credentials: operation.credentials]]])
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["deploy.account.name": operation.credentials,
-                                                        "deploy.server.groups": [(operation.region): operation.asgName]])
+    def taskId = kato.requestOperations([
+        [deleteAsgDescription: operation
+        ]]).toBlockingObservable().first()
+
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
+        ["deploy.account.name" : operation.credentials,
+         "kato.task.id"        : taskId,
+         "deploy.server.groups": [(operation.region): operation.asgName]
+        ])
   }
 
   DestroyAsgOperation convert(TaskContext context) {
-    mapper.copy()
-        .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
+    mapper.copy().convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
   }
 }
