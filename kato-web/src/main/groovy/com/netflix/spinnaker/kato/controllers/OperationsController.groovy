@@ -50,29 +50,27 @@ class OperationsController {
 
   @RequestMapping(method = RequestMethod.POST)
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
-    def atomicOperations = []
-    requestBody.each { Map<String, Map> input ->
-      collectAtomicOperations input, atomicOperations
-    }
+    def atomicOperations = collectAtomicOperations(requestBody)
     start atomicOperations
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.POST)
   Map<String, String> atomic(@PathVariable("name") String name, @RequestBody Map requestBody) {
-    def atomicOperations = []
-    collectAtomicOperations([(name): requestBody], atomicOperations)
+    def atomicOperations = collectAtomicOperations([[(name): requestBody]])
     start atomicOperations
   }
 
-  private void collectAtomicOperations(Map<String, Map> input, List<AtomicOperation> atomicOperations) {
-    def results = convert(input)
+  private List<AtomicOperation> collectAtomicOperations(List<Map<String, Map>> inputs) {
+    def results = convert(inputs)
+    def atomicOperations = []
     for (bindingResult in results) {
       if (bindingResult.errors.hasErrors()) {
         throw new ValidationException(bindingResult.errors)
       } else {
-        atomicOperations.addAll bindingResult.atomicOperations
+        atomicOperations.addAll(bindingResult.atomicOperations)
       }
     }
+    atomicOperations
   }
 
   @ExceptionHandler(ValidationException)
@@ -94,23 +92,26 @@ class OperationsController {
     [id: task.id, resourceUri: "/task/${task.id}".toString()]
   }
 
-  private List<AtomicOperationBindingResult> convert(Map<String, Map> input) {
+  private List<AtomicOperationBindingResult> convert(List<Map<String, Map>> inputs) {
     def descriptions = []
-    input.collect { k, v ->
-      def converter = (AtomicOperationConverter) applicationContext.getBean(k)
-      def description = converter.convertDescription(new HashMap(v))
-      descriptions << description
-      def errors = new DescriptionValidationErrors(description)
-      if (applicationContext.containsBean("${k}Validator")) {
-        def validator = (DescriptionValidator) applicationContext.getBean("${k}Validator")
-        validator.validate(descriptions, description, errors)
+    inputs.collectMany { input ->
+      input.collect { k, v ->
+        def converter = (AtomicOperationConverter) applicationContext.getBean(k)
+        def description = converter.convertDescription(new HashMap(v))
+        descriptions << description
+        def errors = new DescriptionValidationErrors(description)
+        if (applicationContext.containsBean("${k}Validator")) {
+          def validator = (DescriptionValidator) applicationContext.getBean("${k}Validator")
+          validator.validate(descriptions, description, errors)
+        }
+        AtomicOperation atomicOperation = converter.convertOperation(v)
+        if (!atomicOperation) {
+          throw new AtomicOperationNotFoundException(k)
+        }
+        new AtomicOperationBindingResult(atomicOperation, errors)
       }
-      AtomicOperation atomicOperation = converter.convertOperation(v)
-      if (!atomicOperation) {
-        throw new AtomicOperationNotFoundException(k)
-      }
-      new AtomicOperationBindingResult(atomicOperation, errors)
     }
+
   }
 
   @Canonical
