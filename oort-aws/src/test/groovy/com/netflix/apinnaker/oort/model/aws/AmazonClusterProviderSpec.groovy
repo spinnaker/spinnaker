@@ -162,7 +162,7 @@ class AmazonClusterProviderSpec extends Specification {
     def result = provider.constructInstance(new Instance(instanceId: "123"), null, null)
 
     then:
-    result.getHealth().state == healthState
+    result._health.state.first() == healthState
 
     and:
     1 * mockHealthProvider.getHealth(null, null, "123") >> health

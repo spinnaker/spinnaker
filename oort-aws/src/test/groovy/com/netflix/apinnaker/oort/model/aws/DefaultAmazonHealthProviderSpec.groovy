@@ -51,7 +51,7 @@ class DefaultAmazonHealthProviderSpec extends Specification {
     def result = provider.getHealth("test", serverGroup, "i-123456")
 
     then:
-    result == new AwsInstanceHealth(id: "i-123456", state: HealthState.Up)
+    result == new AwsInstanceHealth(type: "Amazon", id: "i-123456", state: HealthState.Up)
 
     and:
     1 * cacheService.retrieve(Keys.getInstanceKey("i-123456", region), _) >> {
