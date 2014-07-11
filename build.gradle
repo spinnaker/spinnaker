@@ -88,3 +88,4 @@ subprojects {
 }
 
 defaultTasks "build"
+tasks.checkSnapshotDependencies.enabled = false
