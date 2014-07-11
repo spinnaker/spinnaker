@@ -86,6 +86,7 @@ class PerforceUserDataProvider implements UserDataProvider {
       .replace('%%cluster%%', cluster)
       .replace('%%stack%%', stack)
       .replace('%%launchconfig%%', launchConfigName)
+      .replace('%%tier%%', '')
 
     List<String> additionalEnvVars = []
     additionalEnvVars << names.countries ? "NETFLIX_COUNTRIES=${names.countries}" : null

@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.model.aws
 
-rootProject.name="kato"
+import groovy.transform.Canonical
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-dynomite"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+@Canonical
+class AwsNetworkInterface {
+  String description
+  List<String> securityGroupNames
+  String primaryPrivateIpAddress
+  List<String> secondaryPrivateIpAddresses
+  Integer secondaryPrivateIpAddressCount
+  Map<String, String> tags
 }

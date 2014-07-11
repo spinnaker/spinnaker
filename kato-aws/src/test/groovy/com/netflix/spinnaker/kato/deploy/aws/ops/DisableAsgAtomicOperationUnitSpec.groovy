@@ -68,7 +68,7 @@ class DisableAsgAtomicOperationUnitSpec extends Specification {
     }
     1 * mockAutoScaling.suspendProcesses(_) >> { SuspendProcessesRequest request ->
       assert request.autoScalingGroupName == "myasg-stack-v000"
-      assert request.scalingProcesses == ["Launch", "Terminate", "AddToLoadBalancer"]
+      assert request.scalingProcesses == ["AddToLoadBalancer", "Launch", "Terminate"]
     }
   }
 }

@@ -36,7 +36,6 @@ dependencies {
   compile project(":kato-manual")
   compile project(":kato-core")
   compile project(":kato-aws")
-  compile project(":kato-swf")
   compile project(":kato-gce")
   compile project(":kato-perforce-udp")
   compile project(":kato-dynomite")

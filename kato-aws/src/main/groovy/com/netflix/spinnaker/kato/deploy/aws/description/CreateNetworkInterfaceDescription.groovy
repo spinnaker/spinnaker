@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.deploy.aws.description
 
-rootProject.name="kato"
+import com.netflix.spinnaker.kato.model.aws.AwsNetworkInterface
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-dynomite"
+class CreateNetworkInterfaceDescription extends AbstractAmazonCredentialsDescription {
+  Map<String, List<String>> availabilityZonesGroupedByRegion = [:]
+  String vpcId
+  String subnetType
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+  AwsNetworkInterface networkInterface
 }
 
-rootProject.children.each {
-  setBuildFile(it)
-}

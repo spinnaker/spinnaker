@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.model.aws
+import groovy.transform.Canonical
 
-rootProject.name="kato"
+@Canonical
+class TagsNotCreatedException<T> extends RuntimeException {
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-dynomite"
+  final T objectToTag
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+  static <R> TagsNotCreatedException<R> of(Throwable cause, R objectToTag) {
+    String msg = "Failed to create tags for ${objectToTag}."
+    new TagsNotCreatedException(cause, msg, objectToTag)
   }
-}
 
-rootProject.children.each {
-  setBuildFile(it)
+  private TagsNotCreatedException(Throwable cause, String msg, T objectToTag) {
+    super(msg, cause)
+    this.objectToTag = objectToTag
+  }
 }

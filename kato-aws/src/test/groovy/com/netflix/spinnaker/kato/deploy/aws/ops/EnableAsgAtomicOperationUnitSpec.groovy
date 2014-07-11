@@ -75,7 +75,7 @@ class EnableAsgAtomicOperationUnitSpec extends Specification {
     }
     1 * mockAutoScaling.resumeProcesses(new ResumeProcessesRequest(
       autoScalingGroupName: "myasg-stack-v000",
-      scalingProcesses: ["Launch", "Terminate", "AddToLoadBalancer"]
+      scalingProcesses: ["AddToLoadBalancer", "Launch", "Terminate"]
     ))
     0 * mockAutoScaling._
   }

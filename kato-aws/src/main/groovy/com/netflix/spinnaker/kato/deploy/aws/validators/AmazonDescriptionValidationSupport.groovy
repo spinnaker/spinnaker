@@ -44,10 +44,14 @@ public abstract class AmazonDescriptionValidationSupport<T> extends DescriptionV
 
   void validateRegions(T description, Errors errors) {
     def key = description.getClass().simpleName
-    if (!description.regions) {
-      errors.rejectValue("regions", "${key}.regions.empty")
-    } else if (!awsConfigurationProperties.regions.containsAll(description.regions)) {
-      errors.rejectValue("regions", "${key}.regions.not.configured")
+    validateRegions(description.regions, key, errors)
+  }
+
+  void validateRegions(Collection<String> regionNames, String errorKey, Errors errors) {
+    if (!regionNames) {
+      errors.rejectValue("regions", "${errorKey}.regions.empty")
+    } else if (!awsConfigurationProperties.regions.containsAll(regionNames)) {
+      errors.rejectValue("regions", "${errorKey}.regions.not.configured")
     }
   }
 

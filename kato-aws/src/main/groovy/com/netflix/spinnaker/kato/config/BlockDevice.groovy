@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-rootProject.name="kato"
+package com.netflix.spinnaker.kato.config
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-dynomite"
+/**
+ * Model for a block device mapping
+ *
+ * @author Dan Woods
+ */
+class BlockDevice {
+  /**
+   * The name of the virtual device (ie. /dev/sdb, /dev/sdc)
+   */
+  String deviceName
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+  /**
+   * The size of the virtual device in Gigabytes (ie. 125)
+   */
+  Integer size
 }

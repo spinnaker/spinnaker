@@ -75,7 +75,7 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
 
       // Networking Related
       if (description.subnetType) {
-        request.withSubnets(getSubnetIds(description.subnetType, amazonEC2))
+        request.withSubnets(getSubnetIds(description.subnetType, availabilityZones, amazonEC2))
         if (description.subnetType == "internal") {
           request.scheme = "internal"
         }
@@ -131,7 +131,7 @@ class CreateAmazonLoadBalancerAtomicOperation implements AtomicOperation<CreateA
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType.type && metadata.target == SUBNET_PURPOSE_TYPE) {
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_PURPOSE_TYPE) {
           mySubnets << subnet
         }
       }

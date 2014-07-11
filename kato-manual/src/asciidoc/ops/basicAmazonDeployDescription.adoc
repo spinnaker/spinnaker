@@ -27,6 +27,16 @@ This description supplies the +BasicAmazonDeployHandler+ with the inputs necessa
             "max": 1,
             "desired": 1
         },
+        "blockDevices": [
+          {
+            "deviceName": "/dev/sdb",
+            "size": "125"
+          },
+          {
+            "deviceName": "/dev/sdc",
+            "size": "125"
+          }
+        ],
         "credentials": "test"
     }
 }]
@@ -49,4 +59,5 @@ This description supplies the +BasicAmazonDeployHandler+ with the inputs necessa
 |loadBalancers     | array  | false    | A list of string values that correspond to load balancer names that should be attached to the newly created ASG. Load balancers must be created prior to this description being submitted. In the case where a +createAmazonLoadBalancerDescription+ was provided earlier in the request's execution chain, the value from that execution will be included in this list.
 |subnetType        | string | false    | The subnet "type" that is applicable to this deployment. This instructs the deployment engine to what subnets and vpcs this deployment will be a part. Subnets that are tagged with the key "immutable_metadata" and a value of a structure like, +{ "purpose": "internal", "target": "ec2" }+, will be found by the engine, and their "purpose" may be used as a value type for this field. Note that "purpose" and "target" provide a composite key, where the "target" property has eligible values of one of: "ec2" or "elb". Only one "purpose" to "target" correlation is valid with respect to the "subnetType" field in this description.
 |stack             | string | false    | The "stack" to which this deployment is applicable. A stack is some arbitrarily named "environment" that many applications may be a part of. This value, in conjunction with the "application" comprise the "cluster name" in Asgard's view of the Cloud.
+|blockDevices      | array  | false    | Provides configuration for block device mappings to use with this deployment. This can be used to attach volumes to a known root.
 |======================

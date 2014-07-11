@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.model.aws
 
-rootProject.name="kato"
+import groovy.transform.InheritConstructors
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-dynomite"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+@ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "could not find all supplied security groups!")
+@InheritConstructors
+class SecurityGroupNotFoundException extends RuntimeException {
 }

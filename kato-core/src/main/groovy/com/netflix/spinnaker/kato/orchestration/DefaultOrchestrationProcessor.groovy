@@ -50,7 +50,6 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           try {
             results << atomicOperation.operate(results)
             task.updateStatus(TASK_PHASE, "Orchestration completed successfully.")
-            task.complete()
           } catch (e) {
             e.printStackTrace()
             def stringWriter = new StringWriter()
@@ -61,9 +60,14 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           }
         }
         task.addResultObjects(results)
+        if (!task.status.isCompleted()) {
+          task.complete()
+        }
       } catch (TimeoutException IGNORE) {
         task.updateStatus "INIT", "Orchestration timed out."
         task.fail()
+      } finally {
+        task.complete()
       }
     }
     task
