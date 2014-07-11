@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 class WaitForUpInstancesTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = 30000
+  long timeout = 300000
 
   @Autowired
   OortService oortService
@@ -38,8 +38,8 @@ class WaitForUpInstancesTask implements RetryableTask {
 
   @Override
   TaskResult execute(TaskContext context) {
-    String account = context.inputs."deploy.account.name"
-    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context.inputs."deploy.server.groups"
+    String account = context.getInputs()."deploy.account.name"
+    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context.getInputs()."deploy.server.groups"
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(TaskResult.Status.FAILED)
     }
@@ -62,7 +62,7 @@ class WaitForUpInstancesTask implements RetryableTask {
       int minSize = asg.minSize
 
       if (!serverGroups[region].contains(name) || minSize < instances.size()) {
-        continue
+        return new DefaultTaskResult(TaskResult.Status.RUNNING)
       }
 
       def allHealthy = !instances.find { !it.isHealthy }

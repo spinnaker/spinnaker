@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.DestroyAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +40,6 @@ class DestroyAsgTask implements Task {
 
   DestroyAsgOperation convert(TaskContext context) {
     mapper.copy()
-        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
   }
 }
