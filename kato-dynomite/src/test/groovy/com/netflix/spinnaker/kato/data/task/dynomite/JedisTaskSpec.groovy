@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.kato.data.task.dynomite
 
+import redis.clients.jedis.JedisCommands
+import spock.lang.Shared
 import spock.lang.Specification
 
 class JedisTaskSpec extends Specification {
 
-  JedisTaskRepository repository
+  @Shared JedisTaskRepository repository
+  @Shared JedisCommands jedis
 
   void setup() {
     repository = Mock(JedisTaskRepository)
+    repository.jedis = Mock(JedisCommands)
   }
 
   void 'creating a new task should persist the task'() {
@@ -66,17 +70,6 @@ class JedisTaskSpec extends Specification {
 
     then:
     1 * repository.getHistory(task)
-  }
-
-  void 'adding an item to the repository results objects puts it in Jedis'() {
-    JedisTask task = new JedisTask('666', 'orchestration', 'start', 0, false, false)
-    task.repository = repository
-
-    when:
-    task.addResultObjects(["one", "two", "three"])
-
-    then:
-    3 * repository.addResultObject(_, task) >> null
   }
 
   void 'changing the status of a task to complete saves it to Jedis'() {

@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.kato.data.task.dynomite
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.kato.data.task.DefaultTask
 
 class JedisTask extends DefaultTask {
 
+  @JsonIgnore
   JedisTaskRepository repository
 
   JedisTask(String id, String phase, String status, JedisTaskRepository repository = null) {

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.config
 
+import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.data.task.dynomite.JedisTaskRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -69,10 +71,10 @@ class JedisConfig {
         redisPort = serverSocket.localPort
         serverSocket.close()
       }
-      log.info "starting embedded redis server on ${host}:${port}"
+      log.info "starting embedded redis server on ${host}:${redisPort}"
       redisServer = new RedisServer(redisPort)
       redisServer.start()
-      log.info "started embedded redis server on ${host}:${port}"
+      log.info "started embedded redis server on ${host}:${redisPort}"
     }
     new Jedis(host, redisPort)
   }
@@ -80,6 +82,11 @@ class JedisConfig {
   @PreDestroy
   void destroy() {
     redisServer?.stop()
+  }
+
+  @Bean
+  TaskRepository taskRepository() {
+    new JedisTaskRepository()
   }
 
 }
