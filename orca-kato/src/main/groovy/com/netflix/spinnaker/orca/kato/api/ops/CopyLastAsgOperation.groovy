@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.kato.api.ops
 
-
-package com.netflix.spinnaker.orca.kato.api
-
+import com.google.common.base.Optional
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.api.ASGCapacity
+import com.netflix.spinnaker.orca.kato.api.Operation
+import static com.google.common.base.Optional.absent
 
 @CompileStatic
-class DestroyAsgOperation {
-  String credentials
-  String asgName
-  String region
+class CopyLastAsgOperation extends Operation {
+    String application
+    Optional<String> amiName = absent()
+    Optional<String> stack = absent()
+    Optional<String> instanceType = absent()
+    Optional<List<String>> securityGroups = absent()
+    Optional<String> subnetType = absent()
+    Map<String, List<String>> availabilityZones
+    Optional<ASGCapacity> capacity = absent()
+    String credentials
 }

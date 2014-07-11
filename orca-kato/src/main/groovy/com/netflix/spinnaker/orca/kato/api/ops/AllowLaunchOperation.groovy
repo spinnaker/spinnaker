@@ -16,9 +16,10 @@
 
 
 
-package com.netflix.spinnaker.orca.kato.api
+package com.netflix.spinnaker.orca.kato.api.ops
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.api.Operation
 
 @CompileStatic
 class AllowLaunchOperation extends Operation {

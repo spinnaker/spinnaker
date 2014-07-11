@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.api
 
-import com.google.common.base.Optional
-import groovy.transform.CompileStatic
 
-import static com.google.common.base.Optional.absent
+package com.netflix.spinnaker.orca.kato.api.ops
 
-@CompileStatic
-class CopyLastAsgOperation extends Operation {
-    String application
-    Optional<String> amiName = absent()
-    Optional<String> stack = absent()
-    Optional<String> instanceType = absent()
-    Optional<List<String>> securityGroups = absent()
-    Optional<String> subnetType = absent()
-    Map<String, List<String>> availabilityZones
-    Optional<ASGCapacity> capacity = absent()
-    String credentials
+class ResizeAsgOperation {
+  String credentials
+  String asgName
+  String region
+
+  Capacity capacity = new Capacity()
+
+  static class Capacity {
+    int min
+    int max
+  }
 }

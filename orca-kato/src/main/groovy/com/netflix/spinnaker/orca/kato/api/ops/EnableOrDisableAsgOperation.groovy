@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-
-
-
-
-package com.netflix.spinnaker.orca.kato.api
+package com.netflix.spinnaker.orca.kato.api.ops
 
 import groovy.transform.CompileStatic
-import com.google.common.base.Optional
-import static com.google.common.base.Optional.absent
+import com.netflix.spinnaker.orca.kato.api.Operation
 
 @CompileStatic
-class DeployOperation extends Operation {
-  String application
-  String amiName
-  Optional<String> stack = absent()
-  String instanceType
-  List<String> securityGroups
-  Optional<String> subnetType = absent()
-  Map<String, List<String>> availabilityZones
-  ASGCapacity capacity
+class EnableOrDisableAsgOperation extends Operation {
+  String asgName
+  List<String> regions
   String credentials
 }
-

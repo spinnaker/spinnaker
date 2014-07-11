@@ -23,6 +23,7 @@ package com.netflix.spinnaker.orca.kato.api
 import spock.lang.Specification
 import spock.lang.Subject
 import com.google.gson.Gson
+import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule

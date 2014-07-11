@@ -24,7 +24,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ResizeAsgOperation
+import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
 import com.netflix.spinnaker.orca.kato.api.TaskId
 
 class ResizeAsgTaskSpec extends Specification {

@@ -21,12 +21,11 @@ package com.netflix.spinnaker.orca.kato.tasks
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.AllowLaunchOperation
-import com.netflix.spinnaker.orca.kato.api.DeployOperation
+import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
+import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import org.springframework.beans.factory.annotation.Autowired

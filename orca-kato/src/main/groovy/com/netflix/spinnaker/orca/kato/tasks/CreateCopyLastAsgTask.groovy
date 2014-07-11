@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.CopyLastAsgOperation
+import com.netflix.spinnaker.orca.kato.api.ops.CopyLastAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired

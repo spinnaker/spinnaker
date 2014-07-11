@@ -16,17 +16,13 @@
 
 
 
-package com.netflix.spinnaker.orca.kato.api
+package com.netflix.spinnaker.orca.kato.api.ops
 
-class ResizeAsgOperation {
+import groovy.transform.CompileStatic
+
+@CompileStatic
+class DestroyAsgOperation {
   String credentials
   String asgName
   String region
-
-  Capacity capacity = new Capacity()
-
-  static class Capacity {
-    int min
-    int max
-  }
 }
