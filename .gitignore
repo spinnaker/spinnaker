@@ -6,3 +6,4 @@ build/
 *.ipr
 *.iws
 out/
+.DS_Store

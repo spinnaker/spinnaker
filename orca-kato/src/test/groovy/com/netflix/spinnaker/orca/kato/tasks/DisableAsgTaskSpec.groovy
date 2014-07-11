@@ -67,5 +67,6 @@ class DisableAsgTaskSpec extends Specification {
     then:
     result.status == TaskResult.Status.SUCCEEDED
     result.outputs."kato.task.id" == taskId
+    result.outputs."deploy.account.name" == disableASGConfig.credentials
   }
 }
