@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.kato.api
 
-import com.netflix.spinnaker.orca.TaskContext
+import groovy.transform.CompileStatic
 
-class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
-
-  @Override
-  protected Map<String, List<String>> getServerGroups(TaskContext context) {
-    (Map<String, List<String>>) context.getInputs()."deploy.server.groups"
-  }
-
-  @Override
-  protected boolean hasSucceeded(List instances) {
-    !instances.find { !it.isHealthy }
-  }
-
+@CompileStatic
+class DestroyAsgOperation {
+  String asgName
+  String region
 }

@@ -46,7 +46,7 @@ abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements Aut
     def task = taskType.newInstance()
     autowire task
     if (task instanceof RetryableTask) {
-      RetryableTaskTaskletAdapter.decorate task
+      new RetryableTaskTaskletAdapter(task)
     } else {
       TaskTaskletAdapter.decorate task
     }

@@ -1,19 +1,3 @@
-/*
- * Copyright 2014 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import spock.lang.Specification
@@ -25,9 +9,11 @@ import com.netflix.spinnaker.orca.oort.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 
-class WaitForUpInstancesTaskSpec extends Specification {
-
-  @Subject task = new WaitForUpInstancesTask()
+/**
+ * Created by aglover on 7/10/14.
+ */
+class AsgActionWaitForDownInstancesTaskSpec extends Specification {
+  @Subject task = new AsgActionWaitForDownInstancesTask()
 
   def mapper = new ObjectMapper()
 
@@ -41,17 +27,17 @@ class WaitForUpInstancesTaskSpec extends Specification {
       input.in() >> {
         def jsonObj = [
             [
-                name: "front50",
+                name        : "front50",
                 serverGroups: [
                     [
-                        region: "us-west-1",
-                        name: "front50-v000",
-                        asg: [
+                        region   : "us-west-1",
+                        name     : "front50-v000",
+                        asg      : [
                             minSize: 1
                         ],
                         instances: [
                             [
-                                isHealthy: true
+                                isHealthy: false
                             ]
                         ]
                     ]
@@ -68,8 +54,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
     and:
     def context = new SimpleTaskContext()
+    context."targetop.asg.enableAsg.name" = "front50"
+    context."targetop.asg.enableAsg.regions" = ['us-west-1']
     context."deploy.account.name" = "test"
-    context."deploy.server.groups" = ["us-west-1": ["front50-v000"]]
 
     expect:
     task.execute(context).status == TaskResult.Status.SUCCEEDED

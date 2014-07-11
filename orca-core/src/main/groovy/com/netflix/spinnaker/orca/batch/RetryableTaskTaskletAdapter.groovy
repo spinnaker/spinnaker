@@ -18,10 +18,13 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
+import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.retry.backoff.FixedBackOffPolicy
+import org.springframework.retry.policy.SoftReferenceMapRetryContextCache
 import org.springframework.retry.policy.TimeoutRetryPolicy
 import org.springframework.retry.support.RetryTemplate
 
@@ -32,6 +35,7 @@ class RetryableTaskTaskletAdapter extends TaskTaskletAdapter {
   RetryableTaskTaskletAdapter(RetryableTask task) {
     super(task)
     retryTemplate = new RetryTemplate()
+    retryTemplate.retryContextCache = new SoftReferenceMapRetryContextCache()
     retryTemplate.backOffPolicy = new FixedBackOffPolicy(backOffPeriod: task.backoffPeriod)
     retryTemplate.retryPolicy = new TimeoutRetryPolicy(timeout: task.timeout)
   }
