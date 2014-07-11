@@ -65,7 +65,7 @@ class WaitForUpInstancesTask implements RetryableTask {
         continue
       }
 
-      def allHealthy = !instances.health.find { !it.isHealthy }
+      def allHealthy = !instances.find { !it.isHealthy }
       if (!allHealthy) {
         return new DefaultTaskResult(TaskResult.Status.RUNNING)
       }
