@@ -51,7 +51,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       Map asg = serverGroup.asg
       int minSize = asg.minSize
 
-      if (!serverGroups[region].contains(name) || minSize >= instances.size()) {
+      if (!serverGroups[region].contains(name) || minSize > instances.size()) {
         continue
       }
 
