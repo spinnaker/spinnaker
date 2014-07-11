@@ -16,15 +16,19 @@
 
 
 
+package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.TaskContext
 
-package com.netflix.spinnaker.orca.kato.api
+class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
+  @Override
+  protected Map<String, List<String>> getServerGroups(TaskContext context) {
+    (Map<String, List<String>>) context.getInputs()."deploy.server.groups"
+  }
 
-import groovy.transform.CompileStatic
-
-@CompileStatic
-class ASGCapacity {
-  int min
-  int max
-  int desired
+  @Override
+  protected boolean hasSucceeded(List instances) {
+    // By here, we will have already passed the minSize > # instances check in the super class
+    true
+  }
 }

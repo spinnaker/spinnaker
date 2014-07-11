@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.DestroyAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class DestroyAsgTask implements Task {
 
@@ -35,7 +37,10 @@ class DestroyAsgTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    katoService.requestOperations([destroyAs])
+    def operation = convert(context)
+    katoService.requestOperations([[deleteAsgDescription: [asgName: operation.asgName, regions: [operation.region], credentials: operation.credentials]]])
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["deploy.account.name": operation.credentials,
+                                                        "deploy.server.groups": [(operation.region): operation.asgName]])
   }
 
   DestroyAsgOperation convert(TaskContext context) {

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.orca.kato.api
 
 class ResizeAsgOperation {
+  String credentials
   String asgName
   String region
 
