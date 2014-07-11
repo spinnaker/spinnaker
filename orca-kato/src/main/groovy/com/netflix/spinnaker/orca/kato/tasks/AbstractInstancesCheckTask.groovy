@@ -9,9 +9,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
 import org.springframework.beans.factory.annotation.Autowired
 
-/**
- * Created by aglover on 7/10/14.
- */
 abstract class AbstractInstancesCheckTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 30000

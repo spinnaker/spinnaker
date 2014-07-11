@@ -57,7 +57,6 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     context."targetop.asg.enableAsg.name" = "front50"
     context."targetop.asg.enableAsg.regions" = ['us-west-1']
     context."deploy.account.name" = "test"
-//    context."deploy.server.groups" = ["us-west-1": ["front50-v000"]]
 
     expect:
     task.execute(context).status == TaskResult.Status.SUCCEEDED
