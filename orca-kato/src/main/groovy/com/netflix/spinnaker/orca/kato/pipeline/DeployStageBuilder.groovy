@@ -39,9 +39,9 @@ class DeployStageBuilder extends LinearStageBuilder {
     def step2 = steps.get("MonitorDeployStep")
         .tasklet(buildTask(MonitorKatoTask))
         .build()
-/*    def step3 = steps.get("WaitForUpInstancesStep")
+    def step3 = steps.get("WaitForUpInstancesStep")
         .tasklet(buildTask(WaitForUpInstancesTask))
-        .build()*/
-    [step1, step2]
+        .build()
+    [step1, step2, step3]
   }
 }

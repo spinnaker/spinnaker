@@ -42,7 +42,7 @@ class OortConfiguration {
     newFixedEndpoint("http://oort.prod.netflix.net")
   }
 
-  @Bean OortService katoDeployService(Endpoint oortEndpoint, Gson gson) {
+  @Bean OortService oortDeployService(Endpoint oortEndpoint, Gson gson) {
     new RestAdapter.Builder()
         .setEndpoint(oortEndpoint)
         .setClient(retrofitClient)
