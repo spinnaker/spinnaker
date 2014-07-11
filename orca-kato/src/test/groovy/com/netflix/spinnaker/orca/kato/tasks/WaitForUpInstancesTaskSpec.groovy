@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.kato.tasks
 
+import spock.lang.Specification
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
+class WaitForUpInstancesTaskSpec extends Specification {
 
-dependencies {
-  testCompile project(":orca-test")
-  testCompile project(":orca-bakery")
-  testCompile project(":orca-kato")
-  testCompile project(":orca-oort")
-  testCompile commonDependencies.springBatchTest
-  testRuntime commonDependencies.h2
-  testRuntime commonDependencies.spockSpring
-  testRuntime commonDependencies.springTest
+  void "should check cluster to get server groups"() {
+
+  }
 }
