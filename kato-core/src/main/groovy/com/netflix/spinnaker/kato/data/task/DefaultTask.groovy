@@ -26,10 +26,10 @@ import java.util.logging.Logger
 public class DefaultTask implements Task {
   private static final Logger log = Logger.getLogger(this.class.name)
 
-  final String id
-  final List<Status> history = []
-  final List<Object> resultObjects = []
-  final long startTimeMs = new Date().time
+  String id
+  List<Status> history = []
+  List<Object> resultObjects = []
+  long startTimeMs = new Date().time
 
   private String phase
   private String status
@@ -72,6 +72,10 @@ public class DefaultTask implements Task {
 
   public String toString() {
     getStatus().toString()
+  }
+
+  public void addResultObjects(List<Object>results){
+    resultObjects.addAll(results)
   }
 
   @ToString

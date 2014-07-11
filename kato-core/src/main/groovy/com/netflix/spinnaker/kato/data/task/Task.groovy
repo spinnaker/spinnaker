@@ -35,6 +35,12 @@ public interface Task {
   List<Object> getResultObjects()
 
   /**
+   * This method is used to add results objects to the Task
+   * @param results
+   */
+  void addResultObjects(List<Object>results)
+
+  /**
    * A comprehensive history of this task's execution.
    */
   List<Status> getHistory()

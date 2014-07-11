@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-rootProject.name="kato"
-
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-dynomite"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+dependencies {
+  compile project(":kato-core")
+  compile 'redis.embedded:embedded-redis:0.2'
+  compile 'redis.clients:jedis:2.2.1'
 }
