@@ -22,7 +22,7 @@ class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
 
   @Override
   protected Map<String, List<String>> getServerGroups(TaskContext context) {
-    (Map<String, List<String>>) context.inputs."deploy.server.groups"
+    (Map<String, List<String>>) context.getInputs()."deploy.server.groups"
   }
 
   @Override

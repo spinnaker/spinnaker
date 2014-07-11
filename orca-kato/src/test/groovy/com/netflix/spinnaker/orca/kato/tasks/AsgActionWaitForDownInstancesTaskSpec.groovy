@@ -12,8 +12,8 @@ import retrofit.mime.TypedInput
 /**
  * Created by aglover on 7/10/14.
  */
-class WaitForDownInstancesTaskSpec extends Specification {
-  @Subject task = new WaitForDownInstancesTask()
+class AsgActionWaitForDownInstancesTaskSpec extends Specification {
+  @Subject task = new AsgActionWaitForDownInstancesTask()
 
   def mapper = new ObjectMapper()
 
@@ -37,7 +37,7 @@ class WaitForDownInstancesTaskSpec extends Specification {
                         ],
                         instances: [
                             [
-                                isHealthy: true
+                                isHealthy: false
                             ]
                         ]
                     ]
@@ -54,8 +54,10 @@ class WaitForDownInstancesTaskSpec extends Specification {
 
     and:
     def context = new SimpleTaskContext()
+    context."targetop.asg.enableAsg.name" = "front50"
+    context."targetop.asg.enableAsg.regions" = ['us-west-1']
     context."deploy.account.name" = "test"
-    context."deploy.server.groups" = ["us-west-1": ["front50-v000"]]
+//    context."deploy.server.groups" = ["us-west-1": ["front50-v000"]]
 
     expect:
     task.execute(context).status == TaskResult.Status.SUCCEEDED

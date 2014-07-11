@@ -28,9 +28,10 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
 
   @Override
   TaskResult execute(TaskContext context) {
-    String account = context.inputs."deploy.account.name"
+    String account = context.getInputs()."deploy.account.name"
 
     Map<String, List<String>> serverGroups = getServerGroups(context)
+    println "serverGroups is ${serverGroups}"
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(TaskResult.Status.FAILED)
