@@ -68,7 +68,7 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
 
     and:
     def context = new SimpleTaskContext()
-    context."targetop.asg.enableAsg.name" = "front50"
+    context."targetop.asg.enableAsg.name" = "front50-v000"
     context."targetop.asg.enableAsg.regions" = ['us-west-1']
     context."deploy.account.name" = "test"
 
