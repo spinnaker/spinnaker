@@ -16,21 +16,8 @@
 
 package com.netflix.spinnaker.oort.model
 
-/**
- * Primarily a marker interface, but provides the representation of an instance, which exists within a {@link ServerGroup}. Concrete implementations should provide more-specific data.
- *
- * @author Dan Woods
- */
-interface Instance {
-  /**
-   * The name of the instance
-   *
-   * @return instance name
-   */
-  String getName()
-
-  /**
-   * @return return an indication of the health of the instance
-   */
-  Health getHealth()
+enum HealthState { Up, Down, Unknown
+  Boolean isHealthy() {
+    this == Up
+  }
 }

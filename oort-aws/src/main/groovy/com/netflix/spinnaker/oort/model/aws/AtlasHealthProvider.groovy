@@ -21,6 +21,7 @@ import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
 import org.joda.time.LocalDateTime
@@ -40,6 +41,12 @@ class AtlasHealthProvider implements HealthProvider {
       return null
     }
     Map health = cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME), Map)
-    health ? new MapBackedHealth(health) : null
+    if (!health) {
+      return new AwsInstanceHealth(id: instanceId, state: HealthState.Unknown)
+    }
+    if (health.isHealthy) {
+      return new AwsInstanceHealth(id: instanceId, state: HealthState.Up)
+    }
+    return new AwsInstanceHealth(id: instanceId, state: HealthState.Down)
   }
 }

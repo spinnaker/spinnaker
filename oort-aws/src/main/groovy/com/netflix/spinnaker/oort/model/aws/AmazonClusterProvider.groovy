@@ -149,14 +149,20 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     for (instanceId in instanceIds) {
       def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region), Instance)
       if (ec2Instance) {
-        def modelInstance = new AmazonInstance(instanceId)
-        modelInstance.instance = ec2Instance
-        modelInstance.health = healthProviders.collect { it.getHealth(cluster.accountName, serverGroup, instanceId) }
-        modelInstance.isHealthy = !((List<Health>)modelInstance.health)?.find { !it?.isHealthy() ?: false }
-        serverGroup.instances << modelInstance
+        serverGroup.instances << constructInstance(ec2Instance, serverGroup, cluster.accountName)
       }
     }
     serverGroup
+  }
+
+  AmazonInstance constructInstance(Instance ec2Instance, AmazonServerGroup serverGroup, String accountName) {
+    List<Health> healths = healthProviders.collect {
+      it.getHealth(accountName, serverGroup, ec2Instance.instanceId)
+    }
+    Health health = healths[0] // TODO: find a better way to decide which health provider to trust
+    def modelInstance = new AmazonInstance(ec2Instance.instanceId, health)
+    modelInstance.instance = ec2Instance
+    modelInstance
   }
 
   private class ServerGroupAttributeBuilder {

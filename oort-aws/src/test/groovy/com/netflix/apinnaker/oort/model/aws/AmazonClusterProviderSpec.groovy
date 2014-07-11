@@ -16,34 +16,30 @@
 
 package com.netflix.apinnaker.oort.model.aws
 
-import com.amazonaws.services.ec2.model.Instance
-import com.codahale.metrics.Timer
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.Tag
+import com.codahale.metrics.Timer
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
+import com.netflix.spinnaker.oort.model.HealthProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonClusterProvider
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
-import spock.lang.Shared
+import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class AmazonClusterProviderSpec extends Specification {
 
-  @Shared
-  AmazonClusterProvider provider
-
-  @Shared
-  CacheService cacheService
-
+  CacheService cacheService = Mock(CacheService)
+  AmazonClusterProvider provider = new AmazonClusterProvider(cacheService: cacheService, healthProviders: [])
   Timer timer = new Timer()
 
   def setup() {
-    provider = new AmazonClusterProvider(healthProviders: [])
-    cacheService = Mock(CacheService)
-    provider.cacheService = cacheService
     AmazonClusterProvider.declaredFields.findAll { it.type == Timer }.each {
       provider.setProperty(it.name, timer)
     }
@@ -135,7 +131,7 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
   }
 
-  void "cluster filler should aggreagte all known data about a cluster"() {
+  void "cluster filler should aggregate all known data about a cluster"() {
     setup:
     def objects = getCommonObjects()
 
@@ -155,6 +151,28 @@ class AmazonClusterProviderSpec extends Specification {
     objects.cluster.serverGroups[0].buildInfo.jenkins.host == "http://builds.netflix.com/"
     objects.cluster.serverGroups[0].image == objects.image
     objects.cluster.serverGroups[0].instances[0].name == objects.instanceId
+  }
+
+  @Unroll
+  void "should populate instances with health"() {
+    def mockHealthProvider = Mock(HealthProvider)
+    provider.healthProviders = [mockHealthProvider]
+
+    when:
+    def result = provider.constructInstance(new Instance(instanceId: "123"), null, null)
+
+    then:
+    result.getHealth().state == healthState
+
+    and:
+    1 * mockHealthProvider.getHealth(null, null, "123") >> health
+    0 * _
+
+    where:
+    health                                            | healthState
+    new AwsInstanceHealth(state: HealthState.Up)      | HealthState.Up
+    new AwsInstanceHealth(state: HealthState.Down)    | HealthState.Down
+    new AwsInstanceHealth(state: HealthState.Unknown) | HealthState.Unknown
   }
 
   def getCommonObjects() {
