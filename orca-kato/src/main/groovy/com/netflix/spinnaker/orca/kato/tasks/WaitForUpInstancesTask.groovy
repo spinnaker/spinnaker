@@ -38,8 +38,8 @@ class WaitForUpInstancesTask implements RetryableTask {
 
   @Override
   TaskResult execute(TaskContext context) {
-    String account = context.inputs."deploy.account.name"
-    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context.inputs."deploy.server.groups"
+    String account = context."deploy.account.name"
+    Map<String, List<String>> serverGroups = (Map<String, List<String>>)context."deploy.server.groups"
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(TaskResult.Status.FAILED)
     }
