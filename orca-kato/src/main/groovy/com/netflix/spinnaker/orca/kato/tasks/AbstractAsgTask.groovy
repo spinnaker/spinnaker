@@ -24,10 +24,13 @@ abstract class AbstractAsgTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    def taskId = kato.requestOperations(
-        [[("${asgAction}Description".toString()): operationFromContext(context)]]
-    ).toBlockingObservable().first()
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["kato.task.id": taskId])
+    EnableOrDisableAsgOperation operation = operationFromContext(context)
+    def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]])
+        .toBlockingObservable().first()
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, [
+        "kato.task.id"       : taskId,
+        "deploy.account.name": operation.credentials,
+    ])
   }
 
   private EnableOrDisableAsgOperation operationFromContext(TaskContext context) {

@@ -1,13 +1,10 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.RetryableTaskTaskletAdapter
 import com.netflix.spinnaker.orca.kato.tasks.DisableAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
 import org.springframework.batch.core.Step
-import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.stereotype.Component
 
 @Component
@@ -23,6 +20,5 @@ class DisableAsgStageBuilder extends LinearStageBuilder {
         .build()
     [step1, step2]
   }
-
 
 }
