@@ -20,6 +20,7 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import com.netflix.spinnaker.oort.model.aws.AtlasHealthProvider
 import spock.lang.Specification
@@ -41,27 +42,16 @@ class AtlasHealthProviderSpec extends Specification {
     then:
     result instanceof Health
     result.id == "i-12345"
-    result.isHealthy() == isHealthy
+    result.state == healthState
+    result.state.isHealthy() == isHealthy
 
     and:
-    1 * mockCacheService.retrieve(instanceHealthKey, _) >> health
+    1 * mockCacheService.retrieve(instanceHealthKey, _) >> cachedHealth
 
     where:
-    health                            | isHealthy
-    [id: "i-12345", isHealthy: true]  | true
-    [id: "i-12345", isHealthy: false] | false
+    cachedHealth                      | healthState         | isHealthy
+    [id: "i-12345", isHealthy: true]  | HealthState.Up      | true
+    [id: "i-12345", isHealthy: false] | HealthState.Down    | false
+    null                              | HealthState.Unknown | false
   }
-
-  void "should indicate unknown when health is not cached"() {
-    when:
-    def result = provider.getHealth("test", serverGroup, "i-12345")
-
-    then:
-    result == null
-    !result?.isHealthy()
-
-    and:
-    1 * mockCacheService.retrieve(instanceHealthKey, _)
-  }
-
 }

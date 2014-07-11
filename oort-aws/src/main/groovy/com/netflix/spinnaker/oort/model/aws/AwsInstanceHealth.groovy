@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.oort.model.aws
 
 import com.netflix.spinnaker.oort.model.Health
-import groovy.transform.InheritConstructors
+import com.netflix.spinnaker.oort.model.HealthState
+import groovy.transform.Canonical
 
-@InheritConstructors
-class MapBackedHealth extends HashMap implements Health, Serializable {
-  @Override
-  Boolean isHealthy() {
-    (Boolean)getProperty("isHealthy")
-  }
+@Canonical
+class AwsInstanceHealth implements Health {
+  HealthState state
+  String id
 }

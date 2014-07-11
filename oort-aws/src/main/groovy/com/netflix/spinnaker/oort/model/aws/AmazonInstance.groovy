@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
+import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.Instance
 
 class AmazonInstance extends HashMap implements Instance, Serializable {
 
-  AmazonInstance(String name) {
+  AmazonInstance(String name, Health health) {
     setProperty "name", name
+    setProperty "health", health
   }
 
   @Override
@@ -30,7 +32,7 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   }
 
   @Override
-  Boolean isHealthy() {
-    getProperty "isHealthy"
+  Health getHealth() {
+    getProperty "health"
   }
 }

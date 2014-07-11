@@ -25,10 +25,11 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.HealthProvider
-import com.netflix.spinnaker.oort.model.Health
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonClusterProvider
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
+import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -161,16 +162,17 @@ class AmazonClusterProviderSpec extends Specification {
     def result = provider.constructInstance(new Instance(instanceId: "123"), null, null)
 
     then:
-    result.isHealthy() == isHealthy
+    result.getHealth().state == healthState
 
     and:
-    1 * mockHealthProvider.getHealth(null, null, "123") >> (health)
+    1 * mockHealthProvider.getHealth(null, null, "123") >> health
+    0 * _
 
     where:
-    health                  | isHealthy
-    ({ true } as Health)    | true
-    ({ false } as Health)   | false
-    null                    | false
+    health                                            | healthState
+    new AwsInstanceHealth(state: HealthState.Up)      | HealthState.Up
+    new AwsInstanceHealth(state: HealthState.Down)    | HealthState.Down
+    new AwsInstanceHealth(state: HealthState.Unknown) | HealthState.Unknown
   }
 
   def getCommonObjects() {

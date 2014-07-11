@@ -24,9 +24,8 @@ package com.netflix.spinnaker.oort.model
 public interface Health {
 
   /**
-   * A flag indicating a state of healthy/unhealthy
-   *
-   * @return true/false respectively
+   * @return health state indication
    */
-  Boolean isHealthy()
+  HealthState getState()
+
 }
