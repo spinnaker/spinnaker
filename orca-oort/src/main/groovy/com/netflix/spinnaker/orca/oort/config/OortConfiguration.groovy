@@ -23,6 +23,7 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -40,8 +41,8 @@ class OortConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint oortEndpoint() {
-    newFixedEndpoint("http://oort.prod.netflix.net")
+  @Bean Endpoint oortEndpoint(@Value('${oort.baseUrl:http://oort.prod.netflix.net}') String oortBaseUrl) {
+    newFixedEndpoint(oortBaseUrl)
   }
 
   @Bean OortService oortDeployService(Endpoint oortEndpoint, Gson gson) {

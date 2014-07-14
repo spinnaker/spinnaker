@@ -25,5 +25,5 @@ import com.netflix.spinnaker.orca.kato.api.Operation
 class DestroyAsgOperation extends Operation {
   String credentials
   String asgName
-  String region
+  List<String> regions
 }
