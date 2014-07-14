@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.EnableAsgStageBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStageBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -49,8 +50,8 @@ class KatoConfiguration {
   @Autowired Client retrofitClient
   @Autowired LogLevel retrofitLogLevel
 
-  @Bean Endpoint katoEndpoint() {
-    newFixedEndpoint("http://kato.prod.netflix.net")
+  @Bean Endpoint katoEndpoint(@Value('${kato.baseUrl:http://kato.prod.netflix.net}') String katoBaseUrl) {
+    newFixedEndpoint(katoBaseUrl)
   }
 
   @Bean KatoService katoDeployService(Endpoint katoEndpoint, Gson gson) {
