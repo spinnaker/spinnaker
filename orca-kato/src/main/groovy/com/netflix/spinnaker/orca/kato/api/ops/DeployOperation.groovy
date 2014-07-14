@@ -40,9 +40,5 @@ class DeployOperation extends Operation {
   ASGCapacity capacity
   String credentials
   String keyPair
-
-  String getKeyPair() {
-    keyPair ?: "nf-${credentials}-keypair-a"
-  }
 }
 
