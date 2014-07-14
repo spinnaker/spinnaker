@@ -54,7 +54,7 @@ class TagAsgAtomicOperation implements AtomicOperation<Void> {
         continue
       }
       task.updateStatus BASE_PHASE, " > Preparing tags for $description.asgName in $region..."
-      def tags = description.tags.collect { k, v -> new Tag().withKey(k).withValue(v).withResourceId(description.asgName).withResourceType("auto-scaling-group") }
+      def tags = description.tags.collect { k, v -> new Tag().withKey(k).withValue(v).withResourceId(description.asgName).withResourceType("auto-scaling-group").withPropagateAtLaunch(true) }
       def createTagsRequest = new CreateOrUpdateTagsRequest().withTags(tags)
       task.updateStatus BASE_PHASE, " > Creating tags for $description.asgName in $region..."
       autoScaling.createOrUpdateTags(createTagsRequest)
