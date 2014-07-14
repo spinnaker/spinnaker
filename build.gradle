@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 buildscript {
   repositories {
     jcenter()
