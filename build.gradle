@@ -30,7 +30,7 @@ buildscript {
 
 ext {
   versions = [
-      groovy  : "2.3.3",
+      groovy  : "2.3.4",
       spring  : "4.0.4.RELEASE",
       batch   : "3.0.0.RC1",
       guava   : "17.0",
@@ -46,7 +46,7 @@ ext {
       astyanaxCassandra: dependencies.create("com.netflix.astyanax:astyanax-cassandra:1.56.48"),
       astyanaxThrift   : dependencies.create("com.netflix.astyanax:astyanax-thrift:1.56.48"),
       boneCpSpring     : dependencies.create("com.jolbox:bonecp-spring:0.8.0.RELEASE"),
-      groovy           : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy:indy"),
+      groovy           : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy"),
       guava            : dependencies.create("com.google.guava:guava:$versions.guava"),
       h2               : dependencies.create("com.h2database:h2:1.4.178"),
       jacksonDatabind  : dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
@@ -80,10 +80,6 @@ subprojects {
   plugins.withType(JavaPlugin) {
     sourceCompatibility = "1.7"
     targetCompatibility = "1.7"
-  }
-
-  tasks.withType(GroovyCompile) {
-    groovyOptions.optimizationOptions.indy = true
   }
 }
 
