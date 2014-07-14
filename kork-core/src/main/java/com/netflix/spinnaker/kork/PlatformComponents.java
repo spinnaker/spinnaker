@@ -18,14 +18,13 @@ package com.netflix.spinnaker.kork;
 
 import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.eureka.EurekaComponents;
-import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
 @ConditionalOnMissingClass(name = {"com.netflix.config.NetflixConfiguration"})
-@Import({EurekaComponents.class, AstyanaxComponents.class, AwsComponents.class})
+@Import({EurekaComponents.class, AwsComponents.class})
 public class PlatformComponents {
 
 }
