@@ -7,3 +7,4 @@ build/
 *.iws
 out/
 .DS_Store
+/json/
