@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.smoke
 
-import spock.lang.Ignore
 import spock.lang.Requires
 import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
-import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -38,7 +32,6 @@ import org.springframework.test.context.ContextConfiguration
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
-@Ignore
 @Requires({ isReachable("http://bakery.test.netflix.net:7001") })
 @ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
@@ -47,7 +40,6 @@ class OrcaSmokeSpec extends Specification {
   @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
 
-  @Ignore
   def "can bake and deploy"() {
     given:
     def configJson = mapper.writeValueAsString(config)
@@ -84,24 +76,26 @@ class OrcaSmokeSpec extends Specification {
     ]
   }
 
-  @Ignore
   def "can deploy next ASG"() {
-      def config = [[
-              type: 'copyLastAsg',
-              application      : "mimirdemo",
-              stack            : "test",
-              availabilityZones: ['us-east-1': []],
-              credentials      : 'test'
-      ]]
+    def configJson = mapper.writeValueAsString(config)
 
-      def configJson = mapper.writeValueAsString(config)
+    when:
+    def execution = jobStarter.start(configJson)
 
-      when:
-      def execution = jobStarter.start(configJson)
+    then:
+    execution.status == BatchStatus.COMPLETED
+    execution.exitStatus == ExitStatus.COMPLETED
 
-      then:
-      execution.status == BatchStatus.COMPLETED
-      execution.exitStatus == ExitStatus.COMPLETED
+    where:
+    config = [
+        [
+            type             : 'copyLastAsg',
+            application      : "mimirdemo",
+            stack            : "test",
+            availabilityZones: ['us-east-1': []],
+            credentials      : 'test'
+        ]
+    ]
   }
 }
 

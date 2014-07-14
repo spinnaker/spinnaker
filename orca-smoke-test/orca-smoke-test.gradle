@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
@@ -29,4 +25,23 @@ dependencies {
   testRuntime commonDependencies.h2
   testRuntime commonDependencies.spockSpring
   testRuntime commonDependencies.springTest
+
+  sourceSets {
+    integrationTest {
+      groovy.srcDir file("src/integTest/groovy")
+      resources.srcDir file("src/integTest/resources")
+    }
+  }
+
+  dependencies {
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile sourceSets.test.output
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
+  }
+
+  task integrationTest(type: Test) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+  }
 }
