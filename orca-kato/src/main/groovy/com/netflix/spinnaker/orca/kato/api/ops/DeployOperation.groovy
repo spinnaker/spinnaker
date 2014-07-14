@@ -36,8 +36,13 @@ class DeployOperation extends Operation {
   Optional<String> subnetType = absent()
   Map<String, List<String>> availabilityZones
   List<String> loadBalancers
-  String iamRole = absent()
+  String iamRole
   ASGCapacity capacity
   String credentials
+  String keyPair
+
+  String getKeyPair() {
+    keyPair ?: "nf-${credentials}-keypair-a"
+  }
 }
 

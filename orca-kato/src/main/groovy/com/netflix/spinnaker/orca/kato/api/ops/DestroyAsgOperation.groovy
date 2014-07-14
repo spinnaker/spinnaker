@@ -19,9 +19,10 @@
 package com.netflix.spinnaker.orca.kato.api.ops
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.api.Operation
 
 @CompileStatic
-class DestroyAsgOperation {
+class DestroyAsgOperation extends Operation {
   String credentials
   String asgName
   String region
