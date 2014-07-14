@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
+import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import rx.Observable
+import spock.lang.Specification
+import spock.lang.Subject
 
 class CreateDeployTaskSpec extends Specification {
 
@@ -76,10 +74,6 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    operations.size() == 2
-    with(operations[0].allowLaunchDescription) {
-      it instanceof AllowLaunchOperation
-    }
     with(operations[1].basicAmazonDeployDescription) {
       it instanceof DeployOperation
       application == deployConfig.application
@@ -94,6 +88,31 @@ class CreateDeployTaskSpec extends Specification {
 
       !stack.present
       !subnetType.present
+    }
+  }
+
+  def "requests an allowLaunch operation for each region"() {
+    given:
+    deployConfig.availabilityZones["us-west-1"] = []
+
+    and:
+    def operations = []
+    task.kato = Mock(KatoService) {
+      3 * requestOperations(*_) >> {
+        operations << it[0][0]
+        Observable.from(taskId)
+      }
+    }
+
+    when:
+    task.execute(context)
+
+    then:
+    with(operations[0..1].allowLaunchDescription) { ops ->
+      ops.every {
+        it instanceof AllowLaunchOperation
+      }
+      region == deployConfig.availabilityZones.keySet() as List
     }
   }
 

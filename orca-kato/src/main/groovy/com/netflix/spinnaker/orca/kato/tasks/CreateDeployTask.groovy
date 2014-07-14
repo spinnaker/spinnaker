@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
+import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
@@ -50,7 +49,7 @@ class CreateDeployTask implements Task {
     def taskId = deploy(deployOperations)
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
         [
-            "kato.task.id": taskId,
+            "kato.task.id"       : taskId,
             "deploy.account.name": deployOperations.credentials,
         ]
     )
@@ -58,8 +57,8 @@ class CreateDeployTask implements Task {
 
   private DeployOperation deployOperationFromContext(TaskContext context) {
     def operation = mapper.copy()
-        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .convertValue(context.getInputs("deploy"), DeployOperation)
+                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+                          .convertValue(context.getInputs("deploy"), DeployOperation)
     if (context.inputs."bake.ami") {
       operation.amiName = context.inputs."bake.ami"
     }
