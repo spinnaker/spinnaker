@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca
 
-import groovy.transform.CompileStatic
 import com.google.common.collect.ForwardingMap
 import com.google.common.collect.ImmutableMap
+import groovy.transform.CompileStatic
 
 // TODO: should really move this to the orca-test subproject but that would create a circular dependency.
 /**

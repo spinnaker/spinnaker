@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch
 
 import spock.lang.Specification
@@ -123,6 +119,24 @@ class TaskTaskletAdapterSpec extends Specification {
     where:
     taskStatus << [TaskResult.Status.FAILED, SUCCEEDED]
     outputs = [foo: "bar", baz: "qux"]
+  }
+
+  def "should overwrite values in the context inputs if a task sets them as outputs"() {
+    given:
+    stepExecution.jobExecution.executionContext.put(key, value)
+
+    and:
+    step.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    stepExecution.jobExecution.executionContext.get(key) == value.reverse()
+
+    where:
+    key = "foo"
+    value = "bar"
   }
 
 }

@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
