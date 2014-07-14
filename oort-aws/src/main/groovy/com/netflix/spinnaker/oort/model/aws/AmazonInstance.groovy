@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
-import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.Instance
 import groovy.transform.EqualsAndHashCode
 
@@ -32,8 +31,7 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
     getProperty "name"
   }
 
-  @Override
-  Health getHealth() {
-    getProperty "health"
+  boolean isHealthy() {
+    getProperty "isHealthy"
   }
 }

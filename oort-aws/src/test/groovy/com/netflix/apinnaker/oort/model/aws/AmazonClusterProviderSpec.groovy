@@ -162,17 +162,61 @@ class AmazonClusterProviderSpec extends Specification {
     def result = provider.constructInstance(new Instance(instanceId: "123"), null, null)
 
     then:
-    result._health.state.first() == healthState
+    result.isHealthy() == isHealthy
 
     and:
-    1 * mockHealthProvider.getHealth(null, null, "123") >> health
+    1 * mockHealthProvider.getHealth(null, null, "123") >> new AwsInstanceHealth(state: healthState)
     0 * _
 
     where:
-    health                                            | healthState
-    new AwsInstanceHealth(state: HealthState.Up)      | HealthState.Up
-    new AwsInstanceHealth(state: HealthState.Down)    | HealthState.Down
-    new AwsInstanceHealth(state: HealthState.Unknown) | HealthState.Unknown
+    healthState         | isHealthy
+    HealthState.Up      | true
+    HealthState.Down    | false
+    HealthState.Unknown | false
+  }
+
+  @Unroll
+  void "should populate instances with health based on multiple providers"() {
+    def mockHealthProvider1 = Mock(HealthProvider)
+    def mockHealthProvider2 = Mock(HealthProvider)
+    provider.healthProviders = [mockHealthProvider1, mockHealthProvider2]
+
+    when:
+    def result = provider.constructInstance(new Instance(instanceId: "123"), null, null)
+
+    then:
+    result.isHealthy() == isHealthy
+
+    and:
+    1 * mockHealthProvider1.getHealth(null, null, "123") >> new AwsInstanceHealth(state: healthStates[0])
+    1 * mockHealthProvider2.getHealth(null, null, "123") >> new AwsInstanceHealth(state: healthStates[1])
+    0 * _
+
+    where:
+    healthStates                            | isHealthy
+    HealthState.with { [Up, Up] }           | true
+    HealthState.with { [Up, Down] }         | false
+    HealthState.with { [Up, Unknown] }      | false
+    HealthState.with { [Down, Up] }         | false
+    HealthState.with { [Down, Down] }       | false
+    HealthState.with { [Down, Unknown] }    | false
+    HealthState.with { [Unknown, Up] }      | false
+    HealthState.with { [Unknown, Down] }    | false
+    HealthState.with { [Unknown, Unknown] } | false
+  }
+
+  @Unroll
+  void "should consider instances as unhealthy without health providers"() {
+    provider.healthProviders = []
+
+    when:
+    def result = provider.constructInstance(new Instance(instanceId: "123"), null, null)
+
+    then:
+    !result.isHealthy()
+
+    and:
+    0 * _
   }
 
   def getCommonObjects() {
