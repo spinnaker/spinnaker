@@ -53,7 +53,7 @@ public class JedisConfig {
                              @Value("${redis.connection:none}") String connection
   ) {
 
-    if (connection != "none") {
+    if (!connection.equals("none")) {
       try {
         URI redisURI = new URI(connection);
         return new JedisPool(new JedisPoolConfig(),
@@ -68,7 +68,7 @@ public class JedisConfig {
     }
 
     int redisPort = port;
-    if (host == "127.0.0.1") {
+    if (host.equals("127.0.0.1")) {
       try {
         if (redisPort == 0) {
           ServerSocket serverSocket = new ServerSocket(0);
