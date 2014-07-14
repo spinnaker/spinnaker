@@ -49,7 +49,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@ConditionalOnMissingClass(name = {"com.netflix.config.NetflixConfiguration"})
+@ConditionalOnMissingClass(name = {"com.netflix.cassandra.NFAstyanaxManager"})
 @ConditionalOnClass(AstyanaxConfiguration.class)
 public class AstyanaxComponents {
 
