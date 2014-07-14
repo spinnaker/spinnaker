@@ -55,6 +55,6 @@ abstract class AbstractAsgTask implements Task {
     def operation = mapper.copy()
         .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         .convertValue(context.getInputs(asgAction), EnableOrDisableAsgOperation)
-    return operation
+    operation
   }
 }

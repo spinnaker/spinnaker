@@ -18,7 +18,11 @@
 
 package com.netflix.spinnaker.orca.kato.api.ops
 
-class ResizeAsgOperation {
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.api.Operation
+
+@CompileStatic
+class ResizeAsgOperation extends Operation {
   String credentials
   String asgName
   String region
