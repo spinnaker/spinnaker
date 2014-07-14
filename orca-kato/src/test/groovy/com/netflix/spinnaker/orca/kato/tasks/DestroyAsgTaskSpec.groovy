@@ -34,7 +34,7 @@ class DestroyAsgTaskSpec extends Specification {
 
   def destroyASGConfig = [
       asgName    : "test-asg",
-      region     : "us-west-1",
+      regions    : ["us-west-1"],
       credentials: "fzlem"
   ]
 
@@ -66,7 +66,7 @@ class DestroyAsgTaskSpec extends Specification {
     with(operations[0].deleteAsgDescription) {
       it instanceof DestroyAsgOperation
       asgName == destroyASGConfig.asgName
-      region == destroyASGConfig.region
+      regions == destroyASGConfig.regions
       credentials == destroyASGConfig.credentials
     }
   }
