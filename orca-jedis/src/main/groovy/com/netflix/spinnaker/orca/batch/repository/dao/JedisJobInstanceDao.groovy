@@ -80,7 +80,9 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   List<JobInstance> findJobInstancesByName(String jobName, int start, int count) {
-    throw new UnsupportedOperationException()
+    jedis.keys("jobInstance:$jobName|*").collect {
+      getJobInstanceByKey it
+    }
   }
 
   @Override

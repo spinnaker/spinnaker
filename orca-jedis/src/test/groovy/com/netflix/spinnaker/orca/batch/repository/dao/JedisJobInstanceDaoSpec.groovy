@@ -139,4 +139,25 @@ class JedisJobInstanceDaoSpec extends Specification {
     jobNames = ["foo", "bar", "baz"]
   }
 
+  def "findJobInstancesByName accepts wildcards"() {
+    given:
+    jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
+    jobInstanceDao.createJobInstance("bar", new JobParameters(b: new JobParameter("b")))
+    jobInstanceDao.createJobInstance("baz", new JobParameters())
+    jobInstanceDao.createJobInstance("foo", new JobParameters())
+
+    expect:
+    jobInstanceDao.findJobInstancesByName(jobName, 0, Integer.MAX_VALUE).jobName == expectedNames
+
+    where:
+    jobName | expectedNames
+    "baz"   | ["baz"]
+    "bar"   | ["bar", "bar"]
+    "b*"    | ["baz", "bar", "bar"]
+    "*b*"   | ["baz", "bar", "bar"]
+    "ba*"   | ["baz", "bar", "bar"]
+    "a*"    | []
+    "*a*"   | ["baz", "bar", "bar"]
+  }
+
 }
