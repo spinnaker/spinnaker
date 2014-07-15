@@ -44,8 +44,8 @@ class JedisJobInstanceDao implements JobInstanceDao {
     jedis.hset(key, "jobName", jobInstance.jobName)
 
     jedis.set("jobInstanceId:$jobInstance.id", key)
-
     jedis.zadd("jobInstanceName:$jobName", -jobInstance.id, key)
+    jedis.sadd("jobInstanceNames", jobName)
     return jobInstance
   }
 
@@ -75,7 +75,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   List<String> getJobNames() {
-    throw new UnsupportedOperationException()
+    jedis.smembers("jobInstanceNames").sort()
   }
 
   @Override

@@ -126,4 +126,17 @@ class JedisJobInstanceDaoSpec extends Specification {
     }
   }
 
+  def "getJobNames returns all known job names"() {
+    given:
+    jobNames.each {
+      jobInstanceDao.createJobInstance(it, new JobParameters())
+    }
+
+    expect:
+    jobInstanceDao.getJobNames() == jobNames.sort()
+
+    where:
+    jobNames = ["foo", "bar", "baz"]
+  }
+
 }
