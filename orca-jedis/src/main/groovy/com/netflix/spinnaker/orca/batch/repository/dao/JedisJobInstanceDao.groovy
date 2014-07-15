@@ -94,12 +94,20 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   int getJobInstanceCount(String jobName) throws NoSuchJobException {
+    if (!jedis.exists("jobInstanceName:$jobName")) {
+      throw new NoSuchJobException("No job instances for job name $jobName were found")
+    }
     jedis.zcount("jobInstanceName:$jobName", Long.MIN_VALUE, Long.MAX_VALUE)
   }
 
   private JobInstance getJobInstanceByKey(String key) {
+    JobInstance jobInstance = null
     def hash = jedis.hgetAll(key)
-    hash ? new JobInstance(hash.id as Long, hash.jobName) : null
+    if (hash) {
+      jobInstance = new JobInstance(hash.id as Long, hash.jobName)
+      jobInstance.version = hash.version as Integer
+    }
+    return jobInstance
   }
 
 }

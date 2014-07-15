@@ -16,21 +16,13 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import redis.clients.jedis.JedisPool
-import redis.clients.jedis.JedisPoolConfig
-import spock.lang.AutoCleanup
+import org.springframework.batch.core.repository.dao.MapJobExecutionDao
+import org.springframework.batch.core.repository.dao.MapJobInstanceDao
 
-class JedisJobInstanceDaoSpec extends JobInstanceDaoTck {
-
-  def pool = new JedisPool(new JedisPoolConfig(), "localhost")
-  @AutoCleanup def jedis = pool.resource
+class MapJobInstanceDaoSpec extends JobInstanceDaoTck {
 
   def setup() {
-    jobInstanceDao = new JedisJobInstanceDao(jedis)
-    jobExecutionDao = new JedisJobExecutionDao(jedis)
-  }
-
-  def cleanup() {
-    jedis.flushDB()
+    jobInstanceDao = new MapJobInstanceDao()
+    jobExecutionDao = new MapJobExecutionDao()
   }
 }
