@@ -89,7 +89,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   int getJobInstanceCount(String jobName) throws NoSuchJobException {
-    throw new UnsupportedOperationException()
+    jedis.zcount("jobInstanceName:$jobName", Long.MIN_VALUE, Long.MAX_VALUE)
   }
 
   private JobInstance getJobInstanceByKey(String key) {

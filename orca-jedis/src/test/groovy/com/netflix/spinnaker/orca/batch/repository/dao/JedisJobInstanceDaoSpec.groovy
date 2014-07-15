@@ -49,6 +49,8 @@ class JedisJobInstanceDaoSpec extends Specification {
     jobInstance1.id != jobInstance2.id
   }
 
+  // TODO: uniqueness
+
   def "getJobInstance by name and parameters"() {
     given:
     jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
@@ -177,4 +179,20 @@ class JedisJobInstanceDaoSpec extends Specification {
     "b*"    | 1     | 2                 | ["bar", "bar"]
   }
 
+  def "getJobInstanceCount returns count by job name"() {
+    given:
+    jobInstanceDao.createJobInstance("foo", new JobParameters())
+    jobInstanceDao.createJobInstance("bar", new JobParameters())
+    jobInstanceDao.createJobInstance("baz", new JobParameters(a: new JobParameter("a")))
+    jobInstanceDao.createJobInstance("baz", new JobParameters(b: new JobParameter("b")))
+
+    expect:
+    jobInstanceDao.getJobInstanceCount(jobName) == expectedCount
+
+    where:
+    jobName | expectedCount
+    "foo"   | 1
+    "bar"   | 1
+    "baz"   | 2
+  }
 }
