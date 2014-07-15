@@ -37,24 +37,24 @@ class JedisJobInstanceDao implements JobInstanceDao {
   @Override
   JobInstance createJobInstance(String jobName, JobParameters jobParameters) {
     def jobInstance = new JobInstance(jedis.incr("jobInstanceId"), jobName)
+    jobInstance.incrementVersion()
     def key = "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
     jedis.hset(key, "id", jobInstance.id.toString())
     jedis.hset(key, "jobName", jobInstance.jobName)
-    // TODO: do we need to handle version
+    jedis.hset(key, "version", jobInstance.version.toString())
+    jedis.set("jobInstanceId:$jobInstance.id", key)
     return jobInstance
   }
 
   @Override
   JobInstance getJobInstance(String jobName, JobParameters jobParameters) {
-    def key = "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
-    Map<String, String> hash = jedis.hgetAll(key)
-    hash ? new JobInstance(hash.id as Long, hash.jobName) : null
+    getJobInstanceByKey "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
   }
 
   @Override
   JobInstance getJobInstance(Long instanceId) {
-    throw new UnsupportedOperationException()
-//    jedis.
+    def key = jedis.get("jobInstanceId:$instanceId")
+    getJobInstanceByKey key
   }
 
   @Override
@@ -81,4 +81,10 @@ class JedisJobInstanceDao implements JobInstanceDao {
   int getJobInstanceCount(String jobName) throws NoSuchJobException {
     throw new UnsupportedOperationException()
   }
+
+  private JobInstance getJobInstanceByKey(String key) {
+    Map<String, String> hash = jedis.hgetAll(key)
+    hash ? new JobInstance(hash.id as Long, hash.jobName) : null
+  }
+
 }

@@ -64,4 +64,12 @@ class JedisJobInstanceDaoSpec extends Specification {
     })
   }
 
+  def "getJobInstance by id"() {
+    given:
+    def jobInstance = dao.createJobInstance("foo", new JobParameters())
+
+    expect:
+    dao.getJobInstance(jobInstance.id) != null
+  }
+
 }
