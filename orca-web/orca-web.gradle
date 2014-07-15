@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/groovy-module.gradle"
 
+dependencies {
+  compile project(":orca-test")
+  compile project(":orca-bakery")
+  compile project(":orca-kato")
+  compile project(":orca-oort")
+  compile commonDependencies.springBatchTest
+  runtime commonDependencies.h2
+  runtime commonDependencies.spockSpring
+  runtime commonDependencies.springTest
 
-
-
-include "orca-core",
-  "orca-retrofit",
-  "orca-bakery",
-  "orca-kato",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
-
-rootProject.name = "orca"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
 }
