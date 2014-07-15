@@ -14,28 +14,12 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.web.config
 
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
-
-
-include "orca-core",
-  "orca-retrofit",
-  "orca-bakery",
-  "orca-kato",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
-
-rootProject.name = "orca"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
+@Configuration
+@ComponentScan(basePackages = 'com.netflix.spinnaker.orca.rest')
+class OrcaConfig {
 }
