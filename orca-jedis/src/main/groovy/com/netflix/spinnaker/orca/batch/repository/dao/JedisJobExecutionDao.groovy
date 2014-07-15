@@ -17,15 +17,33 @@
 package com.netflix.spinnaker.orca.batch.repository.dao
 
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobInstance
+import org.springframework.batch.core.*
 import org.springframework.batch.core.repository.dao.JobExecutionDao
+import org.springframework.beans.factory.annotation.Autowired
+import redis.clients.jedis.Jedis
 
 @CompileStatic
 class JedisJobExecutionDao implements JobExecutionDao {
+
+  private final Jedis jedis
+  private JobKeyGenerator<JobParameters> jobKeyGenerator = new DefaultJobKeyGenerator()
+
+  @Autowired
+  JedisJobExecutionDao(Jedis jedis) {
+    this.jedis = jedis
+  }
+
   @Override
   void saveJobExecution(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    jobExecution.id = jedis.incr("jobExecutionId")
+    jobExecution.incrementVersion()
+    def key = "jobExecution:$jobExecution.id"
+    jedis.hset(key, "id", jobExecution.id.toString())
+    jedis.hset(key, "version", jobExecution.version.toString())
+    // TODO: all other fields
+
+    def jobInstanceKey = "jobInstance:$jobExecution.jobInstance.jobName|${jobKeyGenerator.generateKey(jobExecution.jobParameters)}"
+    jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
   }
 
   @Override

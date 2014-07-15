@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import redis.clients.jedis.JedisPool
@@ -30,14 +31,15 @@ class JedisJobInstanceDaoSpec extends Specification {
 
   def pool = new JedisPool(new JedisPoolConfig(), "localhost")
   @AutoCleanup def jedis = pool.resource
-  @Subject dao = new JedisJobInstanceDao(jedis)
+  @Subject jobInstanceDao = new JedisJobInstanceDao(jedis)
+  def jobExecutionDao = new JedisJobExecutionDao(jedis)
 
   def "createJobInstance assigns a unique id"() {
     given:
-    def jobInstance1 = dao.createJobInstance("foo", new JobParameters())
+    def jobInstance1 = jobInstanceDao.createJobInstance("foo", new JobParameters())
 
     when:
-    def jobInstance2 = dao.createJobInstance("foo", new JobParameters())
+    def jobInstance2 = jobInstanceDao.createJobInstance("foo", new JobParameters())
 
     then:
     jobInstance1.id != jobInstance2.id
@@ -45,10 +47,10 @@ class JedisJobInstanceDaoSpec extends Specification {
 
   def "getJobInstance by name and parameters"() {
     given:
-    dao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
+    jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
 
     expect:
-    dao.getJobInstance(name, parameters) == null ^ shouldBeFound
+    jobInstanceDao.getJobInstance(name, parameters) == null ^ shouldBeFound
 
     where:
     name  | parameterMap     | shouldBeFound
@@ -66,10 +68,25 @@ class JedisJobInstanceDaoSpec extends Specification {
 
   def "getJobInstance by id"() {
     given:
-    def jobInstance = dao.createJobInstance("foo", new JobParameters())
+    def jobInstance = jobInstanceDao.createJobInstance("foo", new JobParameters())
 
     expect:
-    dao.getJobInstance(jobInstance.id) != null
+    jobInstanceDao.getJobInstance(jobInstance.id) != null
+  }
+
+  def "getJobInstance by JobExecution id"() {
+    given:
+    def jobInstance = jobInstanceDao.createJobInstance("foo", parameters)
+    def jobExecution = new JobExecution(jobInstance, parameters)
+
+    and:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    expect:
+    jobInstanceDao.getJobInstance(jobExecution) != null
+
+    where:
+    parameters = new JobParameters()
   }
 
 }

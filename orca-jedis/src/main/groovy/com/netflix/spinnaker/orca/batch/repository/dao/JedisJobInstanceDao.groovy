@@ -40,8 +40,8 @@ class JedisJobInstanceDao implements JobInstanceDao {
     jobInstance.incrementVersion()
     def key = "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
     jedis.hset(key, "id", jobInstance.id.toString())
-    jedis.hset(key, "jobName", jobInstance.jobName)
     jedis.hset(key, "version", jobInstance.version.toString())
+    jedis.hset(key, "jobName", jobInstance.jobName)
     jedis.set("jobInstanceId:$jobInstance.id", key)
     return jobInstance
   }
@@ -59,7 +59,8 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   JobInstance getJobInstance(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    def key = jedis.get("jobExecutionToJobInstance:$jobExecution.id")
+    getJobInstanceByKey key
   }
 
   @Override
