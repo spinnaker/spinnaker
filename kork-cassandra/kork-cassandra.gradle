@@ -1,0 +1,8 @@
+dependencies {
+  compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.4.RELEASE'
+  compile 'com.netflix.astyanax:astyanax-cassandra:1.56.48'
+  compile 'com.netflix.astyanax:astyanax-thrift:1.56.48'
+  testCompile 'org.codehaus.groovy:groovy-all:2.3.3'
+  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+  testRuntime 'org.slf4j:slf4j-simple:1.7.7'
+}
