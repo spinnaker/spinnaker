@@ -80,8 +80,10 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   List<JobInstance> findJobInstancesByName(String jobName, int start, int count) {
-    jedis.keys("jobInstance:$jobName|*").collect {
-      getJobInstanceByKey it
+    def keys = jedis.keys("jobInstance:$jobName|*") as List
+    keys = keys[[start, keys.size()].min()..<[start + count, keys.size()].min()]
+    keys.collect {
+      getJobInstanceByKey it.toString()
     }
   }
 

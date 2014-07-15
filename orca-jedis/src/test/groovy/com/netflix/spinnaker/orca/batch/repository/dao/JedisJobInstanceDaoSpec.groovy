@@ -160,4 +160,21 @@ class JedisJobInstanceDaoSpec extends Specification {
     "*a*"   | ["baz", "bar", "bar"]
   }
 
+  def "findJobInstancesByName limits results to the specified range"() {
+    given:
+    jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
+    jobInstanceDao.createJobInstance("bar", new JobParameters(b: new JobParameter("b")))
+    jobInstanceDao.createJobInstance("baz", new JobParameters())
+    jobInstanceDao.createJobInstance("foo", new JobParameters())
+
+    expect:
+    jobInstanceDao.findJobInstancesByName(jobName, start, count).jobName == expectedNames
+
+    where:
+    jobName | start | count             | expectedNames
+    "b*"    | 0     | Integer.MAX_VALUE | ["baz", "bar", "bar"]
+    "b*"    | 0     | 2                 | ["baz", "bar"]
+    "b*"    | 1     | 2                 | ["bar", "bar"]
+  }
+
 }
