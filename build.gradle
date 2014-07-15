@@ -47,6 +47,7 @@ ext {
       h2               : dependencies.create("com.h2database:h2:1.4.178"),
       jacksonDatabind  : dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
       jacksonGuava     : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
+      jedis            : dependencies.create("redis.clients:jedis:2.4.2"),
       kork             : dependencies.create("com.netflix.spinnaker.kork:kork-core:1.9"),
       logback          : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
       okHttp           : dependencies.create("com.squareup.okhttp:okhttp:1.5.4"),
