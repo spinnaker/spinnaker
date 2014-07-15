@@ -42,7 +42,10 @@ class JedisJobInstanceDao implements JobInstanceDao {
     jedis.hset(key, "id", jobInstance.id.toString())
     jedis.hset(key, "version", jobInstance.version.toString())
     jedis.hset(key, "jobName", jobInstance.jobName)
+
     jedis.set("jobInstanceId:$jobInstance.id", key)
+
+    jedis.zadd("jobInstanceName:$jobName", jobInstance.id, key)
     return jobInstance
   }
 
@@ -65,7 +68,9 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   List<JobInstance> getJobInstances(String jobName, int start, int count) {
-    throw new UnsupportedOperationException()
+    jedis.zrange("jobInstanceName:$jobName", start, start + (count - 1)).collect {
+      getJobInstanceByKey(it)
+    }
   }
 
   @Override
@@ -84,7 +89,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
   }
 
   private JobInstance getJobInstanceByKey(String key) {
-    Map<String, String> hash = jedis.hgetAll(key)
+    def hash = jedis.hgetAll(key)
     hash ? new JobInstance(hash.id as Long, hash.jobName) : null
   }
 

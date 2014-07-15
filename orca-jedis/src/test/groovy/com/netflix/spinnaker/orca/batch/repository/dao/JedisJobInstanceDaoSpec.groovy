@@ -34,6 +34,10 @@ class JedisJobInstanceDaoSpec extends Specification {
   @Subject jobInstanceDao = new JedisJobInstanceDao(jedis)
   def jobExecutionDao = new JedisJobExecutionDao(jedis)
 
+  def cleanup() {
+    jedis.flushDB()
+  }
+
   def "createJobInstance assigns a unique id"() {
     given:
     def jobInstance1 = jobInstanceDao.createJobInstance("foo", new JobParameters())
@@ -87,6 +91,26 @@ class JedisJobInstanceDaoSpec extends Specification {
 
     where:
     parameters = new JobParameters()
+  }
+
+  def "getJobInstances by name and range"() {
+    given:
+    def jobInstanceA = jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
+    def jobInstanceB = jobInstanceDao.createJobInstance("foo", new JobParameters(b: new JobParameter("b")))
+    def jobInstanceC = jobInstanceDao.createJobInstance("foo", new JobParameters(c: new JobParameter("c")))
+
+    expect:
+    with(jobInstanceDao.getJobInstances(jobName, start, count)) {
+      size() == expectedCount
+    }
+
+    where:
+    jobName | start | count             | expectedCount
+    "foo"   | 0     | Integer.MAX_VALUE | 3
+    "foo"   | 3     | Integer.MAX_VALUE | 0
+    "foo"   | 0     | 2                 | 2
+    "foo"   | 2     | 2                 | 1
+    "bar"   | 0     | Integer.MAX_VALUE | 0
   }
 
 }
