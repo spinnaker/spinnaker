@@ -39,6 +39,11 @@ class JedisJobInstanceDao implements JobInstanceDao {
     def jobInstance = new JobInstance(jedis.incr("jobInstanceId"), jobName)
     jobInstance.incrementVersion()
     def key = "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
+
+    if (jedis.exists(key)) {
+      throw new IllegalStateException("JobInstance must not already exist")
+    }
+
     jedis.hset(key, "id", jobInstance.id.toString())
     jedis.hset(key, "version", jobInstance.version.toString())
     jedis.hset(key, "jobName", jobInstance.jobName)

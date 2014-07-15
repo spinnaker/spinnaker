@@ -40,16 +40,35 @@ class JedisJobInstanceDaoSpec extends Specification {
 
   def "createJobInstance assigns a unique id"() {
     given:
-    def jobInstance1 = jobInstanceDao.createJobInstance("foo", new JobParameters())
+    def jobInstance1 = jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
 
     when:
-    def jobInstance2 = jobInstanceDao.createJobInstance("foo", new JobParameters())
+    def jobInstance2 = jobInstanceDao.createJobInstance("foo", new JobParameters(b: new JobParameter("b")))
 
     then:
     jobInstance1.id != jobInstance2.id
   }
 
-  // TODO: uniqueness
+  def "createJobInstance does not allow multiple instances of the same job with the same parameters"() {
+    given:
+    jobInstanceDao.createJobInstance("foo", parameters)
+
+    when:
+    jobInstanceDao.createJobInstance("foo", parameters)
+
+    then:
+    thrown IllegalStateException
+
+    where:
+    parameterMap << [
+        [:],
+        [a: "a"],
+        [a: "a", b: "b"]
+    ]
+    parameters = new JobParameters(parameterMap.collectEntries {
+      [(it.key): new JobParameter(it.value)]
+    })
+  }
 
   def "getJobInstance by name and parameters"() {
     given:
