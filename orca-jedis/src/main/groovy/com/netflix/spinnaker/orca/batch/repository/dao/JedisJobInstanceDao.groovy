@@ -45,7 +45,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
     jedis.set("jobInstanceId:$jobInstance.id", key)
 
-    jedis.zadd("jobInstanceName:$jobName", jobInstance.id, key)
+    jedis.zadd("jobInstanceName:$jobName", -jobInstance.id, key)
     return jobInstance
   }
 

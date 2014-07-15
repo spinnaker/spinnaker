@@ -95,9 +95,9 @@ class JedisJobInstanceDaoSpec extends Specification {
 
   def "getJobInstances by name and range"() {
     given:
-    def jobInstanceA = jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
-    def jobInstanceB = jobInstanceDao.createJobInstance("foo", new JobParameters(b: new JobParameter("b")))
-    def jobInstanceC = jobInstanceDao.createJobInstance("foo", new JobParameters(c: new JobParameter("c")))
+    jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
+    jobInstanceDao.createJobInstance("foo", new JobParameters(b: new JobParameter("b")))
+    jobInstanceDao.createJobInstance("foo", new JobParameters(c: new JobParameter("c")))
 
     expect:
     with(jobInstanceDao.getJobInstances(jobName, start, count)) {
@@ -111,6 +111,19 @@ class JedisJobInstanceDaoSpec extends Specification {
     "foo"   | 0     | 2                 | 2
     "foo"   | 2     | 2                 | 1
     "bar"   | 0     | Integer.MAX_VALUE | 0
+  }
+
+  def "getJobInstances returns highest ids first"() {
+    given:
+    jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
+    jobInstanceDao.createJobInstance("foo", new JobParameters(b: new JobParameter("b")))
+    jobInstanceDao.createJobInstance("foo", new JobParameters(c: new JobParameter("c")))
+
+    expect:
+    with(jobInstanceDao.getJobInstances("foo", 0, 3)) {
+      get(0).id > get(1).id
+      get(1).id > get(2).id
+    }
   }
 
 }
