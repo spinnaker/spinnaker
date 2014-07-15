@@ -63,6 +63,7 @@ ext {
       springBatchTest  : dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
       springJdbc       : dependencies.create("org.springframework:spring-jdbc:$versions.spring"),
       springTest       : dependencies.create("org.springframework:spring-test:$versions.spring"),
+      springWeb        : dependencies.create("org.springframework:spring-web:$versions.spring"),
       objenesis        : dependencies.create("org.objenesis:objenesis:2.1")
   ]
 }

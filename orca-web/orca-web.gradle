@@ -14,13 +14,35 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.1.RELEASE"
+    }
+}
 apply from: "$rootDir/gradle/groovy-module.gradle"
+
+apply plugin: 'spring-boot'
+
+configurations.all {
+    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+springBoot {
+    mainClass = 'com.netflix.spinnaker.orca.Main'
+}
 
 dependencies {
   compile project(":orca-test")
   compile project(":orca-bakery")
   compile project(":orca-kato")
   compile project(":orca-oort")
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+  compile commonDependencies.springWeb
   compile commonDependencies.springBatchTest
   runtime commonDependencies.h2
   runtime commonDependencies.spockSpring
