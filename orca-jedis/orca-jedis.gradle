@@ -19,7 +19,4 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 dependencies {
   compile commonDependencies.springBatch
   compile commonDependencies.jedis
-  testCompile commonDependencies.springBatchTest
-  testRuntime commonDependencies.spockSpring
-  testRuntime commonDependencies.springTest
 }
