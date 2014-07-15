@@ -36,7 +36,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   JobInstance createJobInstance(String jobName, JobParameters jobParameters) {
-    def jobInstance = new JobInstance(1L, jobName)
+    def jobInstance = new JobInstance(jedis.incr("jobInstanceId"), jobName)
     def key = "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
     jedis.hset(key, "id", jobInstance.id.toString())
     jedis.hset(key, "jobName", jobInstance.jobName)
@@ -47,8 +47,8 @@ class JedisJobInstanceDao implements JobInstanceDao {
   @Override
   JobInstance getJobInstance(String jobName, JobParameters jobParameters) {
     def key = "jobInstance:$jobName|${jobKeyGenerator.generateKey(jobParameters)}"
-    Map<String, String> map = jedis.hgetAll(key)
-    map ? new JobInstance(map.id as Long, map.jobName) : null
+    Map<String, String> hash = jedis.hgetAll(key)
+    hash ? new JobInstance(hash.id as Long, hash.jobName) : null
   }
 
   @Override

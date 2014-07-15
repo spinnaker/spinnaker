@@ -32,6 +32,17 @@ class JedisJobInstanceDaoSpec extends Specification {
   @AutoCleanup def jedis = pool.resource
   @Subject dao = new JedisJobInstanceDao(jedis)
 
+  def "createJobInstance assigns a unique id"() {
+    given:
+    def jobInstance1 = dao.createJobInstance("foo", new JobParameters())
+
+    when:
+    def jobInstance2 = dao.createJobInstance("foo", new JobParameters())
+
+    then:
+    jobInstance1.id != jobInstance2.id
+  }
+
   def "getJobInstance by name and parameters"() {
     given:
     dao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
@@ -46,6 +57,7 @@ class JedisJobInstanceDaoSpec extends Specification {
     "foo" | [b: "a"]         | false
     "bar" | [a: "a"]         | false
     "foo" | [a: "a", b: "b"] | false
+    "foo" | [:]              | false
 
     parameters = new JobParameters(parameterMap.collectEntries {
       [(it.key): new JobParameter(it.value)]
