@@ -26,7 +26,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-@Unroll
 abstract class JobInstanceDaoTck extends Specification {
 
   @Subject JobInstanceDao jobInstanceDao
@@ -43,46 +42,50 @@ abstract class JobInstanceDaoTck extends Specification {
     jobInstance1.id != jobInstance2.id
   }
 
-  def "createJobInstance does not allow multiple instances of the same job with the same parameters"() {
+  @Unroll("createJobInstance does not allow a second instance of the job '#jobName' with parameters #parameterMap")
+  def "createJobInstance does not allow multiple instances of a job with the same parameters"() {
     given:
-    jobInstanceDao.createJobInstance("foo", parameters)
+    jobInstanceDao.createJobInstance(jobName, parameters)
 
     when:
-    jobInstanceDao.createJobInstance("foo", parameters)
+    jobInstanceDao.createJobInstance(jobName, parameters)
 
     then:
     thrown IllegalStateException
 
     where:
-    parameterMap << [
-        [:],
-        [a: "a"],
-        [a: "a", b: "b"]
-    ]
+    parameterMap     | _
+    [:]              | _
+    [a: "a"]         | _
+    [a: "a", b: "b"] | _
+
+    jobName = "foo"
     parameters = new JobParameters(parameterMap.collectEntries {
       [(it.key): new JobParameter(it.value)]
     })
   }
 
+  @Unroll("getJobInstance #expectation a job using job name '#jobName' and parameters #parameterMap")
   def "getJobInstance by name and parameters"() {
     given:
     jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
 
     expect:
-    jobInstanceDao.getJobInstance(name, parameters) == null ^ shouldBeFound
+    jobInstanceDao.getJobInstance(jobName, parameters) == null ^ shouldBeFound
 
     where:
-    name  | parameterMap     | shouldBeFound
-    "foo" | [a: "a"]         | true
-    "foo" | [a: "b"]         | false
-    "foo" | [b: "a"]         | false
-    "bar" | [a: "a"]         | false
-    "foo" | [a: "a", b: "b"] | false
-    "foo" | [:]              | false
+    jobName | parameterMap     | shouldBeFound
+    "foo"   | [a: "a"]         | true
+    "foo"   | [a: "b"]         | false
+    "foo"   | [b: "a"]         | false
+    "bar"   | [a: "a"]         | false
+    "foo"   | [a: "a", b: "b"] | false
+    "foo"   | [:]              | false
 
     parameters = new JobParameters(parameterMap.collectEntries {
       [(it.key): new JobParameter(it.value)]
     })
+    expectation = shouldBeFound ? "should find" : "should not find"
   }
 
   def "getJobInstance hydrates JobInstance correctly"() {
@@ -123,6 +126,7 @@ abstract class JobInstanceDaoTck extends Specification {
     parameters = new JobParameters()
   }
 
+  @Unroll("getJobInstances returns #expectedCount instances for jobName '#jobName', start #start and count #count")
   def "getJobInstances by name and range"() {
     given:
     jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
@@ -135,15 +139,15 @@ abstract class JobInstanceDaoTck extends Specification {
     }
 
     where:
-    jobName | start | count             | expectedCount
-    "foo"   | 0     | Integer.MAX_VALUE | 3
-    "foo"   | 3     | Integer.MAX_VALUE | 0
-    "foo"   | 0     | 2                 | 2
-    "foo"   | 2     | 2                 | 1
-    "bar"   | 0     | Integer.MAX_VALUE | 0
+    jobName | start | count | expectedCount
+    "foo"   | 0     | 99    | 3
+    "foo"   | 0     | 2     | 2
+    "foo"   | 2     | 2     | 1
+    "foo"   | 3     | 99    | 0
+    "bar"   | 0     | 99    | 0
   }
 
-  def "getJobInstances returns highest ids first"() {
+  def "getJobInstances results are ordered by id descending"() {
     given:
     jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
     jobInstanceDao.createJobInstance("foo", new JobParameters(b: new JobParameter("b")))
@@ -156,7 +160,7 @@ abstract class JobInstanceDaoTck extends Specification {
     }
   }
 
-  def "getJobNames returns all known job names"() {
+  def "getJobNames returns all known job names in alphabetical order"() {
     given:
     jobNames.each {
       jobInstanceDao.createJobInstance(it, new JobParameters())
@@ -169,6 +173,7 @@ abstract class JobInstanceDaoTck extends Specification {
     jobNames = ["foo", "bar", "baz"]
   }
 
+  @Unroll("findJobInstancesByName finds #expectedNames using the expression '#jobName'")
   def "findJobInstancesByName accepts wildcards"() {
     given:
     jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
@@ -190,6 +195,7 @@ abstract class JobInstanceDaoTck extends Specification {
     "*a*"   | ["baz", "bar", "bar"]
   }
 
+  @Unroll("findJobInstancesByName returns #expectedNames using the expression '#jobName', start #start and count #count")
   def "findJobInstancesByName limits results to the specified range"() {
     given:
     jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
@@ -201,12 +207,13 @@ abstract class JobInstanceDaoTck extends Specification {
     jobInstanceDao.findJobInstancesByName(jobName, start, count).jobName == expectedNames
 
     where:
-    jobName | start | count             | expectedNames
-    "b*"    | 0     | Integer.MAX_VALUE | ["baz", "bar", "bar"]
-    "b*"    | 0     | 2                 | ["baz", "bar"]
-    "b*"    | 1     | 2                 | ["bar", "bar"]
+    jobName | start | count | expectedNames
+    "b*"    | 0     | 99    | ["baz", "bar", "bar"]
+    "b*"    | 0     | 2     | ["baz", "bar"]
+    "b*"    | 1     | 2     | ["bar", "bar"]
   }
 
+  @Unroll("getJobInstanceCount returns #expectedCount for the job name '#jobName'")
   def "getJobInstanceCount returns count by job name"() {
     given:
     jobInstanceDao.createJobInstance("foo", new JobParameters())
