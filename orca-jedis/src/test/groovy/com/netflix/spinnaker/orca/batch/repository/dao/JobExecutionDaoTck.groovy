@@ -118,6 +118,29 @@ abstract class JobExecutionDaoTck extends Specification {
     thrown IllegalArgumentException
   }
 
+  def "updateJobExecution can persist a change to the related JobInstance"() {
+    given:
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    and:
+    def newJobInstance = jobInstanceDao.createJobInstance("bar", NO_PARAMETERS)
+    jobExecution.jobInstance = newJobInstance
+
+    when:
+    jobExecutionDao.updateJobExecution(jobExecution)
+
+    then:
+    with(jobExecutionDao.getJobExecution(jobExecution.id)) {
+      jobId == newJobInstance.id
+    }
+
+    and:
+    with(jobInstanceDao.getJobInstance(jobExecution)) {
+      id == newJobInstance.id
+    }
+  }
+
   def "updateJobExecution increments the version"() {
     given:
     def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)

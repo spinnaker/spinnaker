@@ -51,9 +51,6 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
     def key = "jobExecution:$jobExecution.id"
     storeJobExecution(key, jobExecution)
-
-    def jobInstanceKey = "jobInstance:$jobExecution.jobInstance.jobName|${jobKeyGenerator.generateKey(jobExecution.jobParameters)}"
-    jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
   }
 
   @Override
@@ -116,5 +113,8 @@ class JedisJobExecutionDao implements JobExecutionDao {
     jedis.hset(key, "createTime", jobExecution.createTime.format(TIMESTAMP_FORMAT))
     if (jobExecution.lastUpdated) jedis.hset(key, "lastUpdated", jobExecution.lastUpdated.format(TIMESTAMP_FORMAT))
     if (jobExecution.jobConfigurationName) jedis.hset(key, "jobConfigurationName", jobExecution.jobConfigurationName)
+
+    def jobInstanceKey = "jobInstance:$jobExecution.jobInstance.jobName|${jobKeyGenerator.generateKey(jobExecution.jobParameters)}"
+    jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
   }
 }
