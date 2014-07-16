@@ -73,7 +73,9 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   List<JobExecution> findJobExecutions(JobInstance jobInstance) {
-    throw new UnsupportedOperationException()
+    jedis.smembers("jobInstanceExecutions:$jobInstance.id").collect {
+      getJobExecution it as Long
+    }
   }
 
   @Override
@@ -123,5 +125,8 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
     def jobInstanceKey = "jobInstance:$jobExecution.jobInstance.jobName|${jobKeyGenerator.generateKey(jobExecution.jobParameters)}"
     jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
+
+    // TODO: need to update this if the jobInstance is changed
+    jedis.sadd("jobInstanceExecutions:$jobExecution.jobId", jobExecution.id.toString())
   }
 }
