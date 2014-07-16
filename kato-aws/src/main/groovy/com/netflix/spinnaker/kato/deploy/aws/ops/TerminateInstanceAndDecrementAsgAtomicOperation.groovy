@@ -61,6 +61,7 @@ class TerminateInstanceAndDecrementAsgAtomicOperation implements AtomicOperation
       loadBalancing.deregisterInstancesFromLoadBalancer(deregisterRequest)
     }
     autoScaling.terminateInstanceInAutoScalingGroup(new TerminateInstanceInAutoScalingGroupRequest().withInstanceId(description.instance).withShouldDecrementDesiredCapacity(true))
+    task.updateStatus BASE_PHASE, "Done executing termination and ASG size decrement."
   }
 
   @InheritConstructors
