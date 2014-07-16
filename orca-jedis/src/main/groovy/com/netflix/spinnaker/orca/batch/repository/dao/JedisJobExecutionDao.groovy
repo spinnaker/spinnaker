@@ -45,6 +45,9 @@ class JedisJobExecutionDao implements JobExecutionDao {
     if (jobExecution.id != null) {
       throw new IllegalArgumentException("JobExecution is not expected to have an id (should not be saved yet)")
     }
+    if (jobExecution.jobId == null) {
+      throw new IllegalArgumentException("JobExecution Job-Id cannot be null.")
+    }
 
     jobExecution.id = jedis.incr("jobExecutionId")
     jobExecution.incrementVersion()
@@ -59,8 +62,12 @@ class JedisJobExecutionDao implements JobExecutionDao {
       throw new IllegalArgumentException("JobExecution is expected to have an id (should be saved already)")
     }
 
-    jobExecution.incrementVersion()
     def key = "jobExecution:$jobExecution.id"
+    if (!jedis.exists(key)) {
+      throw new IllegalArgumentException("JobExecution must already be saved")
+    }
+
+    jobExecution.incrementVersion()
     storeJobExecution(key, jobExecution)
   }
 
@@ -103,7 +110,7 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   private void storeJobExecution(String key, JobExecution jobExecution) {
     jedis.hset(key, "id", jobExecution.id.toString())
-    jedis.hset(key, "jobId", jobExecution.jobId.toString())
+    if (jobExecution.jobId) jedis.hset(key, "jobId", jobExecution.jobId.toString())
     if (jobExecution.startTime) jedis.hset(key, "startTime", jobExecution.startTime.format(TIMESTAMP_FORMAT))
     if (jobExecution.endTime) jedis.hset(key, "endTime", jobExecution.endTime?.format(TIMESTAMP_FORMAT))
     jedis.hset(key, "status", jobExecution.status.name())

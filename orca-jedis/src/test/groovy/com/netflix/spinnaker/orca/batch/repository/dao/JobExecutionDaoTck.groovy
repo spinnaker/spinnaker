@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobInstance
-import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.*
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import spock.lang.Specification
@@ -106,6 +102,17 @@ abstract class JobExecutionDaoTck extends Specification {
     jobExecution.version == 0
   }
 
+  def "saveJobExecution rejects a JobExecution with no JobInstance"() {
+    given:
+    def jobExecution = new JobExecution(new JobInstance(null, "foo"), NO_PARAMETERS)
+
+    when:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
+
   def "saveJobExecution rejects a JobExecution that has already been saved"() {
     given:
     def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
@@ -189,6 +196,17 @@ abstract class JobExecutionDaoTck extends Specification {
   def "updateJobExecution rejects a JobExecution that has not already been saved"() {
     given:
     def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+
+    when:
+    jobExecutionDao.updateJobExecution(jobExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "updateJobExecution rejects an unsaved JobExecution with an assigned id"() {
+    given:
+    def jobExecution = new JobExecution(1L)
 
     when:
     jobExecutionDao.updateJobExecution(jobExecution)
