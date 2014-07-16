@@ -1,11 +1,11 @@
 versions:
-  springBoot: 1.1.1.RELEASE
-  kork: 1.12
-  groovy: 2.3.3
+  springBoot: 1.1.4.RELEASE
+  kork: 1.13
+  groovy: 2.3.4
   astyanax: 1.56.48
   rxJava: 0.19.1
   spock: 0.7-groovy-2.0
-  batch: 3.0.0.RELEASE
+  batch: 3.0.1.RELEASE
   frigga: 0.13
   cglib: 3.1
   amazoncomponents: 0.9.4
