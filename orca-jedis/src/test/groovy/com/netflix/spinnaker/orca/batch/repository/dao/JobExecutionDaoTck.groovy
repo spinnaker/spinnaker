@@ -70,4 +70,28 @@ abstract class JobExecutionDaoTck extends Specification {
     description = fields.isEmpty() ? "no optional fields" : "the optional fields ${fields.keySet()}"
   }
 
+  def "saveJobExecution assigns an id"() {
+    given:
+    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+
+    when:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    then:
+    jobExecution.id != null
+  }
+
+  def "saveJobExecution assigns a version"() {
+    given:
+    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+
+    when:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    then:
+    jobExecution.version == 0
+  }
+
 }
