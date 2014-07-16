@@ -224,9 +224,9 @@ abstract class JobExecutionDaoTck extends Specification {
     def jobInstance2 = jobInstanceDao.createJobInstance("bar", noParameters())
 
     and:
-    jobExecutionDao.saveJobExecution(new JobExecution(jobInstance, noParameters()))
-    jobExecutionDao.saveJobExecution(new JobExecution(jobInstance, toJobParameters(a: "a")))
-    jobExecutionDao.saveJobExecution(new JobExecution(jobInstance, toJobParameters(b: "b")))
+    3.times {
+      jobExecutionDao.saveJobExecution(new JobExecution(jobInstance, noParameters()))
+    }
     jobExecutionDao.saveJobExecution(new JobExecution(jobInstance2, noParameters()))
 
     when:
@@ -237,5 +237,25 @@ abstract class JobExecutionDaoTck extends Specification {
     jobExecutions.jobId.every {
       it == jobInstance.id
     }
+  }
+
+  def "getLastJobExecution finds the last created execution for a job"() {
+    given:
+    def executions = (1..3).collect { i ->
+      def jobExecution = new JobExecution(jobInstance, noParameters())
+      jobExecution.createTime = new Date() - i
+      return jobExecution
+    }
+
+    and:
+    executions.each {
+      jobExecutionDao.saveJobExecution(it)
+    }
+
+    when:
+    def jobExecution = jobExecutionDao.getLastJobExecution(jobInstance)
+
+    then:
+    jobExecution.createTime == executions.createTime.max()
   }
 }

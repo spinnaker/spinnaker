@@ -73,14 +73,15 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   List<JobExecution> findJobExecutions(JobInstance jobInstance) {
-    jedis.smembers("jobInstanceExecutions:$jobInstance.id").collect {
+    jedis.zrange("jobInstanceExecutions:$jobInstance.id", 0, Long.MAX_VALUE).collect {
       getJobExecution it as Long
     }
   }
 
   @Override
   JobExecution getLastJobExecution(JobInstance jobInstance) {
-    throw new UnsupportedOperationException()
+    def id = jedis.zrange("jobInstanceExecutions:$jobInstance.id", 0, 1).first()
+    getJobExecution(id as Long)
   }
 
   @Override
@@ -127,6 +128,6 @@ class JedisJobExecutionDao implements JobExecutionDao {
     jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
 
     // TODO: need to update this if the jobInstance is changed
-    jedis.sadd("jobInstanceExecutions:$jobExecution.jobId", jobExecution.id.toString())
+    jedis.zadd("jobInstanceExecutions:$jobExecution.jobId", -jobExecution.createTime.time, jobExecution.id.toString())
   }
 }
