@@ -15,11 +15,12 @@
  */
 
 repositories {
-    maven { url 'http://clojars.org/repo' }
+  maven { url 'http://clojars.org/repo' }
 }
 
 dependencies {
   compile project(":kato-core")
-  compile 'redis.embedded:embedded-redis:0.2'
-  compile 'redis.clients:jedis:2.2.1'
+  compile("com.netflix.spinnaker.kork:kork-jedis:1.13"){
+    exclude module: 'guava-io'
+  }
 }

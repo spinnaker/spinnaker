@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.data.task.dynomite
 
-import com.netflix.spinnaker.kato.config.JedisConfig
 import redis.clients.jedis.JedisCommands
 import spock.lang.Shared
 import spock.lang.Specification
+import com.netflix.spinnaker.kork.jedis.JedisConfig
 
 class JedisTaskRepositorySpec extends Specification {
 
