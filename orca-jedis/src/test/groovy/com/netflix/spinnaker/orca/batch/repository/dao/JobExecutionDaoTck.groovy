@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.JobParameters
@@ -116,6 +118,33 @@ abstract class JobExecutionDaoTck extends Specification {
 
     then:
     thrown IllegalArgumentException
+  }
+
+  def "updateJobExecution updates fields"() {
+    given:
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    and:
+    jobExecution.startTime = new Date()
+    jobExecution.endTime = new Date()
+    jobExecution.status = BatchStatus.COMPLETED
+    jobExecution.exitStatus = ExitStatus.COMPLETED
+    jobExecution.createTime = new Date()
+    jobExecution.lastUpdated = new Date()
+
+    when:
+    jobExecutionDao.updateJobExecution(jobExecution)
+
+    then:
+    with(jobExecutionDao.getJobExecution(jobExecution.id)) {
+      startTime == jobExecution.startTime
+      endTime == jobExecution.endTime
+      status == jobExecution.status
+      exitStatus == jobExecution.exitStatus
+      createTime == jobExecution.createTime
+      lastUpdated == jobExecution.lastUpdated
+    }
   }
 
   def "updateJobExecution can persist a change to the related JobInstance"() {
