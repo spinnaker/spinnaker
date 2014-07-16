@@ -16,12 +16,58 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.repository.dao.JobExecutionDao
+import org.springframework.batch.core.repository.dao.JobInstanceDao
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 abstract class JobExecutionDaoTck extends Specification {
 
   @Subject JobExecutionDao jobExecutionDao
+  def JobInstanceDao jobInstanceDao
+
+  protected static final JobParameters NO_PARAMETERS = new JobParameters()
+
+  @Unroll("saveJobExecution stores field values correctly with #description")
+  def "saveJobExecution stores field values correctly"() {
+    given:
+    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS, fields.jobConfigurationName)
+
+    and:
+    fields.each {
+      jobExecution.properties[it.key] = it.value
+    }
+
+    when:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    then:
+    with(jobExecutionDao.getJobExecution(jobExecution.id)) {
+      id == jobExecution.id
+      jobId == jobExecution.jobId
+      startTime == jobExecution.startTime
+      endTime == jobExecution.endTime
+      status == jobExecution.status
+      exitStatus == jobExecution.exitStatus
+      version == jobExecution.version
+      createTime == jobExecution.createTime
+      lastUpdated == jobExecution.lastUpdated
+      jobConfigurationName == jobExecution.jobConfigurationName
+    }
+
+    where:
+    fields                                     | _
+    [:]                                        | _
+    [startTime: new Date()]                    | _
+    [endTime: new Date()]                      | _
+    [lastUpdated: new Date()]                  | _
+    [jobConfigurationName: "fooConfiguration"] | _
+
+    description = fields.isEmpty() ? "no optional fields" : "the optional fields ${fields.keySet()}"
+  }
 
 }

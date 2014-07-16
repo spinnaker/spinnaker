@@ -26,7 +26,8 @@ class JedisJobExecutionDaoSpec extends JobExecutionDaoTck {
   @AutoCleanup def jedis = pool.resource
 
   def setup() {
-    jobExecutionDao = new JedisJobExecutionDao(jedis)
+    jobInstanceDao = new JedisJobInstanceDao(jedis)
+    jobExecutionDao = new JedisJobExecutionDao(jedis, jobInstanceDao)
   }
 
   def cleanup() {

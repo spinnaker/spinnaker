@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.orca.batch.repository.dao
 
 import org.springframework.batch.core.repository.dao.MapJobExecutionDao
+import org.springframework.batch.core.repository.dao.MapJobInstanceDao
 
 class MapJobExecutionDaoSpec extends JobExecutionDaoTck {
 
   def setup() {
     jobExecutionDao = new MapJobExecutionDao()
+    jobInstanceDao = new MapJobInstanceDao()
   }
 }

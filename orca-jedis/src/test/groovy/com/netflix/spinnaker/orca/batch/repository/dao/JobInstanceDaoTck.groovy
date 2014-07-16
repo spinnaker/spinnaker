@@ -31,6 +31,8 @@ abstract class JobInstanceDaoTck extends Specification {
   @Subject JobInstanceDao jobInstanceDao
   JobExecutionDao jobExecutionDao
 
+  protected static final JobParameters NO_PARAMETERS = new JobParameters()
+
   def "createJobInstance assigns a unique id"() {
     given:
     def jobInstance1 = jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))
@@ -100,15 +102,20 @@ abstract class JobInstanceDaoTck extends Specification {
 
     where:
     jobName = "foo"
-    parameters = new JobParameters()
+    parameters = NO_PARAMETERS
   }
 
   def "getJobInstance by id"() {
     given:
-    def jobInstance = jobInstanceDao.createJobInstance("foo", new JobParameters())
+    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
 
     expect:
     jobInstanceDao.getJobInstance(jobInstance.id) != null
+  }
+
+  def "getJobInstance by id returns null if the id is not found"() {
+    expect:
+    jobInstanceDao.getJobInstance(1L) == null
   }
 
   def "getJobInstance by JobExecution id"() {
@@ -123,7 +130,7 @@ abstract class JobInstanceDaoTck extends Specification {
     jobInstanceDao.getJobInstance(jobExecution) != null
 
     where:
-    parameters = new JobParameters()
+    parameters = NO_PARAMETERS
   }
 
   @Unroll("getJobInstances returns #expectedCount instances for jobName '#jobName', start #start and count #count")
@@ -163,7 +170,7 @@ abstract class JobInstanceDaoTck extends Specification {
   def "getJobNames returns all known job names in alphabetical order"() {
     given:
     jobNames.each {
-      jobInstanceDao.createJobInstance(it, new JobParameters())
+      jobInstanceDao.createJobInstance(it, NO_PARAMETERS)
     }
 
     expect:
@@ -178,8 +185,8 @@ abstract class JobInstanceDaoTck extends Specification {
     given:
     jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
     jobInstanceDao.createJobInstance("bar", new JobParameters(b: new JobParameter("b")))
-    jobInstanceDao.createJobInstance("baz", new JobParameters())
-    jobInstanceDao.createJobInstance("foo", new JobParameters())
+    jobInstanceDao.createJobInstance("baz", NO_PARAMETERS)
+    jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
 
     expect:
     jobInstanceDao.findJobInstancesByName(jobName, 0, Integer.MAX_VALUE).jobName == expectedNames
@@ -200,8 +207,8 @@ abstract class JobInstanceDaoTck extends Specification {
     given:
     jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
     jobInstanceDao.createJobInstance("bar", new JobParameters(b: new JobParameter("b")))
-    jobInstanceDao.createJobInstance("baz", new JobParameters())
-    jobInstanceDao.createJobInstance("foo", new JobParameters())
+    jobInstanceDao.createJobInstance("baz", NO_PARAMETERS)
+    jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
 
     expect:
     jobInstanceDao.findJobInstancesByName(jobName, start, count).jobName == expectedNames
@@ -216,8 +223,8 @@ abstract class JobInstanceDaoTck extends Specification {
   @Unroll("getJobInstanceCount returns #expectedCount for the job name '#jobName'")
   def "getJobInstanceCount returns count by job name"() {
     given:
-    jobInstanceDao.createJobInstance("foo", new JobParameters())
-    jobInstanceDao.createJobInstance("bar", new JobParameters())
+    jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
+    jobInstanceDao.createJobInstance("bar", NO_PARAMETERS)
     jobInstanceDao.createJobInstance("baz", new JobParameters(a: new JobParameter("a")))
     jobInstanceDao.createJobInstance("baz", new JobParameters(b: new JobParameter("b")))
 

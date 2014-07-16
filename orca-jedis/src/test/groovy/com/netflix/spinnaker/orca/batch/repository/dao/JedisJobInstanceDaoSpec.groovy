@@ -27,7 +27,7 @@ class JedisJobInstanceDaoSpec extends JobInstanceDaoTck {
 
   def setup() {
     jobInstanceDao = new JedisJobInstanceDao(jedis)
-    jobExecutionDao = new JedisJobExecutionDao(jedis)
+    jobExecutionDao = new JedisJobExecutionDao(jedis, jobInstanceDao)
   }
 
   def cleanup() {
