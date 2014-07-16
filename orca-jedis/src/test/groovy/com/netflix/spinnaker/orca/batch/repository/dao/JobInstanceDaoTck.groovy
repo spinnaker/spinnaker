@@ -33,6 +33,15 @@ abstract class JobInstanceDaoTck extends Specification {
 
   protected static final JobParameters NO_PARAMETERS = new JobParameters()
 
+  def setup() {
+    jobInstanceDao = createJobInstanceDao()
+    jobExecutionDao = createJobExecutionDao(jobInstanceDao)
+  }
+
+  abstract JobInstanceDao createJobInstanceDao()
+
+  abstract JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao)
+
   def "createJobInstance assigns a unique id"() {
     given:
     def jobInstance1 = jobInstanceDao.createJobInstance("foo", new JobParameters(a: new JobParameter("a")))

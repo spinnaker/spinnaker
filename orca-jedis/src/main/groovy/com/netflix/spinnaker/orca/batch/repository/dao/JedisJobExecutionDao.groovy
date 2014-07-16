@@ -42,20 +42,15 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   void saveJobExecution(JobExecution jobExecution) {
+    if (jobExecution.id != null) {
+      throw new IllegalArgumentException("JobExecution is not expected to have an id (should not be saved yet)")
+    }
+
     jobExecution.id = jedis.incr("jobExecutionId")
     jobExecution.incrementVersion()
+
     def key = "jobExecution:$jobExecution.id"
-    jedis.hset(key, "id", jobExecution.id.toString())
-    jedis.hset(key, "jobId", jobExecution.jobId.toString())
-    if (jobExecution.startTime) jedis.hset(key, "startTime", jobExecution.startTime.format(TIMESTAMP_FORMAT))
-    if (jobExecution.endTime) jedis.hset(key, "endTime", jobExecution.endTime?.format(TIMESTAMP_FORMAT))
-    jedis.hset(key, "status", jobExecution.status.name())
-    jedis.hset(key, "exitCode", jobExecution.exitStatus.exitCode)
-    jedis.hset(key, "exitDescription", jobExecution.exitStatus.exitDescription)
-    jedis.hset(key, "version", jobExecution.version.toString())
-    jedis.hset(key, "createTime", jobExecution.createTime.format(TIMESTAMP_FORMAT))
-    if (jobExecution.lastUpdated) jedis.hset(key, "lastUpdated", jobExecution.lastUpdated.format(TIMESTAMP_FORMAT))
-    if (jobExecution.jobConfigurationName) jedis.hset(key, "jobConfigurationName", jobExecution.jobConfigurationName)
+    storeJobExecution(key, jobExecution)
 
     def jobInstanceKey = "jobInstance:$jobExecution.jobInstance.jobName|${jobKeyGenerator.generateKey(jobExecution.jobParameters)}"
     jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
@@ -63,7 +58,13 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   void updateJobExecution(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    if (jobExecution.id == null) {
+      throw new IllegalArgumentException("JobExecution is expected to have an id (should be saved already)")
+    }
+
+    jobExecution.incrementVersion()
+    def key = "jobExecution:$jobExecution.id"
+    storeJobExecution(key, jobExecution)
   }
 
   @Override
@@ -101,5 +102,19 @@ class JedisJobExecutionDao implements JobExecutionDao {
   @Override
   void synchronizeStatus(JobExecution jobExecution) {
     throw new UnsupportedOperationException()
+  }
+
+  private void storeJobExecution(String key, JobExecution jobExecution) {
+    jedis.hset(key, "id", jobExecution.id.toString())
+    jedis.hset(key, "jobId", jobExecution.jobId.toString())
+    if (jobExecution.startTime) jedis.hset(key, "startTime", jobExecution.startTime.format(TIMESTAMP_FORMAT))
+    if (jobExecution.endTime) jedis.hset(key, "endTime", jobExecution.endTime?.format(TIMESTAMP_FORMAT))
+    jedis.hset(key, "status", jobExecution.status.name())
+    jedis.hset(key, "exitCode", jobExecution.exitStatus.exitCode)
+    jedis.hset(key, "exitDescription", jobExecution.exitStatus.exitDescription)
+    jedis.hset(key, "version", jobExecution.version.toString())
+    jedis.hset(key, "createTime", jobExecution.createTime.format(TIMESTAMP_FORMAT))
+    if (jobExecution.lastUpdated) jedis.hset(key, "lastUpdated", jobExecution.lastUpdated.format(TIMESTAMP_FORMAT))
+    if (jobExecution.jobConfigurationName) jedis.hset(key, "jobConfigurationName", jobExecution.jobConfigurationName)
   }
 }

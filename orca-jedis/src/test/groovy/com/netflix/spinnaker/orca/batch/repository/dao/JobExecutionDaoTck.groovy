@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.repository.dao
 
 import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
@@ -27,14 +28,25 @@ import spock.lang.Unroll
 abstract class JobExecutionDaoTck extends Specification {
 
   @Subject JobExecutionDao jobExecutionDao
-  def JobInstanceDao jobInstanceDao
+  JobInstanceDao jobInstanceDao
+
+  JobInstance jobInstance
 
   protected static final JobParameters NO_PARAMETERS = new JobParameters()
+
+  abstract JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao)
+
+  abstract JobInstanceDao createJobInstanceDao()
+
+  def setup() {
+    jobInstanceDao = createJobInstanceDao()
+    jobExecutionDao = createJobExecutionDao(jobInstanceDao)
+    jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
+  }
 
   @Unroll("saveJobExecution stores field values correctly with #description")
   def "saveJobExecution stores field values correctly"() {
     given:
-    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
     def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS, fields.jobConfigurationName)
 
     and:
@@ -72,7 +84,6 @@ abstract class JobExecutionDaoTck extends Specification {
 
   def "saveJobExecution assigns an id"() {
     given:
-    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
     def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
 
     when:
@@ -84,7 +95,6 @@ abstract class JobExecutionDaoTck extends Specification {
 
   def "saveJobExecution assigns a version"() {
     given:
-    def jobInstance = jobInstanceDao.createJobInstance("foo", NO_PARAMETERS)
     def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
 
     when:
@@ -94,4 +104,44 @@ abstract class JobExecutionDaoTck extends Specification {
     jobExecution.version == 0
   }
 
+  def "saveJobExecution rejects a JobExecution that has already been saved"() {
+    given:
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+
+    and:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    when:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "updateJobExecution increments the version"() {
+    given:
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+
+    and:
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    when:
+    jobExecutionDao.updateJobExecution(jobExecution)
+
+    then:
+    with(jobExecutionDao.getJobExecution(jobExecution.id)) {
+      version == old(jobExecution.version) + 1
+    }
+  }
+
+  def "updateJobExecution rejects a JobExecution that has not already been saved"() {
+    given:
+    def jobExecution = new JobExecution(jobInstance, NO_PARAMETERS)
+
+    when:
+    jobExecutionDao.updateJobExecution(jobExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
 }
