@@ -18,8 +18,14 @@ package com.netflix.spinnaker.orca.batch.repository.dao
 
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
+import org.springframework.batch.core.repository.dao.StepExecutionDao
 
-class JedisJobExecutionDaoSpec extends JobExecutionDaoTck implements JedisPersistence {
+class JedisStepExecutionDaoSpec extends StepExecutionDaoTck implements JedisPersistence {
+
+  @Override
+  JobInstanceDao createJobInstanceDao() {
+    new JedisJobInstanceDao(jedis)
+  }
 
   @Override
   JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao) {
@@ -27,7 +33,7 @@ class JedisJobExecutionDaoSpec extends JobExecutionDaoTck implements JedisPersis
   }
 
   @Override
-  JobInstanceDao createJobInstanceDao() {
-    new JedisJobInstanceDao(jedis)
+  StepExecutionDao createStepExecutionDao() {
+    new JedisStepExecutionDao(jedis)
   }
 }

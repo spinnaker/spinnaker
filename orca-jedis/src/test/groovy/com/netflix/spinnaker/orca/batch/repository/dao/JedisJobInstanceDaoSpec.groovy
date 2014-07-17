@@ -16,20 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import com.netflix.spinnaker.kork.jedis.JedisConfig
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
-import redis.clients.jedis.Jedis
-import spock.lang.Shared
 
-class JedisJobInstanceDaoSpec extends JobInstanceDaoTck {
-
-  @Shared Jedis jedis
-
-  void setupSpec() {
-//    jedis = new JedisConfig().jedis(0, "none", "redis://redistogo:8718a28b567e5676cb5a5cdca8d68365@grideye.redistogo.com:10912/")
-    jedis = new JedisConfig().jedis(0, "127.0.0.1", "none")
-  }
+class JedisJobInstanceDaoSpec extends JobInstanceDaoTck implements JedisPersistence {
 
   @Override
   JobInstanceDao createJobInstanceDao() {
@@ -39,9 +29,5 @@ class JedisJobInstanceDaoSpec extends JobInstanceDaoTck {
   @Override
   JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao) {
     new JedisJobExecutionDao(jedis, jobInstanceDao)
-  }
-
-  def cleanup() {
-    jedis.flushDB()
   }
 }

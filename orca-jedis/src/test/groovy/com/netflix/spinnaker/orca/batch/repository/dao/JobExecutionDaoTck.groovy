@@ -114,6 +114,9 @@ abstract class JobExecutionDaoTck extends Specification {
     given:
     def jobExecution = new JobExecution(jobInstance, noParameters())
 
+    expect:
+    jobExecution.id == null
+
     when:
     jobExecutionDao.saveJobExecution(jobExecution)
 
@@ -124,6 +127,9 @@ abstract class JobExecutionDaoTck extends Specification {
   def "saveJobExecution assigns a version"() {
     given:
     def jobExecution = new JobExecution(jobInstance, noParameters())
+
+    expect:
+    jobExecution.version == null
 
     when:
     jobExecutionDao.saveJobExecution(jobExecution)

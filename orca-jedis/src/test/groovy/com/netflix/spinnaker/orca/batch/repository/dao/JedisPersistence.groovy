@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import org.springframework.batch.core.repository.dao.JobExecutionDao
-import org.springframework.batch.core.repository.dao.JobInstanceDao
+import com.netflix.spinnaker.kork.jedis.JedisConfig
+import org.junit.After
+import redis.clients.jedis.Jedis
+import spock.lang.Shared
 
-class JedisJobExecutionDaoSpec extends JobExecutionDaoTck implements JedisPersistence {
+trait JedisPersistence {
 
-  @Override
-  JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao) {
-    new JedisJobExecutionDao(jedis, jobInstanceDao)
+  @Shared Jedis jedis = new JedisConfig().jedis(0, "127.0.0.1", "none")
+
+  @After
+  def flush() {
+    jedis.flushDB()
   }
 
-  @Override
-  JobInstanceDao createJobInstanceDao() {
-    new JedisJobInstanceDao(jedis)
-  }
 }

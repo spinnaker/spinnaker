@@ -195,7 +195,7 @@ abstract class JobInstanceDaoTck extends Specification {
     jobInstanceDao.createJobInstance("foo", noParameters())
 
     expect:
-    jobInstanceDao.findJobInstancesByName(jobName, 0, Integer.MAX_VALUE).jobName == expectedNames
+    jobInstanceDao.findJobInstancesByName(jobName, 0, Integer.MAX_VALUE).jobName.sort() == expectedNames.sort()
 
     where:
     jobName | expectedNames

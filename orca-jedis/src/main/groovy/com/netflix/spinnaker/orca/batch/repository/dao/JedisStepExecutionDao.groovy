@@ -20,12 +20,31 @@ import groovy.transform.CompileStatic
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.StepExecutionDao
+import redis.clients.jedis.Jedis
 
 @CompileStatic
 class JedisStepExecutionDao implements StepExecutionDao {
+
+  private final Jedis jedis
+
+  JedisStepExecutionDao(Jedis jedis) {
+    this.jedis = jedis
+  }
+
   @Override
   void saveStepExecution(StepExecution stepExecution) {
-    throw new UnsupportedOperationException()
+    if (stepExecution.id != null) {
+      throw new IllegalArgumentException("StepExecution is not expected to have an id (should not be saved yet)")
+    }
+//    Object[] parameterValues = new Object[] { stepExecution.getId(), stepExecution.getVersion(),
+//      stepExecution.getStepName(), stepExecution.getJobExecutionId(), stepExecution.getStartTime(),
+//      stepExecution.getEndTime(), stepExecution.getStatus().toString(), stepExecution.getCommitCount(),
+//      stepExecution.getReadCount(), stepExecution.getFilterCount(), stepExecution.getWriteCount(),
+//      stepExecution.getExitStatus().getExitCode(), exitDescription, stepExecution.getReadSkipCount(),
+//      stepExecution.getWriteSkipCount(), stepExecution.getProcessSkipCount(),
+//      stepExecution.getRollbackCount(), stepExecution.getLastUpdated() };
+    stepExecution.id = jedis.incr("stepExecutionId")
+    stepExecution.incrementVersion()
   }
 
   @Override
