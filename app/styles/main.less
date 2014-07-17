@@ -53,23 +53,23 @@ body {
 .footer {
   padding-top: 19px;
   color: #777;
-  border-top: 1px solid @dark_grey;
+  border-top: 1px solid @mid_grey;
 }
 
 .container {
   margin-top: 20px;
 }
 
-.stacked-pills {
-  width: 110px;
+.no-padding {
+  padding: 0;
 }
 
 .stacked-pills > ul > li {
   display: block;
-  height: 110px;
+  height: 98px;
   font-weight: 200;
-  color: @light_grey;
-  background-color: @dark_grey;
+  color: @lighter_grey;
+  background-color: @mid_grey;
   text-align: center;
 
   .active {
@@ -93,13 +93,34 @@ body {
     height: 100%;
     width: 100%;
     border-radius: 0;
-    font-size: 110%;
+    font-size: 90%;
     color: @light_grey;
 
     &:hover, &:active, &:focus, &.active {
-      color: @dark_grey;
+      color: @mid_grey;
     }
   }
+}
+
+.secondary-panel {
+  > .row > div {
+    min-height: 600px;
+  }
+  .nav {
+    background-color: @lighter_grey;
+    border: 1px solid @light_grey;
+  }
+  .nav-content {
+    background-color: @lightest_grey;
+    border: 1px solid @lighter_grey;
+    border-left-width: 0;
+  }
+}
+
+.details-panel {
+  border: 1px solid @mid_grey;
+  min-height: 500px;
+  margin-left: 20px;
 }
 
 .container-narrow > hr {
