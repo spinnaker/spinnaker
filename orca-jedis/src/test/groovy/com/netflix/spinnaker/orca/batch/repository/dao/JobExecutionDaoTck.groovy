@@ -28,6 +28,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noParameters
+import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.toJobParameters
 
 abstract class JobExecutionDaoTck extends Specification {
 
@@ -82,6 +83,31 @@ abstract class JobExecutionDaoTck extends Specification {
     [jobConfigurationName: "fooConfiguration"] | _
 
     description = fields.isEmpty() ? "no optional fields" : "the optional fields ${fields.keySet()}"
+  }
+
+  @Unroll
+  def "saveJobExecution stores job parameters #parameterMap"() {
+    given:
+    def execution = new JobExecution(jobInstance, parameters)
+
+    when:
+    jobExecutionDao.saveJobExecution(execution)
+
+    then:
+    with(jobExecutionDao.getJobExecution(execution.id)) {
+      jobParameters == execution.jobParameters
+    }
+
+    where:
+    parameterMap     | _
+    [:]              | _
+    [a: "a"]         | _
+    [a: "a", b: "b"] | _
+    [a: 1L]          | _
+    [a: 1.1D]        | _
+    [a: new Date()]  | _
+
+    parameters = toJobParameters(parameterMap)
   }
 
   def "saveJobExecution assigns an id"() {
