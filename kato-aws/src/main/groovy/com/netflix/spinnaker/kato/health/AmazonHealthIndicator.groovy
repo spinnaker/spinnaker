@@ -25,13 +25,14 @@ import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @Component
-class AmazonHealthIndicator implements HealthIndicator<String> {
+class AmazonHealthIndicator implements HealthIndicator {
 
   @Autowired
   NamedAccountCredentialsHolder namedAccountCredentialsHolder
@@ -40,7 +41,7 @@ class AmazonHealthIndicator implements HealthIndicator<String> {
   AmazonClientProvider amazonClientProvider
 
   @Override
-  String health() {
+  Health health() {
     List<NamedAccountCredentials> amazonCredentials = namedAccountCredentialsHolder.accountNames.collect {
       namedAccountCredentialsHolder.getCredentials(it)
     }.findAll { it instanceof AmazonRoleAccountCredentials }
@@ -55,7 +56,7 @@ class AmazonHealthIndicator implements HealthIndicator<String> {
         throw new AmazonUnreachableException(e)
       }
     }
-    "ok"
+    new Health.Builder().up().build()
   }
 
   @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = 'AWS Module is configured, but no credentials found.')

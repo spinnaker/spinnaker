@@ -29,7 +29,7 @@ buildscript {
 apply from: 'gradle/idea.gradle'
 
 ext {
-  springBootVersion = "1.0.2.RELEASE"
+  springBootVersion = "1.1.1.RELEASE"
 
   commonDependencies = [
     springBootActuator: "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}",
