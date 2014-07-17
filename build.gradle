@@ -35,7 +35,8 @@ ext {
       retrofit: "1.5.1",
       spock   : "1.0-groovy-2.0-SNAPSHOT",
       logback : "1.0.13",
-      slf4j   : "1.7.5"
+      slf4j   : "1.7.5",
+      kork    : "1.13"
   ]
 
   commonDependencies = [
@@ -47,8 +48,8 @@ ext {
       h2               : dependencies.create("com.h2database:h2:1.4.178"),
       jacksonDatabind  : dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
       jacksonGuava     : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
-      jedis            : dependencies.create("redis.clients:jedis:2.4.2"),
-      kork             : dependencies.create("com.netflix.spinnaker.kork:kork-core:1.9"),
+      kork             : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
+      korkJedis        : dependencies.create("com.netflix.spinnaker.kork:kork-jedis:$versions.kork"),
       logback          : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
       okHttp           : dependencies.create("com.squareup.okhttp:okhttp:1.5.4"),
       retrofit         : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),

@@ -22,6 +22,7 @@ import org.springframework.batch.core.launch.NoSuchJobException
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
 
 @CompileStatic
 class JedisJobInstanceDao implements JobInstanceDao {
