@@ -1,24 +1,35 @@
 
-<div class="stacked-pills">
-  <ul class="nav nav-pills nav-stacked">
-    <li class="heading">
-      View by
-    </li>
-    <li ng-class="{active: view.activeTab==='details'}">
-      <a href="javascript:void(0)" ng-click="view.activeTab = 'details'">
-        <span class="glyphicon glyphicon-align-justify"></span>
-        Clusters
-      </a>
-    </li>
-    <li ng-class="{active: view.activeTab==='delivery'}">
-      <a href="javascript:void(0)" ng-click="view.activeTab = 'delivery'">
-        <span class="glyphicon glyphicon-th"></span>ELB</a>
-    </li>
-    <li ng-class="{active: view.activeTab==='traffic'}">
-      <a href="javascript:void(0)" ng-click="view.activeTab = 'traffic'">
-        <span class="glyphicon glyphicon-transfer"></span>
-        Connections
-      </a>
-    </li>
-  </ul>
+<div class="row">
+  <div class="col-md-2">
+    <div class="stacked-pills pull-right">
+      <ul class="nav nav-pills nav-stacked">
+        <li class="heading">
+          View by
+        </li>
+        <li>
+          <a href="javascript:void(0)"
+             ng-click="view.activeTab = 'clusters'"
+             ng-class="{active: view.activeTab==='clusters'}">
+            <span class="glyphicon glyphicon-align-justify"></span>
+            Clusters
+          </a>
+        </li>
+        <li>
+          <a href="javascript:void(0)"
+             ng-click="view.activeTab = 'elbs'"
+             ng-class="{active: view.activeTab==='elbs'}">
+            <span class="glyphicon glyphicon-th"></span>ELB</a>
+        </li>
+        <li>
+          <a href="javascript:void(0)"
+             ng-click="view.activeTab = 'connections'"
+             ng-class="{active: view.activeTab==='connections'}">
+            <span class="glyphicon glyphicon-transfer"></span>
+            Connections
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>
+

@@ -10,4 +10,5 @@
 angular.module('deckApp')
   .controller('MainCtrl', function ($scope) {
 
+    $scope.thing = 'other;';
   });

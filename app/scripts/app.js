@@ -26,7 +26,6 @@ angular
           }
         }
       })
-
       .state('applications', {
         url: '/applications',
         views: {
@@ -41,4 +40,5 @@ angular
           }
         }
       })
+    ;
   });

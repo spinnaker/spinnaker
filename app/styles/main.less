@@ -53,21 +53,28 @@ body {
 .footer {
   padding-top: 19px;
   color: #777;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid @dark_grey;
 }
 
 .container {
   margin-top: 20px;
 }
 
+.stacked-pills {
+  width: 110px;
+}
+
 .stacked-pills > ul > li {
   display: block;
-  width: 110px;
   height: 110px;
   font-weight: 200;
   color: @light_grey;
-  background-color: #5b5b5b;
+  background-color: @dark_grey;
   text-align: center;
+
+  .active {
+    background-color: @light_grey;
+  }
 
   &.heading {
     font-weight: 400;
@@ -83,8 +90,15 @@ body {
   }
 
   a {
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
     font-size: 110%;
     color: @light_grey;
+
+    &:hover, &:active, &:focus, &.active {
+      color: @dark_grey;
+    }
   }
 }
 
