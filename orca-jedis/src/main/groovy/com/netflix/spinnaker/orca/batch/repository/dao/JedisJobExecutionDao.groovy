@@ -115,7 +115,10 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   void synchronizeStatus(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    jedis.hmget("jobExecution:$jobExecution.id", "status", "version").with {
+      jobExecution.status = BatchStatus.valueOf(first())
+      jobExecution.version = last() as Integer
+    }
   }
 
   private void storeJobExecution(String key, JobExecution jobExecution) {

@@ -22,6 +22,7 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
+import org.springframework.util.SerializationUtils
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -348,5 +349,33 @@ abstract class JobExecutionDaoTck extends Specification {
 
     then:
     jobExecutionDao.findRunningJobExecutions(jobInstance.jobName).empty
+  }
+
+  def "synchronizeStatus updates version and status fields from the persistent store"() {
+    given:
+    def execution = new JobExecution(jobInstance, noParameters())
+    jobExecutionDao.saveJobExecution(execution)
+
+    and:
+    def detachedExecution = SerializationUtils.deserialize(SerializationUtils.serialize(execution))
+
+    and:
+    execution.status = BatchStatus.COMPLETED
+    jobExecutionDao.updateJobExecution(execution)
+
+    expect:
+    with(detachedExecution) {
+      status == BatchStatus.STARTING
+      version == 0
+    }
+
+    when:
+    jobExecutionDao.synchronizeStatus(detachedExecution)
+
+    then:
+    with(detachedExecution) {
+      status == execution.status
+      version == execution.version
+    }
   }
 }
