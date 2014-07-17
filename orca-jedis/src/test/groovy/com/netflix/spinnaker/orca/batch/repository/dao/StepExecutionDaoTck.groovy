@@ -28,14 +28,20 @@ import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noPar
 
 abstract class StepExecutionDaoTck extends Specification {
 
-  @Subject StepExecutionDao stepExecutionDao = createStepExecutionDao()
-  def jobInstanceDao = createJobInstanceDao()
-  def jobExecutionDao = createJobExecutionDao()
+  @Subject StepExecutionDao stepExecutionDao
+  def jobInstanceDao
+  def jobExecutionDao
 
-  def jobInstance = jobInstanceDao.createJobInstance("foo", noParameters())
-  def jobExecution = new JobExecution(jobInstance, noParameters())
+  def jobInstance
+  def jobExecution
 
   def setup() {
+    jobInstanceDao = createJobInstanceDao()
+    jobExecutionDao = createJobExecutionDao(jobInstanceDao)
+    stepExecutionDao = createStepExecutionDao()
+
+    jobInstance = jobInstanceDao.createJobInstance("foo", noParameters())
+    jobExecution = new JobExecution(jobInstance, noParameters())
     jobExecutionDao.saveJobExecution(jobExecution)
   }
 
