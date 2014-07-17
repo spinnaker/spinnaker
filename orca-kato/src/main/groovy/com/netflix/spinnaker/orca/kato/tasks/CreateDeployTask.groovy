@@ -79,6 +79,6 @@ class CreateDeployTask implements Task {
   }
 
   private static AllowLaunchOperation convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
-    new AllowLaunchOperation(account: targetAccount, credentials: sourceAccount, region: region, ami: ami)
+    new AllowLaunchOperation(account: targetAccount, credentials: sourceAccount, region: region, amiName: ami)
   }
 }
