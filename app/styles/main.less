@@ -16,9 +16,11 @@
 
 @import "bower_components/bootstrap/less/mixins.less";
 @import "bower_components/bootstrap/less/variables.less";
+@import "app/styles/colors.less";
 
 /* Space out content a bit */
 body {
+  font-family: 'Source Sans Pro', sans-serif;
   padding-left: 10px;
   padding-right: 10px;
   padding-bottom: 20px;
@@ -60,10 +62,30 @@ body {
 
 .stacked-pills > ul > li {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
+  font-weight: 200;
   color: @light_grey;
-  background-color: #111111;
+  background-color: #5b5b5b;
+  text-align: center;
+
+  &.heading {
+    font-weight: 400;
+    text-transform: uppercase;
+    height: 30px;
+    line-height: 30px;
+  }
+
+  .glyphicon {
+    display: block;
+    font-size: 250%;
+    margin: 10px;
+  }
+
+  a {
+    font-size: 110%;
+    color: @light_grey;
+  }
 }
 
 .container-narrow > hr {

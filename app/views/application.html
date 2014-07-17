@@ -1,25 +1,23 @@
 
 <div class="stacked-pills">
   <ul class="nav nav-pills nav-stacked">
+    <li class="heading">
+      View by
+    </li>
     <li ng-class="{active: view.activeTab==='details'}">
       <a href="javascript:void(0)" ng-click="view.activeTab = 'details'">
-        <span class="glyphicon glyphicon-wrench"></span>
-        General
-        <server-error-flag component="application" paths="description name"></server-error-flag>
+        <span class="glyphicon glyphicon-align-justify"></span>
+        Clusters
       </a>
     </li>
     <li ng-class="{active: view.activeTab==='delivery'}">
       <a href="javascript:void(0)" ng-click="view.activeTab = 'delivery'">
-        <span class="glyphicon glyphicon-tasks"></span>
-        Delivery
-        <server-error-flag component="application" paths="pipelines"></server-error-flag>
-      </a>
+        <span class="glyphicon glyphicon-th"></span>ELB</a>
     </li>
     <li ng-class="{active: view.activeTab==='traffic'}">
       <a href="javascript:void(0)" ng-click="view.activeTab = 'traffic'">
         <span class="glyphicon glyphicon-transfer"></span>
         Connections
-        <server-error-flag component="application" paths="egressApplications ingressApplications"></server-error-flag>
       </a>
     </li>
   </ul>
