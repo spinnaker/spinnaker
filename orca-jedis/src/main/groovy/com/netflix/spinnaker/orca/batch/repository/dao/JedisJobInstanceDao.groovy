@@ -73,7 +73,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   List<JobInstance> getJobInstances(String jobName, int start, int count) {
-    jedis.zrange("jobInstanceName:$jobName", start, start + (count - 1)).collect {
+    jedis.zrevrange("jobInstanceName:$jobName", start, start + (count - 1)).collect {
       getJobInstanceByKey(it)
     }
   }
@@ -115,7 +115,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
   }
 
   private long indexJobByName(JobInstance jobInstance, String key) {
-    jedis.zadd("jobInstanceName:$jobInstance.jobName", -jobInstance.id, key)
+    jedis.zadd("jobInstanceName:$jobInstance.jobName", jobInstance.id, key)
   }
 
   private long indexJobNames(JobInstance jobInstance) {
