@@ -1,0 +1,391 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "bower_components/bootstrap/less/mixins.less";
+@import "bower_components/bootstrap/less/variables.less";
+
+.browsehappy {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+/* Space out content a bit */
+body {
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 20px;
+  background-color: #f8f8f8;
+  padding-top: 40px;
+}
+
+/* Everything but the jumbotron gets side spacing for mobile first views */
+.header,
+.marketing,
+.footer {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Custom page header */
+.header {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* Make the masthead heading the same height as the navigation */
+.header h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+  padding-bottom: 19px;
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+.container-narrow > hr {
+  margin: 30px 0;
+}
+
+/* Main marketing message and sign up button */
+.jumbotron {
+  text-align: center;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.jumbotron .btn {
+  font-size: 21px;
+  padding: 14px 24px;
+}
+
+/* Supporting marketing content */
+.marketing {
+  margin: 40px 0;
+}
+
+.marketing p + h4 {
+  margin-top: 28px;
+}
+
+.no-highlight{
+  color: black;
+
+  &:hover, &:focus {
+    text-decoration: none;
+    color: black;
+  }
+}
+
+.nav-tabs a {
+  color: #000;
+}
+
+.nav-tabs li {
+  cursor: pointer;
+}
+
+.nav-tabs a:hover
+{
+  color: #666;
+}
+
+.navbar-inverse {
+  background-color: #5b5b5b;
+  border: none;
+
+  .navbar-brand {
+    color: #fff;
+    text-shadow: 0px 1px 1px #333;
+    font-weight: 200;
+  }
+
+  .navbar-nav>.active>a,
+  .navbar-nav>.active>a:focus,
+  .navbar-nav>.active>a:hover
+  {
+    background-color: #a6a6a6;
+  }
+}
+
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+  background-color: #666666;
+  color: #fff;
+}
+
+.sm-label, .sm-label-left {
+  line-height: 30px;
+  font-weight: bold;
+  text-align: right;
+
+  &.table-offset {
+    margin-top: 31px;
+  }
+
+  .help-text {
+    font-size: 90%;
+    font-weight: normal;
+    color: #777777;
+    line-height: normal;
+    margin-bottom: 0;
+  }
+}
+
+.sm-label-left {
+  text-align: left;
+}
+
+.form-inline {
+  .form-control {
+    &.inline-number {
+      width: 60px;
+    }
+  }
+  .with-space-before {
+    margin-left: 4px;
+  }
+}
+
+.modal-content {
+  overflow-x: hidden;
+}
+
+.modal-pages {
+  width:1200px;
+  .modal-page {
+    position: relative;
+    width: 600px;
+    float:left;
+  }
+}
+
+.page-flow-panel {
+  overflow-x: hidden;
+}
+
+.panel-footer {
+  .pager {
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+}
+
+.forward {
+  .modal-page {
+    &.ng-leave, &.ng-enter {
+      left: 0;
+      .transition(left .25s ease-in);
+    }
+    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
+      left: -600px;
+    }
+  }
+}
+
+.back {
+  .modal-page {
+    &.ng-leave, &.ng-enter {
+      left: -600px;
+      .transition(left .25s ease-in);
+    }
+    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
+      left: 0;
+    }
+  }
+}
+
+.full-width {
+  display: block;
+  width: 100%;
+}
+
+.action-button {
+  padding: 0;
+}
+
+.add-new {
+  border: 1px dashed #a5a5a5;
+  color: #a5a5a5;
+  padding: 8px;
+  margin: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  background-color: transparent;
+
+  &:hover, &:focus, &:active {
+    border-color: #000;
+    color: #000;
+  }
+}
+
+.notification-center {
+  position: fixed;
+  top: @navbar-height;
+  right: 0;
+  width: 400px;
+  padding: 10px;
+  z-index: @zindex-navbar-fixed;
+
+  .alert {
+    position: relative;
+    opacity: .95;
+    right: 0;
+    box-shadow: 0px 0px 8px 2px #BBBBBB;
+    border-radius: 8px;
+    &.ng-enter.ng-enter-active, &.ng-leave {
+      opacity: .95;
+      right: 0;
+      transition: all .15s ease-in;
+    }
+    &.ng-leave.ng-leave-active, &.ng-enter {
+        opacity: 0;
+        right: -400px;
+        transition: all .15s ease-in;
+    }
+  }
+}
+
+tfoot .add-new {
+  margin-bottom: 0;
+}
+
+
+.form-control {
+  &.ng-invalid {
+    &.ng-dirty {
+      border-color: @state-danger-text;
+      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075)); // Redeclare so transitions work
+      &:focus {
+        border-color: darken(@state-danger-text, 10%);
+        @shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px lighten(@state-danger-text, 20%);
+        .box-shadow(@shadow);
+      }
+    }
+  }
+}
+
+.table {
+  &.packed {
+    margin-bottom: 0;
+  }
+}
+
+.config-table {
+  td {
+    background-color: #ffffff;
+  }
+  thead th, tfoot td {
+    background-color: transparent
+  }
+}
+
+.build-stage {
+  font-size: 90%;
+}
+
+.form-group {
+  margin-bottom: 5px;
+}
+
+.row {
+  &.config-description {
+    margin-bottom: 30px;
+  }
+}
+
+.flat-list {
+  li {
+    list-style-type: none;
+    label {
+      font-weight: normal;
+    }
+  }
+  ul {
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+}
+
+.advanced-settings {
+  &.ng-enter {
+    transition: 0.2s all ease-in;
+    opacity: 0;
+    max-height: 0;
+    &.ng-enter-active, .ng-leave {
+      opacity: 1;
+      max-height: 1000px;
+    }
+    &.ng-leave-active {
+      opacity: 0;
+      max-height: 0;
+    }
+  }
+}
+
+server-error-flag {
+  .server-error-flag {
+    color: @state-danger-text;
+    text-shadow: 0 0 2px #ffffff, 0 0 4px #ffffff, 0 0 6px #ffffff;
+    margin-left: 6px;
+
+  }
+  .tooltip-inner {
+    .alert-variant(@alert-danger-bg; @alert-danger-border; @alert-danger-text);
+    box-shadow: 0px 0px 8px 2px #BBBBBB;
+  }
+  .tooltip {
+    font-weight: normal;
+    white-space: normal;
+    width: 200px;
+    &.top {
+      .tooltip-arrow {
+        border-top-color: @alert-danger-border;
+      }
+    }
+  }
+}
+
+.error-message {
+  text-align: left;
+  display: block;
+  font-weight: bold;
+  color: @state-danger-text;
+}
+
+.application-list {
+  a {
+    color: @link-color;
+  }
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  top: 8px;
+  left: 5px;
+  position: relative;
+  display: inline-block;
+}
+
+.loading {
+  text-align: center;
+  padding-top: 160px;
+  background: url('/images/loading-large.gif') center 20px no-repeat;
+}
