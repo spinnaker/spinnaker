@@ -410,4 +410,6 @@ abstract class JobExecutionDaoTck extends Specification {
       version == execution.version
     }
   }
+
+  // TODO: test executionContext and failureExceptions
 }

@@ -22,9 +22,9 @@ import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisCommands
 
-import java.text.SimpleDateFormat
+import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.deserializeDate
+import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.serializeDate
 
 @CompileStatic
 class JedisJobExecutionDao implements JobExecutionDao {
@@ -32,8 +32,6 @@ class JedisJobExecutionDao implements JobExecutionDao {
   private final Jedis jedis
   private JobInstanceDao jobInstanceDao
   private JobKeyGenerator<JobParameters> jobKeyGenerator = new DefaultJobKeyGenerator()
-
-  private final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
 
   @Autowired
   JedisJobExecutionDao(Jedis jedis, JobInstanceDao jobInstanceDao) {
@@ -199,13 +197,5 @@ class JedisJobExecutionDao implements JobExecutionDao {
       }
     }
     parameters.toJobParameters()
-  }
-
-  private String serializeDate(Date value) {
-    new SimpleDateFormat(TIMESTAMP_FORMAT).format(value)
-  }
-
-  private Date deserializeDate(String s) {
-    new SimpleDateFormat(TIMESTAMP_FORMAT).parse(s)
   }
 }

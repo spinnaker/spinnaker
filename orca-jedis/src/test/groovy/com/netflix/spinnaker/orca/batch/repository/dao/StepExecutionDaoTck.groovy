@@ -52,6 +52,35 @@ abstract class StepExecutionDaoTck extends Specification {
 
   abstract StepExecutionDao createStepExecutionDao()
 
+  def "saveStepExecution persists all fields correctly"() {
+    given:
+    def stepExecution = new StepExecution("foo", jobExecution)
+
+    when:
+    stepExecutionDao.saveStepExecution(stepExecution)
+
+    then:
+    with(stepExecutionDao.getStepExecution(jobExecution, stepExecution.id)) {
+      stepName == stepExecution.stepName
+      status == stepExecution.status
+      readCount == stepExecution.readCount
+      writeCount == stepExecution.writeCount
+      commitCount == stepExecution.commitCount
+      rollbackCount == stepExecution.rollbackCount
+      readSkipCount == stepExecution.readSkipCount
+      processSkipCount == stepExecution.processSkipCount
+      writeSkipCount == stepExecution.writeSkipCount
+      startTime == stepExecution.startTime
+      endTime == stepExecution.endTime
+      lastUpdated == stepExecution.lastUpdated
+      exitStatus == stepExecution.exitStatus
+      terminateOnly == stepExecution.terminateOnly
+      filterCount == stepExecution.filterCount
+    }
+  }
+
+  // TODO: test persistence of execution context
+
   def "saveStepExecution assigns an id"() {
     given:
     def stepExecution = new StepExecution("foo", jobExecution)
@@ -66,7 +95,7 @@ abstract class StepExecutionDaoTck extends Specification {
     stepExecution.id != null
   }
 
-  def "saveStepExecution increments version"() {
+  def "saveStepExecution assigns a version"() {
     given:
     def stepExecution = new StepExecution("foo", jobExecution)
 
