@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.data.task.dynomite
+package com.netflix.spinnaker.kato.data.task.jedis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.kato.data.task.DefaultTask
