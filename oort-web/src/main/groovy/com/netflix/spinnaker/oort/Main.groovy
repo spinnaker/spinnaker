@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort
 import com.codahale.metrics.JmxReporter
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.health.HealthCheckRegistry
+import com.netflix.appinfo.InstanceInfo
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurationSupport
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer
@@ -48,6 +49,11 @@ class Main extends SpringBootServletInitializer {
   static void main(_) {
     System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     SpringApplication.run this, [] as String
+  }
+
+  @Bean
+  InstanceInfo.InstanceStatus instanceStatus() {
+    InstanceInfo.InstanceStatus.UNKNOWN
   }
 
   @Override
