@@ -80,7 +80,7 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   JobExecution getLastJobExecution(JobInstance jobInstance) {
-    def id = jedis.zrange("jobInstanceExecutions:$jobInstance.id", 0, 1).first()
+    def id = jedis.zrevrange("jobInstanceExecutions:$jobInstance.id", 0, 1).first()
     getJobExecution(id as Long)
   }
 
@@ -124,10 +124,17 @@ class JedisJobExecutionDao implements JobExecutionDao {
     if (jobExecution.lastUpdated) jedis.hset(key, "lastUpdated", jobExecution.lastUpdated.format(TIMESTAMP_FORMAT))
     if (jobExecution.jobConfigurationName) jedis.hset(key, "jobConfigurationName", jobExecution.jobConfigurationName)
 
+    indexExecutionToJob(jobExecution)
+    indexJobToExecutions(jobExecution)
+  }
+
+  private void indexExecutionToJob(JobExecution jobExecution) {
     def jobInstanceKey = "jobInstance:$jobExecution.jobInstance.jobName|${jobKeyGenerator.generateKey(jobExecution.jobParameters)}"
     jedis.set("jobExecutionToJobInstance:$jobExecution.id", jobInstanceKey)
+  }
 
-    // TODO: need to update this if the jobInstance is changed
-    jedis.zadd("jobInstanceExecutions:$jobExecution.jobId", -jobExecution.createTime.time, jobExecution.id.toString())
+  private void indexJobToExecutions(JobExecution jobExecution) {
+    jedis.zrem("jobInstanceExecutions:$jobExecution.jobId", jobExecution.id.toString())
+    jedis.zadd("jobInstanceExecutions:$jobExecution.jobId", jobExecution.createTime.time, jobExecution.id.toString())
   }
 }

@@ -48,9 +48,9 @@ class JedisJobInstanceDao implements JobInstanceDao {
     jedis.hset(key, "version", jobInstance.version.toString())
     jedis.hset(key, "jobName", jobInstance.jobName)
 
-    jedis.set("jobInstanceId:$jobInstance.id", key)
-    jedis.zadd("jobInstanceName:$jobName", -jobInstance.id, key)
-    jedis.sadd("jobInstanceNames", jobName)
+    indexJobById(jobInstance, key)
+    indexJobByName(jobInstance, key)
+    indexJobNames(jobInstance)
     return jobInstance
   }
 
@@ -108,6 +108,18 @@ class JedisJobInstanceDao implements JobInstanceDao {
       jobInstance.version = hash.version as Integer
     }
     return jobInstance
+  }
+
+  private String indexJobById(JobInstance jobInstance, String key) {
+    jedis.set("jobInstanceId:$jobInstance.id", key)
+  }
+
+  private long indexJobByName(JobInstance jobInstance, String key) {
+    jedis.zadd("jobInstanceName:$jobInstance.jobName", -jobInstance.id, key)
+  }
+
+  private long indexJobNames(JobInstance jobInstance) {
+    jedis.sadd("jobInstanceNames", jobInstance.jobName)
   }
 
 }

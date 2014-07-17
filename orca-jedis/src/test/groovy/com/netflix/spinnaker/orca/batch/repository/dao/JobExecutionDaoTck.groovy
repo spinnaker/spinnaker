@@ -27,7 +27,6 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noParameters
-import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.toJobParameters
 
 abstract class JobExecutionDaoTck extends Specification {
 
@@ -257,5 +256,28 @@ abstract class JobExecutionDaoTck extends Specification {
 
     then:
     jobExecution.createTime == executions.createTime.max()
+  }
+
+  def "getLastJobExecution returns the correct result if an execution's timestamp is changed"() {
+    given:
+    def execution1 = new JobExecution(jobInstance, noParameters())
+    execution1.createTime = new Date() - 2
+    def execution2 = new JobExecution(jobInstance, noParameters())
+    execution2.createTime = new Date() - 2
+
+    and:
+    [execution1, execution2].each {
+      jobExecutionDao.saveJobExecution(it)
+    }
+
+    expect:
+    jobExecutionDao.getLastJobExecution(jobInstance) == execution2
+
+    when:
+    execution1.createTime = new Date()
+    jobExecutionDao.updateJobExecution(execution1)
+
+    then:
+    jobExecutionDao.getLastJobExecution(jobInstance) == execution1
   }
 }
