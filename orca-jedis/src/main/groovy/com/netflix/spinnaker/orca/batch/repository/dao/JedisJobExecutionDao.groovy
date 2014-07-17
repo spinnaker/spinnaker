@@ -91,7 +91,9 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   Set<JobExecution> findRunningJobExecutions(String jobName) {
-    throw new UnsupportedOperationException()
+    jedis.smembers("runningJobExecutions:$jobName").collect {
+      getJobExecution(it as Long)
+    } as Set
   }
 
   @Override
@@ -131,6 +133,7 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
     indexExecutionToJob(jobExecution)
     indexJobToExecutions(jobExecution)
+    indexRunningExecutions(jobExecution)
   }
 
   private void indexExecutionToJob(JobExecution jobExecution) {
@@ -141,5 +144,14 @@ class JedisJobExecutionDao implements JobExecutionDao {
   private void indexJobToExecutions(JobExecution jobExecution) {
     jedis.zrem("jobInstanceExecutions:$jobExecution.jobId", jobExecution.id.toString())
     jedis.zadd("jobInstanceExecutions:$jobExecution.jobId", jobExecution.createTime.time, jobExecution.id.toString())
+  }
+
+  void indexRunningExecutions(JobExecution jobExecution) {
+    def key = "runningJobExecutions:$jobExecution.jobInstance.jobName"
+    if (jobExecution.isRunning()) {
+      jedis.sadd(key, jobExecution.id.toString())
+    } else {
+      jedis.srem(key, jobExecution.id.toString())
+    }
   }
 }

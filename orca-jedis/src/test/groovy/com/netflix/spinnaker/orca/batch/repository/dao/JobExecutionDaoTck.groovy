@@ -290,4 +290,63 @@ abstract class JobExecutionDaoTck extends Specification {
     then:
     jobExecutionDao.getLastJobExecution(jobInstance) == execution1
   }
+
+  def "findRunningJobExecutions returns an empty array if a job has never been run"() {
+    expect:
+    jobExecutionDao.findRunningJobExecutions(jobInstance.jobName).empty
+  }
+
+  def "findRunningJobExecutions returns an empty array if all executions have completed"() {
+    given:
+    def completedExecution = new JobExecution(jobInstance, noParameters())
+    completedExecution.status = BatchStatus.COMPLETED
+    completedExecution.endTime = new Date()
+    jobExecutionDao.saveJobExecution(completedExecution)
+
+    and:
+    def failedExecution = new JobExecution(jobInstance, noParameters())
+    failedExecution.status = BatchStatus.FAILED
+    failedExecution.endTime = new Date()
+    jobExecutionDao.saveJobExecution(failedExecution)
+
+    expect:
+    jobExecutionDao.findRunningJobExecutions(jobInstance.jobName).empty
+  }
+
+  def "findRunningJobExecutions returns incomplete executions"() {
+    given:
+    def completedExecution = new JobExecution(jobInstance, noParameters())
+    completedExecution.status = BatchStatus.COMPLETED
+    completedExecution.endTime = new Date()
+    jobExecutionDao.saveJobExecution(completedExecution)
+
+    and:
+    def runningExecutions = (1..2).collect {
+      def execution = new JobExecution(jobInstance, noParameters())
+      execution.status = BatchStatus.STARTED
+      jobExecutionDao.saveJobExecution(execution)
+      return execution
+    }
+
+    expect:
+    jobExecutionDao.findRunningJobExecutions(jobInstance.jobName) == runningExecutions as Set
+  }
+
+  def "findRunningJobExecutions no longer returns an execution once it completes"() {
+    given:
+    def execution = new JobExecution(jobInstance, noParameters())
+    execution.status = BatchStatus.STARTED
+    jobExecutionDao.saveJobExecution(execution)
+
+    expect:
+    jobExecutionDao.findRunningJobExecutions(jobInstance.jobName) == [execution] as Set
+
+    when:
+    execution.status = BatchStatus.COMPLETED
+    execution.endTime = new Date()
+    jobExecutionDao.updateJobExecution(execution)
+
+    then:
+    jobExecutionDao.findRunningJobExecutions(jobInstance.jobName).empty
+  }
 }
