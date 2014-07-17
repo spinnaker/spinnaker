@@ -36,6 +36,9 @@ class JedisStepExecutionDao implements StepExecutionDao {
     if (stepExecution.id != null) {
       throw new IllegalArgumentException("StepExecution is not expected to have an id (should not be saved yet)")
     }
+    if (stepExecution.jobExecution.id == null) {
+      throw new IllegalArgumentException("JobExecution must be saved already.")
+    }
 //    Object[] parameterValues = new Object[] { stepExecution.getId(), stepExecution.getVersion(),
 //      stepExecution.getStepName(), stepExecution.getJobExecutionId(), stepExecution.getStartTime(),
 //      stepExecution.getEndTime(), stepExecution.getStatus().toString(), stepExecution.getCommitCount(),

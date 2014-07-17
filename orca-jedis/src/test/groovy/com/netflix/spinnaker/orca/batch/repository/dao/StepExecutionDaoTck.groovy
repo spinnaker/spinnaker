@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.repository.dao
 
 import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
@@ -29,11 +30,11 @@ import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noPar
 abstract class StepExecutionDaoTck extends Specification {
 
   @Subject StepExecutionDao stepExecutionDao
-  def jobInstanceDao
-  def jobExecutionDao
+  JobInstanceDao jobInstanceDao
+  JobExecutionDao jobExecutionDao
 
-  def jobInstance
-  def jobExecution
+  JobInstance jobInstance
+  JobExecution jobExecution
 
   def setup() {
     jobInstanceDao = createJobInstanceDao()
@@ -79,12 +80,23 @@ abstract class StepExecutionDaoTck extends Specification {
     stepExecution.version == 0
   }
 
-  def "saveJobExecution rejects a JobExecution that has already been saved"() {
+  def "saveStepExecution rejects a StepExecution that has already been saved"() {
     given:
     def stepExecution = new StepExecution("foo", jobExecution)
 
     and:
     stepExecutionDao.saveStepExecution(stepExecution)
+
+    when:
+    stepExecutionDao.saveStepExecution(stepExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "saveJobExecution rejects a StepExecution if its JobExecution is not saved"() {
+    given:
+    def stepExecution = new StepExecution("foo", new JobExecution(jobInstance, noParameters()))
 
     when:
     stepExecutionDao.saveStepExecution(stepExecution)
