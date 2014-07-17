@@ -81,7 +81,7 @@ class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
       return (List)restTemplate.getForObject("${baseUrl}/api/v1/instance", List)
     } catch (IGNORE) {
     }
-    return null
+    []
   }
 
   private String getCachePrefix() {
