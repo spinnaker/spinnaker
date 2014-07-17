@@ -218,6 +218,11 @@ abstract class JobExecutionDaoTck extends Specification {
     thrown IllegalArgumentException
   }
 
+  def "findJobExecutions returns an empty array if a job has never been run"() {
+    expect:
+    jobExecutionDao.findJobExecutions(jobInstance).empty
+  }
+
   def "findJobExecutions finds all related to a JobInstance"() {
     given:
     def jobInstance2 = jobInstanceDao.createJobInstance("bar", noParameters())
@@ -236,6 +241,11 @@ abstract class JobExecutionDaoTck extends Specification {
     jobExecutions.jobId.every {
       it == jobInstance.id
     }
+  }
+
+  def "getLastJobExecution returns null if a job has never been run"() {
+    expect:
+    jobExecutionDao.getLastJobExecution(jobInstance) == null
   }
 
   def "getLastJobExecution finds the last created execution for a job"() {

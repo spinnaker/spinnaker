@@ -80,8 +80,13 @@ class JedisJobExecutionDao implements JobExecutionDao {
 
   @Override
   JobExecution getLastJobExecution(JobInstance jobInstance) {
-    def id = jedis.zrevrange("jobInstanceExecutions:$jobInstance.id", 0, 1).first()
-    getJobExecution(id as Long)
+    def set = jedis.zrevrange("jobInstanceExecutions:$jobInstance.id", 0, 1)
+    if (set.empty) {
+      null
+    } else {
+      def id = set.first()
+      getJobExecution(id as Long)
+    }
   }
 
   @Override
