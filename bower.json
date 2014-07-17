@@ -6,7 +6,8 @@
     "angular-ui-router": "~0.2.10",
     "json3": "~3.3.1",
     "es5-shim": "~3.1.0",
-    "bootstrap": "~3.2.0"
+    "bootstrap": "~3.2.0",
+    "angular-ui-router": "~0.2.10"
   },
   "devDependencies": {
     "angular-mocks": "1.2.20",

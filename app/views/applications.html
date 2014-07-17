@@ -1,0 +1,37 @@
+<div class="row">
+  <div class="col-md-12">
+    <h3>Applications</h3>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <form class="form form-inline">
+        <div class="form-group">
+          <label>Filter</label>
+          <input type="search" class="form-control" ng-model="applicationFilter">
+        </div>
+      </form>
+      <table class="table table-striped">
+        <thead>
+          <th sort-toggle key="Name" default="true"></th>
+          <th sort-toggle key="Created"></th>
+          <th sort-toggle key="Updated"></th>
+        </thead>
+        <tbody>
+          <tr ng-repeat="application in applications | filter:applicationFilter | orderBy:sortKey:reverse">
+            <td>
+              <a ui-sref="application({ application: application.name })">
+                {{ application.name }}
+              </a>
+            </td>
+            <td>
+              {{ application.createTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+            </td>
+            <td>
+              {{ application.updateTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
