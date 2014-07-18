@@ -2,6 +2,8 @@
 
 angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, applications) {
-    $scope.applications = applications;
+    $scope.applications = applications.data;
+
+    console.warn('apps:', applications);
 
   });
