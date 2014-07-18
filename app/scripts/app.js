@@ -83,6 +83,10 @@ angular
       .state('application', {
         url: '/application',
         views: {
+          'main': {
+            templateUrl: 'views/application.html',
+            controller: 'ApplicationCtrl'
+          }
         },
         resolve: {
           application: function() {

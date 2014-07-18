@@ -107,10 +107,42 @@ body {
     min-height: 600px;
   }
   .nav {
+    padding: 0 0 10px 10px;
     background-color: @lighter_grey;
     border: 1px solid @light_grey;
+
+    h3 {
+      margin-bottom: 0;
+    }
+
+    .sub-nav {
+      margin-left: 10px;
+
+      .sub-nav-item {
+        margin-left: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid @mid_grey;
+
+        &:last-child {
+          border-bottom-width: 0;
+        }
+
+        a {
+          display: block;
+          padding: 5px 10px;
+          color: @dark_grey;
+          &:hover, &:focus, &.active {
+            text-decoration: none;
+            border-radius: 5px 0 0 5px;
+            background-color: @mid_grey;
+            color: @light_grey;
+          }
+        }
+      }
+    }
   }
   .nav-content {
+    padding: 10px;
     background-color: @lightest_grey;
     border: 1px solid @lighter_grey;
     border-left-width: 0;
