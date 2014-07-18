@@ -27,8 +27,8 @@ buildscript {
 ext {
   versions = [
       groovy  : "2.3.4",
-      spring  : "4.0.4.RELEASE",
-      batch   : "3.0.0.RC1",
+      spring  : "4.0.5.RELEASE",
+      batch   : "3.0.1.RELEASE",
       guava   : "17.0",
       jackson : "2.3.3",
       rx      : "0.18.3",
