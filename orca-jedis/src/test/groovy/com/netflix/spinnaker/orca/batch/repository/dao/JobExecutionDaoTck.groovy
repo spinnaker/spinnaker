@@ -22,6 +22,7 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.util.SerializationUtils
 import spock.lang.Specification
 import spock.lang.Subject
@@ -251,6 +252,22 @@ abstract class JobExecutionDaoTck extends Specification {
     thrown IllegalArgumentException
   }
 
+  def "updateJobExecution rejects a stale JobExecution"() {
+    given:
+    def jobExecution = new JobExecution(jobInstance, noParameters())
+    jobExecutionDao.saveJobExecution(jobExecution)
+
+    and:
+    def staleJobExecution = copy(jobExecution)
+    jobExecutionDao.updateJobExecution(jobExecution)
+
+    when:
+    jobExecutionDao.updateJobExecution(staleJobExecution)
+
+    then:
+    thrown OptimisticLockingFailureException
+  }
+
   def "findJobExecutions returns an empty array if a job has never been run"() {
     expect:
     jobExecutionDao.findJobExecutions(jobInstance).empty
@@ -389,7 +406,7 @@ abstract class JobExecutionDaoTck extends Specification {
     jobExecutionDao.saveJobExecution(execution)
 
     and:
-    def detachedExecution = SerializationUtils.deserialize(SerializationUtils.serialize(execution))
+    def detachedExecution = copy(execution)
 
     and:
     execution.status = BatchStatus.COMPLETED
@@ -412,4 +429,8 @@ abstract class JobExecutionDaoTck extends Specification {
   }
 
   // TODO: test executionContext and failureExceptions
+
+  private <T> T copy(T object) {
+    SerializationUtils.deserialize(SerializationUtils.serialize(object))
+  }
 }
