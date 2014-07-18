@@ -22,6 +22,7 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.StepExecutionDao
+import org.springframework.dao.OptimisticLockingFailureException
 import redis.clients.jedis.Jedis
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.deserializeDate
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.serializeDate
@@ -47,28 +48,7 @@ class JedisStepExecutionDao implements StepExecutionDao {
     stepExecution.incrementVersion()
 
     def key = "stepExecution:$stepExecution.jobExecution.id:$stepExecution.id"
-    jedis.hset(key, "id", stepExecution.id.toString())
-    jedis.hset(key, "version", stepExecution.version.toString())
-    jedis.hset(key, "stepName", stepExecution.stepName)
-    jedis.hset(key, "status", stepExecution.status.name())
-    jedis.hset(key, "filterCount", stepExecution.filterCount.toString())
-    jedis.hset(key, "readCount", stepExecution.readCount.toString())
-    jedis.hset(key, "writeCount", stepExecution.writeCount.toString())
-    jedis.hset(key, "commitCount", stepExecution.commitCount.toString())
-    jedis.hset(key, "rollbackCount", stepExecution.rollbackCount.toString())
-    jedis.hset(key, "readSkipCount", stepExecution.readSkipCount.toString())
-    jedis.hset(key, "processSkipCount", stepExecution.processSkipCount.toString())
-    jedis.hset(key, "writeSkipCount", stepExecution.writeSkipCount.toString())
-    jedis.hset(key, "startTime", serializeDate(stepExecution.startTime))
-    if (stepExecution.endTime) {
-      jedis.hset(key, "endTime", serializeDate(stepExecution.endTime))
-    }
-    if (stepExecution.lastUpdated) {
-      jedis.hset(key, "lastUpdated", serializeDate(stepExecution.lastUpdated))
-    }
-    jedis.hset(key, "exitCode", stepExecution.exitStatus.exitCode)
-    jedis.hset(key, "exitDescription", stepExecution.exitStatus.exitDescription)
-    jedis.hset(key, "terminateOnly", stepExecution.terminateOnly.toString())
+    storeStepExecution(key, stepExecution)
   }
 
   @Override
@@ -80,7 +60,23 @@ class JedisStepExecutionDao implements StepExecutionDao {
 
   @Override
   void updateStepExecution(StepExecution stepExecution) {
-    throw new UnsupportedOperationException()
+    if (stepExecution.id == null) {
+      throw new IllegalArgumentException("step executions for given job execution are expected to be already saved")
+    }
+
+    def key = "stepExecution:$stepExecution.jobExecution.id:$stepExecution.id"
+
+    if (!jedis.exists(key)) {
+      throw new IllegalArgumentException("step execution is expected to be already saved")
+    }
+
+    def persistedVersion = jedis.hget(key, "version").toInteger()
+    if (stepExecution.version != persistedVersion) {
+      throw new OptimisticLockingFailureException("Attempt to update step execution id=$stepExecution.id with wrong version ($stepExecution.version), where current version is $persistedVersion")
+    }
+
+    stepExecution.incrementVersion()
+    storeStepExecution(key, stepExecution)
   }
 
   @Override
@@ -115,4 +111,28 @@ class JedisStepExecutionDao implements StepExecutionDao {
     throw new UnsupportedOperationException()
   }
 
+  private void storeStepExecution(GString key, StepExecution stepExecution) {
+    jedis.hset(key, "id", stepExecution.id.toString())
+    jedis.hset(key, "version", stepExecution.version.toString())
+    jedis.hset(key, "stepName", stepExecution.stepName)
+    jedis.hset(key, "status", stepExecution.status.name())
+    jedis.hset(key, "filterCount", stepExecution.filterCount.toString())
+    jedis.hset(key, "readCount", stepExecution.readCount.toString())
+    jedis.hset(key, "writeCount", stepExecution.writeCount.toString())
+    jedis.hset(key, "commitCount", stepExecution.commitCount.toString())
+    jedis.hset(key, "rollbackCount", stepExecution.rollbackCount.toString())
+    jedis.hset(key, "readSkipCount", stepExecution.readSkipCount.toString())
+    jedis.hset(key, "processSkipCount", stepExecution.processSkipCount.toString())
+    jedis.hset(key, "writeSkipCount", stepExecution.writeSkipCount.toString())
+    jedis.hset(key, "startTime", serializeDate(stepExecution.startTime))
+    if (stepExecution.endTime) {
+      jedis.hset(key, "endTime", serializeDate(stepExecution.endTime))
+    }
+    if (stepExecution.lastUpdated) {
+      jedis.hset(key, "lastUpdated", serializeDate(stepExecution.lastUpdated))
+    }
+    jedis.hset(key, "exitCode", stepExecution.exitStatus.exitCode)
+    jedis.hset(key, "exitDescription", stepExecution.exitStatus.exitDescription)
+    jedis.hset(key, "terminateOnly", stepExecution.terminateOnly.toString())
+  }
 }

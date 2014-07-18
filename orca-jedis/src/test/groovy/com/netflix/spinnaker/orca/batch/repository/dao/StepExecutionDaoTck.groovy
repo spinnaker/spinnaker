@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.batch.core.repository.dao.StepExecutionDao
+import org.springframework.dao.OptimisticLockingFailureException
+import org.springframework.util.SerializationUtils
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -63,6 +67,7 @@ abstract class StepExecutionDaoTck extends Specification {
     with(stepExecutionDao.getStepExecution(jobExecution, stepExecution.id)) {
       stepName == stepExecution.stepName
       status == stepExecution.status
+      filterCount == stepExecution.filterCount
       readCount == stepExecution.readCount
       writeCount == stepExecution.writeCount
       commitCount == stepExecution.commitCount
@@ -75,7 +80,6 @@ abstract class StepExecutionDaoTck extends Specification {
       lastUpdated == stepExecution.lastUpdated
       exitStatus == stepExecution.exitStatus
       terminateOnly == stepExecution.terminateOnly
-      filterCount == stepExecution.filterCount
     }
   }
 
@@ -147,6 +151,106 @@ abstract class StepExecutionDaoTck extends Specification {
     executions.id.every {
       it != null
     }
+  }
+
+  def "updateStepExecution rejects an unsaved StepExecution"() {
+    given:
+    def stepExecution = new StepExecution("foo", jobExecution)
+
+    when:
+    stepExecutionDao.updateStepExecution(stepExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "updateStepExecution rejects a StepExecution with an assigned id that was never saved"() {
+    given:
+    def stepExecution = new StepExecution("foo", jobExecution, 1)
+
+    when:
+    stepExecutionDao.updateStepExecution(stepExecution)
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "updateStepExecution increments the version"() {
+    given:
+    def stepExecution = new StepExecution("foo", jobExecution)
+    stepExecutionDao.saveStepExecution(stepExecution)
+
+    when:
+    stepExecutionDao.updateStepExecution(stepExecution)
+
+    then:
+    stepExecution.version > old(stepExecution.version)
+  }
+
+  def "updateStepExecution rejects a stale StepExecution"() {
+    given:
+    def stepExecution = new StepExecution("foo", jobExecution)
+    stepExecutionDao.saveStepExecution(stepExecution)
+
+    and:
+    def staleStepExecution = copy(stepExecution)
+    stepExecutionDao.updateStepExecution(stepExecution)
+
+    expect:
+    stepExecution.version > staleStepExecution.version
+
+    when:
+    stepExecutionDao.updateStepExecution(staleStepExecution)
+
+    then:
+    thrown OptimisticLockingFailureException
+  }
+
+  def "updateStepExecution persists all fields correctly"() {
+    given:
+    def stepExecution = new StepExecution("foo", jobExecution)
+    stepExecutionDao.saveStepExecution(stepExecution)
+
+    and:
+    stepExecution.status = BatchStatus.COMPLETED
+    stepExecution.filterCount = 1
+    stepExecution.readCount = 1
+    stepExecution.writeCount = 1
+    stepExecution.commitCount = 1
+    stepExecution.rollbackCount = 1
+    stepExecution.readSkipCount = 1
+    stepExecution.processSkipCount = 1
+    stepExecution.writeSkipCount = 1
+    stepExecution.endTime = new Date()
+    stepExecution.lastUpdated = new Date()
+    stepExecution.exitStatus = ExitStatus.COMPLETED
+    stepExecution.setTerminateOnly()
+
+    when:
+    stepExecutionDao.updateStepExecution(stepExecution)
+
+    then:
+    with(stepExecutionDao.getStepExecution(jobExecution, stepExecution.id)) {
+      stepName == stepExecution.stepName
+      status == stepExecution.status
+      filterCount == stepExecution.filterCount
+      readCount == stepExecution.readCount
+      writeCount == stepExecution.writeCount
+      commitCount == stepExecution.commitCount
+      rollbackCount == stepExecution.rollbackCount
+      readSkipCount == stepExecution.readSkipCount
+      processSkipCount == stepExecution.processSkipCount
+      writeSkipCount == stepExecution.writeSkipCount
+      startTime == stepExecution.startTime
+      endTime == stepExecution.endTime
+      lastUpdated == stepExecution.lastUpdated
+      exitStatus == stepExecution.exitStatus
+      terminateOnly == stepExecution.terminateOnly
+    }
+  }
+
+  private <T> T copy(T object) {
+    SerializationUtils.deserialize(SerializationUtils.serialize(object))
   }
 
 }
