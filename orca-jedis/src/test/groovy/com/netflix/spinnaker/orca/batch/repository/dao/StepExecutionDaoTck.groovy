@@ -24,8 +24,8 @@ import org.springframework.dao.OptimisticLockingFailureException
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 import static com.netflix.spinnaker.orca.CopyUtils.copy
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 
 abstract class StepExecutionDaoTck extends Specification {
 
@@ -243,5 +243,31 @@ abstract class StepExecutionDaoTck extends Specification {
       exitStatus == stepExecution.exitStatus
       terminateOnly == stepExecution.terminateOnly
     }
+  }
+
+  def "addStepExecutions finds step executions belonging to a job execution"() {
+    given:
+    stepNames.each {
+      stepExecutionDao.saveStepExecution(new StepExecution(it, jobExecution))
+    }
+
+    and:
+    def differentJobExecution = new JobExecution(jobInstance, noParameters())
+    jobExecutionDao.saveJobExecution(differentJobExecution)
+    stepNames.each {
+      stepExecutionDao.saveStepExecution(new StepExecution(it, differentJobExecution))
+    }
+
+    when:
+    stepExecutionDao.addStepExecutions(jobExecution)
+
+    then:
+    with(jobExecution.stepExecutions) {
+      size() == stepNames.size()
+      stepName == stepNames.reverse()
+    }
+
+    where:
+    stepNames = ["foo", "bar", "baz"]
   }
 }

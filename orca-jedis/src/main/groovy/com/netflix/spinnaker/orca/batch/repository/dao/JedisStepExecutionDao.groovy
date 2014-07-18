@@ -50,6 +50,7 @@ class JedisStepExecutionDao implements StepExecutionDao {
 
     def key = "stepExecution:$stepExecution.jobExecution.id:$stepExecution.id"
     storeStepExecution(key, stepExecution)
+    indexStepExecutionByJobExecution(stepExecution)
   }
 
   @Override
@@ -105,7 +106,9 @@ class JedisStepExecutionDao implements StepExecutionDao {
 
   @Override
   void addStepExecutions(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    jobExecution.addStepExecutions jedis.zrevrange("jobExecutionToStepExecutions:$jobExecution.id", Long.MIN_VALUE, Long.MAX_VALUE).collect {
+      getStepExecution(jobExecution, it.toLong())
+    }
   }
 
   private void storeStepExecution(GString key, StepExecution stepExecution) {
@@ -131,5 +134,9 @@ class JedisStepExecutionDao implements StepExecutionDao {
     jedis.hset(key, "exitCode", stepExecution.exitStatus.exitCode)
     jedis.hset(key, "exitDescription", stepExecution.exitStatus.exitDescription)
     jedis.hset(key, "terminateOnly", stepExecution.terminateOnly.toString())
+  }
+
+  private void indexStepExecutionByJobExecution(StepExecution stepExecution) {
+    jedis.zadd("jobExecutionToStepExecutions:$stepExecution.jobExecutionId", stepExecution.id, stepExecution.id.toString())
   }
 }
