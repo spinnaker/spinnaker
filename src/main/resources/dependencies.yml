@@ -45,7 +45,7 @@ dependencies:
   bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
   bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
   kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
-  groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}:indy"
+  groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}"
   astyanaxCassandra: "com.netflix.astyanax:astyanax-cassandra:${versions.astyanax}"
   astyanaxThrift: "com.netflix.astyanax:astyanax-thrift:${versions.astyanax}"
   rxJava: "com.netflix.rxjava:rxjava-core:${versions.rxJava}"
