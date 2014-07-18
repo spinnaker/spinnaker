@@ -12,9 +12,17 @@ angular
   .module('deckApp', [
     'ui.router'
   ])
+  .run(function($state, $rootScope) {
+    // This can go away when the next version of ui-router is available (0.2.11+)
+    // for now, it's needed because ui-sref-active does not work on parent states
+    // and we have to use ng-class. It's gross.
+    $rootScope.$state = $state;
+  })
   .config(function ($stateProvider, $urlRouterProvider, $logProvider) {
     $logProvider.debugEnabled(true);
     $urlRouterProvider.otherwise('/');
+
+    $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
 
     $stateProvider
       .state('home', {
@@ -81,6 +89,7 @@ angular
       })
 
       .state('application', {
+        abstract: true,
         url: '/:application',
         parent: 'applications',
         views: {
@@ -90,20 +99,48 @@ angular
           }
         },
         resolve: {
-          application: function() {
+          application: function($stateParams) {
             return {
-              "name" : "CASS_SEG_SKEEBALL",
-              "description" : "Cassandra cluster for cass_seg_skeeball",
-              "email" : "cde_admin@netflix.com",
-              "owner" : "CDE SEG",
-              "type" : "Standalone Application",
-              "group" : "",
-              "monitorBucketType" : "application",
-              "pdApiKey" : "626560c0b433012e3b1312313d009e57",
-              "regions" : null,
-              "tags" : "cde,cassandra",
-              "createTs" : "1399576071499",
-              "updateTs" : "1399576071499"
+              'name' : $stateParams.application,
+              'description' : 'Cassandra cluster for cass_seg_skeeball',
+              'email' : 'cde_admin@netflix.com',
+              'owner' : 'CDE SEG',
+              'type' : 'Standalone Application',
+              'group' : '',
+              'monitorBucketType' : 'application',
+              'pdApiKey' : '626560c0b433012e3b1312313d009e57',
+              'regions' : null,
+              'tags' : 'cde,cassandra',
+              'createTs' : '1399576071499',
+              'updateTs' : '1399576071499'
+            };
+          }
+        }
+      })
+      .state('clusters', {
+        url: '/clusters',
+        parent: 'application',
+        views: {
+          'nav': {
+            templateUrl: 'views/application/clusterNav.html'
+          },
+          'master': {
+            templateUrl: 'views/application/clusters.html'
+          }
+        }
+      })
+      .state('clusters.cluster', {
+        url: '/:cluster',
+        views: {
+          'master@application': {
+            templateUrl: 'views/application/cluster.html',
+            controller: 'ClusterCtrl'
+          }
+        },
+        resolve: {
+          cluster: function($stateParams) {
+            return {
+              name: $stateParams.cluster
             };
           }
         }

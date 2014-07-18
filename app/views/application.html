@@ -1,4 +1,7 @@
 
+<div class="row page-header application-header">
+  <h2>{{application.name}}</h2>
+</div>
 <div class="row">
   <div class="col-md-1 no-padding">
     <div class="stacked-pills">
@@ -7,23 +10,17 @@
           View by
         </li>
         <li>
-          <a href="javascript:void(0)"
-             ng-click="view.activeTab = 'clusters'"
-             ng-class="{active: view.activeTab==='clusters'}">
+          <a ui-sref="clusters" ng-class="{active: $state.includes('clusters')}">
             <span class="glyphicon glyphicon-align-justify"></span>
             Clusters
           </a>
         </li>
         <li>
-          <a href="javascript:void(0)"
-             ng-click="view.activeTab = 'elbs'"
-             ng-class="{active: view.activeTab==='elbs'}">
+          <a ui-sref="elbs" ng-class="{active: $state.includes('elbs')}">
             <span class="glyphicon glyphicon-th"></span>ELB</a>
         </li>
         <li>
-          <a href="javascript:void(0)"
-             ng-click="view.activeTab = 'connections'"
-             ng-class="{active: view.activeTab==='connections'}">
+          <a ui-sref="connections" ng-class="{active: $state.includes('connections')}">
             <span class="glyphicon glyphicon-transfer"></span>
             Connections
           </a>
@@ -35,63 +32,13 @@
     <div class="row">
 
       <div class="col-md-4 nav">
-        <h3>Accounts</h3>
-        <div class="sub-nav">
-          <div class="sub-nav-item">
-            <h4>MCE Test</h4>
-            <a href="#">front50: #654</a>
-          </div>
-          <div class="sub-nav-item">
-            <h4>Test</h4>
-            <a href="#">front50: #654</a>
-          </div>
-          <div class="sub-nav-item">
-            <h4>Production</h4>
-            <a href="#">front50: #654</a>
-          </div>
-        </div>
+        <div ui-view="nav"></div>
       </div>
 
       <div class="col-md-8 nav-content">
-        <div class="header">
-          <div class="close-button">
-            <button class="btn btn-link">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button>
-          </div>
-          <h3>
-            <span class="glyphicon glyphicon-transfer"></span> Security Groups
-          </h3>
-          <div class="actions">
-            <select class="form-control input-sm">
-              <option value="">Actions</option>
-            </select>
-          </div>
-        </div>
-        <div class="content">
-          <div class="sort-filter">
-            <div class="row form-inline">
-              <div class="form-group">
-                <label>
-                  Sort by
-                  <select class="form-control input-sm" name="sort-by" id="sort-by">
-                    <option value="region" selected>Region</option>
-                    <option value="us-east-1">us-east-1</option>
-                  </select>
-                </label>
-              </div>
-              <div class="form-group">
-                <label>
-                  Filter
-                  <input type="text" class="form-control input-sm" name="filter" id="filter"/>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div ui-view="master"></div>
       </div>
     </div>
-
   </div>
 
   <div class="col-md-3 details-panel">
