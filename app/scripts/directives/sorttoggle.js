@@ -18,7 +18,7 @@ angular.module('deckApp')
       controller: function($scope) {
         if ($scope.default === 'true') {
           $scope.$parent.sortKey = $scope.key;
-        };
+        }
 
         // TODO: find a solution that doesn't involve $parent
         $scope.$parent.reverse = false;

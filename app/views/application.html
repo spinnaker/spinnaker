@@ -53,14 +53,83 @@
       </div>
 
       <div class="col-md-8 nav-content">
-        a bunch of content
+        <div class="header">
+          <div class="close-button">
+            <button class="btn btn-link">
+              <span class="glyphicon glyphicon-remove"></span>
+            </button>
+          </div>
+          <h3>
+            <span class="glyphicon glyphicon-transfer"></span> Security Groups
+          </h3>
+          <div class="actions">
+            <select class="form-control input-sm">
+              <option value="">Actions</option>
+            </select>
+          </div>
+        </div>
+        <div class="content">
+          <div class="sort-filter">
+            <div class="row form-inline">
+              <div class="form-group">
+                <label>
+                  Sort by
+                  <select class="form-control input-sm" name="sort-by" id="sort-by">
+                    <option value="region" selected>Region</option>
+                    <option value="us-east-1">us-east-1</option>
+                  </select>
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  Filter
+                  <input type="text" class="form-control input-sm" name="filter" id="filter"/>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <div class="col-md-2 details-panel">
-    the details
+  <div class="col-md-3 details-panel">
+    <div class="header">
+      <div class="close-button">
+        <button class="btn btn-link">
+          <span class="glyphicon glyphicon-remove"></span>
+        </button>
+      </div>
+      <h3>
+        <span class="glyphicon glyphicon-th"></span>
+        API-Proxy-Test1 v264
+      </h3>
+    </div>
+    <div class="content">
+      <div class="content-section">
+        <h4>ASG Information</h4>
+        <dl class="dl-horizontal dl-narrow">
+          <dt>Created:</dt>
+          <dd>Yesterday @ 14:52</dd>
+          <dt>In:</dt>
+          <dd>Api-Proxy-Test1</dd>
+        </dl>
+      </div>
+      <div class="content-section">
+        <h4>Health</h4>
+        <dl class="dl-horizontal dl-narrow">
+          <dt>Instances:</dt>
+          <dd>2</dd>
+        </dl>
+      </div>
+      <div class="content-section">
+        <h4>Launch Configuration</h4>
+      </div>
+      <div class="content-section">
+        <h4>Package</h4>
+      </div>
+    </div>
   </div>
 </div>
 

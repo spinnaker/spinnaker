@@ -57,7 +57,7 @@ body {
 }
 
 .container {
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 .no-padding {
@@ -108,11 +108,16 @@ body {
   }
   .nav {
     padding: 0 0 10px 10px;
-    background-color: @lighter_grey;
-    border: 1px solid @light_grey;
+    background-color: #f1f1f1;
+    border: 1px solid #6c6c6c;
 
     h3 {
       margin-bottom: 0;
+      font-weight: 600;
+    }
+
+    h4 {
+      font-weight: 600;
     }
 
     .sub-nav {
@@ -121,16 +126,20 @@ body {
       .sub-nav-item {
         margin-left: 10px;
         padding: 10px 0;
-        border-bottom: 1px solid @mid_grey;
+        border-bottom: 1px solid #c4c4c4;
 
         &:last-child {
           border-bottom-width: 0;
         }
 
+        &:first-child {
+          padding-top: 0;
+        }
+
         a {
           display: block;
           padding: 5px 10px;
-          color: @dark_grey;
+          color: #6a6a6a;
           &:hover, &:focus, &.active {
             text-decoration: none;
             border-radius: 5px 0 0 5px;
@@ -142,17 +151,99 @@ body {
     }
   }
   .nav-content {
-    padding: 10px;
-    background-color: @lightest_grey;
-    border: 1px solid @lighter_grey;
+    background-color: #ffffff;
+    border: 1px solid #aaaaaa;
     border-left-width: 0;
+    padding: 0;
+
+    .header {
+      padding: 20px 15px 0 15px;
+      h3 {
+        display: inline-block;
+        margin-right: 20px;
+      }
+      .actions {
+        display: inline-block;
+      }
+    }
+    .content {
+      padding: 10px;
+
+      .sort-filter {
+        label {
+          margin-left: 20px;
+          font-weight: normal;
+        }
+        input, select {
+          margin-left: 10px;
+        }
+      }
+    }
+  }
+}
+
+.secondary-panel, .details-panel {
+  .close-button {
+    float: right;
+    margin-top: -15px;
+    margin-right: -10px;
+    button {
+      padding: 0;
+      font-size: 125%;
+      color: #a4a4a4;
+    }
   }
 }
 
 .details-panel {
-  border: 1px solid @mid_grey;
+  border: 1px solid #aaaaaa;
+  background-color: #ffffff;
   min-height: 500px;
   margin-left: 20px;
+  padding: 0;
+
+  .header {
+    text-align: center;
+    padding: 20px 15px 0 15px;
+
+    h3 {
+      font-weight: 700;
+      .glyphicon {
+        color: #93ab6d;
+        display: block;
+        font-size: 200%;
+      }
+    }
+  }
+
+  .content {
+    .content-section {
+      h4 {
+        font-weight: 700;
+      }
+      padding: 0 15px;
+      border-bottom: 1px solid #c4c4c4;
+
+      &:last-child {
+        border-bottom-width: 0;
+      }
+
+      &:first-child {
+        padding-top: 0;
+      }
+    }
+  }
+}
+
+.dl-horizontal {
+  &.dl-narrow {
+    dt {
+      width: 80px;
+    }
+    dd {
+      margin-left: 100px;
+    }
+  }
 }
 
 .container-narrow > hr {
