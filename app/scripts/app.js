@@ -81,16 +81,30 @@ angular
       })
 
       .state('application', {
-        url: '/application',
+        url: '/:application',
+        parent: 'applications',
         views: {
-          'main': {
+          'main@': {
             templateUrl: 'views/application.html',
             controller: 'ApplicationCtrl'
           }
         },
         resolve: {
           application: function() {
-            return {};
+            return {
+              "name" : "CASS_SEG_SKEEBALL",
+              "description" : "Cassandra cluster for cass_seg_skeeball",
+              "email" : "cde_admin@netflix.com",
+              "owner" : "CDE SEG",
+              "type" : "Standalone Application",
+              "group" : "",
+              "monitorBucketType" : "application",
+              "pdApiKey" : "626560c0b433012e3b1312313d009e57",
+              "regions" : null,
+              "tags" : "cde,cassandra",
+              "createTs" : "1399576071499",
+              "updateTs" : "1399576071499"
+            };
           }
         }
       });
