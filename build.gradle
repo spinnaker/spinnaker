@@ -43,6 +43,10 @@ ext {
   ]
 }
 
+allprojects {
+  apply plugin: 'idea'
+}
+
 subprojects { project ->
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
