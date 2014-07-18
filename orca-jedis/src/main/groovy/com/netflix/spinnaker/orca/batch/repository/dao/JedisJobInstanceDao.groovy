@@ -27,11 +27,11 @@ import redis.clients.jedis.JedisCommands
 @CompileStatic
 class JedisJobInstanceDao implements JobInstanceDao {
 
-  private final Jedis jedis
+  private final JedisCommands jedis
   private JobKeyGenerator<JobParameters> jobKeyGenerator = new DefaultJobKeyGenerator()
 
   @Autowired
-  JedisJobInstanceDao(Jedis jedis) {
+  JedisJobInstanceDao(JedisCommands jedis) {
     this.jedis = jedis
   }
 
@@ -86,7 +86,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
 
   @Override
   List<JobInstance> findJobInstancesByName(String jobName, int start, int count) {
-    def keys = jedis.keys("jobInstance:$jobName|*") as List
+    def keys = ((Jedis) jedis).keys("jobInstance:$jobName|*") as List
     keys = keys[[start, keys.size()].min()..<[start + count, keys.size()].min()]
     keys.collect {
       getJobInstanceByKey it.toString()

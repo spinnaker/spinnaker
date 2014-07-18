@@ -21,7 +21,7 @@ import org.springframework.batch.core.*
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.beans.factory.annotation.Autowired
-import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
 
 import static com.netflix.spinnaker.orca.batch.repository.dao.DaoHelper.checkOptimisticLock
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.deserializeDate
@@ -30,12 +30,12 @@ import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.seria
 @CompileStatic
 class JedisJobExecutionDao implements JobExecutionDao {
 
-  private final Jedis jedis
+  private final JedisCommands jedis
   private JobInstanceDao jobInstanceDao
   private JobKeyGenerator<JobParameters> jobKeyGenerator = new DefaultJobKeyGenerator()
 
   @Autowired
-  JedisJobExecutionDao(Jedis jedis, JobInstanceDao jobInstanceDao) {
+  JedisJobExecutionDao(JedisCommands jedis, JobInstanceDao jobInstanceDao) {
     this.jedis = jedis
     this.jobInstanceDao = jobInstanceDao
   }

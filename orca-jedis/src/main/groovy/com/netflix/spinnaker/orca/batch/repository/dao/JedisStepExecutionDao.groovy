@@ -22,18 +22,18 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.StepExecutionDao
-import org.springframework.dao.OptimisticLockingFailureException
-import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
+
+import static com.netflix.spinnaker.orca.batch.repository.dao.DaoHelper.checkOptimisticLock
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.deserializeDate
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.serializeDate
-import static com.netflix.spinnaker.orca.batch.repository.dao.DaoHelper.checkOptimisticLock
 
 @CompileStatic
 class JedisStepExecutionDao implements StepExecutionDao {
 
-  private final Jedis jedis
+  private final JedisCommands jedis
 
-  JedisStepExecutionDao(Jedis jedis) {
+  JedisStepExecutionDao(JedisCommands jedis) {
     this.jedis = jedis
   }
 

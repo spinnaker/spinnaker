@@ -19,11 +19,11 @@ package com.netflix.spinnaker.orca.batch.repository.dao
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Entity
 import org.springframework.dao.OptimisticLockingFailureException
-import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
 
 @CompileStatic
 class DaoHelper {
-  static void checkOptimisticLock(Jedis jedis, String key, Entity entity) {
+  static void checkOptimisticLock(JedisCommands jedis, String key, Entity entity) {
     def persistedVersion = jedis.hget(key, "version").toInteger()
     if (entity.version != persistedVersion) {
       def typeName = entity.getClass().simpleName.replaceAll(/(?<=[a-z])([A-Z])/, / $1/).toLowerCase()

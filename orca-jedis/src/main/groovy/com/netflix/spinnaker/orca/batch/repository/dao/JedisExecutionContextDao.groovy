@@ -21,9 +21,17 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.ExecutionContextDao
 import org.springframework.batch.item.ExecutionContext
+import redis.clients.jedis.JedisCommands
 
 @CompileStatic
 class JedisExecutionContextDao implements ExecutionContextDao {
+
+  private final JedisCommands jedis
+
+  JedisExecutionContextDao(JedisCommands jedis) {
+    this.jedis = jedis
+  }
+
   @Override
   ExecutionContext getExecutionContext(JobExecution jobExecution) {
     throw new UnsupportedOperationException()
