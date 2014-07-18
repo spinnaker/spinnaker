@@ -122,10 +122,10 @@ angular
         parent: 'application',
         views: {
           'nav': {
-            templateUrl: 'views/application/clusterNav.html'
+            templateUrl: 'views/application/cluster/navigation.html'
           },
           'master': {
-            templateUrl: 'views/application/clusters.html'
+            templateUrl: 'views/application/cluster/all.html'
           }
         }
       })
@@ -133,7 +133,7 @@ angular
         url: '/:cluster',
         views: {
           'master@application': {
-            templateUrl: 'views/application/cluster.html',
+            templateUrl: 'views/application/cluster/single.html',
             controller: 'ClusterCtrl'
           }
         },
@@ -144,5 +144,62 @@ angular
             };
           }
         }
-      });
+      })
+      .state('elbs', {
+        url: '/elbs',
+        parent: 'application',
+        views: {
+          'nav': {
+            templateUrl: 'views/application/elb/navigation.html'
+          },
+          'master': {
+            templateUrl: 'views/application/elb/all.html'
+          }
+        }
+      })
+      .state('elbs.elb', {
+        url: '/:elb',
+        views: {
+          'master@application': {
+            templateUrl: 'views/application/elb/single.html',
+            controller: 'ClusterCtrl'
+          }
+        },
+        resolve: {
+          cluster: function($stateParams) {
+            return {
+              name: $stateParams.cluster
+            };
+          }
+        }
+      })
+      .state('connections', {
+        url: '/connections',
+        parent: 'application',
+        views: {
+          'nav': {
+            templateUrl: 'views/application/connection/navigation.html'
+          },
+          'master': {
+            templateUrl: 'views/application/connection/all.html'
+          }
+        }
+      })
+      .state('connections.connection', {
+        url: '/:connection',
+        views: {
+          'master@application': {
+            templateUrl: 'views/application/connection/single.html',
+            controller: 'ClusterCtrl'
+          }
+        },
+        resolve: {
+          cluster: function($stateParams) {
+            return {
+              name: $stateParams.cluster
+            };
+          }
+        }
+      })
+    ;
   });
