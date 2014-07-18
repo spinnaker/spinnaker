@@ -21,9 +21,9 @@ import org.springframework.batch.core.*
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.OptimisticLockingFailureException
 import redis.clients.jedis.Jedis
 
+import static com.netflix.spinnaker.orca.batch.repository.dao.DaoHelper.checkOptimisticLock
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.deserializeDate
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.serializeDate
 
@@ -70,10 +70,7 @@ class JedisJobExecutionDao implements JobExecutionDao {
       throw new IllegalArgumentException("JobExecution must already be saved")
     }
 
-    def persistedVersion = jedis.hget(key, "version").toInteger()
-    if (jobExecution.version != persistedVersion) {
-      throw new OptimisticLockingFailureException("Attempt to update job execution id=$jobExecution.id with wrong version ($jobExecution.version), where current version is $persistedVersion")
-    }
+    checkOptimisticLock(jedis, key, jobExecution)
 
     jobExecution.incrementVersion()
     storeJobExecution(key, jobExecution)

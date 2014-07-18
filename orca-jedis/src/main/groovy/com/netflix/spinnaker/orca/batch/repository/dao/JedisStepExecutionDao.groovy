@@ -26,6 +26,7 @@ import org.springframework.dao.OptimisticLockingFailureException
 import redis.clients.jedis.Jedis
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.deserializeDate
 import static com.netflix.spinnaker.orca.batch.repository.dao.IsoTimestamp.serializeDate
+import static com.netflix.spinnaker.orca.batch.repository.dao.DaoHelper.checkOptimisticLock
 
 @CompileStatic
 class JedisStepExecutionDao implements StepExecutionDao {
@@ -70,11 +71,7 @@ class JedisStepExecutionDao implements StepExecutionDao {
       throw new IllegalArgumentException("step execution is expected to be already saved")
     }
 
-    def persistedVersion = jedis.hget(key, "version").toInteger()
-    if (stepExecution.version != persistedVersion) {
-      throw new OptimisticLockingFailureException("Attempt to update step execution id=$stepExecution.id with wrong version ($stepExecution.version), where current version is $persistedVersion")
-    }
-
+    checkOptimisticLock(jedis, key, stepExecution)
     stepExecution.incrementVersion()
     storeStepExecution(key, stepExecution)
   }

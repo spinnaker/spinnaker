@@ -26,8 +26,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noParameters
-import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.toJobParameters
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.toJobParameters
 
 abstract class JobInstanceDaoTck extends Specification {
 
@@ -225,6 +225,8 @@ abstract class JobInstanceDaoTck extends Specification {
     "b*"    | 0     | 2     | ["baz", "bar"]
     "b*"    | 1     | 2     | ["bar", "bar"]
   }
+
+  // TODO: findJobInstancesByName is supposed to return items in descending id order - this will need a new index or something
 
   @Unroll("getJobInstanceCount returns #expectedCount for the job name '#jobName'")
   def "getJobInstanceCount returns count by job name"() {

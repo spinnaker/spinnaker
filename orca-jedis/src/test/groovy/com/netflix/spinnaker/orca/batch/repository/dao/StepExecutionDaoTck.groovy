@@ -16,20 +16,16 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobInstance
-import org.springframework.batch.core.StepExecution
+import org.springframework.batch.core.*
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.batch.core.repository.dao.StepExecutionDao
 import org.springframework.dao.OptimisticLockingFailureException
-import org.springframework.util.SerializationUtils
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noParameters
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
+import static com.netflix.spinnaker.orca.CopyUtils.copy
 
 abstract class StepExecutionDaoTck extends Specification {
 
@@ -248,9 +244,4 @@ abstract class StepExecutionDaoTck extends Specification {
       terminateOnly == stepExecution.terminateOnly
     }
   }
-
-  private <T> T copy(T object) {
-    SerializationUtils.deserialize(SerializationUtils.serialize(object))
-  }
-
 }

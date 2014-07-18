@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch.repository.dao
+package com.netflix.spinnaker.orca
 
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
-import org.springframework.batch.core.JobParameter
-import org.springframework.batch.core.JobParameters
+import org.springframework.util.SerializationUtils
 
-class BatchHelpers {
-
-  @CompileStatic
-  @Memoized
-  static JobParameters noParameters() {
-    new JobParameters()
+@CompileStatic
+class CopyUtils {
+  static <T> T copy(T object) {
+    SerializationUtils.deserialize(SerializationUtils.serialize(object))
   }
-
-  @Memoized
-  static JobParameters toJobParameters(Map<String, ?> map) {
-    map.collectEntries {
-      [(it.key): new JobParameter(it.value)]
-    }
-  }
-
 }

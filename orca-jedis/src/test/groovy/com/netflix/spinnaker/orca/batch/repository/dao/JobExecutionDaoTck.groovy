@@ -23,13 +23,13 @@ import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.dao.OptimisticLockingFailureException
-import org.springframework.util.SerializationUtils
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.noParameters
-import static com.netflix.spinnaker.orca.batch.repository.dao.BatchHelpers.toJobParameters
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.toJobParameters
+import static com.netflix.spinnaker.orca.CopyUtils.copy
 
 abstract class JobExecutionDaoTck extends Specification {
 
@@ -429,8 +429,4 @@ abstract class JobExecutionDaoTck extends Specification {
   }
 
   // TODO: test executionContext and failureExceptions
-
-  private <T> T copy(T object) {
-    SerializationUtils.deserialize(SerializationUtils.serialize(object))
-  }
 }
