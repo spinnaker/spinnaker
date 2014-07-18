@@ -51,6 +51,7 @@ class JedisStepExecutionDao implements StepExecutionDao {
     jedis.hset(key, "version", stepExecution.version.toString())
     jedis.hset(key, "stepName", stepExecution.stepName)
     jedis.hset(key, "status", stepExecution.status.name())
+    jedis.hset(key, "filterCount", stepExecution.filterCount.toString())
     jedis.hset(key, "readCount", stepExecution.readCount.toString())
     jedis.hset(key, "writeCount", stepExecution.writeCount.toString())
     jedis.hset(key, "commitCount", stepExecution.commitCount.toString())
@@ -68,13 +69,13 @@ class JedisStepExecutionDao implements StepExecutionDao {
     jedis.hset(key, "exitCode", stepExecution.exitStatus.exitCode)
     jedis.hset(key, "exitDescription", stepExecution.exitStatus.exitDescription)
     jedis.hset(key, "terminateOnly", stepExecution.terminateOnly.toString())
-    jedis.hset(key, "filterCount", stepExecution.filterCount.toString())
-
   }
 
   @Override
   void saveStepExecutions(Collection<StepExecution> stepExecutions) {
-    throw new UnsupportedOperationException()
+    stepExecutions.each {
+      saveStepExecution it
+    }
   }
 
   @Override
@@ -87,6 +88,7 @@ class JedisStepExecutionDao implements StepExecutionDao {
     def hash = jedis.hgetAll("stepExecution:$jobExecution.id:$stepExecutionId")
     def stepExecution = new StepExecution(hash.stepName, jobExecution, hash.id as Long)
     stepExecution.status = BatchStatus.valueOf(hash.status)
+    stepExecution.filterCount = hash.filterCount.toInteger()
     stepExecution.readCount = hash.readCount.toInteger()
     stepExecution.writeCount = hash.writeCount.toInteger()
     stepExecution.commitCount = hash.commitCount.toInteger()
@@ -105,7 +107,6 @@ class JedisStepExecutionDao implements StepExecutionDao {
     if (Boolean.parseBoolean(hash.terminateOnly)) {
       stepExecution.setTerminateOnly()
     }
-    stepExecution.filterCount = hash.filterCount.toInteger()
     return stepExecution
   }
 

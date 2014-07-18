@@ -134,4 +134,19 @@ abstract class StepExecutionDaoTck extends Specification {
     thrown IllegalArgumentException
   }
 
+  def "saveJobExecutions saves each JobExecution in a collection"() {
+    given:
+    def executions = (1..3).collect {
+      new StepExecution("foo", jobExecution)
+    }
+
+    when:
+    stepExecutionDao.saveStepExecutions(executions)
+
+    then:
+    executions.id.every {
+      it != null
+    }
+  }
+
 }
