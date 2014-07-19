@@ -6,7 +6,7 @@
  * @description
  * # insightMenu
  */
-angular.module('scumApp')
+angular.module('deckApp')
   .directive('insightMenu', function () {
     return {
       templateUrl: 'views/insightmenu.html',

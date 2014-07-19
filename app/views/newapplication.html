@@ -1,0 +1,36 @@
+<div>
+  <form role="form">
+    <div class="form-group">
+      <label for="applicationName">Name</label>
+      <input type="text"
+             class="form-control"
+             ng-model="application.name"
+             placeholder="Enter an application name"
+             id="applicationName">
+      </input>
+    </div>
+    <div class="form-group">
+      <label for="applicationDescription">Description</label>
+      <input type="text"
+             class="form-control"
+             ng-model="application.description"
+             placeholder="Enter a description"
+             id="applicationDescription">
+      </input>
+    </div>
+    <div class="form-group">
+      <label for="ownerEmail">Owner Email</label>
+      <input type="email"
+             class="form-control"
+             ng-model="application.email"
+             placeholder="Enter an email address"
+             id="ownerEmail">
+      </input>
+    </div>
+    <button type="submit"
+            class="btn btn-default"
+            ng-click="$close(application)">
+      Submit
+    </button>
+  </form>
+</div>

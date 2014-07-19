@@ -10,13 +10,45 @@
  */
 angular
   .module('deckApp', [
-    'ui.router'
+    'ui.router',
+    'ui.bootstrap',
+    'restangular',
   ])
-  .run(function($state, $rootScope) {
+  .run(function($state, $rootScope, $log) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
     $rootScope.$state = $state;
+    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+      $log.debug({
+        event: event,
+        toState: toState,
+        toParams: toParams,
+        fromState: fromState,
+        fromParams: fromParams
+      });
+    });
+
+    $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
+      $log.debug({
+        event: event,
+        toState: toState,
+        toParams: toParams,
+        fromState: fromState,
+        fromParams: fromParams,
+        error:error
+      });
+    });
+
+    $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
+      $log.debug({
+        event: event,
+        toState: toState,
+        toParams: toParams,
+        fromState: fromState,
+        fromParams: fromParams
+      });
+    });
   })
   .config(function ($stateProvider, $urlRouterProvider, $logProvider) {
     $logProvider.debugEnabled(true);
@@ -45,6 +77,7 @@ angular
         },
         resolve: {
           applications: function(oortService) {
+            console.log('hello');
             return oortService.listApplications();
           }
         }
