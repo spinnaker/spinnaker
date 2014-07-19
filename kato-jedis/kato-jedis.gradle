@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
   compile project(":kato-core")
-  compile("com.netflix.spinnaker.kork:kork-jedis:1.13"){
+  compile("com.netflix.spinnaker.kork:kork-jedis:1.14"){
     exclude module: 'guava-io'
   }
 }
