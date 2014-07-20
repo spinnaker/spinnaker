@@ -1,36 +1,49 @@
-<div>
-  <form role="form">
-    <div class="form-group">
-      <label for="applicationName">Name</label>
-      <input type="text"
-             class="form-control"
-             ng-model="application.name"
-             placeholder="Enter an application name"
-             id="applicationName">
-      </input>
+<div class="modal-page">
+  <form role="form" class="container-fluid">
+    <div class="modal-header">
+      <h3>New Application</h3>
     </div>
-    <div class="form-group">
-      <label for="applicationDescription">Description</label>
-      <input type="text"
-             class="form-control"
-             ng-model="application.description"
-             placeholder="Enter a description"
-             id="applicationDescription">
-      </input>
+    <div class="modal-body">
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Name</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="application.name"
+                 placeholder="Enter an application name"
+                 id="applicationName">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Description</div>
+        <div class="col-sm-9">
+          <textarea
+                 class="form-control input-sm"
+                 ng-model="application.description"
+                 placeholder="Enter a description"
+                 id="applicationDescription">
+          </textarea>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Owner Email</div>
+        <div class="col-sm-9">
+          <input type="email"
+                 class="form-control input-sm"
+                 ng-model="application.email"
+                 placeholder="Enter an email address"
+                 id="ownerEmail">
+          </input>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="ownerEmail">Owner Email</label>
-      <input type="email"
-             class="form-control"
-             ng-model="application.email"
-             placeholder="Enter an email address"
-             id="ownerEmail">
-      </input>
+    <div class="modal-footer">
+      <button type="submit"
+              class="btn btn-default"
+              ng-click="$close(application)">
+        Submit
+      </button>
     </div>
-    <button type="submit"
-            class="btn btn-default"
-            ng-click="$close(application)">
-      Submit
-    </button>
   </form>
 </div>
