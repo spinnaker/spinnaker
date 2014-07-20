@@ -77,7 +77,6 @@ angular
         },
         resolve: {
           applications: function(oortService) {
-            console.log('hello');
             return oortService.listApplications();
           }
         }

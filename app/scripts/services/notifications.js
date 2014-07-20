@@ -2,7 +2,7 @@
 
 angular.module('deckApp')
   .factory('notifications', function(RxService, $log) {
-    var stream = new Rx.Subject();
+    var stream = new RxService.Subject();
 
     return {
       error: function(config) {
@@ -41,6 +41,6 @@ angular.module('deckApp')
         });
         stream.onNext(config);
       },
-      subscribe: function(cb) { return stream.subscribe(cb) },
-    }
+      subscribe: function(cb) { return stream.subscribe(cb); }
+    };
   });

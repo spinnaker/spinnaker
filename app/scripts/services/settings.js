@@ -2,7 +2,5 @@
 
 angular.module('deckApp')
   .constant('settings', {
-    front50Url: 'http://front50.test.netflix.net',
-
-
+    front50Url: 'http://front50.test.netflix.net'
   });

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, applications, $modal, front50, notifications) {
+  .controller('ApplicationsCtrl', function($scope, applications, $exceptionHandler, $modal, $log, RxService, front50, notifications) {
     $scope.applications = applications.data;
 
     $scope.menuActions = [
@@ -9,7 +9,7 @@ angular.module('deckApp')
         displayName: 'Create Application',
         action: function() {
           $modal.open({
-            templateUrl: 'views/newapplication.html',
+            templateUrl: 'views/newapplication.html'
             // TODO: how to create a new scope
           }).result.then(function(app) {
             front50.all('applications').post(app).then(function(resp) {
@@ -22,14 +22,14 @@ angular.module('deckApp')
                   .filter(function(other) {
                     return other.name === app.name;
                   });
-                }),
+                })
               });
             }, function(err) {
               $exceptionHandler(err);
             });
           });
-        },
-      },
+        }
+      }
     ];
 
   });
