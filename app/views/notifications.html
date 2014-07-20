@@ -1,6 +1,12 @@
 <li class="dropdown notifications" on-toggle="notifications.onView()">
   <!--TODO: make template root not an li -->
-  <a class="dropdown-toggle" href>Notifications <div class="circle" ng-show="notifications.active.hasUnread ">{{ notifications.active.unread }}</div></a>
+  <a class="dropdown-toggle" href>Notifications
+    <div class="unread">
+      <div ng-show="notifications.active.hasUnread">
+        {{ notifications.active.unread }}
+      </div>
+    </div>
+  </a>
   <ul class="dropdown-menu" role="menu">
     <li ng-repeat="notification in notifications.active">
       <progressbar animate="true" value="100" class="progress-striped active" ng-hide="notification.$done"></progressbar>
