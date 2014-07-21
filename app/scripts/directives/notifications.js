@@ -39,15 +39,9 @@ angular.module('deckApp')
           });
         };
 
-        $scope.notifications = addNotificationProps([
-          {
-            title: 'testing',
-            $done: false,
-            href: '/',
-            $success: false,
-            message: 'still testing',
-          }
-        ]);
+
+
+        $scope.notifications = addNotificationProps([]);
 
         notifications.subscribe(function(notification) {
           Object.defineProperties(notification, {
