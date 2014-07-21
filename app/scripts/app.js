@@ -97,6 +97,13 @@ angular
           }
         }
       })
+
+      .state('tasks', {
+        url: '/tasks',
+        parent: 'application',
+        views: {
+        },
+      })
       .state('clusters', {
         url: '/clusters',
         parent: 'application',
