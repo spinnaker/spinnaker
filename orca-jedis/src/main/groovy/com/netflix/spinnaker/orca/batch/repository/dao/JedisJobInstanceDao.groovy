@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.*
 import org.springframework.batch.core.launch.NoSuchJobException
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.beans.factory.annotation.Autowired
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
+
+import java.util.regex.Pattern
 
 @CompileStatic
 class JedisJobInstanceDao implements JobInstanceDao {
@@ -84,13 +86,24 @@ class JedisJobInstanceDao implements JobInstanceDao {
     jedis.smembers("jobInstanceNames").sort()
   }
 
+  @CompileDynamic // have to do this due to https://jira.codehaus.org/browse/GROOVY-6961
   @Override
   List<JobInstance> findJobInstancesByName(String jobName, int start, int count) {
-    def keys = ((Jedis) jedis).keys("jobInstance:$jobName|*") as List
-    keys = keys[[start, keys.size()].min()..<[start + count, keys.size()].min()]
-    keys.collect {
-      getJobInstanceByKey it.toString()
+    // Obviously this isn't a great implementation as it's finding and hydrating way more JobInstance values than it
+    // needs to. It's not advisable to use the KEYS command which could do the glob match as it blocks the entire Redis
+    // cluster. There could be some optimization done by storing ids instead of keys in the jobInstanceName:foo set
+    // which would mean it wouldn't be necessary to hydrate JobInstances just to do the ordering.
+    def pattern = Pattern.compile(jobName.replaceAll(/\*/, ".*").replaceAll(/\?/, "."))
+    def jobInstances = jedis.smembers("jobInstanceNames").findAll {
+      it ==~ pattern
+    } collectMany { String name ->
+      jedis.zrevrange("jobInstanceName:$name", Long.MIN_VALUE, Long.MAX_VALUE).collect { key ->
+        getJobInstanceByKey key
+      }
+    } sort { JobInstance it ->
+      -it.id
     }
+    jobInstances.subList(start, [start + count, jobInstances.size()].min())
   }
 
   @Override

@@ -28,6 +28,8 @@ import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 import static com.netflix.spinnaker.orca.batch.BatchHelpers.toJobParameters
+import static org.hamcrest.Matchers.containsInAnyOrder
+import static spock.util.matcher.HamcrestSupport.that
 
 abstract class JobInstanceDaoTck extends Specification {
 
@@ -211,13 +213,13 @@ abstract class JobInstanceDaoTck extends Specification {
   @Unroll("findJobInstancesByName returns #expectedNames using the expression '#jobName', start #start and count #count")
   def "findJobInstancesByName limits results to the specified range"() {
     given:
-    jobInstanceDao.createJobInstance("bar", new JobParameters(a: new JobParameter("a")))
-    jobInstanceDao.createJobInstance("bar", new JobParameters(b: new JobParameter("b")))
+    jobInstanceDao.createJobInstance("bar", toJobParameters(a: "a"))
+    jobInstanceDao.createJobInstance("bar", toJobParameters(b: "b"))
     jobInstanceDao.createJobInstance("baz", noParameters())
     jobInstanceDao.createJobInstance("foo", noParameters())
 
     expect:
-    jobInstanceDao.findJobInstancesByName(jobName, start, count).jobName.sort() == expectedNames.sort()
+    that jobInstanceDao.findJobInstancesByName(jobName, start, count).jobName, containsInAnyOrder(*expectedNames)
 
     where:
     jobName | start | count | expectedNames
@@ -226,7 +228,24 @@ abstract class JobInstanceDaoTck extends Specification {
     "b*"    | 1     | 2     | ["bar", "bar"]
   }
 
-  // TODO: findJobInstancesByName is supposed to return items in descending id order - this will need a new index or something
+  def "findJobInstancesByName orders results highest id first"() {
+    given:
+    (1..10).each { i ->
+      jobNames.each { jobName ->
+        jobInstanceDao.createJobInstance(jobName, toJobParameters(a: i))
+      }
+    }
+
+    when:
+    def jobInstances = jobInstanceDao.findJobInstancesByName(pattern, 0, 99)
+
+    then:
+    jobInstances.id == jobInstances.id.sort().reverse()
+
+    where:
+    jobNames = ["foo", "bar", "baz"]
+    pattern = "b*"
+  }
 
   @Unroll("getJobInstanceCount returns #expectedCount for the job name '#jobName'")
   def "getJobInstanceCount returns count by job name"() {

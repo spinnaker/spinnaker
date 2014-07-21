@@ -46,6 +46,7 @@ ext {
       groovy           : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy"),
       guava            : dependencies.create("com.google.guava:guava:$versions.guava"),
       h2               : dependencies.create("com.h2database:h2:1.4.178"),
+      hamcrest         : dependencies.create("org.hamcrest:hamcrest-all:1.3"),
       jacksonDatabind  : dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
       jacksonGuava     : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
       kork             : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
