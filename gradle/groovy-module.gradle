@@ -31,6 +31,7 @@ dependencies {
   compile commonDependencies.groovy
   compile commonDependencies.guava
   compile commonDependencies.slf4j
-  compile commonDependencies.logback
   testCompile commonDependencies.spock
+  testRuntime commonDependencies.slf4jSimple
+  testRuntime commonDependencies.slf4jJcl
 }
