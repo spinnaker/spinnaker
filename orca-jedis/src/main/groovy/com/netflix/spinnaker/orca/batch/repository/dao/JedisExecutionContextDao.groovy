@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
@@ -35,25 +34,22 @@ class JedisExecutionContextDao implements ExecutionContextDao {
 
   @Override
   ExecutionContext getExecutionContext(JobExecution jobExecution) {
-    def hash = jedis.hgetAll("jobExecutionContext:$jobExecution.id") as Map<String, Object>
-    new ExecutionContext(hash)
+    _getExecutionContext "jobExecutionContext:$jobExecution.id"
   }
 
   @Override
   ExecutionContext getExecutionContext(StepExecution stepExecution) {
-    throw new UnsupportedOperationException()
+    _getExecutionContext "stepExecutionContext:$stepExecution.id"
   }
 
   @Override
   void saveExecutionContext(JobExecution jobExecution) {
-    jobExecution.executionContext.entrySet().each {
-      jedis.hset("jobExecutionContext:$jobExecution.id", it.key, it.value.toString())
-    }
+    _saveExecutionContext "jobExecutionContext:$jobExecution.id", jobExecution.executionContext
   }
 
   @Override
   void saveExecutionContext(StepExecution stepExecution) {
-    throw new UnsupportedOperationException()
+    _saveExecutionContext "stepExecutionContext:$stepExecution.id", stepExecution.executionContext
   }
 
   @Override
@@ -69,5 +65,16 @@ class JedisExecutionContextDao implements ExecutionContextDao {
   @Override
   void updateExecutionContext(StepExecution stepExecution) {
     throw new UnsupportedOperationException()
+  }
+
+  private ExecutionContext _getExecutionContext(String key) {
+    def hash = jedis.hgetAll(key) as Map<String, Object>
+    new ExecutionContext(hash)
+  }
+
+  private void _saveExecutionContext(String key, ExecutionContext executionContext) {
+    executionContext.entrySet().each {
+      jedis.hset(key, it.key, it.value.toString())
+    }
   }
 }

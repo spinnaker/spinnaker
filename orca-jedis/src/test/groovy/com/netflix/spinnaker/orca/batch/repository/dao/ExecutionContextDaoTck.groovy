@@ -72,7 +72,21 @@ abstract class ExecutionContextDaoTck extends Specification {
     executionContextDao.getExecutionContext(jobExecution).entrySet() == context.entrySet()
 
     where:
-    context = [a: "foo"]
+    context = [a: "foo", b: "bar"]
+  }
+
+  def "can save and retrieve the execution context for a step"() {
+    given:
+    stepExecution.executionContext = new ExecutionContext(context)
+
+    when:
+    executionContextDao.saveExecutionContext(stepExecution)
+
+    then:
+    executionContextDao.getExecutionContext(stepExecution).entrySet() == context.entrySet()
+
+    where:
+    context = [a: "foo", b: "bar"]
   }
 
 }
