@@ -89,4 +89,38 @@ abstract class ExecutionContextDaoTck extends Specification {
     context = [a: "foo", b: "bar"]
   }
 
+  def "updating a job execution context adds, updated and removes keys"() {
+    given:
+    jobExecution.executionContext = new ExecutionContext(a: "a", b: "b")
+    executionContextDao.saveExecutionContext(jobExecution)
+
+    when:
+    jobExecution.executionContext.with {
+      remove("b")
+      put("c", "c")
+      put("a", "A")
+    }
+    executionContextDao.updateExecutionContext(jobExecution)
+
+    then:
+    executionContextDao.getExecutionContext(jobExecution).entrySet() == [a: "A", c: "c"].entrySet()
+  }
+
+  def "updating a step execution context adds, updated and removes keys"() {
+    given:
+    stepExecution.executionContext = new ExecutionContext(a: "a", b: "b")
+    executionContextDao.saveExecutionContext(stepExecution)
+
+    when:
+    stepExecution.executionContext.with {
+      remove("b")
+      put("c", "c")
+      put("a", "A")
+    }
+    executionContextDao.updateExecutionContext(stepExecution)
+
+    then:
+    executionContextDao.getExecutionContext(stepExecution).entrySet() == [a: "A", c: "c"].entrySet()
+  }
+
 }

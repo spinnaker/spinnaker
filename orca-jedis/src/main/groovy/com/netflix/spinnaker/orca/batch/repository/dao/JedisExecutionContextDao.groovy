@@ -54,17 +54,19 @@ class JedisExecutionContextDao implements ExecutionContextDao {
 
   @Override
   void saveExecutionContexts(Collection<StepExecution> stepExecutions) {
-    throw new UnsupportedOperationException()
+    stepExecutions.each {
+      saveExecutionContext it
+    }
   }
 
   @Override
   void updateExecutionContext(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    _updateExecutionContext "jobExecutionContext:$jobExecution.id", jobExecution.executionContext
   }
 
   @Override
   void updateExecutionContext(StepExecution stepExecution) {
-    throw new UnsupportedOperationException()
+    _updateExecutionContext "stepExecutionContext:$stepExecution.id", stepExecution.executionContext
   }
 
   private ExecutionContext _getExecutionContext(String key) {
@@ -76,5 +78,10 @@ class JedisExecutionContextDao implements ExecutionContextDao {
     executionContext.entrySet().each {
       jedis.hset(key, it.key, it.value.toString())
     }
+  }
+
+  private void _updateExecutionContext(String key, ExecutionContext executionContext) {
+    jedis.del key
+    _saveExecutionContext key, executionContext
   }
 }
