@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import com.google.common.base.Optional
+import groovy.io.FileType
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.StepExecution
@@ -26,6 +28,7 @@ import org.springframework.batch.core.repository.dao.StepExecutionDao
 import org.springframework.batch.item.ExecutionContext
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 
@@ -121,6 +124,29 @@ abstract class ExecutionContextDaoTck extends Specification {
 
     then:
     executionContextDao.getExecutionContext(stepExecution).entrySet() == [a: "A", c: "c"].entrySet()
+  }
+
+  @Unroll("can persist #type value")
+  def "can persist different types of data"() {
+    given:
+    stepExecution.executionContext.put(key, value)
+    executionContextDao.saveExecutionContext(stepExecution)
+
+    expect:
+    executionContextDao.getExecutionContext(stepExecution).key == value
+
+    where:
+    value                | type
+    "foo"                | "a string"
+    1                    | "an int"
+    1L                   | "a long"
+    1.1D                 | "a double"
+    new Date()           | "a Date"
+    Optional.absent()    | "a Serializable"
+    null                 | "a null"
+    FileType.DIRECTORIES | "an enum"
+
+    key = "key"
   }
 
 }

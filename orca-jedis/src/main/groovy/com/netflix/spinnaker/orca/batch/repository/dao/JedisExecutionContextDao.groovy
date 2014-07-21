@@ -16,12 +16,18 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.ExecutionContextDao
 import org.springframework.batch.item.ExecutionContext
 import redis.clients.jedis.JedisCommands
+
+import static javax.xml.bind.DatatypeConverter.parseBase64Binary
+import static javax.xml.bind.DatatypeConverter.printBase64Binary
+import static org.springframework.util.SerializationUtils.deserialize
+import static org.springframework.util.SerializationUtils.serialize
 
 @CompileStatic
 class JedisExecutionContextDao implements ExecutionContextDao {
@@ -34,22 +40,22 @@ class JedisExecutionContextDao implements ExecutionContextDao {
 
   @Override
   ExecutionContext getExecutionContext(JobExecution jobExecution) {
-    _getExecutionContext "jobExecutionContext:$jobExecution.id"
+    readExecutionContext "jobExecutionContext:$jobExecution.id"
   }
 
   @Override
   ExecutionContext getExecutionContext(StepExecution stepExecution) {
-    _getExecutionContext "stepExecutionContext:$stepExecution.id"
+    readExecutionContext "stepExecutionContext:$stepExecution.id"
   }
 
   @Override
   void saveExecutionContext(JobExecution jobExecution) {
-    _saveExecutionContext "jobExecutionContext:$jobExecution.id", jobExecution.executionContext
+    writeExecutionContext "jobExecutionContext:$jobExecution.id", jobExecution.executionContext
   }
 
   @Override
   void saveExecutionContext(StepExecution stepExecution) {
-    _saveExecutionContext "stepExecutionContext:$stepExecution.id", stepExecution.executionContext
+    writeExecutionContext "stepExecutionContext:$stepExecution.id", stepExecution.executionContext
   }
 
   @Override
@@ -69,19 +75,21 @@ class JedisExecutionContextDao implements ExecutionContextDao {
     _updateExecutionContext "stepExecutionContext:$stepExecution.id", stepExecution.executionContext
   }
 
-  private ExecutionContext _getExecutionContext(String key) {
-    def hash = jedis.hgetAll(key) as Map<String, Object>
+  private ExecutionContext readExecutionContext(String key) {
+    Map<String, Object> hash = Maps.transformValues(jedis.hgetAll(key)) {
+      deserialize(parseBase64Binary(it))
+    }
     new ExecutionContext(hash)
   }
 
-  private void _saveExecutionContext(String key, ExecutionContext executionContext) {
+  private void writeExecutionContext(String key, ExecutionContext executionContext) {
     executionContext.entrySet().each {
-      jedis.hset(key, it.key, it.value.toString())
+      jedis.hset key, it.key, printBase64Binary(serialize(it.value))
     }
   }
 
   private void _updateExecutionContext(String key, ExecutionContext executionContext) {
     jedis.del key
-    _saveExecutionContext key, executionContext
+    writeExecutionContext key, executionContext
   }
 }
