@@ -16,18 +16,63 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobInstance
+import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.repository.dao.ExecutionContextDao
+import org.springframework.batch.core.repository.dao.JobExecutionDao
+import org.springframework.batch.core.repository.dao.JobInstanceDao
+import org.springframework.batch.core.repository.dao.StepExecutionDao
+import org.springframework.batch.item.ExecutionContext
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 
 abstract class ExecutionContextDaoTck extends Specification {
 
   @Subject ExecutionContextDao executionContextDao
+  JobInstanceDao jobInstanceDao
+  JobExecutionDao jobExecutionDao
+  StepExecutionDao stepExecutionDao
+
+  JobInstance jobInstance
+  JobExecution jobExecution
+  StepExecution stepExecution
 
   def setup() {
+    jobInstanceDao = createJobInstanceDao()
+    jobExecutionDao = createJobExecutionDao(jobInstanceDao)
+    stepExecutionDao = createStepExecutionDao()
     executionContextDao = createExecutionContextDao()
+
+    jobInstance = jobInstanceDao.createJobInstance("foo", noParameters())
+    jobExecution = new JobExecution(jobInstance, noParameters())
+    jobExecutionDao.saveJobExecution(jobExecution)
+    stepExecution = new StepExecution("step", jobExecution)
+    stepExecutionDao.saveStepExecution(stepExecution)
   }
 
+  abstract JobInstanceDao createJobInstanceDao()
+
+  abstract JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao)
+
+  abstract StepExecutionDao createStepExecutionDao()
+
   abstract ExecutionContextDao createExecutionContextDao()
+
+  def "can save and retrieve the execution context for a job"() {
+    given:
+    jobExecution.executionContext = new ExecutionContext(context)
+
+    when:
+    executionContextDao.saveExecutionContext(jobExecution)
+
+    then:
+    executionContextDao.getExecutionContext(jobExecution).entrySet() == context.entrySet()
+
+    where:
+    context = [a: "foo"]
+  }
 
 }

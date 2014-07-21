@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.batch.repository.dao
 
 import com.netflix.spinnaker.kork.jedis.JedisConfig
 import org.springframework.batch.core.repository.dao.ExecutionContextDao
+import org.springframework.batch.core.repository.dao.JobExecutionDao
+import org.springframework.batch.core.repository.dao.JobInstanceDao
+import org.springframework.batch.core.repository.dao.StepExecutionDao
 import redis.clients.jedis.Jedis
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -29,6 +32,21 @@ class JedisExecutionContextDaoSpec extends ExecutionContextDaoTck {
 
   def cleanup() {
     jedis.flushDB()
+  }
+
+  @Override
+  JobInstanceDao createJobInstanceDao() {
+    new JedisJobInstanceDao(jedis)
+  }
+
+  @Override
+  JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao) {
+    new JedisJobExecutionDao(jedis, jobInstanceDao)
+  }
+
+  @Override
+  StepExecutionDao createStepExecutionDao() {
+    new JedisStepExecutionDao(jedis)
   }
 
   @Override

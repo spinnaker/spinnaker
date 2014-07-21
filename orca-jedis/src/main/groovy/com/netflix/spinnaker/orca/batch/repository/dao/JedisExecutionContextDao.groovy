@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
+import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
@@ -34,7 +35,8 @@ class JedisExecutionContextDao implements ExecutionContextDao {
 
   @Override
   ExecutionContext getExecutionContext(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    def hash = jedis.hgetAll("jobExecutionContext:$jobExecution.id") as Map<String, Object>
+    new ExecutionContext(hash)
   }
 
   @Override
@@ -44,7 +46,9 @@ class JedisExecutionContextDao implements ExecutionContextDao {
 
   @Override
   void saveExecutionContext(JobExecution jobExecution) {
-    throw new UnsupportedOperationException()
+    jobExecution.executionContext.entrySet().each {
+      jedis.hset("jobExecutionContext:$jobExecution.id", it.key, it.value.toString())
+    }
   }
 
   @Override

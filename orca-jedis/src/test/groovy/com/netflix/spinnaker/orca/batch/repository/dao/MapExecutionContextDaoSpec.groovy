@@ -17,9 +17,30 @@
 package com.netflix.spinnaker.orca.batch.repository.dao
 
 import org.springframework.batch.core.repository.dao.ExecutionContextDao
+import org.springframework.batch.core.repository.dao.JobExecutionDao
+import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.batch.core.repository.dao.MapExecutionContextDao
+import org.springframework.batch.core.repository.dao.MapJobExecutionDao
+import org.springframework.batch.core.repository.dao.MapJobInstanceDao
+import org.springframework.batch.core.repository.dao.MapStepExecutionDao
+import org.springframework.batch.core.repository.dao.StepExecutionDao
 
 class MapExecutionContextDaoSpec extends ExecutionContextDaoTck {
+
+  @Override
+  JobInstanceDao createJobInstanceDao() {
+    new MapJobInstanceDao()
+  }
+
+  @Override
+  JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao) {
+    new MapJobExecutionDao()
+  }
+
+  @Override
+  StepExecutionDao createStepExecutionDao() {
+    new MapStepExecutionDao()
+  }
 
   @Override
   ExecutionContextDao createExecutionContextDao() {
