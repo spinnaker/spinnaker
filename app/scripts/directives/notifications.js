@@ -19,7 +19,12 @@ angular.module('deckApp')
             },
             hasUnread: {
               get: function() {
-                return this.unread > 0;
+                return this.unread.length > 0;
+              },
+            },
+            hasActive: {
+              get: function() {
+                return this.active.length > 0;
               },
             },
             onView: {

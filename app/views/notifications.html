@@ -7,7 +7,7 @@
       </div>
     </div>
   </a>
-  <ul class="dropdown-menu" role="menu" ng-show="notifications.active">
+  <ul class="dropdown-menu" role="menu" ng-show="notifications.hasActive">
     <li ng-repeat="notification in notifications.active">
       <progressbar animate="true" value="100" class="progress-striped active" ng-hide="notification.$done"></progressbar>
       <span>{{ notification.title }}</span>
