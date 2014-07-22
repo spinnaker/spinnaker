@@ -7,5 +7,7 @@ angular.module('deckApp')
     $scope.cluster = cluster;
     $scope.serverGroup = serverGroup.data[0];
 
+    delete $scope.serverGroup.launchConfig.userData;
+
   })
 ;
