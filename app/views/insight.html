@@ -1,0 +1,16 @@
+<div class="row">
+  <div class="col-md-8">
+    <div class="row">
+
+      <div class="col-md-4 nav">
+        <div ui-view="nav"></div>
+      </div>
+
+      <div class="col-md-8 nav-content">
+        <div ui-view="master"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 details-panel" ui-view="detail">
+  </div>
+</div>

@@ -89,7 +89,7 @@ angular
           'main@': {
             templateUrl: 'views/application.html',
             controller: 'ApplicationCtrl'
-          }
+          },
         },
         resolve: {
           application: function($stateParams, oortService) {
@@ -102,11 +102,22 @@ angular
         url: '/tasks',
         parent: 'application',
         views: {
+          'insight': 'views/tasks.html',
         },
+      })
+
+      .state('insight', {
+        parent: 'application',
+        abstract: true,
+        views: {
+          'insight': {
+            templateUrl: 'views/insight.html',
+          }
+        }
       })
       .state('clusters', {
         url: '/clusters',
-        parent: 'application',
+        parent: 'insight',
         views: {
           'nav': {
             templateUrl: 'views/application/cluster/navigation.html'
@@ -116,10 +127,11 @@ angular
           }
         }
       })
-      .state('clusters.cluster', {
+      .state('cluster', {
         url: '/:account/:cluster',
+        parent: 'clusters',
         views: {
-          'master@application': {
+          'master@insight': {
             templateUrl: 'views/application/cluster/single.html',
             controller: 'ClusterCtrl'
           }
@@ -139,9 +151,9 @@ angular
       })
       .state('serverGroup', {
         url: '/serverGroup/:serverGroup',
-        parent: 'clusters.cluster',
+        parent: 'cluster',
         views: {
-          'details@application': {
+          'details': {
             templateUrl: 'views/application/serverGroup.html',
             controller: 'ServerGroupCtrl'
           }
@@ -175,7 +187,7 @@ angular
       })
       .state('elbs', {
         url: '/elbs',
-        parent: 'application',
+        parent: 'insight',
         views: {
           'nav': {
             templateUrl: 'views/application/elb/navigation.html'
@@ -185,10 +197,11 @@ angular
           }
         }
       })
-      .state('elbs.elb', {
+      .state('elb', {
         url: '/:elb',
+        parent: 'elbs',
         views: {
-          'master@application': {
+          'master': {
             templateUrl: 'views/application/elb/single.html',
             controller: 'ClusterCtrl'
           }
@@ -203,7 +216,7 @@ angular
       })
       .state('connections', {
         url: '/connections',
-        parent: 'application',
+        parent: 'insight',
         views: {
           'nav': {
             templateUrl: 'views/application/connection/navigation.html'
@@ -213,8 +226,9 @@ angular
           }
         }
       })
-      .state('connections.connection', {
+      .state('connection', {
         url: '/:connection',
+        parent: 'connections',
         views: {
           'master@application': {
             templateUrl: 'views/application/connection/single.html',
