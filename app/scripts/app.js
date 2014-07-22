@@ -152,6 +152,27 @@ angular
           }
         }
       })
+      .state('instance', {
+        url: '/instance/:instance',
+        parent: 'serverGroup',
+        views: {
+          'details@application': {
+            templateUrl: 'views/application/instance.html',
+            controller: 'InstanceCtrl'
+          }
+        },
+        resolve: {
+          instance: function($stateParams) {
+            return {
+              name: $stateParams.instance,
+              application: $stateParams.application,
+              account: $stateParams.account,
+              cluster: $stateParams.cluster,
+              serverGroup: $stateParams.serverGroup
+            };
+          }
+        }
+      })
       .state('elbs', {
         url: '/elbs',
         parent: 'application',

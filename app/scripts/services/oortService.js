@@ -69,12 +69,23 @@ angular.module('deckApp')
       return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroupName);
     }
 
+    function getInstance(application, account, cluster, serverGroup, instanceName) {
+      return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroup)
+        .then(function(response) {
+          var retrieved = response.data[0];
+          var matches = retrieved.asg.instances.filter(function(instance) { return instance.instanceId === instanceName; });
+          console.warn('retrieved???', retrieved, matches);
+          return matches && matches.length ? matches[0] : null;
+        });
+    }
+
     return {
       listApplications: listApplications,
       getApplication: getApplication,
       getClusters: getClusters,
       getClustersForAccount: getClustersForAccount,
       getCluster: getCluster,
-      getServerGroup: getServerGroup
+      getServerGroup: getServerGroup,
+      getInstance: getInstance
     };
   });

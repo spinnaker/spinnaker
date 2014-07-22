@@ -1,0 +1,42 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^.^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h3>
+      <span class="glyphicon glyphicon-hdd" ng-class="{unhealthy: instance.healthStatus !== 'Healthy'}"></span>
+      {{instance.instanceId}}
+    </h3>
+  </div>
+  <div class="content">
+    <div class="content-section">
+      <h4>Instance Information</h4>
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched:</dt>
+        <dd>{{instance.launchTime | relativeTime}}</dd>
+        <dt>In:</dt>
+        <dd>{{instance.availabilityZone}}</dd>
+      </dl>
+    </div>
+    <div class="content-section">
+      <h4>Health</h4>
+        <div ng-if="instance.healthStatus === 'Healthy'">
+          <span class="glyphicon glyphicon-up-triangle healthy"></span> Up
+        </div>
+        <div ng-if="instance.healthStatus !== 'Healthy'">
+          <span class="glyphicon glyphicon-down-triangle unhealthy"></span> Down
+        </div>
+    </div>
+    <div class="content-section">
+      <h4>Launch Configuration</h4>
+      <arbitrary-list source="serverGroup.launchConfig" omit="Launch Configuration"></arbitrary-list>
+    </div>
+    <div class="content-section">
+      <h4>Package</h4>
+      <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
+    </div>
+  </div>
+</div>

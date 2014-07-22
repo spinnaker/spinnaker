@@ -58,7 +58,8 @@
           <health-counts server-group="serverGroup"></health-counts>
         </div>
         <div class="instances">
-          <a class="instance" href="#"
+          <a class="instance"
+             ui-sref="instance({serverGroup: serverGroup.name, instance: instance.instanceId })"
              ng-repeat="instance in serverGroup.asg.instances"
              ng-class="{unhealthy: instance.healthStatus !== 'Healthy'}"
             >
