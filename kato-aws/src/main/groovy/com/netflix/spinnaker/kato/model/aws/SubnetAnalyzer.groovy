@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kato.model.aws
 
 import com.amazonaws.services.ec2.model.Subnet
 import com.google.common.base.Function
+import com.google.common.base.Preconditions
 import com.google.common.base.Supplier
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
@@ -66,6 +67,7 @@ import groovy.transform.Canonical
    * @return the unique subnet with that ID or null
    */
   SubnetData findSubnetById(String id) {
+    Preconditions.checkNotNull(id)
     allSubnets.find { it.subnetId == id }
   }
 
@@ -76,6 +78,7 @@ import groovy.transform.Canonical
    * @return wrapped set of SubnetData representations of subnets associated with the specified VPC
    */
   SubnetAnalyzer findSubnetsByVpc(String vpcId) {
+    Preconditions.checkNotNull(vpcId)
     new SubnetAnalyzer(allSubnets.findAll { it.vpcId == vpcId })
   }
 
@@ -112,6 +115,7 @@ import groovy.transform.Canonical
    * @throws IllegalArgumentException if there are multiple subnets with the same purpose and zone
    */
   List<String> getSubnetIdsForZones(Collection<String> zones, String purpose, SubnetTarget target = null) {
+    Preconditions.checkNotNull(purpose)
     if (!zones) {
       return Collections.emptyList()
     }

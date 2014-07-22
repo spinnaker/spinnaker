@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.Instance
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
 import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.web.client.RestTemplate
 
 class DisableAsgAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DISABLE_ASG"
@@ -40,68 +31,42 @@ class DisableAsgAtomicOperation implements AtomicOperation<Void> {
   }
 
   private final DisableAsgDescription description
-  private RestTemplate restTemplate
 
-  DisableAsgAtomicOperation(DisableAsgDescription description, RestTemplate restTemplate = new RestTemplate()) {
+  DisableAsgAtomicOperation(DisableAsgDescription description) {
     this.description = description
-    this.restTemplate = restTemplate
   }
 
-  @Value('${discovery.host.format:#{null}}')
-  String discoveryHostFormat
-
   @Autowired
-  AmazonClientProvider amazonClientProvider
+  RegionScopedProviderFactory regionScopedProviderFactory
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Disable ASG operation for $description.asgName..."
+    task.updateStatus BASE_PHASE, "Initializing Disable ASG operation for '$description.asgName'..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
+      try {
+        def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
 
-      def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
-      if (!result.autoScalingGroups) {
-        task.updateStatus BASE_PHASE, "No ASG named $description.asgName found in $region"
-        continue
-      }
+        def asgService = regionScopedProvider.asgService
+        def asg = asgService.getAutoScalingGroup(description.asgName)
+        if (!asg) {
+          task.updateStatus BASE_PHASE, "No ASG named '$description.asgName' found in $region"
+          continue
+        }
+        task.updateStatus BASE_PHASE, "Disabling ASG '$description.asgName' in $region..."
+        asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
 
-      task.updateStatus BASE_PHASE, "Deregistering instances from Load Balancers..."
-      def asg = result.autoScalingGroups.getAt(0)
-      if (asg.loadBalancerNames) {
-        def lbInstances = asg.instances.collect { new Instance().withInstanceId(it.instanceId) }
-        for (loadBalancerName in asg.loadBalancerNames) {
-          loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, lbInstances))
-        }
-      }
+        task.updateStatus BASE_PHASE, "Deregistering instances from Load Balancers..."
+        def elbService = regionScopedProvider.elbService
+        elbService.deregisterInstancesFromLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId)
 
-      List<String> disableProcessNames = AutoScalingProcessType.getDisableProcesses()*.name().sort()
-      task.updateStatus BASE_PHASE, "Disabling processes (${disableProcessNames.join(", ")}) for $description.asgName in $region."
-      def request = new SuspendProcessesRequest().withScalingProcesses(disableProcessNames).withAutoScalingGroupName(description.asgName)
-      autoScaling.suspendProcesses(request)
-      if (discoveryHostFormat) {
-        task.updateStatus BASE_PHASE, "Beginning discovery disable for $description.asgName"
-        def names = Names.parseName(asg.autoScalingGroupName)
-        if (!names.app) {
-          task.updateStatus BASE_PHASE, "! Couldn't figure out app name from ASG name. Can't disable in Discovery!"
-        }
-        for (instance in asg.instances) {
-          task.updateStatus BASE_PHASE, " > Disabling $instance.instanceId"
-          try {
-            disableInDiscovery names.app, region, description.credentials.environment, instance.instanceId
-          } catch (e) {
-            e.printStackTrace()
-            task.updateStatus BASE_PHASE, "  ! Couldn't disable $instance.instanceId in discovery! Reason: $e.message"
-          }
-        }
+        def eurekaService = regionScopedProvider.getEurekaService(task, BASE_PHASE)
+        eurekaService.disableInstancesForAsg(asg.autoScalingGroupName, asg.instances*.instanceId)
+      } catch (e) {
+        task.updateStatus BASE_PHASE, "Could not disable ASG '$description.asgName' in region $region! Reason: $e.message"
       }
     }
     task.updateStatus BASE_PHASE, "Done disabling ASG $description.asgName."
     null
   }
 
-  void disableInDiscovery(String app, String env, String region, String instanceId) {
-    def discovery = String.format(discoveryHostFormat, region, env)
-    restTemplate.put("$discovery/eureka/v2/apps/$app/$instanceId/status?value=OUT_OF_SERVICE", [:])
-  }
 }

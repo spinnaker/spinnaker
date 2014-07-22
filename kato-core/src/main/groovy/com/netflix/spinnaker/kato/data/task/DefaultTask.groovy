@@ -36,9 +36,8 @@ public class DefaultTask implements Task {
   private Boolean complete = Boolean.FALSE
   private Boolean failed = Boolean.FALSE
 
-  public DefaultTask(final String id, String phase, String status) {
+  public DefaultTask(final String id) {
     this.id = id
-    updateStatus phase, status
   }
 
   public void updateStatus(String phase, String status) {

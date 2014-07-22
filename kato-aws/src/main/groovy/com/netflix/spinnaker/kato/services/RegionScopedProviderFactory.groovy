@@ -18,10 +18,12 @@ package com.netflix.spinnaker.kato.services
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.model.aws.SubnetAnalyzer
-import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.springframework.web.client.RestTemplate
 
 @Component
 class RegionScopedProviderFactory {
@@ -29,16 +31,25 @@ class RegionScopedProviderFactory {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
+  @Autowired
+  ThrottleService throttleService
+
+  @Value('${discovery.host.format:#{null}}')
+  String discoveryHostFormat
+
   RegionScopedProvider forRegion(AmazonCredentials amazonCredentials, String region) {
-    new RegionScopedProvider(amazonClientProvider, amazonCredentials, region)
+    new RegionScopedProvider(amazonCredentials, region)
   }
 
-  @Canonical
-  static class RegionScopedProvider {
+  class RegionScopedProvider {
 
-    final AmazonClientProvider amazonClientProvider
     final AmazonCredentials amazonCredentials
     final String region
+
+    RegionScopedProvider(AmazonCredentials amazonCredentials, String region) {
+      this.amazonCredentials = amazonCredentials
+      this.region = region
+    }
 
     private AmazonEC2 getAmazonEC2() {
       amazonClientProvider.getAmazonEC2(amazonCredentials, region)
@@ -54,6 +65,18 @@ class RegionScopedProviderFactory {
 
     NetworkInterfaceService getNetworkInterfaceService() {
       new NetworkInterfaceService(securityGroupService, subnetAnalyzer, amazonEC2)
+    }
+
+    AsgService getAsgService() {
+      new AsgService(throttleService, amazonClientProvider.getAutoScaling(amazonCredentials, region))
+    }
+
+    ElbService getElbService() {
+      new ElbService(throttleService, amazonClientProvider.getAmazonElasticLoadBalancing(amazonCredentials, region))
+    }
+
+    EurekaService getEurekaService(Task task, String phase) {
+      new EurekaService(throttleService, discoveryHostFormat, new RestTemplate(), task, phase, amazonCredentials.environment, region)
     }
   }
 

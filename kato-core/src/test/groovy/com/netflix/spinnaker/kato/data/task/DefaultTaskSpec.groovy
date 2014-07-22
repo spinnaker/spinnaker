@@ -35,7 +35,8 @@ class DefaultTaskSpec extends Specification {
   }
 
   void resetTask() {
-    this.task = new DefaultTask("1", "INIT", "Starting")
+    task = new DefaultTask("1")
+    task.updateStatus "INIT", "Starting"
   }
 
   void "status updates and appends to history"() {
