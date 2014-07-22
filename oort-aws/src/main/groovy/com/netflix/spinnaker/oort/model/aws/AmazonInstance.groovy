@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.oort.model.aws
 
 import com.netflix.spinnaker.oort.model.Instance
-import groovy.transform.EqualsAndHashCode
 
-@EqualsAndHashCode(includes = ['name'])
 class AmazonInstance extends HashMap implements Instance, Serializable {
 
   AmazonInstance(String name) {
@@ -33,5 +31,16 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
 
   boolean isHealthy() {
     getProperty "isHealthy"
+  }
+
+  @Override
+  boolean equals(Object o) {
+    if (o instanceof AmazonInstance)
+    o.name.equals(name)
+  }
+
+  @Override
+  int hashCode() {
+    return name.hashCode()
   }
 }

@@ -153,6 +153,27 @@ class AmazonClusterProviderSpec extends Specification {
     objects.cluster.serverGroups[0].instances[0].name == objects.instanceId
   }
 
+  void "should populate multiple instances"() {
+    setup:
+    def objects = getCommonObjects()
+    def secondInstanceId = objects.instanceId + '-2'
+    def secondInstanceKey = Keys.getInstanceKey(secondInstanceId, objects.region)
+    def secondServerGroupInstanceKey = Keys.getServerGroupInstanceKey(objects.serverGroupName, secondInstanceId, objects.accountName, objects.region)
+    def secondInstance = new Instance().withInstanceId(secondInstanceId)
+    objects.serverGroupInstanceKeys << secondServerGroupInstanceKey
+
+    when:
+    provider.clusterFiller(objects.serverGroupKeys, objects.loadBalancerKeys, objects.serverGroupInstanceKeys, objects.cluster)
+
+    then:
+    1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
+    1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
+    1 * cacheService.retrieve(objects.imageKey, _) >> objects.image
+    1 * cacheService.retrieve(objects.instanceKey, _) >> objects.instance
+    1 * cacheService.retrieve(secondInstanceKey, _) >> secondInstance
+    objects.cluster.serverGroups[0].instances.size() == 2
+  }
+
   @Unroll
   void "should populate instances with health"() {
     def mockHealthProvider = Mock(HealthProvider)
@@ -248,7 +269,7 @@ class AmazonClusterProviderSpec extends Specification {
     def clusterKeys = [clusterKey] as Set
 
     [serverGroupKey: serverGroupKey, serverGroup: serverGroup, launchConfigKey: launchConfigKey, launchConfig: launchConfig,
-      imageKey: imageKey, image: image, instanceKey: instanceKey, instance: instance, keys: keys, cluster: cluster,
+      imageKey: imageKey, image: image, instanceKey: instanceKey, instance: instance, region: region, keys: keys, cluster: cluster,
       serverGroupName: serverGroupName, instanceId: instanceId, appName: appName, clusterName: clusterName,
       accountName: account, clusterKey: clusterKey, clusterKeys: clusterKeys, serverGroupKeys: serverGroupKeys,
       loadBalancerKeys: loadBalancerKeys, serverGroupInstanceKeys: serverGroupInstanceKeys]
