@@ -92,21 +92,8 @@ angular
           }
         },
         resolve: {
-          application: function($stateParams) {
-            return {
-              'name' : $stateParams.application,
-              'description' : 'Cassandra cluster for cass_seg_skeeball',
-              'email' : 'cde_admin@netflix.com',
-              'owner' : 'CDE SEG',
-              'type' : 'Standalone Application',
-              'group' : '',
-              'monitorBucketType' : 'application',
-              'pdApiKey' : '626560c0b433012e3b1312313d009e57',
-              'regions' : null,
-              'tags' : 'cde,cassandra',
-              'createTs' : '1399576071499',
-              'updateTs' : '1399576071499'
-            };
+          application: function($stateParams, oortService) {
+            return oortService.getApplication($stateParams.application);
           }
         }
       })
@@ -123,7 +110,7 @@ angular
         }
       })
       .state('clusters.cluster', {
-        url: '/:cluster',
+        url: '/:account/:cluster',
         views: {
           'master@application': {
             templateUrl: 'views/application/cluster/single.html',
@@ -135,6 +122,26 @@ angular
             return {
               name: $stateParams.cluster
             };
+          },
+          account: function($stateParams) {
+            return {
+              name: $stateParams.account
+            };
+          }
+        }
+      })
+      .state('serverGroup', {
+        url: '/serverGroup/:serverGroup',
+        parent: 'clusters.cluster',
+        views: {
+          'details@application': {
+            templateUrl: 'views/application/serverGroup.html',
+            controller: 'ServerGroupCtrl'
+          }
+        },
+        resolve: {
+          serverGroup: function($stateParams, oortService) {
+            return oortService.getServerGroup($stateParams.application, $stateParams.account, $stateParams.cluster, $stateParams.serverGroup);
           }
         }
       })

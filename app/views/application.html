@@ -22,13 +22,13 @@
         <li>
           <a ui-sref="connections" ng-class="{active: $state.includes('connections')}">
             <span class="glyphicon glyphicon-transfer"></span>
-            Connections
+            Security Groups
           </a>
         </li>
       </ul>
     </div>
   </div>
-  <div class="col-md-7 secondary-panel">
+  <div class="col-md-8 secondary-panel">
     <div class="row">
 
       <div class="col-md-4 nav">
@@ -41,42 +41,8 @@
     </div>
   </div>
 
-  <div class="col-md-3 details-panel">
-    <div class="header">
-      <div class="close-button">
-        <button class="btn btn-link">
-          <span class="glyphicon glyphicon-remove"></span>
-        </button>
-      </div>
-      <h3>
-        <span class="glyphicon glyphicon-th"></span>
-        API-Proxy-Test1 v264
-      </h3>
-    </div>
-    <div class="content">
-      <div class="content-section">
-        <h4>ASG Information</h4>
-        <dl class="dl-horizontal dl-narrow">
-          <dt>Created:</dt>
-          <dd>Yesterday @ 14:52</dd>
-          <dt>In:</dt>
-          <dd>Api-Proxy-Test1</dd>
-        </dl>
-      </div>
-      <div class="content-section">
-        <h4>Health</h4>
-        <dl class="dl-horizontal dl-narrow">
-          <dt>Instances:</dt>
-          <dd>2</dd>
-        </dl>
-      </div>
-      <div class="content-section">
-        <h4>Launch Configuration</h4>
-      </div>
-      <div class="content-section">
-        <h4>Package</h4>
-      </div>
-    </div>
+  <div class="col-md-3 details-container">
+    <div ui-view="details"></div>
   </div>
 </div>
 

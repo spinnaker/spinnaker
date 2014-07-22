@@ -1,0 +1,41 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button">
+      <button class="btn btn-link">
+        <span class="glyphicon glyphicon-remove"></span>
+      </button>
+    </div>
+    <h3>
+      <span class="glyphicon glyphicon-th"></span>
+      {{serverGroup.name}}
+    </h3>
+  </div>
+  <div class="content">
+    <div class="content-section">
+      <h4>ASG Information</h4>
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created:</dt>
+        <dd>{{serverGroup.asg.createdTime | relativeTime}}</dd>
+        <dt>In:</dt>
+        <dd>{{cluster.name}}</dd>
+      </dl>
+    </div>
+    <div class="content-section">
+      <h4>Health</h4>
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Instances:</dt>
+        <dd>
+          <health-counts server-group="serverGroup"></health-counts>
+        </dd>
+      </dl>
+    </div>
+    <div class="content-section">
+      <h4>Launch Configuration</h4>
+      <arbitrary-list source="serverGroup.launchConfig" omit="Launch Configuration"></arbitrary-list>
+    </div>
+    <div class="content-section">
+      <h4>Package</h4>
+      <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
+    </div>
+  </div>
+</div>

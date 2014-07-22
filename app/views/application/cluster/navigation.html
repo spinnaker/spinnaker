@@ -3,8 +3,8 @@
   <div class="sub-nav-item">
     <h4>{{account}}</h4>
     <a ng-repeat="cluster in getClustersForAccount(account)"
-       ui-sref="clusters.cluster({cluster: cluster.name})"
-       ng-class="{active: $state.includes('clusters.cluster', {cluster: cluster.name} )}">
+       ui-sref="clusters.cluster({account: account, cluster: cluster.name})"
+       ng-class="{active: $state.includes('clusters.cluster', {account: account, cluster: cluster.name} )}">
         {{cluster.name}}</a>
   </div>
 </div>

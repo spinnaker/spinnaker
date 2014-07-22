@@ -1,0 +1,5 @@
+<span class="instance-health-counts">
+  {{ serverGroup.upCount }} <span class="glyphicon glyphicon-up-triangle healthy"></span>
+  /
+  {{ serverGroup.asg.instances.length - serverGroup.upCount }} <span class="glyphicon glyphicon-down-triangle unhealthy"></span>
+</span>

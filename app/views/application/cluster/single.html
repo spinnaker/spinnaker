@@ -6,16 +6,27 @@
   </div>
   <h3>
     <span class="glyphicon glyphicon-th-large"></span>
-    {{cluster.name}}
+    {{account}}: {{cluster.name}}
   </h3>
+
   <div class="actions">
-    <select class="form-control input-sm">
-      <option value="">Cluster Actions</option>
-    </select>
+    <div class="dropdown">
+      <button type="button" class="btn btn-default dropdown-toggle" ng-disabled="disabled">
+        Cluster Actions <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li class="dropdown-header">CONFIG</li>
+        <li><a href="#">Create ASG</a></li>
+        <li><a href="#">Delete Cluster</a></li>
+        <li class="dropdown-header">INSIGHT</li>
+        <li><a href="#">View in Atlas</a></li>
+        <li><a href="#">View in Chronos</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 <div class="content">
-  <div class="sort-filter">
+  <div class="sort-filter" style="display:none">
     <div class="row form-inline">
       <div class="form-group">
         <label>
@@ -34,7 +45,31 @@
       </div>
     </div>
   </div>
-  <div ng-repeat="cluster in listClusters()">
+  <div ng-repeat="asg in asgsByRegion">
+    <h4>{{asg.region}}</h4>
 
+    <div class="row server-group" ng-repeat="serverGroup in asg.serverGroups">
+      <div class="col-sm-2 no-padding">
+        <a ui-sref="serverGroup({serverGroup: serverGroup.name})">
+          <span class="glyphicon glyphicon-th"></span> {{serverGroup.name | stripCluster:cluster}}
+        </a>
+      </div>
+      <div class="col-sm-10 no-padding">
+        <div class="build-title">
+          <a href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
+             target="_blank"
+             ng-if="serverGroup.buildInfo">
+            Build #{{ serverGroup.buildInfo.jenkins.number }}</a>:
+          <health-counts server-group="serverGroup"></health-counts>
+        </div>
+        <div class="instances">
+          <a class="instance" href="#"
+             ng-repeat="instance in serverGroup.asg.instances"
+             ng-class="{unhealthy: instance.healthStatus !== 'Healthy'}"
+            >
+            <span class="sr-only">{{instance.name}}</span></a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

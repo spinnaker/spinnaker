@@ -171,7 +171,7 @@ body {
       }
     }
     .content {
-      padding: 10px;
+      padding: 10px 25px;
 
       .sort-filter {
         label {
@@ -199,6 +199,22 @@ body {
   }
 }
 
+.glyphicon-up-triangle {
+  &:before {
+    content: "\25B2";
+  }
+}
+
+.glyphicon-down-triangle {
+  &:before {
+    content: "\25BC";
+  }
+}
+
+dl {
+  word-break: break-all;
+}
+
 .details-panel {
   border: 1px solid #aaaaaa;
   background-color: #ffffff;
@@ -213,7 +229,7 @@ body {
     h3 {
       font-weight: 700;
       .glyphicon {
-        color: #93ab6d;
+        color: @healthy_green;
         display: block;
         font-size: 200%;
       }
@@ -632,9 +648,18 @@ server-error-flag {
   }
 }
 
-
 .notifications.open {
   .dropdown-toggle {
     background-color: #999 !important;
+  }
+}
+
+.dropdown {
+  .dropdown-header {
+    margin-top: 15px;
+
+    &:first-child {
+      margin-top: 0;
+    }
   }
 }
