@@ -102,7 +102,10 @@ angular
         url: '/tasks',
         parent: 'application',
         views: {
-          'insight': 'views/tasks.html',
+          'insight': {
+            templateUrl: 'views/tasks.html',
+            controller: 'TasksCtrl',
+          },
         },
       })
 

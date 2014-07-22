@@ -1,0 +1,36 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="btn-group">
+          <label class="btn btn-primary" ng-model="taskStateFilter" btn-radio="'All'">
+            All
+          </label>
+          <label class="btn btn-primary" ng-model="taskStateFilter" btn-radio="'Running'">
+            Running
+          </label>
+          <label class="btn btn-primary" ng-model="taskStateFilter" btn-radio="'Completed'">
+            Completed
+          </label>
+          <label class="btn btn-primary" ng-model="taskStateFilter" btn-radio="'Errored'">
+            Errored
+          </label>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <form class="form form-inline">
+          <div class="form-group">
+            <label>Filter</label>
+            <input type="search" class="form-control" ng-model="taskFilter">
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="row" ng-repeat="task in tasks | taskFilter:taskStateFilter | filter:taskFilter">
+      <div class="col-md-12">
+        {{ task.title }}
+        {{ task.message }}
+      </div>
+    </div>
+  </div>
+</div>
