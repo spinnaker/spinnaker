@@ -31,23 +31,14 @@ package com.netflix.spinnaker.kato.model.aws
  * ScheduledActions
  */
 enum AutoScalingProcessType {
-  Launch('new instance launching'),
-  Terminate('instance termination'),
-  AZRebalance('availability zone rebalancing'),
-  AlarmNotifications('automatic alarm-based scaling'),
-  AddToLoadBalancer('adding instances to ELB')
-
-  final String resumeMessage
-  final String suspendMessage
-
-  AutoScalingProcessType(String message) {
-    this("Disabling ${message}" as String, "Enabling ${message}" as String)
-  }
-
-  AutoScalingProcessType(String suspendMessage, String resumeMessage) {
-    this.suspendMessage = suspendMessage
-    this.resumeMessage = resumeMessage
-  }
+  Launch,
+  Terminate,
+  AddToLoadBalancer,
+  AlarmNotifications,
+  AZRebalance,
+  HealthCheck,
+  ReplaceUnhealthy,
+  ScheduledActions
 
   static AutoScalingProcessType parse(String value) {
     values().find { it.name().equalsIgnoreCase(value) }

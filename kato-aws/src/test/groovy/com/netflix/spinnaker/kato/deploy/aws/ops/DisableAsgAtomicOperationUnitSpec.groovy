@@ -13,62 +13,158 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.Instance
 import com.netflix.amazoncomponents.security.AmazonCredentials
-import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
-import org.springframework.web.client.RestTemplate
+import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
+import com.netflix.spinnaker.kato.services.AsgService
+import com.netflix.spinnaker.kato.services.ElbService
+import com.netflix.spinnaker.kato.services.EurekaService
+import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import spock.lang.Specification
 
 class DisableAsgAtomicOperationUnitSpec extends Specification {
-  def setupSpec() {
-    TaskRepository.threadLocalTask.set(Mock(Task))
+
+  def mockAsgService = Mock(AsgService)
+  def mockEurekaService = Mock(EurekaService)
+  def mockElbService = Mock(ElbService)
+  def mockRegionScopedProvider = Mock(RegionScopedProviderFactory.RegionScopedProvider) {
+    getAsgService() >> mockAsgService
+    getElbService() >> mockElbService
+    getEurekaService(_, _) >> mockEurekaService
+  }
+  def mockRegionScopedProviderFactory = Mock(RegionScopedProviderFactory)
+  def task = new DefaultTask("1")
+
+  def setup() {
+    TaskRepository.threadLocalTask.set(task)
   }
 
   void "operation invokes update to autoscaling group and deregisters instances from the load balancers"() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    def mockLoadBalancing = Mock(AmazonElasticLoadBalancing)
-    def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> mockLoadBalancing
-    mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new DisableAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
-    def operation = new DisableAsgAtomicOperation(description, Mock(RestTemplate))
-    operation.discoveryHostFormat = "http://%s.discovery%s.netflix.net"
-    operation.amazonClientProvider = mockAmazonClientProvider
+    def operation = new DisableAsgAtomicOperation(description)
+    operation.with {
+      regionScopedProviderFactory = mockRegionScopedProviderFactory
+    }
 
     when:
     operation.operate([])
 
     then:
-    1 * mockLoadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest request ->
-      assert request.loadBalancerName == "myasg-stack-frontend"
-      assert request.instances.first().instanceId == "i-123456"
+    1 * mockRegionScopedProviderFactory.forRegion(_, "us-west-1") >> mockRegionScopedProvider
+    with(mockAsgService) {
+      1 * getAutoScalingGroup("myasg-stack-v000") >> new AutoScalingGroup(
+        autoScalingGroupName: "myasg-stack-v000", instances: [new Instance(instanceId: "i-123456")], loadBalancerNames: ["myasg-stack-frontend"])
+      1 * suspendProcesses("myasg-stack-v000", AutoScalingProcessType.getDisableProcesses())
+      0 * _
     }
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
-      assert request.autoScalingGroupNames == ["myasg-stack-v000"]
-      def mock = Mock(AutoScalingGroup)
-      mock.getAutoScalingGroupName() >> "myasg-stack-v000"
-      def instance = Mock(Instance)
-      instance.getInstanceId() >> "i-123456"
-      mock.getInstances() >> [instance]
-      mock.getLoadBalancerNames() >> ["myasg-stack-frontend"]
-      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
-    }
-    1 * mockAutoScaling.suspendProcesses(_) >> { SuspendProcessesRequest request ->
-      assert request.autoScalingGroupName == "myasg-stack-v000"
-      assert request.scalingProcesses == ["AddToLoadBalancer", "Launch", "Terminate"]
-    }
+    1 * mockEurekaService.disableInstancesForAsg("myasg-stack-v000", ["i-123456"])
+    1 * mockElbService.deregisterInstancesFromLoadBalancer(["myasg-stack-frontend"], ["i-123456"])
+
+    and:
+    task.getHistory()*.status == [
+      "Initializing Disable ASG operation for 'myasg-stack-v000'...",
+      "Disabling ASG 'myasg-stack-v000' in us-west-1...",
+      "Deregistering instances from Load Balancers...",
+      "Done disabling ASG myasg-stack-v000."
+    ]
   }
+
+  void "should log a nonexistant ASG"() {
+    setup:
+    def description = new DisableAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
+    description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
+    def operation = new DisableAsgAtomicOperation(description)
+    operation.with {
+      regionScopedProviderFactory = mockRegionScopedProviderFactory
+    }
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * mockRegionScopedProviderFactory.forRegion(_, "us-west-1") >> mockRegionScopedProvider
+    with(mockAsgService) {
+      1 * getAutoScalingGroup("myasg-stack-v000")
+      0 * _
+    }
+
+    and:
+    task.getHistory()*.status == [
+      "Initializing Disable ASG operation for 'myasg-stack-v000'...",
+      "No ASG named 'myasg-stack-v000' found in us-west-1",
+      "Done disabling ASG myasg-stack-v000."
+    ]
+  }
+
+  void "should disable ASGs across regions even after failure"() {
+    setup:
+    def description = new DisableAsgDescription(asgName: "myasg-stack-v000", regions: ["us-east-1", "us-west-1"])
+    description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
+    def operation = new DisableAsgAtomicOperation(description)
+    operation.with {
+      regionScopedProviderFactory = mockRegionScopedProviderFactory
+    }
+    def mockAsgServiceEast = Mock(AsgService)
+    def mockElbServiceEast = Mock(ElbService)
+    def mockEurekaServiceEast = Mock(EurekaService)
+    def mockRegionScopedProviderEast = Mock(RegionScopedProviderFactory.RegionScopedProvider) {
+      getAsgService() >> mockAsgServiceEast
+      getElbService() >> mockElbServiceEast
+      getEurekaService(_, _) >> mockEurekaServiceEast
+    }
+    def mockAsgServiceWest = Mock(AsgService)
+    def mockElbServiceWest = Mock(ElbService)
+    def mockEurekaServiceWest = Mock(EurekaService)
+    def mockRegionScopedProviderWest = Mock(RegionScopedProviderFactory.RegionScopedProvider) {
+      getAsgService() >> mockAsgServiceWest
+      getElbService() >> mockElbServiceWest
+      getEurekaService(_, _) >> mockEurekaServiceWest
+    }
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * mockRegionScopedProviderFactory.forRegion(_, "us-east-1") >> mockRegionScopedProviderEast
+    with(mockAsgServiceEast) {
+      1 * getAutoScalingGroup("myasg-stack-v000") >> new AutoScalingGroup()
+      1 * suspendProcesses("myasg-stack-v000", AutoScalingProcessType.getDisableProcesses()) >> {
+        throw new Exception("Uh oh!")
+      }
+      0 * _
+    }
+    0 * mockElbServiceEast._
+    0 * mockEurekaServiceWest._
+
+    then:
+    1 * mockRegionScopedProviderFactory.forRegion(_, "us-west-1") >> mockRegionScopedProviderWest
+    with(mockAsgServiceWest) {
+      1 * getAutoScalingGroup("myasg-stack-v000") >> new AutoScalingGroup(autoScalingGroupName: "myasg-stack-v000",
+        instances: [new Instance(instanceId: "i-123456")], loadBalancerNames: ["myasg-stack-frontend"])
+      1 * suspendProcesses("myasg-stack-v000", AutoScalingProcessType.getDisableProcesses())
+      0 * _
+    }
+    1 * mockEurekaServiceWest.disableInstancesForAsg("myasg-stack-v000", ["i-123456"])
+    1 * mockElbServiceWest.deregisterInstancesFromLoadBalancer(["myasg-stack-frontend"], ["i-123456"])
+
+    and:
+    task.getHistory()*.status == [
+      "Initializing Disable ASG operation for 'myasg-stack-v000'...",
+      "Disabling ASG 'myasg-stack-v000' in us-east-1...",
+      "Could not disable ASG 'myasg-stack-v000' in region us-east-1! Reason: Uh oh!",
+      "Disabling ASG 'myasg-stack-v000' in us-west-1...",
+      "Deregistering instances from Load Balancers...",
+      "Done disabling ASG myasg-stack-v000."
+    ]
+  }
+
 }

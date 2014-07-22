@@ -26,9 +26,9 @@ import groovy.transform.Canonical
 @Canonical
 class NetworkInterfaceService {
 
-  SecurityGroupService securityGroupService
-  SubnetAnalyzer subnetAnalyzer
-  AmazonEC2 amazonEC2
+  final SecurityGroupService securityGroupService
+  final SubnetAnalyzer subnetAnalyzer
+  final AmazonEC2 amazonEC2
 
   NetworkInterface createNetworkInterface(String availabilityZone, String subnetPurpose, AwsNetworkInterface networkInterface) {
     List<String> subnetIds = subnetAnalyzer.getSubnetIdsForZones([availabilityZone], subnetPurpose, SubnetTarget.ELB)
