@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import spock.lang.Specification
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
@@ -37,6 +32,7 @@ import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Specification
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
 /**

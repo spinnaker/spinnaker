@@ -112,10 +112,10 @@ class JedisJobExecutionDao implements JobExecutionDao {
     def jobExecution = new JobExecution(jobInstance, hash.id as Long, parameters, hash.jobConfigurationName)
     if (hash.startTime) jobExecution.startTime = deserializeDate(hash.startTime)
     if (hash.endTime) jobExecution.endTime = deserializeDate(hash.endTime)
-    jobExecution.status = BatchStatus.valueOf(hash.status)
+    if (hash.status) jobExecution.status = BatchStatus.valueOf(hash.status)
     jobExecution.exitStatus = new ExitStatus(hash.exitCode, hash.exitDescription)
     jobExecution.version = hash.version as Integer
-    jobExecution.createTime = deserializeDate(hash.createTime)
+    if (hash.createTime) jobExecution.createTime = deserializeDate(hash.createTime)
     if (hash.lastUpdated) jobExecution.lastUpdated = deserializeDate(hash.lastUpdated)
 
     return jobExecution

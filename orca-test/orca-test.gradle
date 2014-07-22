@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-
-
-
-
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
   compile commonDependencies.spock
   compile commonDependencies.springBatch
-  compile commonDependencies.springJdbc
+  compile project(":orca-jedis")
 }

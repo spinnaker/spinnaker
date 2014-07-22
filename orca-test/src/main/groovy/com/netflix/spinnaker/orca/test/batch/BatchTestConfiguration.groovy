@@ -14,61 +14,80 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.test.batch
 
-import javax.sql.DataSource
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.kork.jedis.JedisConfig
+import com.netflix.spinnaker.orca.batch.core.explore.support.JedisJobExplorerFactoryBean
+import com.netflix.spinnaker.orca.batch.repository.support.JedisJobRepositoryFactoryBean
 import org.springframework.batch.core.configuration.ListableJobLocator
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.batch.core.explore.JobExplorer
-import org.springframework.batch.core.explore.support.JobExplorerFactoryBean
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
+import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
+import org.springframework.batch.support.transaction.ResourcelessTransactionManager
+import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
-import org.springframework.core.env.Environment
-import org.springframework.core.io.ResourceLoader
-import org.springframework.jdbc.datasource.SingleConnectionDataSource
-import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
+import org.springframework.context.annotation.Import
+import org.springframework.transaction.PlatformTransactionManager
+import redis.clients.jedis.JedisCommands
 
 /**
  * This is a bare-bones configuration for running end-to-end Spring batch tests.
  */
 @Configuration
 @EnableBatchProcessing
-@PropertySource("classpath:batch.properties")
+// TODO: this probably shouldn't be directly imported as it's conditional
+@Import(JedisConfig)
 @CompileStatic
 class BatchTestConfiguration {
 
-  @Autowired private Environment env
-  @Autowired private ResourceLoader resourceLoader
+  @Autowired JedisCommands jedis
 
-  @Bean(destroyMethod = "destroy")
-  DataSource dataSource() {
-    def ds = new SingleConnectionDataSource()
-    ds.driverClassName = env.getProperty("batch.jdbc.driver")
-    ds.url = env.getProperty("batch.jdbc.url")
-    ds.username = env.getProperty("batch.jdbc.user")
-    ds.password = env.getProperty("batch.jdbc.password")
+  @Bean
+  BatchConfigurer batchConfigurer(JedisCommands jedis) {
+    new BatchConfigurer() {
+      @Override
+      JobRepository getJobRepository() {
+        def factory = new JedisJobRepositoryFactoryBean(jedis, getTransactionManager())
+        factory.afterPropertiesSet()
+        factory.object
+      }
 
-    def populator = new ResourceDatabasePopulator()
-    populator.addScript(resourceLoader.getResource(env.getProperty("batch.schema.script")))
-    DatabasePopulatorUtils.execute(populator, ds)
+      @Override
+      PlatformTransactionManager getTransactionManager() {
+        new ResourcelessTransactionManager()
+      }
 
-    return ds
+      @Override
+      JobLauncher getJobLauncher() {
+        def launcher = new SimpleJobLauncher(jobRepository: getJobRepository())
+        launcher.afterPropertiesSet()
+        return launcher
+      }
+    }
   }
 
-  @Bean JobExplorerFactoryBean jobExplorerFactoryBean(DataSource dataSource) {
-    new JobExplorerFactoryBean(dataSource: dataSource)
+  // required for the configuration from JedisConfig to work properly
+  @Bean PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
+    new PropertyPlaceholderConfigurer()
+  }
+
+//  @Primary
+//  @Bean
+//  FactoryBean<JobRepository> jobRepositoryFactoryBean(JedisCommands jedis, PlatformTransactionManager transactionManager) {
+//    new JedisJobRepositoryFactoryBean(jedis, transactionManager)
+//  }
+
+  @Bean FactoryBean<JobExplorer> jobExplorerFactoryBean(JedisCommands jedis) {
+    new JedisJobExplorerFactoryBean(jedis)
   }
 
   @Bean
@@ -80,4 +99,11 @@ class BatchTestConfiguration {
     jobOperator.jobRegistry = jobRegistry
     return jobOperator
   }
+
+//  @Bean
+//  JobLauncher jobLauncher(JobRepository jobRepository) {
+//    def launcher = new SimpleJobLauncher()
+//    launcher.jobRepository = jobRepository
+//    return launcher
+//  }
 }

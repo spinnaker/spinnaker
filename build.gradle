@@ -76,6 +76,10 @@ allprojects {
 }
 
 subprojects {
+  repositories {
+    maven { url "http://clojars.org/repo" }
+  }
+
   plugins.withType(JavaPlugin) {
     sourceCompatibility = "1.7"
     targetCompatibility = "1.7"

@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -51,6 +47,9 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
     given:
     preInterventionTask.execute(_) >> new DefaultTaskResult(SUSPENDED)
     def jobExecution = launchJob()
+
+    expect:
+    jobExecution.exitStatus == ExitStatus.STOPPED
 
     when:
     resumeJob jobExecution

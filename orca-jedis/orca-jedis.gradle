@@ -16,10 +16,6 @@
 
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
-repositories {
-  maven { url "http://clojars.org/repo" }
-}
-
 dependencies {
   compile commonDependencies.springBatch
   compile commonDependencies.korkJedis
