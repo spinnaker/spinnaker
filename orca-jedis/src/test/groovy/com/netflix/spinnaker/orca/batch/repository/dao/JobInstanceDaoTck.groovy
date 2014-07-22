@@ -141,6 +141,14 @@ abstract class JobInstanceDaoTck extends Specification {
     parameters = noParameters()
   }
 
+  def "getJobInstance using JobExecution returns null if there is no associated instance"() {
+    given:
+    def jobExecution = new JobExecution(1L)
+
+    expect:
+    jobInstanceDao.getJobInstance(jobExecution) == null
+  }
+
   @Unroll("getJobInstances returns #expectedCount instances for jobName '#jobName', start #start and count #count")
   def "getJobInstances by name and range"() {
     given:

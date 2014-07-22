@@ -71,7 +71,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
   @Override
   JobInstance getJobInstance(JobExecution jobExecution) {
     def key = jedis.get("jobExecutionToJobInstance:$jobExecution.id")
-    getJobInstanceByKey key
+    key ? getJobInstanceByKey(key) : null
   }
 
   @Override
