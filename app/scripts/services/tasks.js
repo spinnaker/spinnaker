@@ -10,13 +10,13 @@ angular.module('deckApp')
           '$done': false,
           '$success': false,
           title: config.title,
-          message: config.message,
+          message: config.message
         };
 
         notifications.create({
           title: config.title,
           message: config.message,
-          href: config.href,
+          href: config.href
         });
 
         config.observable.subscribe(function(data) {
@@ -24,14 +24,15 @@ angular.module('deckApp')
           task.$success = true;
           notifications.create(config.success(data));
         }, function(err) {
+          $log.error(err);
           task.$done = true;
           task.$success = false;
-          notifications.create(config.failure(data));
+          notifications.create(config.failure(err));
         });
 
       },
 
-      subscribe: stream.subscribe,
+      subscribe: stream.subscribe
 
     };
 

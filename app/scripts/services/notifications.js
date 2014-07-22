@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('notifications', function(RxService, $log) {
+  .factory('notifications', function(RxService) {
     var stream = new RxService.Subject();
 
     return {
@@ -10,9 +10,9 @@ angular.module('deckApp')
           title: config.title,
           message: config.message,
           href: config.href,
-          timestamp: Date.now(),
+          timestamp: Date.now()
         });
       },
-      subscribe: function(x) { stream.subscribe(x) },
+      subscribe: function(x) { stream.subscribe(x); }
     };
   });
