@@ -115,7 +115,13 @@ include::src/asciidoc/ops/deleteAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/destroyAsgDescription.adoc[]
 - - -
+include::src/asciidoc/ops/enableAsgDescription.adoc[]
+- - -
 include::src/asciidoc/ops/disableAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/resumeAsgProcessesDescription.adoc[]
+- - -
+include::src/asciidoc/ops/suspendAsgProcessesDescription.adoc[]
 - - -
 include::src/asciidoc/ops/resizeAsgDescription.adoc[]
 - - -
