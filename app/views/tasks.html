@@ -37,11 +37,14 @@
       <div class="col-md-12 panel">
         <div class="row">
           <div class="col-md-3">
-            <span ng-switch="task.status">
-              <span ng-switch-when="COMPLETED" class="glyphicon glyphicon-ok"></span>
-              <span ng-switch-when="FAILED" class="glyphicon glyphicon-refresh"></span>
-              <span ng-switch-when="STARTED" class="glyphicon glyphicon-refresh"></span>
-            </span><strong>{{ task.description }}</strong>
+            <h5>
+              <span ng-switch="task.status">
+                <span ng-switch-when="COMPLETED" class="glyphicon glyphicon-ok"></span>
+                <span ng-switch-when="FAILED" class="glyphicon glyphicon-refresh"></span>
+                <span ng-switch-when="STARTED" class="glyphicon glyphicon-refresh"></span>
+              </span>
+              <strong>{{ task.description }}</strong>
+            </h5>
           </div>
           <div class="col-md-4">
             <!-- TODO: add task visualization -->
