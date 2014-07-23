@@ -21,13 +21,14 @@ angular
     //
     $rootScope.subscribeTo = function(observable) {
       this.subscribed = {
-        data: undefined,
+        data: undefined
       };
 
-      observable.subscribe(function(data) {
-        scope.subscribed.data = data;
-      }, function(err) {
-        $exceptionHandler(err, 'Failed to load data into the view.');
+      observable.subscribe(
+        function(data) {
+          $rootScope.subscribed.data = data;
+        }, function(err) {
+          $exceptionHandler(err, 'Failed to load data into the view.');
       });
     };
 
