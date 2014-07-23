@@ -24,12 +24,11 @@ angular
         data: undefined
       };
 
-      observable.subscribe(
-        function(data) {
-          $rootScope.subscribed.data = data;
-        }, function(err) {
-          $exceptionHandler(err, 'Failed to load data into the view.');
-      });
+      observable.subscribe(function(data) {
+        this.subscribed.data = data;
+      }.bind(this), function(err) {
+        $exceptionHandler(err, 'Failed to load data into the view.');
+      }.bind(this));
     };
 
 
