@@ -87,12 +87,12 @@ class Application {
     checkForName()
     //must have a name, go ahead and remove it
     newAttributes.remove("name")
-    this.dao.update(this.name, newAttributes)
+    this.dao.update(this.name.toUpperCase(), newAttributes)
   }
 
   void delete() {
     checkForName()
-    this.dao.delete(this.name)
+    this.dao.delete(this.name.toUpperCase())
   }
 
   Application clear() {
@@ -125,7 +125,7 @@ class Application {
     if (!values.containsKey('name') || !values.containsKey('email')) {
       throw new NoPrimaryKeyException("Application lacks a name and/or email!")
     }
-    return dao.create(values['name'], values)
+    return dao.create(values['name'].toUpperCase(), values)
   }
 
   Collection<Application> findAll() throws NotFoundException {
@@ -133,7 +133,7 @@ class Application {
   }
 
   Application findByName(String name) throws NotFoundException {
-    return dao.findByName(name)
+    return dao.findByName(name.toUpperCase())
   }
 
   Application withName(String name) {
