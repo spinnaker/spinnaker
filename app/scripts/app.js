@@ -14,10 +14,25 @@ angular
     'ui.bootstrap',
     'restangular',
   ])
-  .run(function($state, $rootScope, $log) {
+  .run(function($state, $rootScope, $log, $exceptionHandler) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
+    //
+    $rootScope.subscribeTo = function(observable) {
+      this.subscribed = {
+        data: undefined,
+      };
+
+      observable.subscribe(function(data) {
+        scope.subscribed.data = data;
+      }, function(err) {
+        $exceptionHandler(err, 'Failed to load data into the view.');
+      });
+    };
+
+
+
     $rootScope.$state = $state;
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       $log.debug({

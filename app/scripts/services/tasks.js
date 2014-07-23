@@ -2,15 +2,18 @@
 
 angular.module('deckApp')
   .factory('tasks', function(RxService, $log, notifications) {
-    var stream = new RxService.Subject();
+    var stream = new RxService.ReplaySubject(10, null);
 
     return {
       create: function(config) {
         var task = {
+          // actual task details will come from pond/echo
           '$done': false,
           '$success': false,
           title: config.title,
-          message: config.message
+          message: config.message,
+          started: Date.now(),
+          updated: Date.now(),
         };
 
         notifications.create({
@@ -32,7 +35,7 @@ angular.module('deckApp')
 
       },
 
-      subscribe: stream.subscribe
+      observable: stream.all(),
 
     };
 
