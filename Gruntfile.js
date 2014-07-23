@@ -305,17 +305,18 @@ module.exports = function (grunt) {
       }
     },
 
-    // ngmin tries to make the code safe for minification automatically by
-    // using the Angular long form for dependency injection. It doesn't work on
-    // things like resolve or inject so those have to be done manually.
-    ngmin: {
+    // Allow the use of non-minsafe AngularJS files. Automatically makes it
+    // minsafe compatible so Uglify does not destroy the ng references
+    ngAnnotate: {
       dist: {
-        files: [{
-          expand: true,
-          cwd: '.tmp/concat/scripts',
-          src: '*.js',
-          dest: '.tmp/concat/scripts'
-        }]
+        files: [
+          {
+            expand: true,
+            cwd: '.tmp/concat/scripts',
+            src: '*.js',
+            dest: '.tmp/concat/scripts'
+          }
+        ]
       }
     },
 
@@ -329,31 +330,37 @@ module.exports = function (grunt) {
     // Copies remaining files to places other tasks can use
     copy: {
       dist: {
-        files: [{
-          expand: true,
-          dot: true,
-          cwd: '<%= yeoman.app %>',
-          dest: '<%= yeoman.dist %>',
-          src: [
-            '*.{ico,png,txt}',
-            '.htaccess',
-            '*.html',
-            'views/{,*/}*.html',
-            'bower_components/**/*',
-            'images/{,*/}*.{webp}',
-            'fonts/*'
-          ]
-        }, {
-          expand: true,
-          cwd: '.tmp/images',
-          dest: '<%= yeoman.dist %>/images',
-          src: ['generated/*']
-        }, {
-          expand: true,
-          cwd: 'bower_components/bootstrap/dist',
-          src: 'fonts/*',
-          dest: '<%= yeoman.dist %>'
-        }]
+        files: [
+          {
+            expand: true,
+            dot: true,
+            cwd: '<%= yeoman.app %>',
+            dest: '<%= yeoman.dist %>',
+            src: [
+              '*.{ico,png,txt}',
+              '.htaccess',
+              '*.html',
+              'views/{,*/}*.html',
+              'views/**/{,*/}*.html',
+              'bower_components/**/*',
+              'images/{,*/}*.{webp}',
+              'fonts/*'
+            ]
+          },
+          {
+            expand: true,
+            cwd: '.tmp/images',
+            dest: '<%= yeoman.dist %>/images',
+            src: ['generated/*']
+          },
+          {
+            expand: true,
+            flatten: true,
+            cwd: '<%= yeoman.app %>',
+            dest: '<%= yeoman.dist %>/fonts',
+            src: ['bower_components/bootstrap/dist/fonts/*.*']
+          }
+        ]
       },
       styles: {
         expand: true,
@@ -425,7 +432,7 @@ module.exports = function (grunt) {
     'concurrent:dist',
     'autoprefixer',
     'concat',
-    'ngmin',
+    'ngAnnotate',
     'copy:dist',
     'cdnify',
     'cssmin',

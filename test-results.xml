@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <testsuites>
-  <testsuite name="Chrome 36.0.1985 (Mac OS X 10.9.4)" package="" timestamp="2014-07-23T19:11:22" id="0" hostname="lgml-chrisb" tests="1" errors="0" failures="0" time="0.05">
+  <testsuite name="Chrome 36.0.1985 (Mac OS X 10.9.4)" package="" timestamp="2014-07-23T20:58:40" id="0" hostname="lgml-chrisb" tests="1" errors="0" failures="0" time="0.044">
     <properties>
       <property name="browser.fullName" value="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"/>
     </properties>
-    <testcase name="should create a scope" time="0.05" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Controller: MainCtrl"/>
+    <testcase name="should create a scope" time="0.044" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Controller: MainCtrl"/>
     <system-out><![CDATA[
 ]]></system-out>
     <system-err/>
