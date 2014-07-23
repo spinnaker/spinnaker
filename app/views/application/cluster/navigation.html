@@ -4,7 +4,7 @@
     <h4>{{account}}</h4>
     <a ng-repeat="cluster in getClustersForAccount(account)"
        ui-sref="cluster({account: account, cluster: cluster.name})"
-       ng-class="{active: $state.includes('clusters.cluster', {account: account, cluster: cluster.name} )}">
+       ng-class="{active: $state.includes('cluster', {account: account, cluster: cluster.name} )}">
         {{cluster.name}}</a>
   </div>
 </div>

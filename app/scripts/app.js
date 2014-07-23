@@ -172,7 +172,7 @@ angular
         url: '/serverGroup/:serverGroup',
         parent: 'cluster',
         views: {
-          'details': {
+          'detail@insight': {
             templateUrl: 'views/application/serverGroup.html',
             controller: 'ServerGroupCtrl'
           }
@@ -187,7 +187,7 @@ angular
         url: '/instance/:instance',
         parent: 'serverGroup',
         views: {
-          'details@application': {
+          'detail@insight': {
             templateUrl: 'views/application/instance.html',
             controller: 'InstanceCtrl'
           }
@@ -249,7 +249,7 @@ angular
         url: '/:connection',
         parent: 'connections',
         views: {
-          'master@application': {
+          'master@insight': {
             templateUrl: 'views/application/connection/single.html',
             controller: 'ClusterCtrl'
           }
