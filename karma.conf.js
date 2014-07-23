@@ -9,17 +9,24 @@ module.exports = function(config) {
     autoWatch: true,
 
     // base path, that will be used to resolve files and exclude
-    basePath: '/',
+    basePath: '',
 
     // testing framework to use (jasmine/mocha/qunit/...)
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
     files: [
+      'app/bower_components/jquery/dist/jquery.js',
       'app/bower_components/angular/angular.js',
       'app/bower_components/angular-mocks/angular-mocks.js',
+      'app/bower_components/angular-ui-router/release/angular-ui-router.js',
+      'app/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
+      'app/bower_components/angular-mocks/angular-mocks.js',
+      'app/bower_components/bootstrap/dist/js/bootstrap.js',
+      'app/bower_components/restangular/dist/restangular.js',
+      'app/bower_components/lodash/dist/lodash.compat.js',
       'app/scripts/**/*.js',
-//      'test/mock/**/*.js',
+      'test/mock/**/*.js',
       'test/spec/**/*.js'
     ],
 
@@ -44,6 +51,8 @@ module.exports = function(config) {
     // Which plugins to enable
     plugins: [
       'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
+      'karma-junit-reporter',
       'karma-jasmine'
     ],
 
@@ -55,15 +64,14 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.DEBUG,
 
     // jUnit Report output
     reporters: ['progress', 'junit'],
 
     // the default configuration
     junitReporter: {
-      outputFile: 'test-results.xml',
-      suite: ''
+      outputFile: 'test-results.xml'
     }
   });
 };

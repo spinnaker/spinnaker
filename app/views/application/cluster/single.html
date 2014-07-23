@@ -59,11 +59,12 @@
         </div>
         <div class="instances">
           <a class="instance"
-             ui-sref="instance({serverGroup: serverGroup.name, instance: instance.instanceId })"
              ng-repeat="instance in serverGroup.asg.instances"
+             tooltip="{{instance.instanceId}}"
+             ui-sref="instance({serverGroup: serverGroup.name, instance: instance.instanceId })"
              ng-class="{unhealthy: instance.healthStatus !== 'Healthy'}"
             >
-            <span class="sr-only">{{instance.name}}</span></a>
+            <span class="sr-only">{{instance.instanceId}}</span></a>
         </div>
       </div>
     </div>
