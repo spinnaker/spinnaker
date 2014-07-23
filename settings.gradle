@@ -21,7 +21,8 @@ include "orca-core",
   "orca-kato",
   "orca-oort",
   "orca-test",
-  "orca-smoke-test"
+  "orca-smoke-test",
+  "orca-web"
 
 rootProject.name = "orca"
 

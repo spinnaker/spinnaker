@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
@@ -66,16 +67,18 @@ class CreateDeployTask implements Task {
     return operation
   }
 
+  @CompileStatic(TypeCheckingMode.SKIP)
   private TaskId deploy(DeployOperation deployOperation) {
     deployOperation.securityGroups.addAll((deployOperation.subnetType) ? ["nf-infrastructure-vpc", "nf-datacenter-vpc"] : ["nf-infrastructure", "nf-datacenter"])
-    deployOperation.availabilityZones.each { String region, List<String> azs ->
-      kato.requestOperations([[allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]]).toBlockingObservable()
+    List<Map<String, Object>> descriptions = deployOperation.availabilityZones.collect { String region, List<String> azs ->
+      [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
     }
-    def result = kato.requestOperations([[basicAmazonDeployDescription: deployOperation]]).toBlockingObservable().first()
+    descriptions.add([basicAmazonDeployDescription: deployOperation])
+    def result = kato.requestOperations(descriptions).toBlockingObservable().first()
     result
   }
 
   private static AllowLaunchOperation convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
-    new AllowLaunchOperation(account: targetAccount, credentials: sourceAccount, region: region, ami: ami)
+    new AllowLaunchOperation(account: targetAccount, credentials: sourceAccount, region: region, amiName: ami)
   }
 }

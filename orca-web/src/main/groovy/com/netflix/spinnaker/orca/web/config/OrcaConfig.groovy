@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.orca.web.config
 
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
-
-
-apply plugin: "groovy"
-
-repositories {
-  jcenter()
-  mavenCentral()
-  maven { url "https://oss.sonatype.org/content/repositories/snapshots" } // for spock snapshot
-  maven { url "http://repo.spring.io/milestone" }
-}
-
-dependencies {
-  compile commonDependencies.groovy
-  compile commonDependencies.guava
-  compile commonDependencies.slf4j
-  testCompile commonDependencies.spock
-  testRuntime commonDependencies.slf4jSimple
-  testRuntime commonDependencies.slf4jJcl
+@Configuration
+@ComponentScan(basePackages = 'com.netflix.spinnaker.orca.rest')
+class OrcaConfig {
 }

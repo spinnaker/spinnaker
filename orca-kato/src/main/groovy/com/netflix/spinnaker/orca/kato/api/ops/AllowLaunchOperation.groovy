@@ -26,5 +26,5 @@ class AllowLaunchOperation extends Operation {
   String account
   String credentials
   String region
-  String ami
+  String amiName
 }

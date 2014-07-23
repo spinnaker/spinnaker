@@ -64,8 +64,8 @@ class CreateDeployTaskSpec extends Specification {
     given:
     def operations = []
     task.kato = Mock(KatoService) {
-      2 * requestOperations(*_) >> {
-        operations << it[0][0]
+      1 * requestOperations(*_) >> {
+        operations.addAll(it.flatten())
         Observable.from(taskId)
       }
     }
@@ -74,7 +74,7 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    with(operations[1].basicAmazonDeployDescription) {
+    with(operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription) {
       it instanceof DeployOperation
       application == deployConfig.application
       amiName == deployConfig.amiName
@@ -98,8 +98,8 @@ class CreateDeployTaskSpec extends Specification {
     and:
     def operations = []
     task.kato = Mock(KatoService) {
-      3 * requestOperations(*_) >> {
-        operations << it[0][0]
+      1 * requestOperations(*_) >> {
+        operations.addAll(it.flatten())
         Observable.from(taskId)
       }
     }
@@ -108,7 +108,7 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    with(operations[0..1].allowLaunchDescription) { ops ->
+    with(operations.findAll { it.containsKey("allowLaunchDescription") }.allowLaunchDescription) { ops ->
       ops.every {
         it instanceof AllowLaunchOperation
       }
@@ -123,8 +123,8 @@ class CreateDeployTaskSpec extends Specification {
 
     def operations = []
     task.kato = Mock(KatoService) {
-      2 * requestOperations(*_) >> {
-        operations << it[0][0]
+      1 * requestOperations(*_) >> {
+        operations.addAll(it.flatten())
         Observable.from(taskId)
       }
     }
@@ -134,7 +134,7 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     operations.size() == 2
-    with(operations[1].basicAmazonDeployDescription) {
+    with(operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription) {
       stack.get() == context."deploy.stack"
       subnetType.get() == context."deploy.subnetType"
     }
@@ -148,8 +148,8 @@ class CreateDeployTaskSpec extends Specification {
     given:
     def operations = []
     task.kato = Mock(KatoService) {
-      2 * requestOperations(*_) >> {
-        operations << it[0][0]
+      1 * requestOperations(*_) >> {
+        operations.addAll(it.flatten())
         Observable.from(taskId)
       }
     }
@@ -161,7 +161,7 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(context)
 
     then:
-    operations[1].basicAmazonDeployDescription.amiName == amiName
+    operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription.amiName == amiName
 
     where:
     amiName = "ami-name-from-bake"
