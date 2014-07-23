@@ -1,24 +1,16 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('tasks', function(RxService, $log, notifications) {
+  .factory('tasks', function(RxService, $log, notifications, $filter) {
+
     var stream = new RxService.ReplaySubject();
 
     return {
-      create: function(config) {
-        var task = {
-          // actual task details will come from pond/echo
-          '$done': false,
-          '$success': false,
-          title: config.title,
-          message: config.message,
-          started: Date.now(),
-          updated: Date.now(),
-        };
+      create: function(task, observable) {
 
         notifications.create({
-          title: config.title,
-          message: config.message,
+          description: config.description,
+          steps: config.steps,
           href: config.href
         });
 
@@ -33,9 +25,15 @@ angular.module('deckApp')
           notifications.create(config.failure(err));
         });
 
+        stream.onNext(task);
+
       },
 
-      observable: stream.all(),
+      each: stream,
+
+      all: stream.scan([], function(acc, x) {
+        return acc.concat([x]);
+      }),
 
     };
 
