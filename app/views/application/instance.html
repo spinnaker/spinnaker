@@ -7,36 +7,72 @@
       </a>
     </div>
     <h3>
-      <span class="glyphicon glyphicon-hdd" ng-class="{unhealthy: instance.healthStatus !== 'Healthy'}"></span>
-      {{instance.instanceId}}
+      <span class="glyphicon glyphicon-hdd" ng-class="{unhealthy: !instance.isHealthy}"></span>
+      {{instance.name}}
     </h3>
   </div>
   <div class="content">
     <div class="content-section">
       <h4>Instance Information</h4>
-      <dl class="dl-horizontal dl-narrow">
+      <dl>
         <dt>Launched:</dt>
-        <dd>{{instance.launchTime | relativeTime}}</dd>
+        <dd>{{instance.instance.launchTime | relativeTime}}</dd>
         <dt>In:</dt>
-        <dd>{{instance.availabilityZone}}</dd>
+        <dd>{{instance.instance.placement.availabilityZone}}</dd>
+        <dt>Instance Type:</dt>
+        <dd>{{instance.instance.instanceType}}</dd>
       </dl>
     </div>
     <div class="content-section">
-      <h4>Health</h4>
-        <div ng-if="instance.healthStatus === 'Healthy'">
+      <h4>Status</h4>
+        <div ng-if="instance.isHealthy">
           <span class="glyphicon glyphicon-up-triangle healthy"></span> Up
         </div>
-        <div ng-if="instance.healthStatus !== 'Healthy'">
+        <div ng-if="!instance.isHealthy">
           <span class="glyphicon glyphicon-down-triangle unhealthy"></span> Down
         </div>
     </div>
     <div class="content-section">
-      <h4>Launch Configuration</h4>
-      <arbitrary-list source="serverGroup.launchConfig" omit="Launch Configuration"></arbitrary-list>
+      <h4>DNS</h4>
+      <dl>
+        <dt>Private DNS Name:</dt>
+        <dd><a href="http://{{instance.instance.privateDnsName}}">{{instance.instance.privateDnsName}}</a></dd>
+        <dt>Private IP Address:</dt>
+        <dd><a href="http://{{instance.instance.privateIpAddress}}" target="_blank">{{instance.instance.privateIpAddress}}</a></dd>
+        <dt ng-if="instance.instance.publicIpAddress">Public IP Address:</dt>
+        <dd ng-if="instance.instance.publicIpAddress">{{instance.instance.publicIpAddress}}</dd>
+      </dl>
     </div>
     <div class="content-section">
-      <h4>Package</h4>
-      <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
+      <h4>Security Groups</h4>
+      <ul>
+        <li ng-repeat="securityGroup in instance.instance.securityGroups">
+          {{securityGroup.groupName}}
+        </li>
+      </ul>
+    </div>
+    <div class="content-section">
+      <h4>Logs</h4>
+      <ul>
+        <li>
+          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+        </li>
+        <li>
+          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
+        </li>
+        <li>
+          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
+        </li>
+        <li>
+          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
+        </li>
+        <li>
+          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
+        </li>
+        <li>
+          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

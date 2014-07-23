@@ -1,7 +1,9 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('oortService', function ($http) {
+  .factory('oortService', function ($http, settings) {
+
+
 
     function listApplications() {
       return {
@@ -50,31 +52,30 @@ angular.module('deckApp')
     }
 
     function getApplication(application) {
-      return $http.get('http://oort.prod.netflix.net/applications/' + application);
+      return $http.get(settings.oortUrl + '/applications/' + application);
     }
 
     function getClusters(application) {
-      return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters');
+      return $http.get(settings.oortUrl + '/applications/' + application + '/clusters');
     }
 
     function getClustersForAccount(application, account) {
-      return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters/' + account);
+      return $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account);
     }
 
     function getCluster(application, account, cluster) {
-      return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters/' + account + '/' + cluster);
+      return $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster);
     }
 
-    function getServerGroup(application, account, cluster, serverGroupName) {
-      return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroupName);
+    function getServerGroup(application, account, cluster, serverGroup) {
+      return $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroup);
     }
 
-    function getInstance(application, account, cluster, serverGroup, instanceName) {
-      return $http.get('http://oort.prod.netflix.net/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroup)
+    function getInstance(application, account, cluster, serverGroup, instance) {
+      return getServerGroup(application, account, cluster, serverGroup)
         .then(function(response) {
           var retrieved = response.data[0];
-          var matches = retrieved.asg.instances.filter(function(instance) { return instance.instanceId === instanceName; });
-          console.warn('retrieved???', retrieved, matches);
+          var matches = retrieved.instances.filter(function(retrievedInstance) { return retrievedInstance.name === instance; });
           return matches && matches.length ? matches[0] : null;
         });
     }
