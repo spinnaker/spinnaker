@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.kato.api
 
 import groovy.transform.CompileStatic
@@ -25,6 +21,6 @@ import groovy.transform.Immutable
 
 @Immutable
 @CompileStatic
-class TaskId {
+class TaskId implements Serializable {
   String id
 }

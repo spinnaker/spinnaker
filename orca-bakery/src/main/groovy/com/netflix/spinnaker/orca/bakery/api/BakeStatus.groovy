@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.api
 
 import groovy.transform.CompileStatic
@@ -31,7 +27,7 @@ import groovy.transform.ToString
 @CompileStatic
 @EqualsAndHashCode(includes = "id")
 @ToString(includeNames = true)
-class BakeStatus {
+class BakeStatus implements Serializable {
 
   /**
    * The bake status id.
