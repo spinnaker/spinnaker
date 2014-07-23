@@ -32,7 +32,8 @@
         </form>
       </div>
     </div>
-    <div class="row" ng-repeat="task in tasks | taskFilter:taskStateFilter | filter:taskFilter">
+    <div class="row"
+         ng-repeat="task in subscribed.data | taskFilter:taskStateFilter | filter:taskFilter">
       <div class="col-md-12">
         {{ task.title }}
         {{ task.message }}
