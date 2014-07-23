@@ -74,6 +74,7 @@ class AutoScalingWorker {
   private String region
   private String environment
   private String stack
+  private String freeFormDetails
   private String ami
   private String instanceType
   private String iamRole
@@ -262,7 +263,7 @@ class AutoScalingWorker {
    * @return the name of the cluster to be deployed to
    */
   String getClusterName() {
-    "${application}${stack ? '-' + stack?.replaceAll("$application-", "") : ''}"
+    "${application}${stack ? '-' + stack?.replaceAll("$application-", "") : ''}${freeFormDetails ? '--' + freeFormDetails : ''}"
   }
 
   /**

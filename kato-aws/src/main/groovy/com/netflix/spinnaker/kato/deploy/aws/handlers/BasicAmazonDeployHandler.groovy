@@ -88,6 +88,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         region: region,
         environment: description.credentials.environment,
         stack: description.stack,
+        freeFormDetails: description.freeFormDetails,
         ami: description.amiName,
         minInstances: description.capacity.min,
         maxInstances: description.capacity.max,

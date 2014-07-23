@@ -140,4 +140,12 @@ class AutoScalingWorkerUnitSpec extends Specification {
     }
   }
 
+  void "application, stack, and freeform details make up the asg name"() {
+    given:
+    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "us-east-1c")
+
+    expect:
+    worker.clusterName == "foo-bar--us-east-1c"
+  }
+
 }
