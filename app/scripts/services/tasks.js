@@ -2,7 +2,7 @@
 
 angular.module('deckApp')
   .factory('tasks', function(RxService, $log, notifications) {
-    var stream = new RxService.ReplaySubject(10, null);
+    var stream = new RxService.ReplaySubject();
 
     return {
       create: function(config) {
