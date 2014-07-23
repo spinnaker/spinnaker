@@ -9,17 +9,17 @@ module.exports = function(config) {
     autoWatch: true,
 
     // base path, that will be used to resolve files and exclude
-    basePath: '../',
+    basePath: '/',
 
     // testing framework to use (jasmine/mocha/qunit/...)
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
     files: [
-      'bower_components/angular/angular.js',
-      'bower_components/angular-mocks/angular-mocks.js',
+      'app/bower_components/angular/angular.js',
+      'app/bower_components/angular-mocks/angular-mocks.js',
       'app/scripts/**/*.js',
-      'test/mock/**/*.js',
+//      'test/mock/**/*.js',
       'test/spec/**/*.js'
     ],
 
@@ -27,7 +27,7 @@ module.exports = function(config) {
     exclude: [],
 
     // web server port
-    port: 8080,
+    port: 8081,
 
     // Start these browsers, currently available:
     // - Chrome
@@ -57,11 +57,13 @@ module.exports = function(config) {
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
     logLevel: config.LOG_INFO,
 
-    // Uncomment the following lines if you are using grunt's server to run the tests
-    // proxies: {
-    //   '/': 'http://localhost:9000/'
-    // },
-    // URL root prevent conflicts with the site root
-    // urlRoot: '_karma_'
+    // jUnit Report output
+    reporters: ['progress', 'junit'],
+
+    // the default configuration
+    junitReporter: {
+      outputFile: 'test-results.xml',
+      suite: ''
+    }
   });
 };
