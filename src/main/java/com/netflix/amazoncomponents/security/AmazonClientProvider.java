@@ -39,6 +39,8 @@ import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
@@ -165,6 +167,15 @@ public class AmazonClientProvider {
   public AmazonCloudWatch getAmazonCloudWatch(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     AmazonCloudWatchClient client = new AmazonCloudWatchClient(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
+    return client;
+  }
+
+  public AmazonSNS getAmazonSNS(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    AmazonSNS client = new AmazonSNSClient(amazonCredentials.getCredentials());
     if (region != null && region.length() > 0) {
       client.setRegion(Region.getRegion(Regions.fromName(region)));
     }
