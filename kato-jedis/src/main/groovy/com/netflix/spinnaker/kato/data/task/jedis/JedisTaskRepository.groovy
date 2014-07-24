@@ -42,6 +42,8 @@ class JedisTaskRepository implements TaskRepository {
     Map<String, String> taskMap = jedis.hgetAll("task:${id}")
     JedisTask task = new JedisTask(
       taskMap.id,
+      taskMap.phase,
+      taskMap.status,
       Long.parseLong(taskMap.startTimeMs),
       taskMap.complete == 'true',
       taskMap.failed == 'true'
