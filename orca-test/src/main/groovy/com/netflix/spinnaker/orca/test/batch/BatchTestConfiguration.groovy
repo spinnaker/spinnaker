@@ -54,10 +54,6 @@ class BatchTestConfiguration {
     new JedisBatchConfigurer(jedis)
   }
 
-  @Bean FactoryBean<JobExplorer> jobExplorerFactoryBean(JedisCommands jedis) {
-    new JedisJobExplorerFactoryBean(jedis)
-  }
-
   @Bean
   JobOperator jobOperator(JobLauncher jobLauncher, JobRepository jobRepository, JobExplorer jobExplorer, ListableJobLocator jobRegistry) {
     def jobOperator = new SimpleJobOperator()

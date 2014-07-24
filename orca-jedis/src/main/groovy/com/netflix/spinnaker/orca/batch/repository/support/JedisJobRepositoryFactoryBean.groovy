@@ -74,4 +74,20 @@ class JedisJobRepositoryFactoryBean extends AbstractJobRepositoryFactoryBean {
   protected ExecutionContextDao createExecutionContextDao() {
     executionContextDao
   }
+
+  JobInstanceDao getJobInstanceDao() {
+    return jobInstanceDao
+  }
+
+  JobExecutionDao getJobExecutionDao() {
+    return jobExecutionDao
+  }
+
+  StepExecutionDao getStepExecutionDao() {
+    return stepExecutionDao
+  }
+
+  ExecutionContextDao getExecutionContextDao() {
+    return executionContextDao
+  }
 }

@@ -17,11 +17,7 @@
 package com.netflix.spinnaker.orca.batch.core.explore.support
 
 import groovy.transform.CompileStatic
-import javax.annotation.PostConstruct
-import com.netflix.spinnaker.orca.batch.repository.dao.JedisExecutionContextDao
-import com.netflix.spinnaker.orca.batch.repository.dao.JedisJobExecutionDao
-import com.netflix.spinnaker.orca.batch.repository.dao.JedisJobInstanceDao
-import com.netflix.spinnaker.orca.batch.repository.dao.JedisStepExecutionDao
+import com.netflix.spinnaker.orca.batch.repository.support.JedisJobRepositoryFactoryBean
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.explore.support.AbstractJobExplorerFactoryBean
 import org.springframework.batch.core.explore.support.SimpleJobExplorer
@@ -30,56 +26,45 @@ import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
 import org.springframework.batch.core.repository.dao.StepExecutionDao
 import org.springframework.beans.factory.InitializingBean
-import org.springframework.beans.factory.annotation.Autowired
-import redis.clients.jedis.JedisCommands
 
 @CompileStatic
 class JedisJobExplorerFactoryBean extends AbstractJobExplorerFactoryBean implements InitializingBean {
 
-  @Autowired
-  private final JedisCommands jedis
+  private final JedisJobRepositoryFactoryBean repositoryFactory
 
-  private JobInstanceDao jobInstanceDao
-  private JobExecutionDao jobExecutionDao
-  private StepExecutionDao stepExecutionDao
-  private ExecutionContextDao executionContextDao
   private JobExplorer jobExplorer
 
-  JedisJobExplorerFactoryBean(JedisCommands jedis) {
-    this.jedis = jedis
+  JedisJobExplorerFactoryBean(JedisJobRepositoryFactoryBean repositoryFactory) {
+    this.repositoryFactory = repositoryFactory
   }
 
   @Override
   void afterPropertiesSet() {
-    jobInstanceDao = new JedisJobInstanceDao(jedis)
-    jobExecutionDao = new JedisJobExecutionDao(jedis, jobInstanceDao)
-    stepExecutionDao = new JedisStepExecutionDao(jedis)
-    executionContextDao = new JedisExecutionContextDao(jedis)
-    jobExplorer = new SimpleJobExplorer(jobInstanceDao, jobExecutionDao, stepExecutionDao, executionContextDao)
+    jobExplorer = new SimpleJobExplorer(createJobInstanceDao(), createJobExecutionDao(), createStepExecutionDao(), createExecutionContextDao())
   }
 
   @Override
   protected JobInstanceDao createJobInstanceDao() {
-    jobInstanceDao
+    repositoryFactory.jobInstanceDao
   }
 
   @Override
   protected JobExecutionDao createJobExecutionDao() {
-    jobExecutionDao
+    repositoryFactory.jobExecutionDao
   }
 
   @Override
   protected StepExecutionDao createStepExecutionDao() {
-    stepExecutionDao
+    repositoryFactory.stepExecutionDao
   }
 
   @Override
   protected ExecutionContextDao createExecutionContextDao() {
-    executionContextDao
+    repositoryFactory.executionContextDao
   }
 
   @Override
   JobExplorer getObject() {
-    new SimpleJobExplorer(jobInstanceDao, jobExecutionDao, stepExecutionDao, executionContextDao)
+    jobExplorer
   }
 }

@@ -18,12 +18,16 @@ package com.netflix.spinnaker.orca.batch.core.configuration.annotation
 
 import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
+import com.netflix.spinnaker.orca.batch.core.explore.support.JedisJobExplorerFactoryBean
 import com.netflix.spinnaker.orca.batch.repository.support.JedisJobRepositoryFactoryBean
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
+import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.batch.core.explore.support.SimpleJobExplorer
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager
+import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
@@ -37,6 +41,8 @@ class JedisBatchConfigurer implements BatchConfigurer {
   private PlatformTransactionManager transactionManager
   private JobRepository jobRepository
   private JobLauncher jobLauncher
+  private JobExplorer jobExplorer
+  private JedisJobRepositoryFactoryBean repositoryFactory
 
   @Autowired
   JedisBatchConfigurer(JedisCommands jedis) {
@@ -44,27 +50,36 @@ class JedisBatchConfigurer implements BatchConfigurer {
   }
 
   @Override
-  public JobRepository getJobRepository() {
+  JobRepository getJobRepository() {
     return jobRepository
   }
 
   @Override
-  public PlatformTransactionManager getTransactionManager() {
+  PlatformTransactionManager getTransactionManager() {
     return transactionManager
   }
 
   @Override
-  public JobLauncher getJobLauncher() {
+  JobLauncher getJobLauncher() {
     return jobLauncher
   }
 
+  @Override
+  JobExplorer getJobExplorer() {
+    return jobExplorer
+  }
+
   @PostConstruct
-  public void initialize() {
+  void initialize() {
     if (!transactionManager) {
       transactionManager = new ResourcelessTransactionManager()
     }
+    repositoryFactory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
+    repositoryFactory.afterPropertiesSet()
+
     jobRepository = createJobRepository()
     jobLauncher = createJobLauncher()
+    jobExplorer = createJobExplorer()
   }
 
   private JobLauncher createJobLauncher() {
@@ -75,8 +90,12 @@ class JedisBatchConfigurer implements BatchConfigurer {
   }
 
   private JobRepository createJobRepository() {
-    def factory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
+    return repositoryFactory.object
+  }
+
+  private JobExplorer createJobExplorer() {
+    def factory = new JedisJobExplorerFactoryBean(repositoryFactory)
     factory.afterPropertiesSet()
-    return factory.object
+    factory.object
   }
 }
