@@ -182,6 +182,15 @@ public class AmazonClientProvider {
     return client;
   }
 
+  public AmazonCloudWatch getCloudWatch(AmazonCredentials amazonCredentials, String region) {
+    checkCredentials(amazonCredentials);
+    AmazonCloudWatch client = new AmazonCloudWatchClient(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      client.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
+    return client;
+  }
+
   private GeneralAmazonClientInvocationHandler getInvocationHandler(AmazonWebServiceClient client, String region, AmazonCredentials amazonCredentials) {
     if (region != null && region.length() > 0) {
       client.setRegion(Region.getRegion(Regions.fromName(region)));
