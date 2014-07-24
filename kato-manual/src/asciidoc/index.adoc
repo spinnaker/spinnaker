@@ -133,7 +133,8 @@ include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
 - - -
-
+include::src/asciidoc/ops/upsertSecurityGroupDescription.adoc[]
+- - -
 
 ==== Google Operations
 
