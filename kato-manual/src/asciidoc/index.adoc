@@ -107,8 +107,6 @@ include::src/asciidoc/ops/basicAmazonDeployDescription.adoc[]
 - - -
 include::src/asciidoc/ops/copyLastAsgDescription.adoc[]
 - - -
-include::src/asciidoc/ops/createAmazonLoadBalancerDescription.adoc[]
-- - -
 include::src/asciidoc/ops/createNetworkInterfaceDescription.adoc[]
 - - -
 include::src/asciidoc/ops/deleteAsgDescription.adoc[]
@@ -132,6 +130,8 @@ include::src/asciidoc/ops/tagAsgDescription.adoc[]
 include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
+- - -
+include::src/asciidoc/ops/upsertAmazonLoadBalancerDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertSecurityGroupDescription.adoc[]
 - - -
