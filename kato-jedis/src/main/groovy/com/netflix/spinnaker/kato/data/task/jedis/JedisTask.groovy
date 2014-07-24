@@ -25,13 +25,15 @@ class JedisTask extends DefaultTask {
   JedisTaskRepository repository
 
   JedisTask(String id, String phase, String status, JedisTaskRepository repository = null) {
-    super(id, phase, status)
+    super(id)
+    super.updateStatus(phase, status)
     this.repository = repository
     updateStatus(phase, status)
   }
 
   JedisTask(String id, String phase, String status, long startTimeMs, Boolean complete, Boolean failed) {
-    super(id, phase, status)
+    super(id)
+    super.updateStatus(phase, status)
     if (failed) {
       this.fail()
     }
