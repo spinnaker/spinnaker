@@ -26,7 +26,7 @@ import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,8 +70,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def subnetType = description.subnetType ? AutoScalingWorker.SubnetType.fromString(description.subnetType) : null
 
       // Get the list of load balancers that were created as part of this conglomerate job to apply to the ASG.
-      List<CreateAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<CreateAmazonLoadBalancerResult.LoadBalancer>) priorOutputs.findAll {
-        it instanceof CreateAmazonLoadBalancerResult
+      List<UpsertAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<UpsertAmazonLoadBalancerResult.LoadBalancer>) priorOutputs.findAll {
+        it instanceof UpsertAmazonLoadBalancerResult
       }?.loadBalancers?.getAt(region)
 
       if (!description.loadBalancers) {

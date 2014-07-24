@@ -21,16 +21,16 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonCredentials
-import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
-@Component("createAmazonLoadBalancerDescription")
-class CreateAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("upsertAmazonLoadBalancerDescription")
+class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Autowired
   ObjectMapper objectMapper
@@ -42,14 +42,14 @@ class CreateAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
   }
 
   @Override
-  CreateAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
-    new CreateAmazonLoadBalancerAtomicOperation(convertDescription(input))
+  UpsertAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
+    new UpsertAmazonLoadBalancerAtomicOperation(convertDescription(input))
   }
 
   @Override
-  CreateAmazonLoadBalancerDescription convertDescription(Map input) {
+  UpsertAmazonLoadBalancerDescription convertDescription(Map input) {
     def json = objectMapper.writeValueAsString(input)
-    def description = objectMapper.readValue(json, CreateAmazonLoadBalancerDescription)
+    def description = objectMapper.readValue(json, UpsertAmazonLoadBalancerDescription)
     description.credentials = (AmazonCredentials) getCredentialsObject(input.credentials as String)
     description
   }

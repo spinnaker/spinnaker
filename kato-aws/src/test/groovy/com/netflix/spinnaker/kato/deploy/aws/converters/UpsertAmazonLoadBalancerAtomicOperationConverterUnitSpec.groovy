@@ -18,19 +18,19 @@
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerAtomicOperation
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
+class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   @Shared
-  CreateAmazonLoadBalancerAtomicOperationConverter converter
+  UpsertAmazonLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new CreateAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper())
+    this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper())
     def namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
     def mockCredentials = Mock(NamedAccountCredentials)
     namedAccountCredentialsHolder.getCredentials(_) >> mockCredentials
@@ -48,12 +48,12 @@ class CreateAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
     def description = converter.convertDescription(input)
 
     then:
-    description instanceof CreateAmazonLoadBalancerDescription
+    description instanceof UpsertAmazonLoadBalancerDescription
 
     when:
     def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof CreateAmazonLoadBalancerAtomicOperation
+    operation instanceof UpsertAmazonLoadBalancerAtomicOperation
   }
 }

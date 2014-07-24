@@ -22,7 +22,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonDNSDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -46,7 +46,7 @@ class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSR
   UpsertAmazonDNSResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Amazon DNS Upsert"
 
-    def priorElb = priorOutputs.find { it instanceof CreateAmazonLoadBalancerResult } as CreateAmazonLoadBalancerResult
+    def priorElb = priorOutputs.find { it instanceof UpsertAmazonLoadBalancerResult } as UpsertAmazonLoadBalancerResult
 
     if (priorElb && !description.target) {
       task.updateStatus BASE_PHASE, " > No target specified. Assuming target of prior ELB deployment."

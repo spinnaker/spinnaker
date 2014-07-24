@@ -20,17 +20,17 @@ package com.netflix.spinnaker.kato.deploy.aws.validators
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
-import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
+class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   @Shared
   CreateAmazonLoadBalancerDescriptionValidator validator
 
-  CreateAmazonLoadBalancerDescription description
+  UpsertAmazonLoadBalancerDescription description
 
   void setupSpec() {
     validator = new CreateAmazonLoadBalancerDescriptionValidator()
@@ -50,7 +50,7 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   void setup() {
-    description = new CreateAmazonLoadBalancerDescription(credentials: new AmazonCredentials(null, 'test'))
+    description = new UpsertAmazonLoadBalancerDescription(credentials: new AmazonCredentials(null, 'test'))
   }
 
   void "empty parameters fails validation"() {
@@ -127,4 +127,5 @@ class CreateAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     then:
     1 * errors.rejectValue("subnetType", _)
   }
+
 }

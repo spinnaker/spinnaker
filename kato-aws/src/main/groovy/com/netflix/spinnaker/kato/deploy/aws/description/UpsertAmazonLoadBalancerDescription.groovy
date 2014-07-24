@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.description
 
-class CreateAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
+class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
   String clusterName
   String vpcId
   String subnetType

@@ -21,7 +21,7 @@ import com.amazonaws.services.route53.AmazonRoute53
 import com.amazonaws.services.route53.model.HostedZone
 import com.amazonaws.services.route53.model.ListHostedZonesResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -68,7 +68,7 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
 
   void "empty target is allowed when an upstream load balancer is produced"() {
     setup:
-    def elbDescription = new CreateAmazonLoadBalancerDescription()
+    def elbDescription = new UpsertAmazonLoadBalancerDescription()
     def description = new UpsertAmazonDNSDescription()
     def errors = Mock(Errors)
 

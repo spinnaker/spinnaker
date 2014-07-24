@@ -25,7 +25,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonDNSDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import spock.lang.Specification
 
 class UpsertAmazonDNSAtomicOperationSpec extends Specification {
@@ -41,8 +41,8 @@ class UpsertAmazonDNSAtomicOperationSpec extends Specification {
     mockAmazonClientProvider.getAmazonRoute53(_, _) >> mockClient
     def op = new UpsertAmazonDNSAtomicOperation(new UpsertAmazonDNSDescription())
     op.amazonClientProvider = mockAmazonClientProvider
-    def elbDeploy = Mock(CreateAmazonLoadBalancerResult)
-    elbDeploy.getLoadBalancers() >> ["us-east-1": new CreateAmazonLoadBalancerResult.LoadBalancer("foo", "elb")]
+    def elbDeploy = Mock(UpsertAmazonLoadBalancerResult)
+    elbDeploy.getLoadBalancers() >> ["us-east-1": new UpsertAmazonLoadBalancerResult.LoadBalancer("foo", "elb")]
 
     when:
     op.operate([elbDeploy])

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
 import groovy.transform.Immutable
 
-class CreateAmazonLoadBalancerResult {
+class UpsertAmazonLoadBalancerResult {
   /**
    * Association of region -> loadBalancer
    */

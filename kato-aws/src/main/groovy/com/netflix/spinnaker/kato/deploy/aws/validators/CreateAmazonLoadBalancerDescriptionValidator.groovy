@@ -19,14 +19,14 @@ package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker.SubnetType
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker.SubnetTypeNotFoundException
-import com.netflix.spinnaker.kato.deploy.aws.description.CreateAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("createAmazonLoadBalancerDescriptionValidator")
-class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<CreateAmazonLoadBalancerDescription> {
+class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
   @Override
-  void validate(List priorDescriptions, CreateAmazonLoadBalancerDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
     if (!description.clusterName) {
       errors.rejectValue("clusterName", "createAmazonLoadBalancerDescription.clusterName.empty")
     }

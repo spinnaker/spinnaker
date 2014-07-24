@@ -27,7 +27,7 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.CreateAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import spock.lang.Shared
 import spock.lang.Specification
@@ -89,7 +89,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
 
     when:
-    handler.handle(description, [new CreateAmazonLoadBalancerResult(loadBalancers: ["us-east-1": new CreateAmazonLoadBalancerResult.LoadBalancer("lb", "lb1.nflx")])])
+    handler.handle(description, [new UpsertAmazonLoadBalancerResult(loadBalancers: ["us-east-1": new UpsertAmazonLoadBalancerResult.LoadBalancer("lb", "lb1.nflx")])])
 
     then:
     setlbCalls
