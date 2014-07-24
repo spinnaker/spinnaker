@@ -427,4 +427,22 @@ abstract class JobExecutionDaoTck extends Specification {
       version == execution.version
     }
   }
+
+  def "synchronizeStatus does not update version and status if working copy is the current version"() {
+    given:
+    def execution = new JobExecution(jobInstance, noParameters())
+    jobExecutionDao.saveJobExecution(execution)
+
+    and:
+    def detachedExecution = copy(execution)
+    detachedExecution.status = BatchStatus.COMPLETED
+
+    when:
+    jobExecutionDao.synchronizeStatus(detachedExecution)
+
+    then:
+    with(detachedExecution) {
+      status == BatchStatus.COMPLETED
+    }
+  }
 }

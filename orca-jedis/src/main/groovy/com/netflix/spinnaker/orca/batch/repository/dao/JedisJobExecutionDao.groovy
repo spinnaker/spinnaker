@@ -124,8 +124,11 @@ class JedisJobExecutionDao implements JobExecutionDao {
   @Override
   void synchronizeStatus(JobExecution jobExecution) {
     jedis.hmget("jobExecution:$jobExecution.id", "status", "version").with {
-      jobExecution.status = BatchStatus.valueOf(first())
-      jobExecution.version = last() as Integer
+      def version = last() as Integer
+      if (version != jobExecution.version) {
+        jobExecution.status = BatchStatus.valueOf(first())
+        jobExecution.version = version
+      }
     }
   }
 
