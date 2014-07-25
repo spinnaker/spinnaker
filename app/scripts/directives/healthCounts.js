@@ -10,7 +10,7 @@ angular.module('deckApp')
         serverGroup: '='
       },
       link: function(scope) {
-        scope.serverGroup.upCount = _.filter(scope.serverGroup.asg.instances, {healthStatus: 'Healthy'}).length;
+        scope.serverGroup.upCount = _.filter(scope.serverGroup.instances, {isHealthy: true}).length;
       }
     };
   });

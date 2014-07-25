@@ -45,8 +45,11 @@
 </div>
 
 <div class="container">
-
-  <div class="container-liquid" ui-view="main"></div>
+  <div class="container-liquid" ui-view="main">
+    <h1>
+    <span us-spinner="{radius:30, width:8, length: 16}"></span>
+    </h1>
+  </div>
 
 </div>
 
@@ -67,6 +70,8 @@
 <script src="bower_components/moment/moment.js"></script>
 <script src="bower_components/restangular/dist/restangular.js"></script>
 <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+<script src="bower_components/spin.js/spin.js"></script>
+<script src="bower_components/angular-spinner/angular-spinner.js"></script>
 <!-- endbower -->
 <!-- endbuild -->
 
@@ -76,6 +81,7 @@
 <script src="scripts/controllers/tasks.js"></script>
 <script src="scripts/services/notifications.js"></script>
 <script src="scripts/directives/notifications.js"></script>
+<script src="scripts/directives/underConstruction.js"></script>
 <script src="scripts/controllers/ApplicationCtrl.js"></script>
 <script src="scripts/controllers/ClusterCtrl.js"></script>
 <script src="scripts/controllers/InstanceCtrl.js"></script>
