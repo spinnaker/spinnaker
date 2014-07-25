@@ -4,6 +4,8 @@ angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, applications, $exceptionHandler, $modal, $log, RxService, front50, notifications) {
     $scope.applications = applications.data;
 
+    $scope.sortKey = 'name';
+
     $scope.menuActions = [
       {
         displayName: 'Create Application',

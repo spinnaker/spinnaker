@@ -8,7 +8,7 @@ angular.module('deckApp')
           return tasks;
         case 'Running':
           return tasks.filter(function(task) {
-            return !task.status === 'STARTED';
+            return task.status !== 'STARTED';
           });
         case 'Completed':
           return tasks.filter(function(task) {

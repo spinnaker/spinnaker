@@ -1,12 +1,12 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('tasks', function(RxService, $log, notifications, $filter) {
+  .factory('tasks', function(RxService, $log, notifications) {
 
     var stream = new RxService.ReplaySubject();
 
     return {
-      create: function(task, observable) {
+      create: function(task, observable, config) {
 
         notifications.create({
           description: config.description,
