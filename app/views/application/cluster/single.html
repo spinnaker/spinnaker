@@ -43,7 +43,9 @@
   <div ng-repeat="asg in asgsByRegion">
     <h4>{{asg.region}}</h4>
 
-    <div class="row server-group" ng-repeat="serverGroup in asg.serverGroups">
+    <div class="row server-group"
+         ng-repeat="serverGroup in asg.serverGroups"
+         ng-class="{active: $state.includes('serverGroup', {serverGroup: serverGroup.name})}">
       <div class="col-sm-2 no-padding">
         <a ui-sref="serverGroup({serverGroup: serverGroup.name})">
           <span class="glyphicon glyphicon-th"></span> {{serverGroup.name | stripCluster:cluster}}
@@ -62,7 +64,7 @@
              ng-repeat="instance in serverGroup.asg.instances"
              tooltip="{{instance.instanceId}}"
              ui-sref="instance({serverGroup: serverGroup.name, instance: instance.instanceId })"
-             ng-class="{unhealthy: instance.healthStatus !== 'Healthy'}"
+             ng-class="{unhealthy: !instance.isHealthy, active: $state.includes('instance', {instance: instance.instanceId})}"
             >
             <span class="sr-only">{{instance.instanceId}}</span></a>
         </div>
