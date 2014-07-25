@@ -34,22 +34,17 @@
     </div>
     <div class="row padding"
          ng-repeat="task in subscribed.data | taskFilter:taskStateFilter | filter:taskFilter">
-      <div class="col-md-12 panel">
-        <div class="row">
-          <div class="col-md-3">
-            <h5>
-              <span ng-switch="task.status">
-                <span ng-switch-when="COMPLETED" class="glyphicon glyphicon-ok"></span>
-                <span ng-switch-when="FAILED" class="glyphicon glyphicon-refresh"></span>
-                <span ng-switch-when="STARTED" class="glyphicon glyphicon-refresh"></span>
-              </span>
-              <strong>{{ task.description }}</strong>
-            </h5>
-          </div>
-          <div class="col-md-4">
-            <!-- TODO: add task visualization -->
-          </div>
-        </div>
+      <div class="col-md-12 task">
+        <progress max="100" class="progress-status">
+          <bar ng-repeat="step in task.steps" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+            <span></span>
+          </bar>
+        </progress>
+        <progress max="100" class="progress-labels">
+          <bar ng-repeat="step in task.steps" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+          {{ step.displayName }}
+          </bar>
+        </progress>
       </div>
     </div>
   </div>
