@@ -39,7 +39,7 @@ ext {
     groovy            : "org.codehaus.groovy:groovy-all:2.3.4",
     eureka            : "com.netflix.eureka:eureka-client:1.1.136",
     kork              : "com.netflix.spinnaker.kork:kork-core:1.14",
-    amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.4'
+    amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.7'
   ]
 }
 
@@ -63,6 +63,7 @@ subprojects { project ->
     jcenter()
     mavenCentral()
     maven { url 'http://repo.spring.io/repo' }
+    maven { url 'http://oss.sonatype.org/content/repositories/staging' }
     mavenLocal()
   }
 

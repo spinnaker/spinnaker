@@ -133,6 +133,8 @@ include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertAmazonLoadBalancerDescription.adoc[]
 - - -
+include::src/asciidoc/ops/upsertScalingPolicyDescription.adoc[]
+- - -
 include::src/asciidoc/ops/upsertSecurityGroupDescription.adoc[]
 - - -
 

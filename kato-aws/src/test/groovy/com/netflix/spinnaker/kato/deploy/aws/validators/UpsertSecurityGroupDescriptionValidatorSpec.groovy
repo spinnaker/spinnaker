@@ -18,13 +18,11 @@ package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertSecurityGroupDescription
-import com.netflix.spinnaker.kato.deploy.aws.description.UpsertSecurityGroupDescription.IngressType
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertSecurityGroupDescription.SecurityGroupIngress
 import com.netflix.spinnaker.kato.model.aws.SecurityGroupNotFoundException
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.services.SecurityGroupService
 import org.springframework.validation.Errors
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -47,7 +45,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
         name = "bar"
         startPort = 111
         endPort = 111
-        type = IngressType.tcp
+        type = UpsertSecurityGroupDescription.IngressType.tcp
         it
       }
     ]

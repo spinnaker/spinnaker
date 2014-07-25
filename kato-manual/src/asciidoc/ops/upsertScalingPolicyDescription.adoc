@@ -1,0 +1,50 @@
+===== Upsert Scaling Policy Description
+
+====== Key
+
++upsertScalingPolicyDescription+
+
+====== Description
+
+This description supplies the inputs necessary to define an Amazon Scaling Policy. This is an "upsert" operation, meaning that the scaling policy and its corresponding up and down alarms will be created according to the inputs. The naming convention of the scaling policy is in the form "<name>--<ASG name>-<threshold>", which ensures uniqueness.
+
+====== Example Request Body
+[source,javascript]
+----
+[{
+    "upsertScalingPolicyDescription": {
+        "nme": "dansScalingPolicy",
+        "asgName": "pond-main-v003",
+        "region": "us-west-1",
+        "metric": {
+            "namespace": "AWS/EC2",
+            "name": "CPUUtilization"
+        },
+        "threshold": "81",
+        "period": "300",
+        "numPeriods": "2",
+        "scalingStrategy": "exact",
+        "scaleAmount": "1",
+        "credentials": "test"
+    }
+}]
+----
+
+====== Description of inputs
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Key                  | Type   | Required | Value
+|name                 | string | true     | The name of the scaling policy
+|asgName              | string | true     | The name of the ASG to which this policy will be applied
+|region               | string | true     | The region in which the ASG for this scaling policy exists
+|metric               | object | true     | A object defining the Amazon metric name and its corresponding namespace
+|threshold            | number | true     | The bound across which scaleUp/scaleDown actions will be initiated. This varies, and is very specific to the metric.
+|scaleAmount          | number | true     | The increment by which instances should be added/removed in scaleUp/scaleDown activities.
+|credentials          | string | true     | The named account credentials that are to be used for this operation.
+|period               | number | false    | The period (in seconds) by which to sample the metric. default: 300
+|numPeriods           | number | false    | The number of periods that the metric must be over/under the threshold before initiating a scaling operation. default: 5
+|scalingStrategy      | number | false    | The strategy that the autoscaler uses to increase/decrease the size of the ASG. Value is one of +exact+ or +percentage+. The value of +scaleAmount+ will be treated in this respect; (eg. if +exect+ is chosen and +scaleAmount+ equals 1, then the autoscaler will increment the ASG instance count by one. Likewise, if +percentage+ is chosen and the +scaleAmount+ is +50+, then the ASG will be scaled to 50% more than its original size.
+|scaleUpTopic         | string | false    | The name of a SNS topic to publish scaleUp events to. This can be in either the form of the ARN or by simply the topic name.
+|scaleDownTopic       | string | false    | Same as +scaleUpTopic+, but for scaling down.
+|======================
