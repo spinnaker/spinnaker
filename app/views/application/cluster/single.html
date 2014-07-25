@@ -61,12 +61,12 @@
         </div>
         <div class="instances">
           <a class="instance"
-             ng-repeat="instance in serverGroup.asg.instances"
-             tooltip="{{instance.instanceId}}"
-             ui-sref="instance({serverGroup: serverGroup.name, instance: instance.instanceId })"
-             ng-class="{unhealthy: !instance.isHealthy, active: $state.includes('instance', {instance: instance.instanceId})}"
+             ng-repeat="instance in serverGroup.instances"
+             tooltip="{{instance.name}}"
+             ui-sref="instance({serverGroup: serverGroup.name, instance: instance.name })"
+             ng-class="{unhealthy: !instance.isHealthy, active: $state.includes('instance', {instance: instance.name})}"
             >
-            <span class="sr-only">{{instance.instanceId}}</span></a>
+            <span class="sr-only">{{instance.name}}</span></a>
         </div>
       </div>
     </div>

@@ -19,9 +19,8 @@ angular.module('deckApp')
 
       // add upCount
       cluster.serverGroups.forEach(function(serverGroup) {
-        serverGroup.upCount = _.filter(serverGroup.asg.instances, {healthStatus: 'Healthy'}).length;
+        serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
       });
-
       $scope.cluster = cluster;
       $scope.asgsByRegion = asgsByRegion;
     });

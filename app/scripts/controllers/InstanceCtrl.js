@@ -6,7 +6,6 @@ angular.module('deckApp')
     $scope.account = instance.account;
     oortService.getInstance(instance.application, instance.account, instance.cluster, instance.serverGroup, instance.name)
       .then(function(retrieved) {
-        console.warn('retrieved:', retrieved);
         $scope.instance = retrieved;
       });
   })
