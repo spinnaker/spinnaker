@@ -1,5 +1,13 @@
-<h3>Accounts</h3>
-<div class="sub-nav" ng-repeat="account in application.accounts">
+<h3>
+  Accounts
+  <a class="btn btn-default btn-sm" ng-if="!loadingClusters && application.clusters.length > 1" ui-sref="." ui-sref-active="active">Show All</a>
+
+</h3>
+
+<h4 ng-if="loadingClusters" class="text-center">
+  <span us-spinner="{radius:20, width:6, length: 12}"></span>
+</h4>
+<div ng-if="!loadingClusters" class="sub-nav" ng-repeat="account in application.accounts">
   <div class="sub-nav-item">
     <h4>{{account}}</h4>
     <a ng-repeat="cluster in getClustersForAccount(account)"
