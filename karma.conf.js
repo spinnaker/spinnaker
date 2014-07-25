@@ -25,6 +25,8 @@ module.exports = function(config) {
       'app/bower_components/bootstrap/dist/js/bootstrap.js',
       'app/bower_components/restangular/dist/restangular.js',
       'app/bower_components/lodash/dist/lodash.compat.js',
+      'app/bower_components/spin.js/spin.js',
+      'app/bower_components/angular-spinner/angular-spinner.js',
       'app/scripts/**/*.js',
       'test/mock/**/*.js',
       'test/spec/**/*.js'
