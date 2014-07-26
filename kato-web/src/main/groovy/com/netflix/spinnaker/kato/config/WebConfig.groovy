@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.kato.config
 
-package com.netflix.spinnaker.kato.deploy.aws.validators
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.client.RestTemplate
 
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
+@Configuration
+class WebConfig {
 
-class DisableAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
-  @Override
-  DescriptionValidator getDescriptionValidator() {
-    new DisableAsgDescriptionValidator()
-  }
-
-  @Override
-  DisableAsgDescription getDescription() {
-    new DisableAsgDescription()
+  @Bean
+  RestTemplate restTemplate() {
+    new RestTemplate()
   }
 }

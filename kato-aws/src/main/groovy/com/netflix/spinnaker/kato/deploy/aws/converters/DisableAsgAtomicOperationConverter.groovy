@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
-import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.DisableAsgAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
@@ -31,8 +31,8 @@ class DisableAsgAtomicOperationConverter extends AbstractAtomicOperationsCredent
   }
 
   @Override
-  DisableAsgDescription convertDescription(Map input) {
+  EnableDisableAsgDescription convertDescription(Map input) {
     input.credentials = getCredentialsObject(input.credentials as String)
-    new DisableAsgDescription(input)
+    new EnableDisableAsgDescription(input)
   }
 }

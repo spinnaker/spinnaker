@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 
-class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
+class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
   def setupSpec() {
     op = new EnableAsgAtomicOperation(description)
   }
 
-  void 'should register instances from load balancers'() {
+  void 'should log failure without a discoveryHostFormat'() {
     setup:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
@@ -37,25 +39,28 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
-      assert req.instances[0].instanceId == "i1"
-      assert req.loadBalancerName == "lb1"
-    }
+    1 * loadBalancing.registerInstancesWithLoadBalancer(_)
+    1 * task.updateStatus(_, 'Could not enable ASG \'kato-main-v000\' in region us-west-1! Failure Type: DiscoveryNotConfiguredException')
   }
 
-  void 'should enable instances for asg in discovery'() {
+  void 'should log unknown asgs'() {
+    when:
+    op.operate([])
+
+    then:
+    1 * task.updateStatus(_, 'No ASG named \'kato-main-v000\' found in us-west-1')
+  }
+
+  void 'should do nothing without instances'() {
     setup:
-    op.discoveryHostFormat = "http://us-west-1.discovery.ENV.netflix.net"
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
 
     when:
     op.operate([])
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * restTemplate.put("http://us-west-1.discovery.ENV.netflix.net/eureka/v2/apps/asg1/i1/status?value=UP", [:])
+    0 * loadBalancing._
   }
-
 }

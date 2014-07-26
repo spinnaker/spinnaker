@@ -40,16 +40,18 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   Task process(List<AtomicOperation> atomicOperations) {
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...")
     executorService.submit {
-      // Autowire the atomic operations
-      atomicOperations.each { autowire it }
-      TaskRepository.threadLocalTask.set(task)
       try {
+        // Autowire the atomic operations
+        for (op in atomicOperations) {
+          autowire op
+        }
+        TaskRepository.threadLocalTask.set(task)
         def results = []
         for (AtomicOperation atomicOperation : atomicOperations) {
           task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
           try {
             results << atomicOperation.operate(results)
-            task.updateStatus(TASK_PHASE, "Orchestration completed successfully.")
+            task.updateStatus(TASK_PHASE, "Orchestration completed.")
           } catch (e) {
             e.printStackTrace()
             def stringWriter = new StringWriter()
@@ -63,9 +65,18 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
         if (!task.status.isCompleted()) {
           task.complete()
         }
-      } catch (TimeoutException IGNORE) {
-        task.updateStatus "INIT", "Orchestration timed out."
-        task.fail()
+      } catch (Exception e) {
+        if (e instanceof TimeoutException) {
+          task.updateStatus "INIT", "Orchestration timed out."
+          task.fail()
+        } else {
+          e.printStackTrace()
+          def stringWriter = new StringWriter()
+          def printWriter = new PrintWriter(stringWriter)
+          e.printStackTrace(printWriter)
+          task.updateStatus("INIT", "Unknown failure -- ${stringWriter.toString()}")
+          task.fail()
+        }
       } finally {
         task.complete()
       }

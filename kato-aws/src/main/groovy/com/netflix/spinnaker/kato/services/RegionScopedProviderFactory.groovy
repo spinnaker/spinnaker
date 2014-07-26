@@ -34,9 +34,6 @@ class RegionScopedProviderFactory {
   @Autowired
   ThrottleService throttleService
 
-  @Value('${discovery.host.format:#{null}}')
-  String discoveryHostFormat
-
   RegionScopedProvider forRegion(AmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
   }
@@ -69,14 +66,6 @@ class RegionScopedProviderFactory {
 
     AsgService getAsgService() {
       new AsgService(throttleService, amazonClientProvider.getAutoScaling(amazonCredentials, region))
-    }
-
-    ElbService getElbService() {
-      new ElbService(throttleService, amazonClientProvider.getAmazonElasticLoadBalancing(amazonCredentials, region))
-    }
-
-    EurekaService getEurekaService(Task task, String phase) {
-      new EurekaService(throttleService, discoveryHostFormat, new RestTemplate(), task, phase, amazonCredentials.environment, region)
     }
   }
 

@@ -16,16 +16,16 @@
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.deploy.aws.description.EnableAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
 
-class EnableAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
+class EnableDisableAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
   @Override
   DescriptionValidator getDescriptionValidator() {
-    new EnableAsgDescriptionValidator()
+    new AbstractEnableDisableAsgDescriptionValidator() {}
   }
 
   @Override
-  EnableAsgDescription getDescription() {
-    new EnableAsgDescription()
+  EnableDisableAsgDescription getDescription() {
+    new EnableDisableAsgDescription()
   }
 }

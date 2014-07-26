@@ -169,7 +169,7 @@ class AutoScalingWorker {
    * @return list of subnet ids applicable to this deployment.
    */
   List<String> getSubnetIds() {
-    getSubnets().subnetId
+    subnetType ? getSubnets().subnetId : []
   }
 
   private List<Subnet> getSubnets() {

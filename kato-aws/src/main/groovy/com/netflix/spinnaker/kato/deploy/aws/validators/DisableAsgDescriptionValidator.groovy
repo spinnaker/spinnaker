@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.spinnaker.kato.deploy.aws.description.DisableAsgDescription
 import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
 
 @Component("disableAsgDescriptionValidator")
-class DisableAsgDescriptionValidator extends AmazonDescriptionValidationSupport<DisableAsgDescription> {
-  @Override
-  void validate(List priorDescriptions, DisableAsgDescription description, Errors errors) {
-    validateAsgNameAndRegions description, errors
-  }
+class DisableAsgDescriptionValidator extends AbstractEnableDisableAsgDescriptionValidator {
 }
