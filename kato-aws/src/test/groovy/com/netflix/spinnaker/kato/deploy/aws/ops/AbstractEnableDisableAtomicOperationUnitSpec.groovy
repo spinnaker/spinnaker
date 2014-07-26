@@ -40,7 +40,7 @@ class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOp
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * loadBalancing.registerInstancesWithLoadBalancer(_)
-    1 * task.updateStatus(_, 'Could not enable ASG \'kato-main-v000\' in region us-west-1! Failure Type: DiscoveryNotConfiguredException')
+    1 * task.updateStatus(_, 'Could not enable ASG \'kato-main-v000\' in region us-west-1! Failure Type: DiscoveryNotConfiguredException; Message: null')
   }
 
   void 'should log unknown asgs'() {

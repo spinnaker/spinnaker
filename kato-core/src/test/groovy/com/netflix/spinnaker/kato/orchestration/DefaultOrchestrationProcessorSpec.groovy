@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kato.orchestration
 
+import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
@@ -47,7 +48,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
   void "complete the task when everything goes as planned"() {
     setup:
-    def task = Mock(Task)
+    def task = new DefaultTask("1")
     def atomicOperation = Mock(AtomicOperation)
 
     when:
@@ -55,12 +56,13 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
     then:
     1 * taskRepository.create(_, _) >> task
-    1 * task.complete()
+    task.status.isCompleted()
+    !task.status.isFailed()
   }
 
   void "fail the task when exception is thrown"() {
     setup:
-    def task = Mock(Task)
+    def task = new DefaultTask("1")
     def atomicOperation = Mock(AtomicOperation)
 
     when:
@@ -69,7 +71,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     then:
     1 * taskRepository.create(_, _) >> task
     1 * atomicOperation.operate(_) >> { throw new RuntimeException() }
-    1 * task.fail()
+    task.status.isFailed()
   }
 
   private void submitAndWait(AtomicOperation atomicOp) {

@@ -62,7 +62,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           }
         }
         task.addResultObjects(results)
-        if (!task.status.isCompleted()) {
+        if (!task.status?.isCompleted()) {
           task.complete()
         }
       } catch (Exception e) {
@@ -78,7 +78,9 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           task.fail()
         }
       } finally {
-        task.complete()
+        if (!task.status?.isCompleted()) {
+          task.complete()
+        }
       }
     }
     task
