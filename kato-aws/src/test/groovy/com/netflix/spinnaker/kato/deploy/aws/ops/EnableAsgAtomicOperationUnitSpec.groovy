@@ -55,7 +55,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * restTemplate.put("http://us-west-1.discovery.ENV.netflix.net/eureka/v2/apps/asg1/i1/status?value=UP", [:])
+    1 * restTemplate.put("http://us-west-1.discovery.ENV.netflix.net/v2/apps/asg1/i1/status?value=UP", [:])
   }
 
 }
