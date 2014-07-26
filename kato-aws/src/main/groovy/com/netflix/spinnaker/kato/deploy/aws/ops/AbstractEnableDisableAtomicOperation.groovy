@@ -108,7 +108,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           }
           task.updateStatus phaseName, "Attempting to ${discoveryStatus.name().toLowerCase()} instance '$instanceId'."
           def discovery = String.format(discoveryHostFormat, region, environment)
-          restTemplate.put("$discovery/eureka/v2/apps/$names.app/$instanceId/status?value=$discoveryStatus.value", [:])
+          restTemplate.put("$discovery/v2/apps/$names.app/$instanceId/status?value=$discoveryStatus.value", [:])
         }
       }
   }
