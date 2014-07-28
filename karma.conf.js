@@ -29,7 +29,8 @@ module.exports = function(config) {
       'app/bower_components/angular-spinner/angular-spinner.js',
       'app/scripts/**/*.js',
       'test/mock/**/*.js',
-      'test/spec/**/*.js'
+      'test/spec/**/*.js',
+      '.tmp/scripts/templates.js'
     ],
 
     // list of files / patterns to exclude
