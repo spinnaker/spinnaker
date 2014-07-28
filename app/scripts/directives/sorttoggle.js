@@ -12,7 +12,9 @@ angular.module('deckApp')
       templateUrl: 'views/sorttoggle.html',
       scope: {
         key: '@',
+        label: '@',
         'default': '@',
+        onChange: '&'
       },
       restrict: 'A',
       controller: function($scope) {
@@ -20,19 +22,19 @@ angular.module('deckApp')
           $scope.$parent.sortKey = $scope.key;
         }
 
+        $scope.onChange = $scope.onChange || angular.noop;
+
         // TODO: find a solution that doesn't involve $parent
         $scope.$parent.reverse = false;
         $scope.setSortKey = function(key) {
-          $scope.$parent.sortKey = key.toLowerCase();
+          $scope.$parent.sortKey = key;
           $scope.$parent.reverse = $scope.isSortKey(key) ? !$scope.$parent.reverse : false;
+          $scope.onChange();
         };
 
         $scope.isSortKey = function(key) {
-          return $scope.$parent.sortKey === key.toLowerCase();
+          return $scope.$parent.sortKey === key;
         };
-
-        // TODO: fix arrow directionality
-
-      },
+      }
     };
   });

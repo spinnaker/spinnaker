@@ -48,7 +48,19 @@ angular.module('deckApp')
 //          'updateTs' : '1399576071499'
 //        }]
 //      };
-      return $http.get('http://oort.prod.netflix.net/applications');
+      // TODO: Restangular-ize, with result transformer doing this
+      var fetch = $http.get('http://oort.prod.netflix.net/applications');
+      fetch.then(function(response) {
+        response.data.forEach(function(application) {
+          if (!application.attributes.createTs) {
+            application.attributes.createTs = '0';
+          }
+          if (!application.attributes.updateTs) {
+            application.attributes.updateTs = '0';
+          }
+        });
+      });
+      return fetch;
     }
 
     function getApplication(application) {

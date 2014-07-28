@@ -15,9 +15,9 @@
       </form>
       <table class="table table-striped">
         <thead>
-          <th>Name</th>
-          <th>Created</th>
-          <th>Updated</th>
+          <th sort-toggle key="name" label="Name" default="true" on-change="filterApplications()"></th>
+          <th sort-toggle key="attributes.createTs" label="Created" on-change="filterApplications()"></th>
+          <th sort-toggle key="attributes.updateTs" label="Updated" on-change="filterApplications()"></th>
         </thead>
         <tbody>
           <tr ng-repeat="application in resultPage()">
@@ -38,7 +38,7 @@
       <pagination total-items="filteredApplications.length"
                   max-size="pagination.maxSize"
                   ng-model="pagination.currentPage"
-                  boundary-links="true" rotate="false"></pagination>
+        ></pagination>
     </div>
   </div>
 </div>
