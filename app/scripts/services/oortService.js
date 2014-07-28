@@ -76,11 +76,28 @@ angular.module('deckApp')
     }
 
     function getCluster(application, account, cluster) {
-      return $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster);
+      var fetch = $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster);
+      fetch.then(function(response) {
+        console.warn('data:', response);
+        response.data[0].serverGroups.forEach(function(serverGroup) {
+          transformServerGroup(serverGroup, account, cluster);
+        });
+      });
+      return fetch;
     }
 
     function getServerGroup(application, account, cluster, serverGroup) {
-      return $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroup);
+      var fetch = $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster + '/aws/serverGroups/' + serverGroup);
+
+      fetch.then(function(response) {
+        transformServerGroup(response.data[0], account, cluster);
+      });
+      return fetch;
+    }
+
+    function transformServerGroup(serverGroup, account, cluster) {
+      serverGroup.account = account;
+      serverGroup.cluster = cluster;
     }
 
     function getInstance(application, account, cluster, serverGroup, instance) {

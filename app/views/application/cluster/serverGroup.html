@@ -1,7 +1,7 @@
 <div class="row server-group"
      ng-class="{active: $state.includes('serverGroup', {serverGroup: serverGroup.name})}">
   <div class="col-sm-2 no-padding">
-    <a ui-sref="serverGroup({serverGroup: serverGroup.name})">
+    <a ui-sref="serverGroup({cluster: serverGroup.cluster, account: serverGroup.account, serverGroup: serverGroup.name})">
       <span class="glyphicon glyphicon-th"></span> {{serverGroup.name | stripCluster:cluster}}
     </a>
   </div>
@@ -17,7 +17,7 @@
       <a class="instance"
          ng-repeat="instance in serverGroup.instances"
          tooltip="{{instance.name}}"
-         ui-sref="instance({serverGroup: serverGroup.name, instance: instance.name })"
+         ui-sref="instance({cluster: serverGroup.cluster, account: serverGroup.account, serverGroup: serverGroup.name, instance: instance.name })"
          ng-class="{unhealthy: !instance.isHealthy, active: $state.includes('instance', {instance: instance.name})}"
         >
         <span class="sr-only">{{instance.name}}</span></a>
