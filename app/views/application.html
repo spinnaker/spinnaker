@@ -11,13 +11,13 @@
         </li>
         <li>
           <a ui-sref="clusters" ng-class="{active: $state.includes('clusters')}">
-            <span class="glyphicon glyphicon-align-justify"></span>
+            <span class="glyphicon glyphicon-th"></span>
             Clusters
           </a>
         </li>
         <li>
           <a ui-sref="elbs" ng-class="{active: $state.includes('elbs')}">
-            <span class="glyphicon glyphicon-th"></span>ELB</a>
+            <span class="glyphicon glyphicon-cloud"></span>ELB</a>
         </li>
         <li>
           <a ui-sref="connections" ng-class="{active: $state.includes('connections')}">
@@ -27,8 +27,14 @@
         </li>
         <li>
           <a ui-sref="tasks" ng-class="{active: $state.includes('tasks')}">
-            <span class="glyphicon glyphicon-tasks"></span>
+            <span class="glyphicon glyphicon-align-justify"></span>
             Tasks
+          </a>
+        </li>
+        <li>
+          <a href>
+            <span class="glyphicon glyphicon-tasks"></span>
+            Pipelines
           </a>
         </li>
       </ul>

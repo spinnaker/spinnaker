@@ -18,6 +18,7 @@ angular.module('deckApp')
       });
 
       // add upCount
+      // TODO: move to Restangular, result transformer
       cluster.serverGroups.forEach(function(serverGroup) {
         serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
       });

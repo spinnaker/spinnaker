@@ -2,8 +2,21 @@
 
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application) {
-    $scope.listClusters = function() {
-      console.warn('application:', application);
-      return application.data.clusters;
+
+    $scope.sortFilter = {
+      sort: 'region'
+    };
+
+    $scope.allClusters = application.data.clusters;
+
+    $scope.getGroups = function() {
+      var groups = [];
+
+//      var grouped = _.groupBy()
+//      $scope.allClusters.forEach(function(cluster) {
+//
+//      });
+
+      return groups;
     };
   });
