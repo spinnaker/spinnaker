@@ -1,0 +1,33 @@
+<div class="modal-page modal-sm">
+  <form role="form" class="container-fluid">
+    <div class="modal-header">
+      <h3>Resize {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body">
+      <p>
+        Current size:
+        <b>{{currentSize}}</b>
+        instance<span ng-if="currentSize > 1">s</span>
+      </p>
+      <div class="form-group row">
+        <div class="col-sm-4 sm-label-left">New size</div>
+        <div class="col-sm-4">
+          <input type="number"
+                 class="form-control input-sm"
+                 ng-model="command.newSize"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+      <button class="btn btn-primary"
+              ng-click="resize()"
+              ng-disabled="command.newSize === currentSize">
+        <span class="glyphicon"
+              ng-class="{'glyphicon-resize-full': command.newSize > currentSize, 'glyphicon-resize-small': command.newSize < currentSize}">
+        </span>
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

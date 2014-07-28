@@ -10,6 +10,24 @@
       <span class="glyphicon glyphicon-th"></span>
       {{serverGroup.name}}
     </h3>
+    <div class="text-right">
+      <div class="actions">
+        <div class="dropdown">
+          <button type="button" class="btn btn-default dropdown-toggle" ng-disabled="disabled">
+            ASG Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li class="dropdown-header">CONFIG</li>
+            <li><a href ng-click="resizeServerGroup()">Resize ASG</a></li>
+            <li><a href ng-click="disableServerGroup()">Disable ASG</a></li>
+            <li><a href ng-click="destroyServerGroup()">Destroy ASG</a></li>
+            <li class="dropdown-header">INSIGHT</li>
+            <li><a href="#">View in Atlas</a></li>
+            <li><a href="#">View in Chronos</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="content">
     <div class="content-section">

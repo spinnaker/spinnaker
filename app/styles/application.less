@@ -38,8 +38,15 @@
     &.active {
       border-color: @dark_grey;
       background-color: @healthy_green_border;
+      &.unhealthy {
+        background-color: @unhealthy_red_border;
+      }
     }
   }
+}
+
+.actions {
+  margin-bottom: 10px;
 }
 
 .glyphicon {
