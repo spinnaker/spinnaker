@@ -3,6 +3,8 @@
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, _) {
 
+    console.warn('application:', application);
+
     $scope.sortFilter = {
       sortPrimary: 'region',
       sortSecondary: 'cluster',
@@ -79,7 +81,10 @@ angular.module('deckApp')
       }
     }
 
-    $scope.$on('clustersLoaded', $scope.updateClusterGroups);
-
+    if (application.data.clusters.length) {
+      $scope.updateClusterGroups();
+    } else {
+      $scope.$on('clustersLoaded', $scope.updateClusterGroups);
+    }
 
   });
