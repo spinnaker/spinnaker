@@ -10,17 +10,17 @@
       <form class="form form-inline">
         <div class="form-group">
           <label>Filter</label>
-          <input type="search" class="form-control" ng-model="applicationFilter">
+          <input type="search" class="form-control" ng-model="applicationFilter" ng-change="filterApplications()">
         </div>
       </form>
       <table class="table table-striped">
         <thead>
-          <th sort-toggle key="Name" default="true"></th>
-          <th sort-toggle key="Created"></th>
-          <th sort-toggle key="Updated"></th>
+          <th>Name</th>
+          <th>Created</th>
+          <th>Updated</th>
         </thead>
         <tbody>
-          <tr ng-repeat="application in applications | filter:applicationFilter | orderBy:sortKey:reverse">
+          <tr ng-repeat="application in resultPage()">
             <td>
               <a ui-sref="application({ application: application.name })">
                 {{ application.name }}
@@ -35,6 +35,10 @@
           </tr>
         </tbody>
       </table>
+      <pagination total-items="filteredApplications.length"
+                  max-size="pagination.maxSize"
+                  ng-model="pagination.currentPage"
+                  boundary-links="true" rotate="false"></pagination>
     </div>
   </div>
 </div>

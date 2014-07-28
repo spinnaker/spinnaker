@@ -1,10 +1,11 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, applications, $exceptionHandler, $modal, $log, RxService, front50, notifications) {
+  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, applications) {
     $scope.applications = applications.data;
 
     $scope.sortKey = 'name';
+    $scope.applicationFilter = '';
 
     $scope.menuActions = [
       {
@@ -33,5 +34,39 @@ angular.module('deckApp')
         }
       }
     ];
+
+    $scope.filterApplications = function() {
+      var filtered = $filter('filter')($scope.applications, {name: $scope.applicationFilter}),
+          sorted = $filter('orderBy')(filtered, $scope.sortKey, $scope.reverse);
+      $scope.filteredApplications = sorted;
+      $scope.resetPaginator();
+    };
+
+    $scope.resultPage = function() {
+      var pagination = $scope.pagination,
+          allFiltered = $scope.filteredApplications,
+          start = (pagination.currentPage - 1) * pagination.itemsPerPage,
+          end = pagination.currentPage * pagination.itemsPerPage;
+      if (!allFiltered || !allFiltered.length) {
+        return [];
+      }
+      if (allFiltered.length < pagination.itemsPerPage) {
+        return allFiltered;
+      }
+      if (allFiltered.length < end) {
+        return allFiltered.slice(start);
+      }
+      return allFiltered.slice(start, end);
+    };
+
+    $scope.resetPaginator = function() {
+      $scope.pagination = {
+        currentPage: 1,
+        itemsPerPage: 10,
+        maxSize: 10
+      };
+    };
+
+    $scope.filterApplications();
 
   });
