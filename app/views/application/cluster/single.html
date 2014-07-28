@@ -42,6 +42,6 @@
   </div>
   <div ng-repeat="asg in asgsByRegion">
     <h4>{{asg.region}}</h4>
-    <server-group ng-repeat="serverGroup in asg.serverGroups" server-group="serverGroup" cluster="cluster"></server-group>
+    <server-group ng-repeat="serverGroup in asg.serverGroups" server-group="serverGroup" cluster="cluster.name"></server-group>
   </div>
 </div>

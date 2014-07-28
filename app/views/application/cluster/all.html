@@ -8,32 +8,47 @@
     </select>
   </div>
 </div>
-<div class="content">
-  <div class="sort-filter">
-    <div class="row form-inline">
-      <div class="form-group">
-        <label>
-          Sort by
-          <select class="form-control input-sm" name="sort-by" ng-model="sortFilter.sort">
-            <option value="region">Region</option>
-            <option value="account">Account</option>
-          </select>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>
-          Filter
-          <input type="text" class="form-control input-sm" name="filter" ng-model="sortFilter.filter"/>
-        </label>
-      </div>
+<div class="sort-filter">
+  <div class="row form-inline">
+    <div class="form-group">
+      <label>
+        Sorted by
+        <select class="form-control input-sm"
+                ng-model="sortFilter.sortPrimary"
+                ng-change="updateSorting()"
+                ng-options="option.key as option.label for option in sortOptions()">
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>
+        then
+        <select class="form-control input-sm"
+                ng-model="sortFilter.sortSecondary"
+                ng-change="updateSorting()"
+                ng-options="option.key as option.label for option in sortOptions(sortFilter.sortPrimary)">
+        </select>
+      </label>
     </div>
   </div>
-  <div class="text-center" style="margin-top: 20px">
-    We're working on it.
-  <under-construction></under-construction>
-    You can select an individual cluster on the left, though.
+  <div class="row form-inline">
+    <div class="form-group">
+      <label>
+        Filter
+        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, ASG"
+               ng-model="sortFilter.filter"
+               ng-change="updateClusterGroups()"/>
+      </label>
+    </div>
   </div>
-  <div ng-repeat="cluster in listClusters()">
-    {{cluster.name}}
+</div>
+<div class="content">
+  <div ng-repeat="group in groups" class="server-group-rollup">
+    <div ng-repeat="subgroup in group.subgroups">
+      <div ng-repeat="subsubGroup in subgroup.subgroups">
+        <h4>{{group.heading}}: {{subgroup.heading}}: {{subsubGroup.heading}}</h4>
+        <server-group ng-repeat="serverGroup in subsubGroup.serverGroups" server-group="serverGroup" cluster="serverGroup.cluster"></server-group>
+      </div>
+    </div>
   </div>
 </div>
