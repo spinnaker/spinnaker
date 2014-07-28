@@ -13,7 +13,8 @@ angular
     'ui.router',
     'ui.bootstrap',
     'restangular',
-    'angularSpinner'
+    'angularSpinner',
+    'deckApp.templates'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler) {
     // This can go away when the next version of ui-router is available (0.2.11+)
@@ -142,7 +143,8 @@ angular
             templateUrl: 'views/application/cluster/navigation.html'
           },
           'master': {
-            templateUrl: 'views/application/cluster/all.html'
+            templateUrl: 'views/application/cluster/all.html',
+            controller: 'AllClustersCtrl'
           }
         }
       })

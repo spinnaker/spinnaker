@@ -1,18 +1,21 @@
 <h3>
-  Accounts
-  <a class="btn btn-default btn-xs" ng-if="!loadingClusters && application.clusters.length > 1" ui-sref="." ui-sref-active="active">Show All</a>
-
+  Clusters <span class="small">by account</span>
 </h3>
 
 <h4 ng-if="loadingClusters" class="text-center">
   <span us-spinner="{radius:20, width:6, length: 12}"></span>
 </h4>
-<div ng-if="!loadingClusters" class="sub-nav" ng-repeat="account in application.accounts">
-  <div class="sub-nav-item">
-    <h4>{{account}}</h4>
-    <a ng-repeat="cluster in getClustersForAccount(account)"
-       ui-sref="cluster({account: account, cluster: cluster.name})"
-       ng-class="{active: $state.includes('cluster', {account: account, cluster: cluster.name} )}">
-        {{cluster.name}}</a>
+<div class="list-group">
+  <a class="list-group-item" ng-if="!loadingClusters" ui-sref="." ui-sref-active="active">Show All Clusters</a>
+</div>
+<div ng-if="!loadingClusters" class="list-group" ng-repeat="account in application.accounts">
+  <div class="list-group-item">
+    <span class="badge">{{getClustersForAccount(account).length}}</span>
+    <h4 class="list-group-item-heading">{{account}}</h4>
   </div>
+  <a class="list-group-item"
+     ng-repeat="cluster in getClustersForAccount(account)"
+     ui-sref="cluster({account: account, cluster: cluster.name})"
+     ng-class="{active: $state.includes('cluster', {account: account, cluster: cluster.name} )}">
+    {{cluster.name}}</a>
 </div>

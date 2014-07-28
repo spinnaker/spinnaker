@@ -64,6 +64,10 @@ module.exports = function (grunt) {
         files: ['<%= yeoman.app %>/styles/{,*/}*.less'],
         tasks: ['less', 'autoprefixer']
       },
+      html2js: {
+        files: ['<%= yeoman.app %>/views/**/*.html'],
+        tasks: ['html2js']
+      },
       gruntfile: {
         files: ['Gruntfile.js']
       },
@@ -208,6 +212,29 @@ module.exports = function (grunt) {
           '<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
           '<%= yeoman.dist %>/styles/fonts/*'
         ]
+      }
+    },
+
+    // Converts HTML partials into JS strings, loading them into Angular's template cache
+    html2js: {
+      options: {
+        module: 'deckApp.templates',
+        base: '<%= yeoman.app %>',
+        singleModule: true,
+        htmlmin: {
+          collapseBooleanAttributes: true,
+          collapseWhitespace: true,
+          removeAttributeQuotes: true,
+          removeComments: true,
+          removeEmptyAttributes: true,
+          removeRedundantAttributes: true,
+          removeScriptTypeAttributes: true,
+          removeStyleLinkTypeAttributes: true
+        }
+      },
+      main: {
+        src: ['<%= yeoman.app %>/views/**/*.html'],
+        dest: '.tmp/scripts/templates.js'
       }
     },
 
@@ -374,13 +401,16 @@ module.exports = function (grunt) {
     concurrent: {
       server: [
         'less',
+        'html2js',
         'copy:styles'
       ],
       test: [
+        'html2js',
         'copy:styles'
       ],
       dist: [
         'less',
+        'html2js',
         'copy:styles',
         'imagemin',
         'svgmin'
