@@ -78,7 +78,11 @@ class JedisTaskRepository implements TaskRepository {
   List<Object> getResultObjects(JedisTask task) {
     List<Map> list = []
     jedis.keys("taskResult:${task.id}:*").sort { it.split(':').last() as long }.each { key ->
-      list << mapper.readValue(jedis.get(key) as String, Map)
+      String queryResult = jedis.get(key) as String
+      if(queryResult){
+        Map entry = mapper.readValue(queryResult, Map)
+        list << entry
+      }
     }
     list
   }
