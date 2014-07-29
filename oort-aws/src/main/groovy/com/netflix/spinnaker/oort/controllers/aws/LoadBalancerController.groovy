@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.controllers.aws
 
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
@@ -60,29 +61,58 @@ class LoadBalancerController {
       def serverGroupName = parts[4]
       def summary = map.get(name)
       if (!summary) {
-        summary = new AmazonLoadBalancerSummary(name: name, loadBalancers: [:])
+        summary = new AmazonLoadBalancerSummary(name: name)
         map.put name, summary
       }
+
       def loadBalancer = new AmazonLoadBalancer(name, region)
       loadBalancer.elb = cacheService.retrieve(Keys.getLoadBalancerKey(name, account, region), LoadBalancerDescription)
       if (!loadBalancer.serverGroups.contains(serverGroupName)) {
         loadBalancer.serverGroups << serverGroupName
       }
-      summary.addLoadBalancer account, region, loadBalancer
+      summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
     }
     map
   }
 
-  static class AmazonLoadBalancerSummary {
-    String name
-    // Account => Region => LoadBalancer
-    Map<String, Map<String, AmazonLoadBalancer>> loadBalancers
+  // view models...
 
-    void addLoadBalancer(String account, String region, AmazonLoadBalancer loadBalancer) {
-      if (!loadBalancers.containsKey(account)) {
-        loadBalancers[account] = [:]
+  static class AmazonLoadBalancerSummary {
+    private Map<String, AmazonLoadBalancerAccount> mappedAccounts = [:]
+    String name
+
+    AmazonLoadBalancerAccount getOrCreateAccount(String name) {
+      if (!mappedAccounts.containsKey(name)) {
+        mappedAccounts.put(name, new AmazonLoadBalancerAccount(name: name))
       }
-      loadBalancers[account][region] = loadBalancer
+      mappedAccounts[name]
     }
+
+    @JsonProperty("accounts")
+    List<AmazonLoadBalancerAccount> getAccounts() {
+      mappedAccounts.values() as List
+    }
+  }
+
+  static class AmazonLoadBalancerAccount {
+    private Map<String, AmazonLoadBalancerAccountRegion> mappedRegions = [:]
+    String name
+
+    AmazonLoadBalancerAccountRegion getOrCreateRegion(String name) {
+      if (!mappedRegions.containsKey(name)) {
+        mappedRegions.put(name, new AmazonLoadBalancerAccountRegion(name: name, loadBalancers: []))
+      }
+      mappedRegions[name]
+    }
+
+    @JsonProperty("regions")
+    List<AmazonLoadBalancerAccountRegion> getRegions() {
+      mappedRegions.values() as List
+    }
+  }
+
+  static class AmazonLoadBalancerAccountRegion {
+    String name
+    List<AmazonLoadBalancer> loadBalancers
   }
 }

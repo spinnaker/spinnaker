@@ -20,7 +20,7 @@ import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
 
-@CompileStatic
+//@CompileStatic
 class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
 
   AmazonServerGroup() {

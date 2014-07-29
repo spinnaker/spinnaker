@@ -46,10 +46,6 @@ import javax.annotation.PreDestroy
 @EnableMetrics
 class Main extends SpringBootServletInitializer {
 
-  static {
-    System.setProperty("spring.config.location", "classpath:/META-INF/application.yml")
-  }
-
   static void main(_) {
     System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     SpringApplication.run this, [] as String
