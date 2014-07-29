@@ -33,18 +33,32 @@
       </div>
     </div>
     <div class="row padding"
-         ng-repeat="task in subscribed.data | taskFilter:taskStateFilter | filter:taskFilter">
-      <div class="col-md-12 task">
-        <progress max="100" class="progress-status">
-          <bar ng-repeat="step in task.steps" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
-            <span></span>
-          </bar>
-        </progress>
-        <progress max="100" class="progress-labels">
-          <bar ng-repeat="step in task.steps" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
-          {{ step.displayName }}
-          </bar>
-        </progress>
+         ng-repeat="task in subscribed.data | taskFilter:taskStateFilter | filter:taskFilter | orderBy:'startTime'">
+      <div class="col-md-12">
+        <div class="row task-row">
+          <div class="col-md-2 task-label">
+            <div>
+              <strong>Task Description</strong>
+            </div>
+            <ul>
+              <li>ID: {{ task.id }}
+              <li>Started: {{ task.startTimeAsDate | date:'EEE, hh:mm:ss'}}
+              <li>Completed: {{ task.endTimeAsDate | date:'EEE, hh:mm:ss'}}
+            </ul>
+          </div>
+          <div class="col-md-10 task">
+            <progress max="1" class="progress-status">
+              <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+              <span tooltip="Started: {{ step.startTimeAsDate | date:'hh:mm:ss' }}, Ended: {{ step.startTimeAsDate | date:'hh:mm:ss' }}"></span>
+              </bar>
+            </progress>
+            <progress max="1" class="progress-labels">
+              <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+              {{ step.displayName }}
+              </bar>
+            </progress>
+          </div>
+        </div>
       </div>
     </div>
   </div>

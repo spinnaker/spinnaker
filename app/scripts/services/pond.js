@@ -9,21 +9,48 @@ angular.module('deckApp')
       // map elem status to bootstrap labels and create a diplay name
       // TODO: clean up
       elem.category = (elem.status == 'STARTED' ? 'running' :
-        (elem.status != 'COMPLETED' ? 'danger' :
+        (elem.status != 'COMPLETED' ? 'errored' :
           (isLast ? 'success' : 'non-terminal')));
       elem.active = (elem.status == 'STARTED');
-      elem.displayName = elem.name.split(/([A-Z][a-z]*)/)
-        .filter(function(e) { return e.length > 0 && e != 'Step'; })
-        .join(' ');
       return elem;
     };
 
     var filterTask = function(task) {
-      var elapsedTime = task.status != 'STARTED' ? task.endTime - task.startTime : Date.now() - task.startTime;
       filterTimes(task, true);
-      task.steps.forEach(function(step, idx) {
-        filterTimes(step, (task.steps.length - 1 === idx));
+      // TODO: this is temporary to filter out orca steps -- removed when unneeded
+      task.stages = task.steps.reduce(function(acc, current) {
+        current.displayName = current.name.split(/([A-Z][a-z]*)/)
+          .filter(function(e) { return e.length > 0 && e != 'Step' && e != 'Create' && e != 'Monitor'; })
+          .join(' ');
+        var prev = acc[acc.length - 1];
+        if (current.displayName.contains('orca')) {
+          return acc;
+        }
+        if (angular.isDefined(prev) && current.displayName.contains(prev.displayName)) {
+          prev.endTime = current.endTime;
+          return acc;
+        }
+        acc.push(current);
+        return acc;
+      }, []);
+      // end garbage
+      // build the task duration from the individual steps.
+      if (angular.isUndefined(task.stages[task.stages.length -1 ].endTime)) {
+        task.stages[task.stages.length -1].endTime = Date.now();
+      }
+      var elapsedTime = task.stages.reduce(function(acc, step) {
+        var endTime = Math.floor(step.endTime/10);
+        var startTime = Math.floor(step.startTime/10);
+        return acc + (endTime - startTime);
+      }, 0);
+      task.stages.forEach(function(step, idx) {
+        filterTimes(step, (task.stages.length - 1 === idx));
+        var endTime = Math.floor(step.endTime/10);
+        var startTime = Math.floor(step.startTime/10);
+        step.percentage = (endTime - startTime) / elapsedTime;
+        /*
         step.percentage = (step.status != 'STARTED'  ? step.endTime - step.startTime : Date.now() - step.startTime) * 100 / elapsedTime;
+        */
       });
       return task;
     };
@@ -38,10 +65,6 @@ angular.module('deckApp')
       RestangularConfigurer.addElementTransformer('task', true, function(taskCollection) {
         taskCollection.forEach(filterTask);
         return taskCollection;
-      });
-
-      RestangularConfigurer.addResponseInterceptor(function() {
-        return listOfTasks;
       });
 
     });

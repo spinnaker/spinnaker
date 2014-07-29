@@ -683,10 +683,6 @@ server-error-flag {
   border: 1px solid #aaaaaa;
 }
 
-.padding {
-  padding: 10px;
-}
-
 .task {
   .progress {
     border-radius: 0px;
@@ -697,21 +693,36 @@ server-error-flag {
         height: 100%;
         width: 100%;
         display: inline-block;
+        overflow-x: hidden;
       }
     }
   }
   .progress-status {
     height: 40px;
-    border: 1px solid #aaa;
+    border-right: none;
     border-bottom: none;
+    border-top: 1px solid #aaa;
+    border-left: 1px solid #aaa;
     margin-bottom: 0px;
     .progress-bar.progress-bar-non-terminal {
       background-color: #ccc;
+      background: linear-gradient(#ccc, darken(#ccc, 10%));
+    }
+    .progress-bar.progress-bar-success {
+      background-color: @healthy_green;
+      background: linear-gradient(@healthy_green, @healthy_green_border);
+    }
+    .progress-bar.progress-bar-errored {
+      background-color: @unhealthy_red;
+      background: linear-gradient(@unhealthy_red, @unhealthy_red_border);
     }
   }
   .progress-labels {
-    border: 1px solid rgb(248, 248, 248);
+    border-right: none;
+    border-bottom: none;
     border-top: 1px solid #aaa;
+    border-left: 1px solid #aaa;
+    margin-bottom: 0px;
     .progress-bar {
       background-color: rgb(248,248,248);
       color: #aaa;
@@ -719,5 +730,24 @@ server-error-flag {
       overflow-x: hidden;
     }
   }
+}
 
+.task-row {
+  border-left: 3px solid #ccc;
+  margin-bottom: 20px;
+  color: #aaa;
+  strong {
+    color: #5b5b5b;
+  }
+  ul {
+    font-size: 0.8em;
+    padding: 0px;
+    li {
+      list-style-type: none;
+    }
+  }
+}
+
+.padding {
+  padding: 10px;
 }
