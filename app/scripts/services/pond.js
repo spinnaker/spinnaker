@@ -9,7 +9,7 @@ angular.module('deckApp')
       // map elem status to bootstrap labels and create a diplay name
       // TODO: clean up
       elem.category = (elem.status === 'STARTED' ? 'running' :
-        (elem.status != 'COMPLETED' ? 'errored' :
+        (elem.status !== 'COMPLETED' ? 'errored' :
           (isLast ? 'success' : 'non-terminal')));
       elem.active = (elem.status === 'STARTED');
       return elem;
@@ -20,7 +20,7 @@ angular.module('deckApp')
       // TODO: this is temporary to filter out orca steps -- removed when unneeded
       task.stages = task.steps.reduce(function(acc, current) {
         current.displayName = current.name.split(/([A-Z][a-z]*)/)
-          .filter(function(e) { return e.length > 0 && e != 'Step' && e != 'Create' && e != 'Monitor'; })
+          .filter(function(e) { return e.length > 0 && e !== 'Step' && e !== 'Create' && e !== 'Monitor'; })
           .join(' ');
         var prev = acc[acc.length - 1];
         if (current.displayName.contains('orca')) {
