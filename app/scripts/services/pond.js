@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('pond', function(settings, Restangular, dateFromTimestampFilter, listOfTasks) {
+  .factory('pond', function(settings, Restangular, dateFromTimestampFilter) {
 
     var filterTimes = function(elem, isLast) {
       elem.startTimeAsDate = dateFromTimestampFilter(elem.startTime);
