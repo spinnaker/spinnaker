@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.apinnaker.oort.model.aws
+package com.netflix.spinnaker.oort.model.aws
 
 import com.codahale.metrics.Timer
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
-import com.netflix.spinnaker.oort.model.aws.AmazonApplication
-import com.netflix.spinnaker.oort.model.aws.AmazonApplicationProvider
 import spock.lang.Shared
 import spock.lang.Specification
 

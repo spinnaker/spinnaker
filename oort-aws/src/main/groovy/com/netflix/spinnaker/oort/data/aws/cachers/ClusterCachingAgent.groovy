@@ -85,6 +85,10 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     }
     cluster.loadBalancers.addAll(asg.loadBalancerNames.collect { new AmazonLoadBalancer(it, region) } as Set)
     cacheService.put(Keys.getClusterKey(names.cluster, names.app, account.name), cluster)
+
+    for (loadBalancerName in asg.loadBalancerNames) {
+      cacheService.put(Keys.getLoadBalancerServerGroupKey(loadBalancerName, account.name, asg.autoScalingGroupName, region), [:])
+    }
   }
 
   void loadServerGroups(AmazonNamedAccount account, AutoScalingGroup asg, Names names, String region) {

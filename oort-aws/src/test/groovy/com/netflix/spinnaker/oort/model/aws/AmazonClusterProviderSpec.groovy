@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.apinnaker.oort.model.aws
+package com.netflix.spinnaker.oort.model.aws
 
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.Image

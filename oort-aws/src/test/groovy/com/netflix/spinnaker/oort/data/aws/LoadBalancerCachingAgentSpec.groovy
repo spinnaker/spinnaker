@@ -25,7 +25,9 @@ import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    new LoadBalancerCachingAgent(Mock(AmazonNamedAccount), REGION)
+    def account = Mock(AmazonNamedAccount)
+    account.getName() >> ACCOUNT
+    new LoadBalancerCachingAgent(account, REGION)
   }
 
   void "load new load balancers and remove those that have gone missing"() {
@@ -41,8 +43,8 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonElasticLoadBalancing.describeLoadBalancers() >> result
-    1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName1, REGION), loadBalancer1)
-    1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName2, REGION), loadBalancer2)
+    1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName1, ACCOUNT, REGION), loadBalancer1)
+    1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName2, ACCOUNT, REGION), loadBalancer2)
 
     when:
     result.setLoadBalancerDescriptions([loadBalancer1])
@@ -51,7 +53,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     then:
     1 * amazonElasticLoadBalancing.describeLoadBalancers() >> result
     0 * cacheService.put(_, _)
-    1 * cacheService.free(Keys.getLoadBalancerKey(loadBalancerName2, REGION))
+    1 * cacheService.free(Keys.getLoadBalancerKey(loadBalancerName2, ACCOUNT, REGION))
 
     when:
     agent.load()
@@ -67,10 +69,10 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     def mocks = getCommonMocks()
 
     when:
-    ((LoadBalancerCachingAgent)agent).loadNewLoadBalancer(mocks.loadBalancer, mocks.region)
+    ((LoadBalancerCachingAgent)agent).loadNewLoadBalancer(mocks.loadBalancer, mocks.account, mocks.region)
 
     then:
-    1 * cacheService.put(Keys.getLoadBalancerKey(mocks.loadBalancerName, mocks.region), mocks.loadBalancer)
+    1 * cacheService.put(Keys.getLoadBalancerKey(mocks.loadBalancerName, mocks.account, mocks.region), mocks.loadBalancer)
   }
 
   void "missing load balancer should remove from cache"() {
@@ -78,10 +80,10 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     def mocks = getCommonMocks()
 
     when:
-    ((LoadBalancerCachingAgent)agent).removeMissingLoadBalancer(mocks.loadBalancerName, mocks.region)
+    ((LoadBalancerCachingAgent)agent).removeMissingLoadBalancer(mocks.loadBalancerName, mocks.account, mocks.region)
 
     then:
-    1 * cacheService.free(Keys.getLoadBalancerKey(mocks.loadBalancerName, mocks.region))
+    1 * cacheService.free(Keys.getLoadBalancerKey(mocks.loadBalancerName, mocks.account, mocks.region))
   }
 
   def getCommonMocks() {

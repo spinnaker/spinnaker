@@ -27,6 +27,7 @@ class Keys {
     INSTANCES,
     LAUNCH_CONFIGS,
     LOAD_BALANCERS,
+    LOAD_BALANCER_SERVER_GROUPS,
     CLUSTERS,
     APPLICATIONS,
     HEALTH
@@ -67,8 +68,12 @@ class Keys {
     "${Namespace.LAUNCH_CONFIGS}:${region}:${launchConfigName}"
   }
 
-  static String getLoadBalancerKey(String loadBalancerName, String region) {
-    "${Namespace.LOAD_BALANCERS}:${region}:${loadBalancerName}"
+  static String getLoadBalancerKey(String loadBalancerName, String account, String region) {
+    "${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
+  }
+
+  static String getLoadBalancerServerGroupKey(String loadBalancerName, String account, String serverGroupName, String region) {
+    "${Namespace.LOAD_BALANCER_SERVER_GROUPS}:${loadBalancerName}:${account}:${region}:${serverGroupName}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {

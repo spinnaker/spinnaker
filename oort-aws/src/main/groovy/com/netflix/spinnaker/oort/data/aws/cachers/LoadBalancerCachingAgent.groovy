@@ -47,13 +47,13 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
       log.info "$cachePrefix - Loading ${newLoadBalancers.size()} new load balancers"
       for (loadBalancerName in loadBalancersThisRun.keySet()) {
         LoadBalancerDescription loadBalancer = (LoadBalancerDescription)allLoadBalancers[loadBalancerName]
-        loadNewLoadBalancer(loadBalancer, region)
+        loadNewLoadBalancer(loadBalancer, account.name, region)
       }
     }
     if (missingLoadBalancers) {
       log.info "$cachePrefix - Removing ${missingLoadBalancers.size()} missing load balancers"
       for (loadBalancerName in missingLoadBalancers) {
-        removeMissingLoadBalancer(loadBalancerName, region)
+        removeMissingLoadBalancer(loadBalancerName, account.name, region)
       }
     }
     if (!newLoadBalancers && !missingLoadBalancers) {
@@ -63,12 +63,12 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownLoadBalancers = loadBalancersThisRun
   }
 
-  void loadNewLoadBalancer(LoadBalancerDescription loadBalancerDescription, String region) {
-    cacheService.put(Keys.getLoadBalancerKey(loadBalancerDescription.loadBalancerName, region), loadBalancerDescription)
+  void loadNewLoadBalancer(LoadBalancerDescription loadBalancerDescription, String account, String region) {
+    cacheService.put(Keys.getLoadBalancerKey(loadBalancerDescription.loadBalancerName, account, region), loadBalancerDescription)
   }
 
-  void removeMissingLoadBalancer(String loadBalancerName, String region) {
-    cacheService.free(Keys.getLoadBalancerKey(loadBalancerName, region))
+  void removeMissingLoadBalancer(String loadBalancerName, String account, String region) {
+    cacheService.free(Keys.getLoadBalancerKey(loadBalancerName, account, region))
   }
 
   private String getCachePrefix() {
