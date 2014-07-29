@@ -8,10 +8,10 @@ angular.module('deckApp')
       elem.endTimeAsDate = dateFromTimestampFilter(elem.endTime);
       // map elem status to bootstrap labels and create a diplay name
       // TODO: clean up
-      elem.category = (elem.status == 'STARTED' ? 'running' :
+      elem.category = (elem.status === 'STARTED' ? 'running' :
         (elem.status != 'COMPLETED' ? 'errored' :
           (isLast ? 'success' : 'non-terminal')));
-      elem.active = (elem.status == 'STARTED');
+      elem.active = (elem.status === 'STARTED');
       return elem;
     };
 
