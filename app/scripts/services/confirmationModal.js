@@ -9,21 +9,14 @@ angular.module('deckApp')
     function confirm(params) {
       params = angular.extend(angular.copy(defaults), params);
 
-      var controller = function($scope, $modalInstance) {
-        $scope.params = params;
-
-        $scope.confirm = function () {
-          $modalInstance.close(true);
-        };
-
-        $scope.cancel = function () {
-          $modalInstance.dismiss();
-        };
-      };
-
       var modalArgs = {
         templateUrl: 'views/modal/confirm.html',
-        controller: controller
+        controller: 'ConfirmationModalCtrl',
+        resolve: {
+          params: function() {
+            return params;
+          }
+        }
       };
 
       if (params.size) {
@@ -34,5 +27,16 @@ angular.module('deckApp')
 
     return {
       confirm: confirm
+    };
+  })
+  .controller('ConfirmationModalCtrl', function($scope, $modalInstance, params) {
+    $scope.params = params;
+
+    $scope.confirm = function () {
+      $modalInstance.close(true);
+    };
+
+    $scope.cancel = function () {
+      $modalInstance.dismiss();
     };
   });

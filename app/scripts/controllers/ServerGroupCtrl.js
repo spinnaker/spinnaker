@@ -71,7 +71,7 @@ angular.module('deckApp')
               regions: [serverGroup.region],
               credentials: account.name,
               user: 'chrisb',
-              capacity: { min: $scope.command.newSize, max: $scope.command.newSize }
+              capacity: { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize }
             }]).then(function(response) {
               $modalInstance.close();
               console.warn('task:', response.ref);
