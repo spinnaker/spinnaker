@@ -22,10 +22,10 @@ buildscript {
             jcenter()
         }
         maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
-    
+
     }
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.1.RELEASE'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE'
         classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.3'
     }
 }
@@ -68,13 +68,10 @@ configurations.all {
 dependencies {
     compile "org.slf4j:slf4j-api:1.7.7"
     runtime 'org.springframework:springloaded:1.2.0.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-web:1.1.0.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-actuator:1.1.0.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-web:1.1.4.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-actuator:1.1.4.RELEASE'
     compile 'com.google.guava:guava:14.0.1'
     compile 'joda-time:joda-time:2.3'
-    compile 'com.netflix.astyanax:astyanax-cassandra:1.56.48'
-    compile 'com.netflix.astyanax:astyanax-thrift:1.56.48'
-    compile 'com.netflix.servo:servo-core:0.7.3'
     runtime 'com.netflix.servo:servo-aws:0.7.3'
     runtime 'com.netflix.servo:servo-apache:0.7.3'
     compile 'org.codehaus.groovy:groovy-all:2.3.3'
@@ -86,12 +83,13 @@ dependencies {
     runtime "org.slf4j:slf4j-log4j12:1.7.7"
     runtime "org.slf4j:jcl-over-slf4j:1.7.7"
     runtime "org.slf4j:jul-to-slf4j:1.7.7"
-    compile "com.netflix.spinnaker.kork:kork-core:1.10"
+    compile "com.netflix.spinnaker.kork:kork-core:1.16"
+    compile "com.netflix.spinnaker.kork:kork-cassandra:1.16"
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
     testCompile 'org.spockframework:spock-spring:0.7-groovy-2.0'
     testRuntime 'org.objenesis:objenesis:2.1'
     testRuntime 'cglib:cglib-nodep:3.1'
-    testCompile 'org.springframework:spring-test:4.0.5.RELEASE'
+    testCompile 'org.springframework:spring-test:4.0.6.RELEASE'
 }
 
 codenarc {
