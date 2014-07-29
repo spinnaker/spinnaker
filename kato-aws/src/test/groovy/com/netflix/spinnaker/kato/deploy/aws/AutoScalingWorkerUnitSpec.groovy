@@ -145,7 +145,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "us-east-1c")
 
     expect:
-    worker.clusterName == "foo-bar--us-east-1c"
+    worker.getAutoScalingGroupName(1) == "foo-bar-v001--us-east-1c"
   }
 
 }

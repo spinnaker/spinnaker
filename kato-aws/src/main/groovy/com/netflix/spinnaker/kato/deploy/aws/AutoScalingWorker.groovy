@@ -254,7 +254,7 @@ class AutoScalingWorker {
    */
   String getAutoScalingGroupName(Integer sequence) {
     def pushVersion = String.format("v%03d", sequence)
-    "${clusterName}-${pushVersion}"
+    "${clusterName}-${pushVersion}${freeFormDetails ? '--' + freeFormDetails : ''}"
   }
 
   /**
@@ -263,7 +263,7 @@ class AutoScalingWorker {
    * @return the name of the cluster to be deployed to
    */
   String getClusterName() {
-    "${application}${stack ? '-' + stack?.replaceAll("$application-", "") : ''}${freeFormDetails ? '--' + freeFormDetails : ''}"
+    "${application}${stack ? '-' + stack?.replaceAll("$application-", "") : ''}"
   }
 
   /**

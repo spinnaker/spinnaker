@@ -65,8 +65,9 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       def request = new RevokeSecurityGroupIngressRequest(description.name, securityGroup.ipPermissions.collect { it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupId = null; it }; it})
       ec2.revokeSecurityGroupIngress(request)
     }
-
-    ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(description.name, ipPermissions))
+    if (ipPermissions) {
+      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(description.name, ipPermissions))
+    }
     null
   }
 
