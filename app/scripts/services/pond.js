@@ -23,10 +23,10 @@ angular.module('deckApp')
           .filter(function(e) { return e.length > 0 && e !== 'Step' && e !== 'Create' && e !== 'Monitor'; })
           .join(' ');
         var prev = acc[acc.length - 1];
-        if (current.displayName.contains('orca')) {
+        if (current.displayName.indexOf('orca') !== -1) {
           return acc;
         }
-        if (angular.isDefined(prev) && current.displayName.contains(prev.displayName)) {
+        if (angular.isDefined(prev) && current.displayName.indexOf(prev.displayName) !== -1) {
           prev.endTime = current.endTime;
           return acc;
         }

@@ -1,45 +1,40 @@
 
 <div class="row page-header application-header">
-  <h2>{{application.name}}</h2>
+  <h2><a ui-sref="applications"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>{{application.name}}</h2>
+  <ul class="nav nav-pills">
+    <li>
+      <a href>
+        <!--<span class="glyphicon glyphicon-tasks"></span>-->
+        Delivery
+      </a>
+    </li>
+    <li>
+      <a ui-sref="clusters" ng-class="{active: $state.includes('clusters')}">
+        <!--<span class="glyphicon glyphicon-th"></span>-->
+        Clusters
+      </a>
+    </li>
+    <li>
+      <a ui-sref="elbs" ng-class="{active: $state.includes('elbs')}">
+        <!--<span class="glyphicon glyphicon-cloud"></span>-->
+        ELB
+      </a>
+    </li>
+    <li>
+      <a ui-sref="connections" ng-class="{active: $state.includes('connections')}">
+        <!--<span class="glyphicon glyphicon-transfer"></span>-->
+        Security Groups
+      </a>
+    </li>
+    <li>
+      <a ui-sref="tasks" ng-class="{active: $state.includes('tasks')}">
+        <!--<span class="glyphicon glyphicon-align-justify"></span>-->
+        Task History
+      </a>
+    </li>
+  </ul>
 </div>
 <div class="row">
-  <div class="col-md-1 no-padding">
-    <div class="stacked-pills">
-      <ul class="nav nav-pills nav-stacked">
-        <li class="heading">
-          View by
-        </li>
-        <li>
-          <a ui-sref="clusters" ng-class="{active: $state.includes('clusters')}">
-            <span class="glyphicon glyphicon-th"></span>
-            Clusters
-          </a>
-        </li>
-        <li>
-          <a ui-sref="elbs" ng-class="{active: $state.includes('elbs')}">
-            <span class="glyphicon glyphicon-cloud"></span>ELB</a>
-        </li>
-        <li>
-          <a ui-sref="connections" ng-class="{active: $state.includes('connections')}">
-            <span class="glyphicon glyphicon-transfer"></span>
-            Security Groups
-          </a>
-        </li>
-        <li>
-          <a ui-sref="tasks" ng-class="{active: $state.includes('tasks')}">
-            <span class="glyphicon glyphicon-align-justify"></span>
-            Tasks
-          </a>
-        </li>
-        <li>
-          <a href>
-            <span class="glyphicon glyphicon-tasks"></span>
-            Pipelines
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="col-md-11 secondary-panel" ui-view="insight"></div>
+  <div class="col-md-12 secondary-panel" ui-view="insight"></div>
 </div>
 

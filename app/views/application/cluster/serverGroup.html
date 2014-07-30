@@ -1,11 +1,11 @@
 <div class="row server-group"
      ng-class="{active: $state.includes('serverGroup', {serverGroup: serverGroup.name})}">
-  <div class="col-sm-2 no-padding">
+  <div class="col-sm-2 server-group-summary">
     <a ui-sref="serverGroup({cluster: serverGroup.cluster, account: serverGroup.account, serverGroup: serverGroup.name})">
       <span class="glyphicon glyphicon-th"></span> {{serverGroup.name | stripCluster:cluster}}
     </a>
   </div>
-  <div class="col-sm-10 no-padding">
+  <div class="col-sm-10 server-group-details">
     <div class="build-title">
       <a href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
          target="_blank"

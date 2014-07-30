@@ -2,7 +2,7 @@
   <h3>
     <span class="glyphicon glyphicon-th-large"></span> Clusters
   </h3>
-  <div class="actions">
+  <div class="actions pull-right">
     <select class="form-control input-sm">
       <option value="">Cluster Actions</option>
     </select>
@@ -12,7 +12,7 @@
   <div class="form-inline">
     <div class="form-group">
       <label>
-        Sorted by
+        Sort by
         <select class="form-control input-sm"
                 ng-model="sortFilter.sortPrimary"
                 ng-change="updateSorting()"
@@ -30,12 +30,10 @@
         </select>
       </label>
     </div>
-  </div>
-  <div class="form-inline">
-    <div class="form-group">
+    <div class="form-group pull-right">
       <label>
         Filter
-        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, ASG"
+        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, ASG, Instance"
                ng-model="sortFilter.filter"
                ng-change="updateClusterGroups()"/>
       </label>

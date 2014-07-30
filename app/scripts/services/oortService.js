@@ -78,7 +78,6 @@ angular.module('deckApp')
     function getCluster(application, account, cluster) {
       var fetch = $http.get(settings.oortUrl + '/applications/' + application + '/clusters/' + account + '/' + cluster);
       fetch.then(function(response) {
-        console.warn('data:', response);
         response.data[0].serverGroups.forEach(function(serverGroup) {
           transformServerGroup(serverGroup, account, cluster);
         });

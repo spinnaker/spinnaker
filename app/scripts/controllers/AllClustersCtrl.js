@@ -41,7 +41,12 @@ angular.module('deckApp')
               if (!filter) {
                 return true;
               }
-              var toCheck = [serverGroup.region.toLowerCase(), serverGroup.name.toLowerCase(), serverGroup.account.toLowerCase()].join(' ');
+              var toCheck = [
+                serverGroup.region.toLowerCase(),
+                serverGroup.name.toLowerCase(),
+                serverGroup.account.toLowerCase(),
+                _.collect(serverGroup.instances, 'name').join(' ')
+              ].join(' ');
               return toCheck.indexOf(filter) !== -1;
             })
             .value(),
