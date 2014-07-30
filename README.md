@@ -3,6 +3,11 @@ Kato
 
 Deployment libraries for Spinnaker.
 
+Prerequisites
+===
+
+Install JDK 7. Does not work for JDK 6.
+
 Quick Use
 ===
 
