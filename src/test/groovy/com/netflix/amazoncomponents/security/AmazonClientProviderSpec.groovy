@@ -18,10 +18,13 @@
 
 package com.netflix.amazoncomponents.security
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.AmazonEC2Client
+import com.netflix.amazoncomponents.model.RetryCallback
 import org.apache.http.Header
 import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse
@@ -122,6 +125,37 @@ class AmazonClientProviderSpec extends Specification {
       assert get.URI.rawPath.endsWith("_expand")
       mockResponse
     }
+  }
+
+  void "callback is fired during throttling event"() {
+    setup:
+    def provider = Spy(AmazonClientProvider)
+    def ec2 = Mock(AmazonEC2Client)
+    provider.getClient(_, _, _) >> ec2
+    def retryCallbackCalled = false
+    provider.retryCallback = new RetryCallback() {
+      boolean doCall(Throwable t, int attempts) {
+        if (attempts < 3) {
+          retryCallbackCalled = true
+          true
+        } else {
+          false
+        }
+      }
+    }
+
+    when:
+    def client = provider.getAmazonEC2(new AmazonCredentials(Mock(AWSCredentials), "bar", null), "us-east-1")
+    client.describeInstances()
+
+    then:
+    3 * ec2.describeInstances() >> {
+      def ex = new AmazonServiceException("foo")
+      ex.errorCode = "RequestLimitExceeded"
+      throw ex
+    }
+    thrown AmazonServiceException
+    retryCallbackCalled
   }
 
   static def OBJECT_ASG_CONTENT = '{ "autoScalingGroupName": "my-app-v000" }'

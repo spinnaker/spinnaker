@@ -18,6 +18,7 @@ package com.netflix.amazoncomponents.security;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -44,6 +45,7 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
+import com.netflix.amazoncomponents.model.RetryCallback;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -57,10 +59,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -74,9 +73,24 @@ public class AmazonClientProvider {
 
   private HttpClient httpClient;
   private ObjectMapper objectMapper;
+  private RetryCallback retryCallback = new RetryCallback() {
+    @Override
+    public boolean doCall(Throwable t, int attempts) {
+      if (attempts < 5) {
+        try {
+          Thread.sleep(150);
+        } catch (InterruptedException IGNORE) {
+          //
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
+  };
 
   public AmazonClientProvider() {
-    this((HttpClient)null);
+    this((HttpClient) null);
   }
 
   public AmazonClientProvider(HttpClient httpClient) {
@@ -92,71 +106,40 @@ public class AmazonClientProvider {
     this.objectMapper = objectMapper;
   }
 
+  public void setRetryCallback(RetryCallback retryCallback) {
+    this.retryCallback = retryCallback;
+  }
+
   public AmazonEC2 getAmazonEC2(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonEC2Client client = new AmazonEC2Client(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    if (!amazonCredentials.isEddaConfigured()) {
-      return client;
-    } else {
-      return (AmazonEC2) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonEC2.class},
-        getInvocationHandler(client, region, amazonCredentials));
-    }
+    return getThrottlingHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region);
 
   }
 
   public AmazonAutoScaling getAutoScaling(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonAutoScalingClient client = new AmazonAutoScalingClient(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    if (!amazonCredentials.isEddaConfigured()) {
-      return client;
-    } else {
-      return (AmazonAutoScaling) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonAutoScaling.class},
-        getInvocationHandler(client, region, amazonCredentials));
-    }
-
+    return getThrottlingHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region);
   }
 
   public AmazonRoute53 getAmazonRoute53(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonRoute53Client amazonRoute53 = new AmazonRoute53Client(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      amazonRoute53.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-
-    return amazonRoute53;
+    return getThrottlingHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region);
   }
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonElasticLoadBalancingClient client = new AmazonElasticLoadBalancingClient(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    if (!amazonCredentials.isEddaConfigured()) {
-      return client;
-    } else {
-      return (AmazonElasticLoadBalancing) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{AmazonElasticLoadBalancing.class},
-        getInvocationHandler(client, region, amazonCredentials));
-    }
+    return getThrottlingHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region);
   }
 
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonSimpleWorkflowClient client = new AmazonSimpleWorkflowClient(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    return client;
+    return getThrottlingHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region);
   }
 
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AWSCredentialsProviderChain providerChain, String region) {
-    if (providerChain == null) throw new IllegalArgumentException("Provider chain cannot be null");
+    if (providerChain == null) {
+      throw new IllegalArgumentException("Provider chain cannot be null");
+    }
     AmazonSimpleWorkflowClient client = new AmazonSimpleWorkflowClient(providerChain);
     if (region != null && region.length() > 0) {
       client.setRegion(Region.getRegion(Regions.fromName(region)));
@@ -166,55 +149,102 @@ public class AmazonClientProvider {
 
   public AmazonCloudWatch getAmazonCloudWatch(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonCloudWatchClient client = new AmazonCloudWatchClient(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    return client;
+    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
   public AmazonSNS getAmazonSNS(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonSNS client = new AmazonSNSClient(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    return client;
+    return getThrottlingHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region);
   }
 
   public AmazonCloudWatch getCloudWatch(AmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    AmazonCloudWatch client = new AmazonCloudWatchClient(amazonCredentials.getCredentials());
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    return client;
+    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
-  private GeneralAmazonClientInvocationHandler getInvocationHandler(AmazonWebServiceClient client, String region, AmazonCredentials amazonCredentials) {
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
+  private <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, AmazonCredentials amazonCredentials, String region) {
+    try {
+      T delegate = getClient(impl, amazonCredentials, region);
+      U client = (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz}, new ThrottledAmazonClientInvocationHandler(delegate, retryCallback));
+      if (!amazonCredentials.isEddaConfigured()) {
+        return client;
+      } else {
+        return (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
+          getInvocationHandler(client, delegate.getServiceName(), region, amazonCredentials));
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Instantiation of client implementation failed!", e);
     }
+  }
 
-    return new GeneralAmazonClientInvocationHandler(client, String.format(amazonCredentials.getEdda(), region),
+  protected <T extends AmazonWebServiceClient> T getClient(Class<T> impl, AmazonCredentials amazonCredentials, String region) throws IllegalAccessException, InvocationTargetException,
+    InstantiationException, NoSuchMethodException {
+    Constructor<T> constructor = impl.getConstructor(AWSCredentials.class);
+    T delegate = constructor.newInstance(amazonCredentials.getCredentials());
+    if (region != null && region.length() > 0) {
+      delegate.setRegion(Region.getRegion(Regions.fromName(region)));
+    }
+    return delegate;
+  }
+
+  private GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, AmazonCredentials amazonCredentials) {
+    return new GeneralAmazonClientInvocationHandler(client, serviceName, String.format(amazonCredentials.getEdda(), region),
       this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
   }
 
   private static void checkCredentials(AmazonCredentials amazonCredentials) {
-    if (amazonCredentials == null) throw new IllegalArgumentException("Credentials cannot be null");
+    if (amazonCredentials == null) {
+      throw new IllegalArgumentException("Credentials cannot be null");
+    }
+  }
+
+  public static class ThrottledAmazonClientInvocationHandler implements InvocationHandler {
+
+    private AmazonWebServiceClient delegate;
+    private RetryCallback retryCallback;
+
+    ThrottledAmazonClientInvocationHandler(AmazonWebServiceClient delegate, RetryCallback retryCallback) {
+      this.delegate = delegate;
+      this.retryCallback = retryCallback;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      return invoke(proxy, method, args, 1);
+    }
+
+    private Object invoke(Object proxy, Method method, Object[] args, int attempts) throws Throwable {
+      try {
+        return method.invoke(delegate, args);
+      } catch (InvocationTargetException ex) {
+        Throwable t = ex.getTargetException();
+        if (t instanceof AmazonServiceException) {
+          AmazonServiceException e = (AmazonServiceException)t;
+          if ("RequestLimitExceeded".equals(e.getErrorCode())) {
+            boolean tryAgain = retryCallback.doCall(e, attempts);
+            if (tryAgain) {
+              return invoke(proxy, method, args, ++attempts);
+            }
+          }
+        }
+        throw t;
+      }
+    }
   }
 
   public static class GeneralAmazonClientInvocationHandler implements InvocationHandler {
     private final String edda;
     private final HttpClient httpClient;
-    private final AmazonWebServiceClient delegate;
+    private final Object delegate;
+    private final String serviceName;
     private final ObjectMapper objectMapper;
 
-    public GeneralAmazonClientInvocationHandler(AmazonWebServiceClient delegate, String edda, HttpClient httpClient, ObjectMapper objectMapper) {
+    public GeneralAmazonClientInvocationHandler(Object delegate, String serviceName, String edda, HttpClient httpClient, ObjectMapper objectMapper) {
       this.edda = edda;
       this.httpClient = httpClient;
       this.objectMapper = objectMapper;
       this.delegate = delegate;
+      this.serviceName = serviceName;
     }
 
     @Override
@@ -317,7 +347,7 @@ public class AmazonClientProvider {
                 }
               }
             } else {
-              results.addAll((Collection)objectMapper.readValue(getJson(object, null), collectionType));
+              results.addAll((Collection) objectMapper.readValue(getJson(object, null), collectionType));
             }
             return (T) results;
           } catch (NoSuchFieldException | IllegalAccessException | IOException e) {
@@ -337,7 +367,7 @@ public class AmazonClientProvider {
       } catch (Exception e) {
         AmazonServiceException ex = new AmazonServiceException("400 Bad Request -- Edda could not find one of the managed objects requested.", e);
         ex.setStatusCode(400);
-        ex.setServiceName(delegate.getServiceName());
+        ex.setServiceName(serviceName);
         ex.setErrorType(AmazonServiceException.ErrorType.Unknown);
         throw ex;
       }
