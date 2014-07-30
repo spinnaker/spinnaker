@@ -78,9 +78,17 @@
     height: 15px;
     background-color: @healthy_green;
 
-    &.unhealthy {
+    &.health-status-Healthy {
+      background-color: @healthy_green;
+      border-color: @healthy_green_border;
+    }
+    &.health-status-Unhealthy {
       background-color: @unhealthy_red;
       border-color: @unhealthy_red_border;
+    }
+    &.health-status-Unknown {
+      background-color: @light_grey;
+      border-color: @mid_grey;
     }
 
     &.active {
@@ -103,6 +111,9 @@
   }
   &.unhealthy {
     color: @unhealthy_red;
+  }
+  &.unknown {
+    color: @mid_grey;
   }
 }
 

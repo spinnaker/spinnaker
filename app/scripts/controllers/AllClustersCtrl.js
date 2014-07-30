@@ -72,6 +72,7 @@ angular.module('deckApp')
         groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
       });
       $scope.groups = _.sortBy(groups, 'heading');
+      console.warn('groups:', $scope.groups);
     };
 
     function asgSorter(a, b) {

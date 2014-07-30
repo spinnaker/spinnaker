@@ -14,13 +14,13 @@
       <health-counts server-group="serverGroup"></health-counts>
     </div>
     <div class="instances">
-      <a class="instance"
-         ng-repeat="instance in serverGroup.instances"
-         tooltip="{{instance.name}}"
-         ui-sref="instance({cluster: serverGroup.cluster, account: serverGroup.account, serverGroup: serverGroup.name, instance: instance.name })"
-         ng-class="{unhealthy: !instance.isHealthy, active: $state.includes('instance', {instance: instance.name})}"
+      <a class="instance health-status-{{instance.healthStatus}}"
+         ng-repeat="instance in serverGroup.asg.instances"
+         tooltip="{{instance.instanceId}}"
+         ui-sref="instance({cluster: serverGroup.cluster, account: serverGroup.account, serverGroup: serverGroup.name, instance: instance.instanceId })"
+         ng-class="{active: $state.includes('instance', {instance: instance.instanceId})}"
         >
-        <span class="sr-only">{{instance.name}}</span></a>
+        <span class="sr-only">{{instance.instanceId}}</span></a>
     </div>
   </div>
 </div>
