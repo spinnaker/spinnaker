@@ -47,12 +47,12 @@
             </ul>
           </div>
           <div class="col-md-10 task">
-            <progress max="1" class="progress-status">
+            <progress max="1.0001" class="progress-status">
               <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
               <span tooltip="Started: {{ step.startTimeAsDate | date:'hh:mm:ss' }}, Ended: {{ step.startTimeAsDate | date:'hh:mm:ss' }}"></span>
               </bar>
             </progress>
-            <progress max="1" class="progress-labels">
+            <progress max="1.0001" class="progress-labels">
               <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
               {{ step.displayName }}
               </bar>
