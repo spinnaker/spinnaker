@@ -3,8 +3,6 @@
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, _) {
 
-    console.warn('application:', application);
-
     $scope.sortFilter = {
       sortPrimary: 'region',
       sortSecondary: 'cluster',

@@ -37,13 +37,19 @@
   background-color: #f1f1f1;
 
   .server-group-summary {
-    padding: 5px;
+    font-size: 110%;
+    padding: 10px;
   }
   .server-group-details {
-    padding: 5px;
+    padding: 5px 10px;
     border-left: 1px solid #c4c4c4;
     background-color: #ffffff;
     border-radius: 0 5px 5px 0;
+
+    .build-title {
+      font-size: 110%;
+      padding-bottom: 3px;
+    }
   }
 
   .glyphicon-th {
@@ -65,6 +71,7 @@
 
   a.instance {
     border: 1px solid @healthy_green_border;
+    border-radius: 2px;
     margin-right: 5px;
     display: inline-block;
     width: 15px;
