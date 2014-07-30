@@ -1,0 +1,60 @@
+<div class="col-md-12">
+  <div class="row task-row">
+    <div class="col-md-2 task-label">
+      <div>
+        <strong>Task Description</strong>
+      </div>
+      <ul>
+        <li>ID: {{ task.id }}
+        <li>Started: {{ task.startTimeAsDate | date:'EEE, hh:mm:ss'}}
+        <li>Completed: {{ task.endTimeAsDate | date:'EEE, hh:mm:ss'}}
+      </ul>
+    </div>
+    <div class="col-md-10 task" ng-click="toggleDetails()">
+      <progress max="1.0001" class="progress-status">
+        <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+        <span tooltip="Started: {{ step.startTimeAsDate | date:'hh:mm:ss' }}, Ended: {{ step.startTimeAsDate | date:'hh:mm:ss' }}"></span>
+        </bar>
+      </progress>
+      <progress max="1.0001" class="progress-labels">
+        <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+        {{ step.displayName }}
+        </bar>
+      </progress>
+    </div>
+  </div>
+  <div class="row details-row" ng-if="open">
+    <table class="table table-striped table-hover">
+      <thead>
+        <th>
+          Name
+        </th>
+        <th>
+          Started
+        </th>
+        <th>
+          Completed
+        </th>
+        <th>
+          Running Time
+        </th>
+      </thead>
+      <tbody>
+       <tr ng-repeat="step in task.steps">
+         <td>
+           {{ step.name }}
+         </td>
+         <td>
+           {{ step.startTimeAsDate | date:'EEE, hh:mm:ss' }}
+         </td>
+         <td>
+           {{ step.endTimeAsDate | date:'EEE, hh:mm:ss' }}
+         </td>
+         <td>
+           TBD
+         </td>
+       </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
