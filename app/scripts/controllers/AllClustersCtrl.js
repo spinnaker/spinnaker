@@ -47,7 +47,9 @@ angular.module('deckApp')
 //                _.collect(serverGroup.instances, 'name').join(' ')
               ].join(' ');
             }
-            return serverGroup.searchField.indexOf(filter) !== -1;
+            return filter.split(' ').every(function(testWord) {
+              return serverGroup.searchField.indexOf(testWord) !== -1;
+            });
           })
           .value(),
 
