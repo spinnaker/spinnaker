@@ -28,11 +28,11 @@ class LoadBalancerControllerSpec extends Specification {
   CacheService cacheService
 
   @Shared
-  LoadBalancerController controller
+  AmazonLoadBalancerController controller
 
   def setup() {
     cacheService = Mock(CacheService)
-    controller = new LoadBalancerController(cacheService: cacheService)
+    controller = new AmazonLoadBalancerController(cacheService: cacheService)
   }
 
   void "should list all available load balancers from cache"() {

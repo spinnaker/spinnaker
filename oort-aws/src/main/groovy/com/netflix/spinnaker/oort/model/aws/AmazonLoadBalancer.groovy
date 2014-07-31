@@ -18,10 +18,8 @@ package com.netflix.spinnaker.oort.model.aws
 
 import com.netflix.spinnaker.oort.model.LoadBalancer
 import groovy.transform.CompileStatic
-import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
-@EqualsAndHashCode(includes = ["name", "serverGroups"])
 class AmazonLoadBalancer extends HashMap implements LoadBalancer {
 
   AmazonLoadBalancer() {
@@ -30,6 +28,7 @@ class AmazonLoadBalancer extends HashMap implements LoadBalancer {
 
   AmazonLoadBalancer(String name, String region) {
     setProperty "name", name
+    setProperty "type", "aws"
     setProperty "region", region
     setProperty "serverGroups", new HashSet<>()
   }
@@ -40,11 +39,30 @@ class AmazonLoadBalancer extends HashMap implements LoadBalancer {
   }
 
   @Override
+  String getType() {
+    getProperty "type"
+  }
+
+  @Override
   Set<String> getServerGroups() {
     (Set<String>) getProperty("serverGroups")
   }
 
   String getRegion() {
     (String) getProperty("region")
+  }
+
+  @Override
+  boolean equals(Object o) {
+    if (!(o instanceof AmazonLoadBalancer)) {
+      return false
+    }
+    AmazonLoadBalancer other = (AmazonLoadBalancer)o
+    other.getName() == this.getName() && other.getType() == this.getType() && other.getServerGroups() == this.getServerGroups() && other.getRegion() == this.getRegion()
+  }
+
+  @Override
+  int hashCode() {
+    getName().hashCode() + getType().hashCode() + getServerGroups().hashCode() + getRegion().hashCode()
   }
 }

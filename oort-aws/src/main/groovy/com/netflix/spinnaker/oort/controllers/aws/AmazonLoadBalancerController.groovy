@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 @CompileStatic
 @RestController
 @RequestMapping("/aws/loadBalancers")
-class LoadBalancerController {
+class AmazonLoadBalancerController {
 
   @Autowired
   CacheService cacheService

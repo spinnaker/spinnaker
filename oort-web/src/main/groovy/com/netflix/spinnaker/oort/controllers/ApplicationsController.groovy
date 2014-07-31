@@ -18,6 +18,12 @@ package com.netflix.spinnaker.oort.controllers
 
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
+import com.netflix.spinnaker.oort.model.Cluster
+import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.LoadBalancer
+import com.netflix.spinnaker.oort.model.LoadBalancerProvider
+import com.netflix.spinnaker.oort.model.view.ApplicationClusterViewModel
+import com.netflix.spinnaker.oort.model.view.ApplicationViewModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -32,6 +38,12 @@ class ApplicationsController {
   List<ApplicationProvider> applicationProviders
 
   @Autowired
+  List<LoadBalancerProvider> loadBalancerProviders
+
+  @Autowired
+  List<ClusterProvider> clusterProviders
+
+  @Autowired
   MessageSource messageSource
 
   @RequestMapping(method = RequestMethod.GET)
@@ -44,7 +56,7 @@ class ApplicationsController {
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-  Application get(@PathVariable String name) {
+  ApplicationViewModel get(@PathVariable String name) {
     try {
       def apps = applicationProviders.collect {
         it.getApplication(name)
@@ -52,19 +64,7 @@ class ApplicationsController {
       if (!apps) {
         throw new ApplicationNotFoundException(name: name)
       } else {
-        def attributes = [:]
-        ApplicationViewModel result = null
-        for (Application app in apps) {
-          attributes << app.attributes
-          if (!result) {
-            result = new ApplicationViewModel(name: app.name, clusterNames: app.clusterNames)
-          } else {
-            def clusterNames = Application.mergeClusters.curry(app, result).call()
-            result = new ApplicationViewModel(name: app.name, clusterNames: clusterNames)
-          }
-        }
-        result.attributes = attributes
-        result
+        return transform(apps)
       }
     } catch (IGNORE) {
       throw new ApplicationNotFoundException(name: name)
@@ -82,9 +82,35 @@ class ApplicationsController {
     String name
   }
 
-  static class ApplicationViewModel implements Application {
-    String name
-    Map<String, String> attributes
-    Map<String, Set<String>> clusterNames
+  private ApplicationViewModel transform(List<Application> apps) {
+    def attributes = [:]
+    ApplicationViewModel result = null
+    for (Application app in apps) {
+      if (!result) {
+        result = new ApplicationViewModel(name: app.name, clusters: [:])
+      }
+      attributes << app.attributes
+
+      clusterProviders.collectMany {
+        it.getClusters(app.name)?.values()?.flatten() as Set ?: []
+      }.each { Cluster cluster ->
+        def account = cluster.accountName
+        def loadBalancers = loadBalancerProviders.collectMany { provider ->
+          def lbs = (Set<LoadBalancer>)provider.getLoadBalancers(account, cluster.name)
+          lbs ? lbs*.name : []
+        }
+        if (!result.clusters.containsKey(account)) {
+          result.clusters[account] = new HashSet()
+        }
+        if (!result.clusters[account].find { it.name == cluster.name }) {
+          result.clusters[account] << new ApplicationClusterViewModel(name: cluster.name, loadBalancers: loadBalancers, serverGroups: cluster.serverGroups*.name as Set)
+        } else {
+          result.clusters[account].loadBalancers.addAll(loadBalancers)
+          result.clusters[account].serverGroups.addAll(cluster.serverGroups*.name as Set)
+        }
+      }
+    }
+    result.attributes = attributes
+    result
   }
 }

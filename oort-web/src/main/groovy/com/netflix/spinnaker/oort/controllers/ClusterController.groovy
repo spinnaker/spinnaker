@@ -33,9 +33,6 @@ class ClusterController {
   List<ApplicationProvider> applicationProviders
 
   @Autowired
-  NamedAccountProvider namedAccountProvider
-
-  @Autowired
   List<ClusterProvider> clusterProviders
 
   @Autowired

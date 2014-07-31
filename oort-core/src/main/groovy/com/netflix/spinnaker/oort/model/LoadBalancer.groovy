@@ -33,6 +33,13 @@ interface LoadBalancer {
   String getName()
 
   /**
+   * The type of this load balancer. Can indicate some vendor-specific designation, or cloud provider
+   *
+   * @return type
+   */
+  String getType()
+
+  /**
    * The names of the server groups that this load balancer is servicing.
    *
    * @return set of names or an empty set if none exist

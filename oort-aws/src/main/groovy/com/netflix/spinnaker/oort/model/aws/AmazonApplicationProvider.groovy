@@ -38,8 +38,6 @@ class AmazonApplicationProvider implements ApplicationProvider {
   @Metric
   Timer applicationsByName
 
-
-
   @Override
   Set<AmazonApplication> getApplications() {
     applications.time {
@@ -67,7 +65,7 @@ class AmazonApplicationProvider implements ApplicationProvider {
           apps << app
         }
         apps
-      }).toBlockingObservable().first()
+      }).toBlocking().first()
 
       Collections.unmodifiableSet(apps as Set)
     }

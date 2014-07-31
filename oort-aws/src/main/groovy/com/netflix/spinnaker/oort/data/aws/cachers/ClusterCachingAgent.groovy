@@ -87,6 +87,9 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     cacheService.put(Keys.getClusterKey(names.cluster, names.app, account.name), cluster)
 
     for (loadBalancerName in asg.loadBalancerNames) {
+      if (loadBalancerName.startsWith("oort")) {
+        println "oort lb"
+      }
       cacheService.put(Keys.getLoadBalancerServerGroupKey(loadBalancerName, account.name, asg.autoScalingGroupName, region), [:])
     }
   }
