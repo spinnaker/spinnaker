@@ -16,25 +16,21 @@
 
 package com.netflix.spinnaker.orca.batch.core.configuration.annotation
 
-import groovy.transform.CompileStatic
-import javax.annotation.PostConstruct
 import com.netflix.spinnaker.orca.batch.core.explore.support.JedisJobExplorerFactoryBean
 import com.netflix.spinnaker.orca.batch.repository.support.JedisJobRepositoryFactoryBean
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
-import org.springframework.batch.core.explore.support.SimpleJobExplorer
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager
-import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
 import redis.clients.jedis.JedisCommands
+import javax.annotation.PostConstruct
 
 @Component
-@CompileStatic
 class JedisBatchConfigurer implements BatchConfigurer {
 
   private final JedisCommands jedis
@@ -74,8 +70,6 @@ class JedisBatchConfigurer implements BatchConfigurer {
     if (!transactionManager) {
       transactionManager = new ResourcelessTransactionManager()
     }
-    repositoryFactory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
-    repositoryFactory.afterPropertiesSet()
 
     jobRepository = createJobRepository()
     jobLauncher = createJobLauncher()
@@ -90,6 +84,8 @@ class JedisBatchConfigurer implements BatchConfigurer {
   }
 
   private JobRepository createJobRepository() {
+    repositoryFactory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
+    repositoryFactory.afterPropertiesSet()
     return repositoryFactory.object
   }
 
