@@ -42,7 +42,7 @@ class ResizeAsgTask implements Task {
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
         ["deploy.account.name" : resizeAsgOperation.credentials,
          "kato.task.id"        : taskId,
-         "deploy.server.groups": [(resizeAsgOperation.region): [resizeAsgOperation.asgName]]])
+         "deploy.server.groups": [(resizeAsgOperation.regions): [resizeAsgOperation.asgName]]])
   }
 
   ResizeAsgOperation convert(TaskContext context) {

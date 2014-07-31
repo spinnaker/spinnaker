@@ -25,12 +25,13 @@ import com.netflix.spinnaker.orca.kato.api.Operation
 class ResizeAsgOperation extends Operation {
   String credentials
   String asgName
-  String region
+  List<String> regions
 
   Capacity capacity = new Capacity()
 
   static class Capacity {
     int min
     int max
+    int desired
   }
 }

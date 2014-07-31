@@ -39,7 +39,8 @@ class ResizeAsgTaskSpec extends Specification {
       credentials: "fzlem",
       capacity   : [
           min: 1,
-          max: 10
+          max: 10,
+          desired: 6
       ]
   ]
 
@@ -71,8 +72,14 @@ class ResizeAsgTaskSpec extends Specification {
     with(operations[0].resizeAsgDescription) {
       it instanceof ResizeAsgOperation
       asgName == resizeASGConfig.asgName
-      region == resizeASGConfig.region
+      regions == resizeASGConfig.regions
       credentials == resizeASGConfig.credentials
+      regions.size() == 2
+      capacity.with {
+        min = resizeASGConfig.capacity.min
+        max = resizeASGConfig.capacity.max
+        desired = resizeASGConfig.capacity.desired
+      }
     }
   }
 
