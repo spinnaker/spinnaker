@@ -9,8 +9,9 @@
     <div class="build-title">
       <a href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
          target="_blank"
-         ng-if="serverGroup.buildInfo">
-        Build #{{ serverGroup.buildInfo.jenkins.number }}</a>:
+         ng-if="serverGroup.buildInfo.jenkins.host">
+        Build #{{ serverGroup.buildInfo.jenkins.number }}:</a>
+      <span ng-if="!serverGroup.buildInfo.jenkins.host">(No build info)</span>
       <health-counts server-group="serverGroup"></health-counts>
     </div>
     <div class="instances">
