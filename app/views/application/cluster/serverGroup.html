@@ -1,5 +1,5 @@
 <div class="row server-group"
-     ng-class="{active: $state.includes('serverGroup', {serverGroup: serverGroup.name})}">
+     ng-class="{active: $state.includes('*.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})}">
   <div class="col-sm-2 server-group-summary">
     <a ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
       <span class="glyphicon glyphicon-th"></span> {{serverGroup.name | stripCluster:cluster}}
