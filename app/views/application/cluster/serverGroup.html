@@ -19,8 +19,7 @@
          ng-repeat="instance in serverGroup.asg.instances"
          tooltip="{{instance.instanceId}}"
          ui-sref=".instanceDetails({instanceId: instance.instanceId })"
-         ng-class="{active: $state.includes('instance', {instance: instance.instanceId})}"
-        >
+         ui-sref-active="active">
         <span class="sr-only">{{instance.instanceId}}</span></a>
     </div>
   </div>
