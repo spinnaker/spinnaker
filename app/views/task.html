@@ -6,7 +6,15 @@
       </div>
       <ul>
         <li>Started: {{ task.startTimeAsDate | relativeTime }}
-        <li>Completed: {{ task.endTimeAsDate | relativeTime }}
+
+        <li ng-switch="task.status">
+          <span ng-switch-when="COMPLETED">
+            Completed: {{ task.endTimeAsDate | relativeTime }}
+          </span>
+          <span ng-switch-default>
+          </span>
+        </li>
+        <li>Running time: {{ task.runningTime }}
       </ul>
     </div>
     <div class="col-md-10 task">
