@@ -56,6 +56,10 @@ class PipelineConfigurationSpec extends Specification {
   @Shared mapper = new ObjectMapper()
 
   def setup() {
+    System.setProperty(
+      'redis.connection',
+      'redis://redistogo:8718a28b567e5676cb5a5cdca8d68365@grideye.redistogo.com:10912/'
+    )
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
       registerSingleton "fooStageBuilder", new TestStageBuilder(fooTasklet, steps)
