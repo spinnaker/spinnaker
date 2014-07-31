@@ -74,8 +74,6 @@ class JedisBatchConfigurer implements BatchConfigurer {
     if (!transactionManager) {
       transactionManager = new ResourcelessTransactionManager()
     }
-    repositoryFactory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
-    repositoryFactory.afterPropertiesSet()
 
     jobRepository = createJobRepository()
     jobLauncher = createJobLauncher()
@@ -90,6 +88,8 @@ class JedisBatchConfigurer implements BatchConfigurer {
   }
 
   private JobRepository createJobRepository() {
+    repositoryFactory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
+    repositoryFactory.afterPropertiesSet()
     return repositoryFactory.object
   }
 
