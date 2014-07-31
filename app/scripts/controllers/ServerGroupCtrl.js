@@ -1,13 +1,28 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('ServerGroupCtrl', function($scope, account, cluster, application, serverGroup, pond, $modal, confirmationModalService) {
+  .controller('ServerGroupCtrl', function($scope, application, serverGroup, pond, $modal, confirmationModalService) {
 
-    $scope.account = account.name;
-    $scope.cluster = cluster;
-    $scope.serverGroup = serverGroup.data[0];
+    function extractServerGroup() {
+      application.data.clusters.some(function (cluster) {
+        return cluster.serverGroups.some(function (toCheck) {
+          if (toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region) {
+            $scope.serverGroup = toCheck;
+            $scope.cluster = cluster;
+            $scope.account = serverGroup.accountId;
+            delete $scope.serverGroup.launchConfig.userData;
+            return true;
+          }
+        });
+      });
+    }
 
-    delete $scope.serverGroup.launchConfig.userData;
+    if (application.data.clusters && application.data.clusters.length) {
+      extractServerGroup();
+    } else {
+      $scope.$on('clustersLoaded', extractServerGroup);
+    }
+
 
     // TODO: move to service
     $scope.destroyServerGroup = function() {
@@ -21,7 +36,7 @@ angular.module('deckApp')
           asgName: serverGroup.name,
           type: 'destroyAsg',
           regions: [serverGroup.region],
-          credentials: account.name,
+          credentials: serverGroup.account,
           user: 'chrisb'
         }]).then(function(response) {
           console.warn('task: ', response.ref);
@@ -41,7 +56,7 @@ angular.module('deckApp')
           asgName: serverGroup.name,
           type: 'disableAsg',
           regions: [serverGroup.region],
-          credentials: account.name,
+          credentials: serverGroup.account,
           user: 'chrisb'
         }]).then(function(response) {
           console.warn('task: ', response.ref);
@@ -69,7 +84,7 @@ angular.module('deckApp')
               asgName: serverGroup.name,
               type: 'resizeAsg',
               regions: [serverGroup.region],
-              credentials: account.name,
+              credentials: serverGroup.account,
               user: 'chrisb',
               capacity: { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize }
             }]).then(function(response) {

@@ -176,6 +176,44 @@ angular
           }
         }
       })
+      .state('cluster.serverGroup', {
+        url: '/serverGroupDetails?serverGroup&accountId&region',
+        parent: 'cluster',
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/serverGroup.html',
+            controller: 'ServerGroupCtrl'
+          }
+        },
+        resolve: {
+          serverGroup: function($stateParams) {
+            return {
+              name: $stateParams.serverGroup,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }
+        }
+      })
+      .state('clusters.serverGroup', {
+        url: '/serverGroupDetails?serverGroup&accountId&region',
+        parent: 'clusters',
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/serverGroup.html',
+            controller: 'ServerGroupCtrl'
+          }
+        },
+        resolve: {
+          serverGroup: function($stateParams) {
+            return {
+              name: $stateParams.serverGroup,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }
+        }
+      })
       .state('serverGroup', {
         url: '/serverGroup/:serverGroup',
         parent: 'cluster',

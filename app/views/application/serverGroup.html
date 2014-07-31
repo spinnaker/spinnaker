@@ -1,5 +1,8 @@
 <div class="details-panel">
-  <div class="header">
+  <h4 ng-if="!instance" class="text-center">
+    <span us-spinner="{radius:20, width:6, length: 12}"></span>
+  </h4>
+  <div class="header" ng-if="serverGroup">
     <div class="close-button">
       <a class="btn btn-link"
           ui-sref="^">
@@ -29,7 +32,7 @@
       </div>
     </div>
   </div>
-  <div class="content">
+  <div class="content" ng-if="serverGroup">
     <div class="content-section">
       <h4>ASG Information</h4>
       <dl class="dl-horizontal dl-narrow">
