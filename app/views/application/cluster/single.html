@@ -40,8 +40,8 @@
       </div>
     </div>
   </div>
-  <div ng-repeat="asg in asgsByRegion">
+  <div ng-repeat="asg in asgsByRegion | orderBy:'region'">
     <h4>{{asg.region}}</h4>
-    <server-group ng-repeat="serverGroup in asg.serverGroups" server-group="serverGroup" cluster="cluster.name"></server-group>
+    <server-group ng-repeat="serverGroup in asg.serverGroups | orderBy:'name'" server-group="serverGroup" cluster="cluster.name"></server-group>
   </div>
 </div>
