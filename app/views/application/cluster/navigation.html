@@ -6,12 +6,14 @@
   <span us-spinner="{radius:20, width:6, length: 12}"></span>
 </h4>
 <div ng-if="!loadingClusters" class="sub-nav-item">
-  <a ui-sref="." ui-sref-active="active">Show All Clusters</a>
+  <a ui-sref="."
+     ng-class="{active: $state.includes('clusters') && !$state.includes('cluster')}"
+    >Show All Clusters</a>
 </div>
-<div ng-if="!loadingClusters" class="sub-nav" ng-repeat="account in application.accounts">
+<div ng-if="!loadingClusters" class="sub-nav" ng-repeat="account in application.accounts | orderBy:'toString()'">
   <div class="sub-nav-item">
     <h4>{{account}}</h4>
-    <a ng-repeat="cluster in getClustersForAccount(account)"
+    <a ng-repeat="cluster in getClustersForAccount(account) | orderBy:'name'"
        ui-sref="cluster({account: account, cluster: cluster.name})"
        ng-class="{active: $state.includes('cluster', {account: account, cluster: cluster.name} )}">
         {{cluster.name}}</a>

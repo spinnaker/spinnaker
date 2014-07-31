@@ -18,7 +18,7 @@
       <a class="instance health-status-{{instance.healthStatus}}"
          ng-repeat="instance in serverGroup.asg.instances"
          tooltip="{{instance.instanceId}}"
-         ui-sref="instance({cluster: serverGroup.cluster, account: serverGroup.account, serverGroup: serverGroup.name, instance: instance.instanceId })"
+         ui-sref=".instanceDetails({instanceId: instance.instanceId })"
          ng-class="{active: $state.includes('instance', {instance: instance.instanceId})}"
         >
         <span class="sr-only">{{instance.instanceId}}</span></a>

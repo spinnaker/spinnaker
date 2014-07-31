@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .directive('serverGroup', function() {
+  .directive('serverGroup', function($rootScope) {
     return {
       restrict: 'E',
       replace: true,
@@ -9,6 +9,9 @@ angular.module('deckApp')
       scope: {
         cluster: '=',
         serverGroup: '='
+      },
+      link: function(scope) {
+        scope.$state = scope.$parent.$state;
       }
     };
   });

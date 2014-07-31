@@ -191,6 +191,40 @@ angular
           }
         }
       })
+      .state('cluster.instanceDetails', {
+        url: '/instanceDetails?instanceId',
+        parent: 'cluster',
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/instance.html',
+            controller: 'InstanceCtrl'
+          }
+        },
+        resolve: {
+          instance: function($stateParams) {
+            return {
+              name: $stateParams.instanceId
+            };
+          }
+        }
+      })
+      .state('clusters.instanceDetails', {
+        url: '/instanceDetails?instanceId',
+        parent: 'clusters',
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/instance.html',
+            controller: 'InstanceCtrl'
+          }
+        },
+        resolve: {
+          instance: function($stateParams) {
+            return {
+              name: $stateParams.instanceId
+            };
+          }
+        }
+      })
       .state('instance', {
         url: '/instance/:instance',
         parent: 'serverGroup',
