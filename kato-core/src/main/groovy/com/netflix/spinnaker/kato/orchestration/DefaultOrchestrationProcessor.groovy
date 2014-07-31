@@ -53,11 +53,15 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             results << atomicOperation.operate(results)
             task.updateStatus(TASK_PHASE, "Orchestration completed.")
           } catch (e) {
-            e.printStackTrace()
-            def stringWriter = new StringWriter()
-            def printWriter = new PrintWriter(stringWriter)
-            e.printStackTrace(printWriter)
-            task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} -- ${stringWriter.toString()}"
+            def message = e.message
+            if (!message) {
+              e.printStackTrace()
+              def stringWriter = new StringWriter()
+              def printWriter = new PrintWriter(stringWriter)
+              e.printStackTrace(printWriter)
+              message = stringWriter.toString()
+            }
+            task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${message}]"
             task.fail()
           }
         }

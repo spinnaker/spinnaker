@@ -54,7 +54,7 @@ class SecurityGroupService {
       [(it.groupName): it.groupId]
     }
     if (!securityGroups.keySet().containsAll(securityGroupNames)) {
-      throw new SecurityGroupNotFoundException()
+      throw new SecurityGroupNotFoundException("Missing security groups: ${(securityGroupNames - securityGroups.keySet()).join(',')}")
     }
     securityGroups
   }
