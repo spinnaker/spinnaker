@@ -29,14 +29,20 @@
     </div>
     <div class="content-section">
       <h4>Status</h4>
-        <div ng-if="instance.isHealthy">
-          <span class="glyphicon glyphicon-up-triangle healthy"></span> Up
-        </div>
-        <div ng-if="!instance.isHealthy">
-          <span class="glyphicon glyphicon-down-triangle unhealthy"></span> Down
-        </div>
+      <p ng-if="instance.healthStatus === 'Healthy'">
+        <span class="glyphicon glyphicon-up-triangle healthy"></span> Up
+      </p>
+      <p ng-if="instance.healthStatus === 'Unhealthy'">
+        <span class="glyphicon glyphicon-down-triangle unhealthy"></span> Down
+      </p>
+      <p ng-if="instance.healthStatus === 'Unknown'">
+        <span class="glyphicon glyphicon-question-sign unknown"></span> Unknown
+      </p>
     </div>
-    <div class="content-section">
+    <div class="content-section" ng-if="instance.notFound">
+      <p>Could not find the instance. No other details provided.</p>
+    </div>
+    <div class="content-section" ng-if="!instance.notFound">
       <h4>DNS</h4>
       <dl>
         <dt>Private DNS Name:</dt>
@@ -47,7 +53,7 @@
         <dd ng-if="instance.instance.publicIpAddress">{{instance.instance.publicIpAddress}}</dd>
       </dl>
     </div>
-    <div class="content-section">
+    <div class="content-section" ng-if="!instance.notFound">
       <h4>Security Groups</h4>
       <ul>
         <li ng-repeat="securityGroup in instance.instance.securityGroups">
@@ -55,7 +61,7 @@
         </li>
       </ul>
     </div>
-    <div class="content-section">
+    <div class="content-section" ng-if="!instance.notFound">
       <h4>Logs</h4>
       <ul>
         <li>
