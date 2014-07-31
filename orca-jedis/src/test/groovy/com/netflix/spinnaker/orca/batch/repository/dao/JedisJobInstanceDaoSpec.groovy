@@ -26,7 +26,7 @@ import spock.lang.Shared
 class JedisJobInstanceDaoSpec extends JobInstanceDaoTck {
 
   @Shared @AutoCleanup("destroy") JedisConfig jedisConfig = new JedisConfig()
-  @Shared Jedis jedis = jedisConfig.jedis(0, "127.0.0.1", "none")
+  @Shared Jedis jedis = new JedisConfig().jedis(0, 'none', 'redis://redistogo:8718a28b567e5676cb5a5cdca8d68365@grideye.redistogo.com:10912/')
 
   def cleanup() {
     jedis.flushDB()
