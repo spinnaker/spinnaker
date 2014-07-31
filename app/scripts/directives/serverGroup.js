@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .directive('serverGroup', function($rootScope) {
+  .directive('serverGroup', function() {
     return {
       restrict: 'E',
       replace: true,

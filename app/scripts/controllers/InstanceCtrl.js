@@ -3,12 +3,6 @@
 angular.module('deckApp')
   .controller('InstanceCtrl', function($scope, $rootScope, instance, application) {
 
-    if (application.data.clusters && application.data.clusters.length) {
-      extractInstance();
-    } else {
-      $scope.$on('clustersLoaded', extractInstance);
-    }
-
     function extractInstance() {
       application.data.clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (serverGroup) {
@@ -20,6 +14,12 @@ angular.module('deckApp')
           });
         });
       });
+    }
+
+    if (application.data.clusters && application.data.clusters.length) {
+      extractInstance();
+    } else {
+      $scope.$on('clustersLoaded', extractInstance);
     }
 
     $scope.account = instance.account;
