@@ -1,11 +1,12 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('pond', function(settings, Restangular, dateFromTimestampFilter) {
+  .factory('pond', function(settings, Restangular, dateFromTimestampFilter, momentService) {
 
     var filterTimes = function(elem, isLast) {
       elem.startTimeAsDate = dateFromTimestampFilter(elem.startTime);
       elem.endTimeAsDate = dateFromTimestampFilter(elem.endTime);
+      elem.runningTime = momentService.duration(elem.endTime - elem.startTime).humanize();
       // map elem status to bootstrap labels and create a diplay name
       // TODO: clean up
       elem.category = (elem.status === 'STARTED' ? 'running' :
@@ -51,6 +52,12 @@ angular.module('deckApp')
         /*
         step.percentage = (step.status != 'STARTED'  ? step.endTime - step.startTime : Date.now() - step.startTime) * 100 / elapsedTime;
         */
+      });
+
+      task.steps.forEach(function(step) {
+        // TODO: remove when steps are rolled up by pond
+        filterTimes(step);
+
       });
       return task;
     };
