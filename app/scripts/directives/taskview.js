@@ -17,4 +17,4 @@ angular.module('deckApp')
       },
     };
 
-  })
+  });
