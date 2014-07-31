@@ -4,8 +4,8 @@ angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, _) {
 
     $scope.sortFilter = {
-      sortPrimary: 'region',
-      sortSecondary: 'cluster',
+      sortPrimary: 'cluster',
+      sortSecondary: 'region',
       filter: ''
     };
 
@@ -29,39 +29,41 @@ angular.module('deckApp')
       $scope.updateClusterGroups();
     };
 
-    $scope.updateClusterGroups = function() {
+    function updateClusterGroups() {
       var groups = [],
-          filter = $scope.sortFilter.filter.toLowerCase(),
-          serverGroups = _.chain(application.data.clusters)
-            .collect('serverGroups')
-            .flatten()
-            .filter(function(serverGroup) {
-              if (!filter) {
-                return true;
-              }
-              var toCheck = [
+        filter = $scope.sortFilter.filter.toLowerCase(),
+        serverGroups = _.chain(application.data.clusters)
+          .collect('serverGroups')
+          .flatten()
+          .filter(function(serverGroup) {
+            if (!filter) {
+              return true;
+            }
+            if (!serverGroup.searchField) {
+              serverGroup.searchField = [
                 serverGroup.region.toLowerCase(),
                 serverGroup.name.toLowerCase(),
                 serverGroup.account.toLowerCase(),
-                _.collect(serverGroup.instances, 'name').join(' ')
+//                _.collect(serverGroup.instances, 'name').join(' ')
               ].join(' ');
-              return toCheck.indexOf(filter) !== -1;
-            })
-            .value(),
+            }
+            return serverGroup.searchField.indexOf(filter) !== -1;
+          })
+          .value(),
 
-          primarySort = $scope.sortFilter.sortPrimary,
-          secondarySort = $scope.sortFilter.sortSecondary,
-          tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+        primarySort = $scope.sortFilter.sortPrimary,
+        secondarySort = $scope.sortFilter.sortSecondary,
+        tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
 
       var grouped = _.groupBy(serverGroups, primarySort);
 
       _.forOwn(grouped, function(group, key) {
         var subGroupings = _.groupBy(group, secondarySort),
-            subGroups = [];
+          subGroups = [];
 
         _.forOwn(subGroupings, function(subGroup, subKey) {
           var subGroupings = _.groupBy(subGroup, tertiarySort),
-              subSubGroups = [];
+            subSubGroups = [];
 
           _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
             subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup.sort(asgSorter) } );
@@ -72,8 +74,10 @@ angular.module('deckApp')
         groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
       });
       $scope.groups = _.sortBy(groups, 'heading');
-      console.warn('groups:', $scope.groups);
-    };
+      $scope.$digest();
+    }
+
+    $scope.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
     function asgSorter(a, b) {
       var av = a.name.split('-').pop(),
