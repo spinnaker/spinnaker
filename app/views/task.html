@@ -1,72 +1,83 @@
 <div class="col-md-12">
   <div class="row task-row" ng-click="toggleDetails()">
-    <div class="col-md-2 task-label">
-      <div>
-        <strong>Task Description</strong>
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-2 task-label">
+          <div>
+            <strong>Task Description</strong>
+          </div>
+          <ul>
+            <li>Started: {{ task.startTimeAsDate | relativeTime }}
+            <li ng-switch="task.status">
+              <span ng-switch-when="COMPLETED">
+                Completed: {{ task.endTimeAsDate | relativeTime }}
+              </span>
+              <span ng-switch-default>
+              </span>
+            </li>
+            <li>Running time: {{ task.runningTime }}</li>
+            <li ng-hide="open">
+              <span class="glyphicon glyphicon-circle-arrow-down"></span> Show details
+            </li>
+            <li ng-show="open">
+              <span class="glyphicon glyphicon-circle-arrow-up"></span> Hide details
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-10 task">
+          <progress max="1.0001" class="progress-status">
+            <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+            <span tooltip="Started: {{ step.startTimeAsDate | relativeTime }}, Ended: {{ step.startTimeAsDate | relativeTime }}"></span>
+            </bar>
+          </progress>
+          <progress max="1.0001" class="progress-labels">
+            <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
+            {{ step.displayName }}
+            </bar>
+          </progress>
+        </div>
       </div>
-      <ul>
-        <li>Started: {{ task.startTimeAsDate | relativeTime }}
-
-        <li ng-switch="task.status">
-          <span ng-switch-when="COMPLETED">
-            Completed: {{ task.endTimeAsDate | relativeTime }}
-          </span>
-          <span ng-switch-default>
-          </span>
-        </li>
-        <li>Running time: {{ task.runningTime }}
-      </ul>
+      <div class="row details-row" ng-if="open">
+        <div class="col-md-12">
+          <table class="table table-striped table-hover">
+            <thead>
+              <th>
+                Step
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Completed
+              </th>
+              <th>
+                Running Time
+              </th>
+            </thead>
+            <tbody>
+             <tr ng-repeat="step in task.steps">
+               <td>
+                 {{ step.name }}
+               </td>
+               <td>
+                 {{ step.startTimeAsDate | relativeTime }}
+               </td>
+               <td ng-switch="step.status">
+                 <span ng-switch-when="COMPLETED">
+                   {{ step.endTimeAsDate | relativeTime }}
+                 </span>
+                 <span ng-switch-default>
+                   N/A
+                 </span>
+               </td>
+               <td>
+                 {{ step.runningTime }}
+               </td>
+             </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div class="col-md-10 task">
-      <progress max="1.0001" class="progress-status">
-        <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
-        <span tooltip="Started: {{ step.startTimeAsDate | relativeTime }}, Ended: {{ step.startTimeAsDate | relativeTime }}"></span>
-        </bar>
-      </progress>
-      <progress max="1.0001" class="progress-labels">
-        <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
-        {{ step.displayName }}
-        </bar>
-      </progress>
-    </div>
-  </div>
-  <div class="row details-row" ng-if="open">
-    <table class="table table-striped table-hover">
-      <thead>
-        <th>
-          Step
-        </th>
-        <th>
-          Started
-        </th>
-        <th>
-          Completed
-        </th>
-        <th>
-          Running Time
-        </th>
-      </thead>
-      <tbody>
-       <tr ng-repeat="step in task.steps">
-         <td>
-           {{ step.name }}
-         </td>
-         <td>
-           {{ step.startTimeAsDate | relativeTime }}
-         </td>
-         <td ng-switch="step.status">
-           <span ng-switch-when="COMPLETED">
-             {{ step.endTimeAsDate | relativeTime }}
-           </span>
-           <span ng-switch-default>
-             N/A
-           </span>
-         </td>
-         <td>
-           {{ step.runningTime }}
-         </td>
-       </tr>
-      </tbody>
-    </table>
   </div>
 </div>
