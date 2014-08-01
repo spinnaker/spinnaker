@@ -10,7 +10,9 @@ angular.module('deckApp')
             $scope.serverGroup = toCheck;
             $scope.cluster = cluster;
             $scope.account = serverGroup.accountId;
-            delete $scope.serverGroup.launchConfig.userData;
+            if (toCheck.launchConfig) {
+              delete toCheck.launchConfig.userData;
+            }
             return true;
           }
         });
@@ -29,8 +31,7 @@ angular.module('deckApp')
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
-        buttonText: 'Destroy ' + serverGroup.name,
-        size: 'sm'
+        buttonText: 'Destroy ' + serverGroup.name
       }).then(function() {
         pond.one('ops').customPOST([{
           asgName: serverGroup.name,
@@ -49,8 +50,7 @@ angular.module('deckApp')
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
         header: 'Really disable ' + serverGroup.name + '?',
-        buttonText: 'Disable ' + serverGroup.name,
-        size: 'sm'
+        buttonText: 'Disable ' + serverGroup.name
       }).then(function() {
         pond.one('ops').customPOST([{
           asgName: serverGroup.name,
@@ -68,25 +68,38 @@ angular.module('deckApp')
       var serverGroup = $scope.serverGroup;
       $modal.open({
         templateUrl: 'views/application/modal/resizeServerGroup.html',
-        size: 'sm',
         controller: function($scope, $modalInstance, pond) {
 
           $scope.serverGroup = serverGroup;
-          console.warn('group:', serverGroup);
-          $scope.currentSize = serverGroup.instances.length;
+          $scope.currentSize = {
+            min: serverGroup.asg.minSize,
+            max: serverGroup.asg.maxSize,
+            desired: serverGroup.asg.desiredCapacity
+          };
 
-          $scope.command = {
-            newSize: serverGroup.instances.length
+          $scope.command = angular.copy($scope.currentSize);
+          $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
+
+          $scope.isValid = function() {
+            var command = $scope.command;
+            return command.advancedMode ?
+              command.min <= command.max && command.desired >= command.min && command.desired <= command.max :
+              command.newSize != null;
           };
 
           $scope.resize = function() {
+            var capacity = { min: $scope.command.min, max: $scope.command.max, desired: $scope.command.desired };
+            if (!$scope.command.advancedMode) {
+              capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
+            }
+            console.warn('capacity:', capacity);
             pond.one('ops').customPOST([{
               asgName: serverGroup.name,
               type: 'resizeAsg',
               regions: [serverGroup.region],
               credentials: serverGroup.account,
-              user: 'chrisb',
-              capacity: { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize }
+              user: 'deckUser',
+              capacity: capacity
             }]).then(function(response) {
               $modalInstance.close();
               console.warn('task:', response.ref);
