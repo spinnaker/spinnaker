@@ -84,7 +84,7 @@ angular.module('deckApp')
             var command = $scope.command;
             return command.advancedMode ?
               command.min <= command.max && command.desired >= command.min && command.desired <= command.max :
-              command.newSize != null;
+              command.newSize !== null;
           };
 
           $scope.resize = function() {

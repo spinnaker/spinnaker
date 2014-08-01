@@ -1,3 +1,4 @@
+'use strict';
 /*
  Adapted from Stack Overflow response:
    http://stackoverflow.com/questions/15656617/validation-not-triggered-when-data-binding-a-number-inputs-min-max-attributes#answer-15661908
