@@ -27,7 +27,7 @@ buildscript {
 ext {
   versions = [
       batch   : "3.0.1.RELEASE",
-      groovy  : "2.3.4",
+      groovy  : "2.3.6",
       guava   : "14.0.1",
       jackson : "2.3.3",
       kork    : "1.13",
@@ -57,12 +57,8 @@ ext {
       slf4j            : dependencies.create("org.slf4j:slf4j-api:$versions.slf4j"),
       slf4jJcl         : dependencies.create("org.slf4j:jcl-over-slf4j:$versions.slf4j"),
       slf4jSimple      : dependencies.create("org.slf4j:slf4j-simple:$versions.slf4j"),
-      spock            : dependencies.create("org.spockframework:spock-core:$versions.spock") {
-        exclude module: "groovy-all"
-      },
-      spockSpring      : dependencies.create("org.spockframework:spock-spring:$versions.spock") {
-        exclude module: "groovy-all"
-      },
+      spock            : dependencies.create("org.spockframework:spock-core:$versions.spock"),
+      spockSpring      : dependencies.create("org.spockframework:spock-spring:$versions.spock"),
       springBatch      : dependencies.create("org.springframework.batch:spring-batch-core:$versions.batch"),
       springBatchTest  : dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
       springJdbc       : dependencies.create("org.springframework:spring-jdbc:$versions.spring"),
