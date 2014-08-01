@@ -27,7 +27,12 @@ import spock.lang.Shared
 class JedisStepExecutionDaoSpec extends StepExecutionDaoTck {
 
   @Shared @AutoCleanup("destroy") JedisConfig jedisConfig = new JedisConfig()
-  @Shared Jedis jedis = jedisConfig.jedis(0, "127.0.0.1", System.getProperty('redis.connection') ?: "none")
+  @Shared Jedis jedis = jedisConfig.jedis(0, "127.0.0.1", System.env['redis.connection'] ?: "none")
+
+  def setupSpec(){
+
+    println "REDIS CONNECTION IS : " + System.env['redis.connection']
+  }
 
   def cleanup() {
     jedis.flushDB()
