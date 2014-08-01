@@ -18,6 +18,10 @@ package com.netflix.spinnaker.oort
 
 import com.netflix.spinnaker.oort.controllers.ApplicationsController
 import com.netflix.spinnaker.oort.model.ApplicationProvider
+import com.netflix.spinnaker.oort.model.Cluster
+import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.LoadBalancerProvider
+import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import spock.lang.Shared
 import spock.lang.Specification
@@ -51,18 +55,32 @@ class ApplicationControllerSpec extends Specification {
     setup:
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
+    def cluProvider1 = Mock(ClusterProvider)
+    def elbProvider1 = Mock(LoadBalancerProvider)
     applicationsController.applicationProviders = [appProvider1, appProvider2]
+    applicationsController.clusterProviders = [cluProvider1]
+    applicationsController.loadBalancerProviders = [elbProvider1]
     def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
     def app2 = new AmazonApplication(name: "foo", clusterNames: [test: ["baz"] as Set], attributes: [:])
+    def cluster = Mock(Cluster)
+    cluster.getAccountName() >> "test"
+    cluster.getName() >> "foo"
+    def sg1 = Mock(ServerGroup)
+    sg1.getName() >> "bar"
+    def sg2 = Mock(ServerGroup)
+    sg2.getName() >> "baz"
+    cluster.getServerGroups() >> [sg1, sg2]
 
     when:
     def result = applicationsController.get("foo")
 
     then:
-    appProvider1.getApplication("foo") >> app1
-    appProvider2.getApplication("foo") >> app2
+    2 * elbProvider1.getLoadBalancers(_, _)
+    2 * cluProvider1.getClusters("foo") >> [test: cluster]
+    1 * appProvider1.getApplication("foo") >> app1
+    1 * appProvider2.getApplication("foo") >> app2
     result.name == "foo"
-    result.clusterNames == [test: ["bar", "baz"] as Set]
+    result.clusters.test*.serverGroups.flatten() == ["bar", "baz"]
     result.attributes == [tag: "val"]
   }
 }
