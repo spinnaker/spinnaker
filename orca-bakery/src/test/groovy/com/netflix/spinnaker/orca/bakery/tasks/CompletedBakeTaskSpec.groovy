@@ -38,7 +38,7 @@ class CompletedBakeTaskSpec extends Specification {
   def context = new SimpleTaskContext()
   @Shared notFoundError = RetrofitError.httpError(
       null,
-      new Response(HTTP_NOT_FOUND, "Not Found", [], null),
+      new Response("http://bakery", HTTP_NOT_FOUND, "Not Found", [], null),
       null,
       null
   )
