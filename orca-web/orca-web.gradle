@@ -44,7 +44,6 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile commonDependencies.springWeb
   compile commonDependencies.springBatchTest
-  runtime commonDependencies.h2
   runtime commonDependencies.spockSpring
   runtime commonDependencies.springTest
 

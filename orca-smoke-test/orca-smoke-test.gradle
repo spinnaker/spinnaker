@@ -22,7 +22,6 @@ dependencies {
   testCompile project(":orca-kato")
   testCompile project(":orca-oort")
   testCompile commonDependencies.springBatchTest
-  testRuntime commonDependencies.h2
   testRuntime commonDependencies.spockSpring
   testRuntime commonDependencies.springTest
 
