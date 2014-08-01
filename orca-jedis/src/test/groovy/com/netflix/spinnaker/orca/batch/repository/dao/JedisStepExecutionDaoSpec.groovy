@@ -27,7 +27,7 @@ import spock.lang.Shared
 class JedisStepExecutionDaoSpec extends StepExecutionDaoTck {
 
   @Shared @AutoCleanup("destroy") JedisConfig jedisConfig = new JedisConfig()
-  @Shared Jedis jedis = new JedisConfig().jedis(0, 'none', 'redis://redistogo:8718a28b567e5676cb5a5cdca8d68365@grideye.redistogo.com:10912/')
+  @Shared Jedis jedis = jedisConfig.jedis(0, "127.0.0.1", System.getProperty('redis.connection') ?: "none")
 
   def cleanup() {
     jedis.flushDB()
