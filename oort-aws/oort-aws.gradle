@@ -3,6 +3,7 @@ dependencies {
 
   spinnaker.group("bootWeb")
   spinnaker.group("amazon")
+  runtime 'com.netflix.amazoncomponents:amazoncomponents:0.9.8'
 
   compile spinnaker.dependency("frigga")
   compile 'com.codahale.metrics:metrics-core:3.0.2'
