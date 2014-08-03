@@ -162,7 +162,7 @@ public class AmazonClientProvider {
     return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
-  private <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, AmazonCredentials amazonCredentials, String region) {
+  protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, AmazonCredentials amazonCredentials, String region) {
     try {
       T delegate = getClient(impl, amazonCredentials, region);
       U client = (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz}, new ThrottledAmazonClientInvocationHandler(delegate, retryCallback));
@@ -187,7 +187,7 @@ public class AmazonClientProvider {
     return delegate;
   }
 
-  private GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, AmazonCredentials amazonCredentials) {
+  protected GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, AmazonCredentials amazonCredentials) {
     return new GeneralAmazonClientInvocationHandler(client, serviceName, String.format(amazonCredentials.getEdda(), region),
       this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
   }
@@ -380,7 +380,7 @@ public class AmazonClientProvider {
       HttpGet get = new HttpGet(url);
       HttpResponse response = httpClient.execute(get);
       HttpEntity entity = response.getEntity();
-      if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK || !entity.getContentType().getValue().equals(ContentType.APPLICATION_JSON.getMimeType())) {
+      if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
         return null;
       } else {
         String result = getStringFromInputStream(entity.getContent());
