@@ -49,7 +49,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
     mockAmazonClientProvider.getAmazonEC2(_, _) >> Mock(AmazonEC2)
-    KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties()
+    KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(defaults: new KatoAWSConfig.DeployDefaults())
     awsConfigurationProperties.defaults.iamRole = "IamRole"
     awsConfigurationProperties.defaults.keyPair = "keypair"
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
