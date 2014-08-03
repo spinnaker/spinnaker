@@ -22,6 +22,8 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
+import com.netflix.spinnaker.kato.config.AmazonInstanceClassBlockDevice
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -40,6 +42,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   @Shared
   Task task
 
+  @Shared
+  List<AmazonBlockDevice> blockDevices
+
   def setupSpec() {
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
@@ -47,6 +52,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties()
     awsConfigurationProperties.defaults.iamRole = "IamRole"
     awsConfigurationProperties.defaults.keyPair = "keypair"
+    this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
+    awsConfigurationProperties.defaults.instanceClassBlockDevices = [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)]
     this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties,
       regionScopedProviderFactory: Mock(RegionScopedProviderFactory))
     handler.regionScopedProviderFactory.forRegion(_, _) >> Mock(RegionScopedProviderFactory.RegionScopedProvider)
@@ -94,4 +101,52 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     then:
     setlbCalls
   }
+
+  void "should send instance class block devices to AutoScalingWorker when matched and none are specified"() {
+    setup:
+    def deployCallCounts = 0
+    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
+    def setBlockDevices = []
+    AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
+      setBlockDevices = blockDevices
+    }
+    def description = new BasicAmazonDeployDescription()
+    description.instanceType = "m3.medium"
+    description.availabilityZones = ["us-west-1": [], "us-east-1": []]
+    description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
+
+    when:
+    def results = handler.handle(description, [])
+
+    then:
+    2 == deployCallCounts
+    results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
+    setBlockDevices == this.blockDevices
+  }
+
+  void "should favor explicit description block devices over default config"() {
+    setup:
+    def deployCallCounts = 0
+    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
+    List<AmazonBlockDevice> setBlockDevices = []
+    AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
+      setBlockDevices = blockDevices
+    }
+    def description = new BasicAmazonDeployDescription()
+    description.instanceType = "m3.medium"
+    description.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
+    description.availabilityZones = ["us-west-1": [], "us-east-1": []]
+    description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
+
+    when:
+    def results = handler.handle(description, [])
+
+    then:
+    2 == deployCallCounts
+    results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
+    setBlockDevices.size()
+    setBlockDevices == description.blockDevices
+  }
+
+
 }

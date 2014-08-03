@@ -21,7 +21,7 @@ package com.netflix.spinnaker.kato.config
  *
  * @author Dan Woods
  */
-class BlockDevice {
+class AmazonBlockDevice {
   /**
    * The name of the virtual device (ie. /dev/sdb, /dev/sdc)
    */
@@ -31,4 +31,10 @@ class BlockDevice {
    * The size of the virtual device in Gigabytes (ie. 125)
    */
   Integer size
+
+  /**
+   * The virtual name as it corresponds to the infrastructure. Only relevant for ephemeral devices.
+   * Valid value examples: (ephemeral0, ephemeral1, etc...)
+   */
+  String virtualName
 }

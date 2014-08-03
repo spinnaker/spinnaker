@@ -83,6 +83,13 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
 
+      if (!description.blockDevices) {
+        def blockDeviceConfig = awsConfigurationProperties.defaults.instanceClassBlockDevices.find { it.handlesInstanceType(description.instanceType) }
+        if (blockDeviceConfig) {
+          description.blockDevices = blockDeviceConfig.blockDevices
+        }
+      }
+
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,
@@ -96,7 +103,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         securityGroups: description.securityGroups,
         iamRole: description.iamRole ?: awsConfigurationProperties.defaults.iamRole,
         keyPair: description.keyPair ?: awsConfigurationProperties.defaults.keyPair,
-        blockDevices: description.blockDevices ?: awsConfigurationProperties.defaults.blockDeviceDefaults,
+        blockDevices: description.blockDevices,
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
         subnetType: subnetType,

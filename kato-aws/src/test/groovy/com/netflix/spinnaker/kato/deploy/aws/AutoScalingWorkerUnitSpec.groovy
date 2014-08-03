@@ -23,7 +23,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.ec2.model.Tag
-import com.netflix.spinnaker.kato.config.BlockDevice
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.services.SecurityGroupService
@@ -127,7 +127,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   void "block device mappings are applied when available"() {
     setup:
     def autoscaling = Mock(AmazonAutoScaling)
-    def worker = new AutoScalingWorker(autoScaling: autoscaling, blockDevices: [new BlockDevice(deviceName: "/dev/sdb", size: 125)])
+    def worker = new AutoScalingWorker(autoScaling: autoscaling, blockDevices: [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)])
 
     when:
     worker.createLaunchConfiguration(null, null, null)

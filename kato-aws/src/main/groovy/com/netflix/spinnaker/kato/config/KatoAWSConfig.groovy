@@ -115,7 +115,7 @@ class KatoAWSConfig {
   static class DeployDefaults {
     String iamRole
     String keyPair
-    List<BlockDevice> blockDeviceDefaults = []
+    List<AmazonInstanceClassBlockDevice> instanceClassBlockDevices = []
   }
 
   static class ManagedAccount {
@@ -129,7 +129,7 @@ class KatoAWSConfig {
   @ConfigurationProperties("aws")
   static class AwsConfigurationProperties {
     List<String> regions
-    DeployDefaults defaults = new DeployDefaults()
+    DeployDefaults defaults
     // This is the IAM Role that Kato will be deployed under
     String accountIamRole
     // This is the IAM Role that Kato will assume within ManagedAccounts

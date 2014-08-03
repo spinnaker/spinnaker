@@ -24,7 +24,7 @@ import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.kato.config.BlockDevice
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
@@ -85,7 +85,7 @@ class AutoScalingWorker {
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
-  private List<BlockDevice> blockDevices
+  private List<AmazonBlockDevice> blockDevices
   private SecurityGroupService securityGroupService
 
   private int minInstances
@@ -233,12 +233,17 @@ class AutoScalingWorker {
       .withKeyName(keyPair)
 
     if (blockDevices) {
-      for (blockDeviceDefault in blockDevices) {
-        request.withBlockDeviceMappings(
-          new BlockDeviceMapping(
-            deviceName: blockDeviceDefault.deviceName,
-            ebs: new Ebs(volumeSize: blockDeviceDefault.size)))
+      def mappings = []
+      for (blockDevice in blockDevices) {
+        def mapping = new BlockDeviceMapping(deviceName: blockDevice.deviceName)
+        if (!blockDevice.size && blockDevice.virtualName) {
+          mapping.withVirtualName(blockDevice.virtualName)
+        } else if (blockDevice.size && !blockDevice.virtualName) {
+          mapping.withEbs(new Ebs(volumeSize: blockDevice.size))
+        }
+        mappings << mapping
       }
+      request.withBlockDeviceMappings(mappings)
     }
 
     autoScaling.createLaunchConfiguration(request)

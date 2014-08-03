@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.description
 
-import com.netflix.spinnaker.kato.config.BlockDevice
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import groovy.transform.AutoClone
 
@@ -32,7 +32,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String subnetType
   String iamRole
   String keyPair
-  List<BlockDevice> blockDevices
+  List<AmazonBlockDevice> blockDevices
   List<String> loadBalancers
   List<String> securityGroups
   Map<String, List<String>> availabilityZones = [:]
