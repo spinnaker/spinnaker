@@ -8,7 +8,7 @@ versions:
   batch: 3.0.1.RELEASE
   frigga: 0.13
   cglib: 3.1
-  amazoncomponents: 0.9.4
+  amazoncomponents: 0.9.9
   aws: 1.7.13
   httpclient: 4.3.3
   retrofit: 1.5.1
