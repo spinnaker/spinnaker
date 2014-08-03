@@ -24,7 +24,6 @@ import com.netflix.spinnaker.oort.model.HealthProvider
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
-import org.joda.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
