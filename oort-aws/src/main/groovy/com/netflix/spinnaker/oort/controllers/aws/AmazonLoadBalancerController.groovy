@@ -38,7 +38,8 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
-    getSummaryForKeys(cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS)).values() as List
+    def keys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS)
+    getSummaryForKeys(groupKeysByLoadBalancer(keys)).values() as List
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
@@ -48,17 +49,26 @@ class AmazonLoadBalancerController {
       def elbName = parts[1]
       elbName == name
     }
-    getSummaryForKeys(keys)?.get(name)
+    getSummaryForKeys(groupKeysByLoadBalancer(keys))?.get(name)
   }
 
-  private Map<String, AmazonLoadBalancerSummary> getSummaryForKeys(Collection<String> keys) {
+  private Map<String, List<String>> groupKeysByLoadBalancer(Collection<String> keys) {
+    def entries = keys.groupBy { String key ->
+      key.substring(0, key.lastIndexOf(':'))
+    }
+    entries.each {
+      it.value = it.value.collect { String key ->
+        key.substring(key.lastIndexOf(':') + 1).toString() }
+    }
+  }
+
+  private Map<String, AmazonLoadBalancerSummary> getSummaryForKeys(Map<String, List<String>> summaries) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    for (key in keys) {
-      def parts = key.split(':')
+    for (entry in summaries.entrySet()) {
+      def parts = entry.key.split(':')
       def name = parts[1]
       def account = parts[2]
       def region = parts[3]
-      def serverGroupName = parts[4]
       def summary = map.get(name)
       if (!summary) {
         summary = new AmazonLoadBalancerSummary(name: name)
@@ -67,9 +77,7 @@ class AmazonLoadBalancerController {
 
       def loadBalancer = new AmazonLoadBalancer(name, region)
       loadBalancer.elb = cacheService.retrieve(Keys.getLoadBalancerKey(name, account, region), LoadBalancerDescription)
-      if (!loadBalancer.serverGroups.contains(serverGroupName)) {
-        loadBalancer.serverGroups << serverGroupName
-      }
+      loadBalancer.serverGroups.addAll(entry.value)
       summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
     }
     map

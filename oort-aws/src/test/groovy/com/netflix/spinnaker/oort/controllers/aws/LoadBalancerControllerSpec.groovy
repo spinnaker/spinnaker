@@ -63,4 +63,25 @@ class LoadBalancerControllerSpec extends Specification {
     1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> ["${Keys.Namespace.LOAD_BALANCERS}:foo:test:us-west-1:asg-v001".toString()]
     1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
   }
+
+  void "should group server groups into load balancers by name"() {
+    setup:
+    def elb = Mock(LoadBalancerDescription)
+    elb.getLoadBalancerName() >> "foo"
+
+    when:
+    def resp = controller.get("foo")
+
+    then:
+    resp.name == "foo"
+    resp.accounts.size() == 1
+    resp.accounts[0].regions.size() == 1
+    resp.accounts[0].regions[0].loadBalancers.size() == 1
+    resp.accounts[0].regions[0].loadBalancers[0].serverGroups.asList() == ['asg-v001', 'asg-v002']
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [
+      "${Keys.Namespace.LOAD_BALANCERS}:foo:test:us-west-1:asg-v001".toString(),
+      "${Keys.Namespace.LOAD_BALANCERS}:foo:test:us-west-1:asg-v002".toString()
+    ]
+    1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
+  }
 }
