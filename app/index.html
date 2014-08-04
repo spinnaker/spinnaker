@@ -27,7 +27,7 @@
     </div>
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li ng-class="{active: $state.includes('applications')}">
+        <li ng-class="{active: $state.includes('applications') || $state.includes('application')}">
           <a ui-sref="applications">Applications</a>
         </li>
         <li ng-class="{active: $state.includes('infrastructure')}">
