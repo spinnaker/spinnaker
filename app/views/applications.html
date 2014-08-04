@@ -1,46 +1,46 @@
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-10">
     <h3>Applications</h3>
-    <div style="float: right;">
-      <insight-menu actions="menuActions"></insight-menu>
-    </div>
   </div>
-  <div class="row">
-    <div class="col-md-12">
-      <form class="form form-inline">
-        <div class="form-group">
-          <label>
-            Filter
-            <input type="search" class="form-control" ng-model="applicationFilter" ng-change="filterApplications()">
-          </label>
-        </div>
-      </form>
-      <table class="table table-striped">
-        <thead>
-          <th sort-toggle key="name" label="Name" default="true" on-change="filterApplications()"></th>
-          <th sort-toggle key="attributes.createTs" label="Created" on-change="filterApplications()"></th>
-          <th sort-toggle key="attributes.updateTs" label="Updated" on-change="filterApplications()"></th>
-        </thead>
-        <tbody>
-          <tr ng-repeat="application in resultPage()">
-            <td>
-              <a ui-sref="application({ application: application.name })">
-                {{ application.name }}
-              </a>
-            </td>
-            <td>
-              {{ application.attributes.createTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
-            </td>
-            <td>
-              {{ application.attributes.updateTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <pagination total-items="filteredApplications.length"
-                  max-size="pagination.maxSize"
-                  ng-model="pagination.currentPage"
-        ></pagination>
-    </div>
+  <div class="col-md-2 pull-right">
+    <insight-menu actions="menuActions"></insight-menu>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <form class="form form-inline">
+      <div class="form-group">
+        <label>
+          Filter
+          <input type="search" class="form-control input-sm" ng-model="applicationFilter" ng-change="filterApplications()">
+        </label>
+      </div>
+    </form>
+    <table class="table table-striped">
+      <thead>
+        <th sort-toggle key="name" label="Name" default="true" on-change="filterApplications()"></th>
+        <th sort-toggle key="attributes.createTs" label="Created" on-change="filterApplications()"></th>
+        <th sort-toggle key="attributes.updateTs" label="Updated" on-change="filterApplications()"></th>
+      </thead>
+      <tbody>
+        <tr ng-repeat="application in resultPage()">
+          <td>
+            <a ui-sref="application({ application: application.name })">
+              {{ application.name }}
+            </a>
+          </td>
+          <td>
+            {{ application.attributes.createTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+          </td>
+          <td>
+            {{ application.attributes.updateTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <pagination total-items="filteredApplications.length"
+                max-size="pagination.maxSize"
+                ng-model="pagination.currentPage"
+      ></pagination>
   </div>
 </div>

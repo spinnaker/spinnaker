@@ -113,8 +113,7 @@ angular
       })
 
       .state('application', {
-        url: '/:application',
-        parent: 'applications',
+        url: '/applications/:application',
         views: {
           'main@': {
             templateUrl: 'views/application.html',
