@@ -7,9 +7,8 @@ angular.module('deckApp')
     $scope.cluster = cluster;
     $scope.asgsByRegion = [];
 
-    oortService.getCluster(application.data.name, account.name, cluster.name).then(function(response) {
-      var cluster = response.data[0],
-          groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
+    oortService.getCluster(application.name, account.name, cluster.name).then(function(cluster) {
+      var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
           regions = _.keys(groupedAsgs),
           asgsByRegion = [];
 
@@ -17,11 +16,6 @@ angular.module('deckApp')
         asgsByRegion.push({ region: region, serverGroups: groupedAsgs[region] });
       });
 
-      // add upCount
-      // TODO: move to Restangular, result transformer
-      cluster.serverGroups.forEach(function(serverGroup) {
-        serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
-      });
       $scope.cluster = cluster;
       $scope.asgsByRegion = asgsByRegion;
     });

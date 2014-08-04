@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('AllClustersCtrl', function($scope, application, _) {
+  .controller('AllClustersCtrl', function($scope, application, _, sortingService) {
 
     $scope.sortFilter = {
       sortPrimary: 'cluster',
@@ -32,7 +32,12 @@ angular.module('deckApp')
     function updateClusterGroups() {
       var groups = [],
         filter = $scope.sortFilter.filter.toLowerCase(),
-        serverGroups = _.chain(application.data.clusters)
+        primarySort = $scope.sortFilter.sortPrimary,
+        secondarySort = $scope.sortFilter.sortSecondary,
+        tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+
+      application.getClusters().then(function(clusters) {
+        var serverGroups = _.chain(clusters)
           .collect('serverGroups')
           .flatten()
           .filter(function(serverGroup) {
@@ -51,50 +56,36 @@ angular.module('deckApp')
               return serverGroup.searchField.indexOf(testWord) !== -1;
             });
           })
-          .value(),
+          .value();
 
-        primarySort = $scope.sortFilter.sortPrimary,
-        secondarySort = $scope.sortFilter.sortSecondary,
-        tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+        var grouped = _.groupBy(serverGroups, primarySort);
 
-      var grouped = _.groupBy(serverGroups, primarySort);
+        _.forOwn(grouped, function(group, key) {
+          var subGroupings = _.groupBy(group, secondarySort),
+            subGroups = [];
 
-      _.forOwn(grouped, function(group, key) {
-        var subGroupings = _.groupBy(group, secondarySort),
-          subGroups = [];
+          _.forOwn(subGroupings, function(subGroup, subKey) {
+            var subGroupings = _.groupBy(subGroup, tertiarySort),
+              subSubGroups = [];
 
-        _.forOwn(subGroupings, function(subGroup, subKey) {
-          var subGroupings = _.groupBy(subGroup, tertiarySort),
-            subSubGroups = [];
-
-          _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-            subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup.sort(asgSorter) } );
+            _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
+              subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup.sort(sortingService.asgSorter) } );
+            });
+            subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
           });
-          subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
-        });
 
-        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+        });
+        $scope.groups = _.sortBy(groups, 'heading');
       });
-      $scope.groups = _.sortBy(groups, 'heading');
-      $scope.$digest();
+
     }
 
     $scope.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
-    function asgSorter(a, b) {
-      var av = a.name.split('-').pop(),
-        bv = b.name.split('-').pop();
-      if (av.indexOf('v') === -1 || bv.indexOf('v') === -1 || isNaN(av.substring(1)) || isNaN(bv.substring(1))) {
-        return av - bv;
-      } else {
-        return parseInt(av.substring(1)) - parseInt(bv.substring(1));
-      }
-    }
-
-    if (application.data.clusters.length) {
+    application.getClusters().then(function () {
       $scope.updateClusterGroups();
-    } else {
-      $scope.$on('clustersLoaded', $scope.updateClusterGroups);
-    }
+      $scope.clustersLoaded = true;
+    });
 
   });

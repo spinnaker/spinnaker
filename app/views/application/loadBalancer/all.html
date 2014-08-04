@@ -1,0 +1,57 @@
+<div class="header">
+  <h3>
+    <span class="glyphicon glyphicon-cloud"></span> All Load Balancers
+  </h3>
+  <div class="actions pull-right">
+    <select class="form-control input-sm">
+      <option value="">Load Balancer Actions</option>
+    </select>
+  </div>
+</div>
+<div class="sort-filter">
+  <div class="form-inline">
+    <div class="form-group">
+      <label>
+        Sort by
+        <select class="form-control input-sm"
+                ng-model="sortFilter.sortPrimary"
+                ng-change="updateSorting()"
+                ng-options="option.key as option.label for option in sortOptions()">
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>
+        then
+        <select class="form-control input-sm"
+                ng-model="sortFilter.sortSecondary"
+                ng-change="updateSorting()"
+                ng-options="option.key as option.label for option in sortOptions(sortFilter.sortPrimary)">
+        </select>
+      </label>
+    </div>
+    <div class="form-group pull-right">
+      <label>
+        Filter
+        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, name"
+               ng-model="sortFilter.filter"
+               ng-change="updateLoadBalancerGroups()"/>
+      </label>
+    </div>
+  </div>
+</div>
+<div class="content">
+  <div ng-repeat="group in groups" class="server-group-rollup">
+    <load-balancer-heading group="group"></load-balancer-heading>
+    <div ng-repeat="subgroup in group.subgroups" class="sub-group">
+      <load-balancer-heading group="subgroup"></load-balancer-heading>
+      <div ng-repeat="subsubGroup in subgroup.subgroups" class="sub-group">
+        <load-balancer-heading group="subsubGroup"></load-balancer-heading>
+        <server-group ng-repeat="serverGroup in subsubGroup.serverGroups"
+                      server-group="serverGroup"
+                      cluster="serverGroup.cluster"
+                      lazy-render-instances="filteredInstanceCount > 1000"></server-group>
+      </div>
+    </div>
+  </div>
+</div>

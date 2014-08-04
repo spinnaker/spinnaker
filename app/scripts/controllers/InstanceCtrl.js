@@ -3,8 +3,8 @@
 angular.module('deckApp')
   .controller('InstanceCtrl', function($scope, $rootScope, instance, application) {
 
-    function extractInstance() {
-      application.data.clusters.some(function (cluster) {
+    function extractInstance(clusters) {
+      clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.name === instance.name) {
@@ -28,11 +28,7 @@ angular.module('deckApp')
       }
     }
 
-    if (application.data.clusters && application.data.clusters.length) {
-      extractInstance();
-    } else {
-      $scope.$on('clustersLoaded', extractInstance);
-    }
+    application.getClusters().then(extractInstance.bind(null));
 
     $scope.account = instance.account;
 

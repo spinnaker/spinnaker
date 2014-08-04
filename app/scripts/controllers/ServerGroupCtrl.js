@@ -3,8 +3,8 @@
 angular.module('deckApp')
   .controller('ServerGroupCtrl', function($scope, application, serverGroup, pond, $modal, confirmationModalService) {
 
-    function extractServerGroup() {
-      application.data.clusters.some(function (cluster) {
+    function extractServerGroup(clusters) {
+      clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (toCheck) {
           if (toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region) {
             $scope.serverGroup = toCheck;
@@ -19,12 +19,7 @@ angular.module('deckApp')
       });
     }
 
-    if (application.data.clusters && application.data.clusters.length) {
-      extractServerGroup();
-    } else {
-      $scope.$on('clustersLoaded', extractServerGroup);
-    }
-
+    application.getClusters().then(extractServerGroup.bind(null));
 
     // TODO: move to service
     $scope.destroyServerGroup = function() {

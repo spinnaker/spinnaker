@@ -1,11 +1,11 @@
 <div class="row server-group"
      ng-class="{active: $state.includes('*.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})}">
-  <div class="col-sm-2 server-group-summary">
+  <div class="server-group-summary">
     <a ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
-      <span class="glyphicon glyphicon-th"></span> {{serverGroup.name | stripCluster:cluster}}
+      <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
     </a>
   </div>
-  <div class="col-sm-10 server-group-details">
+  <div class="server-group-details">
     <div class="build-title">
       <a href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
          target="_blank"
@@ -14,7 +14,10 @@
       <span ng-if="!serverGroup.buildInfo.jenkins.host">(No build info)</span>
       <health-counts server-group="serverGroup"></health-counts>
     </div>
-    <div class="instances">
+    <div class="instances" ng-if="!instanceDisplay.displayed">
+      <button class="btn btn-default btn-xs" ng-click="instanceDisplay.displayed = true">Click to show the {{serverGroup.asg.instances.length}} instances</button>
+    </div>
+    <div class="instances" ng-if="instanceDisplay.displayed">
       <a class="instance health-status-{{instance.healthStatus}}"
          ng-repeat="instance in serverGroup.asg.instances"
          tooltip="{{instance.instanceId}}"

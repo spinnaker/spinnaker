@@ -67,6 +67,19 @@ angular
       });
     });
   })
+  .config(function(RestangularProvider) {
+    RestangularProvider.addElementTransformer('applications', true, function(applications) {
+      applications.forEach(function(application) {
+        if (!application.attributes.createTs) {
+          application.attributes.createTs = '0';
+        }
+        if (!application.attributes.updateTs) {
+          application.attributes.updateTs = '0';
+        }
+      });
+      return applications;
+    });
+  })
   .config(function ($stateProvider, $urlRouterProvider, $logProvider) {
     $logProvider.debugEnabled(true);
     $urlRouterProvider.otherwise('/');
@@ -146,7 +159,8 @@ angular
         parent: 'insight',
         views: {
           'nav': {
-            templateUrl: 'views/application/cluster/navigation.html'
+            templateUrl: 'views/application/cluster/navigation.html',
+            controller: 'ClustersNavCtrl'
           },
           'master': {
             templateUrl: 'views/application/cluster/all.html',
@@ -263,9 +277,81 @@ angular
           }
         }
       })
-      .state('instance', {
-        url: '/instance/:instance',
-        parent: 'serverGroup',
+      .state('loadBalancers', {
+        url: '/loadBalancers',
+        parent: 'insight',
+        views: {
+          'nav': {
+            templateUrl: 'views/application/loadBalancer/navigation.html',
+            controller: 'LoadBalancersNavCtrl'
+          },
+          'master': {
+            templateUrl: 'views/application/loadBalancer/all.html',
+            controller: 'AllLoadBalancersCtrl'
+          }
+        }
+      })
+      .state('loadBalancer', {
+        url: '/loadBalancer/:loadBalancer',
+        parent: 'insight',
+        views: {
+          'nav': {
+            templateUrl: 'views/application/loadBalancer/navigation.html',
+            controller: 'LoadBalancersNavCtrl'
+          },
+
+          'master': {
+            templateUrl: 'views/application/loadBalancer/single.html',
+            controller: 'LoadBalancerCtrl'
+          }
+        },
+        resolve: {
+          loadBalancerName: function($stateParams) {
+            return $stateParams.loadBalancer;
+          }
+        }
+      })
+      .state('loadBalancers.serverGroup', {
+        url: '/serverGroupDetails?serverGroup&accountId&region',
+        parent: 'loadBalancers',
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/serverGroup.html',
+            controller: 'ServerGroupCtrl'
+          }
+        },
+        resolve: {
+          serverGroup: function($stateParams) {
+            return {
+              name: $stateParams.serverGroup,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }
+        }
+      })
+      .state('loadBalancer.serverGroup', {
+        url: '/serverGroupDetails?serverGroup&accountId&region',
+        parent: 'loadBalancer',
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/serverGroup.html',
+            controller: 'ServerGroupCtrl'
+          }
+        },
+        resolve: {
+          serverGroup: function($stateParams) {
+            return {
+              name: $stateParams.serverGroup,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }
+        }
+      })
+      .state('loadBalancers.instanceDetails', {
+        url: '/instanceDetails?instanceId',
+        parent: 'loadBalancers',
         views: {
           'detail@insight': {
             templateUrl: 'views/application/instance.html',
@@ -275,40 +361,24 @@ angular
         resolve: {
           instance: function($stateParams) {
             return {
-              name: $stateParams.instance,
-              application: $stateParams.application,
-              account: $stateParams.account,
-              cluster: $stateParams.cluster,
-              serverGroup: $stateParams.serverGroup
+              name: $stateParams.instanceId
             };
           }
         }
       })
-      .state('elbs', {
-        url: '/elbs',
-        parent: 'insight',
+      .state('loadBalancer.instanceDetails', {
+        url: '/instanceDetails?instanceId',
+        parent: 'loadBalancer',
         views: {
-          'nav': {
-            templateUrl: 'views/application/elb/navigation.html'
-          },
-          'master': {
-            templateUrl: 'views/application/elb/all.html'
-          }
-        }
-      })
-      .state('elb', {
-        url: '/:elb',
-        parent: 'elbs',
-        views: {
-          'master': {
-            templateUrl: 'views/application/elb/single.html',
-            controller: 'ClusterCtrl'
+          'detail@insight': {
+            templateUrl: 'views/application/instance.html',
+            controller: 'InstanceCtrl'
           }
         },
         resolve: {
-          cluster: function($stateParams) {
+          instance: function($stateParams) {
             return {
-              name: $stateParams.cluster
+              name: $stateParams.instanceId
             };
           }
         }

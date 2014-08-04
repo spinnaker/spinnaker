@@ -8,9 +8,14 @@ angular.module('deckApp')
       templateUrl: 'views/application/cluster/serverGroup.html',
       scope: {
         cluster: '=',
-        serverGroup: '='
+        serverGroup: '=',
+        lazyRenderInstances: '='
       },
       link: function(scope) {
+        scope.instanceDisplay = {
+          lazyRenderInstances: scope.lazyRenderInstances,
+          displayed: !scope.lazyRenderInstances || scope.serverGroup.asg.instances.length < 20
+        };
         scope.$state = scope.$parent.$state;
       }
     };

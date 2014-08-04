@@ -2,7 +2,8 @@
 
 angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, applications) {
-    $scope.applications = applications.data;
+
+    $scope.applications = applications;
 
     $scope.sortKey = 'name';
     $scope.applicationFilter = '';
