@@ -15,7 +15,7 @@
       <health-counts server-group="serverGroup"></health-counts>
     </div>
     <div class="instances" ng-if="!instanceDisplay.displayed">
-      <button class="btn btn-default btn-xs" ng-click="instanceDisplay.displayed = true">Click to show the {{serverGroup.asg.instances.length}} instances</button>
+      <button class="btn btn-default btn-xs" ng-click="instanceDisplay.displayed = true">Show all {{serverGroup.asg.instances.length}} instances</button>
     </div>
     <div class="instances" ng-if="instanceDisplay.displayed">
       <a class="instance health-status-{{instance.healthStatus}}"

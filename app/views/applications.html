@@ -16,7 +16,10 @@
         </label>
       </div>
     </form>
-    <table class="table table-striped">
+    <h2 ng-if="!applicationsLoaded" class="text-center" style="margin-bottom: 250px">
+      <span us-spinner="{radius:30, width:8, length: 16}"></span>
+    </h2>
+    <table ng-if="applicationsLoaded" class="table table-striped">
       <thead>
         <th sort-toggle key="name" label="Name" default="true" on-change="filterApplications()"></th>
         <th sort-toggle key="attributes.createTs" label="Created" on-change="filterApplications()"></th>
@@ -38,7 +41,8 @@
         </tr>
       </tbody>
     </table>
-    <pagination total-items="filteredApplications.length"
+    <pagination ng-if="applicationsLoaded"
+                total-items="filteredApplications.length"
                 max-size="pagination.maxSize"
                 ng-model="pagination.currentPage"
       ></pagination>

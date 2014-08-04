@@ -104,16 +104,12 @@ angular
             templateUrl: 'views/applications.html',
             controller: 'ApplicationsCtrl'
           }
-        },
-        resolve: {
-          applications: function(oortService) {
-            return oortService.listApplications();
-          }
         }
       })
 
       .state('application', {
-        url: '/applications/:application',
+        url: '/:application',
+        parent: 'applications',
         views: {
           'main@': {
             templateUrl: 'views/application.html',

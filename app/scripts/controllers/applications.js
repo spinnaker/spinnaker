@@ -1,9 +1,15 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, applications) {
+  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, oortService) {
 
-    $scope.applications = applications;
+    $scope.applicationsLoaded = false;
+
+    oortService.listApplications().then(function(applications) {
+      $scope.applications = applications;
+      $scope.filterApplications();
+      $scope.applicationsLoaded = true;
+    });
 
     $scope.sortKey = 'name';
     $scope.applicationFilter = '';
@@ -21,7 +27,7 @@ angular.module('deckApp')
               notifications.observableTask({
                 title: 'Creating application ' + app.name,
                 message: app.name + ' Created!',
-                observable: applications.flatMap(function(applications) {
+                observable: $scope.applications.flatMap(function(applications) {
                   return RxService.Observable.fromArray(applications)
                   .filter(function(other) {
                     return other.name === app.name;
@@ -67,7 +73,5 @@ angular.module('deckApp')
         maxSize: 10
       };
     };
-
-    $scope.filterApplications();
 
   });
