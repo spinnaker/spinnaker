@@ -32,6 +32,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String subnetType
   String iamRole
   String keyPair
+  boolean ignoreSequence
   List<AmazonBlockDevice> blockDevices
   List<String> loadBalancers
   List<String> securityGroups

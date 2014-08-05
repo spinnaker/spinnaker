@@ -63,13 +63,26 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
     validator.regionScopedProviderFactory = regionScopedProviderFactory
   }
 
-  void "should reject unknwon security groups"() {
+  void "should reject ingress unknwon security groups when no prior security group create descriptions are found"() {
     when:
     validator.validate(_, description, errors)
 
     then:
     1 * securityGroupService.getSecurityGroupIds(_) >> { throw new SecurityGroupNotFoundException() }
     1 * errors.rejectValue("securityGroupIngress", _)
+  }
+
+  void "should allow ingress from unknown security groups if they are intending to be created earlier in the chain"() {
+    setup:
+    def priorDesc = new UpsertSecurityGroupDescription(name: "foo")
+    description.region = "us-west-1"
+    description.securityGroupIngress = [new SecurityGroupIngress(name: "foo", startPort: 1, endPort: 1)]
+
+    when:
+    validator.validate([priorDesc], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
   }
 
   void "region is validates against configuration"() {

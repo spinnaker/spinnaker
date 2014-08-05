@@ -79,6 +79,7 @@ class AutoScalingWorker {
   private String instanceType
   private String iamRole
   private String keyPair
+  private Boolean ignoreSequence
   private SubnetType subnetType
   private List<String> loadBalancers
   private List<String> securityGroups
@@ -258,8 +259,8 @@ class AutoScalingWorker {
    * @return
    */
   String getAutoScalingGroupName(Integer sequence) {
-    def pushVersion = String.format("v%03d", sequence)
-    "${clusterName}-${pushVersion}${freeFormDetails ? '--' + freeFormDetails : ''}"
+    def pushVersion = ignoreSequence ? null : String.format("v%03d", sequence)
+    "${clusterName}${pushVersion ? '-' + pushVersion : ''}${freeFormDetails ? '--' + freeFormDetails : ''}"
   }
 
   /**

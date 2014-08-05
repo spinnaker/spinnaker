@@ -148,4 +148,12 @@ class AutoScalingWorkerUnitSpec extends Specification {
     worker.getAutoScalingGroupName(1) == "foo-bar-v001--us-east-1c"
   }
 
+  void "push sequence should be ignored when specified so"() {
+    given:
+    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "us-east-1c", ignoreSequence: true)
+
+    expect:
+    worker.getAutoScalingGroupName(0) == "foo-bar--us-east-1c"
+  }
+
 }

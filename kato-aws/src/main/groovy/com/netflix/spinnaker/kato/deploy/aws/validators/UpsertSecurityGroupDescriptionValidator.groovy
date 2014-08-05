@@ -34,8 +34,11 @@ class UpsertSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
       def securityGroups = description.securityGroupIngress.collect { it.name }
       try {
         regionScopedProviderFactory.forRegion(description.credentials, description.region).securityGroupService.getSecurityGroupIds(securityGroups)
-      } catch (SecurityGroupNotFoundException ignore) {
-        errors.rejectValue("securityGroupIngress", "upsertSecurityGroupDescription.security.group.not.found")
+      } catch (SecurityGroupNotFoundException ex) {
+        def priorSecurityGroupCreateDescriptions = (List<UpsertSecurityGroupDescription>)priorDescriptions.findAll { it instanceof UpsertSecurityGroupDescription }
+        if (!priorSecurityGroupCreateDescriptions*.name.containsAll(ex.missingSecurityGroups)) {
+          errors.rejectValue("securityGroupIngress", "upsertSecurityGroupDescription.security.group.not.found")
+        }
       }
     }
 
