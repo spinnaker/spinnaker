@@ -1,9 +1,9 @@
 <span class="instance-health-counts">
-  {{ serverGroup.upCount }} <span class="glyphicon glyphicon-up-triangle healthy"></span>
+  {{ container.upCount }} <span class="glyphicon glyphicon-up-triangle healthy"></span>
   /
-  {{ serverGroup.downCount }} <span class="glyphicon glyphicon-down-triangle unhealthy"></span>
-  <span ng-if="serverGroup.unknownCount">
+  {{ container.downCount }} <span class="glyphicon glyphicon-down-triangle unhealthy"></span>
+  <span ng-if="container.unknownCount">
     /
-    {{ serverGroup.unknownCount }} <span class="glyphicon glyphicon-question-sign unknown"></span>
+    {{ container.unknownCount }} <span class="glyphicon glyphicon-question-sign unknown"></span>
   </span>
 </span>

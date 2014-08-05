@@ -7,7 +7,7 @@ angular.module('deckApp')
       restrict: 'E',
       replace: true,
       scope: {
-        serverGroup: '='
+        container: '='
       }
     };
   });

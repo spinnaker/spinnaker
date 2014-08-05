@@ -4,7 +4,7 @@
     ui-sref-active="active">
     <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
   </a>
-  <health-counts server-group="serverGroup"></health-counts>
+  <health-counts container="serverGroup"></health-counts>
   <div class="instances" ng-if="sortFilter.showAllInstances">
     <a class="instance health-status-{{instance.healthStatus}}"
        ng-repeat="instance in serverGroup.instances | orderBy:'launchTime'"

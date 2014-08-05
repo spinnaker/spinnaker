@@ -8,6 +8,8 @@ angular.module('deckApp')
       $scope.loadBalancer = loadBalancers.filter(function(test) {
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.account;
       })[0];
+      addSearchFields($scope.loadBalancer);
+      updateLoadBalancerGroups();
     });
 
     $scope.sortFilter = {
@@ -23,20 +25,7 @@ angular.module('deckApp')
       $scope.updateLoadBalancerGroups();
     };
 
-    function addServerGroupsAndSearchFields(loadBalancer, clusters) {
-      if (!loadBalancer.serverGroups) {
-        loadBalancer.serverGroups = [];
-        var clusterMatches = clusters.filter(function (cluster) {
-          return cluster.account === loadBalancer.account;
-        });
-        clusterMatches.forEach(function (matchedCluster) {
-          matchedCluster.serverGroups.forEach(function (serverGroup) {
-            if (serverGroup.region === loadBalancer.region && loadBalancer.serverGroupNames.indexOf(serverGroup.name) !== -1) {
-              loadBalancer.serverGroups.push(serverGroup);
-            }
-          });
-        });
-      }
+    function addSearchFields(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
         serverGroup.searchField = [
           serverGroup.name
@@ -56,17 +45,11 @@ angular.module('deckApp')
     }
 
     function updateLoadBalancerGroups() {
-      application.getClusters().then(function(clusters) {
-        var loadBalancer = $scope.loadBalancer,
+      var loadBalancer = $scope.loadBalancer,
           filter = $scope.sortFilter.filter.toLowerCase();
 
-        addServerGroupsAndSearchFields(loadBalancer, clusters);
-
-        $scope.filteredServerGroups = matchesFilter(loadBalancer, filter);
-      });
+      $scope.filteredServerGroups = matchesFilter(loadBalancer, filter);
     }
 
     $scope.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
-
-    updateLoadBalancerGroups();
   });

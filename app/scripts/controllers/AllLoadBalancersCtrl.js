@@ -36,25 +36,6 @@ angular.module('deckApp')
       });
     }
 
-    function addServerGroupsAndInstances(loadBalancers, clusters) {
-      loadBalancers.forEach(function (loadBalancer) {
-        if (!loadBalancer.serverGroups) {
-          loadBalancer.serverGroups = [];
-          var clusterMatches = clusters.filter(function (cluster) {
-            return cluster.account === loadBalancer.account;
-          });
-          clusterMatches.forEach(function (matchedCluster) {
-            matchedCluster.serverGroups.forEach(function (serverGroup) {
-              if (serverGroup.region === loadBalancer.region && loadBalancer.serverGroupNames.indexOf(serverGroup.name) !== -1) {
-                loadBalancer.serverGroups.push(serverGroup);
-              }
-            });
-          });
-          loadBalancer.instances = _.flatten(_.collect(loadBalancer.serverGroups, 'instances'));
-        }
-      });
-    }
-
     function matchesFilter(filter, loadBalancer) {
       return filter.every(function (testWord) {
         return loadBalancer.searchField.indexOf(testWord) !== -1;
@@ -79,33 +60,30 @@ angular.module('deckApp')
     }
 
     function updateLoadBalancerGroups() {
-      application.getClusters().then(function(clusters) {
-        application.getLoadBalancers().then(function(loadBalancers) {
-          var groups = [],
-            filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
-            primarySort = $scope.sortFilter.sortPrimary,
-            secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
-            hideHealthy = $scope.sortFilter.hideHealthy;
+      application.getLoadBalancers().then(function(loadBalancers) {
+        var groups = [],
+          filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
+          primarySort = $scope.sortFilter.sortPrimary,
+          secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
+          hideHealthy = $scope.sortFilter.hideHealthy;
 
-          addServerGroupsAndInstances(loadBalancers, clusters);
-          addSearchField(loadBalancers);
+        addSearchField(loadBalancers);
 
-          var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
+        var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
 
-          var grouped = _.groupBy(filtered, primarySort);
+        var grouped = _.groupBy(filtered, primarySort);
 
-          _.forOwn(grouped, function(group, key) {
-            var subGroupings = _.groupBy(group, secondarySort),
-              subGroups = [];
+        _.forOwn(grouped, function(group, key) {
+          var subGroupings = _.groupBy(group, secondarySort),
+            subGroups = [];
 
-            _.forOwn(subGroupings, function(subGroup, subKey) {
-              subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
-            });
-
-            groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+          _.forOwn(subGroupings, function(subGroup, subKey) {
+            subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
           });
-          $scope.groups = _.sortBy(groups, 'heading');
+
+          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
         });
+        $scope.groups = _.sortBy(groups, 'heading');
       });
     }
 

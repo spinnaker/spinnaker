@@ -15,7 +15,7 @@
       <span ng-if="!serverGroup.buildInfo.jenkins.host">
           (No build info)
       </span>
-      <health-counts server-group="serverGroup"></health-counts>
+      <health-counts container="serverGroup"></health-counts>
     </div>
     <div class="instances" ng-if="!instanceDisplay.displayed">
       <button class="btn btn-default btn-xs" ng-click="instanceDisplay.displayed = true">Show all {{serverGroup.asg.instances.length}} instances</button>

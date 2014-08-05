@@ -129,9 +129,32 @@ angular
       });
     }
 
+    function addLoadBalancerDetailsState(parent) {
+      $stateProvider.state(parent + '.loadBalancerDetails', {
+        url: '/loadBalancerDetails?name&accountId&region',
+        parent: parent,
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/loadBalancer/loadBalancerDetails.html',
+            controller: 'LoadBalancerDetailsCtrl'
+          }
+        },
+        resolve: {
+          loadBalancer: function($stateParams) {
+            return {
+              name: $stateParams.name,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }
+        }
+      });
+    }
+
     function addDetailsStates(parent) {
       addInstanceDetailsState(parent);
       addServerGroupDetailsState(parent);
+      addLoadBalancerDetailsState(parent);
     }
 
     addDetailsStates('cluster');

@@ -64,7 +64,7 @@ angular.module('deckApp')
       loadBalancerNames = _.unique(_.flatten(loadBalancerNames));
 
       loadBalancerNames.forEach(function(loadBalancer) {
-        var loadBalancerPromise = getLoadBalancer(loadBalancer);
+        var loadBalancerPromise = getLoadBalancer(loadBalancer, application);
         loadBalancerPromises.push(loadBalancerPromise);
       });
 
@@ -78,21 +78,66 @@ angular.module('deckApp')
       return getClustersForAccount(application, account).all(cluster).one('aws').one('loadBalancers').getList();
     }
 
-    function getLoadBalancer(name) {
+    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer, serverGroupNames) {
+      if (serverGroup.region !== loadBalancer.region || serverGroupNames.indexOf(serverGroup.name) === -1) {
+        return false;
+      }
+      // only include if load balancer is fronting an instance
+      var elbInstanceIds = _.pluck(loadBalancer.elb.instances, 'instanceId'),
+        serverGroupInstanceIds = _.pluck(serverGroup.instances, 'instanceId');
+      return elbInstanceIds.some(function (test) {
+        return serverGroupInstanceIds.indexOf(test) !== -1;
+      });
+    }
+
+    function addServerGroupsToLoadBalancer(loadBalancer, clusters, accountName) {
+      var serverGroupNames = loadBalancer.serverGroups;
+      loadBalancer.serverGroups = [];
+      var clusterMatches = clusters.filter(function (cluster) {
+        return cluster.account === accountName;
+      });
+      clusterMatches.forEach(function (matchedCluster) {
+        matchedCluster.serverGroups.forEach(function (serverGroup) {
+          if (serverGroupIsInLoadBalancer(serverGroup, loadBalancer, serverGroupNames)) {
+            loadBalancer.serverGroups.push(serverGroup);
+          }
+        });
+      });
+      loadBalancer.serverGroupNames = _.pluck(loadBalancer.serverGroups, 'name');
+    }
+
+    function addHealthCountsToLoadBalancer(loadBalancer) {
+      loadBalancer.health = {
+        upCount: loadBalancer.instances.filter(function (instance) {
+          return instance.healthStatus === 'Healthy';
+        }).length,
+        downCount: loadBalancer.instances.filter(function (instance) {
+          return instance.healthStatus === 'Unhealthy';
+        }).length,
+        unknownCount: loadBalancer.instances.filter(function (instance) {
+          return instance.healthStatus === 'Unknown';
+        }).length
+      };
+    }
+
+    function getLoadBalancer(name, application) {
       return oortEndpoint.one('aws').one('loadBalancers', name).get().then(function(loadBalancerRollup) {
-        var loadBalancers = [];
-        loadBalancerRollup.accounts.forEach(function(account) {
-          var accountName = account.name;
-          account.regions.forEach(function(region) {
-            region.loadBalancers.forEach(function(loadBalancer) {
-              loadBalancer.account = accountName;
-              loadBalancer.serverGroupNames = loadBalancer.serverGroups;
-              delete loadBalancer.serverGroups;
-              loadBalancers.push(loadBalancer);
+        return application.getClusters().then(function(clusters) {
+          var loadBalancers = [];
+          loadBalancerRollup.accounts.forEach(function (account) {
+            var accountName = account.name;
+            account.regions.forEach(function (region) {
+              region.loadBalancers.forEach(function (loadBalancer) {
+                addServerGroupsToLoadBalancer(loadBalancer, clusters, accountName);
+                loadBalancer.instances = _.flatten(_.collect(loadBalancer.serverGroups, 'instances'));
+                loadBalancer.account = accountName;
+                addHealthCountsToLoadBalancer(loadBalancer);
+                loadBalancers.push(loadBalancer);
+              });
             });
           });
+          return loadBalancers;
         });
-        return loadBalancers;
       });
     }
 
