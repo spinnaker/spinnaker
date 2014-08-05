@@ -19,23 +19,24 @@
       </label>
     </div>
   </div>
-  <div class="form-horizontal">
+  <div class="form-inline">
+    <label>Show</label>
     <div class="checkbox">
       <label>
         <input type="checkbox" ng-model="sortFilter.showAsgs" ng-change="updateLoadBalancerGroups()" />
-        Show Auto Scaling Groups
+        Auto Scaling Groups
       </label>
     </div>
     <div class="checkbox">
       <label>
         <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="updateLoadBalancerGroups()"/>
-        Show Instances
+        Instances
       </label>
     </div>
     <div class="checkbox">
       <label>
         <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="updateLoadBalancerGroups()"/>
-        Only Show Unhealthy Load Balancers/Auto Scaling Groups
+        Only Unhealthy
       </label>
     </div>
   </div>
