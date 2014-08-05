@@ -15,7 +15,7 @@
     <h4>{{account}}</h4>
     <a ng-repeat="loadBalancer in getLoadBalancersForAccount(account) | orderBy:['name','region']"
        ui-sref="loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account})"
-       ng-class="{active: $state.includes('loadBalancer', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region} )}">
+       ng-class="{active: $state.includes('loadBalancer', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account} )}">
       {{loadBalancer.name}} ({{loadBalancer.region}})</a>
   </div>
 </div>
