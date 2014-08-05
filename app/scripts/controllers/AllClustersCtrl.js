@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('AllClustersCtrl', function($scope, application, _, sortingService) {
+  .controller('AllClustersCtrl', function($scope, application, _) {
 
     $scope.sortFilter = {
       sortPrimary: 'cluster',
@@ -69,7 +69,7 @@ angular.module('deckApp')
               subSubGroups = [];
 
             _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-              subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup.sort(sortingService.asgSorter) } );
+              subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
             });
             subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
           });

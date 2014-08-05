@@ -1,36 +1,42 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('AllLoadBalancersCtrl', function($scope, application, _, sortingService) {
+  .controller('AllLoadBalancersCtrl', function($scope, application, _) {
     $scope.application = application;
 
     $scope.sortFilter = {
-      sortPrimary: 'name',
-      sortSecondary: 'account',
-      filter: ''
+      sortPrimary: 'account',
+      filter: '',
+      showAsgs: true,
+      showAllInstances: false,
+      hideHealthy: false
     };
 
-    var sortOptions = [
+    $scope.sortOptions = [
       { label: 'Account', key: 'account' },
-      { label: 'Load Balancer', key: 'name' },
       { label: 'Region', key: 'region' }
     ];
 
-    $scope.sortOptions = function(exclude) {
-      return exclude ?
-        sortOptions.filter(function(option) { return option.key !== exclude; }) :
-        sortOptions;
-    };
+    $scope.asgOptions = [
+      { label: 'All ASGs', key: 'all'},
+      { label: 'All ASGs, with instances', key: 'instances'},
+      { label: 'Only ASGs with unhealthy instances', key: 'unhealthy' }
+    ];
 
-    $scope.updateSorting = function() {
-      var sortFilter = $scope.sortFilter;
-      if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
-        sortFilter.sortSecondary = $scope.sortOptions(sortFilter.sortPrimary)[0].key;
-      }
-      $scope.updateLoadBalancerGroups();
-    };
+    function addSearchField(loadBalancers) {
+      loadBalancers.forEach(function(loadBalancer) {
+        if (!loadBalancer.searchField) {
+          loadBalancer.searchField = [
+            loadBalancer.name,
+            loadBalancer.region,
+            loadBalancer.account,
+            loadBalancer.serverGroupNames.join(' ')
+          ].join(' ');
+        }
+      });
+    }
 
-    function addServerGroupsAndSearchFields(loadBalancers, clusters) {
+    function addServerGroupsAndInstances(loadBalancers, clusters) {
       loadBalancers.forEach(function (loadBalancer) {
         if (!loadBalancer.serverGroups) {
           loadBalancer.serverGroups = [];
@@ -44,15 +50,31 @@ angular.module('deckApp')
               }
             });
           });
+          loadBalancer.instances = _.flatten(_.collect(loadBalancer.serverGroups, 'instances'));
         }
-        if (!loadBalancer.searchField) {
-          loadBalancer.searchField = [
-            loadBalancer.name,
-            loadBalancer.region,
-            loadBalancer.account,
-            loadBalancer.serverGroupNames.join(' ')
-          ].join(' ');
+      });
+    }
+
+    function matchesFilter(filter, loadBalancer) {
+      return filter.every(function (testWord) {
+        return loadBalancer.searchField.indexOf(testWord) !== -1;
+      });
+    }
+
+    function filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter) {
+      return loadBalancers.filter(function (loadBalancer) {
+        if (hideHealthy) {
+          var hasUnhealthy = loadBalancer.serverGroups.some(function (serverGroup) {
+            return serverGroup.downCount > 0;
+          });
+          if (!hasUnhealthy) {
+            return false;
+          }
         }
+        if (!filter.length) {
+          return true;
+        }
+        return matchesFilter(filter, loadBalancer);
       });
     }
 
@@ -60,22 +82,15 @@ angular.module('deckApp')
       application.getClusters().then(function(clusters) {
         application.getLoadBalancers().then(function(loadBalancers) {
           var groups = [],
-            filteredInstanceCount = 0,
-            filter = $scope.sortFilter.filter.toLowerCase(),
+            filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
             primarySort = $scope.sortFilter.sortPrimary,
-            secondarySort = $scope.sortFilter.sortSecondary,
-            tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+            secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
+            hideHealthy = $scope.sortFilter.hideHealthy;
 
-          addServerGroupsAndSearchFields(loadBalancers, clusters);
+          addServerGroupsAndInstances(loadBalancers, clusters);
+          addSearchField(loadBalancers);
 
-          var filtered = loadBalancers.filter(function(loadBalancer) {
-              if (!filter) {
-                return true;
-              }
-              return filter.split(' ').every(function(testWord) {
-                return loadBalancer.searchField.indexOf(testWord) !== -1;
-              });
-          });
+          var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
 
           var grouped = _.groupBy(filtered, primarySort);
 
@@ -84,22 +99,11 @@ angular.module('deckApp')
               subGroups = [];
 
             _.forOwn(subGroupings, function(subGroup, subKey) {
-              var subGroupings = _.groupBy(subGroup, tertiarySort),
-                subSubGroups = [];
-
-              _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-                var serverGroups = _.flatten(_.collect(subSubGroup, 'serverGroups'));
-                filteredInstanceCount = serverGroups.reduce(function(memo, serverGroup) {
-                  return memo + serverGroup.instances.length;
-                }, filteredInstanceCount);
-                subSubGroups.push( { type: tertiarySort, heading: subSubKey, serverGroups: serverGroups.sort(sortingService.asgSorter) } );
-              });
-              subGroups.push( { type: secondarySort, heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
+              subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
             });
 
-            groups.push( { type: primarySort, heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+            groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
           });
-          $scope.filteredInstanceCount = filteredInstanceCount;
           $scope.groups = _.sortBy(groups, 'heading');
         });
       });

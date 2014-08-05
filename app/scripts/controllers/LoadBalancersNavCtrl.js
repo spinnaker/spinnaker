@@ -1,19 +1,16 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('LoadBalancersNavCtrl', function($scope, application, _) {
+  .controller('LoadBalancersNavCtrl', function($scope, application) {
 
     $scope.application = application;
     $scope.loadBalancersLoaded = false;
     $scope.loadBalancers = [];
 
     $scope.getLoadBalancersForAccount = function(accountName) {
-      var loadBalancerNames = $scope.loadBalancers.map(function(loadBalancer) {
-        if (loadBalancer.account === accountName) {
-          return loadBalancer.name;
-        }
+      return $scope.loadBalancers.filter(function(loadBalancer) {
+        return loadBalancer.account === accountName;
       });
-      return _.unique(loadBalancerNames);
     };
 
     application.getLoadBalancers().then(function(loadBalancers) {

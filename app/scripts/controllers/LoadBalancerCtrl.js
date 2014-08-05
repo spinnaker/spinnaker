@@ -1,32 +1,18 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('LoadBalancerCtrl', function($scope, application, loadBalancerName, _, sortingService) {
+  .controller('LoadBalancerCtrl', function($scope, application, loadBalancer, _) {
     $scope.application = application;
-    $scope.loadBalancerName = loadBalancerName;
 
     application.getLoadBalancers().then(function(loadBalancers) {
-      $scope.loadBalancers = loadBalancers.filter(function(loadBalancer) {
-        return loadBalancer.name === loadBalancerName;
-      });
+      $scope.loadBalancer = loadBalancers.filter(function(test) {
+        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.account;
+      })[0];
     });
 
     $scope.sortFilter = {
-      sortPrimary: 'name',
-      sortSecondary: 'account',
-      filter: ''
-    };
-
-    var sortOptions = [
-      { label: 'Account', key: 'account' },
-      { label: 'Load Balancer', key: 'name' },
-      { label: 'Region', key: 'region' }
-    ];
-
-    $scope.sortOptions = function(exclude) {
-      return exclude ?
-        sortOptions.filter(function(option) { return option.key !== exclude; }) :
-        sortOptions;
+      filter: '',
+      showAllInstances: true
     };
 
     $scope.updateSorting = function() {
@@ -37,78 +23,46 @@ angular.module('deckApp')
       $scope.updateLoadBalancerGroups();
     };
 
-    function addServerGroupsAndSearchFields(loadBalancers, clusters) {
-      loadBalancers.forEach(function (loadBalancer) {
-        if (!loadBalancer.serverGroups) {
-          loadBalancer.serverGroups = [];
-          var clusterMatches = clusters.filter(function (cluster) {
-            return cluster.account === loadBalancer.account;
+    function addServerGroupsAndSearchFields(loadBalancer, clusters) {
+      if (!loadBalancer.serverGroups) {
+        loadBalancer.serverGroups = [];
+        var clusterMatches = clusters.filter(function (cluster) {
+          return cluster.account === loadBalancer.account;
+        });
+        clusterMatches.forEach(function (matchedCluster) {
+          matchedCluster.serverGroups.forEach(function (serverGroup) {
+            if (serverGroup.region === loadBalancer.region && loadBalancer.serverGroupNames.indexOf(serverGroup.name) !== -1) {
+              loadBalancer.serverGroups.push(serverGroup);
+            }
           });
-          clusterMatches.forEach(function (matchedCluster) {
-            matchedCluster.serverGroups.forEach(function (serverGroup) {
-              if (serverGroup.region === loadBalancer.region && loadBalancer.serverGroupNames.indexOf(serverGroup.name) !== -1) {
-                loadBalancer.serverGroups.push(serverGroup);
-              }
-            });
-          });
+        });
+      }
+      loadBalancer.serverGroups.forEach(function(serverGroup) {
+        serverGroup.searchField = [
+          serverGroup.name
+        ].join(' ');
+      });
+    }
+
+    function matchesFilter(loadBalancer, filter) {
+      return loadBalancer.serverGroups.filter(function (serverGroup) {
+        if (!filter) {
+          return true;
         }
-        if (!loadBalancer.searchField) {
-          loadBalancer.searchField = [
-            loadBalancer.name,
-            loadBalancer.region,
-            loadBalancer.account,
-            loadBalancer.serverGroupNames.join(' ')
-          ].join(' ');
-        }
+        return filter.split(' ').every(function (testWord) {
+          return serverGroup.searchField.indexOf(testWord) !== -1;
+        });
       });
     }
 
     function updateLoadBalancerGroups() {
       application.getClusters().then(function(clusters) {
-        var loadBalancers = $scope.loadBalancers,
-          groups = [],
-          filteredInstanceCount = 0,
-          filter = $scope.sortFilter.filter.toLowerCase(),
-          primarySort = $scope.sortFilter.sortPrimary,
-          secondarySort = $scope.sortFilter.sortSecondary,
-          tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+        var loadBalancer = $scope.loadBalancer,
+          filter = $scope.sortFilter.filter.toLowerCase();
 
-        addServerGroupsAndSearchFields(loadBalancers, clusters);
+        addServerGroupsAndSearchFields(loadBalancer, clusters);
 
-        var filtered = loadBalancers.filter(function(loadBalancer) {
-          if (!filter) {
-            return true;
-          }
-          return filter.split(' ').every(function(testWord) {
-            return loadBalancer.searchField.indexOf(testWord) !== -1;
-          });
-        });
-
-        var grouped = _.groupBy(filtered, primarySort);
-
-        _.forOwn(grouped, function(group, key) {
-          var subGroupings = _.groupBy(group, secondarySort),
-            subGroups = [];
-
-          _.forOwn(subGroupings, function(subGroup, subKey) {
-            var subGroupings = _.groupBy(subGroup, tertiarySort),
-              subSubGroups = [];
-
-            _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-              var serverGroups = _.flatten(_.collect(subSubGroup, 'serverGroups'));
-              filteredInstanceCount = serverGroups.reduce(function(memo, serverGroup) {
-                return memo + serverGroup.instances.length;
-              }, filteredInstanceCount);
-              subSubGroups.push( { type: tertiarySort, heading: subSubKey, serverGroups: serverGroups.sort(sortingService.asgSorter) } );
-            });
-            subGroups.push( { type: secondarySort, heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
-          });
-
-          groups.push( { type: primarySort, heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
-        });
-        $scope.filteredInstanceCount = filteredInstanceCount;
-        console.warn(filteredInstanceCount);
-        $scope.groups = _.sortBy(groups, 'heading');
+        $scope.filteredServerGroups = matchesFilter(loadBalancer, filter);
       });
     }
 

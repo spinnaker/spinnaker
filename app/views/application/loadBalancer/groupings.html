@@ -1,0 +1,11 @@
+<div ng-repeat="group in groups" class="server-group-rollup">
+  <div ng-repeat="subgroup in group.subgroups">
+    <h4>{{group.heading}}: {{subgroup.heading}}</h4>
+    <div ng-repeat="subsubGroup in subgroup.subgroups" class="sub-group">
+      <load-balancer load-balancer="subsubGroup" asg-filter="sortFilter.asgFilter"></load-balancer>
+    </div>
+  </div>
+</div>
+  <div ng-if="groups.length === 0">
+    <h4 class="text-center">No load balancers match the filters you've selected.</h4>
+  </div>

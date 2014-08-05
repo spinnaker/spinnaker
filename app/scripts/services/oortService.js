@@ -106,6 +106,14 @@ angular.module('deckApp')
 
     function getCluster(application, account, clusterName) {
       return getClustersForAccount(application, account).all(clusterName).getList().then(function(cluster) {
+        if (!cluster.length) {
+          console.error('NO SERVER GROUPS', cluster); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
+          return {
+            account: account,
+            getLoadBalancers: getLoadBalancers.bind(null, application, account, clusterName),
+            serverGroups: []
+          };
+        }
         cluster[0].serverGroups.forEach(function(serverGroup) {
           transformServerGroup(serverGroup, account, clusterName);
         });
@@ -122,16 +130,51 @@ angular.module('deckApp')
         });
     }
 
-    function transformServerGroup(serverGroup, account, cluster) {
-      serverGroup.account = account;
-      serverGroup.cluster = cluster;
-      serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
+    function addInstancesOnlyFoundInAsg(serverGroup) {
+      var foundIds = serverGroup.instances.map(function (instance) {
+        return instance.instanceId;
+      });
+      var rejected = serverGroup.asg.instances.filter(function (asgInstance) {
+        var reject = foundIds.indexOf(asgInstance.instanceId) === -1;
+        if (reject) {
+          asgInstance.serverGroup = serverGroup.name;
+        }
+        return reject;
+      });
+      serverGroup.instances = serverGroup.instances.concat(rejected);
+    }
+
+    function addHealthyCounts(serverGroup) {
+      serverGroup.upCount = _.filter(serverGroup.instances, {healthStatus: 'Healthy'}).length;
+      serverGroup.downCount = _.filter(serverGroup.instances, {healthStatus: 'Unhealthy'}).length;
+      serverGroup.unknownCount = _.filter(serverGroup.instances, {healthStatus: 'Unknown'}).length;
+    }
+
+    function extendInstancesWithAsgInstances(serverGroup) {
+      if (serverGroup.instances && serverGroup.instances.length) {
+        serverGroup.instances.forEach(function (instance) {
+          var asgInstance = serverGroup.asg.instances.filter(function (asgInstance) {
+            return asgInstance.instanceId === instance.instanceId;
+          })[0];
+          angular.extend(instance, asgInstance);
+        });
+      }
+    }
+
+    function transformServerGroup(serverGroup, accountName, clusterName) {
+      // normalize instances
+      serverGroup.instances = serverGroup.instances.map(function(instance) { return instance.instance; });
+      extendInstancesWithAsgInstances(serverGroup);
+      addInstancesOnlyFoundInAsg(serverGroup);
+      serverGroup.account = accountName;
+      serverGroup.cluster = clusterName;
+      addHealthyCounts(serverGroup);
     }
 
     function getInstance(application, account, cluster, serverGroup, instance) {
       return getServerGroup(application, account, cluster, serverGroup)
         .then(function(serverGroup) {
-          var matches = serverGroup.instances.filter(function(retrievedInstance) { return retrievedInstance.name === instance; });
+          var matches = serverGroup.instances.filter(function(retrievedInstance) { return retrievedInstance.instanceId === instance; });
           return matches && matches.length ? matches[0] : null;
         });
     }

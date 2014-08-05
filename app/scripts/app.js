@@ -87,6 +87,58 @@ angular
     $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
     $urlRouterProvider.when('/', '/applications');
 
+    function addInstanceDetailsState(parent) {
+      $stateProvider.state(parent + '.instanceDetails', {
+        url: '/instanceDetails?instanceId',
+        parent: parent,
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/instance.html',
+            controller: 'InstanceCtrl'
+          }
+        },
+        resolve: {
+          instance: function($stateParams) {
+            return {
+              instanceId: $stateParams.instanceId
+            };
+          }
+        }
+      });
+    }
+
+    function addServerGroupDetailsState(parent) {
+      $stateProvider.state(parent + '.serverGroup', {
+        url: '/serverGroupDetails?serverGroup&accountId&region',
+        parent: parent,
+        views: {
+          'detail@insight': {
+            templateUrl: 'views/application/serverGroup.html',
+            controller: 'ServerGroupCtrl'
+          }
+        },
+        resolve: {
+          serverGroup: function($stateParams) {
+            return {
+              name: $stateParams.serverGroup,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }
+        }
+      });
+    }
+
+    function addDetailsStates(parent) {
+      addInstanceDetailsState(parent);
+      addServerGroupDetailsState(parent);
+    }
+
+    addDetailsStates('cluster');
+    addDetailsStates('clusters');
+    addDetailsStates('loadBalancer');
+    addDetailsStates('loadBalancers');
+
     $stateProvider
       .state('home', {
         url: '/',
@@ -185,44 +237,6 @@ angular
           }
         }
       })
-      .state('cluster.serverGroup', {
-        url: '/serverGroupDetails?serverGroup&accountId&region',
-        parent: 'cluster',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/serverGroup.html',
-            controller: 'ServerGroupCtrl'
-          }
-        },
-        resolve: {
-          serverGroup: function($stateParams) {
-            return {
-              name: $stateParams.serverGroup,
-              accountId: $stateParams.accountId,
-              region: $stateParams.region
-            };
-          }
-        }
-      })
-      .state('clusters.serverGroup', {
-        url: '/serverGroupDetails?serverGroup&accountId&region',
-        parent: 'clusters',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/serverGroup.html',
-            controller: 'ServerGroupCtrl'
-          }
-        },
-        resolve: {
-          serverGroup: function($stateParams) {
-            return {
-              name: $stateParams.serverGroup,
-              accountId: $stateParams.accountId,
-              region: $stateParams.region
-            };
-          }
-        }
-      })
       .state('serverGroup', {
         url: '/serverGroup/:serverGroup',
         parent: 'cluster',
@@ -238,40 +252,6 @@ angular
           }
         }
       })
-      .state('cluster.instanceDetails', {
-        url: '/instanceDetails?instanceId',
-        parent: 'cluster',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/instance.html',
-            controller: 'InstanceCtrl'
-          }
-        },
-        resolve: {
-          instance: function($stateParams) {
-            return {
-              name: $stateParams.instanceId
-            };
-          }
-        }
-      })
-      .state('clusters.instanceDetails', {
-        url: '/instanceDetails?instanceId',
-        parent: 'clusters',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/instance.html',
-            controller: 'InstanceCtrl'
-          }
-        },
-        resolve: {
-          instance: function($stateParams) {
-            return {
-              name: $stateParams.instanceId
-            };
-          }
-        }
-      })
       .state('loadBalancers', {
         url: '/loadBalancers',
         parent: 'insight',
@@ -283,97 +263,30 @@ angular
           'master': {
             templateUrl: 'views/application/loadBalancer/all.html',
             controller: 'AllLoadBalancersCtrl'
+          },
+          'filters@loadBalancers': {
+            templateUrl: 'views/application/loadBalancer/filters.html'
+          },
+          'groupings@loadBalancers': {
+            templateUrl: 'views/application/loadBalancer/groupings.html'
           }
         }
       })
       .state('loadBalancer', {
-        url: '/loadBalancer/:loadBalancer',
-        parent: 'insight',
+        url: '/:loadBalancerAccount/:loadBalancerRegion/:loadBalancer',
+        parent: 'loadBalancers',
         views: {
-          'nav': {
-            templateUrl: 'views/application/loadBalancer/navigation.html',
-            controller: 'LoadBalancersNavCtrl'
-          },
-
-          'master': {
+          'master@insight': {
             templateUrl: 'views/application/loadBalancer/single.html',
             controller: 'LoadBalancerCtrl'
           }
         },
         resolve: {
-          loadBalancerName: function($stateParams) {
-            return $stateParams.loadBalancer;
-          }
-        }
-      })
-      .state('loadBalancers.serverGroup', {
-        url: '/serverGroupDetails?serverGroup&accountId&region',
-        parent: 'loadBalancers',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/serverGroup.html',
-            controller: 'ServerGroupCtrl'
-          }
-        },
-        resolve: {
-          serverGroup: function($stateParams) {
+          loadBalancer: function($stateParams) {
             return {
-              name: $stateParams.serverGroup,
-              accountId: $stateParams.accountId,
-              region: $stateParams.region
-            };
-          }
-        }
-      })
-      .state('loadBalancer.serverGroup', {
-        url: '/serverGroupDetails?serverGroup&accountId&region',
-        parent: 'loadBalancer',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/serverGroup.html',
-            controller: 'ServerGroupCtrl'
-          }
-        },
-        resolve: {
-          serverGroup: function($stateParams) {
-            return {
-              name: $stateParams.serverGroup,
-              accountId: $stateParams.accountId,
-              region: $stateParams.region
-            };
-          }
-        }
-      })
-      .state('loadBalancers.instanceDetails', {
-        url: '/instanceDetails?instanceId',
-        parent: 'loadBalancers',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/instance.html',
-            controller: 'InstanceCtrl'
-          }
-        },
-        resolve: {
-          instance: function($stateParams) {
-            return {
-              name: $stateParams.instanceId
-            };
-          }
-        }
-      })
-      .state('loadBalancer.instanceDetails', {
-        url: '/instanceDetails?instanceId',
-        parent: 'loadBalancer',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/instance.html',
-            controller: 'InstanceCtrl'
-          }
-        },
-        resolve: {
-          instance: function($stateParams) {
-            return {
-              name: $stateParams.instanceId
+              name: $stateParams.loadBalancer,
+              region: $stateParams.loadBalancerRegion,
+              account: $stateParams.loadBalancerAccount
             };
           }
         }
@@ -407,6 +320,5 @@ angular
           }
         }
       });
-
 
   });

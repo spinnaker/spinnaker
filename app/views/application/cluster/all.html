@@ -45,7 +45,7 @@
     <div ng-repeat="subgroup in group.subgroups">
       <div ng-repeat="subsubGroup in subgroup.subgroups">
         <h4>{{group.heading}}: {{subgroup.heading}}: {{subsubGroup.heading}}</h4>
-        <server-group ng-repeat="serverGroup in subsubGroup.serverGroups" server-group="serverGroup" cluster="serverGroup.cluster"></server-group>
+        <server-group ng-repeat="serverGroup in subsubGroup.serverGroups | orderBy:'name'" server-group="serverGroup" cluster="serverGroup.cluster"></server-group>
       </div>
     </div>
   </div>

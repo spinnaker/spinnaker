@@ -20,11 +20,14 @@
       <h4>Instance Information</h4>
       <dl>
         <dt>Launched:</dt>
-        <dd>{{instance.instance.launchTime | relativeTime}}</dd>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | relativeTime}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
         <dt>In:</dt>
-        <dd>{{instance.instance.placement.availabilityZone}}</dd>
+        <dd>{{instance.placement.availabilityZone || '(Unknown)'}}</dd>
         <dt>Instance Type:</dt>
-        <dd>{{instance.instance.instanceType}}</dd>
+        <dd>{{instanceType || '(Unknown)'}}</dd>
+        <dt ng-if="instance.serverGroup">Auto Scaling Group:</dt>
+        <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
       </dl>
     </div>
     <div class="content-section">
@@ -46,17 +49,17 @@
       <h4>DNS</h4>
       <dl>
         <dt>Private DNS Name:</dt>
-        <dd><a href="http://{{instance.instance.privateDnsName}}">{{instance.instance.privateDnsName}}</a></dd>
+        <dd><a href="http://{{instance.privateDnsName}}">{{instance.privateDnsName}}</a></dd>
         <dt>Private IP Address:</dt>
-        <dd><a href="http://{{instance.instance.privateIpAddress}}" target="_blank">{{instance.instance.privateIpAddress}}</a></dd>
-        <dt ng-if="instance.instance.publicIpAddress">Public IP Address:</dt>
-        <dd ng-if="instance.instance.publicIpAddress">{{instance.instance.publicIpAddress}}</dd>
+        <dd><a href="http://{{instance.privateIpAddress}}" target="_blank">{{instance.privateIpAddress}}</a></dd>
+        <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
+        <dd ng-if="instance.publicIpAddress">{{instance.publicIpAddress}}</dd>
       </dl>
     </div>
     <div class="content-section" ng-if="!instance.notFound">
       <h4>Security Groups</h4>
       <ul>
-        <li ng-repeat="securityGroup in instance.instance.securityGroups">
+        <li ng-repeat="securityGroup in instance.securityGroups">
           {{securityGroup.groupName}}
         </li>
       </ul>
@@ -65,22 +68,22 @@
       <h4>Logs</h4>
       <ul>
         <li>
-          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+          <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
         </li>
         <li>
-          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
+          <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
         </li>
         <li>
-          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
+          <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
         </li>
         <li>
-          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
+          <a href="http://{{instance.privateIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
         </li>
         <li>
-          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
+          <a href="http://{{instance.privateIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
         </li>
         <li>
-          <a href="http://{{instance.instance.privateIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
+          <a href="http://{{instance.privateIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
         </li>
       </ul>
     </div>

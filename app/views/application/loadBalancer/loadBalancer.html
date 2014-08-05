@@ -1,0 +1,15 @@
+<div class="row load-balancer"
+     ng-class="{active: $state.includes('*.loadBalancer', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
+  <div class="summary">
+    <a ui-sref=".loadBalancerDetails({region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})">
+      <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
+    </a>
+  </div>
+  <div class="details">
+    <load-balancer-server-group
+      ng-if="displayServerGroup(serverGroup)"
+      ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'name'"
+      server-group="serverGroup"></load-balancer-server-group>
+    <ng-include src="'views/application/loadBalancer/instances.html'" ng-if="!sortFilter.showAsgs && sortFilter.showAllInstances"></ng-include>
+  </div>
+</div>

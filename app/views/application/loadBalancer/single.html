@@ -1,68 +1,38 @@
 <div class="header">
   <h3>
-    <span class="glyphicon glyphicon-cloud"></span>
-    {{loadBalancerName}}
+    <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}} ({{loadBalancer.region}})
   </h3>
   <div class="actions pull-right">
-    <div class="dropdown">
-      <button type="button" class="btn btn-sm btn-default dropdown-toggle" ng-disabled="disabled">
-        Load Balancer Actions <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li class="dropdown-header">CONFIG</li>
-        <li><a href="#">Create ASG</a></li>
-        <li><a href="#">Delete Cluster</a></li>
-        <li class="dropdown-header">INSIGHT</li>
-        <li><a href="#">View in Atlas</a></li>
-        <li><a href="#">View in Chronos</a></li>
-      </ul>
-    </div>
+    <select class="form-control input-sm">
+      <option value="">Load Balancer Actions</option>
+    </select>
   </div>
 </div>
-<div class="sort-filter">
-  <div class="form-inline">
-    <div class="form-group">
-      <label>
-        Sort by
-        <select class="form-control input-sm"
-                ng-model="sortFilter.sortPrimary"
-                ng-change="updateSorting()"
-                ng-options="option.key as option.label for option in sortOptions()">
-        </select>
-      </label>
-    </div>
-    <div class="form-group">
-      <label>
-        then
-        <select class="form-control input-sm"
-                ng-model="sortFilter.sortSecondary"
-                ng-change="updateSorting()"
-                ng-options="option.key as option.label for option in sortOptions(sortFilter.sortPrimary)">
-        </select>
-      </label>
-    </div>
+
+<div class="sort-filter clearfix">
+  <div class="form-inline clearfix">
     <div class="form-group pull-right">
       <label>
         Filter
-        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, name"
+        <input type="text" class="form-control input-sm" name="filter" placeholder="ASG name"
                ng-model="sortFilter.filter"
                ng-change="updateLoadBalancerGroups()"/>
       </label>
     </div>
   </div>
 </div>
-<div class="content">
-  <div ng-repeat="group in groups" class="server-group-rollup">
-    <load-balancer-heading group="group"></load-balancer-heading>
-    <div ng-repeat="subgroup in group.subgroups" class="sub-group">
-      <load-balancer-heading group="subgroup"></load-balancer-heading>
-      <div ng-repeat="subsubGroup in subgroup.subgroups" class="sub-group">
-        <load-balancer-heading group="subsubGroup"></load-balancer-heading>
-        <server-group ng-repeat="serverGroup in subsubGroup.serverGroups"
-                      server-group="serverGroup"
-                      cluster="serverGroup.cluster"
-                      lazy-render-instances="filteredInstanceCount > 1000"></server-group>
-      </div>
-    </div>
+
+<div class="row load-balancer"
+     ng-class="{active: $state.includes('*.loadBalancer', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
+  <div class="summary">
+    <a ui-sref=".loadBalancerDetails({region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})">
+      <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
+    </a>
+  </div>
+  <div class="details">
+    <load-balancer-server-group
+      ng-repeat="serverGroup in filteredServerGroups | orderBy:'name'"
+      server-group="serverGroup"></load-balancer-server-group>
   </div>
 </div>
+

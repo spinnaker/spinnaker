@@ -132,16 +132,25 @@ body {
       }
     }
     .sort-filter {
-      label {
-        margin-left: 10px;
-        font-weight: normal;
-        font-size: 80%;
-      }
-      input, select {
-        margin-left: 10px;
+      .form-inline, .form-horizontal {
+        border-bottom: 1px solid #e5e5e5;
+        padding: 10px;
+        label {
+          font-weight: normal;
+          margin-bottom: 0;
+        }
+        .checkbox {
+          min-height: 20px;
+          padding-top: 0;
+        }
       }
       .form-inline {
-        padding: 10px;
+        label {
+          margin-left: 10px;
+        }
+        input, select {
+          margin-left: 10px;
+        }
       }
     }
     .content {
@@ -235,7 +244,7 @@ dl {
 }
 
 body > .container {
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .container-narrow > hr {

@@ -37,25 +37,45 @@
   margin-top: 10px;
 }
 
-.server-group {
+.server-group, .load-balancer {
   border: 1px solid #c4c4c4;
   border-radius: 3px;
   padding: 0;
   margin: 15px 0;
   background-color: #f1f1f1;
 
-  .server-group-summary {
+  .summary {
     font-size: 110%;
     padding: 10px;
   }
-  .server-group-details {
-    padding: 5px 9px;
+  .details {
+    padding: 0;
     border-top: 1px solid #c4c4c4;
     background-color: #ffffff;
 
+    .load-balancer-server-group {
+      padding: 10px;
+      border-top: 1px solid #c4c4c4;
+      &:first-child {
+        border-top-width: 0;
+      }
+
+      .instances {
+        padding: 5px 0 0 0;
+      }
+    }
+
+    .instances {
+      padding: 5px 10px;
+    }
+
+    &.instances-only {
+      padding: 10px;
+    }
+
     .build-title {
       font-size: 110%;
-      padding-bottom: 3px;
+      padding: 10px 10px 3px 10px;
     }
   }
 
@@ -107,10 +127,6 @@
 .server-group-rollup {
   .sub-group {
     margin-left: 20px;
-  }
-  .load-balancer-heading {
-    border: 1px solid #c4c4c4;
-    padding: 10px;
   }
 }
 
