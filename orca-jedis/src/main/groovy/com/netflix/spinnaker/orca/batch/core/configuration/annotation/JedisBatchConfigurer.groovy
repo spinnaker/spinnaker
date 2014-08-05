@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.core.configuration.annotation
 
+import groovy.transform.CompileStatic
+import javax.annotation.PostConstruct
 import com.netflix.spinnaker.orca.batch.core.explore.support.JedisJobExplorerFactoryBean
 import com.netflix.spinnaker.orca.batch.repository.support.JedisJobRepositoryFactoryBean
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
@@ -28,8 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
 import redis.clients.jedis.JedisCommands
-import javax.annotation.PostConstruct
 
+@CompileStatic
 @Component
 class JedisBatchConfigurer implements BatchConfigurer {
 

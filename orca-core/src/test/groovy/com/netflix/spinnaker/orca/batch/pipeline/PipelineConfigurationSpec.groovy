@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch.pipeline
 
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -34,6 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 

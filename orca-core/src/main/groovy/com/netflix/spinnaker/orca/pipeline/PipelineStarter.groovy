@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
@@ -48,9 +48,10 @@ class PipelineStarter {
   @Autowired private ObjectMapper mapper
 
   /**
-   * Builds and executes a _pipeline_ based on the
-   * @param configJson
-   * @return
+   * Builds and launches a _pipeline_ based on config from _Mayo_.
+   *
+   * @param configJson _Mayo_ pipeline configuration.
+   * @return an execution representing the job that was created.
    */
   JobExecution start(String configJson) {
     launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
