@@ -2,8 +2,10 @@
      ng-class="{active: $state.includes('*.loadBalancer', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
   <div class="summary">
     <a ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})">
-      <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}} <health-counts container="loadBalancer.health"></health-counts>
+      <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
     </a>
+    <account-tag account="loadBalancer.account"></account-tag>
+    <health-counts container="loadBalancer.health"></health-counts>
   </div>
   <div class="details">
     <load-balancer-server-group

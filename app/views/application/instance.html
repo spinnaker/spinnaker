@@ -23,7 +23,10 @@
         <dd ng-if="instance.launchTime">{{instance.launchTime | relativeTime}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
         <dt>In:</dt>
-        <dd>{{instance.placement.availabilityZone || '(Unknown)'}}</dd>
+        <dd>
+          {{instance.placement.availabilityZone || '(Unknown)'}}
+          <account-tag account="instance.account"></account-tag>
+        </dd>
         <dt>Instance Type:</dt>
         <dd>{{instance.instanceType || '(Unknown)'}}</dd>
         <dt ng-if="instance.serverGroup">Auto Scaling Group:</dt>

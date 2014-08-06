@@ -144,7 +144,8 @@ angular.module('deckApp')
     }
 
     function getLoadBalancer(name) {
-      return oortEndpoint.one('aws').one('loadBalancers', name).get().then(function(loadBalancerRollup) {
+      var promise = oortEndpoint.one('aws').one('loadBalancers', name).get();
+      return promise.then(function(loadBalancerRollup) {
         var loadBalancers = [];
         loadBalancerRollup.accounts.forEach(function (account) {
           account.regions.forEach(function (region) {
@@ -210,11 +211,15 @@ angular.module('deckApp')
     }
 
     function normalizeServerGroup(serverGroup, accountName, clusterName) {
-      serverGroup.instances = serverGroup.instances.map(function(instance) { return instance.instance; });
-      extendInstancesWithAsgInstances(serverGroup);
-      addInstancesOnlyFoundInAsg(serverGroup);
+      serverGroup.instances = serverGroup.instances.map(function(instance) {
+        var toReturn = instance.instance;
+        toReturn.account = accountName;
+        return toReturn;
+      });
       serverGroup.account = accountName;
       serverGroup.cluster = clusterName;
+      extendInstancesWithAsgInstances(serverGroup);
+      addInstancesOnlyFoundInAsg(serverGroup);
       addHealthyCounts(serverGroup);
     }
 
