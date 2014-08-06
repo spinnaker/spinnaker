@@ -9,8 +9,7 @@
          ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'name'"
          ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"
          tooltip="{{loadBalancer.name}}"
-        >
-        <span class="glyphicon glyphicon-cloud"></span>
+        ><span class="glyphicon glyphicon-cloud"></span>
       </a>
     </div>
   </div>
