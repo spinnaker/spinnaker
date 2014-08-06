@@ -9,7 +9,8 @@
     "moment": "~2.7.0",
     "restangular": "~1.4.0",
     "angular-bootstrap": "~0.11.0",
-    "angular-spinner": "0.5.0"
+    "angular-spinner": "0.5.0",
+    "spin.js": "2.0.1"
   },
   "devDependencies": {
     "rxjs": "~2.2.28",

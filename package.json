@@ -58,7 +58,8 @@
     "moment": "./app/bower_components/moment/moment.js",
     "angular-spinner": "./app/bower_components/angular-spinner/angular-spinner.js",
     "rxjs": "./app/bower_components/rxjs/dist/rx.js",
-    "jquery": "./app/bower_components/restangular/dist/restangular.js"
+    "jquery": "./app/bower_components/restangular/dist/restangular.js",
+    "spin": "./app/bower_components/spin.js/spin.js"
   },
   "browserify-shim": {
     "angular": {
@@ -83,10 +84,13 @@
       "depends": "angular:angular"
     },
     "angular-spinner": {
-      "depends": "angular:angular"
+      "depends": ["angular:angular", "spin:Spinner"]
     },
     "restangular": {
       "depends": "angular:angular"
+    },
+    "spin": {
+      "exports": "Spinner"
     }
   },
   "browserify": {

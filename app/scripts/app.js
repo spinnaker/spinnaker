@@ -14,11 +14,13 @@ var angular = require('angular');
 require('angular-ui-router');
 require('angular-bootstrap');
 require('restangular');
+require('angular-spinner');
 
 angular.module('deckApp', [
     'ui.router',
     'ui.bootstrap',
     'restangular',
+    'angularSpinner',
     'deckApp.templates'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler) {
