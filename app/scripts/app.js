@@ -9,12 +9,11 @@
  * Main module of the application.
  */
 
-var angular = require('angular'),
-  angularUIRouter = require('angular-ui-router'),
-  angularBootstrap = require('angular-bootstrap'),
-  restangular = require('restangular');
+var angular = require('angular');
 
-console.log(angularUIRouter, angularBootstrap, restangular);
+require('angular-ui-router');
+require('angular-bootstrap');
+require('restangular');
 
 angular.module('deckApp', [
     'ui.router',
