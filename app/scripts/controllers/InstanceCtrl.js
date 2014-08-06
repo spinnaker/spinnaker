@@ -21,7 +21,7 @@ angular.module('deckApp')
       }
     }
 
-    application.getClusters().then(extractInstance.bind(null));
+    extractInstance(application.clusters);
 
     $scope.account = instance.account;
 

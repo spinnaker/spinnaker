@@ -11,9 +11,7 @@ angular.module('deckApp')
       });
     };
 
-    application.getClusters().then(function(clusters) {
-      $scope.clusters = clusters;
-      $scope.clustersLoaded = true;
-    });
+    $scope.clusters = application.clusters;
+    $scope.clustersLoaded = true;
   });
 

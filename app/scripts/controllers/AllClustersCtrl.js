@@ -36,56 +36,53 @@ angular.module('deckApp')
         secondarySort = $scope.sortFilter.sortSecondary,
         tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
 
-      application.getClusters().then(function(clusters) {
-        var serverGroups = _.chain(clusters)
-          .collect('serverGroups')
-          .flatten()
-          .filter(function(serverGroup) {
-            if (!filter) {
-              return true;
-            }
-            if (!serverGroup.searchField) {
-              serverGroup.searchField = [
-                serverGroup.region.toLowerCase(),
-                serverGroup.name.toLowerCase(),
-                serverGroup.account.toLowerCase(),
+      var serverGroups = _.chain(application.clusters)
+        .collect('serverGroups')
+        .flatten()
+        .filter(function(serverGroup) {
+          if (!filter) {
+            return true;
+          }
+          if (!serverGroup.searchField) {
+            serverGroup.searchField = [
+              serverGroup.region.toLowerCase(),
+              serverGroup.name.toLowerCase(),
+              serverGroup.account.toLowerCase(),
 //                _.collect(serverGroup.instances, 'name').join(' ')
-              ].join(' ');
-            }
-            return filter.split(' ').every(function(testWord) {
-              return serverGroup.searchField.indexOf(testWord) !== -1;
-            });
-          })
-          .value();
-
-        var grouped = _.groupBy(serverGroups, primarySort);
-
-        _.forOwn(grouped, function(group, key) {
-          var subGroupings = _.groupBy(group, secondarySort),
-            subGroups = [];
-
-          _.forOwn(subGroupings, function(subGroup, subKey) {
-            var subGroupings = _.groupBy(subGroup, tertiarySort),
-              subSubGroups = [];
-
-            _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-              subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
-            });
-            subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
+            ].join(' ');
+          }
+          return filter.split(' ').every(function(testWord) {
+            return serverGroup.searchField.indexOf(testWord) !== -1;
           });
+        })
+        .value();
 
-          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+      var grouped = _.groupBy(serverGroups, primarySort);
+
+      _.forOwn(grouped, function(group, key) {
+        var subGroupings = _.groupBy(group, secondarySort),
+          subGroups = [];
+
+        _.forOwn(subGroupings, function(subGroup, subKey) {
+          var subGroupings = _.groupBy(subGroup, tertiarySort),
+            subSubGroups = [];
+
+          _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
+            subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
+          });
+          subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
         });
-        $scope.groups = _.sortBy(groups, 'heading');
+
+        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
       });
+      $scope.groups = _.sortBy(groups, 'heading');
+      $scope.$digest(); // downside of debouncing
 
     }
 
     $scope.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
-    application.getClusters().then(function () {
-      $scope.updateClusterGroups();
-      $scope.clustersLoaded = true;
-    });
+    $scope.updateClusterGroups();
+    $scope.clustersLoaded = true;
 
   });

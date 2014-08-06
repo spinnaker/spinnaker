@@ -12,7 +12,7 @@
     </div>
     <h3>
       <span class="glyphicon glyphicon-hdd health-status-{{instance.healthStatus}}"></span>
-      {{instance.name}}
+      {{instance.instanceId}}
     </h3>
   </div>
   <div ng-if="instance" class="content">
@@ -25,7 +25,7 @@
         <dt>In:</dt>
         <dd>{{instance.placement.availabilityZone || '(Unknown)'}}</dd>
         <dt>Instance Type:</dt>
-        <dd>{{instanceType || '(Unknown)'}}</dd>
+        <dd>{{instance.instanceType || '(Unknown)'}}</dd>
         <dt ng-if="instance.serverGroup">Auto Scaling Group:</dt>
         <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
       </dl>

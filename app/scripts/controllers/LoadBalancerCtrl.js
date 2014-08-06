@@ -4,13 +4,9 @@ angular.module('deckApp')
   .controller('LoadBalancerCtrl', function($scope, application, loadBalancer, _) {
     $scope.application = application;
 
-    application.getLoadBalancers().then(function(loadBalancers) {
-      $scope.loadBalancer = loadBalancers.filter(function(test) {
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.account;
-      })[0];
-      addSearchFields($scope.loadBalancer);
-      updateLoadBalancerGroups();
-    });
+    $scope.loadBalancer = application.loadBalancers.filter(function(test) {
+      return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account.name === loadBalancer.account.name;
+    })[0];
 
     $scope.sortFilter = {
       filter: '',
@@ -49,7 +45,12 @@ angular.module('deckApp')
           filter = $scope.sortFilter.filter.toLowerCase();
 
       $scope.filteredServerGroups = matchesFilter(loadBalancer, filter);
+      $scope.$digest(); // debounce
     }
 
     $scope.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
+
+    addSearchFields($scope.loadBalancer);
+    $scope.updateLoadBalancerGroups();
+
   });

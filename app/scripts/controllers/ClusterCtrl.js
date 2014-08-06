@@ -1,24 +1,26 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('ClusterCtrl', function($scope, account, cluster, application, oortService, _) {
+  .controller('ClusterCtrl', function($scope, cluster, application, oortService, _) {
 
-    $scope.account = account.name;
+    $scope.account = cluster.account;
     $scope.cluster = cluster;
     $scope.asgsByRegion = [];
 
-    oortService.getCluster(application.name, account.name, cluster.name).then(function(cluster) {
+    function groupAsgsByRegion() {
       var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
-          regions = _.keys(groupedAsgs),
-          asgsByRegion = [];
+        regions = _.keys(groupedAsgs),
+        asgsByRegion = [];
 
       regions.forEach(function(region) {
         asgsByRegion.push({ region: region, serverGroups: groupedAsgs[region] });
       });
-
-      $scope.cluster = cluster;
       $scope.asgsByRegion = asgsByRegion;
-    });
+    }
+
+    $scope.cluster = cluster;
+
+    groupAsgsByRegion();
 
   })
 ;

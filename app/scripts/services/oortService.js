@@ -17,14 +17,31 @@ angular.module('deckApp')
 
     function getApplication(application) {
       var retrievedApplication = getApplicationEndpoint(application).get();
-      retrievedApplication.then(function(retrieved) {
+      return retrievedApplication.then(function(retrieved) {
         var clusters = retrieved.clusters;
         retrieved.accounts = Object.keys(clusters);
-        retrieved.getClusters = loadClusters.bind(null, retrieved, clusters);
-        retrieved.getLoadBalancers = loadLoadBalancers.bind(null, retrieved, clusters);
-        delete retrieved.clusters;
+        var clusterLoader = loadClusters(retrieved, clusters).then(function(hydratedClusters) {
+          retrieved.clusters = hydratedClusters;
+        });
+        var loadBalancerLoader = loadLoadBalancers(retrieved, clusters).then(function(hydratedLoadBalancers) {
+          retrieved.loadBalancers = hydratedLoadBalancers;
+        });
+
+        retrieved.getCluster = getClusterFromApplicationBuilder(retrieved);
+        return $q.all([clusterLoader, loadBalancerLoader]).then(function() {
+          normalizeLoadBalancersAndServerGroups(retrieved);
+          return retrieved;
+        });
       });
-      return retrievedApplication;
+    }
+
+    function getClusterFromApplicationBuilder(application) {
+      return function(accountName, clusterName) {
+        var matches = application.clusters.filter(function (cluster) {
+          return cluster.name === clusterName && cluster.account === accountName;
+        });
+        return matches.length ? matches[0] : null;
+      };
     }
 
     function loadClusters(application, clusters) {
@@ -74,10 +91,6 @@ angular.module('deckApp')
 
     }
 
-    function getLoadBalancers(application, account, cluster) {
-      return getClustersForAccount(application, account).all(cluster).one('aws').one('loadBalancers').getList();
-    }
-
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer, serverGroupNames) {
       if (serverGroup.region !== loadBalancer.region || serverGroupNames.indexOf(serverGroup.name) === -1) {
         return false;
@@ -90,15 +103,25 @@ angular.module('deckApp')
       });
     }
 
-    function addServerGroupsToLoadBalancer(loadBalancer, clusters, accountName) {
+    function normalizeLoadBalancersAndServerGroups(application) {
+      application.loadBalancers.forEach(function(loadBalancer) {
+        addServerGroupsToLoadBalancer(loadBalancer, application.clusters);
+        loadBalancer.instances = _.flatten(_.collect(loadBalancer.serverGroups, 'instances'));
+        addHealthCountsToLoadBalancer(loadBalancer);
+      });
+    }
+
+    function addServerGroupsToLoadBalancer(loadBalancer, clusters) {
       var serverGroupNames = loadBalancer.serverGroups;
       loadBalancer.serverGroups = [];
       var clusterMatches = clusters.filter(function (cluster) {
-        return cluster.account === accountName;
+        return cluster.account === loadBalancer.account;
       });
       clusterMatches.forEach(function (matchedCluster) {
         matchedCluster.serverGroups.forEach(function (serverGroup) {
           if (serverGroupIsInLoadBalancer(serverGroup, loadBalancer, serverGroupNames)) {
+            serverGroup.loadBalancers = serverGroup.loadBalancers || [];
+            serverGroup.loadBalancers.push(loadBalancer);
             loadBalancer.serverGroups.push(serverGroup);
           }
         });
@@ -120,59 +143,40 @@ angular.module('deckApp')
       };
     }
 
-    function getLoadBalancer(name, application) {
+    function getLoadBalancer(name) {
       return oortEndpoint.one('aws').one('loadBalancers', name).get().then(function(loadBalancerRollup) {
-        return application.getClusters().then(function(clusters) {
-          var loadBalancers = [];
-          loadBalancerRollup.accounts.forEach(function (account) {
-            var accountName = account.name;
-            account.regions.forEach(function (region) {
-              region.loadBalancers.forEach(function (loadBalancer) {
-                addServerGroupsToLoadBalancer(loadBalancer, clusters, accountName);
-                loadBalancer.instances = _.flatten(_.collect(loadBalancer.serverGroups, 'instances'));
-                loadBalancer.account = accountName;
-                addHealthCountsToLoadBalancer(loadBalancer);
-                loadBalancers.push(loadBalancer);
-              });
+        var loadBalancers = [];
+        loadBalancerRollup.accounts.forEach(function (account) {
+          account.regions.forEach(function (region) {
+            region.loadBalancers.forEach(function (loadBalancer) {
+              loadBalancer.account = account.name;
+              loadBalancers.push(loadBalancer);
             });
           });
-          return loadBalancers;
         });
+        return loadBalancers;
       });
     }
 
-    function getClusters(application) {
-      return getApplicationEndpoint(application).all('clusters');
-    }
-
-    function getClustersForAccount(application, account) {
+    function getClustersForAccountEndpoint(application, account) {
       return getApplicationEndpoint(application).all('clusters').all(account);
     }
 
     function getCluster(application, account, clusterName) {
-      return getClustersForAccount(application, account).all(clusterName).getList().then(function(cluster) {
+      return getClustersForAccountEndpoint(application, account).all(clusterName).getList().then(function(cluster) {
         if (!cluster.length) {
           console.error('NO SERVER GROUPS', cluster); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
           return {
             account: account,
-            getLoadBalancers: getLoadBalancers.bind(null, application, account, clusterName),
             serverGroups: []
           };
         }
         cluster[0].serverGroups.forEach(function(serverGroup) {
-          transformServerGroup(serverGroup, account, clusterName);
+          normalizeServerGroup(serverGroup, account, clusterName);
         });
-        cluster[0].getLoadBalancers = getLoadBalancers.bind(null, application, account, clusterName);
         cluster[0].account = account;
         return cluster[0];
       });
-    }
-
-    function getServerGroup(application, account, cluster, serverGroup) {
-      return getClustersForAccount(application, account).one('aws').one('serverGroups', serverGroup).get().then(
-        function(serverGroup) {
-          transformServerGroup(serverGroup, account, cluster);
-        });
     }
 
     function addInstancesOnlyFoundInAsg(serverGroup) {
@@ -180,11 +184,10 @@ angular.module('deckApp')
         return instance.instanceId;
       });
       var rejected = serverGroup.asg.instances.filter(function (asgInstance) {
-        var reject = foundIds.indexOf(asgInstance.instanceId) === -1;
-        if (reject) {
-          asgInstance.serverGroup = serverGroup.name;
-        }
-        return reject;
+        return foundIds.indexOf(asgInstance.instanceId) === -1;
+      });
+      rejected.forEach(function(rejected) {
+        rejected.serverGroup = serverGroup.name;
       });
       serverGroup.instances = serverGroup.instances.concat(rejected);
     }
@@ -206,8 +209,7 @@ angular.module('deckApp')
       }
     }
 
-    function transformServerGroup(serverGroup, accountName, clusterName) {
-      // normalize instances
+    function normalizeServerGroup(serverGroup, accountName, clusterName) {
       serverGroup.instances = serverGroup.instances.map(function(instance) { return instance.instance; });
       extendInstancesWithAsgInstances(serverGroup);
       addInstancesOnlyFoundInAsg(serverGroup);
@@ -216,22 +218,8 @@ angular.module('deckApp')
       addHealthyCounts(serverGroup);
     }
 
-    function getInstance(application, account, cluster, serverGroup, instance) {
-      return getServerGroup(application, account, cluster, serverGroup)
-        .then(function(serverGroup) {
-          var matches = serverGroup.instances.filter(function(retrievedInstance) { return retrievedInstance.instanceId === instance; });
-          return matches && matches.length ? matches[0] : null;
-        });
-    }
-
     return {
       listApplications: listApplications,
-      getApplication: getApplication,
-      getClusters: getClusters,
-      getLoadBalancers: getLoadBalancers,
-      getClustersForAccount: getClustersForAccount,
-      getCluster: getCluster,
-      getServerGroup: getServerGroup,
-      getInstance: getInstance
+      getApplication: getApplication
     };
   });

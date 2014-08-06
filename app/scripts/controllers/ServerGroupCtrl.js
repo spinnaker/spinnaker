@@ -19,7 +19,7 @@ angular.module('deckApp')
       });
     }
 
-    application.getClusters().then(extractServerGroup.bind(null));
+    extractServerGroup(application.clusters);
 
     // TODO: move to service
     $scope.destroyServerGroup = function() {

@@ -19,7 +19,9 @@
   <!-- endbuild -->
 </head>
 <body>
-
+<div class="transition-overlay" ng-if="routing">
+  <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
+</div>
 <div class="navbar navbar-inverse navbar-fixed-top">
   <div class="container-liquid">
     <div class="navbar-header">
@@ -43,12 +45,7 @@
 </div>
 
 <div class="container">
-  <div class="container-liquid" ui-view="main">
-    <h1>
-    <span us-spinner="{radius:30, width:8, length: 16}"></span>
-    </h1>
-  </div>
-
+  <div class="container-liquid" ui-view="main"></div>
 </div>
 
 

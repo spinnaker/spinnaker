@@ -60,35 +60,35 @@ angular.module('deckApp')
     }
 
     function updateLoadBalancerGroups() {
-      application.getLoadBalancers().then(function(loadBalancers) {
-        var groups = [],
-          filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
-          primarySort = $scope.sortFilter.sortPrimary,
-          secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
-          hideHealthy = $scope.sortFilter.hideHealthy;
+      var loadBalancers = application.loadBalancers;
+      var groups = [],
+        filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
+        primarySort = $scope.sortFilter.sortPrimary,
+        secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
+        hideHealthy = $scope.sortFilter.hideHealthy;
 
-        addSearchField(loadBalancers);
+      addSearchField(loadBalancers);
 
-        var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
+      var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
 
-        var grouped = _.groupBy(filtered, primarySort);
+      var grouped = _.groupBy(filtered, primarySort);
 
-        _.forOwn(grouped, function(group, key) {
-          var subGroupings = _.groupBy(group, secondarySort),
-            subGroups = [];
+      _.forOwn(grouped, function(group, key) {
+        var subGroupings = _.groupBy(group, secondarySort),
+          subGroups = [];
 
-          _.forOwn(subGroupings, function(subGroup, subKey) {
-            subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
-          });
-
-          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+        _.forOwn(subGroupings, function(subGroup, subKey) {
+          subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
         });
-        $scope.groups = _.sortBy(groups, 'heading');
+
+        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
       });
+      $scope.groups = _.sortBy(groups, 'heading');
+      $scope.$digest(); // debounced
     }
 
     $scope.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    updateLoadBalancerGroups();
+    $scope.updateLoadBalancerGroups();
 
   });

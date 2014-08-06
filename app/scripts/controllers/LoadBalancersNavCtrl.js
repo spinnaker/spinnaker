@@ -4,17 +4,12 @@ angular.module('deckApp')
   .controller('LoadBalancersNavCtrl', function($scope, application) {
 
     $scope.application = application;
-    $scope.loadBalancersLoaded = false;
-    $scope.loadBalancers = [];
+    $scope.loadBalancers = application.loadBalancers;
 
-    $scope.getLoadBalancersForAccount = function(accountName) {
+    $scope.getLoadBalancersForAccount = function(account) {
       return $scope.loadBalancers.filter(function(loadBalancer) {
-        return loadBalancer.account === accountName;
+        return loadBalancer.account === account;
       });
     };
 
-    application.getLoadBalancers().then(function(loadBalancers) {
-      $scope.loadBalancers = loadBalancers;
-      $scope.loadBalancersLoaded = true;
-    });
   });

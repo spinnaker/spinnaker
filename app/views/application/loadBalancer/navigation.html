@@ -2,15 +2,12 @@
   Load Balancers <span class="small">by account</span>
 </h3>
 
-<h4 ng-if="!loadBalancersLoaded" class="text-center">
-  <span us-spinner="{radius:20, width:6, length: 12}"></span>
-</h4>
-<div ng-if="loadBalancersLoaded" class="sub-nav-item">
+<div class="sub-nav-item">
   <a ui-sref="loadBalancers"
      ng-class="{active: $state.includes('loadBalancers') && !$state.includes('loadBalancer')}"
     >Show All Load Balancers</a>
 </div>
-<div ng-if="loadBalancersLoaded" class="sub-nav" ng-repeat="account in application.accounts | orderBy:'toString()'">
+<div class="sub-nav" ng-repeat="account in application.accounts | orderBy:'toString()'">
   <div class="sub-nav-item">
     <h4>{{account}}</h4>
     <a ng-repeat="loadBalancer in getLoadBalancersForAccount(account) | orderBy:['name','region']"

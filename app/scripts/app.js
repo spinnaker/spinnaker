@@ -44,6 +44,7 @@ angular
         fromState: fromState,
         fromParams: fromParams
       });
+      $rootScope.routing = true;
     });
 
     $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
@@ -55,6 +56,7 @@ angular
         fromParams: fromParams,
         error:error
       });
+      $rootScope.routing = false;
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
@@ -65,6 +67,7 @@ angular
         fromState: fromState,
         fromParams: fromParams
       });
+      $rootScope.routing = false;
     });
   })
   .config(function(RestangularProvider) {
@@ -248,30 +251,8 @@ angular
           }
         },
         resolve: {
-          cluster: function($stateParams) {
-            return {
-              name: $stateParams.cluster
-            };
-          },
-          account: function($stateParams) {
-            return {
-              name: $stateParams.account
-            };
-          }
-        }
-      })
-      .state('serverGroup', {
-        url: '/serverGroup/:serverGroup',
-        parent: 'cluster',
-        views: {
-          'detail@insight': {
-            templateUrl: 'views/application/serverGroup.html',
-            controller: 'ServerGroupCtrl'
-          }
-        },
-        resolve: {
-          serverGroup: function($stateParams, oortService) {
-            return oortService.getServerGroup($stateParams.application, $stateParams.account, $stateParams.cluster, $stateParams.serverGroup);
+          cluster: function($stateParams, application) {
+            return application.getCluster($stateParams.account, $stateParams.cluster);
           }
         }
       })
