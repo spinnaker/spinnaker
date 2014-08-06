@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
@@ -42,14 +38,14 @@ class CreateBakeTask implements Task {
     def region = context.inputs."bake.region" as String
     def bake = bakeFromContext(context)
 
-    def bakeStatus = bakery.createBake(region, bake).toBlockingObservable().single()
+    def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.status": bakeStatus])
   }
 
   private BakeRequest bakeFromContext(TaskContext context) {
     mapper.copy()
-        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .convertValue(context.getInputs("bake"), BakeRequest)
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(context.getInputs("bake"), BakeRequest)
   }
 }

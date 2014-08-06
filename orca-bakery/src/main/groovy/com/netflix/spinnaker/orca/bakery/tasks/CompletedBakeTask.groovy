@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
@@ -38,7 +36,7 @@ class CompletedBakeTask implements Task {
     def region = context.inputs."bake.region" as String
     def bakeStatus = context.inputs."bake.status" as BakeStatus
     try {
-      def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlockingObservable().first()
+      def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
       new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.ami": bake.ami])
     } catch (RetrofitError e) {
       // TODO: attach some reporting info here

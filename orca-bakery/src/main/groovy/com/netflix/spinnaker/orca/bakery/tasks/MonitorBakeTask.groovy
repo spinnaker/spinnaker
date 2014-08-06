@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
@@ -44,7 +40,7 @@ class MonitorBakeTask implements RetryableTask {
 
     // TODO: could skip the lookup if it's already complete as it will be for a previously requested bake
 
-    def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlockingObservable().single()
+    def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
 
     new DefaultTaskResult(mapStatus(newStatus), ["bake.status": newStatus])
   }

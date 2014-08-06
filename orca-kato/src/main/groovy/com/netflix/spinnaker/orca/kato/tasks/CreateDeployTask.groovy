@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -26,10 +27,8 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
@@ -74,7 +73,7 @@ class CreateDeployTask implements Task {
       [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
     }
     descriptions.add([basicAmazonDeployDescription: deployOperation])
-    def result = kato.requestOperations(descriptions).toBlockingObservable().first()
+    def result = kato.requestOperations(descriptions).toBlocking().first()
     result
   }
 

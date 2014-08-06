@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.api
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest.Label
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
@@ -29,6 +23,8 @@ import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
 import retrofit.RetrofitError
 import retrofit.client.OkClient
+import spock.lang.Specification
+import spock.lang.Subject
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
 import static retrofit.Endpoints.newFixedEndpoint
@@ -76,7 +72,7 @@ class BakeryServiceSpec extends Specification {
     }
 
     expect:
-    with(bakery.lookupStatus(region, statusId).toBlockingObservable().first()) {
+    with(bakery.lookupStatus(region, statusId).toBlocking().first()) {
       id == statusId
       state == BakeStatus.State.COMPLETED
       resourceId == bakeId
@@ -88,7 +84,7 @@ class BakeryServiceSpec extends Specification {
     httpServer.expect("GET", "$statusPath/$statusId").andRespond().withStatus(HTTP_NOT_FOUND)
 
     when:
-    bakery.lookupStatus(region, statusId).toBlockingObservable().first()
+    bakery.lookupStatus(region, statusId).toBlocking().first()
 
     then:
     def ex = thrown(RetrofitError)
@@ -111,7 +107,7 @@ class BakeryServiceSpec extends Specification {
     }
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake).toBlockingObservable().first()) {
+    with(bakery.createBake(region, bake).toBlocking().first()) {
       id == statusId
       state == BakeStatus.State.PENDING
       resourceId == bakeId
@@ -135,7 +131,7 @@ class BakeryServiceSpec extends Specification {
     }
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake).toBlockingObservable().first()) {
+    with(bakery.createBake(region, bake).toBlocking().first()) {
       id == statusId
       state == BakeStatus.State.RUNNING
       resourceId == bakeId // TODO: would we actually get a bake id if it was incomplete?
@@ -154,7 +150,7 @@ class BakeryServiceSpec extends Specification {
     }
 
     expect:
-    with(bakery.lookupBake(region, bakeId).toBlockingObservable().first()) {
+    with(bakery.lookupBake(region, bakeId).toBlocking().first()) {
       id == bakeId
       ami == "ami"
     }

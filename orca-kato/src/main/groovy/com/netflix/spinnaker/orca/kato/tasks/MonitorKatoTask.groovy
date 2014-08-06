@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
@@ -41,7 +39,7 @@ class MonitorKatoTask implements RetryableTask {
   @Override
   TaskResult execute(TaskContext context) {
     TaskId taskId = context.inputs."kato.task.id" as TaskId
-    def katoTask = kato.lookupTask(taskId.id).toBlockingObservable().first()
+    def katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     def status = katoStatusToTaskStatus(katoTask.status)
     if (status == TaskResult.Status.FAILED) {
       new DefaultTaskResult(status)

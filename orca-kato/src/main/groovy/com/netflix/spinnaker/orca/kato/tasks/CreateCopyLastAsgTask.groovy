@@ -16,49 +16,47 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.base.Optional
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.ops.CopyLastAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.api.ops.CopyLastAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
-
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
 class CreateCopyLastAsgTask implements Task {
 
-    @Autowired
-    KatoService kato
+  @Autowired
+  KatoService kato
 
-    @Autowired
-    ObjectMapper mapper
+  @Autowired
+  ObjectMapper mapper
 
-    @Override
-    TaskResult execute(TaskContext context) {
-        CopyLastAsgOperation operation = deployOperationFromContext(context)
-        def taskId = kato.requestOperations([[
-            copyLastAsgDescription: operation
-        ]]).toBlockingObservable().first()
+  @Override
+  TaskResult execute(TaskContext context) {
+    CopyLastAsgOperation operation = deployOperationFromContext(context)
+    def taskId = kato.requestOperations([[copyLastAsgDescription: operation]])
+                     .toBlocking()
+                     .first()
 
-        new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-                [
-                        "kato.task.id": taskId,
-                        "deploy.account.name": operation.credentials,
-                ]
-        )
-    }
+    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
+        [
+            "kato.task.id"       : taskId,
+            "deploy.account.name": operation.credentials,
+        ]
+    )
+  }
 
-    private CopyLastAsgOperation deployOperationFromContext(TaskContext context) {
-        def operation = mapper.copy()
-            .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .convertValue(context.getInputs("copyLastAsg"), CopyLastAsgOperation)
-        operation.amiName = operation.amiName.or(Optional.fromNullable(context.inputs.'bake.ami' as String))
-
-        return operation
-    }
+  private CopyLastAsgOperation deployOperationFromContext(TaskContext context) {
+    def operation = mapper.copy()
+                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+                          .convertValue(context.getInputs("copyLastAsg"), CopyLastAsgOperation)
+    operation.amiName = operation.amiName.or(Optional.fromNullable(context.inputs.'bake.ami' as String))
+    return operation
+  }
 }

@@ -22,8 +22,8 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -39,9 +39,9 @@ class DestroyAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def operation = convert(context)
-    def taskId = kato.requestOperations([
-        [deleteAsgDescription: operation
-        ]]).toBlockingObservable().first()
+    def taskId = kato.requestOperations([[deleteAsgDescription: operation]])
+                     .toBlocking()
+                     .first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
         ["deploy.account.name" : operation.credentials,
@@ -51,7 +51,8 @@ class DestroyAsgTask implements Task {
   }
 
   DestroyAsgOperation convert(TaskContext context) {
-    mapper.copy().configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
+    mapper.copy()
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
   }
 }
