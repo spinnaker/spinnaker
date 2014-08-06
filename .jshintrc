@@ -18,7 +18,5 @@
   "strict": true,
   "trailing": true,
   "smarttabs": true,
-  "globals": {
-    "angular": false
-  }
+  "debug": true
 }

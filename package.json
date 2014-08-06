@@ -1,7 +1,9 @@
 {
+  "main": "./app/scripts/app.js",
   "name": "deck",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+  },
   "devDependencies": {
     "grunt": "^0.4.1",
     "grunt-autoprefixer": "^0.7.3",
@@ -35,12 +37,61 @@
     "karma-phantomjs-launcher": "~0.1.4",
     "load-grunt-tasks": "^0.4.0",
     "grunt-ng-annotate": "^0.2.2",
-    "time-grunt": "^0.3.1"
+    "time-grunt": "^0.3.1",
+    "grunt-browserify": "~2.1.4",
+    "browserify": "~4.2.3",
+    "browserify-shim": "~3.6.0"
   },
   "engines": {
     "node": ">=0.10.0"
   },
   "scripts": {
     "test": "grunt test"
+  },
+  "browser": {
+    "angular-bootstrap": "./app/bower_components/angular-bootstrap/ui-bootstrap-tpls.js",
+    "angular": "./app/bower_components/angular/angular.js",
+    "angular-ui-router": "./app/bower_components/angular-ui-router/release/angular-ui-router.js",
+    "restangular": "./app/bower_components/restangular/dist/restangular.js",
+    "jquery": "./app/bower_components/jquery/dist/jquery.js",
+    "lodash": "./app/bower_components/lodash/dist/lodash.compat.js",
+    "moment": "./app/bower_components/moment/moment.js",
+    "angular-spinner": "./app/bower_components/angular-spinner/angular-spinner.js",
+    "rxjs": "./app/bower_components/rxjs/dist/rx.js",
+    "jquery": "./app/bower_components/restangular/dist/restangular.js"
+  },
+  "browserify-shim": {
+    "angular": {
+      "exports": "angular"
+    },
+    "jquery": {
+      "exports": "$"
+    },
+    "lodash": {
+      "exports": "_"
+    },
+    "moment": {
+      "exports": "moment"
+    },
+    "rxjs": {
+      "exports": "Rx"
+    },
+    "angular-bootstrap": {
+      "depends": "angular:angular"
+    },
+    "angular-ui-router": {
+      "depends": "angular:angular"
+    },
+    "angular-spinner": {
+      "depends": "angular:angular"
+    },
+    "restangular": {
+      "depends": "angular:angular"
+    }
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
   }
 }

@@ -1,11 +1,9 @@
 'use strict';
 
-angular.module('deckApp')
-  .controller('LoadBalancerDetailsCtrl', function($scope, $rootScope, loadBalancer, application) {
+module.exports = function($scope, $rootScope, loadBalancer, application) {
 
-      $scope.loadBalancer = application.loadBalancers.filter(function(test) {
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
-      })[0];
+  $scope.loadBalancer = application.loadBalancers.filter(function(test) {
+    return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
+  })[0];
 
-  })
-;
+};

@@ -1,6 +1,7 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('momentService', function($window) {
-    return $window.moment;
-  });
+var moment = require('moment');
+
+module.exports = function() {
+  return moment;
+};

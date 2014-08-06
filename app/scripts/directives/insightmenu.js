@@ -6,16 +6,15 @@
  * @description
  * # insightMenu
  */
-angular.module('deckApp')
-  .directive('insightMenu', function () {
-    return {
-      templateUrl: 'views/insightmenu.html',
-      restrict: 'E',
-      replace: true,
-      scope: {
-        actions: '=',
-        title: '@',
-        icon: '@',
-      },
-    };
-  });
+module.exports = function() {
+  return {
+    templateUrl: 'views/insightmenu.html',
+    restrict: 'E',
+    replace: true,
+    scope: {
+      actions: '=',
+      title: '@',
+      icon: '@',
+    },
+  };
+};

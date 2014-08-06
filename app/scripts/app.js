@@ -8,12 +8,18 @@
  *
  * Main module of the application.
  */
-angular
-  .module('deckApp', [
+
+var angular = require('angular'),
+  angularUIRouter = require('angular-ui-router'),
+  angularBootstrap = require('angular-bootstrap'),
+  restangular = require('restangular');
+
+console.log(angularUIRouter, angularBootstrap, restangular);
+
+angular.module('deckApp', [
     'ui.router',
     'ui.bootstrap',
     'restangular',
-    'angularSpinner',
     'deckApp.templates'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler) {
@@ -325,4 +331,45 @@ angular
         }
       });
 
-  });
+  })
+  .controller('AllClustersCtrl', require('./controllers/AllClustersCtrl'))
+  .controller('ApplicationCtrl', require('./controllers/ApplicationCtrl'))
+  .controller('ClusterCtrl', require('./controllers/ClusterCtrl'))
+  .controller('InstanceCtrl', require('./controllers/InstanceCtrl'))
+  .controller('ServerGroupCtrl', require('./controllers/ServerGroupCtrl'))
+  .controller('ApplicationsCtrl', require('./controllers/applications'))
+  .controller('MainCtrl', require('./controllers/main'))
+  .controller('TasksCtrl', require('./controllers/tasks'))
+  .controller('ConfirmationModalCtrl', require('./controllers/ConfirmationModalCtrl'))
+  .controller('ClustersNavCtrl', require('./controllers/ClustersNavCtrl'))
+  .controller('AllLoadBalancersCtrl', require('./controllers/AllLoadBalancersCtrl'))
+  .controller('LoadBalancersNavCtrl', require('./controllers/LoadBalancersNavCtrl'))
+  .factory('confirmationModalService', require('./services/confirmationModal'))
+  .factory('front50', require('./services/front50'))
+  .factory('$', require('./services/jQuery'))
+  .factory('_', require('./services/lodash'))
+  .factory('momentService', require('./services/moment'))
+  .factory('notifications', require('./services/notifications'))
+  .factory('oortService', require('./services/oortService'))
+  .factory('pond', require('./services/pond'))
+  .factory('RxService', require('./services/rx'))
+  .factory('isEmpty', require('./services/isEmpty'))
+  .constant('settings', require('./services/settings'))
+  .directive('arbitraryList', require('./directives/arbitraryList'))
+  .directive('healthCounts', require('./directives/healthCounts'))
+  .directive('insightMenu', require('./directives/insightmenu'))
+  .directive('multiPageModal', require('./directives/multiPageModal'))
+  .directive('modalPage', require('./directives/modalPage'))
+  .directive('notifications', require('./directives/notifications'))
+  .directive('serverGroup', require('./directives/serverGroup'))
+  .directive('sortToggle', require('./directives/sorttoggle'))
+  .directive('taskView', require('./directives/taskview'))
+  .directive('underConstruction', require('./directives/underConstruction'))
+  .directive('validateMin', require('./directives/validateMin'))
+  .directive('validateMax', require('./directives/validateMax'))
+  .directive('accountTag', require('./directives/accountTag'))
+  .filter('dateFromTimestamp', require('./filters/datefromtimestamp'))
+  .filter('relativeTime', require('./filters/relativeTime'))
+  .filter('step', require('./filters/step'))
+  .filter('stripCluster', require('./filters/stripCluster'))
+  .filter('taskFilter', require('./filters/tasks'));

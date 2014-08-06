@@ -1,18 +1,17 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('notifications', function(RxService) {
-    var stream = new RxService.Subject();
+module.exports = function(RxService) {
+  var stream = new RxService.Subject();
 
-    return {
-      create: function(config) {
-        stream.onNext({
-          title: config.title,
-          message: config.message,
-          href: config.href,
-          timestamp: Date.now()
-        });
-      },
-      subscribe: function(x) { stream.subscribe(x); }
-    };
-  });
+  return {
+    create: function(config) {
+      stream.onNext({
+        title: config.title,
+        message: config.message,
+        href: config.href,
+        timestamp: Date.now()
+      });
+    },
+    subscribe: function(x) { stream.subscribe(x); }
+  };
+};

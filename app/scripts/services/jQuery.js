@@ -1,6 +1,7 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('$', function($window) {
-    return $window.jQuery;
-  });
+var jquery = require('jquery');
+
+module.exports = function() {
+  return jquery;
+};

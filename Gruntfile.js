@@ -33,7 +33,7 @@ module.exports = function (grunt) {
 
   // Configurable paths for the application
   var appConfig = {
-    app: require('./bower.json').appPath || 'app',
+    app: 'app',
     dist: 'dist'
   };
 
@@ -45,13 +45,10 @@ module.exports = function (grunt) {
 
     // Watches files for changes and runs tasks based on the changed files
     watch: {
-      bower: {
-        files: ['bower.json'],
-        tasks: ['wiredep']
-      },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-        tasks: ['newer:jshint:all'],
+        tasks: ['newer:jshint:all', 'browserify:dist'],
+        //tasks: ['browserify:dist'],
         options: {
           livereload: '<%= connect.options.livereload %>'
         }
@@ -81,6 +78,16 @@ module.exports = function (grunt) {
           '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
         ]
       }
+    },
+
+    browserify: {
+      dist: {
+        bundleOptions: {
+          debug: true,
+        },
+        src: '<%= yeoman.app %>/scripts/app.js',
+        dest: '.tmp/scripts/application.js',
+      },
     },
 
     // The actual grunt server settings
@@ -400,20 +407,11 @@ module.exports = function (grunt) {
     // Run some tasks in parallel to speed up the build process
     concurrent: {
       server: [
-        'less',
-        'html2js',
-        'copy:styles'
       ],
       test: [
-        'html2js',
         'copy:styles'
       ],
       dist: [
-        'less',
-        'html2js',
-        'copy:styles',
-        'imagemin',
-        'svgmin'
       ]
     },
 
@@ -434,7 +432,12 @@ module.exports = function (grunt) {
 
     grunt.task.run([
       'clean:server',
+      'jshint:all',
+      'browserify:dist',
       'wiredep',
+      'less',
+      'html2js',
+      'copy:styles',
       'concurrent:server',
       'autoprefixer',
       'connect:livereload',
@@ -457,8 +460,14 @@ module.exports = function (grunt) {
 
   grunt.registerTask('build', [
     'clean:dist',
+    'browserify:dist',
     'wiredep',
     'useminPrepare',
+    'less',
+    'html2js',
+    'copy:styles',
+    'imagemin',
+    'svgmin',
     'concurrent:dist',
     'autoprefixer',
     'concat',

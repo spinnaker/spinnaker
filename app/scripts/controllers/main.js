@@ -7,8 +7,6 @@
  * # MainCtrl
  * Controller of the deckApp
  */
-angular.module('deckApp')
-  .controller('MainCtrl', function ($scope) {
+module.exports = function() {
 
-    $scope.thing = 'other;';
-  });
+};

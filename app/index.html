@@ -9,9 +9,7 @@
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700' rel='stylesheet'
         type='text/css'>
   <!-- build:css styles/vendor.css -->
-  <!-- bower:css -->
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
-  <!-- endbower -->
   <!-- endbuild -->
   <!-- build:css(.tmp) styles/main.css -->
   <link rel="stylesheet" href="styles/application.css">
@@ -19,17 +17,20 @@
   <!-- endbuild -->
 </head>
 <body>
-<div class="transition-overlay" ng-if="routing">
-  <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
-</div>
+
 <div class="navbar navbar-inverse navbar-fixed-top">
   <div class="container-liquid">
     <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
       <a class="navbar-brand" href="#">SPINNAKER</a>
     </div>
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
-        <li ng-class="{active: $state.includes('applications') || $state.includes('application')}">
+        <li ng-class="{active: $state.includes('applications')}">
           <a ui-sref="applications">Applications</a>
         </li>
         <li ng-class="{active: $state.includes('infrastructure')}">
@@ -45,74 +46,16 @@
 </div>
 
 <div class="container">
-  <div class="container-liquid" ui-view="main"></div>
+  <div class="container-liquid" ui-view="main">
+    <h1>
+    <span us-spinner="{radius:30, width:8, length: 16}"></span>
+    </h1>
+  </div>
 </div>
 
-
-<!-- build:js(.) scripts/vendor.js -->
-<!-- build:js scripts/rxjs-custom.js -->
-<script src="bower_components/rxjs/dist/rx.lite.js"></script>
-<script src="bower_components/rxjs/dist/rx.aggregates.js"></script>
-<script src="bower_components/rxjs/dist/rx.binding.js"></script>
-<!-- endbuild -->
-
-<!-- bower:js -->
-<script src="bower_components/jquery/dist/jquery.js"></script>
-<script src="bower_components/angular/angular.js"></script>
-<script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
-<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-<script src="bower_components/lodash/dist/lodash.compat.js"></script>
-<script src="bower_components/moment/moment.js"></script>
-<script src="bower_components/restangular/dist/restangular.js"></script>
-<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
-<script src="bower_components/spin.js/spin.js"></script>
-<script src="bower_components/angular-spinner/angular-spinner.js"></script>
-<!-- endbower -->
-<!-- endbuild -->
-
 <!-- build:js({.tmp,app}) scripts/scripts.js -->
-<script src="scripts/app.js"></script>
+<script src="scripts/application.js"></script>
 <script src="scripts/templates.js"></script>
-<script src="scripts/controllers/main.js"></script>
-<script src="scripts/controllers/tasks.js"></script>
-<script src="scripts/services/notifications.js"></script>
-<script src="scripts/directives/notifications.js"></script>
-<script src="scripts/directives/underConstruction.js"></script>
-<script src="scripts/directives/modalFlowControls.js"></script>
-<script src="scripts/controllers/ApplicationCtrl.js"></script>
-<script src="scripts/controllers/ClusterCtrl.js"></script>
-<script src="scripts/controllers/ClustersNavCtrl.js"></script>
-<script src="scripts/controllers/AllClustersCtrl.js"></script>
-<script src="scripts/controllers/AllLoadBalancersCtrl.js"></script>
-<script src="scripts/controllers/LoadBalancerCtrl.js"></script>
-<script src="scripts/controllers/LoadBalancersNavCtrl.js"></script>
-<script src="scripts/controllers/LoadBalancerDetailsCtrl.js"></script>
-<script src="scripts/controllers/InstanceCtrl.js"></script>
-<script src="scripts/controllers/ServerGroupCtrl.js"></script>
-<script src="scripts/controllers/applications.js"></script>
-<script src="scripts/filters/datefromtimestamp.js"></script>
-<script src="scripts/filters/stripCluster.js"></script>
-<script src="scripts/filters/relativeTime.js"></script>
-<script src="scripts/directives/arbitraryList.js"></script>
-<script src="scripts/directives/sorttoggle.js"></script>
-<script src="scripts/directives/insightmenu.js"></script>
-<script src="scripts/directives/serverGroup.js"></script>
-<script src="scripts/directives/accountTag.js"></script>
-<script src="scripts/directives/loadBalancer.js"></script>
-<script src="scripts/directives/loadBalancerServerGroup.js"></script>
-<script src="scripts/directives/validateMinMax.js"></script>
-<script src="scripts/directives/healthCounts.js"></script>
-<script src="scripts/services/oortService.js"></script>
-<script src="scripts/services/front50.js"></script>
-<script src="scripts/services/confirmationModal.js"></script>
-<script src="scripts/services/settings.js"></script>
-<script src="scripts/services/rx.js"></script>
-<script src="scripts/services/moment.js"></script>
-<script src="scripts/services/lodash.js"></script>
-<script src="scripts/services/jQuery.js"></script>
-<script src="scripts/filters/tasks.js"></script>
-<script src="scripts/services/pond.js"></script>
-<script src="scripts/directives/taskview.js"></script>
 <!-- endbuild -->
 </body>
 </html>

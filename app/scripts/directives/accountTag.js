@@ -1,12 +1,11 @@
 'use strict';
 
-angular.module('deckApp')
-  .directive('accountTag', function() {
-    return {
-      restrict: 'E',
-      template: '<span class="label label-default account-label account-label-{{account}}">{{account}}</span>',
-      scope: {
-        account: '='
-      }
-    };
-  });
+module.exports = function() {
+  return {
+    restrict: 'E',
+    template: '<span class="label label-default account-label account-label-{{account}}">{{account}}</span>',
+    scope: {
+      account: '='
+    }
+  };
+};

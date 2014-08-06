@@ -1,6 +1,7 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('_', function($window) {
-    return $window._;
-  });
+var lodash = require('lodash');
+
+module.exports = function() {
+  return lodash;
+};
