@@ -48,7 +48,7 @@ angular.module('deckApp')
               serverGroup.region.toLowerCase(),
               serverGroup.name.toLowerCase(),
               serverGroup.account.toLowerCase(),
-//                _.collect(serverGroup.instances, 'name').join(' ')
+                _.collect(serverGroup.loadBalancers, 'name').join(' ')
             ].join(' ');
           }
           return filter.split(' ').every(function(testWord) {

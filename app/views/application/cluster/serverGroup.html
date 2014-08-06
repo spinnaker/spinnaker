@@ -1,9 +1,18 @@
 <div class="row server-group"
      ng-class="{active: $state.includes('*.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})}">
-  <div class="summary">
+  <div class="summary clearfix">
     <a ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
       <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
     </a>
+    <div class="load-balancers pull-right text-right">
+      <a href
+         ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'name'"
+         ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"
+         tooltip="{{loadBalancer.name}}"
+        >
+        <span class="glyphicon glyphicon-cloud"></span>
+      </a>
+    </div>
   </div>
   <div class="details">
     <div class="build-title">
