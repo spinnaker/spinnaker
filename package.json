@@ -80,7 +80,9 @@
       "depends": "angular:angular"
     },
     "angular-ui-router": {
-      "depends": "angular:angular"
+      "depends": [
+        "angular:angular"
+      ]
     },
     "angular-spinner": {
       "depends": [

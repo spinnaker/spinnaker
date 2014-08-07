@@ -12,8 +12,8 @@
 </h3>
 
 <div class="sub-nav-item">
-  <a ui-sref="loadBalancers"
-     ng-class="{active: $state.includes('loadBalancers') && !$state.includes('loadBalancer')}"
+  <a ui-sref=".loadBalancers"
+     ng-class="{active: $state.includes('**.loadBalancers.**') && !$state.includes('**.loadBalancer.**')}"
     >Show All Load Balancers</a>
 </div>
 <div class="sub-nav" ng-repeat="heading in getHeadings() | orderBy:'toString()'">
@@ -21,7 +21,7 @@
     <h4>{{heading}}</h4>
     <a ng-repeat="loadBalancer in getLoadBalancersFor(heading)"
        ui-sref="loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account})"
-       ng-class="{active: $state.includes('loadBalancer', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account} )}">
+       ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account} )}">
       {{getLoadBalancerLabel(loadBalancer)}} ({{getLoadBalancerSublabel(loadBalancer)}})</a>
   </div>
 </div>

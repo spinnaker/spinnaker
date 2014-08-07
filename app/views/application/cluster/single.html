@@ -20,7 +20,7 @@
     </div>
   </div>
 </div>
-<div ui-view="filters"></div>
+<div ng-include="'views/application/cluster/filters.html'"></div>
 <div class="content">
   <div ng-repeat="serverGroupRegion in serverGroupsByRegion | orderBy:'region'" class="server-group-rollup">
     <h4>{{serverGroupRegion.region}}</h4>

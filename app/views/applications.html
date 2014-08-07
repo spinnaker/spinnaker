@@ -28,7 +28,7 @@
       <tbody>
         <tr ng-repeat="application in resultPage()">
           <td>
-            <a ui-sref="application({ application: application.name })">
+            <a ui-sref=".application({ application: application.name })">
               {{ application.name }}
             </a>
           </td>

@@ -13,15 +13,15 @@
 
 <div class="sub-nav-item">
   <a ui-sref="."
-     ng-class="{active: $state.includes('clusters') && !$state.includes('cluster')}"
+     ng-class="{active: $state.includes('**.clusters.**') && !$state.includes('**.cluster.**')}"
     >Show All Clusters</a>
 </div>
 <div class="sub-nav" ng-repeat="heading in getHeadings() | orderBy:'toString()'">
   <div class="sub-nav-item">
     <h4>{{heading}}</h4>
     <a ng-repeat="cluster in getClustersFor(heading)"
-       ui-sref="cluster({account: cluster.account, cluster: cluster.name})"
-       ng-class="{active: $state.includes('cluster', {account: cluster.account, cluster: cluster.name} )}">
+       ui-sref=".cluster({account: cluster.account, cluster: cluster.name})"
+       ng-class="{active: $state.includes('**.cluster.**', {account: cluster.account, cluster: cluster.name} )}">
         {{getClusterLabel(cluster)}} ({{getClusterSublabel(cluster)}})</a>
   </div>
 </div>
