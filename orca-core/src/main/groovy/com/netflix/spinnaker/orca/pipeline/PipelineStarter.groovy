@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
@@ -38,6 +37,7 @@ import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @Component
 @CompileStatic
@@ -99,7 +99,9 @@ class PipelineStarter {
 
   private JobBuilderHelper adHocStageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
     def adHocTask = applicationContext.getBean("${stepConfig.type}Task", Task)
-    def step = steps.get("${stepConfig.type}Step").tasklet(TaskTaskletAdapter.decorate(adHocTask)).build()
+    def step = steps.get("${stepConfig.type}Step")
+                    .tasklet(decorate(adHocTask))
+                    .build()
     jobBuilder.next(step)
   }
 

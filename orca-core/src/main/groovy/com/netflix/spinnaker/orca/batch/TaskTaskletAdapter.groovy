@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -32,14 +29,18 @@ import org.springframework.retry.annotation.Retryable
 @Retryable
 class TaskTaskletAdapter implements Tasklet {
 
-  private final Task task
-
-  TaskTaskletAdapter(Task task) {
-    this.task = task
+  static Tasklet decorate(Task task) {
+    if (task instanceof RetryableTask) {
+      new RetryableTaskTaskletAdapter(task)
+    } else {
+      new TaskTaskletAdapter(task)
+    }
   }
 
-  static Tasklet decorate(Task task) {
-    new TaskTaskletAdapter(task)
+  private final Task task
+
+  protected TaskTaskletAdapter(Task task) {
+    this.task = task
   }
 
   Class<? extends Task> getTaskType() {

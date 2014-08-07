@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca
 
 /**

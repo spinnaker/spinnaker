@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.RetryableTask
@@ -31,7 +29,7 @@ class RetryableTaskTaskletAdapter extends TaskTaskletAdapter {
 
   final RetryTemplate retryTemplate
 
-  RetryableTaskTaskletAdapter(RetryableTask task) {
+  protected RetryableTaskTaskletAdapter(RetryableTask task) {
     super(task)
     retryTemplate = new RetryTemplate()
     retryTemplate.retryContextCache = new SoftReferenceMapRetryContextCache()

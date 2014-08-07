@@ -18,7 +18,9 @@ package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.pipeline.AdHocStageBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -31,15 +33,17 @@ import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.*
+import static com.netflix.spinnaker.orca.TaskResult.Status.FAILED
+import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
-@Narrative("Orca should support the addition of ad-hoc tasks (i.e. those with no pre-defined stage) to a pipeline")
+@Narrative("Orca should support the addition of ad-hoc stages (i.e. those with no pre-defined stage that just consist of a single task) to a pipeline")
 @Issue("https://github.com/spinnaker/orca/issues/42")
-@ContextConfiguration(classes = [BatchTestConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, AdHocStageBuilder])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-class AdHocTaskSpec extends Specification {
+class AdHocStageSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired JobBuilderFactory jobs
@@ -49,22 +53,25 @@ class AdHocTaskSpec extends Specification {
 
   @Subject jobStarter = new PipelineStarter()
 
-  def fooTasklet = Mock(Tasklet)
-  def barTask = Mock(Task)
-
   @Shared mapper = new ObjectMapper()
 
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStageBuilder", new TestStageBuilder(fooTasklet, steps)
-      registerSingleton "barTask", barTask
 
       autowireBean jobStarter
     }
   }
 
   def "an unknown stage is interpreted as an ad-hoc task"() {
+    given:
+    def fooTasklet = Mock(Tasklet)
+    def barTask = Mock(Task)
+    applicationContext.beanFactory.with {
+      registerSingleton "fooStageBuilder", new TestStageBuilder(fooTasklet, steps)
+      registerSingleton "barTask", barTask
+    }
+
     when:
     jobStarter.start configJson
 
@@ -76,6 +83,26 @@ class AdHocTaskSpec extends Specification {
 
     where:
     config = [[type: "foo"], [type: "bar"]]
+    configJson = mapper.writeValueAsString(config)
+  }
+
+  def "an ad-hoc stage can be retryable"() {
+    given:
+    def fooTask = Mock(RetryableTask) {
+      getTimeout() >> Long.MAX_VALUE
+    }
+    applicationContext.beanFactory.with {
+      registerSingleton "fooTask", fooTask
+    }
+
+    when:
+    jobStarter.start configJson
+
+    then:
+    2 * fooTask.execute(_) >>> [new DefaultTaskResult(RUNNING), new DefaultTaskResult(SUCCEEDED)]
+
+    where:
+    config = [[type: "foo"]]
     configJson = mapper.writeValueAsString(config)
   }
 }

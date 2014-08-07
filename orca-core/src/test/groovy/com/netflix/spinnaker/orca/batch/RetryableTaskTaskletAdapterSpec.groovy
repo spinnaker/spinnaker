@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch
 
-import spock.lang.Specification
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.util.StopWatch
+import spock.lang.Specification
 import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
@@ -38,9 +36,11 @@ class RetryableTaskTaskletAdapterSpec extends Specification {
 
   void "should backoff when the task returns continuable"() {
     setup:
-    def step = Mock(RetryableTask)
-    step.getBackoffPeriod() >> 1000l
-    step.getTimeout() >> 5000l
+    def step = Mock(RetryableTask) {
+      getBackoffPeriod() >> 1000L
+      getTimeout() >> 5000L
+    }
+
     def tasklet = new RetryableTaskTaskletAdapter(step)
     def timer = new StopWatch()
     timer.start()
