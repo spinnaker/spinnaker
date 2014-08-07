@@ -452,6 +452,8 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test', [
     'clean:server',
+    'browserify:dist',
+    'html2js',
     'concurrent:test',
     'autoprefixer',
     'connect:test',

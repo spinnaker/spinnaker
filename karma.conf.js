@@ -16,21 +16,11 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'app/bower_components/jquery/dist/jquery.js',
-      'app/bower_components/angular/angular.js',
+      '.tmp/scripts/application.js',
+      '.tmp/scripts/templates.js',
       'app/bower_components/angular-mocks/angular-mocks.js',
-      'app/bower_components/angular-ui-router/release/angular-ui-router.js',
-      'app/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
-      'app/bower_components/angular-mocks/angular-mocks.js',
-      'app/bower_components/bootstrap/dist/js/bootstrap.js',
-      'app/bower_components/restangular/dist/restangular.js',
-      'app/bower_components/lodash/dist/lodash.compat.js',
-      'app/bower_components/spin.js/spin.js',
-      'app/bower_components/angular-spinner/angular-spinner.js',
-      'app/scripts/**/*.js',
       'test/mock/**/*.js',
-      'test/spec/**/*.js',
-      '.tmp/scripts/templates.js'
+      'test/spec/**/*.js'
     ],
 
     // list of files / patterns to exclude
