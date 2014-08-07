@@ -18,26 +18,26 @@ angular.module('deckApp')
         key: '@',
         label: '@',
         'default': '@',
-        onChange: '&'
+        onChange: '&',
+        model: '=sortingModel'
       },
       restrict: 'A',
       controller: function ($scope) {
         if ($scope.default === 'true') {
-          $scope.$parent.sortKey = $scope.key;
+          $scope.model.sortKey = $scope.key;
         }
 
         $scope.onChange = $scope.onChange || angular.noop;
 
-        // TODO: find a solution that doesn't involve $parent
-        $scope.$parent.reverse = false;
+        $scope.model.reverse = false;
         $scope.setSortKey = function (key) {
-          $scope.$parent.sortKey = key;
-          $scope.$parent.reverse = $scope.isSortKey(key) ? !$scope.$parent.reverse : false;
+          $scope.model.sortKey = key;
+          $scope.model.reverse = $scope.isSortKey(key) ? !$scope.model.reverse : false;
           $scope.onChange();
         };
 
         $scope.isSortKey = function (key) {
-          return $scope.$parent.sortKey === key;
+          return $scope.model.sortKey === key;
         };
       }
     };

@@ -14,7 +14,11 @@ angular.module('deckApp')
       $scope.applicationsLoaded = true;
     });
 
-    $scope.sortKey = 'name';
+    $scope.sorting = {
+      sortKey: 'name',
+      reverse: false
+    };
+
     $scope.applicationFilter = '';
 
     $scope.menuActions = [
@@ -47,7 +51,7 @@ angular.module('deckApp')
 
     $scope.filterApplications = function() {
       var filtered = $filter('filter')($scope.applications, {name: $scope.applicationFilter}),
-          sorted = $filter('orderBy')(filtered, $scope.sortKey, $scope.reverse);
+          sorted = $filter('orderBy')(filtered, $scope.sorting.sortKey, $scope.sorting.reverse);
       $scope.filteredApplications = sorted;
       $scope.resetPaginator();
     };
