@@ -1,24 +1,29 @@
 'use strict';
 
-module.exports = function($scope, cluster, application, oortService, _) {
+require('../app');
+var angular = require('angular');
 
-  $scope.account = cluster.account;
-  $scope.cluster = cluster;
-  $scope.asgsByRegion = [];
+angular.module('deckApp')
+  .controller('ClusterCtrl', function($scope, cluster, application, oortService, _) {
 
-  function groupAsgsByRegion() {
-    var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
-      regions = _.keys(groupedAsgs),
-      asgsByRegion = [];
+    $scope.account = cluster.account;
+    $scope.cluster = cluster;
+    $scope.asgsByRegion = [];
 
-    regions.forEach(function(region) {
-      asgsByRegion.push({ region: region, serverGroups: groupedAsgs[region] });
-    });
-    $scope.asgsByRegion = asgsByRegion;
+    function groupAsgsByRegion() {
+      var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
+        regions = _.keys(groupedAsgs),
+        asgsByRegion = [];
+
+      regions.forEach(function(region) {
+        asgsByRegion.push({ region: region, serverGroups: groupedAsgs[region] });
+      });
+      $scope.asgsByRegion = asgsByRegion;
+    }
+
+    $scope.cluster = cluster;
+
+    groupAsgsByRegion();
+
   }
-
-  $scope.cluster = cluster;
-
-  groupAsgsByRegion();
-
-};
+);

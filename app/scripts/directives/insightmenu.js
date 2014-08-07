@@ -1,20 +1,25 @@
 'use strict';
 
+require('../app');
+var angular = require('angular');
+
 /**
  * @ngdoc directive
  * @name scumApp.directive:insightMenu
  * @description
  * # insightMenu
  */
-module.exports = function() {
-  return {
-    templateUrl: 'views/insightmenu.html',
-    restrict: 'E',
-    replace: true,
-    scope: {
-      actions: '=',
-      title: '@',
-      icon: '@',
-    },
-  };
-};
+angular.module('deckApp')
+  .directive('insightMenu', function () {
+    return {
+      templateUrl: 'views/insightmenu.html',
+      restrict: 'E',
+      replace: true,
+      scope: {
+        actions: '=',
+        title: '@',
+        icon: '@',
+      },
+    };
+  }
+);

@@ -16,23 +16,28 @@
 
 'use strict';
 
-module.exports = function() {
-  return {
-    restrict: 'A',
-    controller: function($scope) {
-      $scope.page = 0;
-      $scope.nextPage = function() {
-        $scope.page += 1;
-        $scope.stage.removeClass('back').addClass('forward');
-      };
-      $scope.previousPage = function() {
-        $scope.page -= 1;
-        $scope.stage.removeClass('forward').addClass('back');
-      };
-    },
-    link: function (scope, elem) {
-      scope.stage = elem;
-    }
-  };
-};
+require('../app');
+var angular = require('angular');
+
+angular.module('deckApp')
+  .directive('multiPageModal', function () {
+    return {
+      restrict: 'A',
+      controller: function ($scope) {
+        $scope.page = 0;
+        $scope.nextPage = function () {
+          $scope.page += 1;
+          $scope.stage.removeClass('back').addClass('forward');
+        };
+        $scope.previousPage = function () {
+          $scope.page -= 1;
+          $scope.stage.removeClass('forward').addClass('back');
+        };
+      },
+      link: function (scope, elem) {
+        scope.stage = elem;
+      }
+    };
+  }
+);
 

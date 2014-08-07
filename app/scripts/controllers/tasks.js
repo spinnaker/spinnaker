@@ -1,15 +1,20 @@
 'use strict';
 
-module.exports = function($scope, tasks, $log) {
+require('../app');
+var angular = require('angular');
 
-  $scope.taskStateFilter = 'All';
+angular.module('deckApp')
+  .controller('TasksCtrl', function ($scope, tasks, $log) {
 
-  $log.debug('tasks:', tasks);
+    $scope.taskStateFilter = 'All';
 
-  //$scope.subscribeTo(tasks.all);
+    $log.debug('tasks:', tasks);
 
-  $scope.subscribed = {
-    data: tasks,
-  };
+    //$scope.subscribeTo(tasks.all);
 
-};
+    $scope.subscribed = {
+      data: tasks,
+    };
+
+  }
+);

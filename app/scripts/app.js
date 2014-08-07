@@ -17,33 +17,32 @@ require('restangular');
 require('angular-spinner');
 
 angular.module('deckApp', [
-    'ui.router',
-    'ui.bootstrap',
-    'restangular',
-    'angularSpinner',
-    'deckApp.templates'
-  ])
-  .run(function($state, $rootScope, $log, $exceptionHandler) {
+  'ui.router',
+  'ui.bootstrap',
+  'restangular',
+  'angularSpinner',
+  'deckApp.templates'
+])
+  .run(function ($state, $rootScope, $log, $exceptionHandler) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
     //
-    $rootScope.subscribeTo = function(observable) {
+    $rootScope.subscribeTo = function (observable) {
       this.subscribed = {
         data: undefined
       };
 
-      observable.subscribe(function(data) {
+      observable.subscribe(function (data) {
         this.subscribed.data = data;
-      }.bind(this), function(err) {
+      }.bind(this), function (err) {
         $exceptionHandler(err, 'Failed to load data into the view.');
       }.bind(this));
     };
 
 
-
     $rootScope.$state = $state;
-    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+    $rootScope.$on('$stateChangeStart', function (event, toState, toParams, fromState, fromParams) {
       $log.debug({
         event: event,
         toState: toState,
@@ -54,19 +53,19 @@ angular.module('deckApp', [
       $rootScope.routing = true;
     });
 
-    $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
+    $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
       $log.debug({
         event: event,
         toState: toState,
         toParams: toParams,
         fromState: fromState,
         fromParams: fromParams,
-        error:error
+        error: error
       });
       $rootScope.routing = false;
     });
 
-    $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
+    $rootScope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState, fromParams) {
       $log.debug({
         event: event,
         toState: toState,
@@ -75,19 +74,6 @@ angular.module('deckApp', [
         fromParams: fromParams
       });
       $rootScope.routing = false;
-    });
-  })
-  .config(function(RestangularProvider) {
-    RestangularProvider.addElementTransformer('applications', true, function(applications) {
-      applications.forEach(function(application) {
-        if (!application.attributes.createTs) {
-          application.attributes.createTs = '0';
-        }
-        if (!application.attributes.updateTs) {
-          application.attributes.updateTs = '0';
-        }
-      });
-      return applications;
     });
   })
   .config(function ($stateProvider, $urlRouterProvider, $logProvider) {
@@ -108,7 +94,7 @@ angular.module('deckApp', [
           }
         },
         resolve: {
-          instance: function($stateParams) {
+          instance: function ($stateParams) {
             return {
               instanceId: $stateParams.instanceId
             };
@@ -128,7 +114,7 @@ angular.module('deckApp', [
           }
         },
         resolve: {
-          serverGroup: function($stateParams) {
+          serverGroup: function ($stateParams) {
             return {
               name: $stateParams.serverGroup,
               accountId: $stateParams.accountId,
@@ -150,7 +136,7 @@ angular.module('deckApp', [
           }
         },
         resolve: {
-          loadBalancer: function($stateParams) {
+          loadBalancer: function ($stateParams) {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
@@ -202,7 +188,7 @@ angular.module('deckApp', [
           },
         },
         resolve: {
-          application: function($stateParams, oortService) {
+          application: function ($stateParams, oortService) {
             return oortService.getApplication($stateParams.application);
           }
         }
@@ -218,7 +204,7 @@ angular.module('deckApp', [
           },
         },
         resolve: {
-          tasks: function(pond) {
+          tasks: function (pond) {
             // TODO: scope tasks to application
             return pond.all('task').getList();
           },
@@ -258,7 +244,7 @@ angular.module('deckApp', [
           }
         },
         resolve: {
-          cluster: function($stateParams, application) {
+          cluster: function ($stateParams, application) {
             return application.getCluster($stateParams.account, $stateParams.cluster);
           }
         }
@@ -293,7 +279,7 @@ angular.module('deckApp', [
           }
         },
         resolve: {
-          loadBalancer: function($stateParams) {
+          loadBalancer: function ($stateParams) {
             return {
               name: $stateParams.loadBalancer,
               region: $stateParams.loadBalancerRegion,
@@ -324,7 +310,7 @@ angular.module('deckApp', [
           }
         },
         resolve: {
-          cluster: function($stateParams) {
+          cluster: function ($stateParams) {
             return {
               name: $stateParams.cluster
             };
@@ -332,49 +318,5 @@ angular.module('deckApp', [
         }
       });
 
-  })
-  .controller('AllClustersCtrl', require('./controllers/AllClustersCtrl'))
-  .controller('ApplicationCtrl', require('./controllers/ApplicationCtrl'))
-  .controller('ClusterCtrl', require('./controllers/ClusterCtrl'))
-  .controller('InstanceCtrl', require('./controllers/InstanceCtrl'))
-  .controller('ServerGroupCtrl', require('./controllers/ServerGroupCtrl'))
-  .controller('ApplicationsCtrl', require('./controllers/applications'))
-  .controller('LoadBalancerCtrl', require('./controllers/LoadBalancerCtrl'))
-  .controller('LoadBalancerDetailsCtrl', require('./controllers/LoadBalancerDetailsCtrl'))
-  .controller('MainCtrl', require('./controllers/main'))
-  .controller('TasksCtrl', require('./controllers/tasks'))
-  .controller('ConfirmationModalCtrl', require('./controllers/ConfirmationModalCtrl'))
-  .controller('ClustersNavCtrl', require('./controllers/ClustersNavCtrl'))
-  .controller('AllLoadBalancersCtrl', require('./controllers/AllLoadBalancersCtrl'))
-  .controller('LoadBalancersNavCtrl', require('./controllers/LoadBalancersNavCtrl'))
-  .factory('confirmationModalService', require('./services/confirmationModal'))
-  .factory('front50', require('./services/front50'))
-  .factory('$', require('./services/jQuery'))
-  .factory('_', require('./services/lodash'))
-  .factory('momentService', require('./services/moment'))
-  .factory('notifications', require('./services/notifications'))
-  .factory('oortService', require('./services/oortService'))
-  .factory('pond', require('./services/pond'))
-  .factory('RxService', require('./services/rx'))
-  .factory('isEmpty', require('./services/isEmpty'))
-  .constant('settings', require('./services/settings'))
-  .directive('arbitraryList', require('./directives/arbitraryList'))
-  .directive('healthCounts', require('./directives/healthCounts'))
-  .directive('insightMenu', require('./directives/insightmenu'))
-  .directive('multiPageModal', require('./directives/multiPageModal'))
-  .directive('modalPage', require('./directives/modalPage'))
-  .directive('notifications', require('./directives/notifications'))
-  .directive('serverGroup', require('./directives/serverGroup'))
-  .directive('sortToggle', require('./directives/sorttoggle'))
-  .directive('taskView', require('./directives/taskview'))
-  .directive('underConstruction', require('./directives/underConstruction'))
-  .directive('validateMin', require('./directives/validateMin'))
-  .directive('validateMax', require('./directives/validateMax'))
-  .directive('accountTag', require('./directives/accountTag'))
-  .directive('loadBalancer', require('./directives/loadBalancer'))
-  .directive('loadBalancerServerGroup', require('./directives/loadBalancerServerGroup'))
-  .filter('dateFromTimestamp', require('./filters/datefromtimestamp'))
-  .filter('relativeTime', require('./filters/relativeTime'))
-  .filter('step', require('./filters/step'))
-  .filter('stripCluster', require('./filters/stripCluster'))
-  .filter('taskFilter', require('./filters/tasks'));
+  }
+);

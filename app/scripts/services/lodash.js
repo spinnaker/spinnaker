@@ -1,7 +1,10 @@
 'use strict';
 
+require('../app');
 var lodash = require('lodash');
+var angular = require('angular');
 
-module.exports = function() {
-  return lodash;
-};
+angular.module('deckApp')
+  .factory('_', function() {
+    return lodash;
+  });

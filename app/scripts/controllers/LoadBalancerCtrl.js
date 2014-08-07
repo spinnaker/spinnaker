@@ -1,55 +1,60 @@
 'use strict';
 
-module.exports = function($scope, application, loadBalancer, _) {
-  $scope.application = application;
+require('../app');
+var angular = require('angular');
 
-  $scope.loadBalancer = application.loadBalancers.filter(function(test) {
-    return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account.name === loadBalancer.account.name;
-  })[0];
+angular.module('deckApp')
+  .controller('LoadBalancerCtrl', function ($scope, application, loadBalancer, _) {
+    $scope.application = application;
 
-  $scope.sortFilter = {
-    filter: '',
-    showAllInstances: true
-  };
+    $scope.loadBalancer = application.loadBalancers.filter(function (test) {
+      return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account.name === loadBalancer.account.name;
+    })[0];
 
-  $scope.updateSorting = function() {
-    var sortFilter = $scope.sortFilter;
-    if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
-      sortFilter.sortSecondary = $scope.sortOptions(sortFilter.sortPrimary)[0].key;
-    }
-    $scope.updateLoadBalancerGroups();
-  };
+    $scope.sortFilter = {
+      filter: '',
+      showAllInstances: true
+    };
 
-  function addSearchFields(loadBalancer) {
-    loadBalancer.serverGroups.forEach(function(serverGroup) {
-      serverGroup.searchField = [
-        serverGroup.name
-      ].join(' ');
-    });
-  }
-
-  function matchesFilter(loadBalancer, filter) {
-    return loadBalancer.serverGroups.filter(function (serverGroup) {
-      if (!filter) {
-        return true;
+    $scope.updateSorting = function () {
+      var sortFilter = $scope.sortFilter;
+      if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
+        sortFilter.sortSecondary = $scope.sortOptions(sortFilter.sortPrimary)[0].key;
       }
-      return filter.split(' ').every(function (testWord) {
-        return serverGroup.searchField.indexOf(testWord) !== -1;
-      });
-    });
-  }
+      $scope.updateLoadBalancerGroups();
+    };
 
-  function updateLoadBalancerGroups() {
-    var loadBalancer = $scope.loadBalancer,
+    function addSearchFields(loadBalancer) {
+      loadBalancer.serverGroups.forEach(function (serverGroup) {
+        serverGroup.searchField = [
+          serverGroup.name
+        ].join(' ');
+      });
+    }
+
+    function matchesFilter(loadBalancer, filter) {
+      return loadBalancer.serverGroups.filter(function (serverGroup) {
+        if (!filter) {
+          return true;
+        }
+        return filter.split(' ').every(function (testWord) {
+          return serverGroup.searchField.indexOf(testWord) !== -1;
+        });
+      });
+    }
+
+    function updateLoadBalancerGroups() {
+      var loadBalancer = $scope.loadBalancer,
         filter = $scope.sortFilter.filter.toLowerCase();
 
-    $scope.filteredServerGroups = matchesFilter(loadBalancer, filter);
-    $scope.$digest(); // debounce
+      $scope.filteredServerGroups = matchesFilter(loadBalancer, filter);
+      $scope.$digest(); // debounce
+    }
+
+    $scope.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
+
+    addSearchFields($scope.loadBalancer);
+    $scope.updateLoadBalancerGroups();
+
   }
-
-  $scope.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
-
-  addSearchFields($scope.loadBalancer);
-  $scope.updateLoadBalancerGroups();
-
-};
+);

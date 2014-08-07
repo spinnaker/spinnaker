@@ -48,7 +48,6 @@ module.exports = function (grunt) {
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
         tasks: ['newer:jshint:all', 'browserify:dist'],
-        //tasks: ['browserify:dist'],
         options: {
           livereload: '<%= connect.options.livereload %>'
         }
@@ -82,10 +81,7 @@ module.exports = function (grunt) {
 
     browserify: {
       dist: {
-        bundleOptions: {
-          debug: true,
-        },
-        src: '<%= yeoman.app %>/scripts/app.js',
+        src: '<%= yeoman.app %>/scripts/**/*.js',
         dest: '.tmp/scripts/application.js',
       },
     },
@@ -255,8 +251,7 @@ module.exports = function (grunt) {
         flow: {
           html: {
             steps: {
-              js: ['concat'],
-//              js: ['concat', 'uglifyjs'],
+              js: ['concat', 'uglifyjs'],
               css: ['cssmin']
             },
             post: {}
@@ -273,32 +268,6 @@ module.exports = function (grunt) {
         assetsDirs: ['<%= yeoman.dist %>','<%= yeoman.dist %>/images']
       }
     },
-
-    // The following *-min tasks will produce minified files in the dist folder
-    // By default, your `index.html`'s <!-- Usemin block --> will take care of
-    // minification. These next options are pre-configured if you do not wish
-    // to use the Usemin blocks.
-    // cssmin: {
-    //   dist: {
-    //     files: {
-    //       '<%= yeoman.dist %>/styles/main.css': [
-    //         '.tmp/styles/{,*/}*.css'
-    //       ]
-    //     }
-    //   }
-    // },
-    // uglify: {
-    //   dist: {
-    //     files: {
-    //       '<%= yeoman.dist %>/scripts/scripts.js': [
-    //         '<%= yeoman.dist %>/scripts/scripts.js'
-    //       ]
-    //     }
-    //   }
-    // },
-    // concat: {
-    //   dist: {}
-    // },
 
     imagemin: {
       dist: {
@@ -337,21 +306,6 @@ module.exports = function (grunt) {
           src: ['*.html', 'views/{,*/}*.html'],
           dest: '<%= yeoman.dist %>'
         }]
-      }
-    },
-
-    // Allow the use of non-minsafe AngularJS files. Automatically makes it
-    // minsafe compatible so Uglify does not destroy the ng references
-    ngAnnotate: {
-      dist: {
-        files: [
-          {
-            expand: true,
-            cwd: '.tmp/scripts',
-            src: '*.js',
-            dest: '.tmp/scripts'
-          }
-        ]
       }
     },
 
@@ -477,7 +431,7 @@ module.exports = function (grunt) {
     'copy:dist',
     'cdnify',
     'cssmin',
-//    'uglify',
+    'uglify',
     'filerev',
     'usemin',
     'htmlmin'

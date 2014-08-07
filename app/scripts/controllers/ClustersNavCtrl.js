@@ -1,16 +1,21 @@
 'use strict';
 
-module.exports = function($scope, application) {
+require('../app');
+var angular = require('angular');
 
-  $scope.application = application;
+angular.module('deckApp')
+  .controller('ClustersNavCtrl', function ($scope, application) {
 
-  $scope.getClustersForAccount = function(account) {
-    return $scope.clusters.filter(function(cluster) {
-      return cluster.accountName === account;
-    });
-  };
+    $scope.application = application;
 
-  $scope.clusters = application.clusters;
-  $scope.clustersLoaded = true;
-};
+    $scope.getClustersForAccount = function (account) {
+      return $scope.clusters.filter(function (cluster) {
+        return cluster.accountName === account;
+      });
+    };
+
+    $scope.clusters = application.clusters;
+    $scope.clustersLoaded = true;
+  }
+);
 

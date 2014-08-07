@@ -1,7 +1,10 @@
 'use strict';
 
+require('../app');
 var jquery = require('jquery');
+var angular = require('angular');
 
-module.exports = function() {
-  return jquery;
-};
+angular.module('deckApp')
+  .factory('$', function() {
+    return jquery;
+  });

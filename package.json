@@ -2,11 +2,14 @@
   "main": "./app/scripts/app.js",
   "name": "deck",
   "version": "0.0.0",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
+    "browserify": "~4.2.3",
+    "browserify-ngannotate": "^0.1.0",
+    "browserify-shim": "~3.6.0",
     "grunt": "^0.4.1",
     "grunt-autoprefixer": "^0.7.3",
+    "grunt-browserify": "~2.1.4",
     "grunt-concurrent": "^0.5.0",
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-concat": "^0.4.0",
@@ -24,6 +27,7 @@
     "grunt-html2js": "^0.2.7",
     "grunt-karma": "~0.8.3",
     "grunt-newer": "^0.7.0",
+    "grunt-ng-annotate": "^0.2.2",
     "grunt-svgmin": "^0.4.0",
     "grunt-usemin": "^2.1.1",
     "grunt-wiredep": "^1.7.0",
@@ -36,11 +40,7 @@
     "karma-ng-html2js-preprocessor": "~0.1.0",
     "karma-phantomjs-launcher": "~0.1.4",
     "load-grunt-tasks": "^0.4.0",
-    "grunt-ng-annotate": "^0.2.2",
-    "time-grunt": "^0.3.1",
-    "grunt-browserify": "~2.1.4",
-    "browserify": "~4.2.3",
-    "browserify-shim": "~3.6.0"
+    "time-grunt": "^0.3.1"
   },
   "engines": {
     "node": ">=0.10.0"
@@ -83,7 +83,10 @@
       "depends": "angular:angular"
     },
     "angular-spinner": {
-      "depends": ["angular:angular", "spin:Spinner"]
+      "depends": [
+        "angular:angular",
+        "spin:Spinner"
+      ]
     },
     "restangular": {
       "depends": "angular:angular"
@@ -94,7 +97,8 @@
   },
   "browserify": {
     "transform": [
-      "browserify-shim"
+      "browserify-shim",
+      "browserify-ngannotate"
     ]
   }
 }
