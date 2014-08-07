@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.pipeline
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
@@ -87,8 +89,18 @@ class PipelineStarter {
   }
 
   private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
-    def stageBuilder = applicationContext.getBean("${stepConfig.type}StageBuilder", StageBuilder)
-    stageBuilder.build(jobBuilder)
+    final stageBuilderBeanName = "${stepConfig.type}StageBuilder"
+    if (applicationContext.containsBean(stageBuilderBeanName)) {
+      applicationContext.getBean(stageBuilderBeanName, StageBuilder).build(jobBuilder)
+    } else {
+      adHocStageFromConfig jobBuilder, stepConfig
+    }
+  }
+
+  private JobBuilderHelper adHocStageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
+    def adHocTask = applicationContext.getBean("${stepConfig.type}Task", Task)
+    def step = steps.get("${stepConfig.type}Step").tasklet(TaskTaskletAdapter.decorate(adHocTask)).build()
+    jobBuilder.next(step)
   }
 
   private Job job(JobBuilderHelper jobBuilder) {

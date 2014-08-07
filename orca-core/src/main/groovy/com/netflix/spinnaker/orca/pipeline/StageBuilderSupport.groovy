@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
@@ -58,9 +56,4 @@ abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements Aut
   void setSteps(StepBuilderFactory steps) {
     this.steps = steps
   }
-
-  /**
-   * Default implementation simply creates a +JobParameter+ for every entry in +configuration+. Implementations can
-   * override this as necessary.
-   */
 }
