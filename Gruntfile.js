@@ -255,7 +255,8 @@ module.exports = function (grunt) {
         flow: {
           html: {
             steps: {
-              js: ['concat', 'uglifyjs'],
+              js: ['concat'],
+//              js: ['concat', 'uglifyjs'],
               css: ['cssmin']
             },
             post: {}
@@ -346,9 +347,9 @@ module.exports = function (grunt) {
         files: [
           {
             expand: true,
-            cwd: '.tmp/concat/scripts',
+            cwd: '.tmp/scripts',
             src: '*.js',
-            dest: '.tmp/concat/scripts'
+            dest: '.tmp/scripts'
           }
         ]
       }
@@ -473,11 +474,10 @@ module.exports = function (grunt) {
     'concurrent:dist',
     'autoprefixer',
     'concat',
-    'ngAnnotate',
     'copy:dist',
     'cdnify',
     'cssmin',
-    'uglify',
+//    'uglify',
     'filerev',
     'usemin',
     'htmlmin'

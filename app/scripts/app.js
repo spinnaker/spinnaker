@@ -340,6 +340,7 @@ angular.module('deckApp', [
   .controller('ServerGroupCtrl', require('./controllers/ServerGroupCtrl'))
   .controller('ApplicationsCtrl', require('./controllers/applications'))
   .controller('LoadBalancerCtrl', require('./controllers/LoadBalancerCtrl'))
+  .controller('LoadBalancerDetailsCtrl', require('./controllers/LoadBalancerDetailsCtrl'))
   .controller('MainCtrl', require('./controllers/main'))
   .controller('TasksCtrl', require('./controllers/tasks'))
   .controller('ConfirmationModalCtrl', require('./controllers/ConfirmationModalCtrl'))
