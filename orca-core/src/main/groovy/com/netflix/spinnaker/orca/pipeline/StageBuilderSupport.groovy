@@ -38,11 +38,15 @@ abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements Aut
     this.name = name
   }
 
+  /**
+   * @return the stage name used by Mayo when configuring pipelines.
+   */
   @Override
   final String getName() {
     name
   }
-/**
+
+  /**
    * Builds and autowires a task.
    *
    * @param taskType The +Task+ implementation class.

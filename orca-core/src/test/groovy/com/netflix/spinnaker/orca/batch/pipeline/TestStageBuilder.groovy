@@ -29,8 +29,8 @@ class TestStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
 
   private final Tasklet tasklet
 
-  TestStageBuilder(Tasklet tasklet, StepBuilderFactory steps) {
-    super("test")
+  TestStageBuilder(String name, Tasklet tasklet, StepBuilderFactory steps) {
+    super(name)
     this.tasklet = tasklet
     this.steps = steps
   }

@@ -56,12 +56,13 @@ class PipelineConfigurationSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStageBuilder", new TestStageBuilder(fooTasklet, steps)
-      registerSingleton "barStageBuilder", new TestStageBuilder(barTasklet, steps)
-      registerSingleton "bazStageBuilder", new TestStageBuilder(bazTasklet, steps)
+      registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
+      registerSingleton "barStageBuilder", new TestStageBuilder("bar", barTasklet, steps)
+      registerSingleton "bazStageBuilder", new TestStageBuilder("baz", bazTasklet, steps)
 
       autowireBean jobStarter
     }
+    jobStarter.initialize()
   }
 
   def "a single step is constructed from mayo's json config"() {

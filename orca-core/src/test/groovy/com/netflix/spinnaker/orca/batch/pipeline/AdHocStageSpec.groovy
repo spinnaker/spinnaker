@@ -66,9 +66,10 @@ class AdHocStageSpec extends Specification {
     def fooTasklet = Mock(Tasklet)
     def barTask = Mock(Task)
     applicationContext.beanFactory.with {
-      registerSingleton "fooStageBuilder", new TestStageBuilder(fooTasklet, steps)
+      registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
       registerSingleton "barTask", barTask
     }
+    jobStarter.initialize()
 
     when:
     jobStarter.start configJson

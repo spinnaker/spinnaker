@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
@@ -49,6 +50,8 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
+  private final Map<String, StageBuilder> stageBuilders = [:]
+
   /**
    * Builds and launches a _pipeline_ based on config from _Mayo_.
    *
@@ -57,6 +60,13 @@ class PipelineStarter {
    */
   JobExecution start(String configJson) {
     launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
+  }
+
+  @PostConstruct
+  void initialize() {
+    applicationContext.getBeansOfType(StageBuilder).values().each {
+      stageBuilders[it.name] = it
+    }
   }
 
   private List<Map<String, ?>> parseConfig(String configJson) {
@@ -89,9 +99,8 @@ class PipelineStarter {
   }
 
   private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
-    final stageBuilderBeanName = "${stepConfig.type}StageBuilder"
-    if (applicationContext.containsBean(stageBuilderBeanName)) {
-      applicationContext.getBean(stageBuilderBeanName, StageBuilder).build(jobBuilder)
+    if (stageBuilders.containsKey(stepConfig.type)) {
+      stageBuilders.get(stepConfig.type).build(jobBuilder)
     } else {
       adHocStageFromConfig jobBuilder, stepConfig
     }
