@@ -51,7 +51,7 @@
   "browser": {
     "angular-bootstrap": "./app/bower_components/angular-bootstrap/ui-bootstrap-tpls.js",
     "angular": "./app/bower_components/angular/angular.js",
-    "angular-ui-router": "./app/bower_components/angular-ui-router/release/angular-ui-router.js",
+    "angular-ui-router": "./app/bower_components/angular-ui-router/release/angular-ui-router.min.js",
     "restangular": "./app/bower_components/restangular/dist/restangular.js",
     "jquery": "./app/bower_components/jquery/dist/jquery.js",
     "lodash": "./app/bower_components/lodash/dist/lodash.compat.js",
