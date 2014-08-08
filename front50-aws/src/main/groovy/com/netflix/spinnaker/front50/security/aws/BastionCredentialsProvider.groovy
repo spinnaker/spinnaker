@@ -47,7 +47,7 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
 
   private Date expiration
   private AWSCredentials credentials
-  private String sshKey = "${System.properties["user.home"]}/.ssh/id_rsa"
+  private final String sshKey
 
   protected SshDslEngine engine
 
@@ -58,6 +58,12 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
     this.proxyCluster = proxyCluster
     this.proxyRegion = proxyRegion
     this.iamRole = iamRole
+    File sshDir = new File(System.getProperty('user.home'), '.ssh')
+    this.sshKey = (["id_dsa", "id_rsa"].findResult {
+      def key = new File(sshDir, it)
+      key.exists() ? key : null
+    } ?: new File(sshDir, "id_rsa")).absolutePath
+
     engine = new SshDslEngine(new SshOptions(defaultKeyFile: new File(sshKey)))
   }
 

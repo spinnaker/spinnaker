@@ -19,7 +19,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.5.RELEASE"
   }
 }
 
@@ -34,5 +34,4 @@ dependencies {
   compile project(":front50-aws")
   spinnaker.group "bootWeb"
   compile spinnaker.dependency("kork")
-  compile spinnaker.dependency("rxJava")
 }

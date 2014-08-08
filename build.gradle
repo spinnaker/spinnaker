@@ -22,7 +22,7 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.4'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.6'
   }
 }
 
@@ -33,20 +33,8 @@ allprojects { project ->
 
   group = "com.netflix.spinnaker.front50"
 
-  repositories {
-    jcenter()
-  }
-
   dependencies {
     compile spinnaker.dependency("groovy")
     spinnaker.group("test")
   }
-
-  configurations.all {
-    exclude group: 'javax.servlet', module: 'servlet-api'
-    exclude group: "org.slf4j", module: "slf4j-log4j12"
-    exclude group: "org.mortbay.jetty", module: "servlet-api"
-  }
-
-
 }
