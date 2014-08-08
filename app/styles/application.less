@@ -48,15 +48,86 @@
     font-size: 110%;
     padding: 10px;
     .load-balancers {
-      max-width: 50%;
-      a {
+      max-width: 30%;
+      &.overflowing {
+        .all-load-balancers {
+          position: absolute;
+          right: 50px;
+          max-width: 100px;
+          background-color: #ffffff;
+          margin-top: 12px;
+          border: 1px solid #333333;
+          padding: 5px;
+          border-radius: 2px;
+          box-shadow: -1px 1px 1px #ffffff, -1px 1px 2px #ffffff, -1px 1px 3px #ffffff;
+          .glyphicon {
+            top: 2px;
+          }
+          &::before, &::after {
+            width: 0;
+            height: 0;
+            content: ' ';
+            top: -14px;
+            right: 15px;
+            position: absolute;
+            border: 8px solid transparent;
+            border-top-width: 0;
+            margin-left: -11px;
+          }
+          &::after {
+            margin-left: -10px;
+            border-width: 8px;
+            border-bottom-color: #ffffff;
+          }
+          &::before {
+            top: -8px;
+            border-bottom-color: #777777;
+          }
+        }
+      }
+      .multiple-load-balancers {
+        text-align: right;
+        &:hover {
+          text-decoration: none;
+        }
+        .icon {
+          width: 30px;
+        }
+        .glyphicon {
+          width: 5px;
+          &:first-child {
+            top: 5px;
+          }
+          &:nth-child(2) {
+            top: 10px;
+          }
+          &:last-child {
+            top: 15px;
+          }
+
+          &::before {
+            text-shadow: #fff 0 0 1px, #fff 0 0 2px, #fff 0 0 3px;
+          }
+        }
+        .counter {
+          color: #2A6496;
+          background-color: #fff;
+          box-shadow: 0 0 2px #2A6496;
+          top: -3px;
+        }
+        span {
+          position: relative;
+        }
+      }
+      button {
+        padding: 0;
         display: inline-block;
         margin-right: 5px;
-        font-size: 150%;
         line-height: 0;
         .glyphicon {
           line-height: 0;
           top: 6px;
+          font-size: 150%;
         }
         &.active {
           color: #2a6496;
