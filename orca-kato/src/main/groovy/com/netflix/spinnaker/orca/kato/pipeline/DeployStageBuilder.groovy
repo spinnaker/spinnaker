@@ -14,36 +14,37 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.RetryableTaskTaskletAdapter
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
 import org.springframework.batch.core.Step
-import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 class DeployStageBuilder extends LinearStageBuilder {
 
+  public static final String MAYO_CONFIG_TYPE = "deploy"
+
+  DeployStageBuilder() {
+    super(MAYO_CONFIG_TYPE)
+  }
+
   @Override
   protected List<Step> buildSteps() {
     def step1 = steps.get("CreateDeployStep")
-        .tasklet(buildTask(CreateDeployTask))
-        .build()
+                     .tasklet(buildTask(CreateDeployTask))
+                     .build()
     def step2 = steps.get("MonitorDeployStep")
-        .tasklet(buildTask(MonitorKatoTask))
-        .build()
+                     .tasklet(buildTask(MonitorKatoTask))
+                     .build()
     def step3 = steps.get("WaitForUpInstancesStep")
-        .tasklet(buildTask(WaitForUpInstancesTask))
-        .build()
+                     .tasklet(buildTask(WaitForUpInstancesTask))
+                     .build()
     [step1, step2, step3]
   }
 }

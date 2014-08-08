@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import groovy.transform.CompileStatic
@@ -32,25 +30,30 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DestroyAsgStageBuilder extends LinearStageBuilder {
 
+  public static final String MAYO_CONFIG_TYPE = "destroyAsg"
   @Autowired
   ResizeAsgStageBuilder resizeAsgStageBuilder
+
+  DestroyAsgStageBuilder() {
+    super(MAYO_CONFIG_TYPE)
+  }
 
   @Override
   protected List<Step> buildSteps() {
     def resizeSteps = resizeAsgStageBuilder.buildSteps()
 
     def step1 = steps.get("PreconfigureResizeStep")
-        .tasklet(buildTask(PreconfigureDestroyAsgTask))
-        .build()
+                     .tasklet(buildTask(PreconfigureDestroyAsgTask))
+                     .build()
     def step2 = steps.get("DestroyAsgStep")
-        .tasklet(buildTask(DestroyAsgTask))
-        .build()
+                     .tasklet(buildTask(DestroyAsgTask))
+                     .build()
     def step3 = steps.get("MonitorAsgStep")
-        .tasklet(buildTask(MonitorKatoTask))
-        .build()
+                     .tasklet(buildTask(MonitorKatoTask))
+                     .build()
     def step4 = steps.get("WaitForCapacityMatchStep")
-        .tasklet(buildTask(WaitForCapacityMatchTask))
-        .build()
+                     .tasklet(buildTask(WaitForCapacityMatchTask))
+                     .build()
 
     [step1, resizeSteps, step2, step3, step4].flatten().toList()
   }

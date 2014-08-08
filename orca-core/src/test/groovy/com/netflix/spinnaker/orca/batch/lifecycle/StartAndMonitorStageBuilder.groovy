@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
@@ -30,16 +28,20 @@ class StartAndMonitorStageBuilder extends StageBuilderSupport<SimpleJobBuilder> 
 
   Task startTask, monitorTask
 
+  StartAndMonitorStageBuilder() {
+    super("startAndMonitor")
+  }
+
   @Override
   SimpleJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("StartStep")
-        .tasklet(TaskTaskletAdapter.decorate(startTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(startTask))
+                     .build()
     def step2 = steps.get("MonitorStep")
-        .tasklet(TaskTaskletAdapter.decorate(monitorTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(monitorTask))
+                     .build()
     jobBuilder.start(step1)
-        .next(step2)
+              .next(step2)
   }
 
   @Override

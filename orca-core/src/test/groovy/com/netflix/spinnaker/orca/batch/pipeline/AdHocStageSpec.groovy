@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.AdHocStageBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -33,7 +32,6 @@ import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.*
-import static com.netflix.spinnaker.orca.TaskResult.Status.FAILED
 import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
@@ -41,7 +39,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 
 @Narrative("Orca should support the addition of ad-hoc stages (i.e. those with no pre-defined stage that just consist of a single task) to a pipeline")
 @Issue("https://github.com/spinnaker/orca/issues/42")
-@ContextConfiguration(classes = [BatchTestConfiguration, AdHocStageBuilder])
+@ContextConfiguration(classes = [BatchTestConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class AdHocStageSpec extends Specification {
 

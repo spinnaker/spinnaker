@@ -30,6 +30,7 @@ class TestStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
   private final Tasklet tasklet
 
   TestStageBuilder(Tasklet tasklet, StepBuilderFactory steps) {
+    super("test")
     this.tasklet = tasklet
     this.steps = steps
   }

@@ -28,6 +28,12 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class BakeStageBuilder extends LinearStageBuilder {
 
+  public static final String MAYO_CONFIG_TYPE = "bake"
+
+  BakeStageBuilder() {
+    super(MAYO_CONFIG_TYPE)
+  }
+
   @Override
   protected List<Step> buildSteps() {
     def step1 = steps.get("CreateBakeStep")

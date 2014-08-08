@@ -27,17 +27,24 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DisableAsgStageBuilder extends LinearStageBuilder {
+
+  public static final String MAYO_CONFIG_TYPE = "disableAsg"
+
+  DisableAsgStageBuilder() {
+    super(MAYO_CONFIG_TYPE)
+  }
+
   @Override
   protected List<Step> buildSteps() {
     def step1 = steps.get("DisableAsgStep")
-        .tasklet(buildTask(DisableAsgTask))
-        .build()
+                     .tasklet(buildTask(DisableAsgTask))
+                     .build()
     def step2 = steps.get("MonitorAsgStep")
-        .tasklet(buildTask(MonitorKatoTask))
-        .build()
+                     .tasklet(buildTask(MonitorKatoTask))
+                     .build()
     def step3 = steps.get("WaitFoDownInstancesStep")
-        .tasklet(buildTask(AsgActionWaitForDownInstancesTask))
-        .build()
+                     .tasklet(buildTask(AsgActionWaitForDownInstancesTask))
+                     .build()
 
     [step1, step2, step3]
   }

@@ -32,8 +32,17 @@ import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, StageBuilder<B> {
 
   protected StepBuilderFactory steps
+  private final String name
 
-  /**
+  StageBuilderSupport(String name) {
+    this.name = name
+  }
+
+  @Override
+  final String getName() {
+    name
+  }
+/**
    * Builds and autowires a task.
    *
    * @param taskType The +Task+ implementation class.

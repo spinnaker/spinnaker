@@ -27,7 +27,14 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class CopyLastAsgStageBuilder extends LinearStageBuilder {
-    @Override
+
+  public static final String MAYO_CONFIG_TYPE = "copyLastAsg"
+
+  CopyLastAsgStageBuilder() {
+    super(MAYO_CONFIG_TYPE)
+  }
+
+  @Override
     protected List<Step> buildSteps() {
         def step1 = steps.get("CreateCopyLastAsgStep")
                 .tasklet(buildTask(CreateCopyLastAsgTask))

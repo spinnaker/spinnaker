@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
@@ -31,23 +29,27 @@ class ManualInterventionStageBuilder extends StageBuilderSupport<FlowJobBuilder>
 
   Task preInterventionTask, postInterventionTask, finalTask
 
+  ManualInterventionStageBuilder() {
+    super("manualIntervention")
+  }
+
   @Override
   FlowJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("PreInterventionStep")
-        .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
+                     .build()
     def step2 = steps.get("PostInterventionStep")
-        .tasklet(TaskTaskletAdapter.decorate(postInterventionTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(postInterventionTask))
+                     .build()
     def step3 = steps.get("FinalStep")
-        .tasklet(TaskTaskletAdapter.decorate(finalTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(finalTask))
+                     .build()
     jobBuilder.start(step1)
-        .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
-        .from(step1)
-        .on(ExitStatus.COMPLETED.exitCode).to(step2)
-        .next(step3)
-        .build()
+              .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
+              .from(step1)
+              .on(ExitStatus.COMPLETED.exitCode).to(step2)
+              .next(step3)
+              .build()
   }
 
   @Override

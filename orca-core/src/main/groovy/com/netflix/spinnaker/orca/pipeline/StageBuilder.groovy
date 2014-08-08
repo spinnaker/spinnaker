@@ -24,6 +24,11 @@ import org.springframework.batch.core.job.builder.JobBuilderHelper
  */
 interface StageBuilder<B extends JobBuilderHelper<B>> {
 
+  /**
+   * @return the name that corresponds to Mayo config.
+   */
+  String getName()
+
   // TODO: may not need this method if we always have a config handling step first
   /**
    * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method

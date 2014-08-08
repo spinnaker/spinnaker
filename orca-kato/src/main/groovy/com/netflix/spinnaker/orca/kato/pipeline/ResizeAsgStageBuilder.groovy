@@ -28,17 +28,23 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class ResizeAsgStageBuilder extends LinearStageBuilder {
 
+  public static final String MAYO_CONFIG_TYPE = "resizeAsg"
+
+  ResizeAsgStageBuilder() {
+    super(MAYO_CONFIG_TYPE)
+  }
+
   @Override
   protected List<Step> buildSteps() {
     def step1 = steps.get("ResizeAsgStep")
-        .tasklet(buildTask(ResizeAsgTask))
-        .build()
+                     .tasklet(buildTask(ResizeAsgTask))
+                     .build()
     def step2 = steps.get("MonitorAsgStep")
-        .tasklet(buildTask(MonitorKatoTask))
-        .build()
+                     .tasklet(buildTask(MonitorKatoTask))
+                     .build()
     def step3 = steps.get("WaitForCapacityMatchStep")
-        .tasklet(buildTask(WaitForCapacityMatchTask))
-        .build()
+                     .tasklet(buildTask(WaitForCapacityMatchTask))
+                     .build()
 
     [step1, step2, step3]
   }

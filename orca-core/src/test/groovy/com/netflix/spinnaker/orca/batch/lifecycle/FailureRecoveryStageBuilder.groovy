@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
@@ -31,21 +29,25 @@ class FailureRecoveryStageBuilder extends StageBuilderSupport<FlowJobBuilder> {
 
   Task startTask, recoveryTask, endTask
 
+  FailureRecoveryStageBuilder() {
+    super("failureRecovery")
+  }
+
   @Override
   FlowJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("StartStep")
-        .tasklet(TaskTaskletAdapter.decorate(startTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(startTask))
+                     .build()
     def step2 = steps.get("RecoveryStep")
-        .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
+                     .build()
     def step3 = steps.get("EndStep")
-        .tasklet(TaskTaskletAdapter.decorate(endTask))
-        .build()
+                     .tasklet(TaskTaskletAdapter.decorate(endTask))
+                     .build()
     jobBuilder.start(step1)
-        .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-        .from(step1).next(step3)
-        .build()
+              .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
+              .from(step1).next(step3)
+              .build()
   }
 
   @Override
