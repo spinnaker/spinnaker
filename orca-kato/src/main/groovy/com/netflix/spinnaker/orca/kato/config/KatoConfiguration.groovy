@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.kato.config
 
-import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStageBuilder
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.pipeline.DeployStageBuilder
-import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStageBuilder
-import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStageBuilder
-import com.netflix.spinnaker.orca.kato.pipeline.EnableAsgStageBuilder
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStageBuilder
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
@@ -44,6 +35,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
+@ComponentScan("com.netflix.spinnaker.orca.kato.pipeline")
 @CompileStatic
 class KatoConfiguration {
 
@@ -62,29 +54,5 @@ class KatoConfiguration {
         .setConverter(new GsonConverter(gson))
         .build()
         .create(KatoService)
-  }
-
-  @Bean DeployStageBuilder deployStageBuilder() {
-    new DeployStageBuilder()
-  }
-
-  @Bean CopyLastAsgStageBuilder copyLastAsgStageBuilder() {
-    new CopyLastAsgStageBuilder()
-  }
-
-  @Bean DestroyAsgStageBuilder destroyAsgStageBuilder() {
-    new DestroyAsgStageBuilder()
-  }
-
-  @Bean DisableAsgStageBuilder disableAsgStageBuilder() {
-    new DisableAsgStageBuilder()
-  }
-
-  @Bean EnableAsgStageBuilder enableAsgStageBuilder() {
-    new EnableAsgStageBuilder()
-  }
-
-  @Bean ResizeAsgStageBuilder resizeAsgStageBuilder() {
-    new ResizeAsgStageBuilder()
   }
 }

@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.config
 
 import groovy.transform.CompileStatic
@@ -28,6 +24,7 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
@@ -40,6 +37,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
+@ComponentScan("com.netflix.spinnaker.orca.bakery.pipeline")
 @CompileStatic
 class BakeryConfiguration {
 
@@ -66,10 +64,4 @@ class BakeryConfiguration {
         .build()
         .create(BakeryService)
   }
-
-  @Bean
-  BakeStageBuilder bakeStageBuilder() {
-    new BakeStageBuilder()
-  }
-
 }
