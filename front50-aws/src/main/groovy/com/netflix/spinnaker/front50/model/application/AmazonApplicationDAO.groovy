@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.*
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.transform.Canonical
 
 /**
@@ -65,22 +66,22 @@ class AmazonApplicationDAO implements ApplicationDAO {
   }
 
   @Override
-  Application findByName(String name) {
+  Application findByName(String name) throws NotFoundException {
     def items = query "select * from `${domain}` where itemName()='${name}'"
     if (items.size() > 0) {
       return mapToApp(items[0])
     } else {
-      throw new RuntimeException("No Application found by name of ${name} in domain ${domain}")
+      throw new NotFoundException("No Application found by name of ${name} in domain ${domain}")
     }
   }
 
   @Override
-  Set<Application> all() {
+  Set<Application> all() throws NotFoundException {
     def items = query "select * from `${domain}` limit 2500"
     if (items.size() > 0) {
       return items.collect { mapToApp(it) }
     } else {
-      throw new RuntimeException("No Applications found in domain ${domain}")
+      throw new NotFoundException("No Applications found in domain ${domain}")
     }
   }
 

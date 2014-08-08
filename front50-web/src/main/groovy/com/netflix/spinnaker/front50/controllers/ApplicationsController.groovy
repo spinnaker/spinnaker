@@ -45,7 +45,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
     try {
       return application.findAll()
     } catch (NotFoundException e) {
-      log.error("GET(/applications) -> NotFoundException occurred: ", e)
+      log.info("GET(/applications) -> NotFoundException occurred: ${e.message}")
       throw new NoApplicationsFoundException(e)
     } catch (Throwable thr) {
       log.error("GET(/applications) -> Throwable occurred: ", thr)
@@ -65,7 +65,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
       application.initialize(foundApp).withName(app.getName()).update(app.allSetColumnProperties())
       return application
     } catch (NotFoundException e) {
-      log.error("PUT::App not found: " + app.getName(), e)
+      log.info("PUT::App not found: ${app.name}: ${e.message}")
       throw new ApplicationNotFoundException(e)
     }
   }
@@ -77,7 +77,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
     try {
       return application.initialize(app).withName(app.getName()).save()
     } catch (NoPrimaryKeyException e) {
-      log.error("POST:: cannot create app as name and/or email is missing: " + app, e)
+      log.info("POST:: cannot create app as name and/or email is missing: ${app}: ${e.message}")
       throw new ApplicationWithoutNameException(e)
     } catch (Throwable thr) {
       log.error("POST:: throwable occurred: " + app.getName(), thr)
@@ -91,9 +91,9 @@ public class ApplicationsController extends SpringBootServletInitializer {
     def application = namedAccount.application
     try {
       application.initialize(new Application().withName(name)).delete()
-      response.sendError HttpStatus.ACCEPTED.value()
+      response.setStatus(HttpStatus.ACCEPTED.value())
     } catch (NoPrimaryKeyException e) {
-      log.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e)
+      log.info("GET(/name/{name}) -> NoPrimaryKeyException occurred for app: ${name}: ${e.message}")
       throw new ApplicationNotFoundException(e)
     }
   }
@@ -105,7 +105,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
     try {
       return application.findByName(name)
     } catch (NotFoundException e) {
-      log.error("GET(/name/{name}) -> NotFoundException occurred for app: " + name, e)
+      log.info("GET(/name/{name}) -> NotFoundException occurred for app: ${name}: ${e.message}")
       throw new ApplicationNotFoundException(e)
     } catch (Throwable thr) {
       log.error("GET(/name/{name}) -> Throwable occurred: ", thr)
@@ -124,7 +124,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
     }
   }
 
-  @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Exception, baby")
+  @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Exception, baby")
   class ApplicationException extends RuntimeException {
     public ApplicationException(Throwable cause) {
       super(cause)

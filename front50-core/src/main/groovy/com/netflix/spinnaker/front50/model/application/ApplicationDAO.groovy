@@ -18,10 +18,12 @@
 
 package com.netflix.spinnaker.front50.model.application
 
-public interface ApplicationDAO {
-  Application findByName(String name)
+import com.netflix.spinnaker.front50.exception.NotFoundException
 
-  Set<Application> all()
+public interface ApplicationDAO {
+  Application findByName(String name) throws NotFoundException
+
+  Set<Application> all() throws NotFoundException
 
   Application create(String id, Map<String, String> attributes)
 
