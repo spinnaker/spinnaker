@@ -17,15 +17,19 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
+import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
+import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
+import static java.util.UUID.randomUUID
 
+/**
+ * A stub +StageBuilder+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
+ * just add a single pre-defined +Tasklet+ (probably a mock) to the pipeline.
+ */
 @CompileStatic
-class TestStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
+class TestStageBuilder extends LinearStageBuilder {
 
   private final Tasklet tasklet
 
@@ -36,16 +40,13 @@ class TestStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
   }
 
   @Override
-  SimpleJobBuilder build(JobBuilder jobBuilder) {
-    jobBuilder.start(buildStep())
-  }
-
-  @Override
-  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
-    jobBuilder.next(buildStep())
+  protected List<Step> buildSteps() {
+    [buildStep()]
   }
 
   private TaskletStep buildStep() {
-    steps.get(UUID.randomUUID().toString()).tasklet(tasklet).build()
+    steps.get(randomUUID().toString())
+         .tasklet(tasklet)
+         .build()
   }
 }

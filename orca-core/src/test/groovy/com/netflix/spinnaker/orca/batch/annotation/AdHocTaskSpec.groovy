@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.sameInstance
 import static spock.util.matcher.HamcrestSupport.that
 
 @ContextConfiguration(classes = [TestTask])
-class AdHocTaskAnnotationSpec extends Specification {
+class AdHocTaskSpec extends Specification {
 
   @Autowired ApplicationContext applicationContext
 
