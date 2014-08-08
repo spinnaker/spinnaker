@@ -1,7 +1,7 @@
 dependencies {
-    compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.4.RELEASE'
-    compile 'com.netflix.eureka:eureka-client:1.1.136'
-    compile 'com.amazonaws:aws-java-sdk:1.7.12'
+    compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.5.RELEASE'
+    compile 'com.netflix.eureka:eureka-client:1.1.138'
+    compile 'com.amazonaws:aws-java-sdk:1.8.7'
     testCompile 'junit:junit:4.11'
     testRuntime 'org.slf4j:slf4j-simple:1.7.7'
 }
