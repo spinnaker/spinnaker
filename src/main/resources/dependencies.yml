@@ -1,7 +1,7 @@
 versions:
-  springBoot: 1.1.4.RELEASE
-  kork: 1.13
-  groovy: 2.3.4
+  springBoot: 1.1.5.RELEASE
+  kork: 1.17
+  groovy: 2.3.6
   astyanax: 1.56.48
   rxJava: 0.19.1
   spock: 0.7-groovy-2.0
@@ -9,12 +9,12 @@ versions:
   frigga: 0.13
   cglib: 3.1
   amazoncomponents: 0.9.9
-  aws: 1.7.13
-  httpclient: 4.3.3
-  retrofit: 1.5.1
+  aws: 1.8.7
+  httpclient: 4.3.5
+  retrofit: 1.6.1
   guava: 17.0
   slf4j: 1.7.7
-  okHttp: 1.5.4
+  okHttp: 2.0.0
   objenesis: 2.1
 
 groups:
