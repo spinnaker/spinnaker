@@ -5,12 +5,7 @@
     <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
   </a>
   <health-counts container="serverGroup"></health-counts>
-  <div class="instances" ng-if="sortFilter.showAllInstances">
-    <a class="instance health-status-{{instance.healthStatus}}"
-       ng-repeat="instance in serverGroup.instances | orderBy:'launchTime'"
-       tooltip="{{instance.instanceId}}"
-       ui-sref=".instanceDetails({instanceId: instance.instanceId })"
-       ui-sref-active="active">
-      <span class="sr-only">{{instance.instanceId}}</span></a>
+  <div ng-if="displayOptions.showInstances">
+    <instances instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
   </div>
 </div>

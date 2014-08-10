@@ -34,6 +34,7 @@ angular.module('deckApp')
 
     function updateClusterGroups() {
       var groups = [],
+        totalInstancesDisplayed = 0,
         filter = $scope.sortFilter.filter.toLowerCase(),
         primarySort = $scope.sortFilter.sortPrimary,
         secondarySort = $scope.sortFilter.sortSecondary,
@@ -71,6 +72,9 @@ angular.module('deckApp')
             subSubGroups = [];
 
           _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
+            totalInstancesDisplayed += subGroup.reduce(function (total, asg) {
+              return asg.instances.length + total;
+            }, 0);
             subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
           });
           subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
@@ -78,6 +82,10 @@ angular.module('deckApp')
 
         groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
       });
+
+      $scope.totalInstancesDisplayed = totalInstancesDisplayed;
+      $scope.renderInstancesOnScroll = totalInstancesDisplayed > 2000; // TODO: Move to config
+
       $scope.groups = _.sortBy(groups, 'heading');
       $scope.$digest(); // downside of debouncing
 

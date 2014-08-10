@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .directive('serverGroup', function () {
+  .directive('serverGroup', function ($rootScope) {
     return {
       restrict: 'E',
       replace: true,
@@ -12,14 +12,10 @@ angular.module('deckApp')
       scope: {
         cluster: '=',
         serverGroup: '=',
-        lazyRenderInstances: '='
+        renderInstancesOnScroll: '='
       },
       link: function (scope) {
-        scope.instanceDisplay = {
-          lazyRenderInstances: scope.lazyRenderInstances,
-          displayed: !scope.lazyRenderInstances || scope.serverGroup.asg.instances.length < 20
-        };
-        scope.$state = scope.$parent.$state;
+        scope.$state = $rootScope.$state;
       }
     };
   }

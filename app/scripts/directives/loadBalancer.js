@@ -4,24 +4,21 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .directive('loadBalancer', function () {
+  .directive('loadBalancer', function ($rootScope) {
     return {
       restrict: 'E',
       templateUrl: 'views/application/loadBalancer/loadBalancer.html',
       scope: {
-        loadBalancer: '='
+        loadBalancer: '=',
+        displayOptions: '='
       },
       link: function (scope) {
-        scope.$state = scope.$parent.$state;
-        scope.sortFilter = scope.$parent.sortFilter;
+        scope.$state = $rootScope.$state;
         scope.displayServerGroup = function (serverGroup) {
-          if (!scope.sortFilter.showAsgs) {
-            return false;
-          }
-          if (scope.sortFilter.hideHealthy) {
+          if (scope.displayOptions.hideHealthy) {
             return serverGroup.downCount > 0;
           }
-          return true;
+          return scope.displayOptions.showServerGroups;
         };
       }
     };

@@ -4,21 +4,16 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .directive('loadBalancerServerGroup', function () {
+  .directive('loadBalancerServerGroup', function ($rootScope) {
     return {
       restrict: 'E',
-      replace: true,
       templateUrl: 'views/application/loadBalancer/loadBalancerServerGroup.html',
       scope: {
         serverGroup: '=',
-        asgFilter: '='
+        displayOptions: '='
       },
       link: function (scope) {
-        scope.instanceDisplay = {
-          displayed: false
-        };
-        scope.$state = scope.$parent.$state;
-        scope.sortFilter = scope.$parent.sortFilter;
+        scope.$state = $rootScope.$state;
       }
     };
   }

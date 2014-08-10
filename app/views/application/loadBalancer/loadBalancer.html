@@ -8,10 +8,17 @@
     <health-counts container="loadBalancer.health"></health-counts>
   </div>
   <div class="details">
-    <load-balancer-server-group
-      ng-if="displayServerGroup(serverGroup)"
-      ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'name'"
-      server-group="serverGroup"></load-balancer-server-group>
-    <ng-include src="'views/application/loadBalancer/instances.html'" ng-if="!sortFilter.showAsgs && sortFilter.showAllInstances"></ng-include>
+    <div ng-if="displayOptions.showServerGroups">
+      <load-balancer-server-group
+        ng-if="displayServerGroup(serverGroup)"
+        ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'name'"
+        display-options="displayOptions"
+        server-group="serverGroup"></load-balancer-server-group>
+    </div>
+    <div ng-if="!displayOptions.showServerGroups && displayOptions.showInstances">
+      <instances
+        instances="loadBalancer.instances"
+        render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
+    </div>
   </div>
 </div>

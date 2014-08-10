@@ -62,18 +62,33 @@ angular.module('deckApp')
       });
     }
 
+    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, subGroup) {
+      if (!$scope.sortFilter.hideHealthy) {
+        totalInstancesDisplayed += subGroup.reduce(function (total, asg) {
+          return asg.instances.length + total;
+        }, 0);
+      } else {
+        totalInstancesDisplayed += subGroup.reduce(
+          function (total, asg) {
+            return (asg.downCount > 0 ? asg.instances.length : 0) + total;
+          }, 0
+        );
+      }
+      return totalInstancesDisplayed;
+    }
+
     function updateLoadBalancerGroups() {
-      var loadBalancers = application.loadBalancers;
-      var groups = [],
-        filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
-        primarySort = $scope.sortFilter.sortPrimary,
-        secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
-        hideHealthy = $scope.sortFilter.hideHealthy;
+      var loadBalancers = application.loadBalancers,
+          totalInstancesDisplayed = 0,
+          groups = [],
+          filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
+          primarySort = $scope.sortFilter.sortPrimary,
+          secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
+          hideHealthy = $scope.sortFilter.hideHealthy;
 
       addSearchField(loadBalancers);
 
       var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
-
       var grouped = _.groupBy(filtered, primarySort);
 
       _.forOwn(grouped, function(group, key) {
@@ -81,12 +96,22 @@ angular.module('deckApp')
           subGroups = [];
 
         _.forOwn(subGroupings, function(subGroup, subKey) {
+          totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subGroup);
           subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
         });
 
         groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
       });
+
       $scope.groups = _.sortBy(groups, 'heading');
+
+      $scope.displayOptions = {
+        renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
+        showServerGroups: $scope.sortFilter.showAsgs,
+        showInstances: $scope.sortFilter.showAllInstances,
+        hideHealthy: $scope.sortFilter.hideHealthy
+      };
+
       $scope.$digest(); // debounced
     }
 

@@ -19,16 +19,6 @@
       </span>
       <health-counts container="serverGroup"></health-counts>
     </div>
-    <div class="instances" ng-if="!instanceDisplay.displayed">
-      <button class="btn btn-default btn-xs" ng-click="instanceDisplay.displayed = true">Show all {{serverGroup.asg.instances.length}} instances</button>
-    </div>
-    <div class="instances" ng-if="instanceDisplay.displayed">
-      <a class="instance health-status-{{instance.healthStatus}}"
-         ng-repeat="instance in serverGroup.asg.instances"
-         tooltip="{{instance.instanceId}}"
-         ui-sref=".instanceDetails({instanceId: instance.instanceId })"
-         ui-sref-active="active">
-        <span class="sr-only">{{instance.instanceId}}</span></a>
-    </div>
+    <instances instances="serverGroup.instances" render-instances-on-scroll="renderInstancesOnScroll"></instances>
   </div>
 </div>

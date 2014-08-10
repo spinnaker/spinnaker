@@ -1,0 +1,9 @@
+<div class="instances">
+  <a class="instance health-status-{{instance.healthStatus}}"
+     ng-repeat="instance in displayedInstances | orderBy:launchTime"
+     tooltip="{{instance.instanceId}}"
+     ui-sref=".instanceDetails({instanceId: instance.instanceId })"
+     ui-sref-active="active">
+    <span class="sr-only">{{instance.instanceId}}</span></a>
+  <span ng-if="renderInstancesOnScroll && !rendered">(Getting instances...)</span>
+</div>

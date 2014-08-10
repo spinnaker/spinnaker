@@ -12,7 +12,12 @@ angular.module('deckApp')
     })[0];
 
     $scope.sortFilter = {
-      filter: '',
+      filter: ''
+    };
+
+    $scope.displayOptions = {
+      limitInstanceDisplay: false,
+      showServerGroups: true,
       showAllInstances: true
     };
 

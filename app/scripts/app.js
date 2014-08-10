@@ -9,6 +9,7 @@
  * Main module of the application.
  */
 
+require('jquery');
 var angular = require('angular');
 
 require('angular-ui-router');
