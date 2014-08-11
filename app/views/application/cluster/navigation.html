@@ -1,21 +1,27 @@
 <h3>
-  Clusters <span class="small">by account</span>
+  Clusters
+  <span class="small">by</span>
+  <span class="form-inline">
+    <div class="form-group small">
+      <select class="form-control input-sm"
+              ng-model="sortField"
+              ng-options="option.key as option.label for option in sortOptions">
+      </select>
+    </div>
+  </span>
 </h3>
 
-<h4 ng-if="!clustersLoaded" class="text-center" ng-init="loadClusters()">
-  <span us-spinner="{radius:20, width:6, length: 12}"></span>
-</h4>
-<div ng-if="clustersLoaded" class="sub-nav-item">
+<div class="sub-nav-item">
   <a ui-sref="."
      ng-class="{active: $state.includes('clusters') && !$state.includes('cluster')}"
     >Show All Clusters</a>
 </div>
-<div ng-if="clustersLoaded" class="sub-nav" ng-repeat="account in application.accounts | orderBy:'toString()'">
+<div class="sub-nav" ng-repeat="heading in getHeadings() | orderBy:'toString()'">
   <div class="sub-nav-item">
-    <h4>{{account}}</h4>
-    <a ng-repeat="cluster in getClustersForAccount(account) | orderBy:'name'"
-       ui-sref="cluster({account: account, cluster: cluster.name})"
-       ng-class="{active: $state.includes('cluster', {account: account, cluster: cluster.name} )}">
-        {{cluster.name}}</a>
+    <h4>{{heading}}</h4>
+    <a ng-repeat="cluster in getClustersFor(heading)"
+       ui-sref="cluster({account: cluster.account, cluster: cluster.name})"
+       ng-class="{active: $state.includes('cluster', {account: cluster.account, cluster: cluster.name} )}">
+        {{getClusterLabel(cluster)}} ({{getClusterSublabel(cluster)}})</a>
   </div>
 </div>
