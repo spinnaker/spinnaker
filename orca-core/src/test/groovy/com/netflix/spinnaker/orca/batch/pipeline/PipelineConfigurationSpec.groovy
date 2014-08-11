@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -63,6 +64,18 @@ class PipelineConfigurationSpec extends Specification {
       autowireBean jobStarter
     }
     jobStarter.initialize()
+  }
+
+  def "an unknown stage type results in an exception"() {
+    when:
+    jobStarter.start configJson
+
+    then:
+    thrown NoSuchStageException
+
+    where:
+    config = [[type: "qux"]]
+    configJson = mapper.writeValueAsString(config)
   }
 
   def "a single step is constructed from mayo's json config"() {
