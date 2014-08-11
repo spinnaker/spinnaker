@@ -17,22 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
-import org.springframework.batch.core.Step
-import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @CompileStatic
-class SimpleStageBuilder extends LinearStageBuilder {
-
-  private final Task task
-
-  SimpleStageBuilder(String name, Task task) {
-    super(name)
-    this.task = task
-  }
-
-  @Override
-  protected List<Step> buildSteps() {
-    [steps.get("${name}Step").tasklet(decorate(task)).build()]
+class NoSuchStageException extends RuntimeException {
+  NoSuchStageException(String stageName) {
+    super("Unknown stage '$stageName' requested.")
   }
 }

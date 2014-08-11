@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
+import groovy.transform.TupleConstructor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
@@ -66,7 +67,9 @@ class AdHocStageSpec extends Specification {
   def "an unknown stage is interpreted as an ad-hoc task"() {
     given:
     def fooTasklet = Mock(Tasklet)
-    def barTask = Mock(StandaloneTask)
+    def barTask = Mock(StandaloneTask) {
+      getName() >> "bar"
+    }
     applicationContext.beanFactory.with {
       registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
       registerSingleton "barTask", barTask
@@ -89,10 +92,11 @@ class AdHocStageSpec extends Specification {
 
   def "an ad-hoc stage can be retryable"() {
     given:
-    def fooTask = Spy(RetryableStandaloneTaskDouble)
+    def fooTask = Spy(RetryableStandaloneTaskDouble, constructorArgs: ["foo"])
     applicationContext.beanFactory.with {
       registerSingleton "fooTask", fooTask
     }
+    jobStarter.initialize()
 
     when:
     jobStarter.start configJson
@@ -106,7 +110,10 @@ class AdHocStageSpec extends Specification {
   }
 }
 
+@TupleConstructor(includes = ["name"])
 class RetryableStandaloneTaskDouble implements RetryableTask, StandaloneTask {
+
+  final String name
 
   @Override
   long getBackoffPeriod() {
@@ -120,7 +127,7 @@ class RetryableStandaloneTaskDouble implements RetryableTask, StandaloneTask {
 
   @Override
   String getName() {
-    "test"
+    name
   }
 
   @Override
