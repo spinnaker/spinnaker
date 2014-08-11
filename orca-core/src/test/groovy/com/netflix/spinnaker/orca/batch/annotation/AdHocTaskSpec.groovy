@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.annotation.AdHocTask
-import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
@@ -36,20 +35,6 @@ import static spock.util.matcher.HamcrestSupport.that
 class AdHocTaskSpec extends Specification {
 
   @Autowired ApplicationContext applicationContext
-
-  def "ad-hoc tasks can be wired by name"() {
-    expect:
-    applicationContext.containsBean(beanName)
-
-    when:
-    applicationContext.getBean(beanName)
-
-    then:
-    notThrown NoSuchBeanDefinitionException
-
-    where:
-    beanName = "testTask"
-  }
 
   def "ad-hoc tasks are prototype scoped"() {
     expect:

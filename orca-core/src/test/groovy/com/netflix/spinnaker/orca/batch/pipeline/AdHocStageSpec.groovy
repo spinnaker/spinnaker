@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.batch.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskContext
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.StandaloneTask
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -64,7 +66,7 @@ class AdHocStageSpec extends Specification {
   def "an unknown stage is interpreted as an ad-hoc task"() {
     given:
     def fooTasklet = Mock(Tasklet)
-    def barTask = Mock(Task)
+    def barTask = Mock(StandaloneTask)
     applicationContext.beanFactory.with {
       registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
       registerSingleton "barTask", barTask
@@ -87,9 +89,7 @@ class AdHocStageSpec extends Specification {
 
   def "an ad-hoc stage can be retryable"() {
     given:
-    def fooTask = Mock(RetryableTask) {
-      getTimeout() >> Long.MAX_VALUE
-    }
+    def fooTask = Spy(RetryableStandaloneTaskDouble)
     applicationContext.beanFactory.with {
       registerSingleton "fooTask", fooTask
     }
@@ -103,5 +103,28 @@ class AdHocStageSpec extends Specification {
     where:
     config = [[type: "foo"]]
     configJson = mapper.writeValueAsString(config)
+  }
+}
+
+class RetryableStandaloneTaskDouble implements RetryableTask, StandaloneTask {
+
+  @Override
+  long getBackoffPeriod() {
+    0
+  }
+
+  @Override
+  long getTimeout() {
+    Long.MAX_VALUE
+  }
+
+  @Override
+  String getName() {
+    "test"
+  }
+
+  @Override
+  TaskResult execute(TaskContext context) {
+    new DefaultTaskResult(SUCCEEDED)
   }
 }
