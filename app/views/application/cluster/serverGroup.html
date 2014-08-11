@@ -1,4 +1,4 @@
-<div class="row server-group"
+<div class="row server-group sub-group"
      ng-class="{active: $state.includes('*.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})}">
   <div class="summary">
     <a ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
@@ -19,6 +19,8 @@
       </span>
       <health-counts container="serverGroup"></health-counts>
     </div>
-    <instances instances="serverGroup.instances" render-instances-on-scroll="renderInstancesOnScroll"></instances>
+    <div ng-if="displayOptions.showInstances">
+      <instances instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
+    </div>
   </div>
 </div>

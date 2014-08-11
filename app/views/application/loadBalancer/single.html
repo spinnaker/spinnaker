@@ -9,30 +9,9 @@
   </div>
 </div>
 
-<div class="sort-filter clearfix">
-  <div class="form-inline clearfix">
-    <div class="form-group pull-right">
-      <label>
-        Filter Auto Scaling Groups
-        <input type="text" class="form-control input-sm" name="filter"
-               ng-model="sortFilter.filter"
-               ng-change="updateLoadBalancerGroups()"/>
-      </label>
-    </div>
+<div class="content server-group-rollup">
+  <h4>{{loadBalancer.region}}</h4>
+  <div class="sub-group">
+    <load-balancer load-balancer="loadBalancer" display-options="displayOptions"></load-balancer>
   </div>
 </div>
-<h4>{{loadBalancer.region}}</h4>
-<div class="row load-balancer"
-     ng-class="{active: $state.includes('*.loadBalancer', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
-  <div class="summary">
-    <a ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})">
-      <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
-    </a>
-  </div>
-  <div class="details">
-    <load-balancer-server-group
-      ng-repeat="serverGroup in filteredServerGroups | orderBy:'name'"
-      server-group="serverGroup"></load-balancer-server-group>
-  </div>
-</div>
-

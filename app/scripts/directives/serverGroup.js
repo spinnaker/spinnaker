@@ -12,7 +12,7 @@ angular.module('deckApp')
       scope: {
         cluster: '=',
         serverGroup: '=',
-        renderInstancesOnScroll: '='
+        displayOptions: '='
       },
       link: function (scope) {
         scope.$state = $rootScope.$state;

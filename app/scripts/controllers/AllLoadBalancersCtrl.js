@@ -20,12 +20,6 @@ angular.module('deckApp')
       { label: 'Region', key: 'region' }
     ];
 
-    $scope.asgOptions = [
-      { label: 'All ASGs', key: 'all'},
-      { label: 'All ASGs, with instances', key: 'instances'},
-      { label: 'Only ASGs with unhealthy instances', key: 'unhealthy' }
-    ];
-
     function addSearchField(loadBalancers) {
       loadBalancers.forEach(function(loadBalancer) {
         if (!loadBalancer.searchField) {
@@ -62,13 +56,13 @@ angular.module('deckApp')
       });
     }
 
-    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, subGroup) {
+    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroup) {
       if (!$scope.sortFilter.hideHealthy) {
-        totalInstancesDisplayed += subGroup.reduce(function (total, asg) {
+        totalInstancesDisplayed += serverGroup.reduce(function (total, asg) {
           return asg.instances.length + total;
         }, 0);
       } else {
-        totalInstancesDisplayed += subGroup.reduce(
+        totalInstancesDisplayed += serverGroup.reduce(
           function (total, asg) {
             return (asg.downCount > 0 ? asg.instances.length : 0) + total;
           }, 0

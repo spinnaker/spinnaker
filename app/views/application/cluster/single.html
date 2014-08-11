@@ -20,28 +20,18 @@
     </div>
   </div>
 </div>
+<div ui-view="filters"></div>
 <div class="content">
-  <div class="sort-filter" style="display:none">
-    <div class="row form-inline">
-      <div class="form-group">
-        <label>
-          Sort by
-          <select class="form-control input-sm" name="sort-by" ng-model="sortFilter.sort">
-            <option value="region" selected>Region</option>
-            <option value="us-east-1">us-east-1</option>
-          </select>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>
-          Filter
-          <input type="text" class="form-control input-sm" name="filter" ng-model="sortFilter.filter"/>
-        </label>
-      </div>
-    </div>
+  <div ng-repeat="serverGroupRegion in serverGroupsByRegion | orderBy:'region'" class="server-group-rollup">
+    <h4>{{serverGroupRegion.region}}</h4>
+    <server-group
+      ng-repeat="serverGroup in serverGroupRegion.serverGroups | orderBy:'name'"
+      server-group="serverGroup"
+      cluster="cluster.name"
+      display-options="displayOptions"></server-group>
   </div>
-  <div ng-repeat="asg in asgsByRegion | orderBy:'region'">
-    <h4>{{asg.region}}</h4>
-    <server-group ng-repeat="serverGroup in asg.serverGroups | orderBy:'name'" server-group="serverGroup" cluster="cluster.name"></server-group>
+  <div ng-if="!serverGroupsByRegion.length">
+    <h4 class="text-center">No server groups match the filters you've selected.</h4>
   </div>
 </div>
+

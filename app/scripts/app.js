@@ -232,6 +232,12 @@ angular.module('deckApp', [
           'master': {
             templateUrl: 'views/application/cluster/all.html',
             controller: 'AllClustersCtrl'
+          },
+          'filters@clusters': {
+            templateUrl: 'views/application/cluster/filters.html'
+          },
+          'groupings@clusters': {
+            templateUrl: 'views/application/cluster/groupings.html'
           }
         }
       })
@@ -242,6 +248,9 @@ angular.module('deckApp', [
           'master@insight': {
             templateUrl: 'views/application/cluster/single.html',
             controller: 'ClusterCtrl'
+          },
+          'filters@cluster': {
+            templateUrl: 'views/application/cluster/filters.html'
           }
         },
         resolve: {

@@ -10,20 +10,42 @@ angular.module('deckApp')
     $scope.cluster = cluster;
     $scope.asgsByRegion = [];
 
-    function groupAsgsByRegion() {
-      var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
-        regions = _.keys(groupedAsgs),
-        asgsByRegion = [];
+    $scope.sortFilter = {
+      allowSorting: false,
+      filter: '',
+      showAllInstances: true,
+      hideHealthy: false
+    };
 
-      regions.forEach(function(region) {
-        asgsByRegion.push({ region: region, serverGroups: groupedAsgs[region] });
+    function filterServerGroups(serverGroups) {
+      if (!$scope.sortFilter.hideHealthy) {
+        return serverGroups;
+      }
+      return serverGroups.filter(function(serverGroup) {
+        return serverGroup.asg.downCount > 0;
       });
-      $scope.asgsByRegion = asgsByRegion;
     }
 
+    $scope.updateClusterGroups = function() {
+      var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
+        regions = _.keys(groupedAsgs),
+        serverGroupsByRegion = [];
+
+      regions.forEach(function(region) {
+        var filtered = filterServerGroups(groupedAsgs[region]);
+        if (filtered.length) {
+          serverGroupsByRegion.push({ region: region, serverGroups: filtered });
+        }
+      });
+      $scope.serverGroupsByRegion = serverGroupsByRegion;
+
+      $scope.displayOptions = {
+        showInstances: $scope.sortFilter.showAllInstances,
+        hideHealthy: $scope.sortFilter.hideHealthy
+      };
+    };
+
     $scope.cluster = cluster;
-
-    groupAsgsByRegion();
-
+    $scope.updateClusterGroups();
   }
 );
