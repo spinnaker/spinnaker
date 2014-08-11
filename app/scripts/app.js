@@ -280,7 +280,7 @@ angular.module('deckApp', [
         }
       })
       .state('loadBalancer', {
-        url: '/:loadBalancerAccount/:loadBalancerRegion/:loadBalancer',
+        url: ':loadBalancerAccount/:loadBalancerRegion/:loadBalancer',
         parent: 'loadBalancers',
         views: {
           'master@insight': {
