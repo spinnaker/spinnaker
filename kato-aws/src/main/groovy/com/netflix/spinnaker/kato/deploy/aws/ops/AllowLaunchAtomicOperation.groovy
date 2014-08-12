@@ -17,16 +17,17 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
-import com.amazonaws.services.ec2.model.LaunchPermission
-import com.amazonaws.services.ec2.model.LaunchPermissionModifications
-import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
+import com.netflix.spinnaker.kato.model.aws.AwsResultsRetriever
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 
 class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
@@ -52,13 +53,42 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
+    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
 
-    def credentials = namedAccountCredentialsHolder.getCredentials(description.account) as AmazonRoleAccountCredentials
+    def targetCredentials = namedAccountCredentialsHolder.getCredentials(description.account) as AmazonRoleAccountCredentials
+    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials.getCredentials(), description.region)
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
-    amazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(description.amiName).withLaunchPermission(new LaunchPermissionModifications()
-      .withAdd(new LaunchPermission().withUserId(credentials.accountId))))
+    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(description.amiName).withLaunchPermission(new LaunchPermissionModifications()
+      .withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+
+    def request = new DescribeTagsRequest(filters: [new Filter(name: "resource-id", values: [description.amiName])])
+
+    def targetTags = new TagsRetriever(targetAmazonEC2).retrieve(request)
+    def tagsToRemoveFromTarget = targetTags.collect { new Tag(key: it.key) }
+    targetAmazonEC2.deleteTags(new DeleteTagsRequest(resources: [description.amiName], tags: tagsToRemoveFromTarget))
+
+    def sourceTags = new TagsRetriever(sourceAmazonEC2).retrieve(request)
+    def tagsToAddToTarget = sourceTags.collect { new Tag(key: it.key, value: it.value) }
+    task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
+    targetAmazonEC2.createTags(new CreateTagsRequest(resources: [description.amiName], tags: tagsToAddToTarget))
+
     task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account."
+    null
+  }
+
+  @Canonical
+  static class TagsRetriever extends AwsResultsRetriever<TagDescription, DescribeTagsRequest, DescribeTagsResult> {
+    final AmazonEC2 amazonEC2
+
+    @Override
+    protected DescribeTagsResult makeRequest(DescribeTagsRequest request) {
+      amazonEC2.describeTags(request)
+    }
+
+    @Override
+    protected List<TagDescription> accessResult(DescribeTagsResult result) {
+      result.tags
+    }
   }
 }
