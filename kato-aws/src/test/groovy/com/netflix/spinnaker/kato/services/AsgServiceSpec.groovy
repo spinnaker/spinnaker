@@ -27,9 +27,8 @@ import spock.lang.Subject
 
 class AsgServiceSpec extends Specification {
 
-  def mockThrottleService = Mock(ThrottleService)
   def mockAmazonAutoScaling = Mock(AmazonAutoScaling)
-  @Subject def asgService = new AsgService( mockThrottleService, mockAmazonAutoScaling)
+  @Subject def asgService = new AsgService(mockAmazonAutoScaling)
 
   void 'should get auto scaling groups'() {
     when:

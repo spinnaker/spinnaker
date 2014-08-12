@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.model.aws
-
-import com.netflix.spinnaker.kato.services.ThrottleService
-
-
 /**
  * This class exists as a template for the boilerplate code involved in retrieving results from AWS
  * potentially using multiple requests and tokens. There are protected methods that should be implemented
@@ -29,13 +25,9 @@ import com.netflix.spinnaker.kato.services.ThrottleService
  */
 abstract class AwsResultsRetriever<T, Q, S> {
 
-  final ThrottleService throttleService
-  final int throttleTimeBetweenRequests
   final int maxResults
 
-  AwsResultsRetriever(ThrottleService throttleService, int throttleTimeBetweenRequests = 20, int maxResults = Integer.MAX_VALUE) {
-    this.throttleService = throttleService
-    this.throttleTimeBetweenRequests = throttleTimeBetweenRequests
+  AwsResultsRetriever(int maxResults = Integer.MAX_VALUE) {
     this.maxResults = maxResults
   }
 
@@ -44,9 +36,6 @@ abstract class AwsResultsRetriever<T, Q, S> {
     Integer remaining = maxResults
     String nextToken = null
     while (remaining > 0) {
-      if (nextToken) {
-        throttleService.sleepMillis(throttleTimeBetweenRequests) // Avoid rate limiting
-      }
       setNextToken(request, nextToken)
       limitRetrieval(request, remaining)
       S result = makeRequest(request)
