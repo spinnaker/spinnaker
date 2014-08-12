@@ -30,7 +30,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 
 /**
  * Converts validation errors into REST Messages
- * Configures {@link com.fasterxml.jackson.databind.ObjectMapper} used to deserialize requests
+ * Configures {@link ObjectMapper} used to deserialize requests
  */
 @Configuration
 class RestContextConfig extends WebMvcConfigurationSupport {

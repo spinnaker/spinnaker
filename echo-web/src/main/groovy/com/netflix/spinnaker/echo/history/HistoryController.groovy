@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.echo.history
 
+import com.netflix.spinnaker.echo.events.EventPropagator
+import com.netflix.spinnaker.echo.model.Event
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -30,26 +31,10 @@ import org.springframework.web.bind.annotation.RestController
 class HistoryController {
 
     @Autowired
-    HistoryRepository historyRepository
+    EventPropagator propagator
 
-    @RequestMapping(value = 'history', method = RequestMethod.GET)
-    List<Map> listHistory() {
-        historyRepository.listHistory()
+    @RequestMapping(value = '/', method = RequestMethod.POST)
+    void saveHistory(@RequestBody Event event) {
+        propagator.processEvent(event)
     }
-
-    @RequestMapping(value = 'history/{name}', method = RequestMethod.POST)
-    void saveHistory(@PathVariable String name, @RequestBody String history) {
-        historyRepository.saveHistory(name, history)
-    }
-
-    @RequestMapping(value = 'history/{name}', method = RequestMethod.DELETE)
-    void deleteHistory(@PathVariable String name) {
-        historyRepository.deleteHistory name
-    }
-
-    @RequestMapping(value = 'history/{name}', method = RequestMethod.GET)
-    Map getHistory(@PathVariable String name) {
-        historyRepository.getHistory name
-    }
-
 }

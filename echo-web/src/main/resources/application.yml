@@ -4,7 +4,6 @@ spinnaker:
     keyspace: 'echo'
 netflix:
   appinfo:
-    name: 'spinnaker-echo'
-
+    name: 'echo-core'
 server:
-    port: 8080
+  port: 8120
