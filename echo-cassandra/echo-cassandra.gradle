@@ -4,6 +4,7 @@ dependencies {
     compile commonDependencies.kork
     compile commonDependencies.korkCassandra
     compile commonDependencies.jacksonDatabind
+    compile project(':echo-model')
     testCompile commonDependencies.spockSpring
     testCompile commonDependencies.springTest
 }

@@ -1,5 +1,5 @@
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
-dependencies{
+dependencies {
     compile commonDependencies.kork
 }

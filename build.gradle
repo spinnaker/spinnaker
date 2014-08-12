@@ -16,93 +16,78 @@
 
 buildscript {
     repositories {
-        if( project.hasProperty('internalArtifactory') ){
+        if (project.hasProperty('internalArtifactory')) {
             maven { url project.internalArtifactory }
         } else {
             jcenter()
         }
         maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
-
     }
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE'
-        classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.3'
+        classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.6"
     }
 }
 
-repositories {
-    if( project.hasProperty('internalArtifactory') ){
-        maven { url project.internalArtifactory }
-    } else {
-        jcenter()
+ext {
+    versions = [
+        batch   : "3.0.1.RELEASE",
+        groovy  : "2.3.6",
+        guava   : "14.0.1",
+        jackson : "2.3.3",
+        kork    : "1.18",
+        okhttp  : "2.0.0",
+        retrofit: "1.6.1",
+        rx      : "0.19.6",
+        slf4j   : "1.7.5",
+        spock   : "1.0-groovy-2.3-SNAPSHOT",
+        spring  : "4.0.6.RELEASE"
+    ]
+
+    commonDependencies = [
+        groovy         : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy"),
+        guava          : dependencies.create("com.google.guava:guava:$versions.guava"),
+        hamcrest       : dependencies.create("org.hamcrest:hamcrest-all:1.3"),
+        jacksonDatabind: dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
+        jacksonGuava   : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
+        kork           : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
+        korkJedis      : dependencies.create("com.netflix.spinnaker.kork:kork-jedis:$versions.kork"),
+        korkCassandra  : dependencies.create("com.netflix.spinnaker.kork:kork-cassandra:$versions.kork"),
+        korkES         : dependencies.create("com.netflix.spinnaker.kork:kork-elasticsearch:$versions.kork"),
+        logback        : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
+        okHttp         : dependencies.create("com.squareup.okhttp:okhttp-urlconnection:$versions.okhttp"),
+        retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),
+        rxJava         : dependencies.create("com.netflix.rxjava:rxjava-core:$versions.rx"),
+        slf4j          : dependencies.create("org.slf4j:slf4j-api:$versions.slf4j"),
+        slf4jJcl       : dependencies.create("org.slf4j:jcl-over-slf4j:$versions.slf4j"),
+        slf4jSimple    : dependencies.create("org.slf4j:slf4j-simple:$versions.slf4j"),
+        spock          : dependencies.create("org.spockframework:spock-core:$versions.spock"),
+        spockSpring    : dependencies.create("org.spockframework:spock-spring:$versions.spock"),
+        springBatch    : dependencies.create("org.springframework.batch:spring-batch-core:$versions.batch"),
+        springBatchTest: dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
+        springTest     : dependencies.create("org.springframework:spring-test:$versions.spring"),
+        springWeb      : dependencies.create("org.springframework:spring-web:$versions.spring"),
+        objenesis      : dependencies.create("org.objenesis:objenesis:2.1")
+    ]
+}
+
+allprojects {
+    apply plugin: "spinnaker-gradle-project"
+    group = "com.netflix.spinnaker.echo"
+}
+
+subprojects {
+    repositories {
+        if (project.hasProperty('internalArtifactory')) {
+            maven { url project.internalArtifactory }
+        } else {
+            jcenter()
+        }
+    }
+    plugins.withType(JavaPlugin) {
+        sourceCompatibility = "1.7"
+        targetCompatibility = "1.7"
     }
 }
 
-group = 'com.netflix.spinnaker.echo'
-
-apply plugin: 'spinnaker-gradle-project'
-apply plugin: 'groovy'
-apply plugin: 'spring-boot'
-apply plugin: 'codenarc'
-apply plugin: 'jacoco'
-
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-def rxJavaVersion = '0.16.1'
-
-configurations.all {
-    resolutionStrategy {
-        force 'org.apache.log4j:log4j:1.2.17'
-        force 'com.google.guava:guava:14.0.1'
-        force 'commons-codec:commons-codec:1.7'
-    }
-    exclude group: 'javax.servlet', module: 'servlet-api'
-    exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-    exclude group: 'ch.qos.logback', module: 'logback-classic'
-    exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
-    exclude group: 'commons-logging', module: 'commons-logging'
-
-}
-
-dependencies {
-    compile "org.slf4j:slf4j-api:1.7.7"
-    runtime 'org.springframework:springloaded:1.2.0.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-web:1.1.4.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-actuator:1.1.4.RELEASE'
-    compile 'com.google.guava:guava:14.0.1'
-    compile 'joda-time:joda-time:2.3'
-    runtime 'com.netflix.servo:servo-aws:0.7.3'
-    runtime 'com.netflix.servo:servo-apache:0.7.3'
-    compile 'org.codehaus.groovy:groovy-all:2.3.3'
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.1.4"
-    compile "com.fasterxml.jackson.core:jackson-core:2.1.4"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.1.4"
-    compile "com.netflix.eureka:eureka-client:1.1.128"
-    compile "cz.jirutka.spring:spring-rest-exception-handler:1.0.0"
-    runtime "org.slf4j:slf4j-log4j12:1.7.7"
-    runtime "org.slf4j:jcl-over-slf4j:1.7.7"
-    runtime "org.slf4j:jul-to-slf4j:1.7.7"
-    compile "com.netflix.spinnaker.kork:kork-core:1.16"
-    compile "com.netflix.spinnaker.kork:kork-cassandra:1.16"
-    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
-    testCompile 'org.spockframework:spock-spring:0.7-groovy-2.0'
-    testRuntime 'org.objenesis:objenesis:2.1'
-    testRuntime 'cglib:cglib-nodep:3.1'
-    testCompile 'org.springframework:spring-test:4.0.6.RELEASE'
-}
-
-codenarc {
-    toolVersion = '0.21'
-    configFile = rootProject.file('config/codenarc/rules.groovy')
-}
-
-jacoco {
-    toolVersion = '0.7.0.201403182114'
-}
-
-run {
-    classpath += configurations.provided
-}
-
-tasks.build.dependsOn('jacocoTestReport')
+defaultTasks "build"
+tasks.checkSnapshotDependencies.enabled = false

@@ -14,5 +14,17 @@
  * limitations under the License.
  */
 
-rootProject.name='echo-core'
+include 'echo-core', 'echo-model', 'echo-cassandra', 'echo-web', 'echo-elasticsearch'
 
+rootProject.name = 'echo'
+
+def setBuildFile(project) {
+    project.buildFileName = "${project.name}.gradle"
+    project.children.each {
+        setBuildFile(it)
+    }
+}
+
+rootProject.children.each {
+    setBuildFile it
+}
