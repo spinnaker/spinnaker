@@ -21,9 +21,9 @@ import spock.lang.Specification
 /**
  * Ensures that events are properly propagated
  */
-class EventPropagationSpec extends Specification{
+class EventPropagationSpec extends Specification {
 
-    void 'events are sent to every listener'(){
+    void 'events are sent to every listener'() {
 
         given:
         EventPropagator propagator = new EventPropagator()
