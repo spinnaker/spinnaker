@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.history
+package com.netflix.spinnaker.echo.cassandra
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.astyanax.Keyspace

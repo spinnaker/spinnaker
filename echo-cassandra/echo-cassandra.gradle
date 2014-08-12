@@ -1,0 +1,9 @@
+apply from: "$rootDir/gradle/groovy-module.gradle"
+
+dependencies {
+    compile commonDependencies.kork
+    compile commonDependencies.korkCassandra
+    compile commonDependencies.jacksonDatabind
+    testCompile commonDependencies.spockSpring
+    testCompile commonDependencies.springTest
+}

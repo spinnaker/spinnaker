@@ -14,30 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.history
+package com.netflix.spinnaker.echo.cassandra
 
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.MutationBatch
-import com.netflix.spinnaker.echo.Application
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
+import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents
+import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents.EmbeddedCassandraRunner
+import spock.lang.AutoCleanup
+import spock.lang.Shared
 import spock.lang.Specification
 
-@WebAppConfiguration
-@ContextConfiguration(classes = [Application])
 class HistoryRepositorySpec extends Specification {
 
-    @Autowired
+    @Shared
+    @AutoCleanup('destroy')
+    EmbeddedCassandraRunner runner
+
+    @Shared
     HistoryRepository repo
 
-    @Autowired
+    @Shared
     Keyspace keyspace
 
     void setupSpec() {
-        System.setProperty('netflix.environment', 'test')
-        System.setProperty('spinnaker.cassandra.cluster', 'workflow')
-        System.setProperty('spinnaker.cassandra.keyspace', 'test')
+        AstyanaxComponents components = new AstyanaxComponents()
+        keyspace = components.keyspaceFactory(
+            components.astyanaxConfiguration(),
+            components.connectionPoolConfiguration(9160, '127.0.0.1', 3),
+            components.connectionPoolMonitor()
+        ).getKeyspace('workflow', 'test')
+        runner = new EmbeddedCassandraRunner(keyspace, 9160, '127.0.0.1')
+        runner.init()
+        repo = new HistoryRepository()
+        repo.keyspace = keyspace
+        repo.onApplicationEvent(null)
     }
 
     void setup() {
