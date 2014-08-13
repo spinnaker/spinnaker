@@ -1,4 +1,4 @@
-<div class="load-balancers pull-right text-right" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
+<div class="load-balancers text-right" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
   <button
       class="btn btn-link multiple-load-balancers clearfix"
       ng-if="loadBalancers.length > maxDisplay"
@@ -6,12 +6,17 @@
       tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{loadBalancers.length}} load balancers">
     <span class="icon">
       <span class="glyphicon glyphicon-cloud"></span>
-      <span class="glyphicon glyphicon-cloud"></span>
-      <span class="glyphicon glyphicon-cloud"></span>
     </span>
     <span class="badge counter">{{loadBalancers.length}}</span>
   </button>
-  <div class="all-load-balancers" ng-if="loadBalancers.length <= maxDisplay || popover.show">
+  <div class="all-load-balancers" ng-if="popover.show">
+    <a
+      ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
+      ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"
+      >{{loadBalancer.name}}
+    </a>
+  </div>
+  <div class="all-load-balancers" ng-if="loadBalancers.length <= maxDisplay">
     <button
        class="btn btn-link"
        ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"

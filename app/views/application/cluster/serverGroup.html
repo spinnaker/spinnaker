@@ -1,11 +1,13 @@
 <div class="row server-group sub-group"
      ng-class="{active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})}">
   <div class="summary">
-    <a ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
-      <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
+    <a class="title-link"
+       ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
+      <span class="glyphicon glyphicon-th"></span>
+      {{serverGroup.name}}
+      <account-tag account="serverGroup.account"></account-tag>
     </a>
     <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="4"></load-balancers-tag>
-    <account-tag account="serverGroup.account"></account-tag>
   </div>
   <div class="details">
     <div class="build-title">
