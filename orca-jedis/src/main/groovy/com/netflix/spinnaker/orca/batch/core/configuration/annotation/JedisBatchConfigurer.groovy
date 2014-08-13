@@ -88,7 +88,8 @@ class JedisBatchConfigurer implements BatchConfigurer {
   private JobRepository createJobRepository() {
     repositoryFactory = new JedisJobRepositoryFactoryBean(jedis, transactionManager)
     repositoryFactory.afterPropertiesSet()
-    return repositoryFactory.object
+    return (JobRepository) repositoryFactory.object
+    // cast attempts to avoid weird compilation problem on Jenkins with Java 1.7.0_07
   }
 
   private JobExplorer createJobExplorer() {
