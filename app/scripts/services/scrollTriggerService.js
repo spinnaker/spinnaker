@@ -7,7 +7,8 @@ angular.module('deckApp')
   .factory('scrollTriggerService', function($window, $) {
     var eventRegistry = Object.create(null), // creates {} with no prototype; ES6 Maps would be preferable (available in Chrome 38?)
         registryCounter = 0,
-        scrollEventActive;
+        scrollEventActive,
+        $$window = $($window);
 
     /**
      * Registers a method to be called as soon as the element is in view.
@@ -19,7 +20,7 @@ angular.module('deckApp')
      *               if it's going to affect the scope - otherwise Angular won't notice it.
      */
     function register(elementScope, element, method) {
-      var eventToRegister = { element: angular.element(element), method: method };
+      var eventToRegister = { element: $(element), method: method };
 
       if (eventIsInView(eventToRegister)) {
         method();
@@ -44,12 +45,16 @@ angular.module('deckApp')
     }
 
     function eventIsInView(registeredEvent, scrollBottom) {
-      scrollBottom = scrollBottom || $($window).scrollTop() + $window.innerHeight;
-      return registeredEvent && registeredEvent.element.offset().top < scrollBottom;
+      var elementTop = registeredEvent.element.offset().top;
+      if (elementTop < 0) {
+        return false;
+      }
+      scrollBottom = scrollBottom || $$window.scrollTop() + $window.innerHeight;
+      return registeredEvent && elementTop < scrollBottom;
     }
 
     function fireEvents() {
-      var scrollBottom = $($window).scrollTop() + $window.innerHeight,
+      var scrollBottom = $$window.scrollTop() + $window.innerHeight,
           executed = [];
 
       for (var registeredEventId in eventRegistry) {
@@ -64,14 +69,14 @@ angular.module('deckApp')
 
     function activateScrollEvent() {
       if (!scrollEventActive) {
-        angular.element($window).bind('scroll.triggeredEvents', fireEvents);
+        $$window.bind('scroll.triggeredEvents', fireEvents);
         scrollEventActive = true;
       }
     }
 
     function disableScrollEvent() {
       if (scrollEventActive) {
-        angular.element($window).unbind('scroll.triggeredEvents');
+        $$window.unbind('scroll.triggeredEvents');
         scrollEventActive = false;
       }
     }
