@@ -5,5 +5,5 @@ spinnaker:
 netflix:
   appinfo:
     name: 'echo-core'
-server:
-  port: 8120
+# server:
+  # port: 8120

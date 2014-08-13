@@ -35,11 +35,18 @@ springBoot {
     mainClass = 'com.netflix.spinnaker.echo.Application'
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'org.antlr:antlr-runtime:3.4'
+    }
+}
+
 dependencies {
     compile 'cz.jirutka.spring:spring-rest-exception-handler:1.0.0'
     compile project(':echo-core')
     compile project(':echo-model')
     compile project(':echo-cassandra')
+    compile project(':echo-elasticsearch')
     compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('bootWeb')
     compile commonDependencies.springWeb
