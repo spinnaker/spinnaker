@@ -18,24 +18,24 @@
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.deploy.aws.description.TagAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAsgTagsDescription
 import org.springframework.validation.Errors
 
-class TagAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
+class UpsertAsgTagsDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorSpec {
 
   @Override
   DescriptionValidator getDescriptionValidator() {
-    new TagAsgDescriptionValidator()
+    new UpsertAsgTagsDescriptionValidator()
   }
 
   @Override
-  TagAsgDescription getDescription() {
-    new TagAsgDescription()
+  UpsertAsgTagsDescription getDescription() {
+    new UpsertAsgTagsDescription()
   }
 
   void "empty tags fails validation"() {
     setup:
-    def description = new TagAsgDescription()
+    def description = new UpsertAsgTagsDescription()
     def errors = Mock(Errors)
 
     when:
@@ -47,7 +47,7 @@ class TagAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorS
 
   void "invalid tags fails validation"() {
     setup:
-    def description = new TagAsgDescription()
+    def description = new UpsertAsgTagsDescription()
     description.tags = ["tag": null]
     def errors = Mock(Errors)
 
@@ -55,7 +55,7 @@ class TagAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidatorS
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("tags", "tagAsgDescription.tag.invalid")
+    1 * errors.rejectValue("tags", "upsertAsgTagsDescription.tag.invalid")
   }
 
 }

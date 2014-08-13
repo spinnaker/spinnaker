@@ -1,8 +1,8 @@
-===== Tag ASG Description
+===== Upsert ASG Tags Description
 
 ====== Key
 
-+tagAsgDescription+
++upsertAsgTagsDescription+
 
 ====== Description
 
@@ -12,7 +12,7 @@ This description provides tags that are to be applied to a named AutoScaling gro
 [source,javascript]
 ----
 [{
-    "tagAsgDescription": {
+    "upsertAsgTagsDescription": {
         "asgName": "kato-main-v000",
         "regions": ["us-west-1", "us-east-1"],
         "tags": { "key": "value" },

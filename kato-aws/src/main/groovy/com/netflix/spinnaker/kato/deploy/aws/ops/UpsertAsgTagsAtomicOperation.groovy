@@ -23,20 +23,20 @@ import com.amazonaws.services.autoscaling.model.Tag
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.aws.description.TagAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAsgTagsDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class TagAsgAtomicOperation implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "TAG_ASG"
+class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
+  private static final String BASE_PHASE = "UPSERT_ASG_TAGS"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  private final TagAsgDescription description
+  private final UpsertAsgTagsDescription description
 
-  TagAsgAtomicOperation(TagAsgDescription description) {
+  UpsertAsgTagsAtomicOperation(UpsertAsgTagsDescription description) {
     this.description = description
   }
 
@@ -45,7 +45,7 @@ class TagAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Tagging ASG operation for $description.asgName..."
+    task.updateStatus BASE_PHASE, "Initializing Upsert Asg Tags operation for $description.asgName..."
     for (region in description.regions) {
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       def request = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
