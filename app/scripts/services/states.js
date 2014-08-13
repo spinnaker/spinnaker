@@ -236,6 +236,17 @@ angular.module('deckApp')
         ],
       };
 
+      var infrastructure = {
+        name: 'infrastructure',
+        url: '/infrastructure',
+        views: {
+          'main@': {
+            templateUrl: 'views/infrastructure.html',
+            controller: 'InfrastructureCtrl',
+          }
+        }
+      };
+
       var home = {
         name: 'home',
         abstract: true,
@@ -246,7 +257,8 @@ angular.module('deckApp')
           }
         },
         children: [
-          applications
+          applications,
+          infrastructure
         ],
       };
 
