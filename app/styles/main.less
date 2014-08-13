@@ -147,11 +147,13 @@ body {
         }
       }
       .form-inline {
-        label {
-          margin-left: 10px;
-        }
-        input, select {
-          margin-left: 10px;
+        @media(min-width: 768px) {
+          label {
+            margin-left: 10px;
+          }
+          input, select {
+            margin-left: 10px;
+          }
         }
       }
     }
@@ -191,6 +193,21 @@ dl {
 }
 
 .details-panel {
+  position: fixed;
+  top: 150px;
+  bottom: 10px;
+  overflow-y: scroll;
+
+  @media (max-width:768px) {
+    top: 130px;
+    margin-left: -25px;
+    width: 100%;
+  }
+
+  @media(min-width: 768px) and (max-width: 1000px) {
+    top: 190px;
+  }
+
   border: 1px solid #aaaaaa;
   border-radius: 5px;
   background-color: #ffffff;

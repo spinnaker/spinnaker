@@ -1,3 +1,7 @@
+<a class="visible-xs-block visible-sm-block"
+   ui-sref=".loadBalancers"
+   ng-class="{active: $state.includes('**.loadBalancers.**') && !$state.includes('**.loadBalancer.**')}"
+  >Show All Load Balancers</a>
 <div class="header clearfix">
   <h3>
     <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}

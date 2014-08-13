@@ -20,8 +20,8 @@
   <div class="sub-nav-item">
     <h4>{{heading}}</h4>
     <a ng-repeat="loadBalancer in getLoadBalancersFor(heading)"
-       ui-sref="loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account})"
-       ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: account} )}">
+       ui-sref=".loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account})"
+       ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account} )}">
       {{getLoadBalancerLabel(loadBalancer)}} ({{getLoadBalancerSublabel(loadBalancer)}})</a>
   </div>
 </div>
