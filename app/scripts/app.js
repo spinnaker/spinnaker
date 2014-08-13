@@ -15,6 +15,7 @@ require('angular-ui-router');
 require('angular-bootstrap');
 require('restangular');
 require('angular-spinner');
+require('jquery');
 
 angular.module('deckApp', [
     'ui.router',

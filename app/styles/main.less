@@ -85,7 +85,8 @@ body {
     }
 
     h4 {
-      font-weight: 700;
+      font-weight: 600;
+      text-transform: uppercase;
     }
 
     .sub-nav {
@@ -112,6 +113,7 @@ body {
         display: block;
         padding: 5px 10px;
         color: #6a6a6a;
+        border-bottom: 1px solid #d9d9d9;
         &:hover, &:focus, &.active {
           text-decoration: none;
           border-radius: 5px 0 0 5px;
@@ -197,6 +199,7 @@ dl {
   top: 150px;
   bottom: 10px;
   overflow-y: scroll;
+  width: 240px;
 
   @media (max-width:768px) {
     top: 130px;
@@ -206,6 +209,7 @@ dl {
 
   @media(min-width: 768px) and (max-width: 1000px) {
     top: 190px;
+    width: 210px;
   }
 
   border: 1px solid #aaaaaa;
@@ -216,26 +220,31 @@ dl {
   margin-left: 20px;
 
   .header {
-    text-align: center;
     padding: 20px 15px 0 15px;
-
     h3 {
-      font-weight: 700;
       .glyphicon {
+        top: 50%;
         color: @healthy_green;
-        display: block;
         font-size: 200%;
         &.unhealthy {
           color: @unhealthy_red;
         }
+        padding-right: 10px;
       }
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 48px;
+      height: 48px;
+      display: inline-block;
     }
   }
 
   .content {
     .content-section {
       h4 {
-        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 110%;
+        font-weight: 600;
       }
       padding: 0 15px;
       border-bottom: 1px solid #c4c4c4;
