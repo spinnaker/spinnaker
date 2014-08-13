@@ -18,7 +18,12 @@
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.CreateTagsRequest
+import com.amazonaws.services.ec2.model.DeleteTagsRequest
+import com.amazonaws.services.ec2.model.DescribeTagsResult
 import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
+import com.amazonaws.services.ec2.model.Tag
+import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
@@ -37,7 +42,9 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
   void "image attribute modification is invoked on request"() {
     setup:
     def provider = Mock(AmazonClientProvider)
-    def ec2 = Mock(AmazonEC2)
+    def ec2 = Mock(AmazonEC2) {
+      describeTags(_) >> new DescribeTagsResult()
+    }
     provider.getAmazonEC2(_, _) >> ec2
     def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(AmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
@@ -57,5 +64,46 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       mock.getAccountId() >> "5678"
       mock
     }
+  }
+
+  void "should replicate tags"() {
+    def prodCredentials = new AmazonCredentials(null, "prod", null)
+    def testCredentials = new AmazonCredentials(null, "test", null)
+
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+    def provider = Mock(AmazonClientProvider)
+
+    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = provider
+    op.namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
+
+    when:
+    op.operate([])
+
+    then:
+    with(op.namedAccountCredentialsHolder){
+      1 * getCredentials("prod") >> Mock(AmazonRoleAccountCredentials) {
+        1 * getCredentials() >> prodCredentials
+      }
+    }
+    with(provider) {
+      1 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2
+      1 * getAmazonEC2(prodCredentials, _) >> targetAmazonEc2
+    }
+    with(sourceAmazonEc2) {
+      1 * modifyImageAttribute(_)
+      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
+    }
+    with(targetAmazonEc2) {
+      1 * describeTags(_) >> constructDescribeTagsResult([b:"1", c: "2"])
+      1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b"), new Tag(key: "c")]))
+      1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "a", value: "1"), new Tag(key: "b", value: "2")]))
+    }
+  }
+
+  Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->
+    new DescribeTagsResult(tags: tags.collect {new TagDescription(key: it.key, value: it.value) })
   }
 }

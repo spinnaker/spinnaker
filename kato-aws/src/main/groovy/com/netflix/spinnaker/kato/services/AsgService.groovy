@@ -24,7 +24,6 @@ import groovy.transform.Canonical
 @Canonical
 class AsgService {
 
-  final ThrottleService throttleService
   final AmazonAutoScaling amazonAutoScaling
 
   void suspendProcesses(String asgName, Collection<AutoScalingProcessType> processes) {
@@ -42,7 +41,7 @@ class AsgService {
   }
 
   List<AutoScalingGroup> getAutoScalingGroups(Collection<String> asgNames) {
-    def retriever = new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResult>(throttleService) {
+    def retriever = new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResult>() {
       @Override
       protected DescribeAutoScalingGroupsResult makeRequest(DescribeAutoScalingGroupsRequest request) {
         amazonAutoScaling.describeAutoScalingGroups(request)

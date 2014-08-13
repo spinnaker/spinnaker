@@ -18,15 +18,13 @@ package com.netflix.spinnaker.kato.model.aws
 import com.amazonaws.services.ec2.model.DescribeSpotPriceHistoryRequest
 import com.amazonaws.services.ec2.model.DescribeSpotPriceHistoryResult
 import com.amazonaws.services.ec2.model.SpotPrice
-import com.netflix.spinnaker.kato.services.ThrottleService
 import spock.lang.Specification
 
 class AwsResultsRetrieverSpec  extends Specification {
 
-  def throttleService = Mock(ThrottleService)
   def service = Mock(AwsEc2Service)
 
-  def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest, DescribeSpotPriceHistoryResult>(throttleService, 10) {
+  def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest, DescribeSpotPriceHistoryResult>() {
     DescribeSpotPriceHistoryResult makeRequest(DescribeSpotPriceHistoryRequest request) {
       service.describeSpotPriceHistory(request)
     }
@@ -53,8 +51,6 @@ class AwsResultsRetrieverSpec  extends Specification {
     }
 
     then:
-    1 * throttleService.sleepMillis(10)
-
     1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: 'more1')) >> {
       new DescribeSpotPriceHistoryResult(nextToken: 'more2', spotPriceHistory: [
         new SpotPrice(spotPrice: '4'),
@@ -62,9 +58,6 @@ class AwsResultsRetrieverSpec  extends Specification {
         new SpotPrice(spotPrice: '6'),
       ])
     }
-
-    then:
-    1 * throttleService.sleepMillis(10)
 
     then:
     1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: 'more2')) >> {
@@ -116,7 +109,7 @@ class AwsResultsRetrieverSpec  extends Specification {
 
   def 'should retrieve up to limit'() {
     def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest,
-      DescribeSpotPriceHistoryResult>(throttleService, 0, 5) {
+      DescribeSpotPriceHistoryResult>(5) {
       DescribeSpotPriceHistoryResult makeRequest(DescribeSpotPriceHistoryRequest request) {
         service.describeSpotPriceHistory(request)
       }
@@ -142,9 +135,6 @@ class AwsResultsRetrieverSpec  extends Specification {
     }
 
     then:
-    1 * throttleService.sleepMillis(0)
-
-    then:
     1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7',
       maxResults: 2, nextToken: 'more1')) >> {
       new DescribeSpotPriceHistoryResult(nextToken: 'more2', spotPriceHistory: [
@@ -166,7 +156,7 @@ class AwsResultsRetrieverSpec  extends Specification {
 
   def 'should not enforce limit if limitRetrieval is not implemented'() {
     def retriever = new AwsResultsRetriever<SpotPrice, DescribeSpotPriceHistoryRequest,
-      DescribeSpotPriceHistoryResult>(throttleService, 0, 5) {
+      DescribeSpotPriceHistoryResult>(5) {
       DescribeSpotPriceHistoryResult makeRequest(DescribeSpotPriceHistoryRequest request) {
         service.describeSpotPriceHistory(request)
       }
@@ -186,9 +176,6 @@ class AwsResultsRetrieverSpec  extends Specification {
         new SpotPrice(spotPrice: '3'),
       ])
     }
-
-    then:
-    1 * throttleService.sleepMillis(0)
 
     then:
     1 * service.describeSpotPriceHistory(new DescribeSpotPriceHistoryRequest(availabilityZone: 'us-east-7', nextToken: 'more1')) >> {
