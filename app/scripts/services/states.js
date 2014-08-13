@@ -21,11 +21,11 @@ angular.module('deckApp')
           }
         },
         resolve: {
-          instance: function($stateParams) {
+          instance: ['$stateParams', function($stateParams) {
             return {
               instanceId: $stateParams.instanceId
             };
-          }
+          }]
         }
       };
 
@@ -39,13 +39,13 @@ angular.module('deckApp')
           }
         },
         resolve: {
-          serverGroup: function($stateParams) {
+          serverGroup: ['$stateParams', function($stateParams) {
             return {
               name: $stateParams.serverGroup,
               accountId: $stateParams.accountId,
               region: $stateParams.region
             };
-          }
+          }]
         }
       };
 
@@ -59,13 +59,13 @@ angular.module('deckApp')
           }
         },
         resolve: {
-          loadBalancer: function($stateParams) {
+          loadBalancer: ['$stateParams', function($stateParams) {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
               region: $stateParams.region
             };
-          }
+          }]
         }
       };
 
@@ -105,9 +105,9 @@ angular.module('deckApp')
                 }
               },
               resolve: {
-                cluster: function ($stateParams, application) {
+                cluster: ['$stateParams', 'application', function ($stateParams, application) {
                   return application.getCluster($stateParams.account, $stateParams.cluster);
-                }
+                }]
               },
               children: [loadBalancerDetails, serverGroupDetails, instanceDetails],
             }
@@ -140,13 +140,13 @@ angular.module('deckApp')
                 }
               },
               resolve: {
-                loadBalancer: function($stateParams) {
+                loadBalancer: ['$stateParams', function($stateParams) {
                   return {
                     name: $stateParams.loadBalancer,
                     region: $stateParams.loadBalancerRegion,
                     account: $stateParams.loadBalancerAccount
                   };
-                }
+                }]
               },
               children: [loadBalancerDetails, serverGroupDetails, instanceDetails],
             }
@@ -173,11 +173,11 @@ angular.module('deckApp')
               }
             },
             resolve: {
-              cluster: function($stateParams) {
+              cluster: ['$stateParams', function($stateParams) {
                 return {
                   name: $stateParams.cluster
                 };
-              }
+              }]
             }
           },
           ],
@@ -195,10 +195,10 @@ angular.module('deckApp')
           },
         },
         resolve: {
-          tasks: function(pond) {
+          tasks: ['pond', function(pond) {
             // TODO: scope tasks to application
             return pond.all('task').getList();
-          },
+          }],
         },
       };
 
@@ -212,9 +212,9 @@ angular.module('deckApp')
           },
         },
         resolve: {
-          application: function($stateParams, oortService) {
+          application: ['$stateParams', 'oortService', function($stateParams, oortService) {
             return oortService.getApplication($stateParams.application);
-          }
+          }]
         },
         children: [
           insight,
