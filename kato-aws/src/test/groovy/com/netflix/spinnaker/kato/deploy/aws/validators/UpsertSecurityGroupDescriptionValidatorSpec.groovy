@@ -63,12 +63,12 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
     validator.regionScopedProviderFactory = regionScopedProviderFactory
   }
 
-  void "should reject ingress unknwon security groups when no prior security group create descriptions are found"() {
+  void "should reject ingress unknown security groups when no prior security group create descriptions are found"() {
     when:
     validator.validate(_, description, errors)
 
     then:
-    1 * securityGroupService.getSecurityGroupIds(_) >> { throw new SecurityGroupNotFoundException() }
+    1 * securityGroupService.getSecurityGroupIds(_) >> { throw new SecurityGroupNotFoundException(missingSecurityGroups: ["sg-123"]) }
     1 * errors.rejectValue("securityGroupIngress", _)
   }
 
