@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.kato.api.ops.DeleteAsgOperation
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -28,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
-class DestroyAsgTask implements Task {
+class DeleteAsgTask implements Task {
 
   @Autowired
   KatoService kato
@@ -39,20 +40,20 @@ class DestroyAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def operation = convert(context)
-    def taskId = kato.requestOperations([[destroyAsgDescription: operation]])
-                     .toBlocking()
-                     .first()
+    def taskId = kato.requestOperations([[deleteAsgDescription: operation]])
+      .toBlocking()
+      .first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        ["deploy.account.name" : operation.credentials,
-         "kato.task.id"        : taskId,
-         "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }
-        ])
+      ["deploy.account.name" : operation.credentials,
+       "kato.task.id"        : taskId,
+       "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }
+      ])
   }
 
-  DestroyAsgOperation convert(TaskContext context) {
+  DeleteAsgOperation convert(TaskContext context) {
     mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
+      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(context.getInputs("deleteAsg"), DeleteAsgOperation)
   }
 }
