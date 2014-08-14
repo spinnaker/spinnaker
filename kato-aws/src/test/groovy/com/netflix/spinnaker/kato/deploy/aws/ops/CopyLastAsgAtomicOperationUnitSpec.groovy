@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -46,6 +47,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def description = new BasicAmazonDeployDescription(application: "asgard", stack: "stack")
     description.availabilityZones = ['us-west-1': []]
     description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.securityGroups = ['someGroupName', 'sg-12345a']
     def mockEC2 = Mock(AmazonEC2)
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockProvider = Mock(AmazonClientProvider)
@@ -59,11 +61,16 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * mockEC2.describeSecurityGroups(_) >> {
-      def grp = Mock(SecurityGroup)
-      grp.getGroupName() >> "foo"
-      grp.getGroupId() >> "sg-12345"
-      new DescribeSecurityGroupsResult().withSecurityGroups([grp])
+    1 * mockEC2.describeSecurityGroups(_) >> { DescribeSecurityGroupsRequest request ->
+      assert request.groupNames == ['someGroupName']
+      assert request.groupIds == ['sg-12345a']
+      def grpByName = Mock(SecurityGroup)
+      grpByName.getGroupName() >> "someGroupName"
+      grpByName.getGroupId() >> "sg-12345b"
+      def grpById = Mock(SecurityGroup)
+      grpById.getGroupName() >> "otherGroupName"
+      grpById.getGroupId() >> "sg-12345a"
+      new DescribeSecurityGroupsResult().withSecurityGroups([grpByName, grpById])
     }
     1 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
       assert request.launchConfigurationNames == ['foo']
@@ -84,6 +91,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     descriptions.first().capacity.min == 1
     descriptions.first().capacity.max == 2
     descriptions.first().capacity.desired == 5
-    descriptions.first().securityGroups == ['foo']
+    descriptions.first().securityGroups == ['someGroupName', 'otherGroupName']
   }
 }
