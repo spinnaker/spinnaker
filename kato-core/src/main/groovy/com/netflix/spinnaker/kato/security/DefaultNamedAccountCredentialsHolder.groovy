@@ -20,7 +20,7 @@ package com.netflix.spinnaker.kato.security
 import java.util.concurrent.ConcurrentHashMap
 
 class DefaultNamedAccountCredentialsHolder implements NamedAccountCredentialsHolder {
-  private static final Map<String, NamedAccountCredentials> accountCredentials = new ConcurrentHashMap<>()
+  private final Map<String, NamedAccountCredentials> accountCredentials = new ConcurrentHashMap<>()
 
   @Override
   void put(String name, NamedAccountCredentials namedAccountCredentials) {

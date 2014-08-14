@@ -99,7 +99,7 @@ class KatoAWSConfig {
     @PostConstruct
     void init() {
       if (!awsConfigurationProperties.accounts) {
-        namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, null))
+        namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, null, true))
       } else {
         configureAccount awsCredentialsProvider, namedAccountCredentialsHolder, awsConfigurationProperties
       }
@@ -108,7 +108,7 @@ class KatoAWSConfig {
 
   private static void configureAccount(AWSCredentialsProvider provider, NamedAccountCredentialsHolder namedAccountCredentialsHolder, AwsConfigurationProperties awsConfigurationProperties) {
     for (account in awsConfigurationProperties.accounts) {
-      namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, awsConfigurationProperties.assumeRole, account.edda, account.regions))
+      namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, awsConfigurationProperties.assumeRole, account.edda, account.discoveryEnabled, account.regions))
     }
   }
 
@@ -122,6 +122,7 @@ class KatoAWSConfig {
     String name
     String accountId
     String edda
+    boolean discoveryEnabled
     List<AwsRegion> regions
   }
 

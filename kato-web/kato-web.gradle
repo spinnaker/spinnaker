@@ -45,3 +45,5 @@ dependencies {
 
   testCompile commonDependencies.springBootTest
 }
+
+tasks.bootRepackage.enabled = false

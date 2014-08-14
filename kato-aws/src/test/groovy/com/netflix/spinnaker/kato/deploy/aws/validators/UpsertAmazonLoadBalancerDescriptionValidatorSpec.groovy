@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -50,7 +50,7 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   void setup() {
-    description = new UpsertAmazonLoadBalancerDescription(credentials: new AmazonCredentials(null, 'test'))
+    description = new UpsertAmazonLoadBalancerDescription(credentials: new DiscoveryAwareAmazonCredentials(null, 'test'))
   }
 
   void "empty parameters fails validation"() {

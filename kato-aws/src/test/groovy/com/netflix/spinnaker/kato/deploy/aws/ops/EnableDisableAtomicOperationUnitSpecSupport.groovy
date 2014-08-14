@@ -19,23 +19,22 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import com.netflix.spinnaker.kato.services.AsgService
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject
 
 abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification {
   @Shared
   def description = new EnableDisableAsgDescription([
     asgName: "kato-main-v000",
     regions: ["us-west-1"],
-    credentials: new AmazonCredentials(Mock(AWSCredentials), "foo")
+    credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "foo")
   ])
 
   @Shared
@@ -56,16 +55,20 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     task = Mock(Task)
     TaskRepository.threadLocalTask.set(task)
     restTemplate = Mock(RestTemplate)
-    op.restTemplate = restTemplate
     asgService = Mock(AsgService)
-    def rspf = Mock(RegionScopedProviderFactory)
-    def rsp = Mock(RegionScopedProviderFactory.RegionScopedProvider)
-    rsp.getAsgService() >> asgService
-    rspf.forRegion(_, _) >> rsp
-    op.regionScopedProviderFactory = rspf
-    def provider = Mock(AmazonClientProvider)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
-    provider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
-    op.amazonClientProvider = provider
+    wireOpMocks(op)
+  }
+
+  def wireOpMocks(AbstractEnableDisableAtomicOperation op) {
+      op.restTemplate = restTemplate
+      def rspf = Mock(RegionScopedProviderFactory)
+      def rsp = Mock(RegionScopedProviderFactory.RegionScopedProvider)
+      rsp.getAsgService() >> asgService
+      rspf.forRegion(_, _) >> rsp
+      op.regionScopedProviderFactory = rspf
+      def provider = Mock(AmazonClientProvider)
+      provider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+      op.amazonClientProvider = provider
   }
 }

@@ -21,10 +21,10 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.ResizeAsgDescription
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import spock.lang.Specification
 
 class ResizeAsgAtomicOperationUnitSpec extends Specification {
@@ -39,7 +39,7 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new ResizeAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
-    description.credentials = new AmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
     description.capacity.min = 1
     description.capacity.max = 2
     description.capacity.desired = 5

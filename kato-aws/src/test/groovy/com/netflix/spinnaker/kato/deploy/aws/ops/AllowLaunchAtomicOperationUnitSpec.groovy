@@ -25,12 +25,12 @@ import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
 import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import spock.lang.Specification
 
 class AllowLaunchAtomicOperationUnitSpec extends Specification {
@@ -46,7 +46,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       describeTags(_) >> new DescribeTagsResult()
     }
     provider.getAmazonEC2(_, _) >> ec2
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(AmazonCredentials))
+    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(DiscoveryAwareAmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     def accountHolder = Mock(NamedAccountCredentialsHolder)
@@ -67,8 +67,8 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
   }
 
   void "should replicate tags"() {
-    def prodCredentials = new AmazonCredentials(null, "prod", null)
-    def testCredentials = new AmazonCredentials(null, "test", null)
+    def prodCredentials = new DiscoveryAwareAmazonCredentials(null, "prod", null)
+    def testCredentials = new DiscoveryAwareAmazonCredentials(null, "test", null)
 
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)

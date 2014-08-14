@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   BasicAmazonDeployDescriptionValidator validator
 
   @Shared
-  AmazonCredentials amazonCredentials = new AmazonCredentials(null, ACCOUNT_NAME)
+  DiscoveryAwareAmazonCredentials amazonCredentials = new DiscoveryAwareAmazonCredentials(null, ACCOUNT_NAME)
 
   void setupSpec() {
     validator = new BasicAmazonDeployDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1", "us-west-2"]))

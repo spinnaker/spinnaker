@@ -28,29 +28,31 @@ import org.springframework.data.annotation.Transient
 
 import javax.xml.bind.annotation.XmlTransient
 
-class AmazonRoleAccountCredentials implements NamedAccountCredentials<AmazonCredentials> {
+class AmazonRoleAccountCredentials implements NamedAccountCredentials<DiscoveryAwareAmazonCredentials> {
   private final AWSCredentialsProvider provider
   private final String accountId
   private final String environment
   private final String role
   private final String edda
+  private final boolean discoveryEnabled
   private final List<AwsRegion> regions
 
-  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda, List<AwsRegion> regions) {
+  AmazonRoleAccountCredentials(AWSCredentialsProvider provider, String accountId, String environment, String role, String edda, boolean discoveryEnabled, List<AwsRegion> regions) {
     this.provider = provider
     this.accountId = accountId
     this.environment = environment
     this.role = role
     this.edda = edda
+    this.discoveryEnabled = discoveryEnabled
     this.regions = regions
   }
 
   @JsonIgnore
   @XmlTransient
   @Transient
-  public AmazonCredentials getCredentials() {
+  public DiscoveryAwareAmazonCredentials getCredentials() {
     AWSCredentials credentials = new STSAssumeRoleSessionCredentialsProvider(provider, "arn:aws:iam::${accountId}:role/asgard", "Spinnaker")?.credentials
-    new AmazonCredentials(credentials, environment, edda)
+    new DiscoveryAwareAmazonCredentials(credentials, environment, edda, discoveryEnabled)
   }
 
   @JsonIgnore

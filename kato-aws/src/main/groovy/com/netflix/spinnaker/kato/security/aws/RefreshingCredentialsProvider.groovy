@@ -24,12 +24,12 @@ import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 class RefreshingCredentialsProvider implements AWSCredentialsProvider {
   private final long ttl
 
-  private final NamedAccountCredentials<AmazonCredentials> account
+  private final NamedAccountCredentials<DiscoveryAwareAmazonCredentials> account
 
   private Long lastCredentialRefresh
   private AWSCredentials credentials
 
-  RefreshingCredentialsProvider(NamedAccountCredentials<AmazonCredentials> account, long ttl) {
+  RefreshingCredentialsProvider(NamedAccountCredentials<DiscoveryAwareAmazonCredentials> account, long ttl) {
     this.account = account
     this.ttl = ttl
   }

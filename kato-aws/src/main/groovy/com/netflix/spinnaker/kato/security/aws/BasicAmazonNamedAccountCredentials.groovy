@@ -24,23 +24,25 @@ import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 
 import javax.xml.bind.annotation.XmlTransient
 
-class BasicAmazonNamedAccountCredentials implements NamedAccountCredentials<AmazonCredentials> {
+class BasicAmazonNamedAccountCredentials implements NamedAccountCredentials<DiscoveryAwareAmazonCredentials> {
 
   @JsonIgnore
   @XmlTransient
   private final AWSCredentialsProvider provider
   private final String environment
   private final String edda
+  private final boolean discoveryEnabled
 
-  BasicAmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment, String edda) {
+  BasicAmazonNamedAccountCredentials(AWSCredentialsProvider provider, String environment, String edda, boolean discoveryEnabled) {
     this.provider = provider
     this.environment = environment
     this.edda = edda
+    this.discoveryEnabled = discoveryEnabled
   }
 
   @JsonIgnore
   @XmlTransient
-  public AmazonCredentials getCredentials() {
-    new AmazonCredentials(provider.credentials, environment, edda)
+  public DiscoveryAwareAmazonCredentials getCredentials() {
+    new DiscoveryAwareAmazonCredentials(provider.credentials, environment, edda, discoveryEnabled)
   }
 }
