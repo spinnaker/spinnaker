@@ -37,7 +37,7 @@ angular.module('deckApp')
           return _.unique(_.collect(cluster.serverGroups, 'region')).sort();
         },
         getDisplayLabel: function(cluster) {
-          return _.unique(_.collect(cluster.serverGroups, 'region')).sort().join(', ');
+          return _.unique(_.collect(cluster.serverGroups, 'region')).sort().join(' ');
         }
       }
     ];
