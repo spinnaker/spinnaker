@@ -36,6 +36,15 @@ body {
   padding-right: 15px;
 }
 
+.container {
+  @media(min-width: 1400px) {
+    width: 1370px;
+    .details-panel {
+      width: 310px;
+    }
+  }
+}
+
 /* Custom page header */
 .header {
   border-bottom: 1px solid #e5e5e5;
@@ -206,18 +215,24 @@ dl {
   @media (max-width:768px) {
     top: 130px;
     margin-left: -25px;
-    width: 100%;
+    width: 95%;
   }
 
-  @media(min-width: 768px) and (max-width: 1000px) {
+  @media(min-width: 768px) and (max-width: 992px) {
     top: 190px;
     width: 210px;
+  }
+
+  @media(min-width: 992px) {
+    width: 220px;
+  }
+  @media(min-width: 1200px) {
+    width: 240px;
   }
 
   border: 1px solid #aaaaaa;
   border-radius: 5px;
   background-color: #ffffff;
-  min-height: 500px;
   padding: 0;
   margin-left: 20px;
 
