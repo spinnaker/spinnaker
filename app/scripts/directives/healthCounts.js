@@ -19,7 +19,7 @@ angular.module('deckApp')
             unknown = container.unknownCount,
             total = up + down + unknown;
 
-        scope.healthPercent = total ? parseInt(up*100/total) + '%' : 'n/a';
+        scope.healthPercent = total ? parseInt(up*100/total) : 'n/a';
         scope.healthPercentLabel = total ? '%' : '';
       }
     };
