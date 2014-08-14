@@ -40,7 +40,7 @@ class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOp
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * loadBalancing.registerInstancesWithLoadBalancer(_)
-    1 * task.updateStatus(_, 'Could not enable ASG \'kato-main-v000\' in region us-west-1! Failure Type: DiscoveryNotConfiguredException; Message: null')
+    1 * task.updateStatus(_, 'Could not Enable ASG \'kato-main-v000\' in region us-west-1! Failure Type: DiscoveryNotConfiguredException; Message: null')
   }
 
   void 'should log unknown asgs'() {
@@ -62,5 +62,14 @@ class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOp
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
     0 * loadBalancing._
+  }
+
+  void 'task should fail if an exception occurs during handling'() {
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(_) >> { throw new RuntimeException('Boom goes the dynamite') }
+    1 * task.fail()
   }
 }

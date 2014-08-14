@@ -20,6 +20,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
@@ -28,7 +29,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     op = new EnableAsgAtomicOperation(description)
   }
 
-  void 'should register instances from load balancers'() {
+  void 'should register instances from load balancers and resume scaling processes'() {
     setup:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
@@ -40,6 +41,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
+    1 * asgService.resumeProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
       assert req.instances[0].instanceId == "i1"
       assert req.loadBalancerName == "lb1"
