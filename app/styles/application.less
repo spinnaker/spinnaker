@@ -56,14 +56,23 @@
           z-index: 3;
           right: 50px;
           background-color: #ffffff;
-          margin-top: 12px;
-          border: 1px solid #333333;
+          margin-top: 8px;
+          border: 1px solid #777777;
           padding: 0;
           border-radius: 3px;
-          box-shadow: -1px 1px 1px #ffffff, -1px 1px 2px #ffffff, -1px 1px 3px #ffffff;
-          a {
+          box-shadow: 0px 0px 5px 2px #dddddd;
+          div {
+            font-weight: 600;
+            color: #eeeeee;
+            background-color: #5b5b5b;
+          }
+          div, a {
+            text-transform: none;
+            font-size: 82.5%;
             padding: 5px 10px;
             display: block;
+          }
+          a {
             border-bottom: 1px solid #d1d1d1;
             &:last-child {
               border-bottom-width: 0;
@@ -91,11 +100,11 @@
           &::after {
             margin-left: -10px;
             border-width: 8px;
-            border-bottom-color: #ffffff;
+            border-bottom-color: #5b5b5b;
           }
           &::before {
             top: -8px;
-            border-bottom-color: #777777;
+            border-bottom-color: #5b5b5b;
           }
         }
       }
@@ -149,6 +158,8 @@
     padding: 0;
     border-top: 1px solid #c4c4c4;
     background-color: #ffffff;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
 
     .load-balancer-server-group {
       padding: 10px;
@@ -180,7 +191,7 @@
     color: @healthy_green_icon;
   }
 
-  &.active, &:hover {
+  &.active {
     border-color: #121212;
     box-shadow: 0 0 8px 0px #999999;
   }
@@ -235,6 +246,14 @@
     display: table;
     width: 100%;
     text-transform: uppercase;
+    &:hover {
+      border-color: #121212;
+      border-bottom-width: 1px;
+      box-shadow: 0 0 8px 0px #999999;
+    }
+    .tooltip {
+      text-transform: none;
+    }
     .title-link, .load-balancers {
       display: table-cell;
       width: auto;
@@ -265,6 +284,16 @@
 .instance-health-counts {
   display: inline-block;
   padding-left: 5px;
+
+  .healthy {
+    color: #8cad6e;
+  }
+  .unhealthy {
+    color: #F0AD4E;
+  }
+  .dead {
+    color: #D9534F;
+  }
 
   .glyphicon {
     &:before {

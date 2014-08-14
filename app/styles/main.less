@@ -84,16 +84,16 @@ body {
       }
     }
 
-    h4 {
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
     .sub-nav {
-      margin-left: 10px;
-
       .sub-nav-item {
+        margin-left: 10px;
         border-bottom: 1px solid #c4c4c4;
+        .sublabel {
+          display: block;
+          opacity: 0.9;
+          text-transform: uppercase;
+          font-size: 70%;
+        }
 
         &:last-child {
           border-bottom-width: 0;
@@ -106,9 +106,11 @@ body {
     }
 
     .sub-nav-item, .show-all {
-      margin-left: 10px;
+      &.show-all-link {
+        font-weight: 600;
+        text-transform: uppercase;
+      }
       padding: 10px 0;
-
       a {
         display: block;
         padding: 5px 10px;
@@ -221,21 +223,33 @@ dl {
 
   .header {
     padding: 20px 15px 0 15px;
-    h3 {
+    .header-text {
+      padding: 15px 0;
+      display: table;
       .glyphicon {
+        display: table-cell;
+        vertical-align: middle;
         top: 50%;
         color: @healthy_green;
-        font-size: 200%;
+        font-size: 300%;
         &.unhealthy {
           color: @unhealthy_red;
         }
         padding-right: 10px;
       }
-      font-weight: 600;
-      margin-bottom: 24px;
-      line-height: 48px;
-      height: 48px;
-      display: inline-block;
+      h3 {
+        vertical-align: middle;
+        display: table-cell;
+        padding: 0;
+        font-weight: 600;
+        line-height: 1;
+        font-size: 20px;
+      }
+    }
+    .actions {
+      button {
+        width: 100%;
+      }
     }
   }
 
@@ -245,8 +259,20 @@ dl {
         text-transform: uppercase;
         font-size: 110%;
         font-weight: 600;
+        .glyphicon {
+          font-size: 70%;
+          opacity: 0.7;
+          margin-right: 4px;
+        }
       }
-      padding: 0 15px;
+      .content-body {
+        padding-left: 17px;
+        ul {
+          list-style-type: none;
+          padding-left: 0;
+        }
+      }
+      padding: 0 15px 0 10px;
       border-bottom: 1px solid #c4c4c4;
 
       &:last-child {
@@ -802,4 +828,50 @@ server-error-flag {
 
 .global-search {
   margin-top: 12px;
+}
+
+.collapsible-section {
+  a.section-heading {
+    padding-left: 0;
+    color: #000000;
+    &:hover, &:focus {
+      text-decoration: none;
+    }
+  }
+  h4 {
+    .glyphicon {
+      font-size: 70%;
+      opacity: 0.7;
+      margin-right: 4px;
+    }
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 115%;
+  }
+  .content-body {
+    &.ng-enter, &.ng-leave {
+      transition: opacity 0.15s ease-in;
+    }
+    &.ng-enter, &.ng-leave.ng-leave-active {
+      opacity: 0;
+    }
+    &.ng-leave, &.ng-enter.ng-enter-active {
+      opacity: 1;
+    }
+    padding-left: 17px;
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+  }
+  padding: 0 15px 0 10px;
+  border-bottom: 1px solid #c4c4c4;
+
+  &:last-child {
+    border-bottom-width: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
 }

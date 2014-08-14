@@ -10,6 +10,9 @@
     <span class="badge counter">{{loadBalancers.length}}</span>
   </button>
   <div class="all-load-balancers" ng-if="popover.show">
+    <div>
+      Load Balancers
+    </div>
     <a
       ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"

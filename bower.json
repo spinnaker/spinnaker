@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "dependencies": {
     "angular": "1.2.20",
+    "angular-animate": "1.2.20",
     "angular-ui-router": "~0.2.10",
     "bootstrap": "~3.2.0",
     "lodash": "~2.4.1",

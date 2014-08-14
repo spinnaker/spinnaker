@@ -11,7 +11,7 @@
   </span>
 </h3>
 
-<div class="sub-nav-item">
+<div class="sub-nav-item show-all-link">
   <a ui-sref=".loadBalancers"
      ng-class="{active: $state.includes('**.loadBalancers.**') && !$state.includes('**.loadBalancer.**')}"
     >Show All Load Balancers</a>
@@ -22,6 +22,7 @@
     <a ng-repeat="loadBalancer in getLoadBalancersFor(heading)"
        ui-sref=".loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account})"
        ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account} )}">
-      {{getLoadBalancerLabel(loadBalancer)}} ({{getLoadBalancerSublabel(loadBalancer)}})</a>
+      {{getLoadBalancerLabel(loadBalancer)}}
+      <span class="sublabel">{{getLoadBalancerSublabel(loadBalancer)}}</span></a>
   </div>
 </div>

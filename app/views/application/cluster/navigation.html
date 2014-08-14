@@ -11,7 +11,7 @@
   </span>
 </h3>
 
-<div class="sub-nav-item">
+<div class="sub-nav-item show-all-link">
   <a ui-sref="."
      ng-class="{active: $state.includes('**.clusters.**') && !$state.includes('**.cluster.**')}"
     >Show All Clusters</a>
@@ -22,6 +22,8 @@
     <a ng-repeat="cluster in getClustersFor(heading)"
        ui-sref=".cluster({account: cluster.account, cluster: cluster.name})"
        ng-class="{active: $state.includes('**.cluster.**', {account: cluster.account, cluster: cluster.name} )}">
-        {{getClusterLabel(cluster)}} ({{getClusterSublabel(cluster)}})</a>
+        {{getClusterLabel(cluster)}}
+        <span class="sublabel">{{getClusterSublabel(cluster)}}</span>
+    </a>
   </div>
 </div>

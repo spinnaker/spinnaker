@@ -1,9 +1,16 @@
-<span class="instance-health-counts">
-  {{ container.upCount }} <span class="glyphicon glyphicon-up-triangle healthy"></span>
-  /
-  {{ container.downCount }} <span class="glyphicon glyphicon-down-triangle unhealthy"></span>
+<span class="instance-health-counts" ng-if="healthPercent !== 'n/a'">
+  <span ng-if="container.upCount">
+    {{ container.upCount }} <span class="glyphicon glyphicon-up-triangle healthy"></span>
+  </span>
+  <span ng-if="container.downCount">
+    /
+    {{ container.downCount }} <span class="glyphicon glyphicon-down-triangle dead"></span>
+  </span>
   <span ng-if="container.unknownCount">
     /
     {{ container.unknownCount }} <span class="glyphicon glyphicon-question-sign unknown"></span>
   </span>
+  : <span ng-class="{healthy: healthPercent === 100, unhealthy: healthPercent < 100 && healthPercent > 0, dead: healthPercent === 0}">
+      {{healthPercent}}{{healthPercentLabel}}
+    </span>
 </span>

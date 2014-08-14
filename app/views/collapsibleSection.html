@@ -1,0 +1,9 @@
+<div class="collapsible-section">
+    <a href class="btn btn-link section-heading" ng-click="toggle()">
+      <h4>
+        <span class="glyphicon glyphicon-chevron-{{getIcon()}}"></span>
+        {{heading}}
+      </h4>
+    </a>
+  <div class="content-body" ng-if="expanded" ng-transclude></div>
+</div>

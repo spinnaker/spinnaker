@@ -13,11 +13,13 @@ var angular = require('angular');
 
 require('angular-ui-router');
 require('angular-bootstrap');
+require('angular-animate');
 require('restangular');
 require('angular-spinner');
 require('jquery');
 
 angular.module('deckApp', [
+    'ngAnimate',
     'ui.router',
     'ui.bootstrap',
     'restangular',
