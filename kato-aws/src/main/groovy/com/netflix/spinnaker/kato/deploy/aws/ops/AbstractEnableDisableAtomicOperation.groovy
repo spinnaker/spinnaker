@@ -58,7 +58,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus phaseName, "Initializing Disable ASG operation for '$description.asgName'..."
+    String verb = disable ? 'Disable' : 'Enable'
+    String presentParticipling = disable ? 'Disabling' : 'Enabling'
+    task.updateStatus phaseName, "Initializing ${verb} ASG operation for '$description.asgName'..."
+    boolean failures = false
     for (region in description.regions) {
       try {
         def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
@@ -70,8 +73,12 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           task.updateStatus phaseName, "No ASG named '$description.asgName' found in $region"
           continue
         }
-        task.updateStatus phaseName, "${disable ? 'Disabling' : 'Enabling'} ASG '$description.asgName' in $region..."
-        asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
+        task.updateStatus phaseName, "${presentParticipling} ASG '$description.asgName' in $region..."
+        if (disable) {
+            asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
+        } else {
+            asgService.resumeProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
+        }
 
         if (disable) {
           task.updateStatus phaseName, "Deregistering instances from Load Balancers..."
@@ -79,26 +86,30 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
             loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
           }
         } else {
-          task.updateStatus phaseName, "Enabling instances from Load Balancers..."
+          task.updateStatus phaseName, "Registering instances with Load Balancers..."
           changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
             loadBalancing.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(loadBalancerName, instances))
           }
         }
 
         if (description.credentials.discoveryEnabled) {
-            doOutOfServiceCall region, description.credentials.environment, (disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable), asg.autoScalingGroupName, asg.instances*.instanceId
-            task.updateStatus phaseName, "Done ${disable ? 'disabling' : 'enabling'} ASG $description.asgName."
-        } else {
-            task.updateStatus phaseName, "Skipping ${disable ? 'disabling' : 'enabling'} ASG $description.asgName. in this account"
+            def status = disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable
+            task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
+            doDiscoveryStatusCall region, description.credentials.environment, status, asg.autoScalingGroupName, asg.instances*.instanceId
         }
+        task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
       } catch (e) {
-        task.updateStatus phaseName, "Could not ${disable ? 'disable' : 'enable'} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
+        task.updateStatus phaseName, "Could not ${verb} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
+        failures = true
       }
+    }
+    if (failures) {
+        task.fail()
     }
     null
   }
 
-  private void doOutOfServiceCall(String region, String environment, DiscoveryStatus discoveryStatus, String asgName, List<String> instanceIds) {
+  private void doDiscoveryStatusCall(String region, String environment, DiscoveryStatus discoveryStatus, String asgName, List<String> instanceIds) {
     if (!discoveryHostFormat) {
       throw new DiscoveryNotConfiguredException()
     }
