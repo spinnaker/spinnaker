@@ -242,9 +242,9 @@ angular.module('deckApp')
         views: {
           'main@': {
             templateUrl: 'views/infrastructure.html',
-            controller: 'InfrastructureCtrl',
+            controller: 'InfrastructureCtrl as ctrl',
           }
-        }
+        },
       };
 
       var home = {
