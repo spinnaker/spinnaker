@@ -17,13 +17,13 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.model.NetworkInterface
 import com.google.common.collect.Iterables
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.model.aws.AwsNetworkInterface
 import com.netflix.spinnaker.kato.model.aws.ResultByZone
 import com.netflix.spinnaker.kato.model.aws.TagsNotCreatedException
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import com.netflix.spinnaker.kato.services.NetworkInterfaceService
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import spock.lang.Specification
@@ -59,7 +59,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new AmazonCredentials(Mock(AWSCredentials), "baz")
+      credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
@@ -104,7 +104,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new AmazonCredentials(Mock(AWSCredentials), "baz")
+      credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
@@ -145,7 +145,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new AmazonCredentials(Mock(AWSCredentials), "baz")
+      credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory

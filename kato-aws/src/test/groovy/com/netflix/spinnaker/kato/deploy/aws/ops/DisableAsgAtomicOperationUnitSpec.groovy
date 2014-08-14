@@ -15,9 +15,12 @@
  */
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -57,6 +60,30 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * restTemplate.put("http://us-west-1.discovery.ENV.netflix.net/v2/apps/asg1/i1/status?value=OUT_OF_SERVICE", [:])
+  }
+
+  void 'should skip discovery if not enabled for account'() {
+      setup:
+      def noDiscovery =  new EnableDisableAsgDescription([
+              asgName: "kato-main-v000",
+              regions: ["us-west-1"],
+              credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "foo", "edda", false)
+      ])
+
+      def noDiscoveryOp = new DisableAsgAtomicOperation(noDiscovery)
+      wireOpMocks(noDiscoveryOp)
+
+      noDiscoveryOp.discoveryHostFormat = "http://us-west-1.discovery.ENV.netflix.net"
+      def asg = Mock(AutoScalingGroup)
+      asg.getAutoScalingGroupName() >> "asg1"
+      asg.getInstances() >> [new Instance().withInstanceId("i1")]
+
+      when:
+      noDiscoveryOp.operate([])
+
+      then:
+      1 * asgService.getAutoScalingGroup(_) >> asg
+      0 * restTemplate.put(_, [:])
   }
 
 }

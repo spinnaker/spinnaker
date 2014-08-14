@@ -85,8 +85,12 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           }
         }
 
-        doOutOfServiceCall region, description.credentials.environment, (disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable), asg.autoScalingGroupName, asg.instances*.instanceId
-        task.updateStatus phaseName, "Done ${disable ? 'disabling' : 'enabling'} ASG $description.asgName."
+        if (description.credentials.discoveryEnabled) {
+            doOutOfServiceCall region, description.credentials.environment, (disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable), asg.autoScalingGroupName, asg.instances*.instanceId
+            task.updateStatus phaseName, "Done ${disable ? 'disabling' : 'enabling'} ASG $description.asgName."
+        } else {
+            task.updateStatus phaseName, "Skipping ${disable ? 'disabling' : 'enabling'} ASG $description.asgName. in this account"
+        }
       } catch (e) {
         task.updateStatus phaseName, "Could not ${disable ? 'disable' : 'enable'} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
       }

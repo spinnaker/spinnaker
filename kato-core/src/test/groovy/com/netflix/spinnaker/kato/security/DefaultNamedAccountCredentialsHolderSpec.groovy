@@ -17,16 +17,16 @@
 
 package com.netflix.spinnaker.kato.security
 
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class DefaultNamedAccountCredentialsHolderSpec extends Specification {
 
-  @Shared
+  @Subject
   DefaultNamedAccountCredentialsHolder credentialsHolder
 
   def setup() {
-    this.credentialsHolder = new DefaultNamedAccountCredentialsHolder()
+    credentialsHolder = new DefaultNamedAccountCredentialsHolder()
   }
 
   void "credentials are able to be saved and retrieved"() {
