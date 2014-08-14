@@ -21,7 +21,7 @@
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
         <dt>In:</dt>
         <dd>
-          {{instance.placement.availabilityZone || '(Unknown)'}}
+          {{instance.placement.availabilityZone || '(Unknown)' | regionAbbreviator}}
           <account-tag account="instance.account"></account-tag>
         </dd>
         <dt>Instance Type:</dt>

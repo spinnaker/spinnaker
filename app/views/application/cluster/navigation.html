@@ -18,12 +18,12 @@
 </div>
 <div class="sub-nav" ng-repeat="heading in getHeadings() | orderBy:'toString()'">
   <div class="sub-nav-item">
-    <h4>{{heading}}</h4>
+    <h4>{{heading | regionAbbreviator}}</h4>
     <a ng-repeat="cluster in getClustersFor(heading)"
        ui-sref=".cluster({account: cluster.account, cluster: cluster.name})"
        ng-class="{active: $state.includes('**.cluster.**', {account: cluster.account, cluster: cluster.name} )}">
         {{getClusterLabel(cluster)}}
-        <span class="sublabel">{{getClusterSublabel(cluster)}}</span>
+        <span class="sublabel">{{getClusterSublabel(cluster) | regionAbbreviator}}</span>
     </a>
   </div>
 </div>

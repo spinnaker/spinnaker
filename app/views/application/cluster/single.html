@@ -27,7 +27,7 @@
 <div ng-include="'views/application/cluster/filters.html'"></div>
 <div class="content">
   <div ng-repeat="serverGroupRegion in serverGroupsByRegion | orderBy:'region'" class="server-group-rollup">
-    <h4>{{serverGroupRegion.region}}</h4>
+    <h4>{{serverGroupRegion.region | regionAbbreviator }}</h4>
     <server-group
       ng-repeat="serverGroup in serverGroupRegion.serverGroups | orderBy:'name'"
       server-group="serverGroup"

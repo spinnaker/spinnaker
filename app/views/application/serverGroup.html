@@ -36,7 +36,10 @@
       <dt>Created:</dt>
       <dd>{{serverGroup.asg.createdTime | relativeTime}}</dd>
       <dt>In:</dt>
-      <dd>{{cluster.name}}<account-tag account="cluster.account"></account-tag></dd>
+      <dd>
+        {{cluster.name}}:{{serverGroup.region | regionAbbreviator}}
+        <account-tag account="cluster.account"></account-tag>
+      </dd>
     </dl>
   </collapsible-section>
   <collapsible-section heading="Health" expanded="true">
