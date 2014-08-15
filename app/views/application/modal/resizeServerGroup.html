@@ -80,6 +80,15 @@
           </div>
         </div>
       </div>
+      <div ng-if="verification.required">
+        <hr/>
+        <h4>Type the name of the account ( <account-tag account="serverGroup.account" pad="both"></account-tag> ) below to continue.</h4>
+        <div class="form-group form-inline">
+          <div class="col-md-11 col-md-offset-1">
+            <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm" placeholder="{{serverGroup.account}}"/>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="cancel()">Cancel</button>

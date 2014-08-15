@@ -8,8 +8,9 @@ angular.module('deckApp')
     return {
       restrict: 'EA',
       link: function (scope, elem) {
+        var $elem = $(elem);
         function getTabbableElements() {
-          return elem.find('a,input,select,button,textarea').filter(':visible').not(':disabled');
+          return $elem.find('a,input,select,button,textarea').filter(':visible').not(':disabled');
         }
 
         var ts = Math.floor(Math.random() * 4294967295);
@@ -26,7 +27,7 @@ angular.module('deckApp')
               $firstElem.focus();
               return false;
             }
-            if (!$.contains(elem.get(0), event.target)) {
+            if (!$.contains($elem.get(0), event.target)) {
               if (event.shiftKey) {
                 $lastElem.focus();
               } else {
@@ -37,7 +38,7 @@ angular.module('deckApp')
           }
         });
 
-        elem.on('$destroy', function () {
+        scope.$on('$destroy', function () {
           $(document).off('.modalPage-' + ts);
         });
       }

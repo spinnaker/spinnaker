@@ -29,7 +29,9 @@ angular.module('deckApp')
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
-        buttonText: 'Destroy ' + serverGroup.name
+        buttonText: 'Destroy ' + serverGroup.name,
+        destructive: true,
+        account: serverGroup.account
       }).then(function () {
         pond.one('ops').customPOST([
           {
@@ -50,7 +52,9 @@ angular.module('deckApp')
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
         header: 'Really disable ' + serverGroup.name + '?',
-        buttonText: 'Disable ' + serverGroup.name
+        buttonText: 'Disable ' + serverGroup.name,
+        destructive: true,
+        account: serverGroup.account
       }).then(function () {
         pond.one('ops').customPOST([
           {
@@ -70,7 +74,7 @@ angular.module('deckApp')
       var serverGroup = $scope.serverGroup;
       $modal.open({
         templateUrl: 'views/application/modal/resizeServerGroup.html',
-        controller: function ($scope, $modalInstance, pond) {
+        controller: function ($scope, $modalInstance, pond, accountService) {
 
           $scope.serverGroup = serverGroup;
           $scope.currentSize = {
@@ -79,11 +83,18 @@ angular.module('deckApp')
             desired: serverGroup.asg.desiredCapacity
           };
 
+          $scope.verification = {
+            required: accountService.challengeDestructiveActions(serverGroup.account)
+          };
+
           $scope.command = angular.copy($scope.currentSize);
           $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
 
           $scope.isValid = function () {
             var command = $scope.command;
+            if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account) {
+              return false;
+            }
             return command.advancedMode ?
               command.min <= command.max && command.desired >= command.min && command.desired <= command.max :
               command.newSize !== null;

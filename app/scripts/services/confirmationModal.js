@@ -32,8 +32,13 @@ angular.module('deckApp')
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, $modalInstance, params) {
+  .controller('ConfirmationModalCtrl', function($scope, accountService, $modalInstance, params) {
     $scope.params = params;
+
+    $scope.verification = {
+      requireAccountEntry: accountService.challengeDestructiveActions(params.account),
+      verifyAccount: ''
+    };
 
     $scope.confirm = function () {
       $modalInstance.close(true);

@@ -4,7 +4,7 @@
     <a class="title-link"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})">
       <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
-      <account-tag account="loadBalancer.account"></account-tag>
+      <account-tag account="loadBalancer.account" pad="left"></account-tag>
       <health-counts container="loadBalancer.health"></health-counts>
     </a>
   </div>
