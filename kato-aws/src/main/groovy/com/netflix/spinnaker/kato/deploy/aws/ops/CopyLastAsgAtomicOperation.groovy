@@ -33,7 +33,10 @@ import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
+import java.util.regex.Pattern
+
 class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
+  private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
   private static final String BASE_PHASE = "COPY_LAST_ASG"
 
   private static Task getTask() {
@@ -118,7 +121,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
   List<String> getSecurityGroupNamesForIds(String region, List<String> ids) {
     def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
-    def result = amazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupIds(ids))
+
+    def (List<String> groupIds, List<String> groupNames) = ids.split { SG_PATTERN.matcher(it).matches() }
+    def result = amazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupIds(groupIds).withGroupNames(groupNames))
     result.securityGroups*.groupName
   }
 }
