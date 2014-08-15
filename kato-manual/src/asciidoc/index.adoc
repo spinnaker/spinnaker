@@ -125,7 +125,9 @@ include::src/asciidoc/ops/resizeAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/shrinkClusterDescription.adoc[]
 - - -
-include::src/asciidoc/ops/tagAsgDescription.adoc[]
+include::src/asciidoc/ops/upsertAsgTagsDescription.adoc[]
+- - -
+include::src/asciidoc/ops/deleteAsgTagsDescription.adoc[]
 - - -
 include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -

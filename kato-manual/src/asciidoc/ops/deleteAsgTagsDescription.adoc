@@ -1,8 +1,8 @@
-===== Tag ASG Description
+===== Delete ASG Tags Description
 
 ====== Key
 
-+tagAsgDescription+
++deleteAsgTagsDescription+
 
 ====== Description
 
@@ -12,10 +12,10 @@ This description provides tags that are to be applied to a named AutoScaling gro
 [source,javascript]
 ----
 [{
-    "tagAsgDescription": {
+    "deleteAsgTagsDescription": {
         "asgName": "kato-main-v000",
         "regions": ["us-west-1", "us-east-1"],
-        "tags": { "key": "value" },
+        "tagKeys": ["key1", "key2"],
         "credentials": "test"
     }
 }]
@@ -28,6 +28,6 @@ This description provides tags that are to be applied to a named AutoScaling gro
 |Key               | Type   | Required | Value
 |asgName           | string | true     | The name of the asg that the process will disable.
 |regions           | array  | true     | The regions in which the specified ASG lives.
-|tags              | object | true     | A key-value object that represents the tags to be applied to an AutoScaling group.
+|tagKeys           | array  | true     | The keys of the tags to be deleted from an AutoScaling group.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================

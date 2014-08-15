@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.description
 
-class TagAsgDescription extends AbstractAmazonCredentialsDescription {
+class UpsertAsgTagsDescription extends AbstractAmazonCredentialsDescription {
   String asgName
   List<String> regions
   Map<String, String> tags

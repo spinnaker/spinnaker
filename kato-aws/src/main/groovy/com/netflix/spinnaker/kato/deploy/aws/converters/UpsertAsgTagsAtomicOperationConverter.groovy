@@ -17,20 +17,20 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
-import com.netflix.spinnaker.kato.deploy.aws.description.TagAsgDescription
-import com.netflix.spinnaker.kato.deploy.aws.ops.TagAsgAtomicOperation
+import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAsgTagsDescription
+import com.netflix.spinnaker.kato.deploy.aws.ops.UpsertAsgTagsAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("tagAsgDescription")
-class TagAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("upsertAsgTagsDescription")
+class UpsertAsgTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new TagAsgAtomicOperation(convertDescription(input))
+    new UpsertAsgTagsAtomicOperation(convertDescription(input))
   }
 
-  TagAsgDescription convertDescription(Map input) {
+  UpsertAsgTagsDescription convertDescription(Map input) {
     input.credentials = getCredentialsObject(input.credentials as String)
-    new TagAsgDescription(input)
+    new UpsertAsgTagsDescription(input)
   }
 }
