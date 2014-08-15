@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort
 
 import com.netflix.spinnaker.oort.controllers.TypeaheadController
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import spock.lang.Shared
 import spock.lang.Specification
@@ -46,9 +47,10 @@ class TypeaheadControllerSpec extends Specification {
     List results = typeaheadController.typeaheadResults('aBC', 10)
 
     then:
-    1 * cacheService.keys() >> keys
-    1 * cacheService.retrieve(keys[1], Map) >> fabcoData
-    1 * cacheService.retrieve(keys[2], Map) >> cabcoData
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS) >> keys
+    cacheService.keysByType(_) >> []
+    1 * cacheService.retrieve(keys[1], Object) >> fabcoData
+    1 * cacheService.retrieve(keys[2], Object) >> cabcoData
     0 * _
 
     results.size() == 2
@@ -67,8 +69,9 @@ class TypeaheadControllerSpec extends Specification {
     List results = typeaheadController.typeaheadResults('a', 100)
 
     then:
-    1 * cacheService.keys() >> keys
-    50 * cacheService.retrieve(_, Map) >> [:]
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS) >> keys
+    cacheService.keysByType(_) >> []
+    50 * cacheService.retrieve(_, Object) >> [:]
     keys.size() == 51
     results.size() == 50
   }
@@ -81,22 +84,11 @@ class TypeaheadControllerSpec extends Specification {
     List results = typeaheadController.typeaheadResults('ab', 1)
 
     then:
-    1 * cacheService.keys() >> keys
-    1 * cacheService.retrieve('abc', Map) >> [:]
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS) >> keys
+    cacheService.keysByType(_) >> []
+    1 * cacheService.retrieve('abc', Object) >> [:]
     results.key == ['abc']
   }
 
-  Should 'search on all words'() {
-    given:
-    List keys = ['abcd','bcde','cdef']
-
-    when:
-    List results = typeaheadController.typeaheadResults('b d', 10)
-
-    then:
-    1 * cacheService.keys() >> keys
-    cacheService.retrieve(_, Map) >> [:]
-    results.key == ['abcd', 'bcde']
-  }
 }
 

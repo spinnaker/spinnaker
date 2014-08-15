@@ -16,17 +16,30 @@
 
 package com.netflix.spinnaker.oort.controllers
 
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
+import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
+import org.joda.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+@CompileStatic
 @RestController
 class TypeaheadController {
 
   protected static final Logger log = Logger.getLogger(this)
+
+  static Object[] cachesToQuery = [
+    Keys.Namespace.APPLICATIONS,
+    Keys.Namespace.CLUSTERS,
+    Keys.Namespace.IMAGES,
+    Keys.Namespace.LOAD_BALANCERS,
+    Keys.Namespace.SERVER_GROUP_INSTANCE,
+    Keys.Namespace.SERVER_GROUPS
+  ]
 
   @Autowired
   CacheService cacheService
@@ -40,29 +53,45 @@ class TypeaheadController {
    * @return a list of matching items in a simple map format with two keys:
    *  { "key":<cache key>, "contents": <JSON map value> }
    */
+
   @RequestMapping(value = '/typeahead')
-  List<Map> typeaheadResults(
+  List<Object> typeaheadResults(
     @RequestParam String q, @RequestParam(value = 'size', defaultValue = '10') Integer size) {
 
-    log.info(String.format('Getting typeahead results for %s, size: %d', q, size))
+    log.info("Fetching typeahead results for ${q}, size: ${size}")
 
-    String[] normalizedWords = q.toLowerCase().split(' ')
     List<Map> results = [];
 
-    List fromCache = cacheService.keys().findAll { String key ->
-      String normalizedKey = key.toLowerCase()
-      normalizedWords.every { String word ->
-        normalizedKey.contains(word)
-      }
-    }.toList()
+    ArrayList<String> matches = findMatches(q)
+    List<String> toReturn = cullResultsToMaxSize(size, matches)
+    buildResultSet(toReturn, results)
 
-    Integer maxResults = Math.min(size ?: 10, 50)
-    Integer resultSize = Math.min(fromCache.size(), maxResults)
-    List toReturn = resultSize ? fromCache[0..resultSize - 1] : []
-    toReturn.each { String key ->
-      results << [key: key, contents: cacheService.retrieve(key, Map)]
-    }
     results
+  }
+
+  private Iterable<String> buildResultSet(List<String> toReturn, List<Map> results) {
+    toReturn.each { String key ->
+      def contents = cacheService.retrieve(key, Object)
+      results << [key: key, contents: contents]
+    }
+  }
+
+  private static List<String> cullResultsToMaxSize(int size, ArrayList<String> matches) {
+    Integer maxResults = Math.min(size ?: 10, 50)
+    Integer resultSize = Math.min(matches.size(), maxResults)
+    List<String> toReturn = resultSize ? matches[0..resultSize - 1] : new ArrayList<String>()
+    toReturn
+  }
+
+  private ArrayList<String> findMatches(String q) {
+    String normalizedWord = q.toLowerCase()
+    List<String> matches = new ArrayList<String>()
+    cachesToQuery.each { Object cache ->
+      matches.addAll(cacheService.keysByType(cache).findAll { String key ->
+        key.toLowerCase().indexOf(normalizedWord) >= 0
+      })
+    }
+    matches
   }
 
 }
