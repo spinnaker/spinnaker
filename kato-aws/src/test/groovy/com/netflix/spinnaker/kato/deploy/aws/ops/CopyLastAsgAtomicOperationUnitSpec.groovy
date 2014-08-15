@@ -76,6 +76,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       assert request.launchConfigurationNames == ['foo']
       def mockLaunch = Mock(LaunchConfiguration)
       mockLaunch.getLaunchConfigurationName() >> "foo"
+      mockLaunch.getKeyName() >> "key-pair-name"
       new DescribeLaunchConfigurationsResult().withLaunchConfigurations([mockLaunch])
     }
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
@@ -92,5 +93,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     descriptions.first().capacity.max == 2
     descriptions.first().capacity.desired == 5
     descriptions.first().securityGroups == ['someGroupName', 'otherGroupName']
+    descriptions.first().keyPair == "key-pair-name"
   }
 }
