@@ -21,7 +21,6 @@ import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.health.HealthCheckRegistry
 import com.netflix.appinfo.InstanceInfo
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics
-import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurationSupport
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
@@ -34,9 +33,11 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.stereotype.Component
+import org.springframework.web.filter.ShallowEtagHeaderFilter
 
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
+import javax.servlet.Filter
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.oort")
@@ -60,6 +61,11 @@ class Main extends SpringBootServletInitializer {
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     application.sources Main
+  }
+
+  @Bean
+  Filter eTagFilter() {
+    new ShallowEtagHeaderFilter()
   }
 
   @Component
