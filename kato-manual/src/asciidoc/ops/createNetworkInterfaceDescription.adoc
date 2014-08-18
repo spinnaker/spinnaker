@@ -6,7 +6,7 @@
 
 ====== Description
 
-This description provides the inputs necessary for creating an AutoScaling group.
+This description provides the inputs necessary for creating a Network Interface (ENI).
 
 ====== Example Request Body
 [source,javascript]
