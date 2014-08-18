@@ -38,6 +38,7 @@ springBoot {
 configurations.all {
     resolutionStrategy {
         force 'org.antlr:antlr-runtime:3.4'
+        force 'com.google.guava:guava:14.0.1'
     }
 }
 

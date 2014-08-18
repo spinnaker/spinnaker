@@ -2,9 +2,12 @@ package com.netflix.spinnaker.echo
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.model.Event
-import org.elasticsearch.action.index.IndexResponse
+import io.searchbox.client.JestClient
+import io.searchbox.client.JestResult
+import io.searchbox.core.Index
+import io.searchbox.core.Search
+import io.searchbox.core.SearchResult
 import org.elasticsearch.action.search.SearchResponse
-import org.elasticsearch.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -15,7 +18,7 @@ import org.springframework.stereotype.Repository
 class SearchIndex {
 
     @Autowired
-    Client client
+    JestClient client
 
     final String ES_INDEX = 'event_history'
     final String METADATA_KEY = 'metadata'
@@ -23,25 +26,36 @@ class SearchIndex {
     ObjectMapper mapper = new ObjectMapper()
 
     void addToIndex(Event event) {
-        IndexResponse response = client.prepareIndex(ES_INDEX, METADATA_KEY)
-            .setSource(mapper.writeValueAsString(event.details))
-            .execute()
-            .actionGet()
+        String detailsString = mapper.writeValueAsString(event.details)
+        Index index = new Index.Builder(detailsString).index(ES_INDEX).type(METADATA_KEY).build()
+        JestResult result = client.execute(index)
 
-        event.content.echo_parent_event = response.id
+        event.content.echo_parent_event = result.getValue('_id')
         event.content.echo_event_details = event.details
 
-        response = client.prepareIndex(ES_INDEX, "${event.details.source}__${event.details.type}")
-            .setSource(mapper.writeValueAsString(event.content))
-            .execute()
-            .actionGet()
+        String contentString = mapper.writeValueAsString(event.content)
+        String eventKey = "${event.details.source}__${event.details.type}"
+        index = new Index.Builder(contentString).index(ES_INDEX).type(eventKey).build()
+        client.execute(index)
     }
 
-    List<Map> list() {
-        SearchResponse response = client.prepareSearch().execute().actionGet()
-        response.hits.collect {
-            it.sourceAsMap() + [echo_id: it.id]
-        }
+    String list() {
+        String query = '''
+            {
+                "query" : {
+                "match_all" : {}
+            },
+                "fields": ["created", "source", "type"]
+            }
+        '''
+
+        Search search = new Search.Builder(query)
+            .addType(METADATA_KEY)
+            .addIndex(ES_INDEX)
+            .build()
+
+        SearchResult result = client.execute(search);
+        result.jsonString
     }
 
 }

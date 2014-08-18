@@ -18,7 +18,7 @@ class SearchController {
     }
 
     @RequestMapping(value = '/search/list', method = RequestMethod.GET)
-    List<Map> list(){
+    String list(){
         searchIndex.list()
     }
 

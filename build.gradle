@@ -52,7 +52,6 @@ ext {
         kork           : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
         korkJedis      : dependencies.create("com.netflix.spinnaker.kork:kork-jedis:$versions.kork"),
         korkCassandra  : dependencies.create("com.netflix.spinnaker.kork:kork-cassandra:$versions.kork"),
-        korkES         : dependencies.create("com.netflix.spinnaker.kork:kork-elasticsearch:$versions.kork"),
         logback        : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
         okHttp         : dependencies.create("com.squareup.okhttp:okhttp-urlconnection:$versions.okhttp"),
         retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),
