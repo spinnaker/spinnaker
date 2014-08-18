@@ -62,7 +62,7 @@ class TypeaheadController {
 
     List<Map> results = [];
 
-    ArrayList<String> matches = findMatches(q)
+    List<String> matches = findMatches(q)
     List<String> toReturn = cullResultsToMaxSize(size, matches)
     buildResultSet(toReturn, results)
 
@@ -72,18 +72,18 @@ class TypeaheadController {
   private Iterable<String> buildResultSet(List<String> toReturn, List<Map> results) {
     toReturn.each { String key ->
       def contents = cacheService.retrieve(key, Object)
-      results << [key: key, contents: contents]
+      results << [key: Keys.parse(key), contents: contents]
     }
   }
 
-  private static List<String> cullResultsToMaxSize(int size, ArrayList<String> matches) {
+  private static List<String> cullResultsToMaxSize(int size, List<String> matches) {
     Integer maxResults = Math.min(size ?: 10, 50)
     Integer resultSize = Math.min(matches.size(), maxResults)
     List<String> toReturn = resultSize ? matches[0..resultSize - 1] : new ArrayList<String>()
     toReturn
   }
 
-  private ArrayList<String> findMatches(String q) {
+  private List<String> findMatches(String q) {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     cachesToQuery.each { Object cache ->
@@ -91,7 +91,13 @@ class TypeaheadController {
         key.toLowerCase().indexOf(normalizedWord) >= 0
       })
     }
-    matches
+    matches.sort {String a, String b ->
+      def baseA = a.substring(a.indexOf(':'))
+      def indexA = baseA.indexOf(normalizedWord)
+      def baseB = b.substring(b.indexOf(':'))
+      def indexB = baseB.indexOf(normalizedWord)
+      return indexA == indexB ? baseA <=> baseB : indexA - indexB
+    }
   }
 
 }

@@ -45,6 +45,44 @@ class Keys {
     }
   }
 
+  static Map parse(String key) {
+    def parts = key.split(':')
+    def result = [:]
+    switch (parts[0]) {
+      case Namespace.IMAGES.ns:
+        result = [region: parts[1], imageId: parts[2]]
+        break
+      case Namespace.SERVER_GROUPS.ns:
+        result = [clusterName: parts[1], account: parts[2], region: parts[3], serverGroupName: parts[4]]
+        break
+      case Namespace.SERVER_GROUP_INSTANCE.ns:
+        result = [clusterName: parts[1], account: parts[2], region: parts[3], serverGroupName: parts[4], instanceId: parts[5]]
+        break
+      case Namespace.INSTANCES.ns:
+        result = [region: parts[1], instanceId: parts[2]]
+        break
+      case Namespace.LAUNCH_CONFIGS.ns:
+        result = [region: parts[1], launchConfigName: parts[2]]
+        break
+      case Namespace.LOAD_BALANCERS.ns:
+        result = [account: parts[1], region: parts[2], loadBalancerName: parts[3]]
+        break
+      case Namespace.LOAD_BALANCER_SERVER_GROUPS.ns:
+        result = [loadBalancerName: parts[1], account: parts[2], region: parts[3], serverGroupName: parts[4]]
+        break
+      case Namespace.CLUSTERS.ns:
+        result = [application: parts[1], account: parts[2], clusterName: parts[3]]
+        break
+      case Namespace.APPLICATIONS.ns:
+        result = [application: parts[1]]
+        break
+      case Namespace.HEALTH.ns:
+        result = [instanceId: parts[1], account: parts[2], region: parts[3], provider: parts[4]]
+        break
+    }
+    result.type = parts[0]
+    result
+  }
 
   static String getImageKey(String imageId, String region) {
     "${Namespace.IMAGES}:${region}:${imageId}"
