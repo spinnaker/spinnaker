@@ -131,6 +131,8 @@ include::src/asciidoc/ops/deleteAsgTagsDescription.adoc[]
 - - -
 include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
+include::src/asciidoc/ops/terminateInstancesDescription.adoc[]
+- - -
 include::src/asciidoc/ops/upsertAmazonDNSDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertAmazonLoadBalancerDescription.adoc[]
