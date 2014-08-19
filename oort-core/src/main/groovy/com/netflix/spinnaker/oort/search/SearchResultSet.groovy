@@ -19,7 +19,7 @@ package com.netflix.spinnaker.oort.search
 class SearchResultSet {
 
   /**
-   * The total number of matched results - not necessarily
+   * The total number of items matching the search criteria (query, platform, and type)
    */
   Integer totalMatches
 

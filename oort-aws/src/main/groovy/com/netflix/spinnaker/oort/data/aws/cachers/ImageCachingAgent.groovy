@@ -36,8 +36,8 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
 
     def images = amazonEC2.describeImages()
-    def allImages = images.images.collectEntries { Image image -> [(image.imageId): image] }
-    Map<String, Integer> imagesThisRun = (Map<String, Integer>)allImages.collectEntries { imageId, image -> [(imageId): image.hashCode()] }
+    def allImages = images.images.collectEntries { Image image -> [("${image.imageId}:${image.name}".toString()): image] }
+    Map<String, Integer> imagesThisRun = (Map<String, Integer>)allImages.collectEntries { key, image -> [(key): image.hashCode()] }
     Map<String, Integer> newImages =  specialSubtract(imagesThisRun, lastKnownImages)
     Set<String> missingImages = new HashSet<String>(lastKnownImages.keySet())
     missingImages.removeAll(imagesThisRun.keySet())
@@ -52,7 +52,8 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
     if (missingImages) {
       log.info "$cachePrefix - Removing ${missingImages.size()} missing images."
       for (imageId in missingImages) {
-        removeImage(imageId, region)
+        def parts = imageId.split(':')
+        removeImage(parts[0], parts[1], region)
       }
     }
     if (!newImages && !missingImages) {
@@ -64,10 +65,12 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
 
   void loadNewImage(Image image, String region) {
     cacheService.put(Keys.getImageKey(image.imageId, region), image)
+    cacheService.put(Keys.getNamedImageKey(image.imageId, image.name, region), image)
   }
 
-  void removeImage(String imageId, String region) {
+  void removeImage(String imageId, String imageName, String region) {
     cacheService.free(Keys.getImageKey(imageId, region))
+    cacheService.free(Keys.getNamedImageKey(imageId, imageName, region))
   }
 
   private String getCachePrefix() {
