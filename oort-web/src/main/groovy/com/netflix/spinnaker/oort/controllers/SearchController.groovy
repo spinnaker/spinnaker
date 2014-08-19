@@ -36,7 +36,7 @@ class SearchController {
     Keys.Namespace.APPLICATIONS.ns,
     Keys.Namespace.CLUSTERS.ns,
     Keys.Namespace.IMAGES.ns,
-    Keys.Namespace.LOAD_BALANCERS.ns,
+    Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns,
     Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
     Keys.Namespace.SERVER_GROUPS.ns
   ]
