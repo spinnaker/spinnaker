@@ -7,7 +7,6 @@ import io.searchbox.client.JestResult
 import io.searchbox.core.Index
 import io.searchbox.core.Search
 import io.searchbox.core.SearchResult
-import org.elasticsearch.action.search.SearchResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
