@@ -19,7 +19,7 @@ package com.netflix.spinnaker.oort.data.aws
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class KeysTest extends Specification {
+class KeysSpec extends Specification {
 
   @Unroll
   def 'namespace string generation'(Keys.Namespace ns, String expected) {

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.controllers
 
-import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.model.CacheService
+import com.netflix.spinnaker.oort.search.SearchProvider
+import com.netflix.spinnaker.oort.search.SearchResultSet
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,76 +30,39 @@ import org.springframework.web.bind.annotation.RestController
 class SearchController {
 
   protected static final Logger log = Logger.getLogger(this)
-  static final Integer MAX_PAGE_SIZE = 100
-
-  static String[] cachesToQuery = [
-    Keys.Namespace.APPLICATIONS.ns,
-    Keys.Namespace.CLUSTERS.ns,
-    Keys.Namespace.IMAGES.ns,
-    Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns,
-    Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
-    Keys.Namespace.SERVER_GROUPS.ns
-  ]
 
   @Autowired
-  CacheService cacheService
+  List<SearchProvider> searchProviders
 
   /**
-   * Dumb simple search endpoint. Queries against all keys in the cache, returning
-   * up to 50 results
-   * @param q the phrase to query; words can be separated by spaces, in which case results
-   *          must match every word
-   * @param pageSize the maximum number of results to return per page; will be capped at 50 if size > 50
-   * @param type a {@link com.netflix.spinnaker.oort.data.aws.Keys.Namespace} value, used to only return results of that type
+   * Simple search endpoint that delegates to {@link SearchProvider}s.
+   * @param query the phrase to query
+   * @param type (optional) a filter, used to only return results of that type. If no value is supplied, all types will be returned
+   * @param platform a filter, used to only return results from providers whose platform value matches this
    * @param pageNumber the page number, starting with 1
-   * @return a list of matching items in a simple map format with two keys:
-   *  { "key":<cache key>, "contents": <JSON map value> }
+   * @param pageSize the maximum number of results to return per page
+   * @return a list {@link SearchResultSet)s
    */
-
   @RequestMapping(value = '/search')
-  Map<String, Object> searchResults(
-    @RequestParam String q,
+  List<SearchResultSet> search(
+    @RequestParam(value = 'q') String query,
     @RequestParam(value = 'type', defaultValue = '') String type,
+    @RequestParam(value = 'platform', defaultValue = '') String platform,
     @RequestParam(value = 'page', defaultValue = '1') Integer pageNumber,
     @RequestParam(value = 'pageSize', defaultValue = '10') Integer pageSize) {
 
-    log.info("Fetching search results for ${q}, pageSize: ${pageSize}, type: ${type}, pageNumber: ${pageNumber}")
-    List<Map> results = [];
+    log.info("Fetching search results for ${query}, platform: ${platform}, type: ${type}, pageSize: ${pageSize}, pageNumber: ${pageNumber}")
 
-    List<String> matches = findMatches(q, type)
-    Integer totalResults = matches.size()
-    List<String> toReturn = paginateResults(matches, pageSize, pageNumber)
-    toReturn.each { String key ->
-      results << Keys.parse(key)
-    }
-    [count: totalResults, matches: results]
-  }
+    def providers = platform ? searchProviders.findAll {
+      it.platform == platform
+    } : searchProviders
 
-  private static List<String> paginateResults(List<String> matches, Integer pageSize, Integer pageNumber) {
-    Integer maxResults = Math.min(pageSize ?: 10, MAX_PAGE_SIZE)
-    Integer startingIndex = maxResults * (pageNumber - 1)
-    Integer endIndex = Math.min(maxResults * pageNumber, matches.size())
-    boolean hasResults = startingIndex < endIndex
-    List<String> toReturn = hasResults ? matches[startingIndex..endIndex - 1] : new ArrayList<String>()
-    toReturn
-  }
-
-  private List<String> findMatches(String q, String type) {
-    String normalizedWord = q.toLowerCase()
-    List<String> matches = new ArrayList<String>()
-    def toQuery = type ? [type] : cachesToQuery
-    toQuery.each { Object cache ->
-      matches.addAll(cacheService.keysByType(cache).findAll { String key ->
-        key.toLowerCase().indexOf(normalizedWord) >= 0
-      })
-    }
-    matches.sort {String a, String b ->
-      def baseA = a.substring(a.indexOf(':'))
-      def indexA = baseA.indexOf(normalizedWord)
-      def baseB = b.substring(b.indexOf(':'))
-      def indexB = baseB.indexOf(normalizedWord)
-      return indexA == indexB ? baseA <=> baseB : indexA - indexB
+    providers.collect {
+      if (type) {
+        it.search(query, type, pageNumber, pageSize)
+      } else {
+        it.search(query, pageNumber, pageSize)
+      }
     }
   }
-
 }
