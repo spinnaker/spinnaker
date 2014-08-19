@@ -101,7 +101,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   private Map<String, Set<AmazonCluster>> getClustersWithServerGroups(List<AmazonCluster> clusters) {
     final Set<String> serverGroupKeys = cacheService.keysByType(Namespace.SERVER_GROUPS)
     final Set<String> loadBalancerKeys = cacheService.keysByType(Namespace.LOAD_BALANCERS)
-    final Set<String> serverGroupInstanceKeys = cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE)
+    final Set<String> serverGroupInstanceKeys = cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCES)
     rx.Observable.from(clusters).flatMap {
       rx.Observable.from(it).observeOn(Schedulers.computation()).map { cluster ->
         clusterFiller(serverGroupKeys, loadBalancerKeys, serverGroupInstanceKeys, cluster as AmazonCluster)
@@ -147,7 +147,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
   final Closure instancePopulator = { Set<String> keys, AmazonCluster cluster, AmazonServerGroup serverGroup ->
     serverGroup.instances.clear()
-    def instanceIds = keys.findAll { it.startsWith("${Namespace.SERVER_GROUP_INSTANCE}:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
+    def instanceIds = keys.findAll { it.startsWith("${Namespace.SERVER_GROUP_INSTANCES}:${cluster.name}:${cluster.accountName}:${serverGroup.region}:${serverGroup.name}:") }.collect { it.split(':')[-1] }
     for (instanceId in instanceIds) {
       def ec2Instance = cacheService.retrieve(Keys.getInstanceKey(instanceId, serverGroup.region), Instance)
       if (ec2Instance) {

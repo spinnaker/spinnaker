@@ -23,7 +23,7 @@ class Keys {
   static enum Namespace {
     IMAGES,
     SERVER_GROUPS,
-    SERVER_GROUP_INSTANCE,
+    SERVER_GROUP_INSTANCES,
     INSTANCES,
     LAUNCH_CONFIGS,
     LOAD_BALANCERS,
@@ -53,25 +53,28 @@ class Keys {
         result = [region: parts[1], imageId: parts[2]]
         break
       case Namespace.SERVER_GROUPS.ns:
-        result = [clusterName: parts[1], account: parts[2], region: parts[3], serverGroupName: parts[4]]
+        def names = Names.parseName(parts[4])
+        result = [application: names.app, cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4]]
         break
-      case Namespace.SERVER_GROUP_INSTANCE.ns:
-        result = [clusterName: parts[1], account: parts[2], region: parts[3], serverGroupName: parts[4], instanceId: parts[5]]
+      case Namespace.SERVER_GROUP_INSTANCES.ns:
+        def names = Names.parseName(parts[4])
+        result = [application: names.app, cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], instanceId: parts[5]]
         break
       case Namespace.INSTANCES.ns:
         result = [region: parts[1], instanceId: parts[2]]
         break
       case Namespace.LAUNCH_CONFIGS.ns:
-        result = [region: parts[1], launchConfigName: parts[2]]
+        result = [region: parts[1], launchConfig: parts[2]]
         break
       case Namespace.LOAD_BALANCERS.ns:
-        result = [account: parts[1], region: parts[2], loadBalancerName: parts[3]]
+        result = [account: parts[1], region: parts[2], loadBalancer: parts[3]]
         break
       case Namespace.LOAD_BALANCER_SERVER_GROUPS.ns:
-        result = [loadBalancerName: parts[1], account: parts[2], region: parts[3], serverGroupName: parts[4]]
+        def names = Names.parseName(parts[4])
+        result = [application: names.app, loadBalancer: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4]]
         break
       case Namespace.CLUSTERS.ns:
-        result = [application: parts[1], account: parts[2], clusterName: parts[3]]
+        result = [application: parts[1], account: parts[2], cluster: parts[3]]
         break
       case Namespace.APPLICATIONS.ns:
         result = [application: parts[1]]
@@ -95,7 +98,7 @@ class Keys {
 
   static String getServerGroupInstanceKey(String autoScalingGroupName, String instanceId, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "${Namespace.SERVER_GROUP_INSTANCE}:${names.cluster}:${account}:${region}:${names.group}:${instanceId}"
+    "${Namespace.SERVER_GROUP_INSTANCES}:${names.cluster}:${account}:${region}:${names.group}:${instanceId}"
   }
 
   static String getInstanceKey(String instanceId, String region) {

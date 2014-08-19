@@ -26,10 +26,6 @@ import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.HealthProvider
 import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.aws.AmazonCluster
-import com.netflix.spinnaker.oort.model.aws.AmazonClusterProvider
-import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
-import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -57,7 +53,7 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
-    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCES) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
@@ -77,7 +73,7 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
-    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCES) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
@@ -104,7 +100,7 @@ class AmazonClusterProviderSpec extends Specification {
     1 * cacheService.keysByType(Namespace.CLUSTERS) >> objects.clusterKeys
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
-    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCES) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig
@@ -123,7 +119,7 @@ class AmazonClusterProviderSpec extends Specification {
     cluster.is(objects.cluster)
     1 * cacheService.keysByType(Namespace.SERVER_GROUPS) >> objects.serverGroupKeys
     1 * cacheService.keysByType(Namespace.LOAD_BALANCERS) >> objects.loadBalancerKeys
-    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCE) >> objects.serverGroupInstanceKeys
+    1 * cacheService.keysByType(Namespace.SERVER_GROUP_INSTANCES) >> objects.serverGroupInstanceKeys
     1 * cacheService.retrieve(objects.clusterKey, _) >> objects.cluster
     1 * cacheService.retrieve(objects.serverGroupKey, _) >> objects.serverGroup
     1 * cacheService.retrieve(objects.launchConfigKey, _) >> objects.launchConfig

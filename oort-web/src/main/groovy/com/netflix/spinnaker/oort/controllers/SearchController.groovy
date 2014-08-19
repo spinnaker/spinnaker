@@ -20,7 +20,6 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
-import org.joda.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -28,65 +27,68 @@ import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
 @RestController
-class TypeaheadController {
+class SearchController {
 
   protected static final Logger log = Logger.getLogger(this)
+  static final Integer MAX_PAGE_SIZE = 100
 
-  static Object[] cachesToQuery = [
-    Keys.Namespace.APPLICATIONS,
-    Keys.Namespace.CLUSTERS,
-    Keys.Namespace.IMAGES,
-    Keys.Namespace.LOAD_BALANCERS,
-    Keys.Namespace.SERVER_GROUP_INSTANCE,
-    Keys.Namespace.SERVER_GROUPS
+  static String[] cachesToQuery = [
+    Keys.Namespace.APPLICATIONS.ns,
+    Keys.Namespace.CLUSTERS.ns,
+    Keys.Namespace.IMAGES.ns,
+    Keys.Namespace.LOAD_BALANCERS.ns,
+    Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
+    Keys.Namespace.SERVER_GROUPS.ns
   ]
 
   @Autowired
   CacheService cacheService
 
   /**
-   * Dumb simple typeahead endpoint. Queries against all keys in the cache, returning
+   * Dumb simple search endpoint. Queries against all keys in the cache, returning
    * up to 50 results
    * @param q the phrase to query; words can be separated by spaces, in which case results
    *          must match every word
-   * @param size the maximum number of results to return; will be capped at 50 if size > 50
+   * @param pageSize the maximum number of results to return per page; will be capped at 50 if size > 50
+   * @param type a {@link com.netflix.spinnaker.oort.data.aws.Keys.Namespace} value, used to only return results of that type
+   * @param pageNumber the page number, starting with 1
    * @return a list of matching items in a simple map format with two keys:
    *  { "key":<cache key>, "contents": <JSON map value> }
    */
 
-  @RequestMapping(value = '/typeahead')
-  List<Object> typeaheadResults(
-    @RequestParam String q, @RequestParam(value = 'size', defaultValue = '10') Integer size) {
+  @RequestMapping(value = '/search')
+  Map<String, Object> searchResults(
+    @RequestParam String q,
+    @RequestParam(value = 'type', defaultValue = '') String type,
+    @RequestParam(value = 'page', defaultValue = '1') Integer pageNumber,
+    @RequestParam(value = 'pageSize', defaultValue = '10') Integer pageSize) {
 
-    log.info("Fetching typeahead results for ${q}, size: ${size}")
-
+    log.info("Fetching search results for ${q}, pageSize: ${pageSize}, type: ${type}, pageNumber: ${pageNumber}")
     List<Map> results = [];
 
-    List<String> matches = findMatches(q)
-    List<String> toReturn = cullResultsToMaxSize(size, matches)
-    buildResultSet(toReturn, results)
-
-    results
-  }
-
-  private Iterable<String> buildResultSet(List<String> toReturn, List<Map> results) {
+    List<String> matches = findMatches(q, type)
+    Integer totalResults = matches.size()
+    List<String> toReturn = paginateResults(matches, pageSize, pageNumber)
     toReturn.each { String key ->
-      def contents = cacheService.retrieve(key, Object)
-      results << [key: Keys.parse(key), contents: contents]
+      results << Keys.parse(key)
     }
+    [count: totalResults, matches: results]
   }
 
-  private static List<String> cullResultsToMaxSize(int size, List<String> matches) {
-    Integer maxResults = Math.min(size ?: 10, 50)
-    Integer resultSize = Math.min(matches.size(), maxResults)
-    List<String> toReturn = resultSize ? matches[0..resultSize - 1] : new ArrayList<String>()
+  private static List<String> paginateResults(List<String> matches, Integer pageSize, Integer pageNumber) {
+    Integer maxResults = Math.min(pageSize ?: 10, MAX_PAGE_SIZE)
+    Integer startingIndex = maxResults * (pageNumber - 1)
+    Integer endIndex = Math.min(maxResults * pageNumber, matches.size())
+    boolean hasResults = startingIndex < endIndex
+    List<String> toReturn = hasResults ? matches[startingIndex..endIndex - 1] : new ArrayList<String>()
     toReturn
   }
 
-  private List<String> findMatches(String q) {
+  private List<String> findMatches(String q, String type) {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
-    cachesToQuery.each { Object cache ->
+    def toQuery = type ? [type] : cachesToQuery
+    toQuery.each { Object cache ->
       matches.addAll(cacheService.keysByType(cache).findAll { String key ->
         key.toLowerCase().indexOf(normalizedWord) >= 0
       })
