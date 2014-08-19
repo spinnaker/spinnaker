@@ -49,7 +49,8 @@ class RouteMappingFilter extends ZuulFilter {
             def pattern = Pattern.compile(/^${Pattern.quote(contextPath)}(\/.*)?$/)
 
             def origUri = routeMapping.routeHost.toURI()
-            mappingPatterns[pattern] = origUri.resolve(origUri.path + '/').normalize()
+            def origPath = origUri.path.endsWith('/') ? origUri.path : origUri.path + '/'
+            mappingPatterns[pattern] = origUri.resolve(origPath).normalize()
         }
     }
 
