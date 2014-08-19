@@ -18,4 +18,5 @@ dependencies {
   spinnaker.group "bootWeb"
   compile 'com.netflix.zuul:zuul-core:1.0.24'
   compile 'org.apache.httpcomponents:httpclient:4.3.5'
+  spinnaker.group "test"
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.zuulfilter.pre
 
+import com.google.common.base.Optional
 import com.netflix.spinnaker.gate.config.RoutesConfig
 import com.netflix.spinnaker.gate.config.RouteMapping
 import com.netflix.zuul.ZuulFilter
@@ -29,17 +30,27 @@ import java.util.regex.Pattern
 @Component
 class RouteMappingFilter extends ZuulFilter {
 
-    private Pattern contextPathPattern
-
     @Autowired
     RoutesConfig apiRouteConfig
 
     @Autowired
     String apiPrefix
 
+    private LinkedHashMap<Pattern, URI> mappingPatterns = new LinkedHashMap<>()
+
     @PostConstruct
     public void initRegex() {
-        contextPathPattern = Pattern.compile(/${Pattern.quote(apiPrefix)}([^\/]+)(\/.*)?$/)
+        def baseUri = apiPrefix.endsWith('/') ? apiPrefix : apiPrefix + '/'
+        for (RouteMapping routeMapping in apiRouteConfig.routeMappings) {
+            def contextPath = (baseUri + routeMapping.contextPath).toURI().normalize().path
+            if (contextPath.endsWith('/')) {
+                contextPath = contextPath.substring(0, contextPath.length() - 1)
+            }
+            def pattern = Pattern.compile(/^${Pattern.quote(contextPath)}(\/.*)?$/)
+
+            def origUri = routeMapping.routeHost.toURI()
+            mappingPatterns[pattern] = origUri.resolve(origUri.path + '/').normalize()
+        }
     }
 
     @Override
@@ -60,16 +71,23 @@ class RouteMappingFilter extends ZuulFilter {
     @Override
     Object run() {
         def requestContext = RequestContext.getCurrentContext()
-        def match = contextPathPattern.matcher(requestContext.getRequest().getRequestURI())
-        if (match.matches()) {
-            def contextPath = match.group(1)
-            RouteMapping routeMapping = apiRouteConfig.routeMappings.find { it.contextPath == contextPath }
-            if (routeMapping) {
-                requestContext.setRouteHost(routeMapping.routeHost)
-                requestContext.requestURI = match.group(2) ?: '/'
-                requestContext.addZuulRequestHeader('Location', routeMapping.routeHost.host)
-            }
+        for (URL url : findRouteMapping(requestContext.getRequest().requestURI).asSet()) {
+            requestContext.setRouteHost(url)
+            requestContext.requestURI = url.path
+            requestContext.addZuulRequestHeader('Host', url.host)
+            requestContext.addZuulRequestHeader('Via', '1.1 ' + requestContext.getRequest().getRequestURL().toURL().getHost())
         }
         return null
+    }
+
+    Optional<URL> findRouteMapping(String requestURI) {
+        Optional.fromNullable(mappingPatterns.findResult { Pattern pattern, URI routeMapping ->
+            def match = pattern.matcher(requestURI)
+            if (match.matches()) {
+                routeMapping.resolve('.' + (match.group(1) ?: '')).normalize().toURL()
+            } else {
+                null
+            }
+        })
     }
 }
