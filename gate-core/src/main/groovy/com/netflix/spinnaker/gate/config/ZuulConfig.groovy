@@ -104,8 +104,8 @@ class ZuulConfig {
     FilterFileManager filterFileManager(@Value('${zuul.filter.pollInterval:5}') int pollIntervalSeconds,
                                         @Value('${zuul.filter.root:src/main/filters}') String filterRoot,
                                         @Value('${zuul.filter.pre:pre}') String preFilters,
-                                        @Value('${zuul.filter.route:route') String routeFilters,
-                                        @Value('${zuul.filter.post:post') String postFilters,
+                                        @Value('${zuul.filter.route:route}') String routeFilters,
+                                        @Value('${zuul.filter.post:post}') String postFilters,
                                         FilenameFilter zuulFilenameFilter) {
         def rootDir = createReadableDirectory(filterRoot)
         def preFilterRoot = createReadableDirectory(rootDir, preFilters)
