@@ -7,17 +7,17 @@
     </div>
     <div class="row">
       <div class="col-md-offset-4 col-md-4">
-        <input type="search" class="form-control" placeholder="Enter a query"></input>
+        <input type="search" class="form-control" placeholder="Enter a query" ng-model="query"></input>
       </div>
     </div>
     <div class="row" ng-repeat="group in categories" ng-if="$index % 3 === 0">
       <div class="col-md-4" ng-repeat="category in categories.slice($index, $index + 3)">
         <div class="panel category row">
-          <div class="summary">{{ category.displayName }}</div>
+          <div class="summary">{{ category.category }}</div>
           <div class="col-md-12">
             <div class="details row padding">
               <div class="col-md-12" ng-repeat="result in category.results">
-                <a href="{{ result.href }}">{{ result.displayName }}</a>
+                <a href="{{ result.href }}">{{ result.contents.name }}</a>
               </div>
             </div>
           </div>

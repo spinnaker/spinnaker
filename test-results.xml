@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <testsuites>
-  <testsuite name="Chrome 36.0.1985 (Mac OS X 10.9.4)" package="" timestamp="2014-08-14T18:24:05" id="0" hostname="lgml-chrisb" tests="9" errors="0" failures="0" time="0.142">
+  <testsuite name="PhantomJS 1.9.7 (Linux)" package="" timestamp="2014-08-18T19:58:38" id="0" hostname="vagrant-ubuntu-trusty-64" tests="9" errors="0" failures="0" time="0.12">
     <properties>
-      <property name="browser.fullName" value="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Safari/537.36"/>
+      <property name="browser.fullName" value="Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.7 Safari/534.34"/>
     </properties>
-    <testcase name="should create a scope" time="0.054" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Controller: MainCtrl"/>
-    <testcase name="should handle cardinal directions" time="0.009" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should handle intermediate directions" time="0.013" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should handle multiple regions" time="0.009" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should handle non-region characters" time="0.008" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should ignore capitalized content" time="0.022" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should ignore invalid intermediate directions" time="0.009" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should ignore invalid values but translate valid ones" time="0.01" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should abbreviate availability zones" time="0.008" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should create a scope" time="0.039" classname="PhantomJS 1.9.7 (Linux).Controller: MainCtrl"/>
+    <testcase name="should handle cardinal directions" time="0.041" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should handle intermediate directions" time="0.006" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should handle multiple regions" time="0.005" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should handle non-region characters" time="0.005" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should ignore capitalized content" time="0.011" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should ignore invalid intermediate directions" time="0.004" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should ignore invalid values but translate valid ones" time="0.005" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
+    <testcase name="should abbreviate availability zones" time="0.004" classname="PhantomJS 1.9.7 (Linux).Filter: regionAbbreviator"/>
     <system-out><![CDATA[
 ]]></system-out>
     <system-err/>

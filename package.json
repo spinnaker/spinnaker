@@ -58,7 +58,7 @@
     "lodash": "./app/bower_components/lodash/dist/lodash.compat.js",
     "moment": "./app/bower_components/moment/moment.js",
     "angular-spinner": "./app/bower_components/angular-spinner/angular-spinner.js",
-    "rxjs": "./app/bower_components/rxjs/dist/rx.js",
+    "rxjs": "./app/bower_components/rxjs/dist/rx.all.js",
     "spin": "./app/bower_components/spin.js/spin.js"
   },
   "browserify-shim": {

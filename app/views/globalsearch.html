@@ -1,0 +1,15 @@
+<li class="dropdown">
+  <form class="navbar-form right global-search dropdown-toggle">
+    <div class="form-group">
+      <input type="search"
+        class="form-control"
+        placeholder="Search"
+        ng-model="query"
+        ng-focus="ctrl.showSearchResults()">
+      </input>
+    </div>
+  </form>
+  <ul class="dropdown-menu" role="menu" ng-show="showSearchResults">
+    <li ng-repeat="category in categories"></li>
+  </ul>
+</li>

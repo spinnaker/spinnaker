@@ -1,10 +1,9 @@
 'use strict';
 
-
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('InfrastructureCtrl', function($scope, infrastructureSearch) {
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch) {
     $scope.$watch('query', function(query) {
       infrastructureSearch.query(query).subscribe(function(result) {
         var tmp = result.data.reduce(function(categories, entry) {
@@ -25,4 +24,11 @@ angular.module('deckApp')
         this.dispose();
       });
     });
+
+    $scope.showSearchResults = false;
+
+    this.showSearchResults = function() {
+      console.log('clicky');
+      $scope.showSearchResults = true;
+    };
   });
