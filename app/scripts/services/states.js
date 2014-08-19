@@ -238,7 +238,7 @@ angular.module('deckApp')
 
       var infrastructure = {
         name: 'infrastructure',
-        url: '/infrastructure',
+        url: '/infrastructure?q',
         views: {
           'main@': {
             templateUrl: 'views/infrastructure.html',
