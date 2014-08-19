@@ -14,7 +14,7 @@ angular.module('deckApp')
     .flatMap(function(query) {
       return RxService.Observable.fromPromise($http({
         method: 'GET',
-        url: 'http://oort.prod.netflix.net/typeahead?q='+query+'&size='+100
+        url: 'http://oort.prod.netflix.net/search?q='+query+'&size='+100
       }));
     })
     .take(1);

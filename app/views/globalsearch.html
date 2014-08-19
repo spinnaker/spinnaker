@@ -1,4 +1,4 @@
-<li class="dropdown">
+<li class="dropdown global-search">
   <form class="navbar-form right global-search dropdown-toggle">
     <div class="form-group">
       <input type="search"
@@ -10,6 +10,13 @@
     </div>
   </form>
   <ul class="dropdown-menu" role="menu" ng-show="showSearchResults">
-    <li ng-repeat="category in categories"></li>
+    <span ng-repeat="category in categories">
+      <li>
+        {{ category.category }}
+      </li>
+      <li ng-repeat="result in category.results">
+        <a href="{{ result.href }}">{{ result.name }}</a>
+      </li>
+    </span>
   </ul>
 </li>
