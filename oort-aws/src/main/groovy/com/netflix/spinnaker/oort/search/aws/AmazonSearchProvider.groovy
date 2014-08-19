@@ -81,8 +81,8 @@ class AmazonSearchProvider implements SearchProvider {
       })
     }
     matches.sort { String a, String b ->
-      def aKey = a.substring(a.indexOf(':'))
-      def bKey = b.substring(b.indexOf(':'))
+      def aKey = a.toLowerCase().substring(a.indexOf(':'))
+      def bKey = b.toLowerCase().substring(b.indexOf(':'))
       def indexA = aKey.indexOf(q)
       def indexB = bKey.indexOf(q)
       return indexA == indexB ? aKey <=> bKey : indexA - indexB

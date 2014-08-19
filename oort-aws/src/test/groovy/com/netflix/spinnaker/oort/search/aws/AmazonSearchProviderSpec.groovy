@@ -55,8 +55,8 @@ class AmazonSearchProviderSpec extends Specification {
     results.platform == 'aws'
     results.query == 'aBC'
     results.results.size() == 2
-    results.results[0] == Keys.parse(keys[1])
-    results.results[1] == Keys.parse(keys[2])
+    results.results[0] == Keys.parse(keys[2])
+    results.results[1] == Keys.parse(keys[1])
   }
 
   Should 'respect user-specified size limit'() {
