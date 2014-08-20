@@ -41,10 +41,6 @@ class Application extends SpringBootServletInitializer {
 
     @Override
     SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        if (System.getProperty('netflix.environment') == null) {
-            System.setProperty('netflix.environment', 'test')
-        }
         application.sources(Application)
-        Object.configure(application)
     }
 }
