@@ -77,6 +77,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       def mockLaunch = Mock(LaunchConfiguration)
       mockLaunch.getLaunchConfigurationName() >> "foo"
       mockLaunch.getKeyName() >> "key-pair-name"
+      mockLaunch.getBlockDeviceMappings() >> [new BlockDeviceMapping().withDeviceName('/dev/sdb').withEbs(new Ebs().withVolumeSize(125)), new BlockDeviceMapping().withDeviceName('/dev/sdc').withVirtualName('ephemeral1')]
       new DescribeLaunchConfigurationsResult().withLaunchConfigurations([mockLaunch])
     }
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
@@ -94,5 +95,10 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     descriptions.first().capacity.desired == 5
     descriptions.first().securityGroups == ['someGroupName', 'otherGroupName']
     descriptions.first().keyPair == "key-pair-name"
+    descriptions.first().blockDevices.size() == 2
+    descriptions.first().blockDevices.first().deviceName == '/dev/sdb'
+    descriptions.first().blockDevices.first().size == 125
+    descriptions.first().blockDevices.last().deviceName == '/dev/sdc'
+    descriptions.first().blockDevices.last().virtualName == 'ephemeral1'
   }
 }
