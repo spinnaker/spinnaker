@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.spinnaker.kato.deploy.aws.description.TerminateInstanceAndDecrementAsgDescription
+import com.netflix.spinnaker.kato.deploy.aws.description.TerminateInstancesDescription
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("terminateInstanceAndDecrementAsgDescriptionValidator")
-class TerminateInstanceAndDecrementAsgDescriptionValidator extends AmazonDescriptionValidationSupport<TerminateInstanceAndDecrementAsgDescription> {
+@Component("terminateInstancesDescriptionValidator")
+class TerminateInstancesDescriptionValidator extends AmazonDescriptionValidationSupport<TerminateInstancesDescription> {
   @Override
-  void validate(List priorDescriptions, TerminateInstanceAndDecrementAsgDescription description, Errors errors) {
-    def key = TerminateInstanceAndDecrementAsgDescription.class.simpleName
-
-    validateAsgName description, errors
-    if (!description.instance) {
-      errors.rejectValue("instance", "${key}.instance.empty")
+  void validate(List priorDescriptions, TerminateInstancesDescription description, Errors errors) {
+    def key = TerminateInstancesDescription.class.simpleName
+    description.instanceIds.each {
+      if (!it) {
+        errors.rejectValue("instanceIds", "${key}.instanceId.invalid")
+      }
     }
     validateRegion(description.region, key, errors)
   }
