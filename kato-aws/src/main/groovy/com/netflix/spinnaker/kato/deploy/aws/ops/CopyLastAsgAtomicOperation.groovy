@@ -18,12 +18,14 @@
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
@@ -87,7 +89,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.capacity.max = ancestorAsg.maxSize
       newDescription.capacity.desired = ancestorAsg.desiredCapacity
       newDescription.keyPair = description.keyPair ?: ancestorLaunchConfiguration.keyName
+      newDescription.blockDevices = description.blockDevices ?: convertBlockDevices(ancestorLaunchConfiguration.blockDeviceMappings)
       newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : ancestorLaunchConfiguration.associatePublicIpAddress
+
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
@@ -127,5 +131,19 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
     def (List<String> groupIds, List<String> groupNames) = ids.split { SG_PATTERN.matcher(it).matches() }
     def result = amazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupIds(groupIds).withGroupNames(groupNames))
     result.securityGroups*.groupName
+  }
+
+  List<AmazonBlockDevice> convertBlockDevices(List<BlockDeviceMapping> blockDeviceMappings) {
+    blockDeviceMappings.collect {
+      def device = new AmazonBlockDevice(deviceName: it.deviceName, virtualName: it.virtualName)
+      it.ebs?.with {
+        device.iops = iops
+        device.deleteOnTermination = deleteOnTermination
+        device.size = volumeSize
+        device.volumeType = volumeType
+        device.snapshotId = snapshotId
+      }
+      device
+    }
   }
 }
