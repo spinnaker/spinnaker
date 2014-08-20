@@ -104,6 +104,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         iamRole: description.iamRole ?: awsConfigurationProperties.defaults.iamRole,
         keyPair: description.keyPair ?: awsConfigurationProperties.defaults.keyPair,
         ignoreSequence: description.ignoreSequence,
+        associatePublicIpAddress: description.associatePublicIpAddress,
         blockDevices: description.blockDevices,
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,

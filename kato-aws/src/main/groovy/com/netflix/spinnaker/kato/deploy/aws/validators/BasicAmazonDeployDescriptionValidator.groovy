@@ -52,6 +52,9 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     if (!description.availabilityZones) {
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.empty"
     }
+    if (description.associatePublicIpAddress && !description.subnetType) {
+      errors.rejectValue "associatePublicIpAddress", "basicAmazonDeployDescription.associatePublicIpAddress.subnetType.not.supplied"
+    }
     if (!description.availabilityZones.values()?.flatten() && !description.subnetType) {
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.or.subnetType.not.supplied"
     }

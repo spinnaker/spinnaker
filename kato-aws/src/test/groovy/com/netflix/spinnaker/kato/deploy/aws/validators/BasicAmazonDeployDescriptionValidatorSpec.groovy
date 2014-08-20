@@ -58,7 +58,27 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     0 * errors._
   }
 
-  void "null input fails valiidation"() {
+  void "should fail validation if public IP address without subnet"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
+      capacity: [min: 1, max: 1, desired: 1], associatePublicIpAddress: true)
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("associatePublicIpAddress", "basicAmazonDeployDescription.associatePublicIpAddress.subnetType.not.supplied")
+
+    when:
+    description.subnetType = "internal"
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors._
+  }
+
+  void "null input fails validation"() {
     setup:
     def description = new BasicAmazonDeployDescription()
     def errors = Mock(Errors)

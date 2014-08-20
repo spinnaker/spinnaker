@@ -28,11 +28,11 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String stack
   String freeFormDetails
   String instanceType
-  String vpcId
   String subnetType
   String iamRole
   String keyPair
   boolean ignoreSequence
+  Boolean associatePublicIpAddress
   List<AmazonBlockDevice> blockDevices
   List<String> loadBalancers
   List<String> securityGroups
