@@ -65,7 +65,7 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
 
   void loadNewImage(Image image, String region) {
     cacheService.put(Keys.getImageKey(image.imageId, region), image)
-    cacheService.put(Keys.getNamedImageKey(image.imageId, image.name, region), image)
+    cacheService.put(Keys.getNamedImageKey(image.imageId, image.name, region), '')
   }
 
   void removeImage(String imageId, String imageName, String region) {

@@ -44,9 +44,9 @@ class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
     then:
     1 * amazonEC2.describeImages() >> result
     1 * cacheService.put(Keys.getImageKey(image1.imageId, REGION), image1)
-    1 * cacheService.put(Keys.getNamedImageKey(image1.imageId, image1.name, REGION), image1)
+    1 * cacheService.put(Keys.getNamedImageKey(image1.imageId, image1.name, REGION), '')
     1 * cacheService.put(Keys.getImageKey(image2.imageId, REGION), image2)
-    1 * cacheService.put(Keys.getNamedImageKey(image2.imageId, image2.name, REGION), image2)
+    1 * cacheService.put(Keys.getNamedImageKey(image2.imageId, image2.name, REGION), '')
 
     when:
     "one of them is deleted, it is cleared from the cache"
@@ -78,7 +78,7 @@ class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * cacheService.put(Keys.getImageKey(imageId, REGION), image)
-    1 * cacheService.put(Keys.getNamedImageKey(imageId, image.name, REGION), image)
+    1 * cacheService.put(Keys.getNamedImageKey(imageId, image.name, REGION), '')
   }
 
   void "removed image should be freed from cache"() {
