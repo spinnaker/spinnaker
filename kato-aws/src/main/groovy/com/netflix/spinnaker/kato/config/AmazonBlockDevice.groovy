@@ -19,22 +19,51 @@ package com.netflix.spinnaker.kato.config
 /**
  * Model for a block device mapping
  *
+ * A block device mapping can either be an ephemeral device
+ *   (deviceName + virtualName)
+ * or an EBS device:
+ *   (deviceName + size + (optionally) volumeType, deleteOnTermination, iops, snapshotId)
+ *
  * @author Dan Woods
  */
 class AmazonBlockDevice {
-  /**
-   * The name of the virtual device (ie. /dev/sdb, /dev/sdc)
-   */
-  String deviceName
 
-  /**
-   * The size of the virtual device in Gigabytes (ie. 125)
-   */
-  Integer size
+    // Required for all:
+    /**
+     * The name of the virtual device (ie. /dev/sdb, /dev/sdc)
+     */
+    String deviceName
 
-  /**
-   * The virtual name as it corresponds to the infrastructure. Only relevant for ephemeral devices.
-   * Valid value examples: (ephemeral0, ephemeral1, etc...)
-   */
-  String virtualName
+    // Ephemeral device support:
+    /**
+     * The virtual name as it corresponds to the infrastructure. Only relevant for ephemeral devices.
+     * Valid value examples: (ephemeral0, ephemeral1, etc...)
+     */
+    String virtualName
+
+    // EBS support:
+    /**
+     * The size of the virtual device in Gigabytes (ie. 125)
+     */
+    Integer size
+
+    /**
+     * The EBS volume type (gp2, io1, standard)
+     */
+    String volumeType
+
+    /**
+     * Whether the EBS volume should be deleted on termination
+     */
+    Boolean deleteOnTermination
+
+    /**
+     * The IOPS for the volume
+     */
+    Integer iops
+
+    /**
+     * The snapshot id to mount as the EBS volume
+     */
+    String snapshotId
 }

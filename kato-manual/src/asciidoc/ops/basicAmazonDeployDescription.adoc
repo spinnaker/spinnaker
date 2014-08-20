@@ -30,11 +30,16 @@ This description supplies the +BasicAmazonDeployHandler+ with the inputs necessa
         "blockDevices": [
           {
             "deviceName": "/dev/sdb",
-            "size": "125"
+            "size": 125,
+            "iops": 1000,
+            "volumeType": "gp2",
+            "deleteOnTermination": false,
+            "snapshotId": "s-123456"
+
           },
           {
             "deviceName": "/dev/sdc",
-            "size": "125"
+            "virtualName: "ephemeral1"
           }
         ],
         "credentials": "test"
@@ -61,6 +66,7 @@ This description supplies the +BasicAmazonDeployHandler+ with the inputs necessa
 |subnetType               | string  | false    | The subnet "type" that is applicable to this deployment. This instructs the deployment engine to what subnets and vpcs this deployment will be a part. Subnets that are tagged with the key "immutable_metadata" and a value of a structure like, +{ "purpose": "internal", "target": "ec2" }+, will be found by the engine, and their "purpose" may be used as a value type for this field. Note that "purpose" and "target" provide a composite key, where the "target" property has eligible values of one of: "ec2" or "elb". Only one "purpose" to "target" correlation is valid with respect to the "subnetType" field in this description.
 |stack                    | string  | false    | The "stack" to which this deployment is applicable. A stack is some arbitrarily named "environment" that many applications may be a part of. This value, in conjunction with the "application" comprise the "cluster name" in Asgard's view of the Cloud.
 |freeFormDetails          | string  | false    | Influences the generated name of the auto scaling group. Free form details are added to the end of the name, following two double dashes ('--'). For example, if the application is named "foo" and free form details of "bar" are provided, then the generated ASG name will be "foo--bar". This field may contain no spaces or special characters.
-|blockDevices             | array   | false    | Provides configuration for block device mappings to use with this deployment. This can be used to attach volumes to a known root.
+|blockDevices             | array   | false    | Provides configuration for block device mappings to use with this deployment. This can be used to attach volumes to a known root. A block device always needs a device name. There are two types of block device: The ephemeral (on instance) disks, which just uses the virtualName parameter or EBS volumes which require a size and optionally support more advanced configuration properties (type, iops, delete on terminate, etc)
 |associatePublicIpAddress | boolean | false    | Specifies whether to assign a public IP address to each instance launched in a VPC. A subnetType must be specified.
 |======================
+
