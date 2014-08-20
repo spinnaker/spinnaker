@@ -127,16 +127,28 @@ class AutoScalingWorkerUnitSpec extends Specification {
   void "block device mappings are applied when available"() {
     setup:
     def autoscaling = Mock(AmazonAutoScaling)
-    def worker = new AutoScalingWorker(autoScaling: autoscaling, blockDevices: [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)])
+    def worker = new AutoScalingWorker(autoScaling: autoscaling, blockDevices: [new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral1'), new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69')])
 
     when:
     worker.createLaunchConfiguration(null, null, null)
 
     then:
     1 * autoscaling.createLaunchConfiguration(_) >> { CreateLaunchConfigurationRequest request ->
-      assert request.blockDeviceMappings
-      assert request.blockDeviceMappings.first().deviceName == "/dev/sdb"
-      assert request.blockDeviceMappings.first().ebs.volumeSize == 125
+      assert request.blockDeviceMappings.size() == 2
+      request.blockDeviceMappings.first().with {
+          assert deviceName == "/dev/sdb"
+          assert virtualName == 'ephemeral1'
+          assert ebs == null
+      }
+      request.blockDeviceMappings.last().with {
+          assert deviceName == '/dev/sdc'
+          assert virtualName == null
+          assert ebs.snapshotId == 's-69'
+          assert ebs.volumeType == 'io1'
+          assert ebs.deleteOnTermination == false
+          assert ebs.iops == 100
+          assert ebs.volumeSize == 125
+      }
     }
   }
 

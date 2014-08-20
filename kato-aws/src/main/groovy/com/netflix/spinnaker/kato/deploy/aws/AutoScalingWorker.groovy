@@ -237,10 +237,18 @@ class AutoScalingWorker {
       def mappings = []
       for (blockDevice in blockDevices) {
         def mapping = new BlockDeviceMapping(deviceName: blockDevice.deviceName)
-        if (!blockDevice.size && blockDevice.virtualName) {
-          mapping.withVirtualName(blockDevice.virtualName)
-        } else if (blockDevice.size && !blockDevice.virtualName) {
-          mapping.withEbs(new Ebs(volumeSize: blockDevice.size))
+        if (blockDevice.virtualName) {
+            mapping.withVirtualName(blockDevice.virtualName)
+        } else {
+            def ebs = new Ebs()
+            blockDevice.with {
+                ebs.withVolumeSize(size)
+                if (deleteOnTermination != null) ebs.withDeleteOnTermination(deleteOnTermination)
+                if (volumeType) ebs.withVolumeType(volumeType)
+                if (iops) ebs.withIops(iops)
+                if (snapshotId) ebs.withSnapshotId(snapshotId)
+            }
+            mapping.withEbs(ebs)
         }
         mappings << mapping
       }

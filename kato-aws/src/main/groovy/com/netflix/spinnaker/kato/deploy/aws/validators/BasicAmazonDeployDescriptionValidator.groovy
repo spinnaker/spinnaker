@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
@@ -59,6 +60,21 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       if (!awsConfigurationProperties.regions?.contains(region) || (roleBasedCredentials && !((AmazonRoleAccountCredentials) namedAccountCredentials).regions*.name?.contains(region))) {
         errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
       }
+    }
+    for (AmazonBlockDevice device : description.blockDevices) {
+        if (!device.deviceName) {
+            errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.not.named", [] as String[], "Device name is required for block device"
+        } else {
+            if (device.virtualName) {
+                if (device.deleteOnTermination != null || device.iops || device.size || device.snapshotId || device.volumeType) {
+                    errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ephemeral.config", [device.virtualName] as String[], "Ephemeral block device $device.deviceName with EBS configuration parameters"
+                }
+            } else {
+                if (!device.size) {
+                    errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ebs.config", [device.deviceName] as String[], "EBS device $device.deviceName missing required value size"
+                }
+            }
+        }
     }
     validateCapacity description, errors
   }
