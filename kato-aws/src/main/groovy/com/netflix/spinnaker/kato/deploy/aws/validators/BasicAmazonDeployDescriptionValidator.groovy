@@ -21,6 +21,8 @@ import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
@@ -62,20 +64,47 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       }
     }
     for (AmazonBlockDevice device : description.blockDevices) {
-        if (!device.deviceName) {
-            errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.not.named", [] as String[], "Device name is required for block device"
-        } else {
-            if (device.virtualName) {
-                if (device.deleteOnTermination != null || device.iops || device.size || device.snapshotId || device.volumeType) {
-                    errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ephemeral.config", [device.virtualName] as String[], "Ephemeral block device $device.deviceName with EBS configuration parameters"
-                }
-            } else {
-                if (!device.size) {
-                    errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ebs.config", [device.deviceName] as String[], "EBS device $device.deviceName missing required value size"
-                }
-            }
-        }
+      BlockDeviceRules.validate device, errors
     }
     validateCapacity description, errors
+  }
+
+  enum BlockDeviceRules {
+    deviceNameNotNull({ AmazonBlockDevice device, Errors errors ->
+      if (!device.deviceName) {
+        errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.not.named", [] as String[], "Device name is required for block device"
+      }
+    }),
+
+    ephemeralConfigWrong({ AmazonBlockDevice device, Errors errors ->
+      if (device.virtualName && (device.deleteOnTermination != null || device.iops || device.size || device.snapshotId || device.volumeType)) {
+        errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ephemeral.config", [device.virtualName] as String[], "Ephemeral block device $device.deviceName with EBS configuration parameters"
+      }
+    }),
+
+    ebsConfigWrong({ AmazonBlockDevice device, Errors errors ->
+      if (!device.virtualName && !device.size) {
+        errors.rejectValue "blockDevices", "basicAmazonDeployDescription.block.device.ebs.config", [device.deviceName] as String[], "EBS device $device.deviceName missing required value size"
+      }
+    })
+
+    private final Closure<Void> validationRule
+
+    BlockDeviceRules(
+        @ClosureParams(value = SimpleType, options = [
+            'com.netflix.spinnaker.kato.config.AmazonBlockDevice',
+            'org.springframework.validation.Errors']) Closure<Void> validationRule) {
+      this.validationRule = validationRule
+    }
+
+    void validateDevice(AmazonBlockDevice device, Errors errors) {
+      validationRule(device, errors)
+    }
+
+    static void validate(AmazonBlockDevice device, Errors errors) {
+      for (rule in values()) {
+        rule.validateDevice device, errors
+      }
+    }
   }
 }
