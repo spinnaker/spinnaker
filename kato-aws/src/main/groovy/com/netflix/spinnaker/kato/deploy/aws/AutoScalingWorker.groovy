@@ -80,6 +80,7 @@ class AutoScalingWorker {
   private String iamRole
   private String keyPair
   private Boolean ignoreSequence
+  private Boolean associatePublicIpAddress
   private SubnetType subnetType
   private List<String> loadBalancers
   private List<String> securityGroups
@@ -87,6 +88,7 @@ class AutoScalingWorker {
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
   private List<AmazonBlockDevice> blockDevices
+
   private SecurityGroupService securityGroupService
 
   private int minInstances
@@ -232,6 +234,7 @@ class AutoScalingWorker {
       .withInstanceType(instanceType)
       .withSecurityGroups(securityGroups)
       .withKeyName(keyPair)
+      .withAssociatePublicIpAddress(associatePublicIpAddress)
 
     if (blockDevices) {
       def mappings = []

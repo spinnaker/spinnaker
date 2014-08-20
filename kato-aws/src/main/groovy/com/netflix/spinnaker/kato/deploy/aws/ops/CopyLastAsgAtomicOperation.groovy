@@ -87,6 +87,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.capacity.max = ancestorAsg.maxSize
       newDescription.capacity.desired = ancestorAsg.desiredCapacity
       newDescription.keyPair = description.keyPair ?: ancestorLaunchConfiguration.keyName
+      newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : ancestorLaunchConfiguration.associatePublicIpAddress
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
