@@ -45,9 +45,8 @@ class AmazonLoadBalancerController {
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
     def keys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS).findAll { key ->
-      def parts = key.split(':')
-      def elbName = parts[1]
-      elbName == name
+      def parts = Keys.parse(key)
+      parts.loadBalancer == name
     }
     getSummaryForKeys(groupKeysByLoadBalancer(keys))?.get(name)
   }
@@ -67,8 +66,8 @@ class AmazonLoadBalancerController {
     for (entry in summaries.entrySet()) {
       def parts = entry.key.split(':')
       def name = parts[1]
-      def account = parts[2]
-      def region = parts[3]
+      def account = parts[3]
+      def region = parts[4]
       def summary = map.get(name)
       if (!summary) {
         summary = new AmazonLoadBalancerSummary(name: name)
