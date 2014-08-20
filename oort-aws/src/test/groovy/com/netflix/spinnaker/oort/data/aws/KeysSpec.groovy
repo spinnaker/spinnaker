@@ -36,7 +36,7 @@ class KeysSpec extends Specification {
   def 'key parsing'() {
     expect:
     Keys.parse(Keys.getApplicationKey('theApp')) == [type: Keys.Namespace.APPLICATIONS.ns, application: 'theApp']
-    Keys.parse(Keys.getServerGroupKey('theAsg-v001', 'account', 'region')) == [type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theAsg', cluster: 'theAsg', serverGroup: 'theAsg-v001', account: 'account', region: 'region']
+    Keys.parse(Keys.getServerGroupKey('theAsg-v001', 'account', 'region')) == [type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg', serverGroup: 'theAsg-v001', account: 'account', region: 'region']
     Keys.parse(Keys.getClusterKey('cluster', 'application', 'account')) == [type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster', application: 'application', account: 'account']
     Keys.parse(Keys.getImageKey('image', 'region')) == [type: Keys.Namespace.IMAGES.ns, imageId: 'image', region: 'region']
     Keys.parse(Keys.getInstanceHealthKey('instanceId', 'account', 'region', 'provider')) == [type: Keys.Namespace.HEALTH.ns, instanceId: 'instanceId', account: 'account', region: 'region', provider: 'provider']

@@ -78,13 +78,12 @@ class AmazonApplicationProvider implements ApplicationProvider {
       if (app) {
         def clusters = [:]
         cacheService.keysByType(Namespace.CLUSTERS).findAll { it.startsWith("${Namespace.CLUSTERS}:${name}:") }.each {
-          def parts = it.split(':')
-          def account = parts[2]
-          def clusterName = parts[3]
+          def parts = Keys.parse(it)
+          def account = parts.account
           if (!clusters.containsKey(account)) {
             clusters[account] = new HashSet()
           }
-          clusters[account] << clusterName
+          clusters[account] << parts.cluster
         }
         app.clusterNames = clusters
       }

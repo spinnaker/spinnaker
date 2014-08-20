@@ -47,8 +47,8 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   Set<AmazonLoadBalancer> getLoadBalancers(String account) {
     def keys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS)
     def accountKeys = keys.findAll { key ->
-      def parts = key.split(':')
-      parts[1] == account
+      def parts = Keys.parse(key)
+      parts.account == account
     }
     accountKeys.collect { key ->
       retrieve(key)
@@ -60,7 +60,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     def names = Names.parseName(clusterName)
 
     clusterProviders.collectMany {
-      it.getCluster(names.app, account, clusterName).loadBalancers
+      it.getCluster(names.app.toLowerCase(), account, clusterName).loadBalancers
     }.collect { AmazonLoadBalancer loadBalancer ->
       getLoadBalancer(account, clusterName, loadBalancer.type, loadBalancer.name, loadBalancer.region)
     }
@@ -71,7 +71,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     def names = Names.parseName(clusterName)
 
     clusterProviders.collect {
-      it.getCluster(names.app, account, clusterName)
+      it.getCluster(names.app.toLowerCase(), account, clusterName)
     }.findAll { Cluster cluster ->
       cluster.type == type
     }.collectMany {
@@ -86,7 +86,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     def names = Names.parseName(clusterName)
 
     def lbs = clusterProviders.collectMany {
-      def cluster = it.getCluster(names.app, account, clusterName)
+      def cluster = it.getCluster(names.app.toLowerCase(), account, clusterName)
       cluster.loadBalancers.findAll { it.type == type && it.name == loadBalancerName }
     }.collect { AmazonLoadBalancer loadBalancer ->
        getLoadBalancer(account, clusterName, type, loadBalancerName, loadBalancer.region)

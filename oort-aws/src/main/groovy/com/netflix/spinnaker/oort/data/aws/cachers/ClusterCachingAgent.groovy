@@ -78,13 +78,13 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
   }
 
   void loadCluster(AmazonNamedAccount account, AutoScalingGroup asg, Names names, String region) {
-
-    def cluster = cacheService.retrieve(Keys.getClusterKey(names.cluster, names.app, account.name), AmazonCluster)
+    def appName = names.app.toLowerCase()
+    def cluster = cacheService.retrieve(Keys.getClusterKey(names.cluster, appName, account.name), AmazonCluster)
     if (!cluster) {
       cluster = new AmazonCluster(name: names.cluster, accountName: account.name)
     }
     cluster.loadBalancers.addAll(asg.loadBalancerNames.collect { new AmazonLoadBalancer(it, region) } as Set)
-    cacheService.put(Keys.getClusterKey(names.cluster, names.app, account.name), cluster)
+    cacheService.put(Keys.getClusterKey(names.cluster, appName, account.name), cluster)
 
     for (loadBalancerName in asg.loadBalancerNames) {
       cacheService.put(Keys.getLoadBalancerServerGroupKey(loadBalancerName, account.name, asg.autoScalingGroupName, region), [:])
@@ -105,7 +105,7 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     def names = Names.parseName(asgName)
     def clusterServerGroups = cacheService.keysByType(Namespace.SERVER_GROUPS).find { it.startsWith "${Namespace.SERVER_GROUPS}:${names.cluster}:${account.name}:" }
     if (!clusterServerGroups) {
-      cacheService.free(Keys.getClusterKey(names.cluster, names.app, account.name))
+      cacheService.free(Keys.getClusterKey(names.cluster, names.app.toLowerCase(), account.name))
     }
   }
 

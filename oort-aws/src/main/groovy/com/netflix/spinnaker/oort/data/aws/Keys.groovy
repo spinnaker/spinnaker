@@ -46,7 +46,7 @@ class Keys {
     }
   }
 
-  static Map parse(String key) {
+  static Map<String, String> parse(String key) {
     def parts = key.split(':')
     def result = [:]
     switch (parts[0]) {
@@ -58,11 +58,11 @@ class Keys {
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
-        result = [application: names.app, cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4]]
+        result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4]]
         break
       case Namespace.SERVER_GROUP_INSTANCES.ns:
         def names = Names.parseName(parts[4])
-        result = [application: names.app, cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], instanceId: parts[5]]
+        result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], instanceId: parts[5]]
         break
       case Namespace.INSTANCES.ns:
         result = [region: parts[1], instanceId: parts[2]]
@@ -74,8 +74,7 @@ class Keys {
         result = [account: parts[1], region: parts[2], loadBalancer: parts[3]]
         break
       case Namespace.LOAD_BALANCER_SERVER_GROUPS.ns:
-        def names = Names.parseName(parts[4])
-        result = [application: names.app, loadBalancer: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4]]
+        result = [loadBalancer: parts[1], application: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5]]
         break
       case Namespace.CLUSTERS.ns:
         result = [application: parts[1], account: parts[2], cluster: parts[3]]
@@ -122,7 +121,8 @@ class Keys {
   }
 
   static String getLoadBalancerServerGroupKey(String loadBalancerName, String account, String serverGroupName, String region) {
-    "${Namespace.LOAD_BALANCER_SERVER_GROUPS}:${loadBalancerName}:${account}:${region}:${serverGroupName}"
+    Names names = Names.parseName(serverGroupName)
+    "${Namespace.LOAD_BALANCER_SERVER_GROUPS}:${loadBalancerName}:${names.app.toLowerCase()}:${account}:${region}:${serverGroupName}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
