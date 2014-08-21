@@ -58,7 +58,7 @@ module.exports = function (grunt) {
       },
       less: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.less'],
-        tasks: ['less', 'autoprefixer']
+        tasks: ['less']
       },
       html2js: {
         files: ['<%= yeoman.app %>/views/**/*.html'],
@@ -100,10 +100,6 @@ module.exports = function (grunt) {
           middleware: function (connect) {
             return [
               connect.static('.tmp'),
-              connect().use(
-                '/bower_components',
-                connect.static('./bower_components')
-              ),
               connect.static(appConfig.app)
             ];
           }
@@ -115,11 +111,7 @@ module.exports = function (grunt) {
           middleware: function (connect) {
             return [
               connect.static('.tmp'),
-              connect.static('test'),
-              connect().use(
-                '/bower_components',
-                connect.static('./bower_components')
-              ),
+              connect.static('node_modules'),
               connect.static(appConfig.app)
             ];
           }
@@ -168,21 +160,6 @@ module.exports = function (grunt) {
       server: '.tmp'
     },
 
-    // Add vendor prefixed styles
-    autoprefixer: {
-      options: {
-        browsers: ['last 1 version']
-      },
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '.tmp/styles/',
-          src: '{,*/}*.css',
-          dest: '.tmp/styles/'
-        }]
-      }
-    },
-
     less: {
       dist: {
         files: [{
@@ -192,17 +169,6 @@ module.exports = function (grunt) {
           dest: '.tmp/styles/',
           ext: '.css'
         }]
-      }
-    },
-
-    // Automatically inject Bower components into the app
-    wiredep: {
-      options: {
-        cwd: '<%= yeoman.app %>'
-      },
-      app: {
-        src: ['<%= yeoman.app %>/index.html'],
-        ignorePath: /\.\.\//
       }
     },
 
@@ -309,13 +275,6 @@ module.exports = function (grunt) {
       }
     },
 
-    // Replace Google CDN references
-    cdnify: {
-      dist: {
-        html: ['<%= yeoman.dist %>/*.html']
-      }
-    },
-
     // Copies remaining files to places other tasks can use
     copy: {
       dist: {
@@ -331,7 +290,6 @@ module.exports = function (grunt) {
               '*.html',
               'views/{,*/}*.html',
               'views/**/{,*/}*.html',
-              'bower_components/**/*',
               'images/{,*/}*.{webp}',
               'fonts/*'
             ]
@@ -345,17 +303,16 @@ module.exports = function (grunt) {
           {
             expand: true,
             flatten: true,
-            cwd: '<%= yeoman.app %>',
+            cwd: '.',
             dest: '<%= yeoman.dist %>/fonts',
-            src: ['bower_components/bootstrap/dist/fonts/*.*']
+            src: ['node_modules/bootstrap/dist/fonts/*.*']
           }
         ]
       },
       styles: {
         expand: true,
-        cwd: '<%= yeoman.app %>/styles',
-        dest: '.tmp/styles/',
-        src: '{,*/}*.css'
+        dest: '.tmp/',
+        src: 'node_modules/bootstrap/dist/css/bootstrap.css'
       }
     },
 
@@ -389,12 +346,10 @@ module.exports = function (grunt) {
       'clean:server',
       'jshint:all',
       'browserify:dist',
-      'wiredep',
       'less',
       'html2js',
       'copy:styles',
       'concurrent:server',
-      'autoprefixer',
       'connect:livereload',
       'watch'
     ]);
@@ -410,7 +365,6 @@ module.exports = function (grunt) {
     'browserify:dist',
     'html2js',
     'concurrent:test',
-    'autoprefixer',
     'connect:test',
     'karma'
   ]);
@@ -418,7 +372,6 @@ module.exports = function (grunt) {
   grunt.registerTask('build', [
     'clean:dist',
     'browserify:dist',
-    'wiredep',
     'useminPrepare',
     'less',
     'html2js',
@@ -426,10 +379,8 @@ module.exports = function (grunt) {
     'imagemin',
     'svgmin',
     'concurrent:dist',
-    'autoprefixer',
     'concat',
     'copy:dist',
-    'cdnify',
     'cssmin',
     'uglify',
     'filerev',

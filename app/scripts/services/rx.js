@@ -1,7 +1,7 @@
 'use strict';
 
 require('../app');
-var rx = require('rxjs');
+var rx = require('rx');
 var angular = require('angular');
 
 angular.module('deckApp')

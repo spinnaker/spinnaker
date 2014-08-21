@@ -2,8 +2,21 @@
   "main": "./app/scripts/app.js",
   "name": "deck",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {"angular": "1.2.20",
+    "angular-module-animate": "1.2.19",
+    "angular-bootstrap": "~0.11.0",
+    "angular-spinner": "~0.5.1",
+    "angular-ui-router": "~0.2.10",
+    "bootstrap": "~3.2.0",
+    "jquery": "2.1.1",
+    "lodash": "~2.4.1",
+    "moment": "2.8.1",
+    "restangular": "~1.4.0",
+    "rx": "~2.3.4",
+    "spin.js": "2.0.1"
+  },
   "devDependencies": {
+    "angular-mocks": "1.2.20",
     "browserify": "~4.2.3",
     "browserify-ngannotate": "^0.1.0",
     "browserify-shim": "~3.6.0",
@@ -49,22 +62,16 @@
     "test": "grunt test"
   },
   "browser": {
-    "angular-bootstrap": "./app/bower_components/angular-bootstrap/ui-bootstrap-tpls.js",
-    "angular": "./app/bower_components/angular/angular.js",
-    "angular-animate": "./app/bower_components/angular-animate/angular-animate.js",
-    "angular-ui-router": "./app/bower_components/angular-ui-router/release/angular-ui-router.min.js",
-    "restangular": "./app/bower_components/restangular/dist/restangular.js",
-    "jquery": "./app/bower_components/jquery/dist/jquery.js",
-    "lodash": "./app/bower_components/lodash/dist/lodash.compat.js",
-    "moment": "./app/bower_components/moment/moment.js",
-    "angular-spinner": "./app/bower_components/angular-spinner/angular-spinner.js",
-    "rxjs": "./app/bower_components/rxjs/dist/rx.all.js",
-    "spin": "./app/bower_components/spin.js/spin.js"
+    "angular-bootstrap": "./node_modules/angular-bootstrap/ui-bootstrap.js",
+    "angular-animate": "./node_modules/angular-module-animate/angular-animate.js",
+    "angular-ui-router": "./node_modules/angular-ui-router/release/angular-ui-router.min.js",
+    "restangular": "./node_modules/restangular/dist/restangular.js",
+    "jquery": "./node_modules/jquery/dist/jquery.js",
+    "lodash": "./node_modules/lodash/dist/lodash.compat.js",
+    "angular-spinner": "./node_modules/angular-spinner/angular-spinner.js",
+    "spin": "./node_modules/spin.js/spin.js"
   },
   "browserify-shim": {
-    "angular": {
-      "exports": "angular"
-    },
     "jquery": {
       "exports": "$"
     },
@@ -77,22 +84,10 @@
     "rxjs": {
       "exports": "Rx"
     },
-    "angular-bootstrap": {
-      "depends": "angular:angular"
-    },
-    "angular-ui-router": {
-      "depends": [
-        "angular:angular"
-      ]
-    },
     "angular-spinner": {
       "depends": [
-        "angular:angular",
         "spin:Spinner"
       ]
-    },
-    "restangular": {
-      "depends": "angular:angular"
     },
     "spin": {
       "exports": "Spinner"
