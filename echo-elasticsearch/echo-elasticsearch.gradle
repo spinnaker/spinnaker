@@ -20,6 +20,6 @@ dependencies {
     compile project(':echo-model')
     compile spinnaker.dependency('bootWeb')
     compile commonDependencies.jacksonDatabind
-    compile 'org.elasticsearch:elasticsearch:1.2.1'
-    compile 'io.searchbox:jest:0.1.1'
+    compile 'org.elasticsearch:elasticsearch:1.2.2'
+    compile 'io.searchbox:jest:0.1.2'
 }

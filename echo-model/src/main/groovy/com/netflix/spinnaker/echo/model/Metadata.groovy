@@ -23,4 +23,5 @@ class Metadata {
     String source
     String type
     String created = new Date().time
+    String _content_id
 }

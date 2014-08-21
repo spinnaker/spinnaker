@@ -25,6 +25,7 @@ buildscript {
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 apply plugin: 'spring-boot'
+apply plugin: 'project-report'
 
 configurations.all {
     exclude group: 'javax.servlet', module: 'servlet-api'
