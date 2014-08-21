@@ -2,7 +2,7 @@
 
 var angular = require('angular');
 angular.module('deckApp')
-  .factory('infrastructureSearch', function(RxService, $q, $http, urlBuilder) {
+  .factory('infrastructureSearch', function(RxService, $q, $http, urlBuilder, settings) {
     return function() {
       var deferred;
 
@@ -31,7 +31,7 @@ angular.module('deckApp')
       .flatMap(function(query) {
         return RxService.Observable.fromPromise($http({
           method: 'GET',
-          url: 'http://oort.prod.netflix.net/search?q='+query+'&size='+100
+          url: settings.oortUrl+'/search?q='+query+'&size='+100
         }));
       })
       .take(1)
