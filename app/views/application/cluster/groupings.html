@@ -1,4 +1,4 @@
-<div ng-repeat="group in groups" class="server-group-rollup">
+<div ng-repeat="group in groups" class="rollup">
   <div ng-repeat="subgroup in group.subgroups">
     <div ng-repeat="subsubGroup in subgroup.subgroups">
       <h4>{{group.heading | regionAbbreviator}}: {{subgroup.heading | regionAbbreviator}}: {{subsubGroup.heading| regionAbbreviator}}</h4>

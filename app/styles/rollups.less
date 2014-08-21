@@ -1,0 +1,259 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "app/styles/imports/commonImports.less";
+
+.rollup {
+  h4 {
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .sub-group {
+    margin-left: 10px;
+  }
+  .summary {
+
+  }
+}
+
+.rollup-entry {
+  border: 1px solid #c4c4c4;
+  border-radius: 3px;
+  padding: 0;
+  margin: 15px 0;
+  background-color: #f1f1f1;
+
+  &.disabled {
+    opacity: 0.7;
+    border: 1px dashed #aaaaaa;
+    .glyphicon-th {
+      color: @mid_grey;
+    }
+  }
+
+  .glyphicon-th {
+    color: @healthy_green_icon;
+  }
+
+  &.active {
+    border-color: #121212;
+    box-shadow: 0 0 8px 0px #999999;
+  }
+
+  &.unhealthy {
+    border-style: dashed;
+
+  }
+}
+
+.instances {
+  a.instance {
+    border: 1px solid @healthy_green_border;
+    border-radius: 2px;
+    margin-right: 5px;
+    display: inline-block;
+    width: 7px;
+    height: 15px;
+    background-color: @healthy_green;
+
+    &.health-status-Healthy {
+      background-color: @healthy_green;
+      border-color: @healthy_green_border;
+    }
+    &.health-status-Unhealthy {
+      background-color: @unhealthy_red;
+      border-color: @unhealthy_red_border;
+    }
+    &.health-status-Unknown {
+      background-color: @light_grey;
+      border-color: @mid_grey;
+    }
+
+    &.active {
+      border-color: @dark_grey;
+      background-color: @healthy_green_border;
+      box-shadow: 0 0 3px 0px #999999;
+      &.health-status-Unhealthy {
+        background-color: @unhealthy_red_border;
+      }
+    }
+  }
+}
+
+.rollup-summary {
+  font-size: 110%;
+  padding: 10px;
+  display: table;
+  width: 100%;
+  text-transform: uppercase;
+
+  &:hover {
+    border-color: #121212;
+    border-bottom-width: 1px;
+    box-shadow: 0 0 8px 0px #999999;
+  }
+  .tooltip {
+    text-transform: none;
+  }
+}
+
+.rollup-title-cell {
+  display: table-cell;
+  width: auto;
+}
+
+.rollup-title-cell-load-balancers {
+  max-width: 30%;
+  .text-right;
+
+  .glyphicon {
+    line-height: 0;
+    top: 5px;
+    font-size: 150%;
+  }
+
+  button {
+    padding: 0;
+    display: inline-block;
+    margin-right: 5px;
+    line-height: 0;
+    &.active, &:focus {
+      color: #2a6496;
+      text-shadow: 0px 0px 2px #ffffff, 0px 0px 4px #428bca, 0px 0px 6px #428bca;
+      outline: 0;
+    }
+    &:focus {
+      color: #428bca;
+    }
+  }
+}
+
+.menu-load-balancers {
+  text-align: left;
+  position: absolute;
+  z-index: 3;
+  right: 50px;
+  background-color: #ffffff;
+  margin-top: 8px;
+  border: 1px solid #777777;
+  padding: 0;
+  border-radius: 3px;
+  box-shadow: 0px 0px 5px 2px #dddddd;
+  div {
+    font-weight: 600;
+    color: #eeeeee;
+    background-color: #5b5b5b;
+  }
+  div, a {
+    text-transform: none;
+    font-size: 82.5%;
+    padding: 5px 10px;
+    display: block;
+  }
+  a {
+    border-bottom: 1px solid #d1d1d1;
+    &:last-child {
+      border-bottom-width: 0;
+    }
+    &:hover, &:focus {
+      background-color: #eeeeee;
+      text-decoration: none;
+    }
+    &:focus {
+      padding-left: 15px;
+      padding-right: 5px;
+    }
+  }
+  &::before, &::after {
+    width: 0;
+    height: 0;
+    content: ' ';
+    top: -14px;
+    right: 15px;
+    position: absolute;
+    border: 8px solid transparent;
+    border-top-width: 0;
+    margin-left: -11px;
+  }
+  &::after {
+    margin-left: -10px;
+    border-width: 8px;
+    border-bottom-color: #5b5b5b;
+  }
+  &::before {
+    top: -8px;
+    border-bottom-color: #5b5b5b;
+  }
+}
+
+.btn-multiple-load-balancers {
+  text-align: right;
+  &:hover {
+    text-decoration: none;
+  }
+  .icon {
+    width: 30px;
+  }
+  .glyphicon {
+    top: 10px;
+    width: 5px;
+    &::before {
+      text-shadow: #fff 0 0 1px, #fff 0 0 2px, #fff 0 0 3px;
+    }
+  }
+  .counter {
+    color: #2A6496;
+    background-color: #fff;
+    box-shadow: 0 0 2px #2A6496;
+    top: -3px;
+  }
+  span {
+    position: relative;
+  }
+}
+
+.rollup-details {
+  padding: 0;
+  border-top: 1px solid #c4c4c4;
+  background-color: #ffffff;
+  border-bottom-left-radius: 2px;
+  border-bottom-right-radius: 2px;
+
+  .load-balancer-server-group {
+    padding: 10px;
+    border-top: 1px solid #c4c4c4;
+    &:first-child {
+      border-top-width: 0;
+    }
+
+    .instances {
+      padding: 5px 0 0 0;
+    }
+  }
+
+  .instances {
+    padding: 5px 10px;
+  }
+
+  &.instances-only {
+    padding: 10px;
+  }
+
+  .build-title {
+    font-size: 110%;
+    padding: 10px 10px 3px 10px;
+  }
+}

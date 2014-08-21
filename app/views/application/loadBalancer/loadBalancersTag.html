@@ -1,6 +1,6 @@
-<div class="load-balancers text-right" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
+<div class="rollup-title-cell rollup-title-cell-load-balancers" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
   <button
-      class="btn btn-link multiple-load-balancers clearfix"
+      class="btn btn-link btn-multiple-load-balancers clearfix"
       ng-if="loadBalancers.length > maxDisplay"
       ng-click="popover.show = !popover.show"
       tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{loadBalancers.length}} load balancers">
@@ -9,7 +9,7 @@
     </span>
     <span class="badge counter">{{loadBalancers.length}}</span>
   </button>
-  <div class="all-load-balancers" ng-if="popover.show">
+  <div class="menu-load-balancers" ng-if="popover.show">
     <div>
       Load Balancers
     </div>
@@ -19,7 +19,7 @@
       >{{loadBalancer.name}}
     </a>
   </div>
-  <div class="all-load-balancers" ng-if="loadBalancers.length <= maxDisplay">
+  <div class="btn-load-balancer" ng-if="loadBalancers.length <= maxDisplay">
     <button
        class="btn btn-link"
        ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"

@@ -1,10 +1,10 @@
-<div class="row server-group sub-group"
+<div class="row rollup-entry sub-group"
      ng-class="{
         active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name}),
         disabled: serverGroup.isDisabled
      }">
-  <div class="summary">
-    <a class="title-link"
+  <div class="rollup-summary">
+    <a class="rollup-title-cell"
        ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
       <span class="glyphicon glyphicon-th"></span>
       {{serverGroup.name}}
@@ -12,7 +12,7 @@
     </a>
     <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
   </div>
-  <div class="details">
+  <div class="rollup-details">
     <div class="build-title">
       <a ng-if="serverGroup.buildInfo.jenkins.host"
          href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"

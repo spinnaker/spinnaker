@@ -1,6 +1,6 @@
-<div class="row load-balancer"
+<div class="row rollup-entry"
      ng-class="{active: $state.includes('**.loadBalancer.**', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
-  <div class="summary">
+  <div class="rollup-summary">
     <a class="title-link"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})">
       <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
@@ -8,7 +8,7 @@
       <health-counts container="loadBalancer.health"></health-counts>
     </a>
   </div>
-  <div class="details">
+  <div class="rollup-details">
     <div ng-if="displayOptions.showServerGroups">
       <load-balancer-server-group
         ng-if="displayServerGroup(serverGroup)"

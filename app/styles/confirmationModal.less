@@ -16,40 +16,14 @@
 
 @import "app/styles/imports/commonImports.less";
 
-.infrastructure {
-  .panel {
-    background-color: #f1f1f1;
-    .summary {
-      padding: 15px;
-    }
-    .details {
-      padding-top: 15px;
-
-    }
-
+.confirmation-modal {
+  .account-label {
+    text-transform: uppercase;
+    font-size: 100%;
+    background-color: transparent;
+    color: @text-color;
   }
-  .category {
-    margin: 15px;
-  }
-}
-
-.global-search {
-  margin-top: 6px;
-  .dropdown-menu {
-    padding-left: 15px;
-    min-width: 175px;
-    top: 51px;
-    li {
-      font-variant: small-caps;
-      color: #999;
-      a {
-        font-variant: normal;
-        color: #000;
-        .expand-results {
-          font-weight: bold;
-
-        }
-      }
-    }
+  .account-label-prod {
+    color: @unhealthy_red;
   }
 }

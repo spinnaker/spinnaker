@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-@import "node_modules/bootstrap/less/mixins.less";
-@import "node_modules/bootstrap/less/variables.less";
-@import "app/styles/colors.less";
+@import "app/styles/imports/commonImports.less";
 
 /* Space out content a bit */
 body {
@@ -514,33 +512,6 @@ body > .container {
   }
 }
 
-.notification-center {
-  position: fixed;
-  top: @navbar-height;
-  right: 0;
-  width: 400px;
-  padding: 10px;
-  z-index: @zindex-navbar-fixed;
-
-  .alert {
-    position: relative;
-    opacity: .95;
-    right: 0;
-    box-shadow: 0px 0px 8px 2px #BBBBBB;
-    border-radius: 8px;
-    &.ng-enter.ng-enter-active, &.ng-leave {
-      opacity: .95;
-      right: 0;
-      transition: all .15s ease-in;
-    }
-    &.ng-leave.ng-leave-active, &.ng-enter {
-        opacity: 0;
-        right: -400px;
-        transition: all .15s ease-in;
-    }
-  }
-}
-
 tfoot .add-new {
   margin-bottom: 0;
 }
@@ -830,18 +801,6 @@ server-error-flag {
   &.both {
     margin-left: 5px;
     margin-right: 5px;
-  }
-}
-
-.confirmation-modal {
-  .account-label {
-    text-transform: uppercase;
-    font-size: 100%;
-    background-color: transparent;
-    color: @text-color;
-  }
-  .account-label-prod {
-    color: @unhealthy_red;
   }
 }
 

@@ -16,40 +16,29 @@
 
 @import "app/styles/imports/commonImports.less";
 
-.infrastructure {
-  .panel {
-    background-color: #f1f1f1;
-    .summary {
-      padding: 15px;
+.notification-center {
+  position: fixed;
+  top: @navbar-height;
+  right: 0;
+  width: 400px;
+  padding: 10px;
+  z-index: @zindex-navbar-fixed;
+
+  .alert {
+    position: relative;
+    opacity: .95;
+    right: 0;
+    box-shadow: 0px 0px 8px 2px #BBBBBB;
+    border-radius: 8px;
+    &.ng-enter.ng-enter-active, &.ng-leave {
+      opacity: .95;
+      right: 0;
+      transition: all .15s ease-in;
     }
-    .details {
-      padding-top: 15px;
-
-    }
-
-  }
-  .category {
-    margin: 15px;
-  }
-}
-
-.global-search {
-  margin-top: 6px;
-  .dropdown-menu {
-    padding-left: 15px;
-    min-width: 175px;
-    top: 51px;
-    li {
-      font-variant: small-caps;
-      color: #999;
-      a {
-        font-variant: normal;
-        color: #000;
-        .expand-results {
-          font-weight: bold;
-
-        }
-      }
+    &.ng-leave.ng-leave-active, &.ng-enter {
+      opacity: 0;
+      right: -400px;
+      transition: all .15s ease-in;
     }
   }
 }
