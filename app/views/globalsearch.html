@@ -5,19 +5,22 @@
         class="form-control"
         placeholder="Search"
         ng-model="query"
+        ng-keyup="ctrl.dispatchQueryInput($event)"
         ng-focus="ctrl.showSearchResults()">
       </input>
     </div>
   </form>
-  <ul class="dropdown-menu" role="menu" ng-show="showSearchResults">
-    <span ng-repeat="category in categories">
-      <li>
-        {{ category.category }}
-      </li>
-      <li ng-repeat="result in category.results">
-        <a href="{{ result.href }}">{{ result.name }}</a>
-      </li>
-    </span>
+  <ul class="dropdown-menu"
+      role="menu"
+      ng-show="showSearchResults">
+    <li ng-repeat-start="category in categories">
+      {{ category.category }}
+    </li>
+    <li ng-repeat="result in category.results"
+        ng-repeat-end
+        class="result">
+      <a ng-keyup="ctrl.navigateResults($event)" href="{{ result.href }}">{{ result.name }}</a>
+    </li>
     <li>
     <a href="#/infrastructure?q={{ query }}"
          class="expand-results"
