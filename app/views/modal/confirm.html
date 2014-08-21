@@ -3,16 +3,16 @@
     <div class="modal-header">
       <h3>{{params.header}}</h3>
     </div>
-    <div class="modal-body">
+    <div class="modal-body confirmation-modal">
       <p ng-if="params.body">
         {{params.body}}
       </p>
       <div class="row">
         <div class="col-sm-offset-1 col-sm-10" ng-if="verification.requireAccountEntry">
-          <p>Type the name of the account ( <account-tag account="params.account" pad="both"></account-tag> ) below to continue.</p>
+          <p>Type the name of the account ( <account-tag account="params.account"></account-tag> ) below to continue.</p>
           <div class="form-inline">
             <div class="form-group">
-              <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm" placeholder="{{params.account}}"/>
+              <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm" placeholder="{{params.account.toUpperCase()}}"/>
             </div>
           </div>
         </div>
@@ -21,7 +21,7 @@
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="cancel()">Cancel</button>
       <button class="btn btn-primary"
-              ng-disabled="verification.requireAccountEntry && verification.verifyAccount !== params.account"
+              ng-disabled="verification.requireAccountEntry && verification.verifyAccount !== params.account.toUpperCase()"
               ng-click="confirm()">
         <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
         {{params.buttonText}}
