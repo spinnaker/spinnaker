@@ -34,7 +34,7 @@ angular.module('deckApp')
         url: '/serverGroupDetails?serverGroup&accountId&region',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'views/application/serverGroup.html',
+            templateUrl: 'views/application/serverGroupDetails.html',
             controller: 'ServerGroupCtrl'
           }
         },

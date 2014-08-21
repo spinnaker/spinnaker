@@ -214,6 +214,8 @@ angular.module('deckApp')
     }
 
     function normalizeServerGroup(serverGroup, accountName, clusterName) {
+      var suspendedProcesses = _.collect(serverGroup.asg.suspendedProcesses, 'processName'),
+          disabledProcessFlags = ['AddToLoadBalancer', 'Launch', 'Terminate'];
       serverGroup.instances = serverGroup.instances.map(function(instance) {
         var toReturn = instance.instance;
         toReturn.account = accountName;
@@ -221,6 +223,8 @@ angular.module('deckApp')
       });
       serverGroup.account = accountName;
       serverGroup.cluster = clusterName;
+      serverGroup.isDisabled = _.intersection(disabledProcessFlags, suspendedProcesses).length === disabledProcessFlags.length;
+      console.warn('suspended:', serverGroup.isDisabled);
       extendInstancesWithAsgInstances(serverGroup);
       addInstancesOnlyFoundInAsg(serverGroup);
       addHealthyCounts(serverGroup);
