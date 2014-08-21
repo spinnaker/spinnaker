@@ -88,7 +88,7 @@ class SearchIndexSpec extends Specification {
 
 
     private void flushElasticSearch() {
-        if (config.client.admin().indices().exists(new IndicesExistsRequest(searchIndex.ES_INDEX))) {
+        if (config.client.admin().indices().exists(new IndicesExistsRequest(searchIndex.ES_INDEX)).actionGet().exists) {
             config.client.admin().indices().delete(new DeleteIndexRequest(searchIndex.ES_INDEX)).actionGet()
         }
     }

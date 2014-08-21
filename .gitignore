@@ -8,3 +8,5 @@ out
 /.idea/
 classes
 data
+/echo-web/data
+/echo-elasticsearch/data/
