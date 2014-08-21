@@ -224,7 +224,6 @@ angular.module('deckApp')
       serverGroup.account = accountName;
       serverGroup.cluster = clusterName;
       serverGroup.isDisabled = _.intersection(disabledProcessFlags, suspendedProcesses).length === disabledProcessFlags.length;
-      console.warn('suspended:', serverGroup.isDisabled);
       extendInstancesWithAsgInstances(serverGroup);
       addInstancesOnlyFoundInAsg(serverGroup);
       addHealthyCounts(serverGroup);
