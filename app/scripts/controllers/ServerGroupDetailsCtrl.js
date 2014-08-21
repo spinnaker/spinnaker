@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ServerGroupCtrl', function ($scope, application, serverGroup, pond, $modal, confirmationModalService) {
+  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, pond, $modal, confirmationModalService) {
 
     function extractServerGroup(clusters) {
       clusters.some(function (cluster) {
