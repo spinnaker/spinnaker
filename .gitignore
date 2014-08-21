@@ -3,3 +3,8 @@ dist
 .tmp
 .sass-cache
 test-results.xml
+
+deck.iml
+.idea
+.gradle
+build

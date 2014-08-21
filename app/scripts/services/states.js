@@ -16,7 +16,7 @@ angular.module('deckApp')
         url: '/instanceDetails?instanceId',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'views/application/instance.html',
+            templateUrl: 'views/application/instanceDetails.html',
             controller: 'InstanceCtrl'
           }
         },
