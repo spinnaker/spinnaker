@@ -11,7 +11,9 @@ angular.module('deckApp')
 
     this.dispatchQueryInput = function(event) {
       if (event.keyIdentifier === 'Down' && $scope.showSearchResults) {
-        elem.find('.dropdown-menu').find('a')[0].focus();
+        try {
+          elem.find('.dropdown-menu').find('a')[0].focus();
+        } catch (e) {}
       } else {
         search.query($scope.query).then(function(result) {
           $scope.categories = result;
@@ -26,18 +28,22 @@ angular.module('deckApp')
 
     this.navigateResults = function(event) {
       if (event.keyIdentifier === 'Down') {
-        $(event.srcElement)
-          .parent()
-          .nextAll('.result')[0]
-          .children[0]
-          .focus();
+        try {
+          $(event.srcElement)
+            .parent()
+            .nextAll('.result')[0]
+            .children[0]
+            .focus();
+        } catch (e) {}
       }
       if (event.keyIdentifier === 'Up') {
-        $(event.srcElement)
-          .parent()
-          .prevAll('.result')[0]
-          .children[0]
-          .focus();
+        try {
+          $(event.srcElement)
+            .parent()
+            .prevAll('.result')[0]
+            .children[0]
+            .focus();
+        } catch (e) {}
       }
     };
   });
