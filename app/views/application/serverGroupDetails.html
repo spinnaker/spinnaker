@@ -32,29 +32,31 @@
       </div>
     </div>
   </div>
-  <collapsible-section heading="ASG Information" expanded="true">
-    <dl>
-      <dt>Created:</dt>
-      <dd>{{serverGroup.asg.createdTime | relativeTime}}</dd>
-      <dt>In:</dt>
-      <dd>
-        {{cluster.name}}:{{serverGroup.region | regionAbbreviator}}
-        <account-tag account="cluster.account" pad="left"></account-tag>
-      </dd>
-    </dl>
-  </collapsible-section>
-  <collapsible-section heading="Health" expanded="true">
-    <dl class="dl-horizontal dl-narrow">
-      <dt>Instances:</dt>
-      <dd>
-        <health-counts container="serverGroup"></health-counts>
-      </dd>
-    </dl>
-  </collapsible-section>
-  <collapsible-section heading="Launch Configuration">
-    <arbitrary-list source="serverGroup.launchConfig" omit="Launch Configuration"></arbitrary-list>
-  </collapsible-section>
-  <collapsible-section heading="Package">
-    <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
-  </collapsible-section>
+  <div class="content">
+    <collapsible-section heading="ASG Information" expanded="true">
+      <dl>
+        <dt>Created:</dt>
+        <dd>{{serverGroup.asg.createdTime | relativeTime}}</dd>
+        <dt>In:</dt>
+        <dd>
+          {{cluster.name}}:{{serverGroup.region | regionAbbreviator}}
+          <account-tag account="cluster.account" pad="left"></account-tag>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Instances:</dt>
+        <dd>
+          <health-counts container="serverGroup"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Launch Configuration">
+      <arbitrary-list source="serverGroup.launchConfig" omit="Launch Configuration"></arbitrary-list>
+    </collapsible-section>
+    <collapsible-section heading="Package">
+      <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
+    </collapsible-section>
+  </div>
 </div>

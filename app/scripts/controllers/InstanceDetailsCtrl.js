@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('InstanceCtrl', function ($scope, $rootScope, instance, application) {
+  .controller('InstanceDetailsCtrl', function ($scope, $rootScope, instance, application) {
 
     function extractInstance(clusters) {
       clusters.some(function (cluster) {

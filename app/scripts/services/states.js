@@ -17,7 +17,7 @@ angular.module('deckApp')
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/instanceDetails.html',
-            controller: 'InstanceCtrl'
+            controller: 'InstanceDetailsCtrl'
           }
         },
         resolve: {
@@ -35,7 +35,7 @@ angular.module('deckApp')
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/serverGroupDetails.html',
-            controller: 'ServerGroupCtrl'
+            controller: 'ServerGroupDetailsCtrl'
           }
         },
         resolve: {
