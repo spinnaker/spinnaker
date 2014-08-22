@@ -26,7 +26,7 @@ angular.module('deckApp')
       .throttle(400)
       .distinctUntilChanged()
       .filter(function(input) {
-        return angular.isDefined(input) && input.length > 0;
+        return input && angular.isDefined(input) && input.length > 0;
       })
       .flatMap(function(query) {
         return RxService.Observable.fromPromise($http({
