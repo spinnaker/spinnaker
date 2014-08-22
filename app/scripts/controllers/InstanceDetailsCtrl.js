@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('InstanceDetailsCtrl', function ($scope, $rootScope, instance, application, pond, confirmationModalService) {
+  .controller('InstanceDetailsCtrl', function ($scope, $rootScope, instance, application, orcaService, confirmationModalService) {
 
     function extractInstance(clusters) {
       clusters.some(function (cluster) {
@@ -33,17 +33,10 @@ angular.module('deckApp')
         destructive: true,
         account: instance.account
       }).then(function () {
-        pond.one('ops').customPOST([
-          {
-            type: 'terminateInstances',
-            instanceIds: [instance.instanceId],
-            region: instance.region,
-            credentials: instance.account,
-            user: 'chrisb'
-          }
-        ]).then(function (response) {
-          console.warn('task: ', response.ref);
-        });
+        orcaService.terminateInstance(instance)
+          .then(function (response) {
+            console.warn('task: ', response.ref);
+          });
       });
     };
 

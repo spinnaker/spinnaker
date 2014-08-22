@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, pond, $modal, confirmationModalService) {
+  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService, $modal, confirmationModalService) {
 
     function extractServerGroup(clusters) {
       clusters.some(function (cluster) {
@@ -24,7 +24,6 @@ angular.module('deckApp')
 
     extractServerGroup(application.clusters);
 
-    // TODO: move to service
     $scope.destroyServerGroup = function () {
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
@@ -33,15 +32,8 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account
       }).then(function () {
-        pond.one('ops').customPOST([
-          {
-            asgName: serverGroup.name,
-            type: 'destroyAsg',
-            regions: [serverGroup.region],
-            credentials: serverGroup.account,
-            user: 'chrisb'
-          }
-        ]).then(function (response) {
+        orcaService.destroyServerGroup(serverGroup)
+          .then(function (response) {
           console.warn('task: ', response.ref);
         });
       });
@@ -56,15 +48,7 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account
       }).then(function () {
-        pond.one('ops').customPOST([
-          {
-            asgName: serverGroup.name,
-            type: 'disableAsg',
-            regions: [serverGroup.region],
-            credentials: serverGroup.account,
-            user: 'chrisb'
-          }
-        ]).then(function (response) {
+        orcaService.disableServerGroup(serverGroup).then(function (response) {
           console.warn('task: ', response.ref);
         });
       });
@@ -105,19 +89,11 @@ angular.module('deckApp')
             if (!$scope.command.advancedMode) {
               capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
             }
-            pond.one('ops').customPOST([
-              {
-                asgName: serverGroup.name,
-                type: 'resizeAsg',
-                regions: [serverGroup.region],
-                credentials: serverGroup.account,
-                user: 'deckUser',
-                capacity: capacity
-              }
-            ]).then(function (response) {
-              $modalInstance.close();
-              console.warn('task:', response.ref);
-            });
+            orcaService.resizeServerGroup(serverGroup, capacity)
+              .then(function (response) {
+                $modalInstance.close();
+                console.warn('task:', response.ref);
+              });
           };
 
           $scope.cancel = function () {

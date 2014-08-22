@@ -312,7 +312,11 @@ module.exports = function (grunt) {
       styles: {
         expand: true,
         dest: '.tmp/',
-        src: ['node_modules/bootstrap/dist/css/bootstrap.css', 'node_modules/bootstrap/dist/fonts/*.*']
+        src: [
+          'node_modules/bootstrap/dist/css/bootstrap.css',
+          'node_modules/bootstrap/dist/css/bootstrap.css.map',
+          'node_modules/bootstrap/dist/fonts/*.*'
+        ]
       }
     },
 
