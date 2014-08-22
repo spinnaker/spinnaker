@@ -12,6 +12,19 @@
         {{instance.instanceId}}
       </h3>
     </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown">
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled">
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li class="dropdown-header">CONFIG</li>
+            <li><a href ng-click="terminateInstance()">Terminate Instance</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="content">
     <collapsible-section heading="Instance Information" expanded="true">
