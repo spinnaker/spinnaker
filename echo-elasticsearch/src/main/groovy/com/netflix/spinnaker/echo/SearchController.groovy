@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -32,19 +33,25 @@ class SearchController {
     @Autowired
     SearchIndex searchIndex
 
-    @RequestMapping(value = '/search/event/{source}/{type}/', method = RequestMethod.GET)
-    String search(@PathVariable(value = 'source') String source, @PathVariable(value = 'type') String type) {
-        searchIndex.searchEvent(source, type)
-    }
-
-    @RequestMapping(value = '/search/eventsByDate/{since}', method = RequestMethod.GET)
-    String searchByDate(
-        @PathVariable(value = 'since') since,
+    @RequestMapping(value = '/search/events/{start}', method = RequestMethod.GET)
+    List<Map> searchByDate(
+        @PathVariable(value = 'start') start,
         @RequestParam(value = 'source') String source,
         @RequestParam(value = 'type') String type,
-        @RequestParam(value = 'full') boolean full
-    ) {
-        searchIndex.searchByDate(since, source, type, full)
+        @RequestParam(value = 'end') String end,
+        @RequestParam(value = 'full') boolean full = false
+        ) {
+        searchIndex.searchEvents(start, end, source, type, full)
+    }
+
+    @RequestMapping(value='/search/es/{source}/{type}', method = RequestMethod.POST)
+    String directSearch(@PathVariable(value='source') String source, @PathVariable(value='type') String type, @RequestBody String query){
+        searchIndex.directSearch(source, type, query)
+    }
+
+    @RequestMapping(value='/search/es/metadata', method = RequestMethod.POST)
+    String directSearchMetadata(@RequestBody String query){
+        searchIndex.directSearchMetadata(query)
     }
 
 }

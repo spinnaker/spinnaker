@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.model.Event
 import io.searchbox.client.JestClient
 import io.searchbox.client.JestResult
+import io.searchbox.core.Get
 import io.searchbox.core.Index
 import io.searchbox.core.Search
 import io.searchbox.core.SearchResult
@@ -40,7 +41,7 @@ class SearchIndex {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    String addToIndex(Event event) {
+    Map addToIndex(Event event) {
         event.content._event_details = event.details
         String contentString = mapper.writeValueAsString(event.content)
         String eventKey = keyFrom(event.details.source, event.details.type)
@@ -52,24 +53,62 @@ class SearchIndex {
         String detailsString = mapper.writeValueAsString(event.details)
         index = new Index.Builder(detailsString).index(ES_INDEX).type(METADATA_KEY).build()
         result = client.execute(index)
-        result.getValue('_id')
+        ['metadata_key': result.getValue('_id'), 'content_key': event.details._content_id]
     }
 
-    String search(String source, String type, String query) {
-        search(keyFrom(source, type), query)
+    Map get(source, type, id) {
+        Get get = new Get.Builder(ES_INDEX, id).type(keyFrom(source, type)).build()
+        JestResult result = client.execute(get)
+        result.getSourceAsObject(Map)
     }
 
-    String search(String type, String query) {
+    Map searchEvents(String start, String end, String source, String type, boolean full) {
+
+        SearchResult result = search(METADATA_KEY,
+            """
+                {
+                    "query" : {
+                        "range":{
+                            "created" : {
+                                "gte": ${start}
+                                ${end ? (', "lt": ' + end) : ''}
+                            }
+                        }
+                    },
+                    "fields": ["_content_id", "source", "type"]
+                }
+            """
+        )
+
+        [total: result.jsonObject.hits.get('total').asLong,
+         hits : result.jsonObject.hits.hits.collect {
+             def fields = it.fields
+             full ? get(
+                 fields.get('source').asString,
+                 fields.get('type').asString,
+                 fields.get('_content_id').asString,
+             ) : fields
+         }
+        ]
+    }
+
+    String directSearch(String source, String type, String query) {
+        search(keyFrom(source, type), query).jsonString
+    }
+
+    String directSearchMetadata(String query) {
+        search(METADATA_KEY, query).jsonString
+    }
+
+    private SearchResult search(String key, String query) {
         Search search = new Search.Builder(query)
             .addIndex(ES_INDEX)
-            .addType(type)
+            .addType(key)
             .build()
-
-        SearchResult result = client.execute(search);
-        result.jsonString
+        SearchResult result = client.execute(search)
     }
 
-    String keyFrom(String source, String type) {
+    private String keyFrom(String source, String type) {
         "${source}__${type}"
     }
 }
