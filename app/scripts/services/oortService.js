@@ -179,7 +179,22 @@ angular.module('deckApp')
           normalizeServerGroup(serverGroup, account, clusterName);
         });
         cluster[0].account = account;
+        addHealthCountsToCluster(cluster[0]);
         return cluster[0];
+      });
+    }
+
+    function addHealthCountsToCluster(cluster) {
+      cluster.upCount = 0;
+      cluster.downCount = 0;
+      cluster.unknownCount = 0;
+      if (!cluster.serverGroups) {
+        return;
+      }
+      cluster.serverGroups.forEach(function(serverGroup) {
+        cluster.upCount += serverGroup.upCount;
+        cluster.downCount += serverGroup.downCount;
+        cluster.unknownCount += serverGroup.unknownCount;
       });
     }
 

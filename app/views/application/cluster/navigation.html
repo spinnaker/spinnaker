@@ -22,7 +22,7 @@
     <a ng-repeat="cluster in getClustersFor(heading)"
        ui-sref=".cluster({account: cluster.account, cluster: cluster.name})"
        ng-class="{active: $state.includes('**.cluster.**', {account: cluster.account, cluster: cluster.name} )}">
-        {{getClusterLabel(cluster)}}
+        {{getClusterLabel(cluster)}}<health-counts container="cluster"></health-counts>
         <span class="sublabel">{{getClusterSublabel(cluster) | regionAbbreviator}}</span>
     </a>
   </div>
