@@ -217,12 +217,13 @@ angular.module('deckApp')
       serverGroup.unknownCount = _.filter(serverGroup.instances, {healthStatus: 'Unknown'}).length;
     }
 
-    function extendInstancesWithAsgInstances(serverGroup) {
+    function normalizeInstances(serverGroup) {
       if (serverGroup.instances && serverGroup.instances.length) {
         serverGroup.instances.forEach(function (instance) {
           var asgInstance = serverGroup.asg.instances.filter(function (asgInstance) {
             return asgInstance.instanceId === instance.instanceId;
           })[0];
+          instance.region = serverGroup.region;
           angular.extend(instance, asgInstance);
         });
       }
@@ -239,7 +240,7 @@ angular.module('deckApp')
       serverGroup.account = accountName;
       serverGroup.cluster = clusterName;
       serverGroup.isDisabled = _.intersection(disabledProcessFlags, suspendedProcesses).length === disabledProcessFlags.length;
-      extendInstancesWithAsgInstances(serverGroup);
+      normalizeInstances(serverGroup);
       addInstancesOnlyFoundInAsg(serverGroup);
       addHealthyCounts(serverGroup);
     }
