@@ -36,8 +36,8 @@ class SearchIndex {
     @Autowired
     JestClient client
 
-    final String ES_INDEX = 'event_history'
-    final String METADATA_KEY = 'metadata'
+    static final String ES_INDEX = 'event_history'
+    static final String METADATA_KEY = 'metadata'
 
     ObjectMapper mapper = new ObjectMapper()
 
@@ -64,6 +64,19 @@ class SearchIndex {
 
     Map searchEvents(String start, String end, String source, String type, boolean full) {
 
+        String termsQuery = source && type ? """
+            ", filtered" : {
+                "filter" : {
+                    "terms" : {
+                        "source" : "${source}",
+                        "type" : "${type}"
+                    }
+                }
+            }
+        """ : ''
+
+        String endQuery = end ? """, "lt": $end""" : ''
+
         SearchResult result = search(METADATA_KEY,
             """
                 {
@@ -71,17 +84,17 @@ class SearchIndex {
                         "range":{
                             "created" : {
                                 "gte": ${start}
-                                ${end ? (', "lt": ' + end) : ''}
+                                ${endQuery}
                             }
                         }
-                    },
+                    }, ${ termsQuery }
                     "fields": ["_content_id", "source", "type"]
                 }
             """
         )
 
         [total: result.jsonObject.hits.get('total').asLong,
-         hits : result.jsonObject.hits.hits.collect {
+         hits: result.jsonObject.hits.hits.collect {
              def fields = it.fields
              full ? get(
                  fields.get('source').asString,
@@ -105,7 +118,7 @@ class SearchIndex {
             .addIndex(ES_INDEX)
             .addType(key)
             .build()
-        SearchResult result = client.execute(search)
+        client.execute(search)
     }
 
     private String keyFrom(String source, String type) {

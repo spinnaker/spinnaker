@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.model
 /**
  * Represents event metadata
  */
+@SuppressWarnings('PropertyName')
 class Metadata {
     String source
     String type

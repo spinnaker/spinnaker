@@ -31,6 +31,7 @@ import spock.lang.Subject
 /**
  * tests for the search index
  */
+@SuppressWarnings('DuplicateNumberLiteral')
 class SearchIndexSpec extends Specification {
 
     @Shared
@@ -44,7 +45,7 @@ class SearchIndexSpec extends Specification {
     @Shared
     JsonSlurper slurper = new JsonSlurper()
 
-    final String GET_ALL = '''
+    static final String GET_ALL = '''
         {
             "query" : {
                 "match_all" : {}
@@ -78,7 +79,9 @@ class SearchIndexSpec extends Specification {
 
         when: 'can derive the event details from metadata key'
         JsonObject details = searchIndex.client.execute(
-            new Get.Builder(searchIndex.ES_INDEX, event.get('_content_id').asString).type(searchIndex.keyFrom('test', 'build')).build()
+            new Get.Builder(
+                searchIndex.ES_INDEX,
+                event.get('_content_id').asString).type(searchIndex.keyFrom('test', 'build')).build()
         ).jsonObject._source
 
         then:
@@ -86,22 +89,22 @@ class SearchIndexSpec extends Specification {
         details.get('key2').asString == 'value2'
     }
 
-    void 'can retrieve an event by id'(){
+    void 'can retrieve an event by id'() {
         when:
-        String key = addEvent('test', 'build', ['key1': 'value1', 'key2': 'value2']).content_key
+        String key = addEvent('test', 'build', ['key': 'value1', 'key2': 'value2']).content_key
 
         Map event = searchIndex.get('test', 'build', key)
 
         then:
-        event.key1 == 'value1'
+        event.key == 'value1'
         event.key2 == 'value2'
     }
 
-    void 'can search events by start date'(){
-        3.times{ addEvent('test', 'build', [:])}
+    void 'can search events by start date'() {
+        3.times { addEvent('test', 'build', [:]) }
         long now = new Date().time
         List expectedKeys = []
-        3.times{ expectedKeys << addEvent('test', 'build', [:]).content_key }
+        3.times { expectedKeys << addEvent('test', 'build', [:]).content_key }
 
         when:
         refreshSearchIndex()
@@ -109,11 +112,13 @@ class SearchIndexSpec extends Specification {
 
         then:
         searchResults.total == 3
-        searchResults.hits.collect{ it.get('_content_id').asString }.sort() == expectedKeys.sort()
+        searchResults.hits.collect { it.get('_content_id').asString }.sort() == expectedKeys.sort()
     }
 
     private void flushElasticSearch() {
-        if (config.client.admin().indices().exists(new IndicesExistsRequest(searchIndex.ES_INDEX)).actionGet().exists) {
+        if (config.client.admin().indices().exists(
+                new IndicesExistsRequest(searchIndex.ES_INDEX)
+            ).actionGet().exists) {
             config.client.admin().indices().delete(new DeleteIndexRequest(searchIndex.ES_INDEX)).actionGet()
         }
     }

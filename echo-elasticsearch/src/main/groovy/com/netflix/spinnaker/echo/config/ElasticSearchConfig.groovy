@@ -36,13 +36,13 @@ class ElasticSearchConfig {
     Client client
 
     @Bean
-    @ConditionalOnMissingClass(name = "com.netflix.spinnaker.platform.netflix.jest.DiscoveryAwareJestClient")
+    @ConditionalOnMissingClass(name = 'com.netflix.spinnaker.platform.netflix.jest.DiscoveryAwareJestClient')
     JestClient manufacture() {
         Node node = nodeBuilder().local(true).node()
         client = node.client()
         JestClientFactory factory = new JestClientFactory()
         factory.setHttpClientConfig(
-            new HttpClientConfig.Builder("http://localhost:9200").multiThreaded(true).build())
+            new HttpClientConfig.Builder('http://localhost:9200').multiThreaded(true).build())
         factory.object
     }
 

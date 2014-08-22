@@ -35,7 +35,7 @@ class CassandraEventListener implements EchoEventListener {
 
     @Override
     void processEvent(Event event) {
-        String key = '${event.metaData.source::${event.metaData.type}::${event.metaData.date}'
+        String key = "${event.metaData.source}::${event.metaData.type}::${event.metaData.date}"
         repository.saveHistory(key, mapper.writeValueAsString(event))
     }
 

@@ -40,17 +40,28 @@ class SearchController {
         @RequestParam(value = 'type') String type,
         @RequestParam(value = 'end') String end,
         @RequestParam(value = 'full') boolean full = false
-        ) {
+    ) {
         searchIndex.searchEvents(start, end, source, type, full)
     }
 
-    @RequestMapping(value='/search/es/{source}/{type}', method = RequestMethod.POST)
-    String directSearch(@PathVariable(value='source') String source, @PathVariable(value='type') String type, @RequestBody String query){
+    @RequestMapping(value = '/search/get/{source}/{type}/{id}', method = RequestMethod.GET)
+    Map get(
+        @PathVariable(value = 'source') String source,
+        @PathVariable(value = 'type') String type,
+        @PathVariable(value = 'id') String id) {
+        searchIndex.get(source, type, id)
+    }
+
+    @RequestMapping(value = '/search/es/{source}/{type}', method = RequestMethod.POST)
+    String directSearch(
+        @PathVariable(value = 'source') String source,
+        @PathVariable(value = 'type') String type,
+        @RequestBody String query) {
         searchIndex.directSearch(source, type, query)
     }
 
-    @RequestMapping(value='/search/es/metadata', method = RequestMethod.POST)
-    String directSearchMetadata(@RequestBody String query){
+    @RequestMapping(value = '/search/es/metadata', method = RequestMethod.POST)
+    String directSearchMetadata(@RequestBody String query) {
         searchIndex.directSearchMetadata(query)
     }
 
