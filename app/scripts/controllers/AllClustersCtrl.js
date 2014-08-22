@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('AllClustersCtrl', function($scope, application, _) {
+  .controller('AllClustersCtrl', function($scope, application, _, $filter) {
 
     $scope.sortFilter = {
       allowSorting: true,
@@ -40,7 +40,7 @@ angular.module('deckApp')
         cluster.serverGroups.forEach(function(serverGroup) {
           if (!serverGroup.searchField) {
             serverGroup.searchField = [
-              serverGroup.region.toLowerCase(),
+              $filter('regionAbbreviator')(serverGroup.region).toLowerCase(),
               serverGroup.name.toLowerCase(),
               serverGroup.account.toLowerCase(),
               _.collect(serverGroup.loadBalancers, 'name').join(' ')

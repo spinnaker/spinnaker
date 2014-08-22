@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('AllLoadBalancersCtrl', function($scope, application, _) {
+  .controller('AllLoadBalancersCtrl', function($scope, application, _, $filter) {
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -25,7 +25,7 @@ angular.module('deckApp')
         if (!loadBalancer.searchField) {
           loadBalancer.searchField = [
             loadBalancer.name,
-            loadBalancer.region,
+            $filter('regionAbbreviator')(loadBalancer.region).toLowerCase(),
             loadBalancer.account,
             loadBalancer.serverGroupNames.join(' ')
           ].join(' ');
