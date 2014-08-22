@@ -41,7 +41,7 @@ Kato's REST API is driven off the premise that clients will provide a set of "de
 ----
 POST /ops
 [{
-    "createAmazonLoadBalancerDescription": {
+    "upsertAmazonLoadBalancerDescription": {
         "clusterName": "kato-main",
         "subnetType": "internal",
         "securityGroups": ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
@@ -54,6 +54,7 @@ POST /ops
             "externalPort": "7001",
             "internalPort": "7001"
         }],
+        "healthCheck": "HTTP:7001/health",
         "credentials": "test"
     }
 }, {
