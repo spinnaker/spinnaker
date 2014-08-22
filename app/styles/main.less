@@ -175,35 +175,41 @@ dl {
     }
   }
 
-  .content {
-    .content-section {
-      h4 {
-        text-transform: uppercase;
-        font-size: 110%;
-        font-weight: 600;
-        .glyphicon {
-          font-size: 70%;
-          opacity: 0.7;
-          margin-right: 4px;
-        }
-      }
-      .content-body {
-        padding-left: 17px;
-        ul {
-          list-style-type: none;
-          padding-left: 0;
-        }
-      }
-      padding: 0 15px 0 10px;
-      border-bottom: 1px solid #c4c4c4;
-
+  .content-section, .collapsible-section {
+    dl, ul {
       &:last-child {
-        border-bottom-width: 0;
+        margin-bottom: 0;
       }
+    }
+    h4 {
+      text-transform: uppercase;
+      font-size: 110%;
+      font-weight: 600;
+      .glyphicon {
+        font-size: 70%;
+        opacity: 0.7;
+        margin-right: 4px;
+      }
+    }
+    .content-body {
+      padding-left: 17px;
+      ul {
+        list-style-type: none;
+        padding-left: 0;
+      }
+      .instance-health-counts {
+        .pull-left;
+      }
+    }
+    padding: 0 15px 0 10px;
+    border-bottom: 1px solid #c4c4c4;
 
-      &:first-child {
-        padding-top: 0;
-      }
+    &:last-child {
+      border-bottom-width: 0;
+    }
+
+    &:first-child {
+      padding-top: 0;
     }
   }
 }
@@ -757,7 +763,9 @@ server-error-flag {
     &.ng-leave, &.ng-enter.ng-enter-active {
       opacity: 1;
     }
+    .clearfix;
     padding-left: 17px;
+    margin-bottom: 20px;
     ul {
       list-style-type: none;
       padding-left: 0;
