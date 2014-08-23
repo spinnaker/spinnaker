@@ -5,8 +5,8 @@
         Sort by
         <select class="form-control input-sm"
                 ng-model="sortFilter.sortPrimary"
-                ng-change="updateSorting()"
-                ng-options="option.key as option.label for option in sortOptions()">
+                ng-change="ctrl.updateSorting()"
+                ng-options="option.key as option.label for option in ctrl.getSortOptions()">
         </select>
       </label>
     </div>
@@ -15,8 +15,8 @@
         then
         <select class="form-control input-sm"
                 ng-model="sortFilter.sortSecondary"
-                ng-change="updateSorting()"
-                ng-options="option.key as option.label for option in sortOptions(sortFilter.sortPrimary)">
+                ng-change="ctrl.updateSorting()"
+                ng-options="option.key as option.label for option in ctrl.getSortOptions(sortFilter.sortPrimary)">
         </select>
       </label>
     </div>
@@ -25,7 +25,7 @@
         Filter
         <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, ASG"
                ng-model="sortFilter.filter"
-               ng-change="updateClusterGroups()"/>
+               ng-change="ctrl.updateClusterGroups()"/>
       </label>
     </div>
   </div>
@@ -34,13 +34,13 @@
     <label>Show</label>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="updateClusterGroups()"/>
+        <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="ctrl.updateClusterGroups()"/>
         Instances
       </label>
     </div>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="updateClusterGroups()"/>
+        <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="ctrl.updateClusterGroups()"/>
         Only Unhealthy
       </label>
     </div>

@@ -21,18 +21,18 @@ angular.module('deckApp')
       { label: 'Region', key: 'region' }
     ];
 
-    $scope.sortOptions = function(exclude) {
+    this.getSortOptions = function getSortOptions(exclude) {
       return exclude ?
         sortOptions.filter(function(option) { return option.key !== exclude; }) :
         sortOptions;
     };
 
-    $scope.updateSorting = function() {
+    this.updateSorting = function updateSorting() {
       var sortFilter = $scope.sortFilter;
       if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
-        sortFilter.sortSecondary = $scope.sortOptions(sortFilter.sortPrimary)[0].key;
+        sortFilter.sortSecondary = this.getSortOptions(sortFilter.sortPrimary)[0].key;
       }
-      $scope.updateClusterGroups();
+      this.updateClusterGroups();
     };
 
     function addSearchFields() {
@@ -126,11 +126,10 @@ angular.module('deckApp')
 
     }
 
-    $scope.updateClusterGroups = _.debounce(updateClusterGroups, 200);
+    this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
     addSearchFields();
-    $scope.updateClusterGroups();
-    $scope.clustersLoaded = true;
+    this.updateClusterGroups();
 
   }
 );

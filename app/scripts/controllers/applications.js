@@ -8,12 +8,6 @@ angular.module('deckApp')
 
     $scope.applicationsLoaded = false;
 
-    oortService.listApplications().then(function(applications) {
-      $scope.applications = applications;
-      $scope.filterApplications();
-      $scope.applicationsLoaded = true;
-    });
-
     $scope.sorting = {
       sortKey: 'name',
       reverse: false
@@ -49,14 +43,14 @@ angular.module('deckApp')
       }
     ];
 
-    $scope.filterApplications = function() {
+    this.filterApplications = function filterApplications() {
       var filtered = $filter('filter')($scope.applications, {name: $scope.applicationFilter}),
           sorted = $filter('orderBy')(filtered, $scope.sorting.sortKey, $scope.sorting.reverse);
       $scope.filteredApplications = sorted;
-      $scope.resetPaginator();
+      this.resetPaginator();
     };
 
-    $scope.resultPage = function() {
+    this.resultPage = function resultPage() {
       var pagination = $scope.pagination,
           allFiltered = $scope.filteredApplications,
           start = (pagination.currentPage - 1) * pagination.itemsPerPage,
@@ -73,13 +67,20 @@ angular.module('deckApp')
       return allFiltered.slice(start, end);
     };
 
-    $scope.resetPaginator = function() {
+    this.resetPaginator = function resetPaginator() {
       $scope.pagination = {
         currentPage: 1,
         itemsPerPage: 10,
         maxSize: 10
       };
     };
+
+    var ctrl = this;
+    oortService.listApplications().then(function(applications) {
+      $scope.applications = applications;
+      ctrl.filterApplications();
+      $scope.applicationsLoaded = true;
+    });
 
   }
 );

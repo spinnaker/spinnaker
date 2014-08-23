@@ -24,7 +24,7 @@ angular.module('deckApp')
 
     extractServerGroup(application.clusters);
 
-    $scope.destroyServerGroup = function () {
+    this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
@@ -39,8 +39,7 @@ angular.module('deckApp')
       });
     };
 
-    // TODO: move to service
-    $scope.disableServerGroup = function () {
+    this.disableServerGroup = function disableServerGroup() {
       var serverGroup = $scope.serverGroup;
       confirmationModalService.confirm({
         header: 'Really disable ' + serverGroup.name + '?',
@@ -54,51 +53,26 @@ angular.module('deckApp')
       });
     };
 
-    $scope.resizeServerGroup = function () {
+    this.enableServerGroup = function enableServerGroup() {
       var serverGroup = $scope.serverGroup;
+      confirmationModalService.confirm({
+        header: 'Really enable ' + serverGroup.name + '?',
+        buttonText: 'Enable ' + serverGroup.name,
+        destructive: false,
+        account: serverGroup.account
+      }).then(function () {
+        orcaService.enableServerGroup(serverGroup).then(function (response) {
+          console.warn('task: ', response.ref);
+        });
+      });
+    };
+
+    this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
         templateUrl: 'views/application/modal/resizeServerGroup.html',
-        controller: function ($scope, $modalInstance, pond, accountService) {
-
-          $scope.serverGroup = serverGroup;
-          $scope.currentSize = {
-            min: serverGroup.asg.minSize,
-            max: serverGroup.asg.maxSize,
-            desired: serverGroup.asg.desiredCapacity
-          };
-
-          $scope.verification = {
-            required: accountService.challengeDestructiveActions(serverGroup.account)
-          };
-
-          $scope.command = angular.copy($scope.currentSize);
-          $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
-
-          $scope.isValid = function () {
-            var command = $scope.command;
-            if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account) {
-              return false;
-            }
-            return command.advancedMode ?
-              command.min <= command.max && command.desired >= command.min && command.desired <= command.max :
-              command.newSize !== null;
-          };
-
-          $scope.resize = function () {
-            var capacity = { min: $scope.command.min, max: $scope.command.max, desired: $scope.command.desired };
-            if (!$scope.command.advancedMode) {
-              capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
-            }
-            orcaService.resizeServerGroup(serverGroup, capacity)
-              .then(function (response) {
-                $modalInstance.close();
-                console.warn('task:', response.ref);
-              });
-          };
-
-          $scope.cancel = function () {
-            $modalInstance.dismiss();
-          };
+        controller: 'ResizeServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; }
         }
       });
     };

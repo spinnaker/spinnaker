@@ -12,7 +12,7 @@
       <div class="form-group">
         <label>
           Filter
-          <input type="search" class="form-control input-sm" ng-model="applicationFilter" ng-change="filterApplications()">
+          <input type="search" class="form-control input-sm" ng-model="applicationFilter" ng-change="ctrl.filterApplications()">
         </label>
       </div>
     </form>
@@ -21,12 +21,12 @@
     </h2>
     <table ng-if="applicationsLoaded" class="table table-striped">
       <thead>
-        <th sort-toggle sorting-model="sorting" key="name" label="Name" default="true" on-change="filterApplications()"></th>
-        <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.createTs" label="Created" on-change="filterApplications()"></th>
-        <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.updateTs" label="Updated" on-change="filterApplications()"></th>
+        <th sort-toggle sorting-model="sorting" key="name" label="Name" default="true" on-change="ctrl.filterApplications()"></th>
+        <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.createTs" label="Created" on-change="ctrl.filterApplications()"></th>
+        <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
       </thead>
       <tbody>
-        <tr ng-repeat="application in resultPage()">
+        <tr ng-repeat="application in ctrl.resultPage()">
           <td>
             <a ui-sref=".application({ application: application.name })">
               {{ application.name }}

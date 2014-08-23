@@ -26,7 +26,7 @@ angular.module('deckApp')
       });
     }
 
-    $scope.updateClusterGroups = function() {
+    this.updateClusterGroups = function updateClusterGroups() {
       var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
         regions = _.keys(groupedAsgs),
         serverGroupsByRegion = [];
@@ -46,6 +46,6 @@ angular.module('deckApp')
     };
 
     $scope.cluster = cluster;
-    $scope.updateClusterGroups();
+    this.updateClusterGroups();
   }
 );

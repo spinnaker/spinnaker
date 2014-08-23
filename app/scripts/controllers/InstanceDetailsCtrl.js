@@ -24,8 +24,7 @@ angular.module('deckApp')
       }
     }
 
-    // TODO: move to service
-    $scope.terminateInstance = function () {
+    this.terminateInstance = function terminateInstance() {
       var instance = $scope.instance;
       confirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',

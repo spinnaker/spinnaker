@@ -17,25 +17,25 @@ angular.module('deckApp')
       { label: 'Region', key: 'region' }
     ];
 
-    $scope.getHeadings = function() {
+    this.getHeadings = function getHeadings() {
       var allValues = _.collect(application.loadBalancers, $scope.sortField);
       return _.unique(allValues).sort();
     };
 
-    $scope.getLoadBalancersFor = function (value) {
+    this.getLoadBalancersFor = function getLoadBalancersFor(value) {
       return $scope.loadBalancers.filter(function (loadBalancer) {
         return loadBalancer[$scope.sortField] === value;
       });
     };
 
-    $scope.getLoadBalancerLabel = function(loadBalancer) {
+    this.getLoadBalancerLabel = function getLoadBalancerLabel(loadBalancer) {
       if ($scope.sortField === 'name') {
         return loadBalancer.account;
       }
       return loadBalancer.name;
     };
 
-    $scope.getLoadBalancerSublabel = function(loadBalancer) {
+    this.getLoadBalancerSublabel = function getLoadBalancerSublabel(loadBalancer) {
       var labelFields = $scope.sortOptions.filter(function(sortOption) {
         if ($scope.sortField === 'name') {
           return sortOption.key === 'region';

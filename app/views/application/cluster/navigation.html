@@ -16,14 +16,14 @@
      ng-class="{active: $state.includes('**.clusters.**') && !$state.includes('**.cluster.**')}"
     >Show All Clusters</a>
 </div>
-<div class="sub-nav" ng-repeat="heading in getHeadings() | orderBy:'toString()'">
+<div class="sub-nav" ng-repeat="heading in ctrl.getHeadings() | orderBy:'toString()'">
   <div class="sub-nav-item">
     <h4>{{heading | regionAbbreviator}}</h4>
-    <a ng-repeat="cluster in getClustersFor(heading)"
+    <a ng-repeat="cluster in ctrl.getClustersFor(heading)"
        ui-sref=".cluster({account: cluster.account, cluster: cluster.name})"
        ng-class="{active: $state.includes('**.cluster.**', {account: cluster.account, cluster: cluster.name} )}">
-        {{getClusterLabel(cluster)}}<health-counts container="cluster"></health-counts>
-        <span class="sublabel">{{getClusterSublabel(cluster) | regionAbbreviator}}</span>
+        {{ctrl.getClusterLabel(cluster)}}<health-counts container="cluster"></health-counts>
+        <span class="sublabel">{{ctrl.getClusterSublabel(cluster) | regionAbbreviator}}</span>
     </a>
   </div>
 </div>

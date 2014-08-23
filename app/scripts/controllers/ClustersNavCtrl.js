@@ -48,13 +48,13 @@ angular.module('deckApp')
       })[0];
     }
 
-    $scope.getHeadings = function() {
+    this.getHeadings = function getHeadings() {
       var selectedOption = getSelectedSortOption();
       var allValues = application.clusters.map(selectedOption.getDisplayValue);
       return _.unique(_.flatten(allValues)).sort();
     };
 
-    $scope.getClustersFor = function (value) {
+    this.getClustersFor = function getClustersFor(value) {
       return $scope.clusters.filter(function (cluster) {
         if ($scope.sortField === 'region') {
           return cluster.serverGroups.some(function(serverGroup) {
@@ -65,14 +65,14 @@ angular.module('deckApp')
       });
     };
 
-    $scope.getClusterLabel = function(cluster) {
+    this.getClusterLabel = function getClusterLabel(cluster) {
       if ($scope.sortField === 'name') {
         return cluster.accountName;
       }
       return cluster.name;
     };
 
-    $scope.getClusterSublabel = function(cluster) {
+    this.getClusterSublabel = function getClusterSublabel(cluster) {
       var labelFields = $scope.sortOptions.filter(function(sortOption) {
         if ($scope.sortField === 'name') {
           return sortOption.key === 'region';
@@ -83,7 +83,6 @@ angular.module('deckApp')
     };
 
     $scope.clusters = application.clusters;
-    $scope.clustersLoaded = true;
   }
 );
 

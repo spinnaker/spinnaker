@@ -5,7 +5,7 @@
         Sort by
         <select class="form-control input-sm"
                 ng-model="sortFilter.sortPrimary"
-                ng-change="updateLoadBalancerGroups()"
+                ng-change="ctrl.updateLoadBalancerGroups()"
                 ng-options="option.key as option.label for option in sortOptions">
         </select>
       </label>
@@ -15,7 +15,7 @@
         Filter
         <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, ASG"
                ng-model="sortFilter.filter"
-               ng-change="updateLoadBalancerGroups()"/>
+               ng-change="ctrl.updateLoadBalancerGroups()"/>
       </label>
     </div>
   </div>
@@ -23,19 +23,19 @@
     <label>Show</label>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.showAsgs" ng-change="updateLoadBalancerGroups()" />
+        <input type="checkbox" ng-model="sortFilter.showAsgs" ng-change="ctrl.updateLoadBalancerGroups()" />
         Auto Scaling Groups
       </label>
     </div>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="updateLoadBalancerGroups()"/>
+        <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="ctrl.updateLoadBalancerGroups()"/>
         Instances
       </label>
     </div>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="updateLoadBalancerGroups()"/>
+        <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="ctrl.updateLoadBalancerGroups()"/>
         Only Unhealthy
       </label>
     </div>

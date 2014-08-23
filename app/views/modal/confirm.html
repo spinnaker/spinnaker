@@ -19,10 +19,10 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
       <button class="btn btn-primary"
               ng-disabled="verification.requireAccountEntry && verification.verifyAccount !== params.account.toUpperCase()"
-              ng-click="confirm()">
+              ng-click="ctrl.confirm()">
         <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
         {{params.buttonText}}
       </button>

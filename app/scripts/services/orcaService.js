@@ -17,7 +17,7 @@ angular.module('deckApp')
           type: 'destroyAsg',
           regions: [serverGroup.region],
           credentials: serverGroup.account,
-          user: 'chrisb'
+          user: 'deckUser'
         }
       ]);
     }
@@ -29,7 +29,19 @@ angular.module('deckApp')
           type: 'disableAsg',
           regions: [serverGroup.region],
           credentials: serverGroup.account,
-          user: 'chrisb'
+          user: 'deckUser'
+        }
+      ]);
+    }
+
+    function enableServerGroup(serverGroup) {
+      return endpoint.post([
+        {
+          asgName: serverGroup.name,
+          type: 'enableAsg',
+          regions: [serverGroup.region],
+          credentials: serverGroup.account,
+          user: 'deckUser'
         }
       ]);
     }
@@ -50,16 +62,17 @@ angular.module('deckApp')
     function terminateInstance(instance) {
       return endpoint.post([{
         type: 'terminateInstances',
-          instanceIds: [instance.instanceId],
+        instanceIds: [instance.instanceId],
         region: instance.region,
         credentials: instance.account,
-        user: 'chrisb'
+        user: 'deckUser'
       }]);
     }
 
     return {
       destroyServerGroup: destroyServerGroup,
       disableServerGroup: disableServerGroup,
+      enableServerGroup: enableServerGroup,
       resizeServerGroup: resizeServerGroup,
       terminateInstance: terminateInstance
     };

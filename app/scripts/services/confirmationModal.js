@@ -14,7 +14,7 @@ angular.module('deckApp')
 
       var modalArgs = {
         templateUrl: 'views/modal/confirm.html',
-        controller: 'ConfirmationModalCtrl',
+        controller: 'ConfirmationModalCtrl as ctrl',
         resolve: {
           params: function() {
             return params;
@@ -40,11 +40,11 @@ angular.module('deckApp')
       verifyAccount: ''
     };
 
-    $scope.confirm = function () {
+    this.confirm = function () {
       $modalInstance.close(true);
     };
 
-    $scope.cancel = function () {
+    this.cancel = function () {
       $modalInstance.dismiss();
     };
   });

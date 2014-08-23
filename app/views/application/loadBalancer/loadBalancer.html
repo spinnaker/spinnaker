@@ -13,7 +13,7 @@
   <div class="rollup-details">
     <div ng-if="displayOptions.showServerGroups">
       <load-balancer-server-group
-        ng-if="displayServerGroup(serverGroup)"
+        ng-if="ctrl.displayServerGroup(serverGroup)"
         ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'name'"
         display-options="displayOptions"
         server-group="serverGroup"></load-balancer-server-group>

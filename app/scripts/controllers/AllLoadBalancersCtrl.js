@@ -109,9 +109,9 @@ angular.module('deckApp')
       $scope.$digest(); // debounced
     }
 
-    $scope.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
+    this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    $scope.updateLoadBalancerGroups();
+    this.updateLoadBalancerGroups();
 
   }
 );
