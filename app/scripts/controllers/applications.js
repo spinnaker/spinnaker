@@ -13,6 +13,15 @@ angular.module('deckApp')
       reverse: false
     };
 
+    this.demoMultiPageModal = function() {
+      $modal.open(
+        {
+          templateUrl: 'views/modal/multiPageWrapper.html',
+          scope: $scope
+        }
+      );
+    };
+
     $scope.applicationFilter = '';
 
     $scope.menuActions = [
