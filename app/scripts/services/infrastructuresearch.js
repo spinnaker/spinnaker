@@ -35,7 +35,6 @@ angular.module('deckApp')
       var querySubject = new RxService.Subject();
 
       querySubject
-        .throttle(400)
         .distinctUntilChanged()
         .filter(function(input) {
           return input && angular.isDefined(input) && input.length > 0;
@@ -43,7 +42,6 @@ angular.module('deckApp')
         .flatMap(function(query) {
           return RxService.Observable.fromPromise(searchService.search({q: query}));
         })
-        .take(1)
         .subscribe(function(result) {
           var tmp = result.data[0].results.reduce(function(categories, entry) {
             var cat = entry.type;
