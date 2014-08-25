@@ -33,23 +33,24 @@ class SearchController {
     @Autowired
     SearchIndex searchIndex
 
-    @RequestMapping(value = '/search/events/{start}', method = RequestMethod.GET)
-    List<Map> searchByDate(
-        @PathVariable(value = 'start') start,
-        @RequestParam(value = 'source') String source,
-        @RequestParam(value = 'type') String type,
-        @RequestParam(value = 'end') String end,
-        @RequestParam(value = 'full') boolean full = false
-    ) {
-        searchIndex.searchEvents(start, end, source, type, full)
-    }
-
     @RequestMapping(value = '/search/get/{source}/{type}/{id}', method = RequestMethod.GET)
     Map get(
         @PathVariable(value = 'source') String source,
         @PathVariable(value = 'type') String type,
         @PathVariable(value = 'id') String id) {
         searchIndex.get(source, type, id)
+    }
+
+    @RequestMapping(value = '/search/events/{start}', method = RequestMethod.GET)
+    Map eventsByDate(
+        @PathVariable(value = 'start') String start,
+        @RequestParam(value = 'source', required = false) String source,
+        @RequestParam(value = 'type', required = false) String type,
+        @RequestParam(value = 'end', required = false) String end,
+        @RequestParam(value = 'full', required = false) String full
+    ) {
+        boolean isFull = Boolean.parseBoolean(full)
+        searchIndex.searchEvents(start, end, source, type, isFull)
     }
 
     @RequestMapping(value = '/search/es/{source}/{type}', method = RequestMethod.POST)

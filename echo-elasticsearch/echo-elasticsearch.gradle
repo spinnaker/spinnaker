@@ -22,4 +22,5 @@ dependencies {
     compile commonDependencies.jacksonDatabind
     compile 'org.elasticsearch:elasticsearch:1.2.2'
     compile 'io.searchbox:jest:0.1.2'
+    testCompile commonDependencies.springTest
 }
