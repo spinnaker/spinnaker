@@ -22,11 +22,11 @@ buildscript {
         mavenLocal()
         mavenCentral() // maven { url 'http://jcenter.bintray.com' }
     }
-    apply from: file('gradle/buildscript.gradle'), to: buildscript 
+    apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
 allprojects {
-    repositories { 
+    repositories {
         mavenLocal()
         mavenCentral() // maven { url: 'http://jcenter.bintray.com' }
     }
@@ -42,7 +42,7 @@ apply from: file('gradle/release.gradle')
 
 dependencies {
   compile 'com.fasterxml.jackson.core:jackson-databind:2.1.1'
-  compile 'com.amazonaws:aws-java-sdk:1.7.9'
+  compile 'com.amazonaws:aws-java-sdk:1.8.9'
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
   testCompile 'cglib:cglib-nodep:3.1'
 }
