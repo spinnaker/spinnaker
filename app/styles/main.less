@@ -293,6 +293,12 @@ body > .container {
     border-bottom: 4px solid transparent;
     color: #fff;
     font-weight: 200;
+
+    &:focus, &:hover {
+      border-top-color: #eeeeee;
+      background-color: #777777;
+      transition: border-top-color .2s, background-color .2s;
+    }
   }
 
   .navbar-nav>.active>a,

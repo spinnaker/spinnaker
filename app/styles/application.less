@@ -36,7 +36,9 @@
       margin-left: 0;
       & > a {
         border-radius: 0;
-    }
+        border-bottom: 3px solid transparent;
+        transition: border-bottom-color .2s, background-color .2s, color .2s;
+      }
     }
     a.active {
       border-bottom: 3px solid @link-color;
