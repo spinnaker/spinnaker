@@ -3,9 +3,15 @@
     <span class="glyphicon glyphicon-th-large"></span> Scaling Groups
   </h3>
   <div class="application-actions">
-    <select class="form-control input-sm">
-      <option value="">Cluster Actions</option>
-    </select>
+    <div class="dropdown">
+      <button type="button" class="btn btn-sm btn-default dropdown-toggle" ng-disabled="disabled">
+        Cluster Actions <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li class="dropdown-header">CONFIG</li>
+        <li><a href="#">Create ASG</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 <div ng-include="'views/application/cluster/filters.html'"></div>
