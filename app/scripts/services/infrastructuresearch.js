@@ -2,7 +2,7 @@
 
 var angular = require('angular');
 angular.module('deckApp')
-  .factory('infrastructureSearch', function(RxService, $q, $http, urlBuilder, settings, _) {
+  .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder, settings, _) {
     return function() {
       var deferred;
 
@@ -41,14 +41,7 @@ angular.module('deckApp')
           return input && angular.isDefined(input) && input.length > 0;
         })
         .flatMap(function(query) {
-          return RxService.Observable.fromPromise($http({
-            method: 'GET',
-            url: settings.oortUrl+'/search',
-            params: {
-              q: query,
-              pageSize: 100
-            }
-          }));
+          return RxService.Observable.fromPromise(searchService.search({q: query}));
         })
         .take(1)
         .subscribe(function(result) {

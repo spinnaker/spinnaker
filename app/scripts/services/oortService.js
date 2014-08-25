@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function ($http, settings, $q, Restangular, _) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _) {
 
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -245,8 +245,16 @@ angular.module('deckApp')
       addHealthyCounts(serverGroup);
     }
 
+
+    function findAmis(applicationName) {
+      return searchService.search({q: applicationName, type: 'namedImages'}).then(function(results) {
+        return results.data[0].results;
+      });
+    }
+
     return {
       listApplications: listApplications,
-      getApplication: getApplication
+      getApplication: getApplication,
+      findAmis: findAmis
     };
   });
