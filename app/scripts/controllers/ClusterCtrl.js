@@ -22,7 +22,7 @@ angular.module('deckApp')
         return serverGroups;
       }
       return serverGroups.filter(function(serverGroup) {
-        return serverGroup.asg.downCount > 0;
+        return serverGroup.downCount > 0;
       });
     }
 
