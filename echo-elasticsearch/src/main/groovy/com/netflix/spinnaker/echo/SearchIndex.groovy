@@ -65,14 +65,8 @@ class SearchIndex {
     Map searchEvents(String start, String end, String source, String type, boolean full) {
 
         String termsQuery = source && type ? """
-            ", filtered" : {
-                "filter" : {
-                    "terms" : {
-                        "source" : "${source}",
-                        "type" : "${type}"
-                    }
-                }
-            }
+             , { "term" : { "source" : "${source}" } }
+             , { "term" : { "type" : "${type}" } }
         """ : ''
 
         String endQuery = end ? """, "lt": $end""" : ''
@@ -81,13 +75,24 @@ class SearchIndex {
             """
                 {
                     "query" : {
-                        "range":{
-                            "created" : {
-                                "gte": ${start}
-                                ${endQuery}
+                        "filtered" : {
+                            "filter" : {
+                                "bool" : {
+                                    "must" : [
+                                        {
+                                            "range":{
+                                                "created" : {
+                                                    "gte": ${start}
+                                                    ${endQuery}
+                                                }
+                                            }
+                                        }
+                                        ${termsQuery}
+                                    ]
+                                }
                             }
                         }
-                    }, ${ termsQuery }
+                    },
                     "fields": ["_content_id", "source", "type"]
                 }
             """

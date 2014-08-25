@@ -35,7 +35,6 @@ import spock.lang.Subject
 class SearchIndexSpec extends Specification {
 
     @Shared
-
     @Subject
     SearchIndex searchIndex
 
@@ -89,7 +88,7 @@ class SearchIndexSpec extends Specification {
         details.get('key2').asString == 'value2'
     }
 
-    void 'can retrieve an event by id'() {
+    void 'retrieve an event by id'() {
         when:
         String key = addEvent('test', 'build', ['key': 'value1', 'key2': 'value2']).content_key
 
@@ -100,7 +99,7 @@ class SearchIndexSpec extends Specification {
         event.key2 == 'value2'
     }
 
-    void 'can search events by start date'() {
+    void 'search events by start date'() {
         3.times { addEvent('test', 'build', [:]) }
         long now = new Date().time
         List expectedKeys = []
@@ -112,13 +111,61 @@ class SearchIndexSpec extends Specification {
 
         then:
         searchResults.total == 3
-        searchResults.hits.collect { it.get('_content_id').asString }.sort() == expectedKeys.sort()
+        searchResults.hits.collect { it.get('_content_id').asString }.containsAll expectedKeys
+    }
+
+    void 'search events by end date'() {
+        5.times { addEvent('test', 'build', [:]) }
+        long now = new Date().time
+        List expectedKeys = []
+        5.times { expectedKeys << addEvent('test', 'build', [:]).content_key }
+        long stop = new Date().time
+        5.times { addEvent('test', 'build', [:]) }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, stop as String, null, null, false)
+
+        then:
+        searchResults.total == 5
+        searchResults.hits.collect { it.get('_content_id').asString }.containsAll expectedKeys
+    }
+
+    void 'filter event search by type'() {
+        long now = new Date().time
+        List expectedKeys = []
+        2.times {
+            expectedKeys << addEvent('test', 'yes', [:]).content_key
+        }
+        3.times { addEvent('test', 'no', [:]) }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'yes', false)
+
+        then:
+        searchResults.total == 2
+        searchResults.hits.collect { it.get('_content_id').asString }.containsAll expectedKeys
+    }
+
+    void 'retrieve full results from search'() {
+        long now = new Date().time
+        addEvent('test', 'fe', ['key1': 'value1'])
+        addEvent('test', 'fe', ['key1': 'value2'])
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'fe', true)
+
+        then:
+        searchResults.total == 2
+        searchResults.hits*.key1.sort() == ['value1', 'value2']
     }
 
     private void flushElasticSearch() {
         if (config.client.admin().indices().exists(
-                new IndicesExistsRequest(searchIndex.ES_INDEX)
-            ).actionGet().exists) {
+            new IndicesExistsRequest(searchIndex.ES_INDEX)
+        ).actionGet().exists) {
             config.client.admin().indices().delete(new DeleteIndexRequest(searchIndex.ES_INDEX)).actionGet()
         }
     }
