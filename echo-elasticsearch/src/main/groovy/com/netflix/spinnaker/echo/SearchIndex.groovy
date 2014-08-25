@@ -93,7 +93,7 @@ class SearchIndex {
                             }
                         }
                     },
-                    "fields": ["_content_id", "source", "type"]
+                    "fields": ["_content_id", "source", "type", "created"]
                 }
             """
         )
@@ -104,8 +104,13 @@ class SearchIndex {
              full ? get(
                  fields.get('source').asString,
                  fields.get('type').asString,
-                 fields.get('_content_id').asString,
-             ) : fields
+                 fields.get('_content_id').asString
+             ) : [
+                 source: fields.get('source').asString,
+                 type: fields.get('type').asString,
+                 id: fields.get('_content_id').asString,
+                 created: fields.get('created').asString
+             ]
          }
         ]
     }
