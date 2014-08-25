@@ -3,7 +3,7 @@
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('urlBuilder', function() {
+  .factory('urlBuilder', function($state) {
     var getClusters = function(input) {
       return ['#',
         'applications',
@@ -28,7 +28,7 @@ angular.module('deckApp')
         return [
           getCluster(input),
           'instanceDetails'
-        ].join('/')+'?instanceId='+input.instance;
+        ].join('/')+'?instanceId='+input.instanceId;
       },
       'clusters': function(input) {
         return getCluster(input);
@@ -36,6 +36,17 @@ angular.module('deckApp')
       'applications': function(input) {
         return getClusters(input);
       },
+      'loadBalancerServerGroups': function(input) {
+        return $state.href(
+          'home.applications.application.insight.loadBalancers.loadBalancerDetails',
+          {
+            application: input.application,
+            name: input.loadBalancer,
+            region: input.region,
+            accountId: input.account
+          }
+        );
+      }
     };
 
     return function(input) {
