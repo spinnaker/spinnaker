@@ -111,7 +111,7 @@ class SearchIndexSpec extends Specification {
 
         then:
         searchResults.total == 3
-        searchResults.hits.collect { it.get('_content_id').asString }.containsAll expectedKeys
+        searchResults.hits*.id.containsAll expectedKeys
     }
 
     void 'search events by end date'() {
@@ -128,7 +128,7 @@ class SearchIndexSpec extends Specification {
 
         then:
         searchResults.total == 5
-        searchResults.hits.collect { it.get('_content_id').asString }.containsAll expectedKeys
+        searchResults.hits*.id.containsAll expectedKeys
     }
 
     void 'filter event search by type'() {
@@ -145,7 +145,7 @@ class SearchIndexSpec extends Specification {
 
         then:
         searchResults.total == 2
-        searchResults.hits.collect { it.get('_content_id').asString }.containsAll expectedKeys
+        searchResults.hits*.id.containsAll expectedKeys
     }
 
     void 'retrieve full results from search'() {
