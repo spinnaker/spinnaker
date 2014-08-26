@@ -20,7 +20,6 @@ import com.google.gson.JsonObject
 import com.netflix.spinnaker.echo.config.ElasticSearchConfig
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Metadata
-import groovy.json.JsonSlurper
 import io.searchbox.core.Get
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest
@@ -40,9 +39,6 @@ class SearchIndexSpec extends Specification {
 
     @Shared
     ElasticSearchConfig config
-
-    @Shared
-    JsonSlurper slurper = new JsonSlurper()
 
     static final String GET_ALL = '''
         {
