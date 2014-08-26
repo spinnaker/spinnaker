@@ -60,7 +60,19 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def machineType = compute.machineTypes().list(project, "us-central1-b").execute().getItems().find { it.getName() == description.type }
 
     task.updateStatus BASE_PHASE, "Looking up Source Image..."
-    def sourceImage = compute.images().list("debian-cloud").execute().getItems().find { it.getName() == description.image }
+    def sourceImage = null
+    def imageProjects = [project, "centos-cloud", "coreos-cloud", "debian-cloud", "google-containers", "opensuse-cloud", "rhel-cloud", "suse-cloud"]
+    for (imageProject in imageProjects) {
+      sourceImage = compute.images().list(imageProject).execute().getItems().find { it.getName() == description.image }
+      if (sourceImage != null) {
+        break;
+      }
+    }
+    if (sourceImage == null) {
+      def sourceImageNotFoundMsg = "Source image ${description.image} not found in any of these projects: ${imageProjects}"
+      task.updateStatus BASE_PHASE, sourceImageNotFoundMsg
+      throw new GceSourceImageNotFoundException(sourceImageNotFoundMsg)
+    }
 
     task.updateStatus BASE_PHASE, "Looking up default network..."
     def networking = compute.networks().list(project).execute().getItems().find { it.getName() == "default" }
