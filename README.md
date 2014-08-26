@@ -60,7 +60,7 @@ The start date format expected is of the form `new Date().time` in Groovy.
 
 This end point accepts a few optional request parameters, to trigger these, add them as query strings
 
-For example, to specify an end date, call /search/events/0?end=1409081771116
+For example, to specify an end date, call `/search/events/0?end=1409081771116`
 
 The following optional parameters are enabled:
 
@@ -74,9 +74,57 @@ The following optional parameters are enabled:
 | from | used for pagination, specifies the first index of elements to return | Number | 0 | 10 |
 | size | number of records to return | Number | 0 | 50 |
 
-#### 2. GET /search/get/{contentId}
+#### 2. GET /search/get/{source}/{type}/{id}
 
 This endpoint allows you to get full details for a particular content id. The contentId corresponds to the id returned in the non-full version of the event list.
+
+For this event:
+```
+    {
+        "details": {
+            "source" : "myapp",
+            "type" : "build"
+        },
+        "content": {
+            "build-date": "2014-08-26",
+            "project-type": "jenkins"
+        }
+    }
+```
+
+we can get the details by searching `/search/events/0?source=myapp&type=build`, getting this result:
+
+```{
+       total: 1,
+       hits: [
+       {
+          source: "myapp",
+          type: "build",
+          id: "5x9woEIKRUy8LpLrfmanfw",
+          created: "1409083028642"
+       }
+       ],
+       paginationFrom: 0,
+       paginationSize: 10
+   }
+```
+
+Using the id 5x9woEIKRUy8LpLrfmanfw, we can ask for more details:
+
+`/search/get/myapp/build/5x9woEIKRUy8LpLrfmanfw`
+
+```
+{
+  build-date: "2014-08-26",
+  project-type: "jenkins",
+  _event_details: {
+    source: "myapp",
+    type: "build",
+    created: "1409083028642",
+    _content_id: null
+    }
+  }
+```
 
 #### 3. POST /search/direct/{source}/{type}
 
@@ -84,7 +132,7 @@ This endpoint allows you to issue a direct elastic search query for events that 
 
 For example, if the event issued is of source kato and type shrink_asg, we can issue a command to get all the items that belong to application spinnaker by calling
 
-/search/direct/kato/shrink_asg
+`/search/direct/kato/shrink_asg`
 ```
 {
     "query" : {
