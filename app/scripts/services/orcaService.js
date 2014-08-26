@@ -104,7 +104,25 @@ angular.module('deckApp')
       });
     }
 
+    function cloneServerGroup(command, applicationName) {
+      return executeTask({
+        job: [
+          {
+            // make consistent with orca input
+            asgName: command.source.asgName,
+            type: 'copyLastAsg',
+            regions: [command.region],
+            credentials: command.credentials,
+            user: 'deckUser'
+          }
+        ],
+        application: applicationName,
+        description: 'Copy ASG: ' + command.source.asgName
+      });
+    }
+
     return {
+      cloneServerGroup: cloneServerGroup,
       destroyServerGroup: destroyServerGroup,
       disableServerGroup: disableServerGroup,
       enableServerGroup: enableServerGroup,
