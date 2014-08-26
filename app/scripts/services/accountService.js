@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('accountService', function(settings) {
+  .factory('accountService', function(settings, Restangular, $q) {
 
     var detailsCache = {},
         credentialsCache = [];
