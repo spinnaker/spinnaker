@@ -6,6 +6,7 @@ Prerequisites
 Make sure the following are installed:
 
   * NodeJS and Node Package Manager, which is part of the NodeJS installation ([download](http://nodejs.org/download/))
+  * Bower, a JS package manager (installed via NPM: ```npm install -g bower```)
   * Grunt, a JavaScript task runner (installed via NPM: ```npm install grunt```)
 
 
@@ -14,6 +15,7 @@ Quick Start
 Run the following commands to get everything installed.
   
   * ```sudo npm install``` (You might not need to sudo this - but you _might need to sudo this_. If you try it without sudo and it fails, do a `rm -rf node_modules`, then try again with sudo)
+  * ```bower install```
   * ```grunt serve```
 
 The app will start up on localhost:9000.
