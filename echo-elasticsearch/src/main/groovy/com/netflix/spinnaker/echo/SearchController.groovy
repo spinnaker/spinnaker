@@ -59,7 +59,7 @@ class SearchController {
         )
     }
 
-    @RequestMapping(value = '/search/es/{source}/{type}', method = RequestMethod.POST)
+    @RequestMapping(value = '/search/direct/{source}/{type}', method = RequestMethod.POST)
     String directSearch(
         @PathVariable(value = 'source') String source,
         @PathVariable(value = 'type') String type,
@@ -67,7 +67,7 @@ class SearchController {
         searchIndex.directSearch(source, type, query)
     }
 
-    @RequestMapping(value = '/search/es/metadata', method = RequestMethod.POST)
+    @RequestMapping(value = '/search/direct/metadata', method = RequestMethod.POST)
     String directSearchMetadata(@RequestBody String query) {
         searchIndex.directSearchMetadata(query)
     }

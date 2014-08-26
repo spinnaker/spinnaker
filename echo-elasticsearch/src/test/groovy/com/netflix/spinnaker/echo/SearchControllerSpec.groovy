@@ -84,7 +84,7 @@ class SearchControllerSpec extends Specification {
     void 'direct search metadata'() {
         when:
         ResultActions resultActions = mockMvc.perform(
-            post('/search/es/metadata')
+            post('/search/direct/metadata')
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(QUERY)
         )
@@ -97,7 +97,7 @@ class SearchControllerSpec extends Specification {
     void 'direct search keys'() {
         when:
         ResultActions resultActions = mockMvc.perform(
-            post('/search/es/igor/build')
+            post('/search/direct/igor/build')
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(QUERY)
         )
