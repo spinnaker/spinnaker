@@ -94,7 +94,8 @@ For this event:
 
 we can get the details by searching `/search/events/0?source=myapp&type=build`, getting this result:
 
-```{
+```
+   {
        total: 1,
        hits: [
        {
