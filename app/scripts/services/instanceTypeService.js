@@ -217,12 +217,19 @@ angular.module('deckApp')
       });
     }
 
+    function getAllRegions() {
+      return getAllTypesByRegion().then(function(instanceTypesByRegion) {
+        return _.unique(_.flatten(_.collect(instanceTypesByRegion, 'regions'))).sort();
+      });
+    }
+
     function clearCache() {
       regionTypesCache = null;
     }
 
     return {
       getCategories: getCategories,
+      getAllRegions: getAllRegions,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAvailableRegionsForType: getAvailableRegionsForType,
       clearCache: clearCache

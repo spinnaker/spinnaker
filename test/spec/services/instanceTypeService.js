@@ -84,6 +84,17 @@ describe('Service: InstanceType', function() {
     $http.flush();
   });
 
+  it('returns all regions', function() {
+    instanceTypes.push({ name: 'small', regions: ['a','b','e']});
+    instanceTypes.push({ name: 'large', regions: ['b','c','d']});
+
+    service.getAllRegions().then( function(result) {
+      expect(result).toEqual(['a','b','c','d', 'e']);
+    });
+
+    $http.flush();
+  });
+
   function testAvailableTypes(regions, expected) {
     service.getAvailableTypesForRegions(regions).then( function(result) {
       expect(result).toEqual(expected);
