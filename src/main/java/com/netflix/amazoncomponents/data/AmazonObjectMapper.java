@@ -18,6 +18,7 @@ package com.netflix.amazoncomponents.data;
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.ec2.model.*;
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -47,6 +48,15 @@ public class AmazonObjectMapper extends ObjectMapper {
     addMixInAnnotations(Placement.class, PlacementMixins.class);
     addMixInAnnotations(ProductCode.class, ProductCodeMixins.class);
     addMixInAnnotations(Subnet.class, SubnetMixins.class);
+    addMixInAnnotations(LoadBalancerDescription.class, LoadBalancerMixins.class);
+  }
+
+  private interface LoadBalancerMixins {
+    @JsonProperty("DNSName")
+    void setDNSName(String dNSName);
+
+    @JsonProperty("VPCId")
+    void setVPCId(String vPCId);
   }
 
   private interface SubnetMixins {
