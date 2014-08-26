@@ -55,9 +55,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def compute = description.credentials.compute
     def project = description.credentials.project
+    def zone = description.zone
 
     task.updateStatus BASE_PHASE, "Looking up machine type..."
-    def machineType = compute.machineTypes().list(project, "us-central1-b").execute().getItems().find { it.getName() == description.type }
+    def machineType = compute.machineTypes().list(project, zone).execute().getItems().find { it.getName() == description.type }
 
     task.updateStatus BASE_PHASE, "Looking up Source Image..."
     def sourceImage = null
@@ -86,7 +87,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def clusterName = "${description.application}-${description.stack}"
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
-    def nextSequence = getNextSequence(clusterName, project, description.zone, compute)
+    def nextSequence = getNextSequence(clusterName, project, zone, compute)
     task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
     def instanceName = "${clusterName}-v${nextSequence}-instance1".toString()
     task.updateStatus BASE_PHASE, "Produced instance name: $instanceName"
@@ -94,7 +95,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive], networkInterfaces: [network])
 
     task.updateStatus BASE_PHASE, "Creating instance $instanceName..."
-    compute.instances().insert(project, description.zone, instance).execute()
+    compute.instances().insert(project, zone, instance).execute()
     task.updateStatus BASE_PHASE, "Done."
     new DeploymentResult(serverGroupNames: ["${clusterName}-v${nextSequence}".toString()])
   }
