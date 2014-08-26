@@ -62,18 +62,26 @@ class SearchIndex {
         result.getSourceAsObject(Map)
     }
 
-    Map searchEvents(String start, String end, String source, String type, boolean full) {
+    Map searchEvents(String startDate, String end, String source, String type, boolean full, int from, int size) {
+
+        String sizeQuery = """ "size": ${size}, """
+        String fromQuery = """ "from": ${from}, """
 
         String termsQuery = source && type ? """
              , { "term" : { "source" : "${source}" } }
              , { "term" : { "type" : "${type}" } }
         """ : ''
 
-        String endQuery = end ? """, "lt": $end""" : ''
+        String endDateQuery = end ? """, "lt": $end""" : ''
 
         SearchResult result = search(METADATA_KEY,
             """
                 {
+                    "sort" : [
+                        { "created" : {"order" : "asc"} }
+                    ],
+                    ${sizeQuery}
+                    ${fromQuery}
                     "query" : {
                         "filtered" : {
                             "filter" : {
@@ -82,8 +90,8 @@ class SearchIndex {
                                         {
                                             "range":{
                                                 "created" : {
-                                                    "gte": ${start}
-                                                    ${endQuery}
+                                                    "gte": ${startDate}
+                                                    ${endDateQuery}
                                                 }
                                             }
                                         }
@@ -98,20 +106,22 @@ class SearchIndex {
             """
         )
 
-        [total: result.jsonObject.hits.get('total').asLong,
-         hits: result.jsonObject.hits.hits.collect {
+        [total         : result.jsonObject.hits.get('total').asLong,
+         hits          : result.jsonObject.hits.hits.collect {
              def fields = it.fields
              full ? get(
                  fields.get('source').asString,
                  fields.get('type').asString,
                  fields.get('_content_id').asString
              ) : [
-                 source: fields.get('source').asString,
-                 type: fields.get('type').asString,
-                 id: fields.get('_content_id').asString,
-                 created: fields.get('created').asString
+                 source  : fields.get('source').asString,
+                 type    : fields.get('type').asString,
+                 id      : fields.get('_content_id').asString,
+                 created : fields.get('created').asString
              ]
-         }
+         },
+         paginationFrom: from,
+         paginationSize: size
         ]
     }
 

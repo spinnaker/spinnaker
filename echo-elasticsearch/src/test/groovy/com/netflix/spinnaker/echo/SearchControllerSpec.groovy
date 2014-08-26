@@ -31,6 +31,7 @@ import spock.lang.Unroll
 /**
  * Ensures the correct parameters are passed to the Search index
  */
+@SuppressWarnings(['DuplicateNumberLiteral', 'LineLength'])
 class SearchControllerSpec extends Specification {
 
     MockMvc mockMvc
@@ -64,16 +65,19 @@ class SearchControllerSpec extends Specification {
         ResultActions resultActions = mockMvc.perform(get(queryString))
 
         then:
-        1 * controller.searchIndex.searchEvents(start, end, source, type, full)
+        1 * controller.searchIndex.searchEvents(start, end, source, type, full, from, size)
         resultActions.andExpect MockMvcResultMatchers.status().isOk()
 
         where:
-        queryString                                                    | end  | source | type    | full
-        '/search/events/12345'                                         | null | null   | null    | false
-        '/search/events/12345?end=25'                                  | '25' | null   | null    | false
-        '/search/events/12345?type=build&source=igor'                  | null | 'igor' | 'build' | false
-        '/search/events/12345?full=true'                               | null | null   | null    | true
-        '/search/events/12345?type=build&source=igor&end=25&full=true' | '25' | 'igor' | 'build' | true
+        queryString                                                                    | end  | source | type    | full  | from | size
+        '/search/events/12345'                                                         | null | null   | null    | false | 0    | 10
+        '/search/events/12345?end=25'                                                  | '25' | null   | null    | false | 0    | 10
+        '/search/events/12345?type=build&source=igor'                                  | null | 'igor' | 'build' | false | 0    | 10
+        '/search/events/12345?full=true'                                               | null | null   | null    | true  | 0    | 10
+        '/search/events/12345?from=20'                                                 | null | null   | null    | false | 20   | 10
+        '/search/events/12345?size=50'                                                 | null | null   | null    | false | 0    | 50
+        '/search/events/12345?type=build&source=igor&end=25&full=true&from=20&size=50' | '25' | 'igor' | 'build' | true  | 20   | 50
+
         start = '12345'
     }
 

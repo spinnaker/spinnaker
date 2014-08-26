@@ -31,7 +31,7 @@ ruleset {
     ruleset('rulesets/exceptions.xml')
     ruleset('rulesets/formatting.xml') {
         'ClassJavadoc' doNotApplyToFilesMatching: TEST_SOURCES
-        'SpaceAroundMapEntryColon' characterAfterColonRegex: /\s?/
+        'SpaceAroundMapEntryColon' enabled: false
         'BlankLineBeforePackage' enabled: false
     }
 

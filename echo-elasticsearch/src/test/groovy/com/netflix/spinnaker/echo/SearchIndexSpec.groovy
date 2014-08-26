@@ -31,7 +31,7 @@ import spock.lang.Subject
 /**
  * tests for the search index
  */
-@SuppressWarnings('DuplicateNumberLiteral')
+@SuppressWarnings(['DuplicateNumberLiteral', 'LineLength'])
 class SearchIndexSpec extends Specification {
 
     @Shared
@@ -107,7 +107,7 @@ class SearchIndexSpec extends Specification {
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, false)
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, false, 0, 10)
 
         then:
         searchResults.total == 3
@@ -124,7 +124,7 @@ class SearchIndexSpec extends Specification {
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, stop as String, null, null, false)
+        Map searchResults = searchIndex.searchEvents(now as String, stop as String, null, null, false, 0, 10)
 
         then:
         searchResults.total == 5
@@ -141,7 +141,7 @@ class SearchIndexSpec extends Specification {
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'yes', false)
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'yes', false, 0, 10)
 
         then:
         searchResults.total == 2
@@ -155,11 +155,55 @@ class SearchIndexSpec extends Specification {
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'fe', true)
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'fe', true, 0, 10)
 
         then:
         searchResults.total == 2
         searchResults.hits*.key1.sort() == ['value1', 'value2']
+    }
+
+    void 'control number of results returned'() {
+        20.times {
+            addEvent('test', 'type', [:])
+        }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents('0', null, 'test', 'type', false, 0, number)
+
+        then:
+        searchResults.total == 20
+        searchResults.hits.size() == number
+        searchResults.paginationSize == number
+
+        where:
+        number << [5, 20]
+    }
+
+    void 'pagination works'() {
+        10.times {
+            addEvent('test', 'type', ['key': 'first'])
+        }
+        10.times {
+            addEvent('test', 'type', ['key': 'second'])
+        }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents('0', null, 'test', 'type', true, 0, 10)
+
+        then:
+        searchResults.total == 20
+        searchResults.hits.size() == 10
+        searchResults.hits*.key.unique() == ['first']
+        searchResults.paginationFrom == 0
+
+        when:
+        searchResults = searchIndex.searchEvents('0', null, 'test', 'type', true, 11, 10)
+
+        then:
+        searchResults.hits*.key.unique() == ['second']
+        searchResults.paginationFrom == 11
     }
 
     private void flushElasticSearch() {

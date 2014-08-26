@@ -47,10 +47,16 @@ class SearchController {
         @RequestParam(value = 'source', required = false) String source,
         @RequestParam(value = 'type', required = false) String type,
         @RequestParam(value = 'end', required = false) String end,
-        @RequestParam(value = 'full', required = false) String full
+        @RequestParam(value = 'full', required = false) String full,
+        @RequestParam(value = 'from', required = false) String from,
+        @RequestParam(value = 'size', required = false) String size
     ) {
-        boolean isFull = Boolean.parseBoolean(full)
-        searchIndex.searchEvents(start, end, source, type, isFull)
+        searchIndex.searchEvents(
+            start, end, source, type,
+            Boolean.parseBoolean(full),
+            Integer.parseInt(from ?: '0'),
+            Integer.parseInt(size ?: '10')
+        )
     }
 
     @RequestMapping(value = '/search/es/{source}/{type}', method = RequestMethod.POST)
