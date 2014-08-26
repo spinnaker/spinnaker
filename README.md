@@ -54,7 +54,7 @@ Search for events in Echo
 
 For most basic operations, there is a provided event search endpoint:
 
-#### GET /search/events/{startDate}
+#### 1. GET /search/events/{startDate}
 
 The start date format expected is of the form `new Date().time` in Groovy.
 
@@ -74,11 +74,11 @@ The following optional parameters are enabled:
 | from | used for pagination, specifies the first index of elements to return | Number | 0 | 10 |
 | size | number of records to return | Number | 0 | 50 |
 
-#### GET /search/get/{contentId}
+#### 2. GET /search/get/{contentId}
 
 This endpoint allows you to get full details for a particular content id. The contentId corresponds to the id returned in the non-full version of the event list.
 
-#### POST /search/direct/{source}/{type}
+#### 3. POST /search/direct/{source}/{type}
 
 This endpoint allows you to issue a direct elastic search query for events that match the source and type.
 
@@ -95,6 +95,6 @@ For example, if the event issued is of source kato and type shrink_asg, we can i
 
 The format is the same as the [query DSL in elastic search](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html)
 
-#### POST /search/direct/metadata
+#### 4. POST /search/direct/metadata
 
 This endpoint allows you to search within the details block of all events. The query format is the same as above.
