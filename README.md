@@ -66,7 +66,7 @@ The following optional parameters are enabled:
 
 | Query Parameter | Description | Type | Default | Example Value |
 |-----------------|----------------------------------------------------------------------|------------------------------------|-------------|---------------|
-| end | specifies an end date | Date in the format new Date().time | none | 1409081771116 |
+| end | specifies an end date. If provided, shows all events between the start and end dates | Date in the format new Date().time | none | 1409081771116 |
 | source | event source, when specified, returns only events from that source | String | all sources | igor |
 | type | event type, when specified, returns only types that match the type | String | all events | build |
 | full | if true, returns the entire content block for the event.                                                         | Boolean | false | true |

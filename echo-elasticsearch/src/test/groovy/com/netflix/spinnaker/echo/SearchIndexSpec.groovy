@@ -132,15 +132,35 @@ class SearchIndexSpec extends Specification {
         List expectedKeys = []
         2.times {
             expectedKeys << addEvent('test', 'yes', [:]).content_key
+            expectedKeys << addEvent('otherSource', 'yes', [:]).content_key
         }
         3.times { addEvent('test', 'no', [:]) }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'yes', false, 0, 10)
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, 'yes', false, 0, 10)
 
         then:
-        searchResults.total == 2
+        searchResults.total == 4
+        searchResults.hits*.id.containsAll expectedKeys
+    }
+
+    void 'filter event search by source'() {
+        long now = new Date().time
+        List expectedKeys = []
+        2.times {
+            expectedKeys << addEvent('maria', 'yes', [:]).content_key
+            expectedKeys << addEvent('maria', 'no', [:]).content_key
+        }
+        3.times { addEvent('bob', 'yes', [:]) }
+        3.times { addEvent('steve', 'no', [:]) }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'maria', null, false, 0, 10)
+
+        then:
+        searchResults.total == 4
         searchResults.hits*.id.containsAll expectedKeys
     }
 

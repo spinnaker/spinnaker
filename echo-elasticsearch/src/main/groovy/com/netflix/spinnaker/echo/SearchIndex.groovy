@@ -66,12 +66,8 @@ class SearchIndex {
 
         String sizeQuery = """ "size": ${size}, """
         String fromQuery = """ "from": ${from}, """
-
-        String termsQuery = source && type ? """
-             , { "term" : { "source" : "${source}" } }
-             , { "term" : { "type" : "${type}" } }
-        """ : ''
-
+        String sourceQuery = source ? """, { "term" : { "source" : "${source}" } }""" : ''
+        String typeQuery = type ? """, { "term" : { "type" : "${type}" } }""" : ''
         String endDateQuery = end ? """, "lt": $end""" : ''
 
         SearchResult result = search(METADATA_KEY,
@@ -95,7 +91,8 @@ class SearchIndex {
                                                 }
                                             }
                                         }
-                                        ${termsQuery}
+                                        ${typeQuery}
+                                        ${sourceQuery}
                                     ]
                                 }
                             }

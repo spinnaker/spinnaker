@@ -72,7 +72,8 @@ class SearchControllerSpec extends Specification {
         queryString                                                                    | end  | source | type    | full  | from | size
         '/search/events/12345'                                                         | null | null   | null    | false | 0    | 10
         '/search/events/12345?end=25'                                                  | '25' | null   | null    | false | 0    | 10
-        '/search/events/12345?type=build&source=igor'                                  | null | 'igor' | 'build' | false | 0    | 10
+        '/search/events/12345?source=igor'                                             | null | 'igor' | null    | false | 0    | 10
+        '/search/events/12345?type=build'                                              | null | null   | 'build' | false | 0    | 10
         '/search/events/12345?full=true'                                               | null | null   | null    | true  | 0    | 10
         '/search/events/12345?from=20'                                                 | null | null   | null    | false | 20   | 10
         '/search/events/12345?size=50'                                                 | null | null   | null    | false | 0    | 50
