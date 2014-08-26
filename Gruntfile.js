@@ -291,6 +291,7 @@ module.exports = function (grunt) {
               'views/{,*/}*.html',
               'views/**/{,*/}*.html',
               'images/{,*/}*.{webp}',
+              'bower_components/**/*',
               'fonts/*'
             ]
           },
@@ -315,7 +316,9 @@ module.exports = function (grunt) {
         src: [
           'node_modules/bootstrap/dist/css/bootstrap.css',
           'node_modules/bootstrap/dist/css/bootstrap.css.map',
-          'node_modules/bootstrap/dist/fonts/*.*'
+          'node_modules/bootstrap/dist/fonts/*.*',
+          '<%= yeoman.app %>/bower_components/select2/*.*',
+          '<%= yeoman.app %>/bower_components/select2-bootstrap-css/select2-bootstrap.css'
         ]
       }
     },

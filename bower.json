@@ -1,0 +1,11 @@
+{
+  "name": "deck",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular-ui-select2": "~0.0.5",
+    "select2-bootstrap-css": "~1.3.0"
+  },
+  "devDependencies": {
+
+  }
+}

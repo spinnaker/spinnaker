@@ -9,19 +9,21 @@
  * Main module of the application.
  */
 
+require('jquery');
 var angular = require('angular');
 
-require('angular-ui-router');
-require('angular-bootstrap');
 require('angular-animate');
-require('restangular');
+require('angular-bootstrap');
 require('angular-spinner');
-require('jquery');
+require('angular-ui-router');
+require('angular-ui-select2');
+require('restangular');
 
 angular.module('deckApp', [
     'ngAnimate',
     'ui.router',
     'ui.bootstrap',
+    'ui.select2',
     'restangular',
     'angularSpinner',
     'deckApp.templates'

@@ -2,7 +2,8 @@
   "main": "./app/scripts/app.js",
   "name": "deck",
   "version": "0.0.0",
-  "dependencies": {"angular": "1.2.20",
+  "dependencies": {
+    "angular": "1.2.20",
     "angular-module-animate": "1.2.19",
     "angular-bootstrap": "~0.11.0",
     "angular-spinner": "~0.5.1",
@@ -64,14 +65,24 @@
   "browser": {
     "angular-bootstrap": "./node_modules/angular-bootstrap/ui-bootstrap.js",
     "angular-animate": "./node_modules/angular-module-animate/angular-animate.js",
+    "angular-spinner": "./node_modules/angular-spinner/angular-spinner.js",
     "angular-ui-router": "./node_modules/angular-ui-router/release/angular-ui-router.min.js",
-    "restangular": "./node_modules/restangular/dist/restangular.js",
+    "angular-ui-select2": "./app/bower_components/angular-ui-select2/src/select2.js",
     "jquery": "./node_modules/jquery/dist/jquery.js",
     "lodash": "./node_modules/lodash/dist/lodash.compat.js",
-    "angular-spinner": "./node_modules/angular-spinner/angular-spinner.js",
+    "restangular": "./node_modules/restangular/dist/restangular.js",
+    "select2": "./app/bower_components/select2/select2.js",
     "spin": "./node_modules/spin.js/spin.js"
   },
   "browserify-shim": {
+    "angular-ui-select2": {
+      "exports": "uiSelect2",
+      "depends": ["angular:angular", "select2:select2"]
+    },
+    "select2": {
+      "exports": "select2",
+      "depends": ["jquery:jquery"]
+    },
     "jquery": {
       "exports": "$"
     },
