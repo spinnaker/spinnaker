@@ -9,6 +9,7 @@ angular.module('deckApp')
     oortUrl: 'http://oort.prod.netflix.net',
     pondUrl: 'http://pond.test.netflix.net',
     awsMetadataUrl: 'http://spinnaker.test.netflix.net/aws',
+    credentialsUrl: 'http://kato.prod.netflix.net/',
     accounts: {
       prod: {
         challengeDestructiveActions: true

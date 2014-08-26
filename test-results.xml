@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <testsuites>
-  <testsuite name="Chrome 36.0.1985 (Mac OS X 10.9.4)" package="" timestamp="2014-08-25T19:52:06" id="0" hostname="lgml-chrisb" tests="12" errors="0" failures="0" time="0.166">
+  <testsuite name="Chrome 37.0.2062 (Mac OS X 10.9.4)" package="" timestamp="2014-08-26T21:22:00" id="0" hostname="lgml-chrisb" tests="12" errors="0" failures="0" time="0.151">
     <properties>
-      <property name="browser.fullName" value="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Safari/537.36"/>
+      <property name="browser.fullName" value="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.94 Safari/537.36"/>
     </properties>
-    <testcase name="should create a scope" time="0.052" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Controller: MainCtrl"/>
-    <testcase name="should handle cardinal directions" time="0.011" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should handle intermediate directions" time="0.011" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should handle multiple regions" time="0.007" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should handle non-region characters" time="0.007" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should ignore capitalized content" time="0.015" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should ignore invalid intermediate directions" time="0.006" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should ignore invalid values but translate valid ones" time="0.009" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="should abbreviate availability zones" time="0.006" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
-    <testcase name="list caches results and reuses them" time="0.017" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Service: InstanceType"/>
-    <testcase name="returns an intersection of instance types, sorted by name" time="0.011" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Service: InstanceType"/>
-    <testcase name="returns the regions for the supplied instance type, or an empty list if non-existent" time="0.014" classname="Chrome 36.0.1985 (Mac OS X 10.9.4).Service: InstanceType"/>
+    <testcase name="should create a scope" time="0.043" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Controller: MainCtrl"/>
+    <testcase name="should handle cardinal directions" time="0.01" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should handle intermediate directions" time="0.008" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should handle multiple regions" time="0.008" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should handle non-region characters" time="0.009" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should ignore capitalized content" time="0.012" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should ignore invalid intermediate directions" time="0.009" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should ignore invalid values but translate valid ones" time="0.006" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="should abbreviate availability zones" time="0.006" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Filter: regionAbbreviator"/>
+    <testcase name="list caches results and reuses them" time="0.016" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Service: InstanceType"/>
+    <testcase name="returns an intersection of instance types, sorted by name" time="0.012" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Service: InstanceType"/>
+    <testcase name="returns the regions for the supplied instance type, or an empty list if non-existent" time="0.012" classname="Chrome 37.0.2062 (Mac OS X 10.9.4).Service: InstanceType"/>
     <system-out><![CDATA[
 ]]></system-out>
     <system-err/>
