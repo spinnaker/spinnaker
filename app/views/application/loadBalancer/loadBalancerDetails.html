@@ -40,6 +40,10 @@
               <li ng-repeat="serverGroup in loadBalancer.serverGroupNames">{{serverGroup}}</li>
             </ul>
           </dd>
+          <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
+          <dd>{{loadBalancer.elb.dnsname}}</dd>
+          <dt ng-if="loadBalancer.elb.vpcid">VPC ID</dt>
+          <dd>{{loadBalancer.elb.vpcid}}</dd>
         </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
