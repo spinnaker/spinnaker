@@ -40,7 +40,10 @@ angular.module('deckApp')
           return input && angular.isDefined(input) && input.length > 0;
         })
         .flatMap(function(query) {
-          return RxService.Observable.fromPromise(searchService.search({q: query}));
+          return RxService.Observable.fromPromise(searchService.search({
+            q: query,
+            type: ['applications', 'clusters', 'serverGroupInstances', 'serverGroups', 'loadBalancerServerGroups'],
+          }));
         })
         .subscribe(function(result) {
           var tmp = result.data[0].results.reduce(function(categories, entry) {
