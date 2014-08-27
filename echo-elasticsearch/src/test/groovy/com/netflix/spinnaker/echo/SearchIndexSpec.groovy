@@ -61,7 +61,7 @@ class SearchIndexSpec extends Specification {
 
     void 'events are inserted to a metadata table and events table'() {
         when:
-        String key = addEvent('test', 'build', ['key1': 'value1', 'key2': 'value2']).metadata_key
+        String key = addEvent('test', 'build', null, null, null, ['key1': 'value1', 'key2': 'value2']).metadata_key
 
         and:
         JsonObject event = searchIndex.client.execute(
@@ -86,7 +86,7 @@ class SearchIndexSpec extends Specification {
 
     void 'retrieve an event by id'() {
         when:
-        String key = addEvent('test', 'build', ['key': 'value1', 'key2': 'value2']).content_key
+        String key = addEvent('test', 'build', null, null, null, ['key': 'value1', 'key2': 'value2']).content_key
 
         Map event = searchIndex.get('test', 'build', key)
 
@@ -96,14 +96,14 @@ class SearchIndexSpec extends Specification {
     }
 
     void 'search events by start date'() {
-        3.times { addEvent('test', 'build', [:]) }
+        3.times { addEvent('test', 'build', null, null, null, [:]) }
         long now = new Date().time
         List expectedKeys = []
-        3.times { expectedKeys << addEvent('test', 'build', [:]).content_key }
+        3.times { expectedKeys << addEvent('test', 'build', null, null, null, [:]).content_key }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, false, 0, 10)
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, null, null, null, false, 0, 10)
 
         then:
         searchResults.total == 3
@@ -111,16 +111,16 @@ class SearchIndexSpec extends Specification {
     }
 
     void 'search events by end date'() {
-        5.times { addEvent('test', 'build', [:]) }
+        5.times { addEvent('test', 'build', null, null, null, [:]) }
         long now = new Date().time
         List expectedKeys = []
-        5.times { expectedKeys << addEvent('test', 'build', [:]).content_key }
+        5.times { expectedKeys << addEvent('test', 'build', null, null, null, [:]).content_key }
         long stop = new Date().time
-        5.times { addEvent('test', 'build', [:]) }
+        5.times { addEvent('test', 'build', null, null, null, [:]) }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, stop as String, null, null, false, 0, 10)
+        Map searchResults = searchIndex.searchEvents(now as String, stop as String, null, null, null, null, null, false, 0, 10)
 
         then:
         searchResults.total == 5
@@ -131,14 +131,14 @@ class SearchIndexSpec extends Specification {
         long now = new Date().time
         List expectedKeys = []
         2.times {
-            expectedKeys << addEvent('test', 'yes', [:]).content_key
-            expectedKeys << addEvent('otherSource', 'yes', [:]).content_key
+            expectedKeys << addEvent('test', 'yes', null, null, null, [:]).content_key
+            expectedKeys << addEvent('otherSource', 'yes', null, null, null, [:]).content_key
         }
-        3.times { addEvent('test', 'no', [:]) }
+        3.times { addEvent('test', 'no', null, null, null, [:]) }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, null, 'yes', false, 0, 10)
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, 'yes', null, null, null, false, 0, 10)
 
         then:
         searchResults.total == 4
@@ -149,29 +149,83 @@ class SearchIndexSpec extends Specification {
         long now = new Date().time
         List expectedKeys = []
         2.times {
-            expectedKeys << addEvent('maria', 'yes', [:]).content_key
-            expectedKeys << addEvent('maria', 'no', [:]).content_key
+            expectedKeys << addEvent('maria', 'yes', null, null, null, [:]).content_key
+            expectedKeys << addEvent('maria', 'no', null, null, null, [:]).content_key
         }
-        3.times { addEvent('bob', 'yes', [:]) }
-        3.times { addEvent('steve', 'no', [:]) }
+        3.times { addEvent('bob', 'yes', null, null, null, [:]) }
+        3.times { addEvent('steve', 'no', null, null, null, [:]) }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, 'maria', null, false, 0, 10)
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'maria', null, null, null, null, false, 0, 10)
 
         then:
         searchResults.total == 4
         searchResults.hits*.id.containsAll expectedKeys
     }
 
-    void 'retrieve full results from search'() {
+    void 'filter event search by organization'() {
         long now = new Date().time
-        addEvent('test', 'fe', ['key1': 'value1'])
-        addEvent('test', 'fe', ['key1': 'value2'])
+        List expectedKeys = []
+        2.times {
+            expectedKeys << addEvent('maria', 'yes', 'spinnaker', null, null, [:]).content_key
+        }
+        3.times { addEvent('bob', 'yes', null, null, null, [:]) }
+        3.times { addEvent('steve', 'no', 'bluespar', null, null, [:]) }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'fe', true, 0, 10)
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, 'spinnaker', null, null, false, 0, 10)
+
+        then:
+        searchResults.total == 2
+        searchResults.hits*.id.containsAll expectedKeys
+    }
+
+    void 'filter event search by project'() {
+        long now = new Date().time
+        List expectedKeys = []
+        2.times {
+            expectedKeys << addEvent('maria', 'yes', 'spinnaker', 'echo', null, [:]).content_key
+        }
+        3.times { addEvent('bob', 'yes', 'spinnaker', 'notecho', null, [:]) }
+        3.times { addEvent('steve', 'no', null, 'notecho', null, [:]) }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, null, 'echo', null, false, 0, 10)
+
+        then:
+        searchResults.total == 2
+        searchResults.hits*.id.containsAll expectedKeys
+    }
+
+    void 'filter event search by application'() {
+        long now = new Date().time
+        List expectedKeys = []
+        2.times {
+            expectedKeys << addEvent('maria', 'yes', 'spinnaker', 'spinnaker', 'kato', [:]).content_key
+        }
+        3.times { addEvent('bob', 'yes', 'spinnaker', 'spinnaker', 'igor', [:]) }
+        3.times { addEvent('steve', 'no', null, 'notecho', 'igor', [:]) }
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, null, null, null, null, null, 'kato', false, 0, 10)
+
+        then:
+        searchResults.total == 2
+        searchResults.hits*.id.containsAll expectedKeys
+    }
+
+    void 'retrieve full results from search'() {
+        long now = new Date().time
+        addEvent('test', 'fe', null, null, null, ['key1': 'value1'])
+        addEvent('test', 'fe', null, null, null, ['key1': 'value2'])
+
+        when:
+        refreshSearchIndex()
+        Map searchResults = searchIndex.searchEvents(now as String, null, 'test', 'fe', null, null, null, true, 0, 10)
 
         then:
         searchResults.total == 2
@@ -180,12 +234,12 @@ class SearchIndexSpec extends Specification {
 
     void 'control number of results returned'() {
         20.times {
-            addEvent('test', 'type', [:])
+            addEvent('test', 'type', null, null, null, [:])
         }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents('0', null, 'test', 'type', false, 0, number)
+        Map searchResults = searchIndex.searchEvents('0', null, 'test', 'type', null, null, null, false, 0, number)
 
         then:
         searchResults.total == 20
@@ -198,15 +252,15 @@ class SearchIndexSpec extends Specification {
 
     void 'pagination works'() {
         10.times {
-            addEvent('test', 'type', ['key': 'first'])
+            addEvent('test', 'type', null, null, null, ['key': 'first'])
         }
         10.times {
-            addEvent('test', 'type', ['key': 'second'])
+            addEvent('test', 'type', null, null, null, ['key': 'second'])
         }
 
         when:
         refreshSearchIndex()
-        Map searchResults = searchIndex.searchEvents('0', null, 'test', 'type', true, 0, 10)
+        Map searchResults = searchIndex.searchEvents('0', null, 'test', 'type', null, null, null, true, 0, 10)
 
         then:
         searchResults.total == 20
@@ -215,7 +269,7 @@ class SearchIndexSpec extends Specification {
         searchResults.paginationFrom == 0
 
         when:
-        searchResults = searchIndex.searchEvents('0', null, 'test', 'type', true, 11, 10)
+        searchResults = searchIndex.searchEvents('0', null, 'test', 'type', null, null, null, true, 11, 10)
 
         then:
         searchResults.hits*.key.unique() == ['second']
@@ -234,10 +288,16 @@ class SearchIndexSpec extends Specification {
         config.client.admin().indices().prepareRefresh().execute().actionGet()
     }
 
-    private Map addEvent(source, type, content) {
+    private Map addEvent(source, type, organization, project, application, content) {
         searchIndex.addToIndex(
             new Event(
-                details: new Metadata(source: source, type: type),
+                details: new Metadata(
+                    source: source,
+                    type: type,
+                    organization: organization,
+                    project: project,
+                    application: application
+                ),
                 content: content
             )
         )

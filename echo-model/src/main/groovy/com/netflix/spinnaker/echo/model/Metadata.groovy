@@ -24,5 +24,8 @@ class Metadata {
     String source
     String type
     String created = new Date().time
+    String organization
+    String project
+    String application
     String _content_id
 }

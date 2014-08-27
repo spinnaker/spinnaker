@@ -62,12 +62,25 @@ class SearchIndex {
         result.getSourceAsObject(Map)
     }
 
-    Map searchEvents(String startDate, String end, String source, String type, boolean full, int from, int size) {
+    Map searchEvents(String startDate,
+                     String end,
+                     String source,
+                     String type,
+                     String organization,
+                     String project,
+                     String application,
+                     boolean full,
+                     int from,
+                     int size) {
 
         String sizeQuery = """ "size": ${size}, """
         String fromQuery = """ "from": ${from}, """
+
         String sourceQuery = source ? """, { "term" : { "source" : "${source}" } }""" : ''
         String typeQuery = type ? """, { "term" : { "type" : "${type}" } }""" : ''
+        String organizationQuery = organization ? """, { "term" : { "organization" : "${organization}" } }""" : ''
+        String projectQuery = project ? """, { "term" : { "project" : "${project}" } }""" : ''
+        String applicationQuery = application ? """, { "term" : { "application" : "${application}" } }""" : ''
         String endDateQuery = end ? """, "lt": $end""" : ''
 
         SearchResult result = search(METADATA_KEY,
@@ -93,6 +106,9 @@ class SearchIndex {
                                         }
                                         ${typeQuery}
                                         ${sourceQuery}
+                                        ${organizationQuery}
+                                        ${projectQuery}
+                                        ${applicationQuery}
                                     ]
                                 }
                             }
@@ -111,10 +127,10 @@ class SearchIndex {
                  fields.get('type').asString,
                  fields.get('_content_id').asString
              ) : [
-                 source  : fields.get('source').asString,
-                 type    : fields.get('type').asString,
-                 id      : fields.get('_content_id').asString,
-                 created : fields.get('created').asString
+                 source : fields.get('source').asString,
+                 type   : fields.get('type').asString,
+                 id     : fields.get('_content_id').asString,
+                 created: fields.get('created').asString
              ]
          },
          paginationFrom: from,

@@ -44,15 +44,24 @@ class SearchController {
     @RequestMapping(value = '/search/events/{start}', method = RequestMethod.GET)
     Map eventsByDate(
         @PathVariable(value = 'start') String start,
+        @RequestParam(value = 'end', required = false) String end,
         @RequestParam(value = 'source', required = false) String source,
         @RequestParam(value = 'type', required = false) String type,
-        @RequestParam(value = 'end', required = false) String end,
+        @RequestParam(value = 'organization', required = false) String organization,
+        @RequestParam(value = 'project', required = false) String project,
+        @RequestParam(value = 'application', required = false) String application,
         @RequestParam(value = 'full', required = false) String full,
         @RequestParam(value = 'from', required = false) String from,
         @RequestParam(value = 'size', required = false) String size
     ) {
         searchIndex.searchEvents(
-            start, end, source, type,
+            start,
+            end,
+            source,
+            type,
+            organization,
+            project,
+            application,
             Boolean.parseBoolean(full),
             Integer.parseInt(from ?: '0'),
             Integer.parseInt(size ?: '10')

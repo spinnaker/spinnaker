@@ -65,19 +65,22 @@ class SearchControllerSpec extends Specification {
         ResultActions resultActions = mockMvc.perform(get(queryString))
 
         then:
-        1 * controller.searchIndex.searchEvents(start, end, source, type, full, from, size)
+        1 * controller.searchIndex.searchEvents(start, end, source, type, organization, project, application, full, from, size)
         resultActions.andExpect MockMvcResultMatchers.status().isOk()
 
         where:
-        queryString                                                                    | end  | source | type    | full  | from | size
-        '/search/events/12345'                                                         | null | null   | null    | false | 0    | 10
-        '/search/events/12345?end=25'                                                  | '25' | null   | null    | false | 0    | 10
-        '/search/events/12345?source=igor'                                             | null | 'igor' | null    | false | 0    | 10
-        '/search/events/12345?type=build'                                              | null | null   | 'build' | false | 0    | 10
-        '/search/events/12345?full=true'                                               | null | null   | null    | true  | 0    | 10
-        '/search/events/12345?from=20'                                                 | null | null   | null    | false | 20   | 10
-        '/search/events/12345?size=50'                                                 | null | null   | null    | false | 0    | 50
-        '/search/events/12345?type=build&source=igor&end=25&full=true&from=20&size=50' | '25' | 'igor' | 'build' | true  | 20   | 50
+        queryString                                                                                                                             | end  | source | type    | organization | project     | application | full  | from | size
+        '/search/events/12345'                                                                                                                  | null | null   | null    | null         | null        | null        | false | 0    | 10
+        '/search/events/12345?end=25'                                                                                                           | '25' | null   | null    | null         | null        | null        | false | 0    | 10
+        '/search/events/12345?source=igor'                                                                                                      | null | 'igor' | null    | null         | null        | null        | false | 0    | 10
+        '/search/events/12345?type=build'                                                                                                       | null | null   | 'build' | null         | null        | null        | false | 0    | 10
+        '/search/events/12345?organization=delivery'                                                                                            | null | null   | null    | 'delivery'   | null        | null        | false | 0    | 10
+        '/search/events/12345?project=spinnaker'                                                                                                | null | null   | null    | null         | 'spinnaker' | null        | false | 0    | 10
+        '/search/events/12345?application=kato'                                                                                                 | null | null   | null    | null         | null        | 'kato'      | false | 0    | 10
+        '/search/events/12345?full=true'                                                                                                        | null | null   | null    | null         | null        | null        | true  | 0    | 10
+        '/search/events/12345?from=20'                                                                                                          | null | null   | null    | null         | null        | null        | false | 20   | 10
+        '/search/events/12345?size=50'                                                                                                          | null | null   | null    | null         | null        | null        | false | 0    | 50
+        '/search/events/12345?type=build&source=igor&end=25&full=true&from=20&size=50&organization=delivery&project=spinnaker&application=kato' | '25' | 'igor' | 'build' | 'delivery'   | 'spinnaker' | 'kato'      | true  | 20   | 50
 
         start = '12345'
     }
