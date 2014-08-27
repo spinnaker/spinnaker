@@ -58,7 +58,7 @@ class Keys {
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
-        result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], stack: names.stack, detail: names.detail, sequence: names.sequence]
+        result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
         break
       case Namespace.SERVER_GROUP_INSTANCES.ns:
         def names = Names.parseName(parts[4])
