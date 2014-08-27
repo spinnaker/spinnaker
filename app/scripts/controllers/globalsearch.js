@@ -23,7 +23,9 @@ angular.module('deckApp')
     };
 
     this.showSearchResults = function() {
-      $scope.showSearchResults = true;
+      if (angular.isObject($scope.categories)) {
+        $scope.showSearchResults = true;
+      }
     };
 
     this.navigateResults = function(event) {
