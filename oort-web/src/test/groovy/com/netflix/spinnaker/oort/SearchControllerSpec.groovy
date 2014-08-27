@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.oort
 
 import com.netflix.spinnaker.oort.controllers.SearchController
-import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
 import spock.lang.Shared
@@ -47,7 +45,7 @@ class SearchControllerSpec extends Specification {
     SearchResultSet resultSetB = Mock(SearchResultSet)
 
     when:
-    List searchResultSets = searchController.search('aBC', '', '', 1, 10)
+    List searchResultSets = searchController.search('aBC', null, '', 1, 10)
 
     then:
     1 * searchProviderA.search('aBC', 1, 10) >> resultSetA
@@ -62,7 +60,7 @@ class SearchControllerSpec extends Specification {
     SearchResultSet resultSetA = Mock(SearchResultSet)
 
     when:
-    List searchResultSets = searchController.search('a', '', 'aws', 1, 10)
+    List searchResultSets = searchController.search('a', null, 'aws', 1, 10)
 
     then:
     1 * searchProviderA.platform >> 'aws'
@@ -79,11 +77,11 @@ class SearchControllerSpec extends Specification {
     SearchResultSet resultSetB = Mock(SearchResultSet)
 
     when:
-    List searchResultSets = searchController.search('aBC', 'applications', '', 1, 10)
+    List searchResultSets = searchController.search('aBC', ['applications'], '', 1, 10)
 
     then:
-    1 * searchProviderA.search('aBC', 'applications', 1, 10) >> resultSetA
-    1 * searchProviderB.search('aBC', 'applications', 1, 10) >> resultSetB
+    1 * searchProviderA.search('aBC', ['applications'], 1, 10) >> resultSetA
+    1 * searchProviderB.search('aBC', ['applications'], 1, 10) >> resultSetB
     0 * _
 
     searchResultSets == [resultSetA, resultSetB]

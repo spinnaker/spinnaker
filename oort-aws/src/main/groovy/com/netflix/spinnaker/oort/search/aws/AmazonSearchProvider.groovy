@@ -39,7 +39,6 @@ class AmazonSearchProvider implements SearchProvider {
   static List<String> defaultCaches = [
     Keys.Namespace.APPLICATIONS.ns,
     Keys.Namespace.CLUSTERS.ns,
-    Keys.Namespace.NAMED_IMAGES.ns,
     Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns,
     Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
     Keys.Namespace.SERVER_GROUPS.ns
@@ -69,8 +68,8 @@ class AmazonSearchProvider implements SearchProvider {
   }
 
   @Override
-  SearchResultSet search(String query, String type, Integer pageNumber, Integer pageSize) {
-    List<String> matches = findMatches(query, [type])
+  SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize) {
+    List<String> matches = findMatches(query, types)
     generateResultSet(query, matches, pageNumber, pageSize)
   }
 

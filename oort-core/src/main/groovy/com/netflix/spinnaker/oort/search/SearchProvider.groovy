@@ -43,11 +43,11 @@ public interface SearchProvider {
   /**
    * Finds all matching items for the provided query and type
    * @param query a query string
-   * @param type
+   * @param types the types of items to search for
    * @param pageNumber page index (1-based) of the result set
    * @param pageSize number of items per page
    * @return
    */
-  SearchResultSet search(String query, String type, Integer pageNumber, Integer pageSize)
+  SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize)
 
 }

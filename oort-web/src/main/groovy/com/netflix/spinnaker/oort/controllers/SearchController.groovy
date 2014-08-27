@@ -46,20 +46,20 @@ class SearchController {
   @RequestMapping(value = '/search')
   List<SearchResultSet> search(
     @RequestParam(value = 'q') String query,
-    @RequestParam(value = 'type', defaultValue = '') String type,
+    @RequestParam(value = 'type', required = false) List<String> types,
     @RequestParam(value = 'platform', defaultValue = '') String platform,
     @RequestParam(value = 'page', defaultValue = '1') Integer pageNumber,
     @RequestParam(value = 'pageSize', defaultValue = '10') Integer pageSize) {
 
-    log.info("Fetching search results for ${query}, platform: ${platform}, type: ${type}, pageSize: ${pageSize}, pageNumber: ${pageNumber}")
+    log.info("Fetching search results for ${query}, platform: ${platform}, type: ${types}, pageSize: ${pageSize}, pageNumber: ${pageNumber}")
 
     def providers = platform ? searchProviders.findAll {
       it.platform == platform
     } : searchProviders
 
     providers.collect {
-      if (type) {
-        it.search(query, type, pageNumber, pageSize)
+      if (types && !types.isEmpty()) {
+        it.search(query, types, pageNumber, pageSize)
       } else {
         it.search(query, pageNumber, pageSize)
       }

@@ -125,7 +125,7 @@ class AmazonSearchProviderSpec extends Specification {
     List applicationKeys = [Keys.getApplicationKey('abx'), Keys.getApplicationKey('bac')]
 
     when:
-    SearchResultSet results = searchProvider.search('b', Keys.Namespace.APPLICATIONS.ns, 1, 5)
+    SearchResultSet results = searchProvider.search('b', [Keys.Namespace.APPLICATIONS.ns], 1, 5)
 
     then:
     1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> applicationKeys
@@ -136,12 +136,27 @@ class AmazonSearchProviderSpec extends Specification {
     ]
   }
 
+  void 'search multiple types'() {
+    given:
+    List applicationKeys = [Keys.getApplicationKey('abx'), Keys.getApplicationKey('bac')]
+    List imageKeys = [Keys.getImageKey('abx', 'x'), Keys.getImageKey('bac', 'y')]
+
+    when:
+    SearchResultSet results = searchProvider.search('b', [Keys.Namespace.IMAGES.ns, Keys.Namespace.APPLICATIONS.ns], 1, 5)
+
+    then:
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> applicationKeys
+    1 * cacheService.keysByType(Keys.Namespace.IMAGES.ns) >> imageKeys
+    0 * _
+    results.results.size() == 4
+  }
+
   void 'return empty list when page requested does not exist'() {
     given:
     List applicationKeys = [Keys.getApplicationKey('abx'), Keys.getApplicationKey('bac')]
 
     when:
-    SearchResultSet results = searchProvider.search('b', Keys.Namespace.APPLICATIONS.ns, 2, 5)
+    SearchResultSet results = searchProvider.search('b', [Keys.Namespace.APPLICATIONS.ns], 2, 5)
 
     then:
     1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> applicationKeys
