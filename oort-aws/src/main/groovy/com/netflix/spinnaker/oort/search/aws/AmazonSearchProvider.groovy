@@ -20,6 +20,8 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
+import groovy.text.SimpleTemplateEngine
+import groovy.text.Template
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +44,21 @@ class AmazonSearchProvider implements SearchProvider {
     Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
     Keys.Namespace.SERVER_GROUPS.ns
   ]
+  
+  static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
+
+  static Map<String, Template> urlMappings = [
+    (Keys.Namespace.SERVER_GROUPS.ns):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster/aws/serverGroups/$serverGroup?region=$region'),
+    (Keys.Namespace.LOAD_BALANCERS.ns):
+      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
+    (Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns):
+      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
+    (Keys.Namespace.CLUSTERS.ns):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster'),
+    (Keys.Namespace.APPLICATIONS.ns):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}')
+  ]
 
   String platform = 'aws'
 
@@ -61,7 +78,7 @@ class AmazonSearchProvider implements SearchProvider {
     List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).collect {
       Keys.parse(it)
     }
-    new SearchResultSet(
+    SearchResultSet resultSet = new SearchResultSet(
       totalMatches: matches.size(),
       platform: 'aws',
       query: query,
@@ -69,6 +86,14 @@ class AmazonSearchProvider implements SearchProvider {
       pageSize: pageSize,
       results: results
     )
+    resultSet.results.each { Map<String, String> result ->
+      if (urlMappings.containsKey(result.type)) {
+        def binding = [:]
+        binding.putAll(result)
+        result.url = urlMappings[result.type].make(binding).toString()
+      }
+    }
+    resultSet
   }
 
   private List<String> findMatches(String q, List<String> toQuery) {

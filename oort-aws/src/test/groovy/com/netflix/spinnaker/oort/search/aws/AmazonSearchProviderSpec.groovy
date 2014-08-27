@@ -21,8 +21,7 @@ import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.search.SearchResultSet
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.lang.Void as Should
+import spock.lang.Unroll
 
 class AmazonSearchProviderSpec extends Specification {
 
@@ -37,29 +36,58 @@ class AmazonSearchProviderSpec extends Specification {
     searchProvider = new AmazonSearchProvider(cacheService: cacheService)
   }
 
-  Should 'filter results, set metadata on results, ignore case'() {
+  @Unroll('for type "#type", expecting "#expected"')
+  void 'adds url to results where available'() {
+    when:
+    SearchResultSet resultSet = searchProvider.search('abc', 1, 10)
+
+    then:
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> [key]
+    cacheService.keysByType(_) >> []
+    resultSet.results[0].url == url
+    resultSet.results[0].containsKey('url') == url != null
+
+    where:
+    key                                                               | url
+    Keys.getApplicationKey('abc')                                     | '/applications/abc'
+    Keys.getApplicationKey('aBC')                                     | '/applications/abc'
+    Keys.getServerGroupKey('aBC', 'acct', 'us-w1')                    | '/applications/abc/clusters/acct/aBC/aws/serverGroups/aBC?region=us-w1'
+    Keys.getClusterKey('abc','abc','acct')                            | '/applications/abc/clusters/acct/abc'
+    Keys.getLoadBalancerKey('abc', 'acct', 'us-w1')                   | '/aws/loadBalancers/abc'
+    Keys.getLoadBalancerServerGroupKey('abc', 'acct', 'sg', 'us-w1')  | '/aws/loadBalancers/abc'
+    Keys.getServerGroupInstanceKey('abc','a','acct','us-w1')          | null
+    Keys.getNamedImageKey('abc','imgName', 'us-w1')                   | null
+
+    type = Keys.parse(key).type
+    expected = url ?: '[no url expected]'
+
+  }
+
+  void 'filter results, set metadata on results, ignore case'() {
     given:
     List keys = [Keys.getApplicationKey('miss'), Keys.getApplicationKey('FABCO'), Keys.getApplicationKey('cabco')]
 
     when:
-    SearchResultSet results = searchProvider.search('aBC', 1, 10)
+    SearchResultSet resultSet = searchProvider.search('aBC', 1, 10)
 
     then:
     1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> keys
     cacheService.keysByType(_) >> []
     0 * _
 
-    results.totalMatches == 2
-    results.pageSize == 10
-    results.pageNumber == 1
-    results.platform == 'aws'
-    results.query == 'aBC'
-    results.results.size() == 2
-    results.results[0] == Keys.parse(keys[2])
-    results.results[1] == Keys.parse(keys[1])
+    with(resultSet) {
+      totalMatches == 2
+      pageSize == 10
+      pageNumber == 1
+      platform == 'aws'
+      query == 'aBC'
+      results.size() == 2
+      results[0] == Keys.parse(keys[2]) + [url: '/applications/cabco']
+      results[1] == Keys.parse(keys[1]) + [url: '/applications/fabco']
+    }
   }
 
-  Should 'respect user-specified size limit'() {
+  void 'respect user-specified size limit'() {
     given:
     List keys = [Keys.getApplicationKey('abc'), Keys.getApplicationKey('abd')]
 
@@ -70,10 +98,10 @@ class AmazonSearchProviderSpec extends Specification {
     1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> keys
     cacheService.keysByType(_) >> []
     results.totalMatches == 2
-    results.results == [Keys.parse(keys[0])]
+    results.results == [Keys.parse(keys[0]) + [url: '/applications/abc']]
   }
 
-  Should 'sort results by query, then alphabetically, ignoring the category'() {
+  void 'sort results by query, then alphabetically, ignoring the category'() {
     given:
     List applicationKeys = [Keys.getApplicationKey('abx'), Keys.getApplicationKey('bac')]
     List serverGroupKeys = [Keys.getServerGroupKey('abc', 'account', 'region')]
@@ -85,10 +113,14 @@ class AmazonSearchProviderSpec extends Specification {
     1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> applicationKeys
     1 * cacheService.keysByType(Keys.Namespace.SERVER_GROUPS.ns) >> serverGroupKeys
     cacheService.keysByType(_) >> []
-    results.results == [Keys.parse(applicationKeys[1]), Keys.parse(serverGroupKeys[0]), Keys.parse(applicationKeys[0])]
+    results.results == [
+      Keys.parse(applicationKeys[1]) + [url: '/applications/bac'],
+      Keys.parse(serverGroupKeys[0]) + [url: '/applications/abc/clusters/account/abc/aws/serverGroups/abc?region=region'],
+      Keys.parse(applicationKeys[0]) + [url: '/applications/abx']
+    ]
   }
 
-  Should 'filter by type'() {
+  void 'filter by type'() {
     given:
     List applicationKeys = [Keys.getApplicationKey('abx'), Keys.getApplicationKey('bac')]
 
@@ -98,10 +130,13 @@ class AmazonSearchProviderSpec extends Specification {
     then:
     1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> applicationKeys
     0 * _
-    results.results == [Keys.parse(applicationKeys[1]), Keys.parse(applicationKeys[0])]
+    results.results == [
+      Keys.parse(applicationKeys[1]) + [url: '/applications/bac'],
+      Keys.parse(applicationKeys[0]) + [url: '/applications/abx']
+    ]
   }
 
-  Should 'return empty list when page requested does not exist'() {
+  void 'return empty list when page requested does not exist'() {
     given:
     List applicationKeys = [Keys.getApplicationKey('abx'), Keys.getApplicationKey('bac')]
 
@@ -114,4 +149,6 @@ class AmazonSearchProviderSpec extends Specification {
     results.totalMatches == 2
     results.results == []
   }
+  
+  
 }
