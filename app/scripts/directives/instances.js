@@ -11,7 +11,8 @@ angular.module('deckApp')
       templateUrl: 'views/application/instances.html',
       scope: {
         instances: '=',
-        renderInstancesOnScroll: '='
+        renderInstancesOnScroll: '=',
+        highlight: '='
       },
       link: function (scope, elem) {
         scope.$state = scope.$parent.$state;

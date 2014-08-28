@@ -25,7 +25,7 @@
       <health-counts container="serverGroup"></health-counts>
     </div>
     <div ng-if="displayOptions.showInstances">
-      <instances instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
+      <instances highlight="displayOptions.filter" instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
     </div>
   </div>
 </div>

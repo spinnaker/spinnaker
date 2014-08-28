@@ -43,7 +43,8 @@ angular.module('deckApp')
               $filter('regionAbbreviator')(serverGroup.region).toLowerCase(),
               serverGroup.name.toLowerCase(),
               serverGroup.account.toLowerCase(),
-              _.collect(serverGroup.loadBalancers, 'name').join(' ')
+              _.collect(serverGroup.loadBalancers, 'name').join(' '),
+              _.collect(serverGroup.instances, 'instanceId').join(' ')
             ].join(' ');
           }
         });
@@ -119,7 +120,8 @@ angular.module('deckApp')
       $scope.displayOptions = {
         renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
         showInstances: $scope.sortFilter.showAllInstances,
-        hideHealthy: $scope.sortFilter.hideHealthy
+        hideHealthy: $scope.sortFilter.hideHealthy,
+        filter: $scope.sortFilter.filter
       };
 
       $scope.$digest(); // downside of debouncing
