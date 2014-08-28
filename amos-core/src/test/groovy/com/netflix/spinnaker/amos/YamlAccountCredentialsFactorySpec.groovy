@@ -57,8 +57,18 @@ class YamlAccountCredentialsFactorySpec extends Specification {
       obj.bar == "bleh"
   }
 
-  static class AccountConfig {
+  static class AccountConfig implements AccountCredentials {
     String foo
     String bar
+
+    @Override
+    String getName() {
+      return null
+    }
+
+    @Override
+    Object getCredentials() {
+      return null
+    }
   }
 }
