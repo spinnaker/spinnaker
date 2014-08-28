@@ -16,25 +16,26 @@
 
 package com.netflix.spinnaker.amos;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class InMemoryAccountCredentialsProvider implements AccountCredentialsProvider {
-    private final Map<String, AccountCredentials> accountCredentials = new ConcurrentHashMap<>();
+public class DefaultAccountCredentialsProvider implements AccountCredentialsProvider {
+    private final AccountCredentialsRepository repository;
+
+    public DefaultAccountCredentialsProvider() {
+        this.repository = new MapBackedAccountCredentialsRepository();
+    }
+
+    public DefaultAccountCredentialsProvider(AccountCredentialsRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
-    public Set<String> getAccountNames() {
-        return accountCredentials.keySet();
+    public Set<AccountCredentials> getAll() {
+        return repository.getAll();
     }
 
     @Override
     public AccountCredentials getCredentials(String name) {
-        return accountCredentials.get(name);
-    }
-
-    @Override
-    public void put(AccountCredentials credentials) {
-        accountCredentials.put(credentials.getName(), credentials);
+        return repository.getOne(name);
     }
 }

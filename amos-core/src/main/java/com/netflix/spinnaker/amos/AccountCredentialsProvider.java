@@ -20,32 +20,24 @@ import java.util.Set;
 
 /**
  * Implementations of this interface will provide a mechanism to store and retrieve {@link com.netflix.spinnaker.amos.AccountCredentials}
- * objects.
+ * objects. For manipulating the backing of this provider, consumers of this API should get access to its corresponding {@link com.netflix.spinnaker.amos.AccountCredentialsRepository}
  *
  * @author Dan Woods
  */
 public interface AccountCredentialsProvider {
 
     /**
-     * Returns the names of all of the accounts known to the repository of this provider.
+     * Returns all of the accounts known to the repository of this provider.
      *
      * @return a set of account names
      */
-    Set<String> getAccountNames();
+    Set<AccountCredentials> getAll();
 
     /**
      * Returns a specific {@link com.netflix.spinnaker.amos.AccountCredentials} object a specified name
      *
-     * @param name
+     * @param name the name of the account
      * @return account credentials object
      */
     AccountCredentials getCredentials(String name);
-
-    /**
-     * Stores an {@link com.netflix.spinnaker.amos.AccountCredentials} object in this provider's internal repository, which
-     * will be recalled by some calculable name (such as {@link AccountCredentials#getName()}.
-     *
-     * @param accountCredentials
-     */
-    void put(AccountCredentials accountCredentials);
 }
