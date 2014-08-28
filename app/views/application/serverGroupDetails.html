@@ -56,6 +56,13 @@
     <collapsible-section heading="Launch Configuration">
       <arbitrary-list source="serverGroup.launchConfig" omit="Launch Configuration"></arbitrary-list>
     </collapsible-section>
+    <collapsible-section heading="Security Groups">
+      <ul>
+        <li ng-repeat="securityGroup in securityGroups | orderBy:'toString()'">
+          {{securityGroup}}
+        </li>
+      </ul>
+    </collapsible-section>
     <collapsible-section heading="Package">
       <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
     </collapsible-section>

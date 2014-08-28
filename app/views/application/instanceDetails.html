@@ -71,8 +71,8 @@
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
         <ul>
-          <li ng-repeat="securityGroup in instance.securityGroups">
-            {{securityGroup.groupName}}
+          <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
+            {{securityGroup.groupName}} ({{securityGroup.groupId}})
           </li>
         </ul>
     </collapsible-section>
