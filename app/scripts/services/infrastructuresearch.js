@@ -26,10 +26,10 @@ angular.module('deckApp')
 
       querySubject
         .distinctUntilChanged()
-        .filter(function(input) {
-          return input && angular.isDefined(input) && input.length > 0;
-        })
         .flatMap(function(query) {
+          if (!query || !angular.isDefined(query) || query.length < 1) {
+            return RxService.Observable.just({ data: [{ results: [] }] });
+          }
           return RxService.Observable.fromPromise(searchService.search({
             q: query,
             type: ['applications', 'clusters', 'serverGroupInstances', 'serverGroups', 'loadBalancerServerGroups'],
