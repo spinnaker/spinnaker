@@ -22,7 +22,7 @@ angular.module('deckApp')
         return [
           getCluster(input),
           'serverGroupDetails'
-        ].join('/')+'?serverGroup='+input.serverGroup+'&account='+input.account+'&region='+input.region;
+        ].join('/')+'?serverGroup='+input.serverGroup+'&accountId='+input.account+'&region='+input.region;
       },
       'serverGroupInstances': function(input) {
         return [
