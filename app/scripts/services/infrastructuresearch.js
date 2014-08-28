@@ -2,7 +2,7 @@
 
 var angular = require('angular');
 angular.module('deckApp')
-  .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder, settings, _) {
+  .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder) {
     return function() {
       var deferred;
 
@@ -20,16 +20,6 @@ angular.module('deckApp')
         clusters: 'Clusters',
         applications: 'Applications',
         loadBalancerServerGroups: 'Load Balancers'
-      };
-
-      var filters = {
-        loadBalancerServerGroups: function (entries) {
-          return _.unique(entries, {
-            loadBalancer: 'whatever',
-            region: 'whatever',
-            account: 'whatever'
-          });
-        }
       };
 
       var querySubject = new RxService.Subject();
@@ -58,10 +48,9 @@ angular.module('deckApp')
             return categories;
           }, {});
           deferred.resolve(Object.keys(tmp).map(function(cat) {
-            var results = filters[cat] ? filters[cat](tmp[cat]) : tmp[cat];
             return {
               category: categoryNameLookup[cat],
-              results: results
+              results: tmp[cat],
             };
           }));
         });
