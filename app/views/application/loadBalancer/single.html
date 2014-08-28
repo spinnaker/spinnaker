@@ -13,8 +13,8 @@
   </div>
 </div>
 
-<div class="content server-group-rollup">
-  <h4>{{loadBalancer.region}}</h4>
+<div class="content rollup ">
+  <h4>{{loadBalancer.region | regionAbbreviator }}</h4>
   <div class="sub-group">
     <load-balancer load-balancer="loadBalancer" display-options="displayOptions"></load-balancer>
   </div>
