@@ -40,7 +40,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public void setEddaEnabled(Boolean eddaEnabled) {
-        this.eddaEnabled = eddaEnabled;
+        this.eddaEnabled = eddaEnabled != null ? eddaEnabled : edda.length() > 0;
     }
 
     public Boolean getDiscoveryEnabled() {
@@ -48,7 +48,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public void setDiscoveryEnabled(Boolean discoveryEnabled) {
-        this.discoveryEnabled = discoveryEnabled;
+        this.discoveryEnabled = discoveryEnabled != null ? discoveryEnabled : discovery.length() > 0;
     }
 
     public Boolean getFront50Enabled() {
@@ -56,6 +56,6 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public void setFront50Enabled(Boolean front50Enabled) {
-        this.front50Enabled = front50Enabled;
+        this.front50Enabled = front50Enabled != null ? front50Enabled : front50.length() > 0;
     }
 }
