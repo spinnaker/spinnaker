@@ -8,7 +8,8 @@ versions:
   batch: 3.0.1.RELEASE
   frigga: 0.13
   cglib: 3.1
-  amazoncomponents: 0.9.10
+  amos: 0.7
+  amazoncomponents: 0.9.13
   aws: 1.8.7
   httpclient: 4.3.5
   retrofit: 1.6.1
@@ -40,6 +41,7 @@ groups:
       - aws
 
 dependencies:
+  amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
   bootActuator: "org.springframework.boot:spring-boot-starter-actuator:${versions.springBoot}"
   bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
   bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
