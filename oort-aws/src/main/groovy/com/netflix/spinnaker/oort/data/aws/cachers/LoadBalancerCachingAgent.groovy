@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
@@ -26,7 +26,7 @@ import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 @CompileStatic
 class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
 
-  LoadBalancerCachingAgent(AmazonNamedAccount account, String region) {
+  LoadBalancerCachingAgent(NetflixAmazonCredentials account, String region) {
     super(account, region)
   }
 
@@ -35,7 +35,7 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     log.info "$cachePrefix - Beginning Load Balancer Cache Load."
 
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account.credentials, region)
+    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     def loadBalancers = loadBalancing.describeLoadBalancers()
     def allLoadBalancers = loadBalancers.loadBalancerDescriptions.collectEntries { LoadBalancerDescription loadBalancerDescription -> [(loadBalancerDescription.loadBalancerName): loadBalancerDescription] }
     Map<String, Integer> loadBalancersThisRun = (Map<String, Integer>)allLoadBalancers.collectEntries { loadBalancerName, loadBalancer -> [(loadBalancerName): loadBalancer.hashCode()]}

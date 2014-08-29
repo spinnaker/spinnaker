@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.model.CacheService
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -35,10 +35,10 @@ abstract class AbstractInfrastructureCachingAgent implements InfrastructureCachi
   @Autowired
   CacheService cacheService
 
-  final AmazonNamedAccount account
+  final NetflixAmazonCredentials account
   final String region
 
-  AbstractInfrastructureCachingAgent(AmazonNamedAccount account, String region) {
+  AbstractInfrastructureCachingAgent(NetflixAmazonCredentials account, String region) {
     this.account = account
     this.region = region
   }

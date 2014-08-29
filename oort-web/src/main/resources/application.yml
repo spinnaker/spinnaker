@@ -4,34 +4,29 @@ aws:
       edda: http://edda-main.%s.test.netflix.net:7001
       front50: http://front50.test.netflix.net
       discovery: http://%s.discoverytest.netflix.net:7001
-      atlasHealth: http://atlas-healthcheck-main.%s.dyntest.netflix.net:7001
       regions:
-        - us-east-1
-        - us-west-1
-        - us-west-2
-        - eu-west-1
+        - name: us-east-1
+        - name: us-west-1
+        - name: us-west-2
+        - name: eu-west-1
     - name: prod
       edda: http://edda-main.%s.prod.netflix.net:7001
       front50: http://front50.prod.netflix.net
       discovery: http://%s.discoveryprod.netflix.net:7001
-      atlasHealth: http://atlas-healthcheck-main.%s.dynprod.netflix.net:7001
       regions:
-        - us-east-1
-        - us-west-1
-        - us-west-2
-        - eu-west-1
+        - name: us-east-1
+        - name: us-west-1
+        - name: us-west-2
+        - name: eu-west-1
     - name: mcetest
       edda: http://edda-mce.%s.test.netflix.net:7001
       front50: http://front50-mce.test.netflix.net/mcetest
       discovery: http://%s.discoverytest.netflix.net:7001
-      atlasHealth: http://atlas-healthcheck-mce.%s.dyntest.netflix.net:7001
       regions:
-        - us-east-1
+        - name: us-east-1
     - name: mceprod
       edda: http://edda-mce.%s.prod.netflix.net:7001
       front50: http://front50-mce.prod.netflix.net/mceprod
       discovery: http://%s.discoveryprod.netflix.net:7001
-      atlasHealth: http://atlas-healthcheck-mce.%s.dynprod.netflix.net:7001
       regions:
-        - us-east-1
-
+        - name: us-east-1

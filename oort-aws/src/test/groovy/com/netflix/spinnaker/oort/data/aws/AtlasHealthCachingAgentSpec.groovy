@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 
@@ -29,9 +29,8 @@ class AtlasHealthCachingAgentSpec extends AbstractCachingAgentSpec {
 
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    def account = Mock(AmazonNamedAccount)
+    def account = Mock(NetflixAmazonCredentials)
     account.getName() >> ACCOUNT
-    account.getAtlasHealth() >> 'atlas-%s'
     restTemplate = Mock(RestTemplate)
     def agent = new AtlasHealthCachingAgent(account, REGION)
     agent.restTemplate = restTemplate
@@ -47,21 +46,21 @@ class AtlasHealthCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * restTemplate.getForObject("atlas-us-east-1/api/v1/instance", _) >> [health]
+    1 * restTemplate.getForObject("http://atlas-healthcheck-main.us-east-1.dyntest.netflix.net:7001/api/v1/instance", _) >> [health]
     1 * cacheService.put(key, health)
 
     when:
     agent.load()
 
     then:
-    1 * restTemplate.getForObject("atlas-us-east-1/api/v1/instance", _) >> []
+    1 * restTemplate.getForObject("http://atlas-healthcheck-main.us-east-1.dyntest.netflix.net:7001/api/v1/instance", _) >> []
     1 * cacheService.free(key)
 
     when:
     agent.load()
 
     then:
-    1 * restTemplate.getForObject("atlas-us-east-1/api/v1/instance", _) >> []
+    1 * restTemplate.getForObject("http://atlas-healthcheck-main.us-east-1.dyntest.netflix.net:7001/api/v1/instance", _) >> []
     0 * cacheService.free(_)
   }
 }

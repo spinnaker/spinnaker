@@ -46,8 +46,8 @@ interface ClusterProvider<T extends Cluster> {
   Map<String, Set<T>> getClusters(String application)
 
   /**
-   * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.oort.security.NamedAccount} registered with
-   * a {@link com.netflix.spinnaker.oort.security.NamedAccountProvider}
+   * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.amos.AccountCredentials} registered with
+   * a {@link com.netflix.spinnaker.amos.AccountCredentialsProvider}
    *
    * @param application
    * @param account name
@@ -57,7 +57,7 @@ interface ClusterProvider<T extends Cluster> {
   Set<T> getClusters(String application, String account)
 
   /**
-   * Looks up a cluster known to this provider to be for a specified application, within a specified {@link com.netflix.spinnaker.oort.security.NamedAccount}, and with the specified name.
+   * Looks up a cluster known to this provider to be for a specified application, within a specified {@link com.netflix.spinnaker.amos.AccountCredentials}, and with the specified name.
    *
    * @param account
    * @param name

@@ -18,14 +18,14 @@ package com.netflix.spinnaker.oort.data.aws
 
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.ImageCachingAgent
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 
 class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
 
   @Override
   ImageCachingAgent getCachingAgent() {
-    new ImageCachingAgent(Mock(AmazonNamedAccount), REGION)
+    new ImageCachingAgent(Mock(NetflixAmazonCredentials), REGION)
   }
 
   void "load new images and remove images that have disappeared since the last run"() {

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.oort.controllers
 
 import com.netflix.spinnaker.oort.model.*
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource

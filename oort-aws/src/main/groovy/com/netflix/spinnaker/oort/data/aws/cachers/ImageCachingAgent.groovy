@@ -17,15 +17,15 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.ec2.model.Image
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 
 @CompileStatic
 class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
-  ImageCachingAgent(AmazonNamedAccount account, String region) {
+  ImageCachingAgent(NetflixAmazonCredentials account, String region) {
     super(account, region)
   }
 
@@ -33,7 +33,7 @@ class ImageCachingAgent extends AbstractInfrastructureCachingAgent {
 
   void load() {
     log.info "$cachePrefix - Beginning Image Cache Load."
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 
     def images = amazonEC2.describeImages()
     def allImages = images.images.collectEntries { Image image -> [("${image.imageId}:${image.name}".toString()): image] }

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.oort.data.aws.front50
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.ApplicationLoader
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +36,7 @@ class Front50ApplicationLoader implements ApplicationLoader {
   private static final Logger log = Logger.getLogger(this)
 
   @Autowired
-  NamedAccountProvider namedAccountProvider
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
   CacheService cacheService
@@ -48,13 +48,12 @@ class Front50ApplicationLoader implements ApplicationLoader {
   @Scheduled(fixedRateString = '${cacheRefreshMs:60000}')
   void load() {
     log.info "Beginning Front50 Application Caching..."
-    for (name in namedAccountProvider.accountNames) {
-      def a = namedAccountProvider.get(name)
-      if (!(a instanceof AmazonNamedAccount)) {
+    for (cred in accountCredentialsProvider.all) {
+      if (!(cred instanceof NetflixAmazonCredentials)) {
         continue
       }
-      def account = (AmazonNamedAccount) a
-      if (account.front50) {
+      def account = (NetflixAmazonCredentials) cred
+      if (account.front50Enabled) {
         try {
           def list = (List<Map<String, String>>) restTemplate.getForObject("${account.front50}/applications", List)
           for (Map<String, String> input in list) {

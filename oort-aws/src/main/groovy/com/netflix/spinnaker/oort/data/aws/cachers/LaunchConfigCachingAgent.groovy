@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
@@ -26,7 +26,7 @@ import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 @CompileStatic
 class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
 
-  LaunchConfigCachingAgent(AmazonNamedAccount account, String region) {
+  LaunchConfigCachingAgent(NetflixAmazonCredentials account, String region) {
     super(account, region)
   }
 
@@ -35,7 +35,7 @@ class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     log.info "$cachePrefix - Beginning Launch Config Cache Load."
 
-    def autoScaling = amazonClientProvider.getAutoScaling(account.credentials, region)
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region)
     def launchConfigs = autoScaling.describeLaunchConfigurations()
     def allLaunchConfigs = launchConfigs.launchConfigurations.collectEntries { LaunchConfiguration launchConfiguration -> [(launchConfiguration.launchConfigurationName): launchConfiguration] }
     Map<String, Integer> launchConfigsThisRun = (Map<String, Integer>)allLaunchConfigs.collectEntries { launchConfigName, launchConfig -> [(launchConfigName): launchConfig.hashCode()] }

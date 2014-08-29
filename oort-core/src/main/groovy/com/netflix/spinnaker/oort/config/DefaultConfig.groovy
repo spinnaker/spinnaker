@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.oort.config
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.InMemoryCacheService
-import com.netflix.spinnaker.oort.security.DefaultNamedAccountProvider
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -28,9 +30,15 @@ import org.springframework.context.annotation.Configuration
 class DefaultConfig {
 
   @Bean
-  @ConditionalOnMissingBean(NamedAccountProvider)
-  NamedAccountProvider namedAccountProvider() {
-    new DefaultNamedAccountProvider()
+  @ConditionalOnMissingBean(AccountCredentialsRepository)
+  AccountCredentialsRepository accountCredentialsRepository() {
+    new MapBackedAccountCredentialsRepository()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AccountCredentialsProvider)
+  AccountCredentialsProvider accountCredentialsProvider(AccountCredentialsRepository accountCredentialsRepository) {
+    new DefaultAccountCredentialsProvider(accountCredentialsRepository)
   }
 
   @Bean

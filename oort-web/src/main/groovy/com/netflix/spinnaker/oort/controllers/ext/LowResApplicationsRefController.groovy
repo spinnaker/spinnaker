@@ -21,7 +21,6 @@ import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.ClusterProvider
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -37,9 +36,6 @@ class LowResApplicationsRefController {
 
   @Autowired
   List<ApplicationProvider> applicationProviders
-
-  @Autowired
-  NamedAccountProvider namedAccountProvider
 
   @Autowired
   List<ClusterProvider> clusterProviders

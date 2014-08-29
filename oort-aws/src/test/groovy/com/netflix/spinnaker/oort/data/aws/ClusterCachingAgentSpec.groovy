@@ -19,17 +19,17 @@ package com.netflix.spinnaker.oort.data.aws
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.ClusterCachingAgent
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 
 class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    def acct = Mock(AmazonNamedAccount)
+    def acct = Mock(NetflixAmazonCredentials)
     acct.getName() >> ACCOUNT
     new ClusterCachingAgent(acct, REGION)
   }
@@ -208,7 +208,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
   }
 
   private def getCommonMocks() {
-    def account = Mock(AmazonNamedAccount)
+    def account = Mock(NetflixAmazonCredentials)
     account.getName() >> ACCOUNT
     def asgName = "kato-main-v000"
     def launchConfigName = "kato-main-v000-123456"

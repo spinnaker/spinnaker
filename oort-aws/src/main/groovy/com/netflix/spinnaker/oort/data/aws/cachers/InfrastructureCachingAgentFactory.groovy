@@ -16,33 +16,33 @@
 
 package com.netflix.spinnaker.oort.data.aws.cachers
 
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class InfrastructureCachingAgentFactory {
 
-  static InfrastructureCachingAgent getImageCachingAgent(AmazonNamedAccount account, String region) {
+  static InfrastructureCachingAgent getImageCachingAgent(NetflixAmazonCredentials account, String region) {
     new ImageCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getClusterCachingAgent(AmazonNamedAccount account, String region) {
+  static InfrastructureCachingAgent getClusterCachingAgent(NetflixAmazonCredentials account, String region) {
     new ClusterCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getInstanceCachingAgent(AmazonNamedAccount account, String region) {
+  static InfrastructureCachingAgent getInstanceCachingAgent(NetflixAmazonCredentials account, String region) {
     new InstanceCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getAtlasHealthCachingAgent(AmazonNamedAccount account, String region) {
+  static InfrastructureCachingAgent getAtlasHealthCachingAgent(NetflixAmazonCredentials account, String region) {
     new AtlasHealthCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getLaunchConfigCachingAgent(AmazonNamedAccount account, String region) {
+  static InfrastructureCachingAgent getLaunchConfigCachingAgent(NetflixAmazonCredentials account, String region) {
     new LaunchConfigCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getLoadBalancerCachingAgent(AmazonNamedAccount account, String region) {
+  static InfrastructureCachingAgent getLoadBalancerCachingAgent(NetflixAmazonCredentials account, String region) {
     new LoadBalancerCachingAgent(account, region)
   }
 
