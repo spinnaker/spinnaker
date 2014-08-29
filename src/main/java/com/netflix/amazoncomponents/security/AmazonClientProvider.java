@@ -19,7 +19,6 @@ package com.netflix.amazoncomponents.security;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
@@ -46,12 +45,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
 import com.netflix.amazoncomponents.model.RetryCallback;
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
@@ -110,63 +109,52 @@ public class AmazonClientProvider {
     this.retryCallback = retryCallback;
   }
 
-  public AmazonEC2 getAmazonEC2(AmazonCredentials amazonCredentials, String region) {
+  public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region);
 
   }
 
-  public AmazonAutoScaling getAutoScaling(AmazonCredentials amazonCredentials, String region) {
+  public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region);
   }
 
-  public AmazonRoute53 getAmazonRoute53(AmazonCredentials amazonCredentials, String region) {
+  public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region);
   }
 
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(AmazonCredentials amazonCredentials, String region) {
+  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region);
   }
 
-  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AmazonCredentials amazonCredentials, String region) {
+  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region);
   }
 
-  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AWSCredentialsProviderChain providerChain, String region) {
-    if (providerChain == null) {
-      throw new IllegalArgumentException("Provider chain cannot be null");
-    }
-    AmazonSimpleWorkflowClient client = new AmazonSimpleWorkflowClient(providerChain);
-    if (region != null && region.length() > 0) {
-      client.setRegion(Region.getRegion(Regions.fromName(region)));
-    }
-    return client;
-  }
-
-  public AmazonCloudWatch getAmazonCloudWatch(AmazonCredentials amazonCredentials, String region) {
+  public AmazonCloudWatch getAmazonCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
-  public AmazonSNS getAmazonSNS(AmazonCredentials amazonCredentials, String region) {
+  public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region);
   }
 
-  public AmazonCloudWatch getCloudWatch(AmazonCredentials amazonCredentials, String region) {
+  public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
     return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
-  protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, AmazonCredentials amazonCredentials, String region) {
+  protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
     try {
       T delegate = getClient(impl, amazonCredentials, region);
       U client = (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz}, new ThrottledAmazonClientInvocationHandler(delegate, retryCallback));
-      if (!amazonCredentials.isEddaConfigured()) {
+      if (!amazonCredentials.getEddaEnabled()) {
         return client;
       } else {
         return (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
@@ -177,7 +165,7 @@ public class AmazonClientProvider {
     }
   }
 
-  protected <T extends AmazonWebServiceClient> T getClient(Class<T> impl, AmazonCredentials amazonCredentials, String region) throws IllegalAccessException, InvocationTargetException,
+  protected <T extends AmazonWebServiceClient> T getClient(Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) throws IllegalAccessException, InvocationTargetException,
     InstantiationException, NoSuchMethodException {
     Constructor<T> constructor = impl.getConstructor(AWSCredentials.class);
     T delegate = constructor.newInstance(amazonCredentials.getCredentials());
@@ -187,12 +175,12 @@ public class AmazonClientProvider {
     return delegate;
   }
 
-  protected GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, AmazonCredentials amazonCredentials) {
+  protected GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
     return new GeneralAmazonClientInvocationHandler(client, serviceName, String.format(amazonCredentials.getEdda(), region),
       this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
   }
 
-  private static void checkCredentials(AmazonCredentials amazonCredentials) {
+  private static void checkCredentials(NetflixAmazonCredentials amazonCredentials) {
     if (amazonCredentials == null) {
       throw new IllegalArgumentException("Credentials cannot be null");
     }
@@ -219,7 +207,7 @@ public class AmazonClientProvider {
       } catch (InvocationTargetException ex) {
         Throwable t = ex.getTargetException();
         if (t instanceof AmazonServiceException) {
-          AmazonServiceException e = (AmazonServiceException)t;
+          AmazonServiceException e = (AmazonServiceException) t;
           if ("RequestLimitExceeded".equals(e.getErrorCode())) {
             boolean tryAgain = retryCallback.doCall(e, attempts);
             if (tryAgain) {
