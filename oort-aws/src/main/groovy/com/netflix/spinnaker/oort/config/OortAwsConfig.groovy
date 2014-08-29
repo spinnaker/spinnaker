@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
@@ -41,18 +40,10 @@ import javax.annotation.PostConstruct
 @Configuration
 class OortAwsConfig {
 
-  static class ManagedAccount {
-    String name
-    String edda
-    String front50
-    String discovery
-    List<String> regions
-  }
-
   @Component
   @ConfigurationProperties("aws")
   static class AwsConfigurationProperties {
-    List<ManagedAccount> accounts
+    List<NetflixAmazonCredentials> accounts
   }
 
   @Bean
@@ -90,8 +81,8 @@ class OortAwsConfig {
 
     @PostConstruct
     void init() {
-      for (account in awsConfigurationProperties.accounts) {
-        def namedAccount = createCredentials(account)
+      for (namedAccount in awsConfigurationProperties.accounts) {
+        namedAccount.credentialsProvider = awsCredentialsProvider
         accountCredentialsRepository.save(namedAccount.name, namedAccount)
         for (region in namedAccount.regions) {
           autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region.name)
@@ -101,23 +92,6 @@ class OortAwsConfig {
           autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region.name)
         }
-      }
-    }
-
-    private NetflixAmazonCredentials createCredentials(ManagedAccount managedAccount) {
-      new NetflixAmazonCredentials().with {
-        credentialsProvider = awsCredentialsProvider
-        name = managedAccount.name
-        edda = managedAccount.edda
-        front50 = managedAccount.front50
-        discovery = managedAccount.discovery
-        regions = managedAccount.regions.collect { String region ->
-          new AmazonCredentials.AWSRegion().with {
-            name = region
-            it
-          }
-        }
-        it
       }
     }
 
