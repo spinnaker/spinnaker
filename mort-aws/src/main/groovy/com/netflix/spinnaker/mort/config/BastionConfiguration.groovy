@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.mort.config
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
 @CompileStatic
-@Configuration
-class MortAWSConfig {
-
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
-
+@Component
+@ConfigurationProperties("bastion")
+class BastionConfiguration {
+  Boolean enabled
+  String host
+  String user
+  Integer port
+  String proxyCluster
+  String proxyRegion
 }

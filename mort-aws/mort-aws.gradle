@@ -1,4 +1,6 @@
 dependencies {
-  compile spinnaker.dependency("amazoncomponents")
+  compile project(":mort-core")
+  compile spinnaker.dependency("frigga")
+  compile 'com.netflix.amazoncomponents:amazoncomponents:0.9.14'
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
 }

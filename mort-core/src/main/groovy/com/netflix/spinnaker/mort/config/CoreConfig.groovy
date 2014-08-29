@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort
+package com.netflix.spinnaker.mort.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.amos.*
+import com.netflix.spinnaker.mort.model.CacheService
+import com.netflix.spinnaker.mort.model.InMemoryCacheService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -37,5 +36,11 @@ class CoreConfig {
   @ConditionalOnMissingBean(AccountCredentialsProvider)
   AccountCredentialsProvider accountCredentialsProvider(AccountCredentialsRepository repo) {
     new DefaultAccountCredentialsProvider(repo)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(CacheService)
+  CacheService cacheService() {
+    new InMemoryCacheService()
   }
 }

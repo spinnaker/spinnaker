@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.model.securitygroups
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import com.netflix.spinnaker.mort.model.AddressableRange
+import groovy.transform.Immutable
 
-@CompileStatic
-@Configuration
-class MortAWSConfig {
+@Immutable
+class IpRangeRule implements Rule {
+  /**
+   * The addressable range associated with this rule
+   */
+  final AddressableRange range
 
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
-
+  /**
+   * {@inheritDoc}
+   */
+  final Set<Rule.PortRange> portRanges
 }

@@ -16,18 +16,6 @@
 
 package com.netflix.spinnaker.mort.config
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-
-@CompileStatic
-@Configuration
-class MortAWSConfig {
-
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
+interface CredentialsInitializer {
 
 }

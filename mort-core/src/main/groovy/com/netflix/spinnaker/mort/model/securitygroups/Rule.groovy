@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.model.securitygroups
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+/**
+ * An abstract interface representing a security rule.
+ *
+ * @see IpRangeRule
+ * @see SecurityGroupRule
+ */
+interface Rule {
+  /**
+   * The port ranges associated with this rule
+   *
+   * @return
+   */
+  Set<PortRange> getPortRanges()
 
-@CompileStatic
-@Configuration
-class MortAWSConfig {
-
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
+  static class PortRange {
+    Integer startPort
+    Integer endPort
   }
-
 }

@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.mort.config
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
 import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
 @CompileStatic
-@Configuration
-class MortAWSConfig {
-
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
-
+@Component
+@ConfigurationProperties("aws")
+class AwsConfigurationProperties {
+  String assumeRole
+  // This is the IAM Role that Mort will operate under
+  String accountIamRole
+  // These are accounts that have been configured with permissions under the above assumeRole for Kato to perform operations
+  List<NetflixAssumeRoleAamzonCredentials> accounts
 }

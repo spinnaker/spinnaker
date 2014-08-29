@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.aws.model
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import com.netflix.spinnaker.mort.model.SecurityGroup
+import com.netflix.spinnaker.mort.model.securitygroups.Rule
+import groovy.transform.Immutable
 
-@CompileStatic
-@Configuration
-class MortAWSConfig {
-
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
-
+@Immutable
+class AmazonSecurityGroup implements SecurityGroup {
+  final String id
+  final String name
+  final Set<String> applications
+  final Set<Rule> inboundRules
+  final Set<Rule> outboundRules
 }

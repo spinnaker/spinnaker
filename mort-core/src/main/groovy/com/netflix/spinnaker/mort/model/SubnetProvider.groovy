@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.model
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import groovy.transform.CompileStatic
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+interface SubnetProvider {
 
-@CompileStatic
-@Configuration
-class MortAWSConfig {
+  Set<Subnet> getAll()
 
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
-
+  // TODO: fill in the reet
 }

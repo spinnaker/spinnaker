@@ -17,25 +17,44 @@
 package com.netflix.spinnaker.mort
 
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.spinnaker.mort.model.CachingAgentScheduler
+import com.netflix.spinnaker.mort.rx.RxCachingAgentScheduler
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.*
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.kato")
+@ComponentScan("com.netflix.spinnaker.mort")
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
+  static {
+    imposeSpinnakerFileConfig("kato-internal.yml")
+    imposeSpinnakerFileConfig("kato-local.yml")
+  }
+
   static void main(_) {
     SpringApplication.run this, [] as String[]
+  }
+
+  static void imposeSpinnakerFileConfig(String file) {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
+    if (internalConfig.exists()) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
+    }
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     application.sources Main
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(CachingAgentScheduler)
+  CachingAgentScheduler cachingAgentScheduler() {
+    new RxCachingAgentScheduler()
   }
 
   @Bean

@@ -1,3 +1,4 @@
 dependencies {
-  compile spinnaker.dependency("amos")
+  compile spinnaker.dependency("rxJava")
+  compile 'com.netflix.spinnaker:amos-core:0.8'
 }
