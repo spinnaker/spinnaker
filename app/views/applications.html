@@ -1,6 +1,19 @@
-<div class="row">
-  <div class="col-md-10">
+<div class="row applications">
+  <div class="col-md-2">
     <h3>Applications</h3>
+  </div>
+  <div class="col-md-8">
+    <form class="form form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <input type="search"
+                 placeholder="Search applications"
+                 class="form-control input-md"
+                 focus
+                 ng-model="applicationFilter">
+        </div>
+      </div>
+    </form>
   </div>
   <div class="col-md-2 pull-right">
     <insight-menu actions="menuActions"></insight-menu>
@@ -8,14 +21,6 @@
 </div>
 <div class="row">
   <div class="col-md-12">
-    <form class="form form-inline">
-      <div class="form-group">
-        <label>
-          Filter
-          <input type="search" class="form-control input-sm" ng-model="applicationFilter" ng-change="ctrl.filterApplications()">
-        </label>
-      </div>
-    </form>
     <button style="display:none" ng-click="ctrl.demoMultiPageModal()">Fire up multi-page modal</button>
     <h2 ng-if="!applicationsLoaded" class="text-center" style="margin-bottom: 250px">
       <span us-spinner="{radius:30, width:8, length: 16}"></span>
@@ -23,8 +28,9 @@
     <table ng-if="applicationsLoaded" class="table table-striped">
       <thead>
         <th sort-toggle key="name" label="Name" default="true"></th>
-        <th sort-toggle parent-reverse="reverse" key="attributes.createTs" label="Created" on-change="ctrl.filterApplications()"></th>
-        <th sort-toggle parent-reverse="reverse" key="attributes.updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
+        <th sort-toggle key="attributes.createTs" label="Created"></th>
+        <th sort-toggle key="attributes.updateTs" label="Updated"></th>
+        <th sort-toggle key="attributes.email" label="Owner">
       </thead>
       <tbody>
         <tr ng-repeat="application in applications | filter:applicationFilter | orderBy:sortModel.sortKey:sortModel.reverse">
@@ -38,6 +44,9 @@
           </td>
           <td>
             {{ application.attributes.updateTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+          </td>
+          <td>
+            {{ application.attributes.email }}
           </td>
         </tr>
       </tbody>
