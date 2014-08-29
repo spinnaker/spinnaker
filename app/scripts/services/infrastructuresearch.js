@@ -26,7 +26,7 @@ angular.module('deckApp')
 
       querySubject
         .distinctUntilChanged()
-        .flatMap(function(query) {
+        .flatMapLatest(function(query) {
           if (!query || !angular.isDefined(query) || query.length < 1) {
             return RxService.Observable.just({ data: [{ results: [] }] });
           }

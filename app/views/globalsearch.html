@@ -1,32 +1,36 @@
-<li class="dropdown global-search">
-  <form class="navbar-form right global-search dropdown-toggle">
+<li class="global-search open">
+  <form class="navbar-form right global-search">
     <div class="form-group">
       <input type="search"
         class="form-control"
         placeholder="Search"
         ng-model="query"
-        ng-keyup="ctrl.dispatchQueryInput($event)"
-        ng-focus="ctrl.showSearchResults()">
+        ng-keyup="ctrl.dispatchQueryInput($event)">
       </input>
     </div>
   </form>
   <ul class="dropdown-menu"
       role="menu"
-      ng-show="showSearchResults">
+      ng-if="showSearchResults">
     <li ng-repeat-start="category in categories">
-      {{ category.category }}
+      <div class="category-heading">{{ category.category }}</div>
     </li>
     <li ng-repeat="result in category.results.slice(0,5)"
         ng-repeat-end
         class="result">
-      <a ng-keyup="ctrl.navigateResults($event)" href="{{ result.href }}">{{ result.name }}</a>
+      <a ng-keydown="ctrl.navigateResults($event)" href="{{ result.href }}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span></a>
     </li>
-    <li>
+    <li class="divider"></li>
+    <li class="result" ng-if="categories.length">
     <a href="#/infrastructure?q={{ query }}"
          class="expand-results"
+         ng-keydown="ctrl.navigateResults($event)"
          ng-show="categories.length">
            See more results
       </a>
+    </li>
+    <li class="result" ng-if="!categories.length">
+      <a>No matches</a>
     </li>
   </ul>
 </li>
