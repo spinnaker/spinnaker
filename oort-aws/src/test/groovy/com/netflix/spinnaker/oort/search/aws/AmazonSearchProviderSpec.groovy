@@ -50,7 +50,7 @@ class AmazonSearchProviderSpec extends Specification {
     where:
     key                                                               | url
     Keys.getApplicationKey('abc')                                     | '/applications/abc'
-    Keys.getApplicationKey('aBC')                                     | '/applications/abc'
+    Keys.getApplicationKey('aBCD')                                    | '/applications/abcd'
     Keys.getServerGroupKey('aBC', 'acct', 'us-w1')                    | '/applications/abc/clusters/acct/aBC/aws/serverGroups/aBC?region=us-w1'
     Keys.getClusterKey('abc','abc','acct')                            | '/applications/abc/clusters/acct/abc'
     Keys.getLoadBalancerKey('abc', 'acct', 'us-w1')                   | '/aws/loadBalancers/abc'
@@ -84,6 +84,26 @@ class AmazonSearchProviderSpec extends Specification {
       results.size() == 2
       results[0] == Keys.parse(keys[2]) + [url: '/applications/cabco']
       results[1] == Keys.parse(keys[1]) + [url: '/applications/fabco']
+    }
+  }
+
+  void 'ignores key type'() {
+    given:
+    List keys = [
+      "${Keys.Namespace.APPLICATIONS}:${Keys.Namespace.APPLICATIONS.ns.toLowerCase()}foo",
+      "${Keys.Namespace.APPLICATIONS}:bar"
+    ]
+
+    when:
+    SearchResultSet resultSet = searchProvider.search(Keys.Namespace.APPLICATIONS.ns, 1, 10)
+
+    then:
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> keys
+    cacheService.keysByType(_) >> []
+
+    with(resultSet) {
+      totalMatches == 1
+      !results[0].application.contains('bar')
     }
   }
 

@@ -103,7 +103,7 @@ class AmazonSearchProvider implements SearchProvider {
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
       matches.addAll(cacheService.keysByType(cache).findAll { String key ->
-        key.toLowerCase().indexOf(normalizedWord) >= 0
+        key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0
       })
     }
     matches.sort { String a, String b ->
