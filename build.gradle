@@ -27,6 +27,8 @@ buildscript {
 apply plugin: 'spinnaker-gradle-project'
 apply plugin: 'groovy'
 
+group = "com.netflix.spinnaker"
+
 configurations {
   compile.extendsFrom groovy
   testCompile.extendsFrom -= groovy
