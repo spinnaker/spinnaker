@@ -24,10 +24,10 @@ import com.amazonaws.services.autoscaling.model.CreateOrUpdateTagsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAsgTagsDescription
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import spock.lang.Specification
 
 class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
@@ -41,7 +41,7 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new UpsertAsgTagsDescription(asgName: "myasg-stack-v000", tags: ["key": "value"], regions: ["us-west-1"])
-    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
     def operation = new UpsertAsgTagsAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
 

@@ -19,11 +19,11 @@ package com.netflix.spinnaker.kato.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
-import com.netflix.spinnaker.kato.security.aws.BasicAmazonNamedAccountCredentials
 import com.netflix.spinnaker.kato.security.aws.BastionCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -65,7 +65,7 @@ class KatoAWSConfig {
   @ConditionalOnExpression('${bastion.enabled:false}')
   static class BastionCredentialsInitializer {
     @Autowired
-    NamedAccountCredentialsHolder namedAccountCredentialsHolder
+    AccountCredentialsRepository accountCredentialsRepository
 
     @Autowired
     BastionConfiguration bastionConfiguration
@@ -77,7 +77,11 @@ class KatoAWSConfig {
     void init() {
       def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
         bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
-      configureAccount provider, namedAccountCredentialsHolder, awsConfigurationProperties
+
+      for (account in awsConfigurationProperties.accounts) {
+        account.credentialsProvider = provider
+        accountCredentialsRepository.save(account.name, account)
+      }
     }
   }
 
@@ -88,7 +92,7 @@ class KatoAWSConfig {
     AWSCredentialsProvider awsCredentialsProvider
 
     @Autowired
-    NamedAccountCredentialsHolder namedAccountCredentialsHolder
+    AccountCredentialsRepository accountCredentialsRepository
 
     @Autowired
     AwsConfigurationProperties awsConfigurationProperties
@@ -99,16 +103,13 @@ class KatoAWSConfig {
     @PostConstruct
     void init() {
       if (!awsConfigurationProperties.accounts) {
-        namedAccountCredentialsHolder.put(defaultEnv, new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, null, true))
+        accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(name: defaultEnv))
       } else {
-        configureAccount awsCredentialsProvider, namedAccountCredentialsHolder, awsConfigurationProperties
+        for (account in awsConfigurationProperties.accounts) {
+          account.credentialsProvider = awsCredentialsProvider
+          accountCredentialsRepository.save(account.name, account)
+        }
       }
-    }
-  }
-
-  private static void configureAccount(AWSCredentialsProvider provider, NamedAccountCredentialsHolder namedAccountCredentialsHolder, AwsConfigurationProperties awsConfigurationProperties) {
-    for (account in awsConfigurationProperties.accounts) {
-      namedAccountCredentialsHolder.put(account.name, new AmazonRoleAccountCredentials(provider, account.accountId, account.name, awsConfigurationProperties.assumeRole, account.edda, account.discoveryEnabled, account.regions))
     }
   }
 
@@ -116,14 +117,6 @@ class KatoAWSConfig {
     String iamRole
     String keyPair
     List<AmazonInstanceClassBlockDevice> instanceClassBlockDevices = []
-  }
-
-  static class ManagedAccount {
-    String name
-    String accountId
-    String edda
-    boolean discoveryEnabled
-    List<AwsRegion> regions
   }
 
   @Component
@@ -136,6 +129,6 @@ class KatoAWSConfig {
     // This is the IAM Role that Kato will assume within ManagedAccounts
     String assumeRole
     // These are accounts that have been configured with permissions under the above assumeRole for Kato to perform operations
-    List<ManagedAccount> accounts
+    List<NetflixAssumeRoleAamzonCredentials> accounts
   }
 }

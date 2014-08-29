@@ -17,15 +17,16 @@
 
 package com.netflix.spinnaker.kato.config
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.data.task.InMemoryTaskRepository
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DefaultDeployHandlerRegistry
 import com.netflix.spinnaker.kato.deploy.DeployHandlerRegistry
 import com.netflix.spinnaker.kato.orchestration.DefaultOrchestrationProcessor
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
-import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -39,9 +40,15 @@ class CoreConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(NamedAccountCredentials)
-  NamedAccountCredentialsHolder namedAccountCredentialsHolder() {
-    new DefaultNamedAccountCredentialsHolder()
+  @ConditionalOnMissingBean(AccountCredentialsRepository)
+  AccountCredentialsRepository accountCredentialsRepository() {
+    new MapBackedAccountCredentialsRepository()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AccountCredentialsProvider)
+  AccountCredentialsProvider accountCredentialsProvider(AccountCredentialsRepository accountCredentialsRepository) {
+    new DefaultAccountCredentialsProvider(accountCredentialsRepository)
   }
 
   @Bean

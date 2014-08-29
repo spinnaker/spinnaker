@@ -32,10 +32,10 @@ import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -55,7 +55,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
       )
     ],
     securityGroups: ["foo"],
-    credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "bar"),
+    credentials: new NetflixAssumeRoleAamzonCredentials(name: "bar"),
     healthCheck: "HTTP:7001/health"
   )
 

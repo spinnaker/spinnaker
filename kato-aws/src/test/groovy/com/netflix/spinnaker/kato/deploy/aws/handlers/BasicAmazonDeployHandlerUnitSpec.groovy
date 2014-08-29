@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.config.AmazonInstanceClassBlockDevice
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
@@ -29,7 +30,6 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import spock.lang.Shared
 import spock.lang.Specification
@@ -76,7 +76,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
     def description = new BasicAmazonDeployDescription()
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
 
     when:
     def results = handler.handle(description, [])
@@ -93,7 +93,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.setLoadBalancers = { setlbCalls++ }
     def description = new BasicAmazonDeployDescription()
     description.availabilityZones = ["us-east-1": []]
-    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
 
     when:
     handler.handle(description, [new UpsertAmazonLoadBalancerResult(loadBalancers: ["us-east-1": new UpsertAmazonLoadBalancerResult.LoadBalancer("lb", "lb1.nflx")])])
@@ -113,7 +113,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def description = new BasicAmazonDeployDescription()
     description.instanceType = "m3.medium"
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
 
     when:
     def results = handler.handle(description, [])
@@ -136,7 +136,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     description.instanceType = "m3.medium"
     description.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
 
     when:
     def results = handler.handle(description, [])

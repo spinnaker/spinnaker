@@ -17,9 +17,10 @@
 
 package com.netflix.spinnaker.kato.com.netflix.asgard.kato.controllers
 
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.controllers.CredentialsController
-import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -35,9 +36,10 @@ class CredentialsControllerSpec extends Specification {
 
   void "named credential names are listed"() {
     setup:
-    def namedAccountCredentialsHolder = new DefaultNamedAccountCredentialsHolder()
-    namedAccountCredentialsHolder.put("test", new TestNamedAccountCredentials())
-    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(namedAccountCredentialsHolder: namedAccountCredentialsHolder)).build()
+    def credsRepo = new MapBackedAccountCredentialsRepository()
+    def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
+    credsRepo.save("test", new TestNamedAccountCredentials())
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountCredentialsProvider: credsProvider)).build()
 
     when:
     def result = mvc.perform(MockMvcRequestBuilders.get("/credentials").accept(MediaType.APPLICATION_JSON)).andReturn()
@@ -47,7 +49,9 @@ class CredentialsControllerSpec extends Specification {
     result.response.contentAsString == '["test"]'
   }
 
-  static class TestNamedAccountCredentials implements NamedAccountCredentials<Map> {
+  static class TestNamedAccountCredentials implements AccountCredentials<Map> {
+
+    String name = "test"
 
     @Override
     Map getCredentials() {

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.UpsertSecurityGroupAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
@@ -38,7 +37,7 @@ class UpsertSecurityGroupAtomicOperationConverter extends AbstractAtomicOperatio
   @Override
   UpsertSecurityGroupDescription convertDescription(Map input) {
     def converted = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).convertValue(input, UpsertSecurityGroupDescription)
-    converted.credentials = getCredentialsObject(input.credentials as String) as AmazonCredentials
+    converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }
 }

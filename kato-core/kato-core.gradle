@@ -17,4 +17,5 @@
 dependencies {
   compile commonDependencies.springBootDataRest
   compile commonDependencies.springBootActuator
+  compile commonDependencies.amos
 }

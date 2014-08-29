@@ -20,7 +20,6 @@ package com.netflix.spinnaker.kato.deploy.aws.converters
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
@@ -50,7 +49,7 @@ class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
   UpsertAmazonLoadBalancerDescription convertDescription(Map input) {
     def json = objectMapper.writeValueAsString(input)
     def description = objectMapper.readValue(json, UpsertAmazonLoadBalancerDescription)
-    description.credentials = (AmazonCredentials) getCredentialsObject(input.credentials as String)
+    description.credentials = getCredentialsObject(input.credentials as String)
     description
   }
 }

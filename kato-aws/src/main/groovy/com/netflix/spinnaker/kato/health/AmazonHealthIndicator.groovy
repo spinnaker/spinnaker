@@ -19,10 +19,8 @@ package com.netflix.spinnaker.kato.health
 
 import com.amazonaws.AmazonServiceException
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
@@ -35,22 +33,20 @@ import org.springframework.web.bind.annotation.ResponseStatus
 class AmazonHealthIndicator implements HealthIndicator {
 
   @Autowired
-  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
   AmazonClientProvider amazonClientProvider
 
   @Override
   Health health() {
-    List<NamedAccountCredentials> amazonCredentials = namedAccountCredentialsHolder.accountNames.collect {
-      namedAccountCredentialsHolder.getCredentials(it)
-    }.findAll { it instanceof AmazonRoleAccountCredentials }
+    Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll { it instanceof NetflixAmazonCredentials } as Set<NetflixAmazonCredentials>
     if (!amazonCredentials) {
       throw new AmazonCredentialsNotFoundException()
     }
-    for (NamedAccountCredentials<AmazonCredentials> namedAccountCredentials in amazonCredentials) {
+    for (NetflixAmazonCredentials credentials in amazonCredentials) {
       try {
-        def ec2 = amazonClientProvider.getAmazonEC2(namedAccountCredentials.credentials, "us-east-1")
+        def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
         ec2.describeAccountAttributes()
       } catch (AmazonServiceException e) {
         throw new AmazonUnreachableException(e)

@@ -107,7 +107,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   AutoScalingGroup getAncestorAsg(String region) {
     def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
     def autoScalingWorker = new AutoScalingWorker(application: description.application, autoScaling: autoScaling, region: region,
-      environment: description.credentials.environment)
+      environment: description.credentials.name)
     autoScalingWorker.ancestorAsg
   }
 

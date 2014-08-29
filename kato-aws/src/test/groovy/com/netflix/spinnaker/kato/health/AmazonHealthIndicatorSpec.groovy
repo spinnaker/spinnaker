@@ -21,10 +21,8 @@ import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
 import org.springframework.boot.actuate.health.OrderedHealthAggregator
@@ -41,10 +39,11 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health fails when no aws credentials are available"() {
     setup:
-    def holder = Mock(NamedAccountCredentialsHolder)
-    holder.getAccountNames() >> ["foo"]
-    holder.getCredentials("foo") >> Mock(NamedAccountCredentials)
-    def endpoint = new HealthEndpoint(new OrderedHealthAggregator(), [health: new AmazonHealthIndicator(namedAccountCredentialsHolder: holder)])
+    def holder = Mock(AccountCredentialsProvider)
+    def credz = [new NetflixAmazonCredentials(name: "foo")]
+    holder.getAll() >> creds
+    holder.getCredentials("foo") >> credz[0]
+    def endpoint = new HealthEndpoint(new OrderedHealthAggregator(), [health: new AmazonHealthIndicator(accountCredentialsProvider: holder)])
     def mvc = standaloneSetup(endpoint).setMessageConverters new MappingJackson2HttpMessageConverter() build()
 
     when:
@@ -56,16 +55,15 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health fails when amazon appears unreachable"() {
     setup:
-    def holder = Mock(NamedAccountCredentialsHolder)
-    holder.getAccountNames() >> ["foo"]
-    def creds = Mock(AmazonRoleAccountCredentials)
-    creds.getCredentials() >> Mock(DiscoveryAwareAmazonCredentials)
-    holder.getCredentials("foo") >> creds
+    def holder = Mock(AccountCredentialsProvider)
+    def credz = [new NetflixAmazonCredentials(name: "foo")]
+    holder.getAll() >> creds
+    holder.getCredentials("foo") >> credz[0]
     def mockEc2 = Mock(AmazonEC2)
     mockEc2.describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAmazonEC2(_, _) >> mockEc2
-    def endpoint = new EndpointMvcAdapter(new HealthEndpoint(new AmazonHealthIndicator(namedAccountCredentialsHolder: holder, amazonClientProvider: mockAmazonClientProvider)))
+    def endpoint = new EndpointMvcAdapter(new HealthEndpoint(new AmazonHealthIndicator(accountCredentialsProvider: holder, amazonClientProvider: mockAmazonClientProvider)))
     def mvc = standaloneSetup(endpoint).setMessageConverters new MappingJackson2HttpMessageConverter() build()
 
     when:
@@ -77,11 +75,10 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health succeeds when amazon is reachable"() {
     setup:
-    def holder = Mock(NamedAccountCredentialsHolder)
-    holder.getAccountNames() >> ["foo"]
-    def creds = Mock(AmazonRoleAccountCredentials)
-    creds.getCredentials() >> Mock(DiscoveryAwareAmazonCredentials)
-    holder.getCredentials("foo") >> creds
+    def holder = Mock(AccountCredentialsProvider)
+    def credz = [new NetflixAmazonCredentials(name: "foo")]
+    holder.getAll() >> creds
+    holder.getCredentials("foo") >> credz[0]
     def mockEc2 = Mock(AmazonEC2)
     mockEc2.describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
     def mockAmazonClientProvider = Mock(AmazonClientProvider)

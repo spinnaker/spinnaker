@@ -17,10 +17,10 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,18 +30,20 @@ import org.springframework.validation.Errors
 @Component("basicAmazonDeployDescriptionValidator")
 class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationSupport<BasicAmazonDeployDescription> {
   @Autowired
-  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Override
   void validate(List priorDescriptions, BasicAmazonDeployDescription description, Errors errors) {
-    def namedAccountCredentials = null
+    def credentials = null
     def roleBasedCredentials = false
 
     if (!description.credentials) {
       errors.rejectValue "credentials", "basicAmazonDeployDescription.credentials.empty"
     } else {
-      namedAccountCredentials = namedAccountCredentialsHolder.getCredentials(description?.credentials?.environment)
-      roleBasedCredentials = namedAccountCredentials instanceof AmazonRoleAccountCredentials
+      credentials = accountCredentialsProvider.getCredentials(description?.credentials?.name)
+      if (!(credentials instanceof AmazonCredentials)) {
+        errors.rejectValue("credentials", "basicAmazonDeployDescription.credentials.invalid")
+      }
     }
     if (!description.application) {
       errors.rejectValue "application", "basicAmazonDeployDescription.application.empty"
@@ -62,7 +64,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.or.subnetType.not.supplied"
     }
     for (String region : description.availabilityZones.keySet()) {
-      if (!awsConfigurationProperties.regions?.contains(region) || (roleBasedCredentials && !((AmazonRoleAccountCredentials) namedAccountCredentials).regions*.name?.contains(region))) {
+      if (!awsConfigurationProperties.regions?.contains(region) || !((AmazonCredentials)credentials).regions*.name?.contains(region)) {
         errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
       }
     }

@@ -24,21 +24,23 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.SecurityUtils
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeScopes
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentials
 import org.apache.commons.codec.binary.Base64
 import org.springframework.web.client.RestTemplate
 
 import java.security.PrivateKey
 
-class GoogleNamedAccountCredentials implements NamedAccountCredentials {
+class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
   private static final String APPLICATION_NAME = "Spinnaker"
 
+  final String name
   private final String kmsServer
   private final String pkcs12Password
   final GoogleCredentials credentials
 
   GoogleNamedAccountCredentials(String kmsServer, String pkcs12Password, String projectName) {
     this.kmsServer = kmsServer
+    this.name = projectName
     this.pkcs12Password = pkcs12Password
     this.credentials = new GoogleCredentials(projectName, getCompute(projectName))
   }

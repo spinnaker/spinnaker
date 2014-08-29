@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.ShrinkClusterDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.ShrinkClusterAtomicOperation
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -31,10 +32,10 @@ class ShrinkClusterAtomicOperationConverterUnitSpec extends Specification {
 
   def setupSpec() {
     this.converter = new ShrinkClusterAtomicOperationConverter()
-    def namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
-    def mockCredentials = Mock(NamedAccountCredentials)
-    namedAccountCredentialsHolder.getCredentials(_) >> mockCredentials
-    converter.namedAccountCredentialsHolder = namedAccountCredentialsHolder
+    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    def mockCredentials = Mock(NetflixAmazonCredentials)
+    accountCredentialsProvider.getCredentials(_) >> mockCredentials
+    converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
   void "shrinkClusterDescription type returns ShrinkClusterDescription and ShrinkClusterAtomicOperation"() {

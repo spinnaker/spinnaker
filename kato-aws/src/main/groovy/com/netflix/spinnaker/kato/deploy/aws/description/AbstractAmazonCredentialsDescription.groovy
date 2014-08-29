@@ -19,14 +19,14 @@ package com.netflix.spinnaker.kato.deploy.aws.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 
 abstract class AbstractAmazonCredentialsDescription {
   @JsonIgnore
-  DiscoveryAwareAmazonCredentials credentials
+  NetflixAmazonCredentials credentials
 
   @JsonProperty("credentials")
   String getCredentialAccount() {
-    this.credentials.environment
+    this.credentials.name
   }
 }
