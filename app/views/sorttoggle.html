@@ -1,8 +1,8 @@
-<span ng-class="{'inactive-sort-key' : !isSortKey(key)}" class="sort-toggle">
-  {{ label }} <a href ng-click="setSortKey(key)">
-    <span ng-if="!model.reverse || !isSortKey(key)"
+<span ng-class="{'inactive-sort-key' : !ctrl.isSortKey(key)}" class="sort-toggle">
+  {{ label }} <a href ng-click="ctrl.setSortKey(key)">
+    <span ng-if="!model.reverse || !ctrl.isSortKey(key)"
           class="glyphicon glyphicon-down-triangle"></span>
-    <span ng-if="model.reverse && isSortKey(key)"
+    <span ng-if="model.reverse && ctrl.isSortKey(key)"
           class="glyphicon glyphicon-up-triangle"></span>
   </a>
 </span>

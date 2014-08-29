@@ -22,12 +22,12 @@
     </h2>
     <table ng-if="applicationsLoaded" class="table table-striped">
       <thead>
-        <th sort-toggle sorting-model="sorting" key="name" label="Name" default="true" on-change="ctrl.filterApplications()"></th>
-        <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.createTs" label="Created" on-change="ctrl.filterApplications()"></th>
-        <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
+        <th sort-toggle key="name" label="Name" default="true"></th>
+        <th sort-toggle parent-reverse="reverse" key="attributes.createTs" label="Created" on-change="ctrl.filterApplications()"></th>
+        <th sort-toggle parent-reverse="reverse" key="attributes.updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
       </thead>
       <tbody>
-        <tr ng-repeat="application in applications">
+        <tr ng-repeat="application in applications | filter:applicationFilter | orderBy:sortModel.sortKey:sortModel.reverse">
           <td>
             <a ui-sref=".application({ application: application.name })">
               {{ application.name }}
