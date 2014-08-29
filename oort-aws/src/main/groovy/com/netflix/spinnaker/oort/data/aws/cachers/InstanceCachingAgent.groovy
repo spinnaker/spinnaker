@@ -19,8 +19,8 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.InstanceState
 import com.amazonaws.services.ec2.model.InstanceStateName
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
@@ -69,7 +69,7 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
   }
   static final String ASG_TAG_NAME = "aws:autoscaling:groupName"
 
-  InstanceCachingAgent(AmazonNamedAccount account, String region) {
+  InstanceCachingAgent(NetflixAmazonCredentials account, String region) {
     super(account, region)
   }
 
@@ -78,7 +78,7 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
   void load() {
     log.info "$cachePrefix - Beginning Instance Cache Load."
 
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(account.credentials, region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
     def instances = amazonEC2.describeInstances()
     def allInstances = ((List<Instance>)instances.reservations.collectMany { it.instances ?: [] }).collectEntries { Instance instance -> [(instance.instanceId): instance]}
     Map<String, Integer> instancesThisRun = (Map<String, Integer>)allInstances.collectEntries { instanceId, instance -> [(instanceId): instance.hashCode()] }
@@ -111,7 +111,7 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
     lastKnownInstances = instancesThisRun
   }
 
-  void loadNewInstance(AmazonNamedAccount account, Instance instance, String region) {
+  void loadNewInstance(NetflixAmazonCredentials account, Instance instance, String region) {
     cacheService.put(Keys.getInstanceKey(instance.instanceId, region), instance)
     def serverGroup = getServerGroupName(instance)
     if (serverGroup) {
@@ -121,7 +121,7 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
     }
   }
 
-  void removeMissingInstance(AmazonNamedAccount account, Instance instance, String region) {
+  void removeMissingInstance(NetflixAmazonCredentials account, Instance instance, String region) {
     if (instance) {
       cacheService.free(Keys.getInstanceKey(instance.instanceId, region))
       def serverGroup = getServerGroupName(instance)

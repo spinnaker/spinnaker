@@ -8,4 +8,6 @@ dependencies {
   compile 'com.codahale.metrics:metrics-core:3.0.2'
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
   compile 'com.codahale.metrics:metrics-annotation:3.0.2'
+  compile 'com.netflix.spinnaker:amos-aws:0.6'
+  compile 'com.netflix.amazoncomponents:amazoncomponents:0.9.13'
 }

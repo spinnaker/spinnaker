@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.oort.data.aws
 
 import com.amazonaws.services.ec2.model.*
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent.InstanceStateValue
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 
 class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
   InstanceCachingAgent getCachingAgent() {
-    new InstanceCachingAgent(Mock(AmazonNamedAccount), REGION)
+    new InstanceCachingAgent(Mock(NetflixAmazonCredentials), REGION)
   }
 
   void "new instances should fire newInstance event"() {
@@ -79,7 +79,7 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
 
   void "save and remove instances from cache"() {
     setup:
-    def account = Mock(AmazonNamedAccount)
+    def account = Mock(NetflixAmazonCredentials)
     account.getName() >> ACCOUNT
     def instanceId = "i-12345"
     def asgName = "oort-main-v000"

@@ -18,14 +18,14 @@ package com.netflix.spinnaker.oort.data.aws
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.LoadBalancerCachingAgent
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 
 class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    def account = Mock(AmazonNamedAccount)
+    def account = Mock(NetflixAmazonCredentials)
     account.getName() >> ACCOUNT
     new LoadBalancerCachingAgent(account, REGION)
   }
@@ -87,7 +87,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
   }
 
   def getCommonMocks() {
-    def account = Mock(AmazonNamedAccount)
+    def account = Mock(NetflixAmazonCredentials)
     account.getName() >> ACCOUNT
     def loadBalancerName = "kato-main-frontend"
     def loadBalancer = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)

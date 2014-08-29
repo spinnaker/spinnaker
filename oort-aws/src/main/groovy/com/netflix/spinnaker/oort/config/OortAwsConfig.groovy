@@ -20,10 +20,11 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -43,7 +44,6 @@ class OortAwsConfig {
   static class ManagedAccount {
     String name
     String edda
-    String atlasHealth
     String front50
     String discovery
     List<String> regions
@@ -80,7 +80,7 @@ class OortAwsConfig {
     AwsConfigurationProperties awsConfigurationProperties
 
     @Autowired
-    NamedAccountProvider namedAccountProvider
+    AccountCredentialsRepository accountCredentialsRepository
 
     @Autowired
     AmazonClientProvider amazonClientProvider
@@ -91,16 +91,33 @@ class OortAwsConfig {
     @PostConstruct
     void init() {
       for (account in awsConfigurationProperties.accounts) {
-        def namedAccount = new AmazonNamedAccount(awsCredentialsProvider, account.name, account.edda, account.atlasHealth, account.front50, account.discovery, account.regions)
-        namedAccountProvider.put(namedAccount)
+        def namedAccount = createCredentials(account)
+        accountCredentialsRepository.save(namedAccount.name, namedAccount)
         for (region in namedAccount.regions) {
-          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getAtlasHealthCachingAgent(namedAccount, region)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getAtlasHealthCachingAgent(namedAccount, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region.name)
         }
+      }
+    }
+
+    private NetflixAmazonCredentials createCredentials(ManagedAccount managedAccount) {
+      new NetflixAmazonCredentials().with {
+        credentialsProvider = awsCredentialsProvider
+        name = managedAccount.name
+        edda = managedAccount.edda
+        front50 = managedAccount.front50
+        discovery = managedAccount.discovery
+        regions = managedAccount.regions.collect { String region ->
+          new AmazonCredentials.AWSRegion().with {
+            name = region
+            it
+          }
+        }
+        it
       }
     }
 

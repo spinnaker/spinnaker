@@ -18,14 +18,14 @@ package com.netflix.spinnaker.oort.data.aws
 
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.LaunchConfigCachingAgent
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 
 class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    new LaunchConfigCachingAgent(Mock(AmazonNamedAccount), REGION)
+    new LaunchConfigCachingAgent(Mock(NetflixAmazonCredentials), REGION)
   }
 
   void "load new launch configs and remove those that have disappeared since the last run"() {

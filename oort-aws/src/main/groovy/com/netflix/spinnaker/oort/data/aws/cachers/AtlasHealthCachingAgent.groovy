@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.data.aws.cachers
 
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.RestTemplate
@@ -28,10 +28,17 @@ import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
   static final String PROVIDER_NAME = "ATLAS"
 
+  //TODO-CF until I can merge the fix_health branch:
+  Map<String, String> atlasHealth = [
+    test: 'http://atlas-healthcheck-main.%s.dyntest.netflix.net:7001',
+    prod: 'http://atlas-healthcheck-main.%s.dynprod.netflix.net:7001',
+    mcetest: 'http://atlas-healthcheck-mce.%s.dyntest.netflix.net:7001',
+    mceprod: 'http://atlas-healthcheck-mce.%s.dynprod.netflix.net:7001' ]
+
   @Autowired
   RestTemplate restTemplate
 
-  AtlasHealthCachingAgent(AmazonNamedAccount account, String region) {
+  AtlasHealthCachingAgent(NetflixAmazonCredentials account, String region) {
     super(account, region)
   }
 
@@ -39,9 +46,9 @@ class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
 
   @Override
   void load() {
-    if (!account.atlasHealth) return
+    if (!atlasHealth[account.name]) return
 
-    def healths = (List<Map>)getAtlasHealth(String.format(account.atlasHealth, region))
+    def healths = (List<Map>)getAtlasHealth(String.format(atlasHealth[account.name], region))
     Map<String, Map> allHealths = healths.collectEntries { Map input -> [(input.id): input]}
     Map<String, Boolean> healthsThisRun = (Map<String, Boolean>)allHealths.collectEntries { instanceId, input -> [(instanceId): ((Map)input).isHealthy]}
     Map<String, Boolean> newHealths = specialSubtract(healthsThisRun, lastKnownHealths)

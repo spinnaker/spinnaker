@@ -18,27 +18,27 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.Keys.Namespace
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import groovy.transform.CompileStatic
 
 import static com.netflix.spinnaker.oort.ext.MapExtensions.specialSubtract
 
 @CompileStatic
 class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
-  ClusterCachingAgent(AmazonNamedAccount account, String region) {
+  ClusterCachingAgent(NetflixAmazonCredentials account, String region) {
     super(account, region)
   }
 
   private Map<String, Integer> lastKnownAsgs = [:]
 
   void load() {
-    def autoScaling = amazonClientProvider.getAutoScaling(account.credentials, region)
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region)
     def asgs = autoScaling.describeAutoScalingGroups()
     def allAsgs = asgs.autoScalingGroups.collectEntries { AutoScalingGroup asg -> [(asg.autoScalingGroupName): asg] }
     def asgsThisRun = (Map<String, Integer>)allAsgs.collectEntries { asgName, asg -> [(asgName): asg.hashCode()] }
@@ -77,7 +77,7 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     cacheService.put(Keys.getApplicationKey(application.name), application)
   }
 
-  void loadCluster(AmazonNamedAccount account, AutoScalingGroup asg, Names names, String region) {
+  void loadCluster(NetflixAmazonCredentials account, AutoScalingGroup asg, Names names, String region) {
     def appName = names.app.toLowerCase()
     def cluster = cacheService.retrieve(Keys.getClusterKey(names.cluster, appName, account.name), AmazonCluster)
     if (!cluster) {
@@ -92,14 +92,14 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
     }
   }
 
-  void loadServerGroups(AmazonNamedAccount account, AutoScalingGroup asg, Names names, String region) {
+  void loadServerGroups(NetflixAmazonCredentials account, AutoScalingGroup asg, Names names, String region) {
     def serverGroup = new AmazonServerGroup(names.group, "aws", region)
     serverGroup.launchConfigName = asg.launchConfigurationName
     serverGroup.asg = asg
     cacheService.put(Keys.getServerGroupKey(names.group, account.name, region), serverGroup)
   }
 
-  void removeServerGroup(AmazonNamedAccount account, String asgName, String region) {
+  void removeServerGroup(NetflixAmazonCredentials account, String asgName, String region) {
     // Check if we need to clean up this cluster
     def names = Names.parseName(asgName)
     def appName = names.app.toLowerCase()

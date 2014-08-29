@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.front50.Front50ApplicationLoader
-import com.netflix.spinnaker.oort.security.NamedAccountProvider
-import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
@@ -32,10 +33,13 @@ class Front50ApplicationLoaderSpec extends Specification {
 
   def setup() {
     loader = new Front50ApplicationLoader()
-    def namedAccountProvider = Mock(NamedAccountProvider)
-    namedAccountProvider.getAccountNames() >> ["test"]
-    namedAccountProvider.get("test") >> new AmazonNamedAccount(null, null, null, null, "front50", null, null)
-    loader.namedAccountProvider = namedAccountProvider
+    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    def testCreds = new NetflixAmazonCredentials()
+    testCreds.front50 = "front50"
+    testCreds.front50Enabled = true
+    Set<AccountCredentials> allCreds = [testCreds]
+    accountCredentialsProvider.getAll() >> allCreds
+    loader.accountCredentialsProvider = accountCredentialsProvider
   }
 
   Should "call front50 to get application details"() {
