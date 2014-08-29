@@ -27,7 +27,7 @@
         <th sort-toggle sorting-model="sorting" parent-reverse="reverse" key="attributes.updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
       </thead>
       <tbody>
-        <tr ng-repeat="application in ctrl.resultPage()">
+        <tr ng-repeat="application in applications">
           <td>
             <a ui-sref=".application({ application: application.name })">
               {{ application.name }}
@@ -42,10 +42,5 @@
         </tr>
       </tbody>
     </table>
-    <pagination ng-if="applicationsLoaded"
-                total-items="filteredApplications.length"
-                max-size="pagination.maxSize"
-                ng-model="pagination.currentPage"
-      ></pagination>
   </div>
 </div>
