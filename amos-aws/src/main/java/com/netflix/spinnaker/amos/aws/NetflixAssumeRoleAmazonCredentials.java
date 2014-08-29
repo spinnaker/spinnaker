@@ -20,10 +20,10 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 
 /**
- * @see {@link com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials}
+ * @see com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
  * @author Dan Woods
  */
-public class NetflixAssumeRoleAamzonCredentials extends NetflixAmazonCredentials {
+public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {
     /**
      * The role to assume on the target account.
      */
