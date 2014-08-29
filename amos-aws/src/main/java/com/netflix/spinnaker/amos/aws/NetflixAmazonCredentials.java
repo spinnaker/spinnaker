@@ -36,7 +36,11 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public Boolean getEddaEnabled() {
-        return eddaEnabled != null ? eddaEnabled : edda.length() > 0;
+        if (eddaEnabled != null && edda != null) {
+            return eddaEnabled;
+        } else {
+            return eddaEnabled == null && edda != null && edda.length() > 0;
+        }
     }
 
     public void setEddaEnabled(Boolean eddaEnabled) {
@@ -44,7 +48,11 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public Boolean getDiscoveryEnabled() {
-        return discoveryEnabled != null ? discoveryEnabled : discovery.length() > 0;
+        if (discoveryEnabled != null && discovery != null) {
+            return discoveryEnabled;
+        } else {
+            return discoveryEnabled == null && discovery != null && discovery.length() > 0;
+        }
     }
 
     public void setDiscoveryEnabled(Boolean discoveryEnabled) {
@@ -52,7 +60,11 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public Boolean getFront50Enabled() {
-        return front50Enabled != null ? front50Enabled : front50.length() > 0;
+        if (front50Enabled != null && front50 != null) {
+            return front50Enabled;
+        } else {
+            return front50Enabled == null && front50 != null && front50.length() > 0;
+        }
     }
 
     public void setFront50Enabled(Boolean front50Enabled) {
