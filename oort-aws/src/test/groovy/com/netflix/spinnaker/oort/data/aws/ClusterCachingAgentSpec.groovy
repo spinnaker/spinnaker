@@ -38,7 +38,6 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     setup:
     def asgName1 = "kato-main-v000"
     def asg1 = new AutoScalingGroup().withAutoScalingGroupName(asgName1)
-    asg1.loadBalancerNames = ['kato-main']
     def asgName2 = "kato-main-v001"
     def asg2 = new AutoScalingGroup().withAutoScalingGroupName(asgName2)
     def result = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg1, asg2)
@@ -48,8 +47,6 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def cluster = new AmazonCluster(name: 'kato-main', accountName: ACCOUNT)
     def serverGroupKey1 = Keys.getServerGroupKey(asgName1, ACCOUNT, REGION)
     def serverGroupKey2 = Keys.getServerGroupKey(asgName2, ACCOUNT, REGION)
-    def loadBalancerServerGroupKey = Keys.getLoadBalancerServerGroupKey(asg1.loadBalancerNames[0], ACCOUNT, asgName1, REGION)
-    def applicationLoadBalancerKey = Keys.getApplicationLoadBalancerKey(app.name, asg1.loadBalancerNames[0], ACCOUNT, REGION)
 
 
     when:
@@ -65,8 +62,6 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
       2 * put(clusterKey, cluster)
       1 * put(serverGroupKey1, _)
       1 * put(serverGroupKey2, _)
-      1 * put(loadBalancerServerGroupKey, _)
-      1 * put(applicationLoadBalancerKey, _)
     }
 
     when:
@@ -78,10 +73,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     with(cacheService) {
       1 * free(serverGroupKey1)
       1 * keysByType(Keys.Namespace.SERVER_GROUPS) >> [serverGroupKey2]
-      1 * retrieve(serverGroupKey1, AmazonServerGroup) >> new AmazonServerGroup(asg: asg1)
       0 * free(clusterKey)
-      1 * free(applicationLoadBalancerKey)
-      1 * free(loadBalancerServerGroupKey)
     }
 
     when:
@@ -91,6 +83,80 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     then:
     1 * amazonAutoScaling.describeAutoScalingGroups() >> result
     0 * cacheService.retrieve(_, _)
+  }
+
+  void "removes load balancer from application only when no more server groups in application use load balancer"() {
+    setup:
+    def asgName1 = "kato-main-v000"
+    def asg1 = new AutoScalingGroup().withAutoScalingGroupName(asgName1)
+    def asgName2 = "kato-main-v001"
+    def asg2 = new AutoScalingGroup().withAutoScalingGroupName(asgName2)
+    def asgName3 = "kato-main-v002"
+    def asg3 = new AutoScalingGroup().withAutoScalingGroupName(asgName3)
+    def loadBalancerName = 'kato-main'
+    asg1.loadBalancerNames = [loadBalancerName]
+    asg2.loadBalancerNames = [loadBalancerName]
+    def result = new DescribeAutoScalingGroupsResult().withAutoScalingGroups([asg1, asg2, asg3])
+    def app = new AmazonApplication(name: 'kato')
+    def serverGroupKey1 = Keys.getServerGroupKey(asgName1, ACCOUNT, REGION)
+    def serverGroupKey2 = Keys.getServerGroupKey(asgName2, ACCOUNT, REGION)
+    def serverGroupKey3 = Keys.getServerGroupKey(asgName3, ACCOUNT, REGION)
+    def loadBalancerServerGroupKey1 = Keys.getLoadBalancerServerGroupKey(loadBalancerName, ACCOUNT, asgName1, REGION)
+    def loadBalancerServerGroupKey2 = Keys.getLoadBalancerServerGroupKey(loadBalancerName, ACCOUNT, asgName2, REGION)
+    def applicationLoadBalancerKey = Keys.getApplicationLoadBalancerKey(app.name, asg1.loadBalancerNames[0], ACCOUNT, REGION)
+
+    def appKey = Keys.getApplicationKey('kato')
+    def clusterKey = Keys.getClusterKey('kato-main', 'kato', ACCOUNT)
+    def cluster = new AmazonCluster(name: 'kato-main', accountName: ACCOUNT)
+
+
+    when:
+    "should cache application and load balancer server group relationships"
+    agent.load()
+
+    then:
+    1 * amazonAutoScaling.describeAutoScalingGroups() >> result
+    with(cacheService) {
+      3 * retrieve(appKey, AmazonApplication) >> app
+      3 * put(appKey, app)
+      3 * retrieve(clusterKey, AmazonCluster) >> cluster
+      3 * put(clusterKey, cluster)
+      1 * put(serverGroupKey1, _)
+      1 * put(serverGroupKey2, _)
+      1 * put(serverGroupKey3, _)
+    }
+
+    when:
+    "one asg goes missing, load balancer should still be attached to application"
+    agent.load()
+
+    then:
+    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg2, asg3])
+    with(cacheService) {
+      1 * free(serverGroupKey1)
+      1 * keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [loadBalancerServerGroupKey1, loadBalancerServerGroupKey2]
+      1 * keysByType(Keys.Namespace.SERVER_GROUPS) >> [serverGroupKey1, serverGroupKey2, serverGroupKey3]
+      1 * retrieve(serverGroupKey1, AmazonServerGroup) >> new AmazonServerGroup(asg: asg1)
+      1 * free(loadBalancerServerGroupKey1)
+      0 * free(applicationLoadBalancerKey)
+    }
+
+    when:
+    "second asg goes missing, load balancer should be removed from application"
+    agent.load()
+
+    then:
+    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg3])
+    with(cacheService) {
+      1 * free(serverGroupKey2)
+      1 * keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [loadBalancerServerGroupKey2]
+      1 * keysByType(Keys.Namespace.SERVER_GROUPS) >> [serverGroupKey2, serverGroupKey3]
+      1 * retrieve(serverGroupKey2, AmazonServerGroup) >> new AmazonServerGroup(asg: asg2)
+      1 * free(loadBalancerServerGroupKey2)
+      1 * free(applicationLoadBalancerKey)
+      0 * cacheService.retrieve(_, _)
+    }
+
   }
 
   void "store an application in cache"() {
