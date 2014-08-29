@@ -195,9 +195,10 @@ angular.module('deckApp')
           },
         },
         resolve: {
-          tasks: ['pond', function(pond) {
-            // TODO: scope tasks to application
-            return pond.all('tasks').getList();
+          tasks: ['$stateParams', 'pond', function($stateParams, pond) {
+            return pond
+              .one('applications', $stateParams.application)
+              .all('tasks').getList();
           }],
         },
       };

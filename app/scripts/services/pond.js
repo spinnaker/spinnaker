@@ -20,6 +20,9 @@ angular.module('deckApp')
     };
 
     var filterTask = function(task) {
+      task.description = task.variables.reduce(function(p,c) {
+        return c.key === 'description' ? c.value : p;
+      }, 'N/A');
       filterTimes(task, true);
       // TODO: this is temporary to filter out orca steps -- removed when unneeded
       task.stages = task.steps.reduce(function(acc, current) {
@@ -68,11 +71,11 @@ angular.module('deckApp')
     return Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
 
-      RestangularConfigurer.addElementTransformer('task', false, function(task) {
+      RestangularConfigurer.addElementTransformer('tasks', false, function(task) {
         return filterTask(task);
       });
 
-      RestangularConfigurer.addElementTransformer('task', true, function(taskCollection) {
+      RestangularConfigurer.addElementTransformer('tasks', true, function(taskCollection) {
         taskCollection.forEach(filterTask);
         return taskCollection;
       });
