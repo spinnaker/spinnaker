@@ -65,7 +65,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
     public static class AWSRegion {
         public String name;
-        public Collection<String> availabilityZones;
+        public List<String> availabilityZones;
 
         public String getName() {
             return name;
@@ -79,7 +79,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             return availabilityZones;
         }
 
-        public void setAvailabilityZones(Collection<String> availabilityZones) {
+        public void setAvailabilityZones(List<String> availabilityZones) {
             this.availabilityZones = availabilityZones;
         }
 
