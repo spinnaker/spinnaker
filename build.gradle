@@ -36,12 +36,11 @@ ext {
     spock             : "org.spockframework:spock-core:0.7-groovy-2.0",
     cglib             : "cglib:cglib-nodep:3.1",
     frigga            : "com.netflix.frigga:frigga:0.13",
-    groovy            : "org.codehaus.groovy:groovy-all:2.3.4",
+    groovy            : "org.codehaus.groovy:groovy-all:2.3.6",
     eureka            : "com.netflix.eureka:eureka-client:1.1.136",
     kork              : "com.netflix.spinnaker.kork:kork-core:1.14",
-    amazoncomponents  : 'com.netflix.spinnaker:amazoncomponents:0.9.12',
-    amos              : 'com.netflix.spinnaker:amos-core:0.6',
-    amosAws           : 'com.netflix.spinnaker:amos-aws:0.6'
+    amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.14',
+    amos              : 'com.netflix.spinnaker:amos-core:0.7',
   ]
 }
 
@@ -69,7 +68,6 @@ subprojects { project ->
     maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
     maven { url 'http://repo.spring.io/repo' }
     maven { url 'http://oss.sonatype.org/content/repositories/staging' }
-    mavenLocal()
   }
 
   dependencies {
