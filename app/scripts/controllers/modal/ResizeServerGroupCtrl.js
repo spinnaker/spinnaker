@@ -4,7 +4,7 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, serverGroup) {
+  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       min: serverGroup.asg.minSize,
@@ -35,7 +35,7 @@ angular.module('deckApp')
       if (!$scope.command.advancedMode) {
         capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
       }
-      orcaService.resizeServerGroup(serverGroup, capacity)
+      orcaService.resizeServerGroup(serverGroup, capacity, application.name)
         .then(function (response) {
           $modalInstance.close();
           console.warn('task:', response.ref);

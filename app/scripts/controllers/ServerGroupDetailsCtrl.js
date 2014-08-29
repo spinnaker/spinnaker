@@ -34,8 +34,7 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account
       }).then(function () {
-        orcaService.destroyServerGroup(serverGroup)
-          .then(function (response) {
+        orcaService.destroyServerGroup(serverGroup, application.name).then(function (response) {
           console.warn('task: ', response.ref);
         });
       });
@@ -49,7 +48,7 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account
       }).then(function () {
-        orcaService.disableServerGroup(serverGroup).then(function (response) {
+        orcaService.disableServerGroup(serverGroup, application.name).then(function (response) {
           console.warn('task: ', response.ref);
         });
       });
@@ -63,7 +62,7 @@ angular.module('deckApp')
         destructive: false,
         account: serverGroup.account
       }).then(function () {
-        orcaService.enableServerGroup(serverGroup).then(function (response) {
+        orcaService.enableServerGroup(serverGroup, application.name).then(function (response) {
           console.warn('task: ', response.ref);
         });
       });
@@ -74,7 +73,8 @@ angular.module('deckApp')
         templateUrl: 'views/application/modal/resizeServerGroup.html',
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; }
+          serverGroup: function() { return $scope.serverGroup; },
+          application: function() { return application; }
         }
       });
     };

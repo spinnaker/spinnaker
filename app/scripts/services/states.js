@@ -197,7 +197,7 @@ angular.module('deckApp')
         resolve: {
           tasks: ['pond', function(pond) {
             // TODO: scope tasks to application
-            return pond.all('task').getList();
+            return pond.all('tasks').getList();
           }],
         },
       };
