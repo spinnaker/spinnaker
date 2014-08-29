@@ -1,0 +1,14 @@
+rootProject.name = "mort"
+
+include "mort-web", "mort-core", "mort-aws"
+
+def setBuildFile(project) {
+  project.buildFileName = "${project.name}.gradle"
+  project.children.each {
+    setBuildFile(it)
+  }
+}
+
+rootProject.children.each {
+  setBuildFile(it)
+}

@@ -1,0 +1,6 @@
+dependencies {
+  spinnaker.group('bootWeb')
+  compile project(":mort-core")
+  runtime spinnaker.dependency("kork")
+  compile "com.netflix.eureka:eureka-client:1.1.136"
+}
