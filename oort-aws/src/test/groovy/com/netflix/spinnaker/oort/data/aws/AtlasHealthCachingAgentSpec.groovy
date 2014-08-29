@@ -16,51 +16,51 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
-import org.springframework.web.client.RestTemplate
+import com.netflix.spinnaker.oort.config.atlas.AtlasHealthApi
+import com.netflix.spinnaker.oort.model.atlas.AtlasInstanceHealth
+import com.netflix.spinnaker.oort.security.aws.OortNetflixAmazonCredentials
 import spock.lang.Shared
 
 class AtlasHealthCachingAgentSpec extends AbstractCachingAgentSpec {
 
   @Shared
-  RestTemplate restTemplate
+  AtlasHealthApi atlasHealthApi
 
   @Override
   AbstractInfrastructureCachingAgent getCachingAgent() {
-    def account = Mock(NetflixAmazonCredentials)
+    def account = Mock(OortNetflixAmazonCredentials)
     account.getName() >> ACCOUNT
-    restTemplate = Mock(RestTemplate)
-    def agent = new AtlasHealthCachingAgent(account, REGION)
-    agent.restTemplate = restTemplate
-    agent
+    account.getAtlasHealth() >> 'http://atlas'
+    atlasHealthApi = Mock(AtlasHealthApi)
+    new AtlasHealthCachingAgent(account, REGION, atlasHealthApi)
   }
 
   void "load new health when new ones are available, remove missing ones, and do nothing when theres nothing new to process"() {
     setup:
-    def health = [id: "i-12345", status: true]
-    def key = Keys.getInstanceHealthKey(health.id, ACCOUNT, REGION, AtlasHealthCachingAgent.PROVIDER_NAME)
+    def health = new AtlasInstanceHealth(instanceId: "i-12345")
+    def key = Keys.getInstanceHealthKey(health.instanceId, ACCOUNT, REGION, AtlasHealthCachingAgent.PROVIDER_NAME)
 
     when:
     agent.load()
 
     then:
-    1 * restTemplate.getForObject("http://atlas-healthcheck-main.us-east-1.dyntest.netflix.net:7001/api/v1/instance", _) >> [health]
+    1 * atlasHealthApi.loadInstanceHealth() >> [health]
     1 * cacheService.put(key, health)
 
     when:
     agent.load()
 
     then:
-    1 * restTemplate.getForObject("http://atlas-healthcheck-main.us-east-1.dyntest.netflix.net:7001/api/v1/instance", _) >> []
+    1 * atlasHealthApi.loadInstanceHealth() >> []
     1 * cacheService.free(key)
 
     when:
     agent.load()
 
     then:
-    1 * restTemplate.getForObject("http://atlas-healthcheck-main.us-east-1.dyntest.netflix.net:7001/api/v1/instance", _) >> []
+    1 * atlasHealthApi.loadInstanceHealth() >> []
     0 * cacheService.free(_)
   }
 }

@@ -163,7 +163,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     }
     def modelInstance = new AmazonInstance(ec2Instance.instanceId)
     modelInstance.health = healths
-    modelInstance.isHealthy = healthProviders ? healths.every { it.state == HealthState.Up } : false
+    modelInstance.isHealthy = healthProviders ? healths.every { it?.state == HealthState.Up } : false
     modelInstance.instance = ec2Instance
     modelInstance
   }
