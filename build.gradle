@@ -40,7 +40,7 @@ repositories {
 dependencies {
   groovy 'org.codehaus.groovy:groovy-all:2.3.6'
   compile 'com.fasterxml.jackson.core:jackson-databind:2.1.1'
-  compile 'com.netflix.spinnaker:amos-aws:0.5'
+  compile 'com.netflix.spinnaker:amos-aws:0.6'
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
   testCompile 'cglib:cglib-nodep:3.1'
 }
