@@ -36,26 +36,26 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public Boolean getEddaEnabled() {
-        return eddaEnabled;
+        return eddaEnabled != null ? eddaEnabled : edda.length() > 0;
     }
 
     public void setEddaEnabled(Boolean eddaEnabled) {
-        this.eddaEnabled = eddaEnabled != null ? eddaEnabled : edda.length() > 0;
+        this.eddaEnabled = eddaEnabled;
     }
 
     public Boolean getDiscoveryEnabled() {
-        return discoveryEnabled;
+        return discoveryEnabled != null ? discoveryEnabled : discovery.length() > 0;
     }
 
     public void setDiscoveryEnabled(Boolean discoveryEnabled) {
-        this.discoveryEnabled = discoveryEnabled != null ? discoveryEnabled : discovery.length() > 0;
+        this.discoveryEnabled = discoveryEnabled;
     }
 
     public Boolean getFront50Enabled() {
-        return front50Enabled;
+        return front50Enabled != null ? front50Enabled : front50.length() > 0;
     }
 
     public void setFront50Enabled(Boolean front50Enabled) {
-        this.front50Enabled = front50Enabled != null ? front50Enabled : front50.length() > 0;
+        this.front50Enabled = front50Enabled;
     }
 }
