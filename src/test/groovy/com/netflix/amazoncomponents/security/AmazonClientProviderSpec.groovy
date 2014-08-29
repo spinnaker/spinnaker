@@ -20,6 +20,9 @@ package com.netflix.amazoncomponents.security
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.auth.AWSCredentialsProvider
+import com.amazonaws.auth.AWSCredentialsProviderChain
+import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
@@ -33,9 +36,14 @@ import org.apache.http.StatusLine
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.entity.ContentType
+import spock.lang.Shared
 import spock.lang.Specification
 
 class AmazonClientProviderSpec extends Specification {
+
+  @Shared def credentialsProvider = Stub(AWSCredentialsProvider) {
+      getCredentials() >> new BasicAWSCredentials('foo', 'bar')
+  }
 
   void "client proxies to edda when available"() {
     setup:
@@ -43,7 +51,7 @@ class AmazonClientProviderSpec extends Specification {
     def provider = new AmazonClientProvider(mockHttp)
 
     when:
-    def client = provider.getAutoScaling(new NetflixAmazonCredentials(edda: "foo"), "us-east-1")
+    def client = provider.getAutoScaling(new NetflixAmazonCredentials(edda: "foo", credentialsProvider: credentialsProvider), "us-east-1")
     client.describeAutoScalingGroups()
 
     then:
@@ -60,7 +68,7 @@ class AmazonClientProviderSpec extends Specification {
     def provider = new AmazonClientProvider(mockHttp)
 
     when:
-    def client = provider.getAutoScaling(new NetflixAmazonCredentials(edda: "foo"), "us-east-1")
+    def client = provider.getAutoScaling(new NetflixAmazonCredentials(edda: "foo", credentialsProvider: credentialsProvider), "us-east-1")
     client.describeAutoScalingGroups()
 
     then:
@@ -88,7 +96,7 @@ class AmazonClientProviderSpec extends Specification {
     provider.getAmazonEC2(_, _) >> ec2
 
     when:
-    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(), "us-east-1")
+    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(credentialsProvider: credentialsProvider), "us-east-1")
     client.describeSecurityGroups()
 
     then:
@@ -103,7 +111,7 @@ class AmazonClientProviderSpec extends Specification {
     provider.getAmazonEC2(_, _) >> ec2
 
     when:
-    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(edda: "foo"), "us-east-1")
+    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(edda: "foo", credentialsProvider: credentialsProvider), "us-east-1")
     client.describeAccountAttributes()
 
     then:
@@ -117,7 +125,7 @@ class AmazonClientProviderSpec extends Specification {
     def provider = new AmazonClientProvider(mockHttp)
 
     when:
-    def client = provider.getAutoScaling(new NetflixAmazonCredentials(edda: "foo"), "us-east-1")
+    def client = provider.getAutoScaling(new NetflixAmazonCredentials(edda: "foo", credentialsProvider: credentialsProvider), "us-east-1")
     client.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest())
 
     then:
@@ -146,7 +154,7 @@ class AmazonClientProviderSpec extends Specification {
     }
 
     when:
-    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(), "us-east-1")
+    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(credentialsProvider: credentialsProvider), "us-east-1")
     client.describeInstances()
 
     then:
