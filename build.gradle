@@ -27,7 +27,7 @@ buildscript {
 apply plugin: 'spinnaker-gradle-project'
 apply plugin: 'groovy'
 
-group = "com.netflix.spinnaker"
+group = "com.netflix.amazoncomponents"
 
 configurations {
   compile.extendsFrom groovy
