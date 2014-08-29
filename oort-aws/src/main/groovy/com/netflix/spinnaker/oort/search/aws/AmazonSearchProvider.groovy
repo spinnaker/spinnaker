@@ -38,8 +38,8 @@ class AmazonSearchProvider implements SearchProvider {
 
   static List<String> defaultCaches = [
     Keys.Namespace.APPLICATIONS.ns,
+    Keys.Namespace.APPLICATION_LOAD_BALANCERS.ns,
     Keys.Namespace.CLUSTERS.ns,
-    Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns,
     Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
     Keys.Namespace.SERVER_GROUPS.ns
   ]
@@ -52,6 +52,8 @@ class AmazonSearchProvider implements SearchProvider {
     (Keys.Namespace.LOAD_BALANCERS.ns):
       urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
     (Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns):
+      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
+    (Keys.Namespace.APPLICATION_LOAD_BALANCERS.ns):
       urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
     (Keys.Namespace.CLUSTERS.ns):
       urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster'),

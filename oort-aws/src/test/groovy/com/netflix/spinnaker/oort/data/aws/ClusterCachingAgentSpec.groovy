@@ -23,6 +23,7 @@ import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCaching
 import com.netflix.spinnaker.oort.data.aws.cachers.ClusterCachingAgent
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
+import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
 import com.netflix.spinnaker.oort.security.aws.AmazonNamedAccount
 
 class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
@@ -37,6 +38,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     setup:
     def asgName1 = "kato-main-v000"
     def asg1 = new AutoScalingGroup().withAutoScalingGroupName(asgName1)
+    asg1.loadBalancerNames = ['kato-main']
     def asgName2 = "kato-main-v001"
     def asg2 = new AutoScalingGroup().withAutoScalingGroupName(asgName2)
     def result = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(asg1, asg2)
@@ -44,6 +46,10 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     def appKey = Keys.getApplicationKey('kato')
     def clusterKey = Keys.getClusterKey('kato-main', 'kato', ACCOUNT)
     def cluster = new AmazonCluster(name: 'kato-main', accountName: ACCOUNT)
+    def serverGroupKey1 = Keys.getServerGroupKey(asgName1, ACCOUNT, REGION)
+    def serverGroupKey2 = Keys.getServerGroupKey(asgName2, ACCOUNT, REGION)
+    def loadBalancerServerGroupKey = Keys.getLoadBalancerServerGroupKey(asg1.loadBalancerNames[0], ACCOUNT, asgName1, REGION)
+    def applicationLoadBalancerKey = Keys.getApplicationLoadBalancerKey(app.name, asg1.loadBalancerNames[0], ACCOUNT, REGION)
 
 
     when:
@@ -52,22 +58,31 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * amazonAutoScaling.describeAutoScalingGroups() >> result
-    2 * cacheService.retrieve(appKey, AmazonApplication) >> app
-    2 * cacheService.put(appKey, app)
-    2 * cacheService.retrieve(clusterKey, AmazonCluster) >> cluster
-    2 * cacheService.put(clusterKey, cluster)
-    1 * cacheService.put(Keys.getServerGroupKey('kato-main-v000', ACCOUNT, REGION), _)
-    1 * cacheService.put(Keys.getServerGroupKey('kato-main-v001', ACCOUNT, REGION), _)
+    with(cacheService) {
+      2 * retrieve(appKey, AmazonApplication) >> app
+      2 * put(appKey, app)
+      2 * retrieve(clusterKey, AmazonCluster) >> cluster
+      2 * put(clusterKey, cluster)
+      1 * put(serverGroupKey1, _)
+      1 * put(serverGroupKey2, _)
+      1 * put(loadBalancerServerGroupKey, _)
+      1 * put(applicationLoadBalancerKey, _)
+    }
 
     when:
     "one asg goes missing, should fire the missingAsg event"
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg1])
-    1 * cacheService.free(Keys.getServerGroupKey(asg2.autoScalingGroupName, ACCOUNT, REGION))
-    1 * cacheService.keysByType(Keys.Namespace.SERVER_GROUPS) >> [Keys.getServerGroupKey(asg1.autoScalingGroupName, ACCOUNT, REGION)]
-    0 * cacheService.free(clusterKey)
+    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg2])
+    with(cacheService) {
+      1 * free(serverGroupKey1)
+      1 * keysByType(Keys.Namespace.SERVER_GROUPS) >> [serverGroupKey2]
+      1 * retrieve(serverGroupKey1, AmazonServerGroup) >> new AmazonServerGroup(asg: asg1)
+      0 * free(clusterKey)
+      1 * free(applicationLoadBalancerKey)
+      1 * free(loadBalancerServerGroupKey)
+    }
 
     when:
     "nothing has changed, shouldn't do anything"

@@ -21,6 +21,7 @@ import com.netflix.frigga.Names
 class Keys {
 
   static enum Namespace {
+    APPLICATION_LOAD_BALANCERS,
     IMAGES,
     NAMED_IMAGES,
     SERVER_GROUPS,
@@ -76,6 +77,9 @@ class Keys {
       case Namespace.LOAD_BALANCER_SERVER_GROUPS.ns:
         result = [loadBalancer: parts[1], application: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5]]
         break
+      case Namespace.APPLICATION_LOAD_BALANCERS.ns:
+        result = [application: parts[1], loadBalancer: parts[2], account: parts[3], region: parts[4]]
+        break
       case Namespace.CLUSTERS.ns:
         result = [application: parts[1], account: parts[2], cluster: parts[3]]
         break
@@ -123,6 +127,10 @@ class Keys {
   static String getLoadBalancerServerGroupKey(String loadBalancerName, String account, String serverGroupName, String region) {
     Names names = Names.parseName(serverGroupName)
     "${Namespace.LOAD_BALANCER_SERVER_GROUPS}:${loadBalancerName}:${names.app.toLowerCase()}:${account}:${region}:${serverGroupName}"
+  }
+
+  static String getApplicationLoadBalancerKey(String applicationName, String loadBalancerName, String account, String region) {
+    "${Namespace.APPLICATION_LOAD_BALANCERS}:${applicationName}:${loadBalancerName}:${account}:${region}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
