@@ -37,11 +37,25 @@ interface SecurityGroup {
   String getName()
 
   /**
-   * A set of applications associated with this security group
+   * The application associated with this security group
    *
    * @return
    */
-  Set<String> getApplications()
+  String getApplication()
+
+  /**
+   * The account associated with this security group
+   *
+   * @return
+   */
+  String getAccountName()
+
+  /**
+   * The region associated with this security group
+   *
+   * @return
+   */
+  String getRegion()
 
   /**
    * A representation of the inbound securityRules

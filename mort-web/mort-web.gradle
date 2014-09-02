@@ -1,3 +1,23 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+  }
+}
+
+apply plugin: 'spring-boot'
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+ideaConfig {
+  appClassName = 'com.netflix.spinnaker.mort.Main'
+}
+
 dependencies {
   compile project(":mort-core")
   compile project(":mort-aws")

@@ -16,15 +16,19 @@
 
 package com.netflix.spinnaker.mort.aws.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import groovy.transform.Immutable
 
 @Immutable
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AmazonSecurityGroup implements SecurityGroup {
   final String id
   final String name
-  final Set<String> applications
+  final String application
+  final String accountName
+  final String region
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
 }

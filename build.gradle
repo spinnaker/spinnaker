@@ -8,6 +8,10 @@ buildscript {
   }
 }
 
+ext {
+  springBootVersion = "1.1.5.RELEASE"
+}
+
 allprojects {
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'

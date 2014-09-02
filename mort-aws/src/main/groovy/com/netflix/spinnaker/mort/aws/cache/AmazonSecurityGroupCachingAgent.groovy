@@ -17,8 +17,12 @@
 package com.netflix.spinnaker.mort.aws.cache
 
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.CachingAgent
+import com.netflix.spinnaker.mort.model.securitygroups.Rule
+import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
 import groovy.transform.Immutable
 import rx.Observable
 
@@ -40,7 +44,42 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       !lastRun.contains(it.groupId)
     }.subscribe {
       thisRun << it.groupId
-      cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account), it)
+
+      Map<String, SecurityGroupRule> rules = [:]
+
+      it.ipPermissions.each { permission ->
+        permission.userIdGroupPairs.each { sg ->
+          if (!rules.containsKey(sg.groupId)) {
+            rules.put(sg.groupId, [
+              securityGroup:
+                new AmazonSecurityGroup(
+                  id: sg.groupId,
+                  name: sg.groupName,
+                  application: Names.parseName(sg.groupName).app,
+                  accountName: account,
+                  region: region
+                ),
+              portRanges   : []])
+          }
+          rules.get(sg.groupId).portRanges += [ new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)]
+        }
+      }
+
+      cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account),
+        new AmazonSecurityGroup(
+          id: it.groupId,
+          name: it.groupName,
+          application: Names.parseName(it.groupName).app,
+          accountName: account,
+          region: region,
+          inboundRules: rules.values().collect { rule ->
+            new SecurityGroupRule(
+              securityGroup: rule.securityGroup,
+              portRanges: rule.portRanges
+            )
+          }
+        )
+      )
     }
     lastRun = thisRun
   }
