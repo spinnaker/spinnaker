@@ -22,7 +22,7 @@
     <a ng-repeat="loadBalancer in ctrl.getLoadBalancersFor(heading)"
        ui-sref=".loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account})"
        ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account} )}">
-      {{ctrl.getLoadBalancerLabel(loadBalancer)}} <health-counts container="loadBalancer.health"></health-counts>
+      {{ctrl.getLoadBalancerLabel(loadBalancer)}} <health-counts container="loadBalancer.healthCounts"></health-counts>
       <span class="sublabel">{{ctrl.getLoadBalancerSublabel(loadBalancer) | regionAbbreviator}}</span></a>
   </div>
 </div>

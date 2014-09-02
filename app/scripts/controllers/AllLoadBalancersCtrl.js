@@ -27,7 +27,7 @@ angular.module('deckApp')
             loadBalancer.name,
             $filter('regionAbbreviator')(loadBalancer.region).toLowerCase(),
             loadBalancer.account,
-            loadBalancer.serverGroupNames.join(' ')
+            _.pluck(loadBalancer.getServerGroups(), 'name').join(' ')
           ].join(' ');
         }
       });
@@ -42,7 +42,7 @@ angular.module('deckApp')
     function filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter) {
       return loadBalancers.filter(function (loadBalancer) {
         if (hideHealthy) {
-          var hasUnhealthy = loadBalancer.serverGroups.some(function (serverGroup) {
+          var hasUnhealthy = loadBalancer.getServerGroups().some(function (serverGroup) {
             return serverGroup.downCount > 0;
           });
           if (!hasUnhealthy) {
@@ -56,15 +56,15 @@ angular.module('deckApp')
       });
     }
 
-    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroup) {
+    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, loadBalancer) {
       if (!$scope.sortFilter.hideHealthy) {
-        totalInstancesDisplayed += serverGroup.reduce(function (total, asg) {
-          return asg.instances.length + total;
+        totalInstancesDisplayed += loadBalancer.reduce(function (total, elb) {
+          return elb.getInstances().length + total;
         }, 0);
       } else {
-        totalInstancesDisplayed += serverGroup.reduce(
-          function (total, asg) {
-            return (asg.downCount > 0 ? asg.instances.length : 0) + total;
+        totalInstancesDisplayed += loadBalancer.reduce(
+          function (total, elb) {
+            return (elb.downCount > 0 ? elb.instances.length : 0) + total;
           }, 0
         );
       }
@@ -72,41 +72,41 @@ angular.module('deckApp')
     }
 
     function updateLoadBalancerGroups() {
-      var loadBalancers = application.loadBalancers,
-          totalInstancesDisplayed = 0,
-          groups = [],
-          filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
-          primarySort = $scope.sortFilter.sortPrimary,
-          secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
-          hideHealthy = $scope.sortFilter.hideHealthy;
+      $scope.$evalAsync(function() {
+        var loadBalancers = application.loadBalancers,
+            totalInstancesDisplayed = 0,
+            groups = [],
+            filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
+            primarySort = $scope.sortFilter.sortPrimary,
+            secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key,
+            hideHealthy = $scope.sortFilter.hideHealthy;
 
-      addSearchField(loadBalancers);
+        addSearchField(loadBalancers);
 
-      var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
-      var grouped = _.groupBy(filtered, primarySort);
+        var filtered = filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter);
+        var grouped = _.groupBy(filtered, primarySort);
 
-      _.forOwn(grouped, function(group, key) {
-        var subGroupings = _.groupBy(group, secondarySort),
-          subGroups = [];
+        _.forOwn(grouped, function(group, key) {
+          var subGroupings = _.groupBy(group, secondarySort),
+            subGroups = [];
 
-        _.forOwn(subGroupings, function(subGroup, subKey) {
-          totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subGroup);
-          subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
+          _.forOwn(subGroupings, function(subGroup, subKey) {
+            totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subGroup);
+            subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
+          });
+
+          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
         });
 
-        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+        $scope.groups = _.sortBy(groups, 'heading');
+
+        $scope.displayOptions = {
+          renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
+          showServerGroups: $scope.sortFilter.showAsgs,
+          showInstances: $scope.sortFilter.showAllInstances,
+          hideHealthy: $scope.sortFilter.hideHealthy
+        };
       });
-
-      $scope.groups = _.sortBy(groups, 'heading');
-
-      $scope.displayOptions = {
-        renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
-        showServerGroups: $scope.sortFilter.showAsgs,
-        showInstances: $scope.sortFilter.showAllInstances,
-        hideHealthy: $scope.sortFilter.hideHealthy
-      };
-
-      $scope.$digest(); // debounced
     }
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);

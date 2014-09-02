@@ -86,52 +86,55 @@ angular.module('deckApp')
     }
 
     function updateClusterGroups() {
-      var groups = [],
-        totalInstancesDisplayed = 0,
-        filter = $scope.sortFilter.filter.toLowerCase(),
-        primarySort = $scope.sortFilter.sortPrimary,
-        secondarySort = $scope.sortFilter.sortSecondary,
-        tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+      $scope.$evalAsync(function() {
+        var groups = [],
+          totalInstancesDisplayed = 0,
+          filter = $scope.sortFilter.filter.toLowerCase(),
+          primarySort = $scope.sortFilter.sortPrimary,
+          secondarySort = $scope.sortFilter.sortSecondary,
+          tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
 
-      var serverGroups = filterServerGroupsForDisplay(application.serverGroups, $scope.sortFilter.hideHealthy, filter);
+        var serverGroups = filterServerGroupsForDisplay(application.serverGroups, $scope.sortFilter.hideHealthy, filter);
 
-      var grouped = _.groupBy(serverGroups, primarySort);
+        var grouped = _.groupBy(serverGroups, primarySort);
 
-      _.forOwn(grouped, function(group, key) {
-        var subGroupings = _.groupBy(group, secondarySort),
-          subGroups = [];
+        _.forOwn(grouped, function(group, key) {
+          var subGroupings = _.groupBy(group, secondarySort),
+            subGroups = [];
 
-        _.forOwn(subGroupings, function(subGroup, subKey) {
-          var subGroupings = _.groupBy(subGroup, tertiarySort),
-            subSubGroups = [];
+          _.forOwn(subGroupings, function(subGroup, subKey) {
+            var subGroupings = _.groupBy(subGroup, tertiarySort),
+              subSubGroups = [];
 
-          _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-            totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subSubGroup);
-            subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
+            _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
+              totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subSubGroup);
+              subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
+            });
+            subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
           });
-          subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
+
+          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
         });
 
-        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+        $scope.groups = _.sortBy(groups, 'heading');
+
+        $scope.displayOptions = {
+          renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
+          showInstances: $scope.sortFilter.showAllInstances,
+          hideHealthy: $scope.sortFilter.hideHealthy,
+          filter: $scope.sortFilter.filter
+        };
       });
-
-      $scope.groups = _.sortBy(groups, 'heading');
-
-      $scope.displayOptions = {
-        renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
-        showInstances: $scope.sortFilter.showAllInstances,
-        hideHealthy: $scope.sortFilter.hideHealthy,
-        filter: $scope.sortFilter.filter
-      };
-
-      $scope.$digest(); // downside of debouncing
-
     }
 
     this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
-    addSearchFields();
-    this.updateClusterGroups();
+    application.onAutoRefresh = function() {
+      addSearchFields();
+      updateClusterGroups();
+    };
+
+    application.onAutoRefresh();
 
   }
 );

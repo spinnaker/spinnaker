@@ -14,7 +14,7 @@
     <div ng-if="displayOptions.showServerGroups">
       <load-balancer-server-group
         ng-if="ctrl.displayServerGroup(serverGroup)"
-        ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'name'"
+        ng-repeat="serverGroup in loadBalancer.getServerGroups() | orderBy:'name'"
         display-options="displayOptions"
         server-group="serverGroup"></load-balancer-server-group>
     </div>
