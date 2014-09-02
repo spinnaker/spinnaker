@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
@@ -37,7 +37,7 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(
       regions: ["us-west-1"],
       accounts: [
-        new NetflixAssumeRoleAamzonCredentials(
+        new NetflixAssumeRoleAmazonCredentials(
           name: 'test',
           regions: [
             new AmazonCredentials.AWSRegion(
@@ -50,7 +50,7 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   void setup() {
-    description = new UpsertAmazonLoadBalancerDescription(credentials: new NetflixAssumeRoleAamzonCredentials(name: 'test'))
+    description = new UpsertAmazonLoadBalancerDescription(credentials: new NetflixAssumeRoleAmazonCredentials(name: 'test'))
   }
 
   void "empty parameters fails validation"() {

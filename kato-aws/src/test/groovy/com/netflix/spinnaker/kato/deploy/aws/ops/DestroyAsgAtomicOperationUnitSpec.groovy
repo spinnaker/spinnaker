@@ -21,7 +21,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.DestroyAsgDescription
@@ -37,7 +37,7 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
 
   Should "get list of instances and execute a terminate and decrement operation against them"() {
     setup:
-    def description = new DestroyAsgDescription(asgName: "my-stack-v000", regions: ["us-east-1"], credentials: new NetflixAssumeRoleAamzonCredentials(name: "baz"))
+    def description = new DestroyAsgDescription(asgName: "my-stack-v000", regions: ["us-east-1"], credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz"))
     def provider = Mock(AmazonClientProvider)
     def mockAutoScaling = Mock(AmazonAutoScaling)
     provider.getAutoScaling(_, _) >> mockAutoScaling

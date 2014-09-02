@@ -23,7 +23,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.ShrinkClusterDescription
@@ -52,7 +52,7 @@ class ShrinkClusterAtomicOperationUnitSpec extends Specification {
     description.application = "asgard"
     description.clusterName = "asgard-test"
     description.regions = ['us-west-1']
-    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
+    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
     def rt = Mock(RestTemplate)
     def operation = new ShrinkClusterAtomicOperation(description, rt)
     operation.amazonClientProvider = mockAmazonClientProvider

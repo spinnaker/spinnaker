@@ -21,7 +21,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
@@ -55,7 +55,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
 
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
 
-    def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAssumeRoleAamzonCredentials
+    def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAssumeRoleAmazonCredentials
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"

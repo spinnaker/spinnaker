@@ -38,9 +38,9 @@ ext {
     frigga            : "com.netflix.frigga:frigga:0.13",
     groovy            : "org.codehaus.groovy:groovy-all:2.3.6",
     eureka            : "com.netflix.eureka:eureka-client:1.1.136",
-    kork              : "com.netflix.spinnaker.kork:kork-core:1.14",
-    amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.14',
-    amos              : 'com.netflix.spinnaker:amos-core:0.7',
+    kork              : "com.netflix.spinnaker.kork:kork-core:1.15",
+    amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.15',
+    amos              : 'com.netflix.spinnaker:amos-core:0.8',
   ]
 }
 

@@ -21,7 +21,7 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.security.aws.BastionCredentialsProvider
@@ -129,6 +129,6 @@ class KatoAWSConfig {
     // This is the IAM Role that Kato will assume within ManagedAccounts
     String assumeRole
     // These are accounts that have been configured with permissions under the above assumeRole for Kato to perform operations
-    List<NetflixAssumeRoleAamzonCredentials> accounts
+    List<NetflixAssumeRoleAmazonCredentials> accounts
   }
 }

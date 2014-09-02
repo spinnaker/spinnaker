@@ -26,7 +26,7 @@ import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
@@ -45,7 +45,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       describeTags(_) >> new DescribeTagsResult()
     }
     provider.getAmazonEC2(_, _) >> ec2
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(NetflixAssumeRoleAamzonCredentials))
+    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(NetflixAssumeRoleAmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     def accountHolder = Mock(AccountCredentialsProvider)
@@ -59,15 +59,15 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       assert request.launchPermission.add.get(0).userId == "5678"
     }
     1 * accountHolder.getCredentials("prod") >> {
-      def mock = Mock(NetflixAssumeRoleAamzonCredentials)
+      def mock = Mock(NetflixAssumeRoleAmazonCredentials)
       mock.getAccountId() >> 5678
       mock
     }
   }
 
   void "should replicate tags"() {
-    def prodCredentials = new NetflixAssumeRoleAamzonCredentials(name: "prod")
-    def testCredentials = new NetflixAssumeRoleAamzonCredentials(name: "test")
+    def prodCredentials = new NetflixAssumeRoleAmazonCredentials(name: "prod")
+    def testCredentials = new NetflixAssumeRoleAmazonCredentials(name: "test")
 
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)

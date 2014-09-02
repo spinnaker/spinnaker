@@ -20,7 +20,7 @@ package com.netflix.spinnaker.kato.deploy.aws.validators
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
@@ -37,7 +37,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   BasicAmazonDeployDescriptionValidator validator
 
   @Shared
-  NetflixAssumeRoleAamzonCredentials amazonCredentials = new NetflixAssumeRoleAamzonCredentials(name: ACCOUNT_NAME)
+    NetflixAssumeRoleAmazonCredentials amazonCredentials = new NetflixAssumeRoleAmazonCredentials(name: ACCOUNT_NAME)
 
   void setupSpec() {
     validator = new BasicAmazonDeployDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1", "us-west-2"]))

@@ -17,7 +17,7 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.model.NetworkInterface
 import com.google.common.collect.Iterables
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateNetworkInterfaceDescription
@@ -59,7 +59,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new NetflixAssumeRoleAamzonCredentials(name: "baz")
+      credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz")
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
@@ -104,7 +104,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new NetflixAssumeRoleAamzonCredentials(name: "baz")
+      credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz")
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
@@ -145,7 +145,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new NetflixAssumeRoleAamzonCredentials(name: "baz")
+      credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz")
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory

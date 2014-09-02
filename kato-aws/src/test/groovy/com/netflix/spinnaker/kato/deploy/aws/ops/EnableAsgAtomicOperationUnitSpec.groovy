@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 
@@ -67,7 +67,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     def noDiscovery = new EnableDisableAsgDescription([
       asgName    : "kato-main-v000",
       regions    : ["us-west-1"],
-      credentials: new NetflixAssumeRoleAamzonCredentials(name: "foo", edda: "edda")
+      credentials: new NetflixAssumeRoleAmazonCredentials(name: "foo", edda: "edda")
     ])
 
     def noDiscoveryOp = new EnableAsgAtomicOperation(noDiscovery)

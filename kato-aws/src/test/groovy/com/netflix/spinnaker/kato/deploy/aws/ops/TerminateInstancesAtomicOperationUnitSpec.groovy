@@ -18,7 +18,7 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.TerminateInstancesDescription
@@ -37,7 +37,7 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should terminate instances"() {
     def description = new TerminateInstancesDescription(region: "us-west-1", instanceIds: ["i-123", "i-456"])
-    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
+    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
     @Subject def operation = new TerminateInstancesAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
 

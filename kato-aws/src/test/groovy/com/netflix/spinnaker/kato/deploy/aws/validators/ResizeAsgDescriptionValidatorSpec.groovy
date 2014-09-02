@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.deploy.aws.description.ResizeAsgDescription
 import org.springframework.validation.Errors
@@ -36,7 +36,7 @@ class ResizeAsgDescriptionValidatorSpec extends AbstractConfiguredRegionsValidat
 
   void "invalid capacity fails validation"() {
     setup:
-    def description = new ResizeAsgDescription(asgName: "foo", credentials: Mock(NetflixAssumeRoleAamzonCredentials))
+    def description = new ResizeAsgDescription(asgName: "foo", credentials: Mock(NetflixAssumeRoleAmazonCredentials))
     description.capacity.min = 5
     description.capacity.max = 3
     def errors = Mock(Errors)

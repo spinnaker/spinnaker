@@ -24,7 +24,7 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAamzonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.TerminateInstanceAndDecrementAsgDescription
@@ -41,7 +41,7 @@ class TerminateInstanceAndDecrementAsgAtomicOperationUnitSpec extends Specificat
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new TerminateInstanceAndDecrementAsgDescription(asgName: "myasg-stack-v000", region: "us-west-1", instance: "i-123456")
-    description.credentials = new NetflixAssumeRoleAamzonCredentials(name: "baz")
+    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
     def operation = new TerminateInstanceAndDecrementAsgAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
 
