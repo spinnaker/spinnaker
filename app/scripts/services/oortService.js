@@ -38,7 +38,7 @@ angular.module('deckApp')
               application.onAutoRefresh();
               autoRefresh(scope);
             });
-          }, 3000);
+          }, 30000);
           scope.$on('$destroy', function () {
             $timeout.cancel(timeout);
           });
@@ -55,27 +55,13 @@ angular.module('deckApp')
         return _.flatten(_.pluck(application.clusters, 'serverGroups'));
       };
 
-      application.serverGroupIsInLoadBalancer = function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-        if (serverGroup.region !== loadBalancer.region || loadBalancer.serverGroups.indexOf(serverGroup.name) === -1) {
-          return false;
-        }
-        // only include if load balancer is fronting an instance
-        var elbInstanceIds = _.pluck(loadBalancer.elb.instances, 'instanceId'),
-          serverGroupInstanceIds = _.pluck(serverGroup.instances, 'instanceId');
-        return elbInstanceIds.some(function (elbInstanceId) {
-          return serverGroupInstanceIds.indexOf(elbInstanceId) !== -1;
-        });
-      };
-
     }
 
     function deepCopyApplication(original, newApplication) {
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
       original.loadBalancers = newApplication.loadBalancers;
-      delete newApplication.accounts;
-      delete newApplication.clusters;
-      delete newApplication.loadBalancers;
+      // TODO: this is leaky
     }
 
     function getApplication(applicationName) {
@@ -83,8 +69,12 @@ angular.module('deckApp')
       return applicationLoader.then(function(application) {
         addMethodsToApplication(application);
         application.accounts = Object.keys(application.clusters);
-        var clusterLoader = clusterService.loadClusters(application);
-        var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
+        var clusterLoader = clusterService.loadClusters(application).then(function(clusters) {
+          application.clusters = clusters;
+        });
+        var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application).then(function(loadBalancers) {
+          application.loadBalancers = loadBalancers;
+        });
 
         return $q.all([clusterLoader, loadBalancerLoader]).then(function() {
           loadBalancerService.normalizeLoadBalancersWithServerGroups(application);

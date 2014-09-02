@@ -28,9 +28,7 @@ angular.module('deckApp')
         loadBalancerPromises.push(loadBalancerPromise);
       });
 
-      return $q.all(loadBalancerPromises).then(function(loadBalancers) {
-        application.loadBalancers = _.flatten(loadBalancers);
-      });
+      return $q.all(loadBalancerPromises).then(_.flatten);
 
     }
 
@@ -60,7 +58,7 @@ angular.module('deckApp')
             region.loadBalancers.forEach(function (loadBalancer) {
               loadBalancer.getServerGroups = function() {
                 return application.getServerGroups().filter(function(serverGroup) {
-                  return application.serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+                  return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
                 });
               };
               loadBalancer.getInstances = function() {
@@ -79,10 +77,23 @@ angular.module('deckApp')
       updateHealthCounts(application);
     }
 
+    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
+      if (serverGroup.region !== loadBalancer.region || loadBalancer.serverGroups.indexOf(serverGroup.name) === -1) {
+        return false;
+      }
+      // only include if load balancer is fronting an instance
+      var elbInstanceIds = _.pluck(loadBalancer.elb.instances, 'instanceId'),
+        serverGroupInstanceIds = _.pluck(serverGroup.instances, 'instanceId');
+      return elbInstanceIds.some(function (elbInstanceId) {
+        return serverGroupInstanceIds.indexOf(elbInstanceId) !== -1;
+      });
+    }
+
 
     return {
       loadLoadBalancers: loadLoadBalancers,
-      normalizeLoadBalancersWithServerGroups: normalizeLoadBalancersWithServerGroups
+      normalizeLoadBalancersWithServerGroups: normalizeLoadBalancersWithServerGroups,
+      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer
     };
 
   });

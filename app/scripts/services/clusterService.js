@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('clusterService', function (searchService, settings, $q, Restangular, _) {
+  .factory('clusterService', function (searchService, settings, $q, Restangular, _, loadBalancerService) {
 
     var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -29,9 +29,7 @@ angular.module('deckApp')
         });
       });
 
-      return $q.all(clusterPromises).then(function(clusters) {
-        application.clusters = clusters;
-      });
+      return $q.all(clusterPromises);
     }
 
     function getCluster(application, account, clusterName) {
@@ -100,7 +98,7 @@ angular.module('deckApp')
     function updateLoadBalancers(application) {
       application.getServerGroups().forEach(function(serverGroup) {
         serverGroup.loadBalancers = application.loadBalancers.filter(function(loadBalancer) {
-          return application.serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+          return loadBalancerService.serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
         });
       });
     }
