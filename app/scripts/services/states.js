@@ -240,6 +240,7 @@ angular.module('deckApp')
       var infrastructure = {
         name: 'infrastructure',
         url: '/infrastructure?q',
+        reloadOnSearch: false,
         views: {
           'main@': {
             templateUrl: 'views/infrastructure.html',
