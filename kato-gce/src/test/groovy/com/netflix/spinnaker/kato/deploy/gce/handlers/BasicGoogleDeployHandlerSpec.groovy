@@ -25,12 +25,25 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import spock.lang.Ignore
+import spock.lang.Shared
 import spock.lang.Specification
 
 class BasicGoogleDeployHandlerSpec extends Specification {
 
+  @Shared
+  BasicGoogleDeployHandler handler
+
   void setupSpec() {
+    this.handler = new BasicGoogleDeployHandler()
     TaskRepository.threadLocalTask.set(Mock(Task))
+  }
+
+  void "handler supports basic deploy description type"() {
+    given:
+    def description = new BasicGoogleDeployDescription()
+
+    expect:
+    handler.handles description
   }
 
   /**
@@ -43,7 +56,6 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def instanceMock = getComputeMock(Compute.Instances, Compute.Instances.List, InstanceList, Instance, null)
     def credentials = new GoogleCredentials("project", compute)
     def description = new BasicGoogleDeployDescription(application: "app", stack: "stack", image: "image", type: "f1-micro", zone: "us-central1-b", credentials: credentials)
-    def handler = new BasicGoogleDeployHandler()
 
     when:
     handler.handle(description, [])
