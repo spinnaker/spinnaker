@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond) {
 
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -75,8 +75,14 @@ angular.module('deckApp')
         var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application).then(function(loadBalancers) {
           application.loadBalancers = loadBalancers;
         });
+        var taskLoader = pond.one('applications', applicationName)
+          .all('tasks')
+          .getList()
+          .then(function(data) {
+            application.tasks = data;
+          });
 
-        return $q.all([clusterLoader, loadBalancerLoader]).then(function() {
+        return $q.all([clusterLoader, loadBalancerLoader, taskLoader]).then(function() {
           loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
           clusterService.normalizeServerGroupsWithLoadBalancers(application);
           return application;

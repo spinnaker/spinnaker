@@ -77,6 +77,14 @@ angular.module('deckApp')
 
       RestangularConfigurer.addElementTransformer('tasks', true, function(taskCollection) {
         taskCollection.forEach(filterTask);
+        taskCollection.runningCount = function() {
+          return taskCollection.reduce(function(acc, current) {
+            return current.status === 'STARTED' ? acc + 1 : acc;
+          }, 0);
+        };
+        taskCollection.hasActive = function() {
+          return taskCollection.runningCount > 0 ? true : false;
+        };
         return taskCollection;
       });
 
