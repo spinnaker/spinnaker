@@ -26,24 +26,24 @@ angular.module('deckApp')
 
       application.enableAutoRefresh = function enableAutoRefresh(scope) {
         application.autoRefreshEnabled = true;
-        application.autoRefresh(scope);
+        autoRefresh(scope);
       };
 
-      application.autoRefresh = function autoRefresh(scope) {
+      function autoRefresh(scope) {
         application.onAutoRefresh = application.onAutoRefresh || angular.noop;
         if (application.autoRefreshEnabled) {
           var timeout = $timeout(function () {
             getApplication(application.name).then(function (newApplication) {
               deepCopyApplication(application, newApplication);
               application.onAutoRefresh();
-              application.autoRefresh(scope);
+              autoRefresh(scope);
             });
-          }, 15000);
+          }, 3000);
           scope.$on('$destroy', function () {
             $timeout.cancel(timeout);
           });
         }
-      };
+      }
 
       application.getCluster = function getCluster(accountName, clusterName) {
         var matches = application.clusters.filter(function (cluster) {
