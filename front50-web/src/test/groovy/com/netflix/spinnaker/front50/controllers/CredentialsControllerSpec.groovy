@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -35,23 +36,25 @@ class CredentialsControllerSpec extends Specification {
   CredentialsController controller
 
   @Shared
-  NamedAccountProvider namedAccountProvider
+  AccountCredentialsProvider accountCredentialsProvider
 
   void setup() {
-    namedAccountProvider = Mock(NamedAccountProvider)
-    controller = new CredentialsController(namedAccountProvider: namedAccountProvider)
+    accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    controller = new CredentialsController(accountCredentialsProvider: accountCredentialsProvider)
     mvc = MockMvcBuilders.standaloneSetup(controller).setMessageConverters(new MappingJackson2HttpMessageConverter()).build()
   }
 
   void "account list are listed on default endpoint"() {
-    setup:
-    namedAccountProvider.getAccountNames() >> ["test", "prod"]
-
     when:
     def result = mvc.perform(MockMvcRequestBuilders.get("/credentials").accept(MediaType.APPLICATION_JSON)).andReturn()
 
     then:
+    1 * accountCredentialsProvider.getAll() >> {
+      def mock = Mock(AccountCredentials)
+      mock.getName() >> "test"
+      [mock]
+    }
     result.response.status == 200
-    result.response.contentAsString == '["test","prod"]'
+    result.response.contentAsString == '["test"]'
   }
 }

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spinnaker.front50.security.DefaultNamedAccountProvider
-import com.netflix.spinnaker.front50.security.NamedAccount
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,10 +31,10 @@ class DefaultConfigSpec extends Specification {
     def ctx = new AnnotationConfigApplicationContext(DefaultConfig)
 
     when:
-    def bean = ctx.getBean(NamedAccountProvider)
+    def bean = ctx.getBean(AccountCredentialsProvider)
 
     then:
-    bean instanceof DefaultNamedAccountProvider
+    bean instanceof DefaultAccountCredentialsProvider
   }
 
   void "explicit NamedAccountProvider is chosen in favor of DefaultNamedAccountProvider"() {
@@ -42,7 +42,7 @@ class DefaultConfigSpec extends Specification {
     def ctx = new AnnotationConfigApplicationContext(NonDefaultConfig, DefaultConfig)
 
     when:
-    def bean = ctx.getBean(NamedAccountProvider)
+    def bean = ctx.getBean(AccountCredentialsProvider)
 
     then:
     bean instanceof TestNamedAccountProvider
@@ -51,31 +51,21 @@ class DefaultConfigSpec extends Specification {
   @Configuration
   static class NonDefaultConfig {
     @Bean
-    NamedAccountProvider namedAccountProvider() {
+    AccountCredentialsProvider namedAccountProvider() {
       new TestNamedAccountProvider()
     }
   }
 
-  static class TestNamedAccountProvider implements NamedAccountProvider {
+  static class TestNamedAccountProvider implements AccountCredentialsProvider {
 
     @Override
-    List<String> getAccountNames() {
+    Set<AccountCredentials> getAll() {
       return null
     }
 
     @Override
-    NamedAccount get(String name) {
+    AccountCredentials getCredentials(String name) {
       return null
-    }
-
-    @Override
-    void remove(String name) {
-
-    }
-
-    @Override
-    void put(NamedAccount namedAccount) {
-
     }
   }
 }

@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.front50.model.application
 
+import com.netflix.spinnaker.amos.AccountCredentials
+import org.springframework.stereotype.Component
 
-package com.netflix.spinnaker.front50.security
+/**
+ * A null operation implementation.
+ */
+@Component
+class NoopApplicationDAOProvider implements ApplicationDAOProvider<AccountCredentials> {
+  @Override
+  boolean supports(Class credentialsClass) {
+    return false
+  }
 
-interface NamedAccountProvider {
-  List<String> getAccountNames()
-
-  NamedAccount get(String name)
-
-  void remove(String name)
-
-  void put(NamedAccount namedAccount)
+  @Override
+  ApplicationDAO getForAccount(AccountCredentials credentials) {
+    return null
+  }
 }

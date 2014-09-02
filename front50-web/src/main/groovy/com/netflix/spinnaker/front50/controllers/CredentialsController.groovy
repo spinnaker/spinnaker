@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -27,10 +27,10 @@ import org.springframework.web.bind.annotation.RestController
 class CredentialsController {
 
   @Autowired
-  NamedAccountProvider namedAccountProvider
+  AccountCredentialsProvider accountCredentialsProvider
 
   @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
-    namedAccountProvider.accountNames
+    accountCredentialsProvider.all.collect { it.name }
   }
 }
