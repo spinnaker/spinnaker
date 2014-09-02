@@ -179,4 +179,24 @@ class ApplicationsControllerSpec extends Specification {
     account = "test"
   }
 
+  void "search hits the dao"() {
+    setup:
+    def sampleApps = [new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
+      "netflix.com application", "Standalone Application", null, null, null, null, "1265752693581l", "1265752693581l"),
+                      new Application("SAMPLEAPP-2", "Standalone App", "web@netflix.com", "Kevin McEntee",
+                        "netflix.com application", "Standalone Application", null, null, null, null, "1265752693581l", "1265752693581l")]
+
+    when:
+    def response = mockMvc.perform(get("/${account}/applications/search?q=p"))
+
+    then:
+    1 * dao.search([q:"p"]) >> sampleApps
+    1 * accountCredentialsProvider.getCredentials(account) >> Stub(AccountCredentials)
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
+
+    where:
+    account = "test"
+  }
+
 }

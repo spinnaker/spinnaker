@@ -43,6 +43,21 @@ public class ApplicationsController extends SpringBootServletInitializer {
   @Autowired
   List<ApplicationDAOProvider> applicationDAOProviders
 
+  @RequestMapping(value = "/search", method = RequestMethod.GET)
+  Set<Application> search(@PathVariable String account, @RequestParam Map<String, String> params) {
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def application = getApplication(credentials)
+    try {
+      return application.search(params)
+    } catch (NotFoundException e) {
+      log.info("GET(/applications) -> NotFoundException occurred: ${e.message}")
+      throw new NoApplicationsFoundException(e)
+    } catch (Throwable thr) {
+      log.error("GET(/applications) -> Throwable occurred: ", thr)
+      throw new ApplicationException(thr)
+    }
+  }
+
   @RequestMapping(method = RequestMethod.GET)
   Collection<Application> applications(@PathVariable String account) {
     def credentials = accountCredentialsProvider.getCredentials(account)

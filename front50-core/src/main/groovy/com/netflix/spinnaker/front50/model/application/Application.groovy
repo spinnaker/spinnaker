@@ -15,7 +15,6 @@
  */
 
 
-
 package com.netflix.spinnaker.front50.model.application
 
 import com.fasterxml.jackson.annotation.JsonCreator
@@ -24,10 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.front50.exception.NoPrimaryKeyException
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.transform.ToString
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Configurable
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -134,6 +129,10 @@ class Application {
 
   Application findByName(String name) throws NotFoundException {
     return dao.findByName(name.toUpperCase())
+  }
+
+  Set<Application> search(Map<String, String> params) throws NotFoundException {
+    return dao.search(params)
   }
 
   Application withName(String name) {

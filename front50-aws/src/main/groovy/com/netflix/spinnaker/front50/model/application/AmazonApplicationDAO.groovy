@@ -38,6 +38,17 @@ class AmazonApplicationDAO implements ApplicationDAO {
     this.awsSimpleDBClient != null
   }
 
+  @Override
+  Set<Application> search(Map<String, String> attributes) {
+    def params = attributes.collect { k, v -> "$k = '$v'" }
+    def items = query "select * from `${domain}` where ${params.join(" and ")} limit 2500"
+    if (items.size() > 0) {
+      return items.collect { mapToApp(it) } as Set
+    } else {
+      throw new NotFoundException("No Application found for search criteria $params in domain ${domain}")
+    }
+  }
+
   private List<String> listDomains() {
     awsSimpleDBClient.listDomains(new ListDomainsRequest().withMaxNumberOfDomains(1)).getDomainNames()
   }

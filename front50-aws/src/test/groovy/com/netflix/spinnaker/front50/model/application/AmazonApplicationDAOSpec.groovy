@@ -20,12 +20,13 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.model.*
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import spock.lang.Specification
 
 /**
  * Created by aglover on 4/22/14.
  */
-class DefaultApplicationDAOSpec extends Specification {
+class AmazonApplicationDAOSpec extends Specification {
 
   void 'should update an existing record'() {
     def awsClient = Mock(AmazonSimpleDB)
@@ -106,6 +107,22 @@ class DefaultApplicationDAOSpec extends Specification {
     then:
     final Exception exp = thrown()
     exp.message == "No Application found by name of SAMPLEAPP in domain RESOURCE_REGISTRY"
+  }
+
+  void 'should build search query from provided map'() {
+    def awsClient = Mock(AmazonSimpleDB)
+    def dao = new AmazonApplicationDAO(domain: "RESOURCE_REGISTRY")
+    dao.awsSimpleDBClient = awsClient
+
+    when:
+    dao.search([q:"p", p:"q"])
+
+    then:
+    1 * awsClient.select(_) >> { SelectRequest req ->
+      assert req.selectExpression.contains("q = 'p' and p = 'q'")
+      new SelectResult(items: [])
+    }
+    thrown NotFoundException
   }
 
   void 'should throw exception if no applications exist'() {

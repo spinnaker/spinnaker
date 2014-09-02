@@ -33,4 +33,6 @@ public interface ApplicationDAO {
 
   boolean isHealthly()
 
+  Set<Application> search(Map<String, String> attributes)
+
 }
