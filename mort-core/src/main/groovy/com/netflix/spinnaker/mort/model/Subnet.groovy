@@ -27,34 +27,8 @@ interface Subnet {
   String getId()
 
   /**
-   * The addressable range for this subnet
-   * @return
-   */
-  AddressableRange getAddressableRange()
-
-  /**
    * The purpose for this subnet. Examples: internal, external, secure, performance, etc
    * @return
    */
   String getPurpose()
-
-  /**
-   * A set of security groups applicable to this subnet
-   * @return
-   */
-  Set<SecurityGroup> getSecurityGroups()
-
-  /**
-   * Applications that exist within this subnet
-   *
-   * @return
-   */
-  Set<String> getApplications()
-
-  /**
-   * Load balancers associated with this subnet
-   *
-   * @return
-   */
-  Set<String> getLoadBalancers()
 }
