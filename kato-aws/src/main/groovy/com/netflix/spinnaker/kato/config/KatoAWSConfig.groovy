@@ -80,6 +80,7 @@ class KatoAWSConfig {
 
       for (account in awsConfigurationProperties.accounts) {
         account.credentialsProvider = provider
+        account.assumeRole = awsConfigurationProperties.assumeRole
         accountCredentialsRepository.save(account.name, account)
       }
     }
@@ -107,6 +108,7 @@ class KatoAWSConfig {
       } else {
         for (account in awsConfigurationProperties.accounts) {
           account.credentialsProvider = awsCredentialsProvider
+          account.assumeRole = awsConfigurationProperties.assumeRole
           accountCredentialsRepository.save(account.name, account)
         }
       }
