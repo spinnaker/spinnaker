@@ -21,9 +21,9 @@ package com.netflix.spinnaker.front50.config
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
-import com.netflix.spinnaker.front50.security.aws.AmazonRoleAccountCredentials
-import com.netflix.spinnaker.front50.security.aws.BasicAmazonNamedAccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.front50.security.aws.BastionCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -61,7 +61,7 @@ class AmazonConfig {
   @ConditionalOnExpression('${bastion.enabled:false}')
   static class BastionCredentialsInitializer {
     @Autowired
-    NamedAccountProvider namedAccountProvider
+    AccountCredentialsRepository accountCredentialsRepository
 
     @Autowired
     BastionConfiguration bastionConfiguration
@@ -73,7 +73,11 @@ class AmazonConfig {
     void init() {
       def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
         bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
-      configureAccount provider, namedAccountProvider, awsConfigurationProperties
+      for (account in awsConfigurationProperties.accounts) {
+        account.credentialsProvider = provider
+        account.assumeRole = awsConfigurationProperties.assumeRole
+        accountCredentialsRepository.save(account.name, account)
+      }
     }
   }
 
@@ -84,7 +88,7 @@ class AmazonConfig {
     AWSCredentialsProvider awsCredentialsProvider
 
     @Autowired
-    NamedAccountProvider namedAccountProvider
+    AccountCredentialsRepository accountCredentialsRepository
 
     @Autowired
     AwsConfigurationProperties awsConfigurationProperties
@@ -95,25 +99,15 @@ class AmazonConfig {
     @PostConstruct
     void init() {
       if (!awsConfigurationProperties.accounts) {
-        namedAccountProvider.put(new BasicAmazonNamedAccountCredentials(awsCredentialsProvider, defaultEnv, awsConfigurationProperties.defaultSimpleDBDomain))
+        accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(credentialsProvider: awsCredentialsProvider))
       } else {
-        configureAccount awsCredentialsProvider, namedAccountProvider, awsConfigurationProperties
+        for (account in awsConfigurationProperties.accounts) {
+          account.credentialsProvider = awsCredentialsProvider
+          account.assumeRole = awsConfigurationProperties.assumeRole
+          accountCredentialsRepository.save(account.name, account)
+        }
       }
     }
-  }
-
-  private static void configureAccount(AWSCredentialsProvider provider, NamedAccountProvider namedAccountCredentialsHolder, AwsConfigurationProperties awsConfigurationProperties) {
-    for (account in awsConfigurationProperties.accounts) {
-      namedAccountCredentialsHolder.put(new AmazonRoleAccountCredentials(provider, account.simpleDBDomain ?: awsConfigurationProperties.defaultSimpleDBDomain, account.accountId, account.name,
-        awsConfigurationProperties.assumeRole))
-    }
-  }
-
-  static class ManagedAccount {
-    String name
-    String accountId
-    String simpleDBDomain
-    boolean defaultAccount
   }
 
   @Component
@@ -122,7 +116,7 @@ class AmazonConfig {
     String accountIamRole
     String assumeRole
     String defaultSimpleDBDomain = "RESOURCE_REGISTRY"
-    List<ManagedAccount> accounts
+    List<NetflixAssumeRoleAmazonCredentials> accounts
   }
 
 }

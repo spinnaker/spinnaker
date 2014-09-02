@@ -18,7 +18,8 @@
 
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
@@ -34,15 +35,22 @@ import org.springframework.web.bind.annotation.ResponseStatus
 public class HealthCheck implements HealthIndicator {
 
   @Autowired
-  NamedAccountProvider namedAccountProvider
+  AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  List<ApplicationDAOProvider> applicationDAOProviders
 
   @Override
   public Health health() {
     try {
-      for (accountName in namedAccountProvider.accountNames) {
-        def namedAccount = namedAccountProvider.get(accountName)
-        if (!namedAccount.application.dao.isHealthly()) {
-          throw new RuntimeException()
+      for (account in accountCredentialsProvider.all) {
+        def providers = applicationDAOProviders.findAll { it.supports(account.getClass()) }
+
+        // I may have an account, but nobody to supply me an ApplicationDAO instance... This seems weird, but let's just skip.
+        for (provider in providers) {
+          if (!provider.getForAccount(account).healthly) {
+            throw new RuntimeException()
+          }
         }
       }
       new Health.Builder().up() build()

@@ -36,8 +36,8 @@ public class Main extends SpringBootServletInitializer {
     if (!System.properties["netflix.environment"]) {
       System.setProperty("netflix.environment", "test")
     }
-    imposeSpinnakerFileConfig("front50-internal.yml")
-    imposeSpinnakerFileConfig("front50-local.yml")
+    imposeSpinnakerFileConfig("kato-internal.yml")
+    imposeSpinnakerFileConfig("kato-local.yml")
   }
 
   static void main(_) {

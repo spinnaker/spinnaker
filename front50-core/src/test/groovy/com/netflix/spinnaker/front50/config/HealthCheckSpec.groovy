@@ -15,13 +15,12 @@
  */
 
 
-
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import com.netflix.spinnaker.front50.security.NamedAccount
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
 import org.springframework.boot.actuate.health.OrderedHealthAggregator
@@ -50,18 +49,10 @@ class HealthCheckSpec extends Specification {
   ApplicationDAO dao
 
   void setup() {
-    healthCheck = new HealthCheck()
-    def namedAccountProvider = Mock(NamedAccountProvider)
-    namedAccountProvider.getAccountNames() >> ["test"]
-    healthCheck.namedAccountProvider = namedAccountProvider
+    def accountCredentialsProvider = Stub(AccountCredentialsProvider)
+    accountCredentialsProvider.all >> [Stub(AccountCredentials)]
     dao = Mock(ApplicationDAO)
-    namedAccountProvider.get("test") >> {
-      def mock = Mock(NamedAccount)
-      def mockApp = Mock(Application)
-      mock.getApplication() >> mockApp
-      mockApp.getDao() >> dao
-      mock
-    }
+    healthCheck = new HealthCheck(accountCredentialsProvider: accountCredentialsProvider, applicationDAOProviders: [new TestApplicationDAOProvider(dao: dao)])
     this.mockMvc = standaloneSetup(new EndpointMvcAdapter(
       new HealthEndpoint(new OrderedHealthAggregator(), [health: this.healthCheck]))).setMessageConverters new MappingJackson2HttpMessageConverter() build()
   }
@@ -85,5 +76,20 @@ class HealthCheckSpec extends Specification {
     then:
     1 * dao.isHealthly() >> true
     response.andExpect status().isOk()
+  }
+
+  static class TestApplicationDAOProvider implements ApplicationDAOProvider<AccountCredentials> {
+
+    ApplicationDAO dao
+
+    @Override
+    boolean supports(Class credentialsClass) {
+      true
+    }
+
+    @Override
+    ApplicationDAO getForAccount(AccountCredentials credentials) {
+      dao
+    }
   }
 }

@@ -18,10 +18,12 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.exception.NoPrimaryKeyException
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
-import com.netflix.spinnaker.front50.security.NamedAccountProvider
+import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.web.SpringBootServletInitializer
@@ -36,12 +38,15 @@ import javax.servlet.http.HttpServletResponse
 public class ApplicationsController extends SpringBootServletInitializer {
 
   @Autowired
-  NamedAccountProvider namedAccountProvider
+  AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  List<ApplicationDAOProvider> applicationDAOProviders
 
   @RequestMapping(method = RequestMethod.GET)
   Collection<Application> applications(@PathVariable String account) {
-    def namedAccount = namedAccountProvider.get(account)
-    def application  = namedAccount.application
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def application  = getApplication(credentials)
     try {
       return application.findAll()
     } catch (NotFoundException e) {
@@ -55,8 +60,8 @@ public class ApplicationsController extends SpringBootServletInitializer {
 
   @RequestMapping(method = RequestMethod.PUT)
   Application put(@PathVariable String account, @RequestBody final Application app) {
-    def namedAccount = namedAccountProvider.get(account)
-    def application = namedAccount.application
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def application = getApplication(credentials)
     try {
       if (app.getName() == null || app.getName().equals("")) {
         throw new ApplicationWithoutNameException("Application must have a name")
@@ -72,8 +77,8 @@ public class ApplicationsController extends SpringBootServletInitializer {
 
   @RequestMapping(method = RequestMethod.POST, value = "/name/{name}")
   Application post(@PathVariable String account, @RequestBody final Application app) {
-    def namedAccount = namedAccountProvider.get(account)
-    def application = namedAccount.application
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def application  = getApplication(credentials)
     try {
       return application.initialize(app).withName(app.getName()).save()
     } catch (NoPrimaryKeyException e) {
@@ -87,8 +92,8 @@ public class ApplicationsController extends SpringBootServletInitializer {
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name}")
   void delete(@PathVariable String account, @PathVariable String name, HttpServletResponse response) {
-    def namedAccount = namedAccountProvider.get(account)
-    def application = namedAccount.application
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def application  = getApplication(credentials)
     try {
       application.initialize(new Application().withName(name)).delete()
       response.setStatus(HttpStatus.ACCEPTED.value())
@@ -100,8 +105,8 @@ public class ApplicationsController extends SpringBootServletInitializer {
 
   @RequestMapping(method = RequestMethod.GET, value = "/name/{name}")
   Application getByName(@PathVariable String account, @PathVariable final String name) {
-    def namedAccount = namedAccountProvider.get(account)
-    def application = namedAccount.application
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    def application  = getApplication(credentials)
     try {
       return application.findByName(name)
     } catch (NotFoundException e) {
@@ -124,7 +129,18 @@ public class ApplicationsController extends SpringBootServletInitializer {
     }
   }
 
-  @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Exception, baby")
+  private Application getApplication(AccountCredentials accountCredentials) {
+    def dao = null
+    for (daoProvider in applicationDAOProviders) {
+      if (daoProvider.supports(accountCredentials.getClass())) {
+        dao = daoProvider.getForAccount(accountCredentials)
+        break
+      }
+    }
+    dao ? new Application(dao: dao) : null
+  }
+
+  @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Exception, baby")
   class ApplicationException extends RuntimeException {
     public ApplicationException(Throwable cause) {
       super(cause)
