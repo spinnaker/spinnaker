@@ -19,10 +19,10 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.EnableDisableAsgDescription
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import com.netflix.spinnaker.kato.services.AsgService
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import org.springframework.web.client.RestTemplate
@@ -34,7 +34,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   def description = new EnableDisableAsgDescription([
     asgName: "kato-main-v000",
     regions: ["us-west-1"],
-    credentials: new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "foo")
+    credentials: new NetflixAssumeRoleAmazonCredentials(name: "foo", discovery: "http://%s.discovery.ENV.netflix.net")
   ])
 
   @Shared

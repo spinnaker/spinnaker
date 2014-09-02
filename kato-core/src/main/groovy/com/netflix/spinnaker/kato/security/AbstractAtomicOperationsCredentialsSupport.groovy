@@ -17,14 +17,16 @@
 
 package com.netflix.spinnaker.kato.security
 
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {
   @Autowired
-  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+  AccountCredentialsProvider accountCredentialsProvider
 
-  def getCredentialsObject(String name) {
-    namedAccountCredentialsHolder.getCredentials(name).credentials
+  def <T extends AccountCredentials> T getCredentialsObject(String name) {
+    accountCredentialsProvider.getCredentials(name)
   }
 }

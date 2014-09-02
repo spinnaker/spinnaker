@@ -17,13 +17,14 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
+import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.config.AwsRegion
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.kato.security.DefaultNamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -36,21 +37,23 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   BasicAmazonDeployDescriptionValidator validator
 
   @Shared
-  DiscoveryAwareAmazonCredentials amazonCredentials = new DiscoveryAwareAmazonCredentials(null, ACCOUNT_NAME)
+    NetflixAssumeRoleAmazonCredentials amazonCredentials = new NetflixAssumeRoleAmazonCredentials(name: ACCOUNT_NAME)
 
   void setupSpec() {
     validator = new BasicAmazonDeployDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1", "us-west-2"]))
-    def credentialsHolder = new DefaultNamedAccountCredentialsHolder()
-    def credentials = Mock(AmazonRoleAccountCredentials)
+    def credentialsRepo = new MapBackedAccountCredentialsRepository()
+    def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    def credentials = Mock(AssumeRoleAmazonCredentials)
+    credentials.getName() >> ACCOUNT_NAME
     credentials.getRegions() >> [new AwsRegion("us-west-1", ["us-west-1a", "us-west-1b"])]
-    credentialsHolder.put(ACCOUNT_NAME, credentials)
-    validator.namedAccountCredentialsHolder = credentialsHolder
+    credentialsRepo.save(ACCOUNT_NAME, credentials)
+    validator.accountCredentialsProvider = credentialsProvider
   }
 
   void "pass validation with proper description inputs"() {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
-    capacity: [min: 1, max: 1, desired: 1], subnetType: "internal")
+      capacity: [min: 1, max: 1, desired: 1], subnetType: "internal")
     def errors = Mock(Errors)
 
     when:
@@ -147,7 +150,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   void "invalid block device fails validation"(AmazonBlockDevice blockDevice, String rejection) {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
-            capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: [blockDevice])
+      capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: [blockDevice])
     def errors = Mock(Errors)
 
     when:
@@ -157,21 +160,21 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue("blockDevices", rejection, _, _)
 
     where:
-    blockDevice             | rejection
-    new AmazonBlockDevice() | 'basicAmazonDeployDescription.block.device.not.named'
+    blockDevice                                                                        | rejection
+    new AmazonBlockDevice()                                                            | 'basicAmazonDeployDescription.block.device.not.named'
     new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral0', size: 69) | 'basicAmazonDeployDescription.block.device.ephemeral.config'
-    new AmazonBlockDevice(deviceName: '/dev/sdb', iops: 1) | 'basicAmazonDeployDescription.block.device.ebs.config'
+    new AmazonBlockDevice(deviceName: '/dev/sdb', iops: 1)                             | 'basicAmazonDeployDescription.block.device.ebs.config'
 
   }
 
   void "valid block devices validate"() {
     setup:
     def blockDevices = [
-            new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral0'),
-            new AmazonBlockDevice(deviceName: '/dev/sdb', size: 69)
+      new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral0'),
+      new AmazonBlockDevice(deviceName: '/dev/sdb', size: 69)
     ]
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
-            capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: blockDevices)
+      capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: blockDevices)
     def errors = Mock(Errors)
 
     when:

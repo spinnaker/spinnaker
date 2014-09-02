@@ -17,19 +17,18 @@ package com.netflix.spinnaker.kato.security.aws
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.AWSCredentialsProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 
 
 class RefreshingCredentialsProvider implements AWSCredentialsProvider {
   private final long ttl
 
-  private final NamedAccountCredentials<DiscoveryAwareAmazonCredentials> account
+  private final NetflixAmazonCredentials account
 
   private Long lastCredentialRefresh
   private AWSCredentials credentials
 
-  RefreshingCredentialsProvider(NamedAccountCredentials<DiscoveryAwareAmazonCredentials> account, long ttl) {
+  RefreshingCredentialsProvider(NetflixAmazonCredentials account, long ttl) {
     this.account = account
     this.ttl = ttl
   }
@@ -45,6 +44,6 @@ class RefreshingCredentialsProvider implements AWSCredentialsProvider {
   @Override
   void refresh() {
     this.lastCredentialRefresh = new Date().time
-    this.credentials = account.credentials.credentials
+    this.credentials = account.credentials
   }
 }

@@ -95,7 +95,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (description.credentials.discoveryEnabled) {
             def status = disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable
             task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
-            doDiscoveryStatusCall region, description.credentials.environment, status, asg.autoScalingGroupName, asg.instances*.instanceId
+            doDiscoveryStatusCall region, description.credentials.name, status, asg.autoScalingGroupName, asg.instances*.instanceId
         }
         task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
       } catch (e) {

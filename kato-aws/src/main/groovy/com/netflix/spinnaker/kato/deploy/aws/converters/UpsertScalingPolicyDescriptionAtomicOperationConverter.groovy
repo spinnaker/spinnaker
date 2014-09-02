@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.security.AmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertScalingPolicyDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.UpsertScalingPolicyAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
@@ -39,7 +38,7 @@ class UpsertScalingPolicyDescriptionAtomicOperationConverter extends AbstractAto
   @Override
   UpsertScalingPolicyDescription convertDescription(Map input) {
     def converted = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).convertValue(input, UpsertScalingPolicyDescription)
-    converted.credentials = getCredentialsObject(input.credentials as String) as AmazonCredentials
+    converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }
 }

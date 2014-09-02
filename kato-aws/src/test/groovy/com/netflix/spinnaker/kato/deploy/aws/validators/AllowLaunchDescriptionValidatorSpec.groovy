@@ -17,8 +17,9 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.validation.Errors
 import spock.lang.Specification
 
@@ -42,8 +43,8 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
   void "unconfigured account is rejected"() {
     setup:
     AllowLaunchDescriptionValidator validator = new AllowLaunchDescriptionValidator()
-    def credentialsHolder = Mock(NamedAccountCredentialsHolder)
-    validator.namedAccountCredentialsHolder = credentialsHolder
+    def credentialsHolder = Mock(AccountCredentialsProvider)
+    validator.accountCredentialsProvider = credentialsHolder
     def description = new AllowLaunchDescription(account: "foo")
     def errors = Mock(Errors)
 
@@ -51,7 +52,7 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * credentialsHolder.getAccountNames() >> { ["prod"] }
+    1 * credentialsHolder.getAll() >> { [new NetflixAmazonCredentials(name: "prod")] }
     1 * errors.rejectValue("account", _)
   }
 }

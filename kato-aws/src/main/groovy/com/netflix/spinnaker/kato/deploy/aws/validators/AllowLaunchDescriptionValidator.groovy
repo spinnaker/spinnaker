@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
@@ -27,7 +27,7 @@ import org.springframework.validation.Errors
 @Component("allowLaunchDescriptionValidator")
 class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDescription> {
   @Autowired
-  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Override
   void validate(List priorDescriptions, AllowLaunchDescription description, Errors errors) {
@@ -39,7 +39,7 @@ class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDe
     }
     if (!description.account) {
       errors.rejectValue("account", "allowLaunchDescription.account.empty")
-    } else if (!namedAccountCredentialsHolder.accountNames.contains(description.account)) {
+    } else if (!accountCredentialsProvider.all.collect { it.name }.contains(description.account)) {
       errors.rejectValue("account", "allowLaunchDescription.account.not.configured")
     }
   }

@@ -17,7 +17,7 @@ package com.netflix.spinnaker.kato.services
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.amazoncomponents.security.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.model.aws.SubnetAnalyzer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -28,16 +28,16 @@ class RegionScopedProviderFactory {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
-  RegionScopedProvider forRegion(AmazonCredentials amazonCredentials, String region) {
+  RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
   }
 
   class RegionScopedProvider {
 
-    final AmazonCredentials amazonCredentials
+    final NetflixAmazonCredentials amazonCredentials
     final String region
 
-    RegionScopedProvider(AmazonCredentials amazonCredentials, String region) {
+    RegionScopedProvider(NetflixAmazonCredentials amazonCredentials, String region) {
       this.amazonCredentials = amazonCredentials
       this.region = region
     }

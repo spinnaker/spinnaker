@@ -18,10 +18,11 @@
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerAtomicOperation
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -31,10 +32,10 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
 
   def setupSpec() {
     this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper())
-    def namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
-    def mockCredentials = Mock(NamedAccountCredentials)
-    namedAccountCredentialsHolder.getCredentials(_) >> mockCredentials
-    converter.namedAccountCredentialsHolder = namedAccountCredentialsHolder
+    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    def mockCredentials = Mock(NetflixAmazonCredentials)
+    accountCredentialsProvider.getCredentials(_) >> mockCredentials
+    converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
   void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {

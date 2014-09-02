@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.dns.UpsertAmazonDNSAtomicOperation
-import com.netflix.spinnaker.kato.security.NamedAccountCredentials
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -30,10 +31,10 @@ class UpsertAmazonDNSAtomicOperationConverterUnitSpec extends Specification {
 
   def setupSpec() {
     this.converter = new UpsertAmazonDNSAtomicOperationConverter()
-    def namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
-    def mockCredentials = Mock(NamedAccountCredentials)
-    namedAccountCredentialsHolder.getCredentials(_) >> mockCredentials
-    converter.namedAccountCredentialsHolder = namedAccountCredentialsHolder
+    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    def mockCredentials = Mock(NetflixAmazonCredentials)
+    accountCredentialsProvider.getCredentials(_) >> mockCredentials
+    converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
   void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {

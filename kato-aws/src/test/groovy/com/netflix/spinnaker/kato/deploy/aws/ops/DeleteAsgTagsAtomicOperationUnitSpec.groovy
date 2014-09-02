@@ -18,10 +18,10 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.DeleteAsgTagsDescription
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import spock.lang.Specification
 
 class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
@@ -35,7 +35,7 @@ class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
 
   void "should delete tags on ASG by name"() {
     def description = new DeleteAsgTagsDescription(asgName: "myasg-stack-v000", tagKeys: ["key"], regions: ["us-west-1"])
-    description.credentials = new DiscoveryAwareAmazonCredentials(Mock(AWSCredentials), "baz")
+    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
     def operation = new DeleteAsgTagsAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
 

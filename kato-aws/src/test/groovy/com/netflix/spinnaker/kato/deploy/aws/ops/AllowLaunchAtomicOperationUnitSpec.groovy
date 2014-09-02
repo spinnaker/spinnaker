@@ -25,12 +25,11 @@ import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
 import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
-import com.netflix.spinnaker.kato.security.aws.DiscoveryAwareAmazonCredentials
 import spock.lang.Specification
 
 class AllowLaunchAtomicOperationUnitSpec extends Specification {
@@ -46,11 +45,11 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       describeTags(_) >> new DescribeTagsResult()
     }
     provider.getAmazonEC2(_, _) >> ec2
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(DiscoveryAwareAmazonCredentials))
+    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(NetflixAssumeRoleAmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
-    def accountHolder = Mock(NamedAccountCredentialsHolder)
-    op.namedAccountCredentialsHolder = accountHolder
+    def accountHolder = Mock(AccountCredentialsProvider)
+    op.accountCredentialsProvider = accountHolder
 
     when:
     op.operate([])
@@ -60,15 +59,15 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       assert request.launchPermission.add.get(0).userId == "5678"
     }
     1 * accountHolder.getCredentials("prod") >> {
-      def mock = Mock(AmazonRoleAccountCredentials)
-      mock.getAccountId() >> "5678"
+      def mock = Mock(NetflixAssumeRoleAmazonCredentials)
+      mock.getAccountId() >> 5678
       mock
     }
   }
 
   void "should replicate tags"() {
-    def prodCredentials = new DiscoveryAwareAmazonCredentials(null, "prod", null)
-    def testCredentials = new DiscoveryAwareAmazonCredentials(null, "test", null)
+    def prodCredentials = new NetflixAssumeRoleAmazonCredentials(name: "prod")
+    def testCredentials = new NetflixAssumeRoleAmazonCredentials(name: "test")
 
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)
@@ -77,16 +76,14 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
-    op.namedAccountCredentialsHolder = Mock(NamedAccountCredentialsHolder)
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
 
     when:
     op.operate([])
 
     then:
-    with(op.namedAccountCredentialsHolder){
-      1 * getCredentials("prod") >> Mock(AmazonRoleAccountCredentials) {
-        1 * getCredentials() >> prodCredentials
-      }
+    with(op.accountCredentialsProvider){
+      1 * getCredentials("prod") >> prodCredentials
     }
     with(provider) {
       1 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2

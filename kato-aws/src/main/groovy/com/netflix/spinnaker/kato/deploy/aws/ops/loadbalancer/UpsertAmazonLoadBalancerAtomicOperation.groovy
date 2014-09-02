@@ -111,7 +111,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       } catch (AmazonServiceException ignore) {}
 
       if (!loadBalancer) {
-        task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}..."
+        task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.name} in ${region}..."
         def request = new CreateLoadBalancerRequest(loadBalancerName)
 
         // Networking Related
@@ -151,7 +151,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         loadBalancing.configureHealthCheck(healthCheck)
         task.updateStatus BASE_PHASE, "Healthcheck configured!"
       }
-      task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.environment} in ${region}."
+      task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.name} in ${region}."
       operationResult.loadBalancers[region] = new UpsertAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, loadBalancer.DNSName)
     }
     task.updateStatus BASE_PHASE, "Done deploying load balancers."

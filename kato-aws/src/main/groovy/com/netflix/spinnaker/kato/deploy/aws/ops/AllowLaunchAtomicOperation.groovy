@@ -20,13 +20,13 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.model.aws.AwsResultsRetriever
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.security.NamedAccountCredentialsHolder
-import com.netflix.spinnaker.kato.security.aws.AmazonRoleAccountCredentials
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -47,7 +47,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
   AmazonClientProvider amazonClientProvider
 
   @Autowired
-  NamedAccountCredentialsHolder namedAccountCredentialsHolder
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Override
   Void operate(List priorOutputs) {
@@ -55,12 +55,12 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
 
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
 
-    def targetCredentials = namedAccountCredentialsHolder.getCredentials(description.account) as AmazonRoleAccountCredentials
-    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials.getCredentials(), description.region)
+    def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAssumeRoleAmazonCredentials
+    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
     sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(description.amiName).withLaunchPermission(new LaunchPermissionModifications()
-      .withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
+      .withAdd(new LaunchPermission().withUserId(String.valueOf(targetCredentials.accountId)))))
 
     def request = new DescribeTagsRequest(filters: [new Filter(name: "resource-id", values: [description.amiName])])
 
