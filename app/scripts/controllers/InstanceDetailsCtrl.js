@@ -32,7 +32,7 @@ angular.module('deckApp')
         destructive: true,
         account: instance.account
       }).then(function () {
-        orcaService.terminateInstance(instance)
+        orcaService.terminateInstance(instance, $scope.application.name)
           .then(function (response) {
             console.warn('task: ', response.ref);
           });
