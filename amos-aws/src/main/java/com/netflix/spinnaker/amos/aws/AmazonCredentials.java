@@ -19,6 +19,7 @@ package com.netflix.spinnaker.amos.aws;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.amos.AccountCredentials;
 
 import java.util.Collection;
@@ -94,7 +95,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         }
     }
 
-    public AWSCredentialsProvider getCredentialsProvider() {
+    @JsonIgnore public AWSCredentialsProvider getCredentialsProvider() {
         return credentialsProvider;
     }
 
