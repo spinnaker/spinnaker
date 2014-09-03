@@ -71,7 +71,7 @@ class ClusterController {
   }
 
 
-  @RequestMapping(value = "/{account}/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{name:.+}", method = RequestMethod.GET)
   Set<Cluster> getForAccountAndName(@PathVariable String application, @PathVariable String account, @PathVariable String name) {
     def clusters = clusterProviders.collect {
       it.getCluster(application, account, name)
