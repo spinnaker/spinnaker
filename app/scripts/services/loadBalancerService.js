@@ -82,11 +82,15 @@ angular.module('deckApp')
         return false;
       }
       // only include if load balancer is fronting an instance
-      var elbInstanceIds = _.pluck(loadBalancer.elb.instances, 'instanceId'),
-        serverGroupInstanceIds = _.pluck(serverGroup.instances, 'instanceId');
-      return elbInstanceIds.some(function (elbInstanceId) {
-        return serverGroupInstanceIds.indexOf(elbInstanceId) !== -1;
-      });
+      try {
+        var elbInstanceIds = _.pluck(loadBalancer.elb.instances, 'instanceId'),
+          serverGroupInstanceIds = _.pluck(serverGroup.instances, 'instanceId');
+        return elbInstanceIds.some(function (elbInstanceId) {
+          return serverGroupInstanceIds.indexOf(elbInstanceId) !== -1;
+        });
+      } catch (e) {
+        return false;
+      }
     }
 
 
