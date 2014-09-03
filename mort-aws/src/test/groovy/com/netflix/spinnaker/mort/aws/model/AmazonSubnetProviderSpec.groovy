@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.mort.aws.model
 
-package com.netflix.spinnaker.mort.model
+class AmazonSubnetProviderSpec { //extends Specification {
 
-interface SubnetProvider<T extends Subnet> {
-  Set<T> getAll()
+
 }
