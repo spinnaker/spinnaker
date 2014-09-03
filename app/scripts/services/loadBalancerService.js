@@ -50,6 +50,7 @@ angular.module('deckApp')
     function getLoadBalancer(name) {
       var promise = oortEndpoint.one('aws').one('loadBalancers', name).get();
       return promise.then(function(loadBalancerRollup) {
+        if (angular.isUndefined(loadBalancerRollup)) { return []; }
         var loadBalancers = [];
         loadBalancerRollup.accounts.forEach(function (account) {
           account.regions.forEach(function (region) {
