@@ -20,7 +20,8 @@ import com.netflix.frigga.Names
 
 class Keys {
   static enum Namespace {
-    SECURITY_GROUPS
+    SECURITY_GROUPS,
+    SUBNETS
 
     final String ns
 
@@ -50,5 +51,9 @@ class Keys {
 
   static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String region, String account) {
     "${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  }
+
+  static String getSubnetKey(String subnetId, String region, String account) {
+      "${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
   }
 }

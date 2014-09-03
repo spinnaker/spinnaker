@@ -16,6 +16,8 @@ allprojects {
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
 
+  group = "com.netflix.spinnaker.mort"
+
   repositories {
     jcenter()
     maven { url "http://dl.bintray.com/spinnaker/spinnaker" }

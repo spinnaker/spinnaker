@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.mort.aws.cache.AmazonSecurityGroupCachingAgent
+import com.netflix.spinnaker.mort.aws.cache.AmazonSubnetCachingAgent
 import com.netflix.spinnaker.mort.model.CacheService
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.context.annotation.Bean
@@ -36,6 +37,8 @@ class AWSCachingAgentConfigurator {
         def ec2 = clientProvider.getAmazonEC2(cred, region.name)
         beanFactory.registerSingleton("securityGroupCacher-${cred.name}-${region.name}",
             new AmazonSecurityGroupCachingAgent(cred.name, region.name, ec2, cacheService))
+        beanFactory.registerSingleton("subnetCacher-${cred.name}-${region.name}",
+            new AmazonSubnetCachingAgent(cred.name, region.name, ec2, cacheService))
       }
     }
     null

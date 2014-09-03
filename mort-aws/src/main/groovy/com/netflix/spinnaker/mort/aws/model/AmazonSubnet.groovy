@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.mort.aws.model
+import com.netflix.spinnaker.mort.model.Subnet
+import groovy.transform.Canonical
 
-package com.netflix.spinnaker.mort.model
-
-interface SubnetProvider<T extends Subnet> {
-  Set<T> getAll()
+@Canonical
+class AmazonSubnet implements Subnet {
+    String id
+    String state
+    String vpcId
+    String cidrBlock
+    Integer availableIpAddressCount
+    String account
+    String region
+    String availabilityZone
+    String purpose
+    String target
 }
