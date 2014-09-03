@@ -25,6 +25,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.*
+import org.springframework.web.filter.ShallowEtagHeaderFilter
+import javax.servlet.Filter
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.mort")
@@ -60,6 +62,11 @@ class Main extends SpringBootServletInitializer {
   @Bean
   InstanceInfo.InstanceStatus instanceStatus() {
     InstanceInfo.InstanceStatus.UNKNOWN
+  }
+
+  @Bean
+  Filter eTagFilter() {
+    new ShallowEtagHeaderFilter()
   }
 
 }
