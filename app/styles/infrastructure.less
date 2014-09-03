@@ -44,8 +44,10 @@
     min-width: 175px;
     top: 51px;
     li {
-      font-variant: small-caps;
       color: #999;
+      strong {
+        font-weight: 600;
+      }
       a, .category-heading {
         padding-left: 15px;
         padding-right: 15px;
@@ -55,8 +57,17 @@
         color: #000;
         .expand-results {
           font-weight: bold;
-
         }
+      }
+      &.category-heading {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #f1f1f1;
+        text-transform: uppercase;
+      }
+      &:first-child {
+        margin-top: 0;
+        border: none;
       }
     }
   }

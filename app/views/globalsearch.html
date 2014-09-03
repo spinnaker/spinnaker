@@ -12,7 +12,7 @@
   <ul class="dropdown-menu"
       role="menu"
       ng-if="showSearchResults">
-    <li ng-repeat-start="category in categories">
+    <li ng-repeat-start="category in categories" class="category-heading">
       <div class="category-heading">{{ category.category }}</div>
     </li>
     <li ng-repeat="result in category.results.slice(0,5)"
