@@ -12,5 +12,6 @@ dependencies {
   compile 'com.netflix.amazoncomponents:amazoncomponents:0.9.15'
   compile 'com.squareup.retrofit:retrofit:1.6.1'
   compile 'com.squareup.okhttp:okhttp:2.0.0'
+  compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
   compile 'com.squareup.retrofit:converter-jackson:1.6.1'
 }
