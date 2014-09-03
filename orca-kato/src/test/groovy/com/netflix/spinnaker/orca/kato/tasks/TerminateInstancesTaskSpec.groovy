@@ -16,26 +16,28 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.api.ops.DeleteAsgOperation
+import com.netflix.spinnaker.orca.kato.api.ops.TerminateInstancesOperation
+import spock.lang.Specification
+import spock.lang.Subject
 
-class DestroyAsgTaskSpec extends Specification {
-  @Subject task = new DestroyAsgTask()
+class TerminateInstancesTaskSpec extends Specification {
+
+  @Subject task = new TerminateInstancesTask()
   def context = new SimpleTaskContext()
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  def destroyASGConfig = [
-      asgName    : "test-asg",
-      regions    : ["us-west-1"],
-      credentials: "fzlem"
+  def terminateInstancesConfig = [
+    region    : "us-west-1",
+    credentials: "fzlem",
+    instanceIds: ['i-123456', 'i-654321']
   ]
 
   def setup() {
@@ -43,12 +45,12 @@ class DestroyAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    destroyASGConfig.each {
-      context."destroyAsg.$it.key" = it.value
+    terminateInstancesConfig.each {
+      context."terminateInstances.$it.key" = it.value
     }
   }
 
-  def "creates a destroy ASG task based on job parameters"() {
+  def "creates a terminateInstances task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
@@ -63,11 +65,11 @@ class DestroyAsgTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].destroyAsgDescription) {
-      it instanceof DestroyAsgOperation
-      asgName == destroyASGConfig.asgName
-      regions == destroyASGConfig.regions
-      credentials == destroyASGConfig.credentials
+    with(operations[0].terminateInstancesDescription) {
+      it instanceof TerminateInstancesOperation
+      region == terminateInstancesConfig.region
+      credentials == terminateInstancesConfig.credentials
+      instanceIds == terminateInstancesConfig.instanceIds
     }
   }
 
@@ -83,6 +85,6 @@ class DestroyAsgTaskSpec extends Specification {
     then:
     result.status == TaskResult.Status.SUCCEEDED
     result.outputs."kato.task.id" == taskId
-    result.outputs."deploy.account.name" == destroyASGConfig.credentials
+    result.outputs."terminate.account.name" == terminateInstancesConfig.credentials
   }
 }

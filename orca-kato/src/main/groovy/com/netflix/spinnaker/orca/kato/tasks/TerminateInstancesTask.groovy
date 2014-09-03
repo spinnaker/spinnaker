@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import groovy.transform.CompileStatic
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
@@ -24,12 +25,12 @@ import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
+import com.netflix.spinnaker.orca.kato.api.ops.TerminateInstancesOperation
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
-class DestroyAsgTask implements Task {
-
+class TerminateInstancesTask implements Task {
   @Autowired
   KatoService kato
 
@@ -39,20 +40,21 @@ class DestroyAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def operation = convert(context)
-    def taskId = kato.requestOperations([[destroyAsgDescription: operation]])
-                     .toBlocking()
-                     .first()
+    def taskId = kato.requestOperations([[terminateInstancesDescription: operation]])
+      .toBlocking()
+      .first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        ["deploy.account.name" : operation.credentials,
-         "kato.task.id"        : taskId,
-         "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }
-        ])
+      ["terminate.account.name" : operation.credentials,
+       "terminate.region"       : operation.region,
+       "kato.task.id"           : taskId,
+       "terminate.instance.ids" : operation.instanceIds
+      ])
   }
 
-  DestroyAsgOperation convert(TaskContext context) {
+  TerminateInstancesOperation convert(TaskContext context) {
     mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
+      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(context.getInputs("terminateInstances"), TerminateInstancesOperation)
   }
 }
