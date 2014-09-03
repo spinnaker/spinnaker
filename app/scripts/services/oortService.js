@@ -38,7 +38,7 @@ angular.module('deckApp')
               application.onAutoRefresh();
               autoRefresh(scope);
             });
-          }, 3000);
+          }, 30000);
           scope.$on('$destroy', function () {
             application.disableAutoRefresh();
             $timeout.cancel(timeout);
