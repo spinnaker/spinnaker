@@ -53,11 +53,11 @@ class PipelineStarter {
    * Builds and launches a _pipeline_ based on config from _Mayo_.
    *
    * @param configJson _Mayo_ pipeline configuration.
-   * @return an execution representing the job that was created.
+   * @return the pipeline that was created.
    */
   Pipeline start(String configJson) {
-    launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
-    null
+    def jobExecution = launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
+    new DefaultPipeline(jobExecution)
   }
 
   @PostConstruct

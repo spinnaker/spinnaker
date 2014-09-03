@@ -16,8 +16,20 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-interface Pipeline {
+import groovy.transform.CompileStatic
+import org.springframework.batch.core.JobExecution
 
-  String getId()
+@CompileStatic
+class DefaultPipeline implements Pipeline {
 
+  private final JobExecution jobExecution
+
+  DefaultPipeline(JobExecution jobExecution) {
+    this.jobExecution = jobExecution
+  }
+
+  @Override
+  String getId() {
+    jobExecution.id
+  }
 }
