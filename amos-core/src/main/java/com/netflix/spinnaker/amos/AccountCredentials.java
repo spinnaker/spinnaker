@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.amos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Implementations of this interface will provide properties specific to a named account object,
  * with capability to retrieve a type of credential object (such as AWSCredentials or GoogleCredentials).
@@ -37,5 +39,5 @@ public interface AccountCredentials<T> {
      *
      * @return typed credentials object
      */
-    T getCredentials();
+    @JsonIgnore T getCredentials();
 }
