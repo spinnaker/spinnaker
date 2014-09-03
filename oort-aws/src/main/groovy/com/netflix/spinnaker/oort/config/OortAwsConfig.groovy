@@ -22,8 +22,11 @@ import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.oort.config.atlas.AtlasHealthApiFactory
+import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
+import com.netflix.spinnaker.oort.security.aws.OortNetflixAmazonCredentials
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -43,7 +46,7 @@ class OortAwsConfig {
   @Component
   @ConfigurationProperties("aws")
   static class AwsConfigurationProperties {
-    List<NetflixAmazonCredentials> accounts
+    List<OortNetflixAmazonCredentials> accounts
   }
 
   @Bean
@@ -79,8 +82,15 @@ class OortAwsConfig {
     @Autowired
     ApplicationContext applicationContext
 
+    @Autowired
+    DiscoveryApiFactory discoveryApiFactory
+
+    @Autowired
+    AtlasHealthApiFactory atlasHealthApiFactory
+
     @PostConstruct
     void init() {
+      Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] }}
       for (namedAccount in awsConfigurationProperties.accounts) {
         namedAccount.credentialsProvider = awsCredentialsProvider
         accountCredentialsRepository.save(namedAccount.name, namedAccount)
@@ -88,9 +98,19 @@ class OortAwsConfig {
           autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getAtlasHealthCachingAgent(namedAccount, region.name)
+          if (namedAccount.atlasHealth) {
+            autowireAndInitialize InfrastructureCachingAgentFactory.getAtlasHealthCachingAgent(namedAccount, region.name, atlasHealthApiFactory)
+          }
           autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region.name)
+          if (namedAccount.discovery) {
+            discoveryAccounts[namedAccount.discovery][region.name].add(namedAccount)
+          }
+        }
+      }
+      discoveryAccounts.each { disco, actMap ->
+        actMap.each { region, accounts ->
+          autowireAndInitialize InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory)
         }
       }
     }

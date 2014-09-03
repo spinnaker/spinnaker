@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.oort.config.atlas.AtlasHealthApiFactory
+import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
+import com.netflix.spinnaker.oort.security.aws.OortNetflixAmazonCredentials
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -34,8 +37,8 @@ class InfrastructureCachingAgentFactory {
     new InstanceCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getAtlasHealthCachingAgent(NetflixAmazonCredentials account, String region) {
-    new AtlasHealthCachingAgent(account, region)
+  static InfrastructureCachingAgent getAtlasHealthCachingAgent(OortNetflixAmazonCredentials account, String region, AtlasHealthApiFactory factory) {
+    new AtlasHealthCachingAgent(account, region, factory.createApi(account.atlasHealth, region))
   }
 
   static InfrastructureCachingAgent getLaunchConfigCachingAgent(NetflixAmazonCredentials account, String region) {
@@ -44,6 +47,10 @@ class InfrastructureCachingAgentFactory {
 
   static InfrastructureCachingAgent getLoadBalancerCachingAgent(NetflixAmazonCredentials account, String region) {
     new LoadBalancerCachingAgent(account, region)
+  }
+
+  static InfrastructureCachingAgent getDiscoveryCachingAgent(List<NetflixAmazonCredentials> accounts, String region, DiscoveryApiFactory factory) {
+    new DiscoveryCachingAgent(accounts, region, factory.createApi(accounts.head().discovery, region))
   }
 
 }
