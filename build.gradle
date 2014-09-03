@@ -40,7 +40,7 @@ ext {
     eureka            : "com.netflix.eureka:eureka-client:1.1.136",
     kork              : "com.netflix.spinnaker.kork:kork-core:1.15",
     amazoncomponents  : 'com.netflix.amazoncomponents:amazoncomponents:0.9.15',
-    amos              : 'com.netflix.spinnaker:amos-core:0.9',
+    amos              : 'com.netflix.spinnaker:amos-core:0.10',
   ]
 }
 
