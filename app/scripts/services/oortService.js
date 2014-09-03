@@ -85,7 +85,7 @@ angular.module('deckApp')
           .then(function(results) {
             application.clusters = results.clusters;
             application.loadBalancers = results.loadBalancers;
-            application.tasks = results.tasksLoader;
+            application.tasks = results.tasks;
             loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
             clusterService.normalizeServerGroupsWithLoadBalancers(application);
 
