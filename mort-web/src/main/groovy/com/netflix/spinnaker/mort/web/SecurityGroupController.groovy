@@ -19,6 +19,7 @@ package com.netflix.spinnaker.mort.web
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -37,6 +38,37 @@ class SecurityGroupController {
     } as Set
   }
 
+  @RequestMapping(method = RequestMethod.GET, value = 'account/{account}/region/{region}')
+  Set<SecurityGroup> getByAccountAndRegion(@PathVariable String account, @PathVariable String region) {
+    securityGroupProviders.collectMany {
+      it.getAllByAccountAndRegion(account, region)
+    } as Set
+  }
 
+  @RequestMapping(method = RequestMethod.GET, value = 'region/{region}')
+  Set<SecurityGroup> getByRegion(@PathVariable String region) {
+    securityGroupProviders.collectMany {
+      it.getAllByRegion(region)
+    } as Set
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = 'account/{account}')
+  Set<SecurityGroup> getByAccount(@PathVariable String account) {
+    securityGroupProviders.collectMany {
+      it.getAllByAccount(account)
+    } as Set
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = 'get/{account}/{id}')
+  SecurityGroup get(@PathVariable String account, @PathVariable String id) {
+    SecurityGroup result = null
+    securityGroupProviders.each {
+      def sg = it.get(account, id)
+      if (sg != null) {
+        result = sg
+      }
+    }
+    result
+  }
 
 }
