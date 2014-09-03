@@ -22,6 +22,7 @@ angular.module('deckApp')
               getApplication(application.name).then(function (newApplication) {
                 deepCopyApplication(application, newApplication);
                 application.onAutoRefresh();
+                newApplication = null;
                 autoRefresh(scope);
               });
             }, 30000);
@@ -48,9 +49,6 @@ angular.module('deckApp')
           return matches.length ? matches[0] : null;
         };
 
-        application.getServerGroups = function getServerGroups() {
-          return _.flatten(_.pluck(application.clusters, 'serverGroups'));
-        };
         if (application.fromServer) {
           application.accounts = Object.keys(application.clusters);
         }
@@ -72,10 +70,10 @@ angular.module('deckApp')
       original.clusters = newApplication.clusters;
       original.loadBalancers = newApplication.loadBalancers;
       original.tasks = newApplication.tasks;
-      delete newApplication.accounts;
-      delete newApplication.clusters;
-      delete newApplication.loadBalancers;
-      delete newApplication.tasks;
+      newApplication.accounts = null;
+      newApplication.clusters = null;
+      newApplication.loadBalancers = null;
+      newApplication.tasks = null;
     }
 
     function getApplication(applicationName) {
@@ -89,6 +87,7 @@ angular.module('deckApp')
         return $q.all({clusters: clusterLoader, loadBalancers: loadBalancerLoader, tasks: taskLoader})
           .then(function(results) {
             application.clusters = results.clusters;
+            application.serverGroups = _.flatten(_.pluck(results.clusters, 'serverGroups'));
             application.loadBalancers = results.loadBalancers;
             application.tasks = results.tasks;
             loadBalancerService.normalizeLoadBalancersWithServerGroups(application);

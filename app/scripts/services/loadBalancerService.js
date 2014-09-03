@@ -33,7 +33,7 @@ angular.module('deckApp')
     }
 
     function updateHealthCounts(loadBalancer) {
-      var instances = loadBalancer.getInstances();
+      var instances = loadBalancer.instances;
       loadBalancer.healthCounts = {
         upCount: instances.filter(function (instance) {
           return instance.healthStatus === 'Healthy';
@@ -64,16 +64,12 @@ angular.module('deckApp')
     }
 
     function normalizeLoadBalancersWithServerGroups(application) {
-      var serverGroups = application.getServerGroups();
       application.loadBalancers.forEach(function(loadBalancer) {
-        loadBalancer.getServerGroups = function() {
-          return serverGroups.filter(function(serverGroup) {
-            return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
-          });
-        };
-        loadBalancer.getInstances = function() {
-          return _.flatten(_.collect(loadBalancer.getServerGroups(), 'instances'));
-        };
+        var serverGroups = application.serverGroups.filter(function(serverGroup) {
+          return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+        });
+        loadBalancer.serverGroups = serverGroups;
+        loadBalancer.instances =  _.flatten(_.collect(serverGroups, 'instances'));
         updateHealthCounts(loadBalancer);
       });
     }

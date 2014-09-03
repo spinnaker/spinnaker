@@ -27,7 +27,7 @@ angular.module('deckApp')
             loadBalancer.name,
             $filter('regionAbbreviator')(loadBalancer.region).toLowerCase(),
             loadBalancer.account,
-            _.pluck(loadBalancer.getServerGroups(), 'name').join(' ')
+            _.pluck(loadBalancer.serverGroups, 'name').join(' ')
           ].join(' ');
         }
       });
@@ -42,7 +42,7 @@ angular.module('deckApp')
     function filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter) {
       return loadBalancers.filter(function (loadBalancer) {
         if (hideHealthy) {
-          var hasUnhealthy = loadBalancer.getServerGroups().some(function (serverGroup) {
+          var hasUnhealthy = loadBalancer.serverGroups.some(function (serverGroup) {
             return serverGroup.downCount > 0;
           });
           if (!hasUnhealthy) {
@@ -59,7 +59,7 @@ angular.module('deckApp')
     function incrementTotalInstancesDisplayed(totalInstancesDisplayed, loadBalancer) {
       if (!$scope.sortFilter.hideHealthy) {
         totalInstancesDisplayed += loadBalancer.reduce(function (total, elb) {
-          return elb.getInstances().length + total;
+          return elb.instances.length + total;
         }, 0);
       } else {
         totalInstancesDisplayed += loadBalancer.reduce(

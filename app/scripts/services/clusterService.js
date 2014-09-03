@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('clusterService', function (searchService, settings, $q, Restangular, _, loadBalancerService, $exceptionHandler) {
+  .factory('clusterService', function (searchService, settings, $q, Restangular, _, $exceptionHandler) {
 
     var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -103,9 +103,9 @@ angular.module('deckApp')
     }
 
     function updateLoadBalancers(application) {
-      application.getServerGroups().forEach(function(serverGroup) {
+      application.serverGroups.forEach(function(serverGroup) {
         serverGroup.loadBalancers = application.loadBalancers.filter(function(loadBalancer) {
-          return loadBalancerService.serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+          return loadBalancer.serverGroups.indexOf(serverGroup) !== -1;
         });
       });
     }
