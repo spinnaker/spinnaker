@@ -14,10 +14,10 @@ angular.module('deckApp')
         label: 'Account',
         key: 'accountName',
         getDisplayValue: function(cluster) {
-          return cluster.accountName;
+          return cluster.accountName || '';
         },
         getDisplayLabel: function(cluster) {
-          return cluster.accountName;
+          return cluster.accountName || '';
         }
       },
       {
@@ -51,7 +51,7 @@ angular.module('deckApp')
     this.getHeadings = function getHeadings() {
       var selectedOption = getSelectedSortOption();
       var allValues = application.clusters.map(selectedOption.getDisplayValue);
-      return _.unique(_.flatten(allValues)).sort();
+      return _.compact(_.unique(_.flatten(allValues))).sort();
     };
 
     this.getClustersFor = function getClustersFor(value) {

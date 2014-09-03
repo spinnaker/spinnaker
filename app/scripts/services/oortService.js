@@ -38,8 +38,9 @@ angular.module('deckApp')
               application.onAutoRefresh();
               autoRefresh(scope);
             });
-          }, 30000);
+          }, 3000);
           scope.$on('$destroy', function () {
+            application.disableAutoRefresh();
             $timeout.cancel(timeout);
           });
         }
@@ -51,6 +52,7 @@ angular.module('deckApp')
         });
         return matches.length ? matches[0] : null;
       };
+
       application.getServerGroups = function getServerGroups() {
         return _.flatten(_.pluck(application.clusters, 'serverGroups'));
       };
@@ -61,32 +63,34 @@ angular.module('deckApp')
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
       original.loadBalancers = newApplication.loadBalancers;
-      // TODO: this is leaky
+      original.tasks = newApplication.tasks;
+      delete newApplication.accounts;
+      delete newApplication.clusters;
+      delete newApplication.loadBalancers;
+      delete newApplication.tasks;
     }
 
     function getApplication(applicationName) {
-      var applicationLoader = getApplicationEndpoint(applicationName).get();
-      return applicationLoader.then(function(application) {
+      return getApplicationEndpoint(applicationName).get().then(function(application) {
         addMethodsToApplication(application);
         application.accounts = Object.keys(application.clusters);
-        var clusterLoader = clusterService.loadClusters(application).then(function(clusters) {
-          application.clusters = clusters;
-        });
-        var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application).then(function(loadBalancers) {
-          application.loadBalancers = loadBalancers;
-        });
+
+        var clusterLoader = clusterService.loadClusters(application);
+        var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
         var taskLoader = pond.one('applications', applicationName)
           .all('tasks')
-          .getList()
-          .then(function(data) {
-            application.tasks = data;
-          });
+          .getList();
 
-        return $q.all([clusterLoader, loadBalancerLoader, taskLoader]).then(function() {
-          loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
-          clusterService.normalizeServerGroupsWithLoadBalancers(application);
-          return application;
-        });
+        return $q.all({clusters: clusterLoader, loadBalancers: loadBalancerLoader, tasks: taskLoader})
+          .then(function(results) {
+            application.clusters = results.clusters;
+            application.loadBalancers = results.loadBalancers;
+            application.tasks = results.tasksLoader;
+            loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
+            clusterService.normalizeServerGroupsWithLoadBalancers(application);
+
+            return application;
+          });
       });
     }
 

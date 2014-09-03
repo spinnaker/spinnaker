@@ -19,7 +19,7 @@ angular.module('deckApp')
 
     this.getHeadings = function getHeadings() {
       var allValues = _.collect(application.loadBalancers, $scope.sortField);
-      return _.unique(allValues).sort();
+      return _.compact(_.unique(allValues)).sort();
     };
 
     this.getLoadBalancersFor = function getLoadBalancersFor(value) {

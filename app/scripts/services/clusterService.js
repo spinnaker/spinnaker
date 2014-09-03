@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('clusterService', function (searchService, settings, $q, Restangular, _, loadBalancerService) {
+  .factory('clusterService', function (searchService, settings, $q, Restangular, _, loadBalancerService, $exceptionHandler) {
 
     var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -35,7 +35,7 @@ angular.module('deckApp')
     function getCluster(application, account, clusterName) {
       return getClustersForAccountEndpoint(application.name, account).all(clusterName).getList().then(function(cluster) {
         if (!cluster.length) {
-          console.error('NO SERVER GROUPS', cluster); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
+          $exceptionHandler(cluster, 'no server groups'); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
           return {
             account: account,
             serverGroups: []
@@ -47,6 +47,13 @@ angular.module('deckApp')
         cluster[0].account = account;
         addHealthCountsToCluster(cluster[0]);
         return cluster[0];
+      },
+      function(error) {
+        $exceptionHandler(error, 'error retrieving cluster');
+        return {
+          account: account,
+          serverGroups: []
+        };
       });
     }
 

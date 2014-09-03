@@ -32,38 +32,28 @@ angular.module('deckApp')
 
     }
 
-    function updateHealthCounts(application) {
-      application.loadBalancers.forEach(function(loadBalancer) {
-        var instances = loadBalancer.getInstances();
-        loadBalancer.healthCounts = {
-          upCount: instances.filter(function (instance) {
-            return instance.healthStatus === 'Healthy';
-          }).length,
-          downCount: instances.filter(function (instance) {
-            return instance.healthStatus === 'Unhealthy';
-          }).length,
-          unknownCount: instances.filter(function (instance) {
-            return instance.healthStatus === 'Unknown';
-          }).length
-        };
-      });
+    function updateHealthCounts(loadBalancer) {
+      var instances = loadBalancer.getInstances();
+      loadBalancer.healthCounts = {
+        upCount: instances.filter(function (instance) {
+          return instance.healthStatus === 'Healthy';
+        }).length,
+        downCount: instances.filter(function (instance) {
+          return instance.healthStatus === 'Unhealthy';
+        }).length,
+        unknownCount: instances.filter(function (instance) {
+          return instance.healthStatus === 'Unknown';
+        }).length
+      };
     }
 
-    function getLoadBalancer(name, application) {
+    function getLoadBalancer(name) {
       var promise = oortEndpoint.one('aws').one('loadBalancers', name).get();
       return promise.then(function(loadBalancerRollup) {
         var loadBalancers = [];
         loadBalancerRollup.accounts.forEach(function (account) {
           account.regions.forEach(function (region) {
             region.loadBalancers.forEach(function (loadBalancer) {
-              loadBalancer.getServerGroups = function() {
-                return application.getServerGroups().filter(function(serverGroup) {
-                  return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
-                });
-              };
-              loadBalancer.getInstances = function() {
-                return _.flatten(_.collect(loadBalancer.getServerGroups(), 'instances'));
-              };
               loadBalancer.account = account.name;
               loadBalancers.push(loadBalancer);
             });
@@ -74,7 +64,18 @@ angular.module('deckApp')
     }
 
     function normalizeLoadBalancersWithServerGroups(application) {
-      updateHealthCounts(application);
+      var serverGroups = application.getServerGroups();
+      application.loadBalancers.forEach(function(loadBalancer) {
+        loadBalancer.getServerGroups = function() {
+          return serverGroups.filter(function(serverGroup) {
+            return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+          });
+        };
+        loadBalancer.getInstances = function() {
+          return _.flatten(_.collect(loadBalancer.getServerGroups(), 'instances'));
+        };
+        updateHealthCounts(loadBalancer);
+      });
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
