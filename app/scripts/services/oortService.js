@@ -6,6 +6,10 @@ var angular = require('angular');
 angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond) {
 
+    var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
+      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+    });
+
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
 
@@ -47,7 +51,6 @@ angular.module('deckApp')
         application.getServerGroups = function getServerGroups() {
           return _.flatten(_.pluck(application.clusters, 'serverGroups'));
         };
-
         if (application.fromServer) {
           application.accounts = Object.keys(application.clusters);
         }
@@ -57,7 +60,7 @@ angular.module('deckApp')
     });
 
     function listApplications() {
-      return oortEndpoint.all('applications').getList();
+      return applicationListEndpoint.all('applications').getList();
     }
 
     function getApplicationEndpoint(application) {
