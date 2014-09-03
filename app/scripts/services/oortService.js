@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, scheduler) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -18,17 +18,17 @@ angular.module('deckApp')
         function autoRefresh(scope) {
           application.onAutoRefresh = application.onAutoRefresh || angular.noop;
           if (application.autoRefreshEnabled) {
-            var timeout = $timeout(function () {
+            var disposable = scheduler.subscribe(function() {
               getApplication(application.name).then(function (newApplication) {
                 deepCopyApplication(application, newApplication);
                 application.onAutoRefresh();
                 newApplication = null;
                 autoRefresh(scope);
               });
-            }, 30000);
+            });
             scope.$on('$destroy', function () {
               application.disableAutoRefresh();
-              $timeout.cancel(timeout);
+              disposable.dispose();
             });
           }
         }

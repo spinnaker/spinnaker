@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular) {
+  .factory('orcaService', function(settings, Restangular, scheduler) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
@@ -12,7 +12,7 @@ angular.module('deckApp')
     }).all('ops');
 
     function destroyServerGroup(serverGroup, applicationName) {
-      return endpoint.post({
+      return scheduler.scheduleOnCompletion(endpoint.post({
         job: [
           {
             asgName: serverGroup.name,
@@ -24,11 +24,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Destroying ASG: ' + serverGroup.name
-      });
+      }));
     }
 
     function disableServerGroup(serverGroup, applicationName) {
-      return endpoint.post({
+      return scheduler.scheduleOnCompletion(endpoint.post({
         job: [
           {
             asgName: serverGroup.name,
@@ -40,11 +40,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Disabling ASG: ' + serverGroup.name
-      });
+      }));
     }
 
     function enableServerGroup(serverGroup, applicationName) {
-      return endpoint.post({
+      return scheduler.scheduleOnCompletion(endpoint.post({
         job: [
           {
             asgName: serverGroup.name,
@@ -56,11 +56,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Enabling ASG: ' + serverGroup.name
-      });
+      }));
     }
 
     function resizeServerGroup(serverGroup, capacity, applicationName) {
-      return endpoint.post({
+      return scheduler.scheduleOnCompletion(endpoint.post({
         job: [
           {
             asgName: serverGroup.name,
@@ -73,11 +73,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Resizing ASG: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
-      });
+      }));
     }
 
     function terminateInstance(instance, applicationName) {
-      return endpoint.post({
+      return scheduler.scheduleOnCompletion(endpoint.post({
         job: [
           {
             type: 'terminateInstances',
@@ -89,7 +89,7 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Terminating instance: ' + instance.instanceId
-      });
+      }));
     }
 
     return {
