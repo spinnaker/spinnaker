@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.pipeline
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
@@ -35,10 +29,12 @@ import org.springframework.batch.core.step.tasklet.TaskletStep
 import org.springframework.beans.factory.support.GenericBeanDefinition
 import org.springframework.context.support.StaticApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
+import spock.lang.Specification
+import spock.lang.Subject
 
-class BakeStageBuilderSpec extends Specification {
+class BakeStageSpec extends Specification {
 
-  @Subject builder = new BakeStageBuilder()
+  @Subject builder = new BakeStage()
 
   def applicationContext = new StaticApplicationContext()
   def txMan = Stub(PlatformTransactionManager)

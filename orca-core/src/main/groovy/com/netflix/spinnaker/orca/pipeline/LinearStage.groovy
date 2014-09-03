@@ -17,18 +17,17 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 
 /**
- * A base class for +StageBuilder+ implementations that just need to wire a linear sequence of steps.
+ * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
 @CompileStatic
-abstract class LinearStageBuilder extends StageBuilderSupport<SimpleJobBuilder> {
+abstract class LinearStage extends StageSupport<SimpleJobBuilder> {
 
-  LinearStageBuilder(String name) {
+  LinearStage(String name) {
     super(name)
   }
 

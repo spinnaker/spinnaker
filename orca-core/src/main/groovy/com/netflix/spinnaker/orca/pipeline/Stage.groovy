@@ -22,7 +22,7 @@ import org.springframework.batch.core.job.builder.JobBuilderHelper
 /**
  * An object that constructs steps for a Spring Batch +Job+ relating to a specific Orca _stage_.
  */
-interface StageBuilder<B extends JobBuilderHelper<B>> {
+interface Stage<B extends JobBuilderHelper<B>> {
 
   /**
    * @return the name that corresponds to Mayo config.

@@ -17,44 +17,35 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.PreconfigureDestroyAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
-import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DestroyAsgStageBuilder extends LinearStageBuilder {
+class ResizeAsgStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "destroyAsg"
-  @Autowired
-  ResizeAsgStageBuilder resizeAsgStageBuilder
+  public static final String MAYO_CONFIG_TYPE = "resizeAsg"
 
-  DestroyAsgStageBuilder() {
+  ResizeAsgStage() {
     super(MAYO_CONFIG_TYPE)
   }
 
   @Override
   protected List<Step> buildSteps() {
-    def resizeSteps = resizeAsgStageBuilder.buildSteps()
-
-    def step1 = steps.get("PreconfigureResizeStep")
-                     .tasklet(buildTask(PreconfigureDestroyAsgTask))
+    def step1 = steps.get("ResizeAsgStep")
+                     .tasklet(buildTask(ResizeAsgTask))
                      .build()
-    def step2 = steps.get("DestroyAsgStep")
-                     .tasklet(buildTask(DestroyAsgTask))
-                     .build()
-    def step3 = steps.get("MonitorAsgStep")
+    def step2 = steps.get("MonitorAsgStep")
                      .tasklet(buildTask(MonitorKatoTask))
                      .build()
-    def step4 = steps.get("WaitForCapacityMatchStep")
+    def step3 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
 
-    [step1, resizeSteps, step2, step3, step4].flatten().toList()
+    [step1, step2, step3]
   }
 }

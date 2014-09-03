@@ -16,38 +16,37 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
-import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.tasks.AsgActionWaitForDownInstancesTask
+import com.netflix.spinnaker.orca.kato.tasks.DisableAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class TerminateInstancesStageBuilder extends LinearStageBuilder {
+class DisableAsgStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "terminateInstances"
+  public static final String MAYO_CONFIG_TYPE = "disableAsg"
 
-  TerminateInstancesStageBuilder() {
+  DisableAsgStage() {
     super(MAYO_CONFIG_TYPE)
   }
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("TerminateInstancesStep")
-      .tasklet(buildTask(TerminateInstancesTask))
-      .build()
-
-    def step2 = steps.get("MonitorTerminationStep")
-      .tasklet(buildTask(MonitorKatoTask))
-      .build()
-
-    def step3 = steps.get("WaitForTerminatedInstancesStep")
-      .tasklet(buildTask(WaitForTerminatedInstancesTask))
-      .build()
+    def step1 = steps.get("DisableAsgStep")
+                     .tasklet(buildTask(DisableAsgTask))
+                     .build()
+    def step2 = steps.get("MonitorAsgStep")
+                     .tasklet(buildTask(MonitorKatoTask))
+                     .build()
+    def step3 = steps.get("WaitFoDownInstancesStep")
+                     .tasklet(buildTask(AsgActionWaitForDownInstancesTask))
+                     .build()
 
     [step1, step2, step3]
   }
+
 }

@@ -19,17 +19,17 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
+import com.netflix.spinnaker.orca.pipeline.StageSupport
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 
 @CompileStatic
-class ManualInterventionStageBuilder extends StageBuilderSupport<FlowJobBuilder> {
+class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
 
   Task preInterventionTask, postInterventionTask, finalTask
 
-  ManualInterventionStageBuilder() {
+  ManualInterventionStage() {
     super("manualIntervention")
   }
 

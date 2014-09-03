@@ -92,7 +92,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    new ManualInterventionStageBuilder(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
+    new ManualInterventionStage(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
         .build(jobBuilder)
         .build()
   }

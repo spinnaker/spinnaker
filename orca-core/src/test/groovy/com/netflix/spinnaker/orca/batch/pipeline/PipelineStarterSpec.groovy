@@ -52,7 +52,7 @@ class PipelineStarterSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
+      registerSingleton "fooStage", new TestStage("foo", fooTasklet, steps)
 
       autowireBean jobStarter
     }

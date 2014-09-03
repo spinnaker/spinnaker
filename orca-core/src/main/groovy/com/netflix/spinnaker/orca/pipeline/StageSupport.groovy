@@ -29,12 +29,12 @@ import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
  * Base class for a component that constructs a _stage_ to be run as (part of) a _pipeline_.
  */
 @CompileStatic
-abstract class StageBuilderSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, StageBuilder<B> {
+abstract class StageSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, Stage<B> {
 
   protected StepBuilderFactory steps
   private final String name
 
-  StageBuilderSupport(String name) {
+  StageSupport(String name) {
     this.name = name
   }
 

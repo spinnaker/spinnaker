@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.bakery.config
 import groovy.transform.CompileStatic
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.bakery.pipeline.BakeStageBuilder
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired

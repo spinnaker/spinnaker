@@ -57,9 +57,9 @@ class PipelineConfigurationSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
-      registerSingleton "barStageBuilder", new TestStageBuilder("bar", barTasklet, steps)
-      registerSingleton "bazStageBuilder", new TestStageBuilder("baz", bazTasklet, steps)
+      registerSingleton "fooStage", new TestStage("foo", fooTasklet, steps)
+      registerSingleton "barStage", new TestStage("bar", barTasklet, steps)
+      registerSingleton "bazStage", new TestStage("baz", bazTasklet, steps)
 
       autowireBean jobStarter
     }

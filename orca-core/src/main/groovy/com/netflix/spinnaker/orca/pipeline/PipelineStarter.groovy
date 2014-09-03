@@ -47,7 +47,7 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
-  private final Map<String, StageBuilder> stageBuilders = [:]
+  private final Map<String, Stage> stages = [:]
 
   /**
    * Builds and launches a _pipeline_ based on config from _Mayo_.
@@ -62,14 +62,14 @@ class PipelineStarter {
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(StageBuilder).values().each {
-      stageBuilders[it.name] = it
+    applicationContext.getBeansOfType(Stage).values().each {
+      stages[it.name] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
-      def builder = new SimpleStageBuilder(it.name, it)
-      applicationContext.autowireCapableBeanFactory.autowireBean(builder)
+      def stage = new SimpleStage(it.name, it)
+      applicationContext.autowireCapableBeanFactory.autowireBean(stage)
       // TODO: this should be a prototype scoped bean or use a factory I guess
-      stageBuilders[it.name] = builder
+      stages[it.name] = stage
     }
   }
 
@@ -103,8 +103,8 @@ class PipelineStarter {
   }
 
   private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
-    if (stageBuilders.containsKey(stepConfig.type)) {
-      stageBuilders.get(stepConfig.type).build(jobBuilder)
+    if (stages.containsKey(stepConfig.type)) {
+      stages.get(stepConfig.type).build(jobBuilder)
     } else {
       throw new NoSuchStageException(stepConfig.type as String)
     }

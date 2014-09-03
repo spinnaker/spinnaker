@@ -19,39 +19,33 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.StageBuilderSupport
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.job.builder.FlowJobBuilder
+import com.netflix.spinnaker.orca.pipeline.StageSupport
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.job.builder.SimpleJobBuilder
 
 @CompileStatic
-class FailureRecoveryStageBuilder extends StageBuilderSupport<FlowJobBuilder> {
+class StartAndMonitorStage extends StageSupport<SimpleJobBuilder> {
 
-  Task startTask, recoveryTask, endTask
+  Task startTask, monitorTask
 
-  FailureRecoveryStageBuilder() {
-    super("failureRecovery")
+  StartAndMonitorStage() {
+    super("startAndMonitor")
   }
 
   @Override
-  FlowJobBuilder build(JobBuilder jobBuilder) {
+  SimpleJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("StartStep")
                      .tasklet(TaskTaskletAdapter.decorate(startTask))
                      .build()
-    def step2 = steps.get("RecoveryStep")
-                     .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
-                     .build()
-    def step3 = steps.get("EndStep")
-                     .tasklet(TaskTaskletAdapter.decorate(endTask))
+    def step2 = steps.get("MonitorStep")
+                     .tasklet(TaskTaskletAdapter.decorate(monitorTask))
                      .build()
     jobBuilder.start(step1)
-              .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-              .from(step1).next(step3)
-              .build()
+              .next(step2)
   }
 
   @Override
-  FlowJobBuilder build(FlowJobBuilder jobBuilder) {
+  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
     throw new UnsupportedOperationException()
   }
 }

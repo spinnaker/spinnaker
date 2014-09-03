@@ -22,11 +22,11 @@ import org.springframework.batch.core.Step
 import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @CompileStatic
-class SimpleStageBuilder extends LinearStageBuilder {
+class SimpleStage extends LinearStage {
 
   private final Task task
 
-  SimpleStageBuilder(String name, Task task) {
+  SimpleStage(String name, Task task) {
     super(name)
     this.task = task
   }

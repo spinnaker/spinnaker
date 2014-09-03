@@ -68,7 +68,7 @@ class AdHocStageSpec extends Specification {
       getName() >> "bar"
     }
     applicationContext.beanFactory.with {
-      registerSingleton "fooStageBuilder", new TestStageBuilder("foo", fooTasklet, steps)
+      registerSingleton "fooStage", new TestStage("foo", fooTasklet, steps)
       registerSingleton "barTask", barTask
     }
     jobStarter.initialize()

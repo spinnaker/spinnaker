@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.pipeline.LinearStageBuilder
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -25,15 +25,15 @@ import org.springframework.batch.core.step.tasklet.TaskletStep
 import static java.util.UUID.randomUUID
 
 /**
- * A stub +StageBuilder+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
+ * A stub +Stage+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
  * just add a single pre-defined +Tasklet+ (probably a mock) to the pipeline.
  */
 @CompileStatic
-class TestStageBuilder extends LinearStageBuilder {
+class TestStage extends LinearStage {
 
   private final Tasklet tasklet
 
-  TestStageBuilder(String name, Tasklet tasklet, StepBuilderFactory steps) {
+  TestStage(String name, Tasklet tasklet, StepBuilderFactory steps) {
     super(name)
     this.tasklet = tasklet
     this.steps = steps
