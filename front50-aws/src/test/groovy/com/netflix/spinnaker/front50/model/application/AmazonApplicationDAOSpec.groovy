@@ -115,14 +115,45 @@ class AmazonApplicationDAOSpec extends Specification {
     dao.awsSimpleDBClient = awsClient
 
     when:
-    dao.search([q:"p", p:"q"])
+    dao.search([name:name, email:email])
 
     then:
     1 * awsClient.select(_) >> { SelectRequest req ->
-      assert req.selectExpression.contains("q = 'p' and p = 'q'")
-      new SelectResult(items: [])
+      new SelectResult(items: [new Item("app", [new Attribute("name", name), new Attribute("email", email)])])
     }
     thrown NotFoundException
+
+    where:
+    name = "a"
+    email = "b"
+  }
+
+  void 'should be able to search case-insensitively'() {
+    def awsClient = Mock(AmazonSimpleDB)
+    def dao = new AmazonApplicationDAO(domain: "RESOURCE_REGISTRY")
+    dao.awsSimpleDBClient = awsClient
+
+    when:
+    dao.search([name:name.toUpperCase(), email:email])
+
+    then:
+    1 * awsClient.select(_) >> { SelectRequest req ->
+      new SelectResult(items: [new Item(name, [new Attribute("email", email)])])
+    }
+    notThrown(NotFoundException)
+
+    when:
+    dao.search([name:name, email:"c"])
+
+    then:
+    1 * awsClient.select(_) >> { SelectRequest req ->
+      new SelectResult(items: [new Item(name, [new Attribute("email", email)])])
+    }
+    thrown(NotFoundException)
+
+    where:
+    name = "a"
+    email = "b"
   }
 
   void 'should throw exception if no applications exist'() {
