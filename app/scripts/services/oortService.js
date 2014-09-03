@@ -8,6 +8,52 @@ angular.module('deckApp')
 
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
+
+      RestangularConfigurer.addElementTransformer('applications', false, function(application) {
+
+        function autoRefresh(scope) {
+          application.onAutoRefresh = application.onAutoRefresh || angular.noop;
+          if (application.autoRefreshEnabled) {
+            var timeout = $timeout(function () {
+              getApplication(application.name).then(function (newApplication) {
+                deepCopyApplication(application, newApplication);
+                application.onAutoRefresh();
+                autoRefresh(scope);
+              });
+            }, 30000);
+            scope.$on('$destroy', function () {
+              application.disableAutoRefresh();
+              $timeout.cancel(timeout);
+            });
+          }
+        }
+
+        application.disableAutoRefresh = function disableAutoRefresh() {
+          application.autoRefreshEnabled = false;
+        };
+
+        application.enableAutoRefresh = function enableAutoRefresh(scope) {
+          application.autoRefreshEnabled = true;
+          autoRefresh(scope);
+        };
+
+        application.getCluster = function getCluster(accountName, clusterName) {
+          var matches = application.clusters.filter(function (cluster) {
+            return cluster.name === clusterName && cluster.account === accountName;
+          });
+          return matches.length ? matches[0] : null;
+        };
+
+        application.getServerGroups = function getServerGroups() {
+          return _.flatten(_.pluck(application.clusters, 'serverGroups'));
+        };
+
+        if (application.fromServer) {
+          application.accounts = Object.keys(application.clusters);
+        }
+        return application;
+
+      });
     });
 
     function listApplications() {
@@ -16,47 +62,6 @@ angular.module('deckApp')
 
     function getApplicationEndpoint(application) {
       return oortEndpoint.one('applications', application);
-    }
-
-    function addMethodsToApplication(application) {
-
-      application.disableAutoRefresh = function disableAutoRefresh() {
-        application.autoRefreshEnabled = false;
-      };
-
-      application.enableAutoRefresh = function enableAutoRefresh(scope) {
-        application.autoRefreshEnabled = true;
-        autoRefresh(scope);
-      };
-
-      function autoRefresh(scope) {
-        application.onAutoRefresh = application.onAutoRefresh || angular.noop;
-        if (application.autoRefreshEnabled) {
-          var timeout = $timeout(function () {
-            getApplication(application.name).then(function (newApplication) {
-              deepCopyApplication(application, newApplication);
-              application.onAutoRefresh();
-              autoRefresh(scope);
-            });
-          }, 30000);
-          scope.$on('$destroy', function () {
-            application.disableAutoRefresh();
-            $timeout.cancel(timeout);
-          });
-        }
-      }
-
-      application.getCluster = function getCluster(accountName, clusterName) {
-        var matches = application.clusters.filter(function (cluster) {
-          return cluster.name === clusterName && cluster.account === accountName;
-        });
-        return matches.length ? matches[0] : null;
-      };
-
-      application.getServerGroups = function getServerGroups() {
-        return _.flatten(_.pluck(application.clusters, 'serverGroups'));
-      };
-
     }
 
     function deepCopyApplication(original, newApplication) {
@@ -72,9 +77,6 @@ angular.module('deckApp')
 
     function getApplication(applicationName) {
       return getApplicationEndpoint(applicationName).get().then(function(application) {
-        addMethodsToApplication(application);
-        application.accounts = Object.keys(application.clusters);
-
         var clusterLoader = clusterService.loadClusters(application);
         var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
         var taskLoader = pond.one('applications', applicationName)
