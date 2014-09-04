@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.config.atlas
+package com.netflix.spinnaker.oort.config.edda
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -25,17 +24,17 @@ import retrofit.converter.Converter
 import retrofit.converter.JacksonConverter
 
 @Configuration
-class AtlasHealthConfig {
-
+class EddaConfiguration {
   @Bean
-  Converter atlasHealthConverter() {
+  Converter eddaConverter() {
     new JacksonConverter(new ObjectMapper()
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .enable(MapperFeature.AUTO_DETECT_CREATORS))
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES))
   }
 
   @Bean
-  AtlasHealthApiFactory atlasHealthApiFactory(Converter atlasHealthConverter) {
-    new AtlasHealthApiFactory(atlasHealthConverter)
+  EddaApiFactory eddaApiFactory(Converter eddaConverter) {
+    new EddaApiFactory(eddaConverter)
   }
+
+
 }

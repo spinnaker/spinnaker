@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.model.atlas
+package com.netflix.spinnaker.oort.config.edda
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
-import groovy.transform.Immutable
+import com.netflix.spinnaker.oort.model.edda.LoadBalancerInstanceState
+import retrofit.http.GET
 
-@Immutable
-class Healthcheck {
-  String url
-  boolean healthy
-  int status
-
-  @JsonCreator
-  public static Healthcheck createHealthcheck(@JsonProperty('url') String url,
-                                              @JsonProperty('isHealthy') boolean healthy,
-                                              @JsonProperty('status') int status) {
-    new Healthcheck(url, healthy, status)
-  }
+interface EddaApi {
+  @GET('/REST/v2/view/loadBalancerInstances;_expand')
+  List<LoadBalancerInstanceState> loadBalancerInstances()
 }
-

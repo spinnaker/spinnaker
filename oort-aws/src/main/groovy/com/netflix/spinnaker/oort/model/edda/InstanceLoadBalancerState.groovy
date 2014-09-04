@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.oort.model.atlas
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
+package com.netflix.spinnaker.oort.model.edda
+
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
 @Immutable
-class DiscoveryHealth {
-  boolean healthy
-  String status
+@CompileStatic
+@EqualsAndHashCode(cache = true)
+class InstanceLoadBalancerState {
+  String instanceId
+  String loadBalancerName
+  String state
+  String reasonCode
+  String description
 
-  @JsonCreator
-  public static DiscoveryHealth createDiscoveryHealth(@JsonProperty('isHealthy') boolean isHealthy, @JsonProperty('status') String status) {
-    new DiscoveryHealth(isHealthy, status)
+  static List<InstanceLoadBalancerState> fromLoadBalancerInstanceState(LoadBalancerInstanceState lbis) {
+    lbis.instances.collect { new InstanceLoadBalancerState(loadBalancerName: lbis.name, instanceId: it.instanceId, state: it.state, reasonCode: it.reasonCode, description: it.description)}
   }
 }
-

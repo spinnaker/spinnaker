@@ -17,29 +17,22 @@
 package com.netflix.spinnaker.oort.model.aws
 
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.data.aws.cachers.AtlasHealthCachingAgent
-import com.netflix.spinnaker.oort.model.CacheService
-import com.netflix.spinnaker.oort.model.Health
-import com.netflix.spinnaker.oort.model.HealthProvider
-import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.ServerGroup
-import com.netflix.spinnaker.oort.model.atlas.AtlasInstanceHealth
+import com.netflix.spinnaker.oort.data.aws.cachers.EddaLoadBalancerCachingAgent
+import com.netflix.spinnaker.oort.model.*
+import com.netflix.spinnaker.oort.model.edda.InstanceLoadBalancers
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @CompileStatic
 @Component
-class AtlasHealthProvider implements HealthProvider {
+class EddaLoadBalancerHealthProvider implements HealthProvider {
   @Autowired
   CacheService cacheService
 
   @Override
   Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
-    if (!(serverGroup instanceof AmazonServerGroup)) {
-      return null
-    }
-    cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, AtlasHealthCachingAgent.PROVIDER_NAME), AtlasInstanceHealth) ?:
-      new AwsInstanceHealth(AtlasInstanceHealth.HEALTH_TYPE, HealthState.Unknown, instanceId)
+    cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, EddaLoadBalancerCachingAgent.PROVIDER_NAME), InstanceLoadBalancers) ?:
+      new AwsInstanceHealth(type: InstanceLoadBalancers.HEALTH_TYPE, state: HealthState.Unknown, instanceId: instanceId)
   }
 }

@@ -22,11 +22,10 @@ import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.config.atlas.AtlasHealthApiFactory
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
+import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
-import com.netflix.spinnaker.oort.security.aws.OortNetflixAmazonCredentials
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -46,7 +45,7 @@ class OortAwsConfig {
   @Component
   @ConfigurationProperties("aws")
   static class AwsConfigurationProperties {
-    List<OortNetflixAmazonCredentials> accounts
+    List<NetflixAmazonCredentials> accounts
   }
 
   @Bean
@@ -86,7 +85,7 @@ class OortAwsConfig {
     DiscoveryApiFactory discoveryApiFactory
 
     @Autowired
-    AtlasHealthApiFactory atlasHealthApiFactory
+    EddaApiFactory eddaApiFactory
 
     @PostConstruct
     void init() {
@@ -98,8 +97,8 @@ class OortAwsConfig {
           autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region.name)
-          if (namedAccount.atlasHealth) {
-            autowireAndInitialize InfrastructureCachingAgentFactory.getAtlasHealthCachingAgent(namedAccount, region.name, atlasHealthApiFactory)
+          if (namedAccount.eddaEnabled) {
+            autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(namedAccount, region.name, eddaApiFactory)
           }
           autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region.name)

@@ -41,12 +41,12 @@ class DefaultAmazonHealthProvider implements HealthProvider {
     def cacheKey = Keys.getInstanceKey(instanceId, serverGroup.region)
     def instance = cacheService.retrieve(cacheKey, Instance)
     if (!instance) {
-      return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Unknown)
+      return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Unknown)
     }
     def running = instance.state.code == RUNNING
     if (running) {
-      return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Up)
+      return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Up)
     }
-    return new AwsInstanceHealth(type: HEALTH_TYPE, id: instanceId, state: HealthState.Down)
+    return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Down)
   }
 }

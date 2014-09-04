@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.security.aws
+package com.netflix.spinnaker.oort.model.edda
 
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import groovy.transform.Canonical
 
-class OortNetflixAmazonCredentials extends NetflixAmazonCredentials {
-  String atlasHealth
+@Canonical
+class LoadBalancerInstance {
+  String instanceId
+  String state
+  String reasonCode
+  String description
 }
