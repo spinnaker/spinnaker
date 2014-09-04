@@ -19,45 +19,67 @@ package com.netflix.spinnaker.oort.model.aws
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.InstanceState
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.ServerGroup
-import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
-import com.netflix.spinnaker.oort.model.aws.DefaultAmazonHealthProvider
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 
 class DefaultAmazonHealthProviderSpec extends Specification {
 
-  @Shared
+  static final String REGION = 'us-west-1'
+  static final String ACCOUNT = 'test'
+  static final String INSTANCE_ID = 'i-12345'
+
+  ServerGroup serverGroup = Stub(ServerGroup) {
+    getRegion() >> REGION
+  }
+
+  @Subject
   DefaultAmazonHealthProvider provider
 
-  @Shared
   CacheService cacheService
 
   def setup() {
-    provider =  new DefaultAmazonHealthProvider()
     cacheService = Mock(CacheService)
-    provider.cacheService = cacheService
+    provider = new DefaultAmazonHealthProvider(cacheService: cacheService)
   }
 
-  void "healthy if instance is running"() {
-    setup:
-    def region = "us-west-1"
-    def serverGroup = Mock(ServerGroup)
-    serverGroup.getRegion() >> region
-
+  @Unroll("health is #expected if instance is #runningState")
+  void "amazon health provider can only indicate Unknown or Down state"(InstanceCachingAgent.InstanceStateValue runningState, HealthState expected) {
     when:
-    def result = provider.getHealth("test", serverGroup, "i-123456")
+    def result = provider.getHealth(ACCOUNT, serverGroup, INSTANCE_ID)
 
     then:
-    1 * cacheService.retrieve(Keys.getInstanceKey("i-123456", region), _) >> {
+    1 * cacheService.retrieve(Keys.getInstanceKey(INSTANCE_ID, REGION), _) >> {
       Stub(Instance) {
-        getState() >> new InstanceState().withCode(16)
+        getState() >> runningState.buildInstanceState()
       }
     }
 
     and:
-    result == new AwsInstanceHealth(type: "Amazon", instanceId: "i-123456", state: HealthState.Up)
+    result == new AwsInstanceHealth(type: DefaultAmazonHealthProvider.HEALTH_TYPE, instanceId: INSTANCE_ID, state: expected)
+
+    where:
+    runningState                                         | expected
+    InstanceCachingAgent.InstanceStateValue.Pending      | HealthState.Down
+    InstanceCachingAgent.InstanceStateValue.Running      | HealthState.Unknown
+    InstanceCachingAgent.InstanceStateValue.ShuttingDown | HealthState.Down
+    InstanceCachingAgent.InstanceStateValue.Stopped      | HealthState.Down
+    InstanceCachingAgent.InstanceStateValue.Stopping     | HealthState.Down
+    InstanceCachingAgent.InstanceStateValue.Terminated   | HealthState.Down
+  }
+
+  void "health is unknown for unknown instance"() {
+    when:
+    def result = provider.getHealth(ACCOUNT, serverGroup, INSTANCE_ID)
+
+    then:
+    1 * cacheService.retrieve(Keys.getInstanceKey(INSTANCE_ID, REGION), _) >> null
+
+    and:
+    result == new AwsInstanceHealth(type: DefaultAmazonHealthProvider.HEALTH_TYPE, instanceId: INSTANCE_ID, state: HealthState.Unknown)
   }
 }

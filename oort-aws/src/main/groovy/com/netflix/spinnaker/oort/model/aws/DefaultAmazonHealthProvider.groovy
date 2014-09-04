@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.model.aws
 
 import com.amazonaws.services.ec2.model.Instance
 import com.netflix.spinnaker.oort.data.aws.Keys
+import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
@@ -30,8 +31,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DefaultAmazonHealthProvider implements HealthProvider {
-  private static final String HEALTH_TYPE = "Amazon"
-  private static final int RUNNING = 16
+  public static final String HEALTH_TYPE = "Amazon"
 
   @Autowired
   CacheService cacheService
@@ -43,10 +43,11 @@ class DefaultAmazonHealthProvider implements HealthProvider {
     if (!instance) {
       return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Unknown)
     }
-    def running = instance.state.code == RUNNING
-    if (running) {
-      return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Up)
+    def state = InstanceCachingAgent.InstanceStateValue.fromInstanceState(instance.state)
+    if (state != InstanceCachingAgent.InstanceStateValue.Running) {
+      return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Down)
     }
-    return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Down)
+    //AWS instance lifecycle doesn't confidently tell us the application is Up, only that it is not Down:
+    return new AwsInstanceHealth(type: HEALTH_TYPE, instanceId: instanceId, state: HealthState.Unknown)
   }
 }
