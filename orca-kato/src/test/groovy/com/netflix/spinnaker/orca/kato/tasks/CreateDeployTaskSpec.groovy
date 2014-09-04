@@ -116,6 +116,27 @@ class CreateDeployTaskSpec extends Specification {
     }
   }
 
+  def "don't create allowLaunch tasks when in same account"() {
+    given:
+    task.defaultBakeAccount = 'fzlem'
+    deployConfig.availabilityZones["us-west-1"] = []
+
+    and:
+    def operations = []
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations.addAll(it.flatten())
+        Observable.from(taskId)
+      }
+    }
+
+    when:
+    task.execute(context)
+
+    then:
+    operations.findAll { it.containsKey("allowLaunchDescription") }.empty
+  }
+
   def "can include optional parameters"() {
     given:
     context."deploy.stack" = stackValue
