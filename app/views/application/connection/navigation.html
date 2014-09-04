@@ -1,10 +1,29 @@
-<h3>Security Groups</h3>
-<div class="sub-nav" ng-repeat="account in application.accounts">
+<h3>
+  Security Groups
+  <span class="small">by</span>
+  <span class="form-inline">
+    <div class="form-group small">
+      <select class="form-control input-sm"
+              ng-model="sortField"
+              ng-options="option.key as option.label for option in sortOptions">
+      </select>
+    </div>
+  </span>
+</h3>
+
+<div class="sub-nav-item show-all-link">
+  <a ui-sref="."
+     ng-class="{active: $state.includes('**.connections.**') && !$state.includes('**.connection.**')}"
+    >Show All Security Groups</a>
+</div>
+<div class="sub-nav" ng-repeat="heading in ctrl.getHeadings() | orderBy:'toString()'">
   <div class="sub-nav-item">
-    <h4>{{account}}</h4>
-    <a ng-repeat="cluster in getClustersForAccount(account)"
-       ui-sref="^.clusters.cluster({cluster: cluster.name})"
-       ng-class="{active: $state.includes('**.clusters.cluster', {cluster: cluster.name} )}">
-        {{cluster.name}}</a>
+    <h4>{{heading | regionAbbreviator}}</h4>
+    <a ng-repeat="securityGroup in ctrl.getSecurityGroupsFor(heading) | orderBy:'name'"
+       ui-sref=".connection({securityGroup: securityGroup.name, securityGroupRegion: securityGroup.region, securityGroupAccount: securityGroup.accountName})"
+       ng-class="{active: $state.includes('**.connection.**', {securityGroup: securityGroup.name, securityGroupRegion: securityGroup.region, securityGroupAccount: securityGroup.accountName} )}">
+      {{ctrl.getSecurityGroupLabel(securityGroup)}}
+      <security-group-counts container="securityGroup.usages"></security-group-counts>
+      <span class="sublabel">{{ctrl.getSecurityGroupSublabel(securityGroup) | regionAbbreviator}}</span></a>
   </div>
 </div>

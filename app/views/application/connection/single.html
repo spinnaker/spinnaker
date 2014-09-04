@@ -1,40 +1,27 @@
 <div class="header">
-  <div class="close-button">
-    <button class="btn btn-link">
-      <span class="glyphicon glyphicon-remove"></span>
-    </button>
-  </div>
   <h3>
-    <span class="glyphicon glyphicon-th-large"></span>
-    {{cluster.name}}
+    <span class="glyphicon glyphicon-transfer"></span>
+    {{securityGroup.name}}
   </h3>
-  <div class="actions">
-    <select class="form-control input-sm">
-      <option value="">Cluster Actions</option>
-    </select>
+  <div class="application-actions">
+    <div class="dropdown">
+      <button type="button" class="btn btn-sm btn-default dropdown-toggle" ng-disabled="disabled">
+        Security Group Actions <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li class="dropdown-header">CONFIG</li>
+        <li><a href="#">Edit Security Group</a></li>
+        <li><a href="#">Clone Security Group</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 <div class="content">
-  <div class="sort-filter">
-    <div class="row form-inline">
-      <div class="form-group">
-        <label>
-          Sort by
-          <select class="form-control input-sm" name="sort-by" ng-model="sortFilter.sort">
-            <option value="region" selected>Region</option>
-            <option value="us-east-1">us-east-1</option>
-          </select>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>
-          Filter
-          <input type="text" class="form-control input-sm" name="filter" ng-model="sortFilter.filter"/>
-        </label>
-      </div>
-    </div>
+  <div class="rollup">
+    <h4>{{account}}: {{region}}</h4>
+    <security-group
+      security-group="securityGroup"
+      display-options="displayOptions"></security-group>
   </div>
-  <div ng-repeat="cluster in listClusters()">
 
-  </div>
 </div>

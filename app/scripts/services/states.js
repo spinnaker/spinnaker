@@ -69,6 +69,26 @@ angular.module('deckApp')
         }
       };
 
+      var securityGroupDetails = {
+        name: 'securityGroupDetails',
+        url: '/securityGroupDetails?name&accountId&region',
+        views: {
+          'detail@home.applications.application.insight': {
+            templateUrl: 'views/application/connection/securityGroupDetails.html',
+            controller: 'SecurityGroupDetailsCtrl as ctrl'
+          }
+        },
+        resolve: {
+          securityGroup: ['$stateParams', function($stateParams) {
+            return {
+              name: $stateParams.name,
+              accountId: $stateParams.accountId,
+              region: $stateParams.region
+            };
+          }]
+        }
+      };
+
       var insight = {
         name: 'insight',
         abstract: true,
@@ -95,6 +115,7 @@ angular.module('deckApp')
             loadBalancerDetails,
             serverGroupDetails,
             instanceDetails,
+            securityGroupDetails,
             {
               name: 'cluster',
               url: '/:account/:cluster',
@@ -130,6 +151,7 @@ angular.module('deckApp')
             loadBalancerDetails,
             serverGroupDetails,
             instanceDetails,
+            securityGroupDetails,
             {
               url: '/:loadBalancerAccount/:loadBalancerRegion/:loadBalancer',
               name: 'loadBalancer',
@@ -156,33 +178,41 @@ angular.module('deckApp')
           name: 'connections',
           views: {
             'nav': {
-              templateUrl: 'views/application/connection/navigation.html'
+              templateUrl: 'views/application/connection/navigation.html',
+              controller: 'SecurityGroupsNavCtrl as ctrl'
             },
             'master': {
-              templateUrl: 'views/application/connection/all.html'
+              templateUrl: 'views/application/connection/all.html',
+              controller: 'AllSecurityGroupsCtrl as ctrl'
             }
           },
           children: [
+            loadBalancerDetails,
+            serverGroupDetails,
+            securityGroupDetails,
             {
-            url: '/:connection',
-            name: 'connection',
-            views: {
-              'master@home.applications.application.insight': {
-                templateUrl: 'views/application/connection/single.html',
-                controller: 'ClusterCtrl as ctrl'
-              }
-            },
-            resolve: {
-              cluster: ['$stateParams', function($stateParams) {
-                return {
-                  name: $stateParams.cluster
-                };
-              }]
+              url: '/:securityGroupAccount/:securityGroupRegion/:securityGroup',
+              name: 'connection',
+              views: {
+                'master@home.applications.application.insight': {
+                  templateUrl: 'views/application/connection/single.html',
+                  controller: 'SecurityGroupCtrl as ctrl'
+                }
+              },
+              resolve: {
+                securityGroup: ['$stateParams', function($stateParams) {
+                  return {
+                    account: $stateParams.securityGroupAccount,
+                    name: $stateParams.securityGroup,
+                    region: $stateParams.securityGroupRegion
+                  };
+                }]
+              },
+              children: [loadBalancerDetails, serverGroupDetails, securityGroupDetails]
             }
-          },
-          ],
-        },
-        ],
+          ]
+        }
+        ]
       };
 
       var tasks = {

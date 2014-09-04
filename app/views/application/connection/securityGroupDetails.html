@@ -1,0 +1,55 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-transfer"></span>
+      <h3>
+        {{securityGroup.name || '(not found)'}}
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown">
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled">
+          Security Group Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li class="dropdown-header">CONFIG</li>
+          <li><a href ng-click="ctrl.terminateInstance()">Edit Inbound Rules</a></li>
+          <li><a href ng-click="ctrl.terminateInstance()">Clone Security Group</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="securityGroup">
+    <collapsible-section heading="Security Group Details" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>ID:</dt>
+        <dd>{{securityGroup.id}}</dd>
+        <dt>Region:</dt>
+        <dd>{{securityGroup.region | regionAbbreviator}}</dd>
+        <dt>Account:</dt>
+        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Inbound Rules" expanded="true">
+      <div ng-if="!securityGroup.inboundRules">
+        None
+      </div>
+      <dl ng-repeat="inboundRule in securityGroup.inboundRules">
+        <dt>Security Group</dt>
+        <dd ng-if="inboundRule.securityGroup.name">
+          {{inboundRule.securityGroup.name}} ({{inboundRule.securityGroup.id}})
+        </dd>
+        <dt ng-if="inboundRule.portRanges && inboundRule.portRanges[0].startPort">Port Ranges:</dt>
+        <dd ng-repeat="portRange in inboundRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+          {{portRange.startPort}} &rarr; {{portRange.endPort}}
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

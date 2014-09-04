@@ -1,0 +1,30 @@
+<div class="row rollup-entry"
+     ng-class="{active: $state.includes('**.connections.**', {region: securityGroup.region, account: securityGroup.account, securityGroup: securityGroup.name})}">
+  <div class="rollup-summary">
+    <a class="title-link"
+       ui-sref=".securityGroupDetails({region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name})">
+      <span class="glyphicon glyphicon-transfer"></span> {{securityGroup.name}}
+      <account-tag account="securityGroup.account" pad="left"></account-tag>
+    </a>
+  </div>
+  <div class="rollup-details">
+    <div ng-if="displayOptions.showServerGroups"
+         ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'name'"
+         class="rollup-row">
+      <a
+        ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})"
+        ui-sref-active="active">
+        <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
+      </a>
+    </div>
+    <div ng-if="displayOptions.showLoadBalancers"
+         ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'name'"
+         class="rollup-row">
+      <a
+        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"
+        ui-sref-active="active">
+        <span class="glyphicon glyphicon-cloud"></span> {{loadBalancer.name}}
+      </a>
+    </div>
+  </div>
+</div>
