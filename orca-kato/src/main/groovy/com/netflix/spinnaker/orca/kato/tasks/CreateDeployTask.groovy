@@ -69,9 +69,14 @@ class CreateDeployTask implements Task {
   @CompileStatic(TypeCheckingMode.SKIP)
   private TaskId deploy(DeployOperation deployOperation) {
     deployOperation.securityGroups.addAll((deployOperation.subnetType) ? ["nf-infrastructure-vpc", "nf-datacenter-vpc"] : ["nf-infrastructure", "nf-datacenter"])
-    List<Map<String, Object>> descriptions = deployOperation.availabilityZones.collect { String region, List<String> azs ->
-      [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
+    List<Map<String, Object>> descriptions = []
+
+    if (deployOperation.credentials != defaultBakeAccount) {
+      descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
+        [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
+      })
     }
+
     descriptions.add([basicAmazonDeployDescription: deployOperation])
     def result = kato.requestOperations(descriptions).toBlocking().first()
     result
