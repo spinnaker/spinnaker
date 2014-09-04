@@ -100,6 +100,26 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     }
   }
 
+  void "don't replicate tags in the same region"() {
+    def testCredentials = new NetflixAssumeRoleAmazonCredentials(name: "test")
+
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+    def provider = Mock(AmazonClientProvider)
+
+    def description = new AllowLaunchDescription(account: "test", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = provider
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
+
+    when:
+    op.operate([])
+
+    then:
+    1 * op.accountCredentialsProvider.getCredentials("test") >> testCredentials
+    0 * _._
+  }
+
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->
     new DescribeTagsResult(tags: tags.collect {new TagDescription(key: it.key, value: it.value) })
   }

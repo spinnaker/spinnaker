@@ -18,7 +18,16 @@
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import com.amazonaws.services.ec2.model.CreateTagsRequest
+import com.amazonaws.services.ec2.model.DeleteTagsRequest
+import com.amazonaws.services.ec2.model.DescribeTagsRequest
+import com.amazonaws.services.ec2.model.DescribeTagsResult
+import com.amazonaws.services.ec2.model.Filter
+import com.amazonaws.services.ec2.model.LaunchPermission
+import com.amazonaws.services.ec2.model.LaunchPermissionModifications
+import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
+import com.amazonaws.services.ec2.model.Tag
+import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
@@ -53,9 +62,14 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
-    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
-
     def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAssumeRoleAmazonCredentials
+
+    if (targetCredentials == description.credentials) {
+      task.updateStatus BASE_PHASE, "Source and target are the same, skipping Allow Launch Operations"
+      return
+    }
+
+    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
