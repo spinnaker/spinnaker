@@ -63,12 +63,6 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
     def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAssumeRoleAmazonCredentials
-
-    if (targetCredentials == description.credentials) {
-      task.updateStatus BASE_PHASE, "Source and target are the same, skipping Allow Launch Operations"
-      return
-    }
-
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
@@ -80,10 +74,10 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
 
     def targetTags = new TagsRetriever(targetAmazonEC2).retrieve(request)
     def tagsToRemoveFromTarget = targetTags.collect { new Tag(key: it.key) }
-    targetAmazonEC2.deleteTags(new DeleteTagsRequest(resources: [description.amiName], tags: tagsToRemoveFromTarget))
-
     def sourceTags = new TagsRetriever(sourceAmazonEC2).retrieve(request)
     def tagsToAddToTarget = sourceTags.collect { new Tag(key: it.key, value: it.value) }
+
+    targetAmazonEC2.deleteTags(new DeleteTagsRequest(resources: [description.amiName], tags: tagsToRemoveFromTarget))
     task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
     targetAmazonEC2.createTags(new CreateTagsRequest(resources: [description.amiName], tags: tagsToAddToTarget))
 

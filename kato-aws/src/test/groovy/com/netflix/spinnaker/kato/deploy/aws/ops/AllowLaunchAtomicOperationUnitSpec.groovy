@@ -100,7 +100,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     }
   }
 
-  void "don't replicate tags in the same region"() {
+  void "should replicate tags from the same account"() {
     def testCredentials = new NetflixAssumeRoleAmazonCredentials(name: "test")
 
     def sourceAmazonEc2 = Mock(AmazonEC2)
@@ -116,8 +116,21 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    1 * op.accountCredentialsProvider.getCredentials("test") >> testCredentials
-    0 * _._
+    with(op.accountCredentialsProvider){
+      1 * getCredentials("test") >> testCredentials
+    }
+    with(provider) {
+      2 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2  >> targetAmazonEc2
+    }
+    with(sourceAmazonEc2) {
+      1 * modifyImageAttribute(_)
+      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
+    }
+    with(targetAmazonEc2) {
+      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
+      1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "a"), new Tag(key: "b")]))
+      1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "a", value: "1"), new Tag(key: "b", value: "2")]))
+    }
   }
 
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->
