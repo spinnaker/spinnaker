@@ -16,27 +16,35 @@
 
 package com.netflix.spinnaker.oort.model.aws
 
-import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.cachers.DiscoveryCachingAgent
-import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
 import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryInstance
-import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
-@CompileStatic
-@Component
-class DiscoveryHealthProvider implements HealthProvider {
-  @Autowired
-  CacheService cacheService
+class DiscoveryHealthProviderSpec extends AbstractHealthProviderSpec {
+  @Override
+  String getHealthKeyProviderName() {
+    DiscoveryCachingAgent.PROVIDER_NAME
+  }
 
   @Override
-  Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
-    cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, DiscoveryCachingAgent.PROVIDER_NAME), DiscoveryInstance) ?:
-      new AwsInstanceHealth(type: DiscoveryInstance.HEALTH_TYPE, state: HealthState.Unknown, instanceId: instanceId)
+  Class getHealthType() {
+    DiscoveryInstance
+  }
+
+  @Override
+  String getHealthTypeName() {
+    DiscoveryInstance.HEALTH_TYPE
+  }
+
+  @Override
+  HealthProvider createProvider() {
+    return new DiscoveryHealthProvider(cacheService: cacheService)
+  }
+
+  @Override
+  Health createCachedHealth() {
+    new DiscoveryInstance(type: DiscoveryInstance.HEALTH_TYPE, state: HealthState.Up, instanceId: INSTANCE_ID)
   }
 }

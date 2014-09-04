@@ -20,9 +20,13 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthState
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
+@CompileStatic
 @Immutable
+@EqualsAndHashCode(cache = true)
 class DiscoveryInstance implements Health {
   public static final String HEALTH_TYPE = 'Discovery'
   String type

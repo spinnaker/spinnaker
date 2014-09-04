@@ -16,39 +16,44 @@
 
 package com.netflix.spinnaker.oort.data.aws.cachers
 
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.oort.config.edda.EddaApi
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.config.atlas.AtlasHealthApi
-import com.netflix.spinnaker.oort.model.atlas.AtlasInstanceHealth
-import com.netflix.spinnaker.oort.security.aws.OortNetflixAmazonCredentials
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.oort.model.edda.InstanceLoadBalancers
+import com.netflix.spinnaker.oort.model.edda.LoadBalancerInstanceState
 
-@CompileStatic
-class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
-  static final String PROVIDER_NAME = "ATLAS"
+class EddaLoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
 
-  AtlasHealthApi atlasHealthApi
+  public static final String PROVIDER_NAME = "edda-load-balancers"
+
   private Set<String> instanceIdsLastRun = new HashSet<>()
 
-  AtlasHealthCachingAgent(OortNetflixAmazonCredentials account, String region, AtlasHealthApi atlasHealthApi) {
+  EddaApi eddaApi
+
+  EddaLoadBalancerCachingAgent(NetflixAmazonCredentials account, String region, EddaApi eddaApi) {
     super(account, region)
-    this.atlasHealthApi = atlasHealthApi
+    this.eddaApi = eddaApi
   }
 
   @Override
   void load() {
     long startTime = System.currentTimeMillis()
-    log.info "$cachePrefix - loading atlas health data from region $region for account ${account.name}"
+    log.info "$cachePrefix - loading edda load balancer instance data from region $region for account ${account.name}"
 
-    List<AtlasInstanceHealth> atlas = atlasHealthApi.loadInstanceHealth()
-    log.info "$cachePrefix - atlas read and parse completed in ${System.currentTimeMillis() - startTime} milliseconds (${atlas?.size()} instances)"
+    List<LoadBalancerInstanceState> loadBalancerInstances = eddaApi.loadBalancerInstances()
+
+    log.info "$cachePrefix - edda load retrieved ${loadBalancerInstances.size()} loadBalancers in ${System.currentTimeMillis() - startTime} milliseconds"
+    long translateTime = System.currentTimeMillis()
+
+    List<InstanceLoadBalancers> instances = InstanceLoadBalancers.fromLoadBalancerInstanceState(loadBalancerInstances)
+
+    log.info "$cachePrefix - extracted ${instances.size()} instances in ${System.currentTimeMillis() - translateTime} milliseconds"
 
     Set<String> instanceIdsThisRun = new HashSet<>()
     long cacheStart = System.currentTimeMillis()
-    for (AtlasInstanceHealth instance : atlas) {
-      if (instance.instanceId) {
-        instanceIdsThisRun.add(instance.instanceId)
-        cacheService.put(Keys.getInstanceHealthKey(instance.instanceId, account.name, region, PROVIDER_NAME), instance)
-      }
+    for (InstanceLoadBalancers instance : instances) {
+      instanceIdsThisRun.add(instance.instanceId)
+      cacheService.put(Keys.getInstanceHealthKey(instance.instanceId, account.name, region, PROVIDER_NAME), instance)
     }
     log.info "$cachePrefix - instance health caching completed in ${System.currentTimeMillis() - cacheStart} milliseconds"
     long cacheClean = System.currentTimeMillis()
@@ -61,6 +66,7 @@ class AtlasHealthCachingAgent extends AbstractInfrastructureCachingAgent {
   }
 
   private String getCachePrefix() {
-    "[caching:$region:${account.name}:atl]"
+    "[caching:$region:$account.name:lbh]"
   }
+
 }

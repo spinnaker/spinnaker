@@ -18,10 +18,15 @@ package com.netflix.spinnaker.oort.model.aws
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthState
 import groovy.transform.Canonical
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
+import org.apache.http.annotation.Immutable
 
-@Canonical
+@CompileStatic
+@Immutable
+@EqualsAndHashCode(cache = true)
 class AwsInstanceHealth implements Health {
   String type
   HealthState state
-  String id
+  String instanceId
 }

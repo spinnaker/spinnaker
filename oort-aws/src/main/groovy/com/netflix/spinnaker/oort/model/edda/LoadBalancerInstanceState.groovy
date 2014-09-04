@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.config.atlas
+package com.netflix.spinnaker.oort.model.edda
 
-import retrofit.RestAdapter
-import retrofit.converter.Converter
+import groovy.transform.Canonical
 
-class AtlasHealthApiFactory {
-
-  Converter atlasHealthConverter
-
-  AtlasHealthApiFactory(Converter atlasHealthConverter) {
-    this.atlasHealthConverter = atlasHealthConverter
-  }
-
-  public AtlasHealthApi createApi(String endpointTemplate, String region) {
-    new RestAdapter.Builder()
-      .setConverter(atlasHealthConverter)
-      .setEndpoint(String.format(endpointTemplate, region))
-      .build()
-      .create(AtlasHealthApi)
-  }
+@Canonical
+class LoadBalancerInstanceState {
+  String name
+  List<LoadBalancerInstance> instances
 }

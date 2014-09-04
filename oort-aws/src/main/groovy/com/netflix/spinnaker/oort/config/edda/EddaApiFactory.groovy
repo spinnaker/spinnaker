@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.config.atlas
+package com.netflix.spinnaker.oort.config.edda
 
-import com.netflix.spinnaker.oort.model.atlas.AtlasInstanceHealth
-import retrofit.http.GET
+import retrofit.RestAdapter
+import retrofit.converter.Converter
 
-public interface AtlasHealthApi {
+class EddaApiFactory {
+  private Converter eddaConverter
 
-  @GET('/api/v1/instance')
-  List<AtlasInstanceHealth> loadInstanceHealth()
+  EddaApiFactory(Converter eddaConverter) {
+    this.eddaConverter = eddaConverter
+  }
+
+  public EddaApi createApi(String endpointTemplate, String region) {
+    new RestAdapter.Builder()
+      .setConverter(eddaConverter)
+      .setEndpoint(String.format(endpointTemplate, region))
+      .build()
+      .create(EddaApi)
+  }
 }
