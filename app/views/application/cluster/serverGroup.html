@@ -8,7 +8,8 @@
        ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
       <span class="glyphicon glyphicon-th"></span>
       {{serverGroup.name}}
-      <account-tag account="serverGroup.account" pad="left"></account-tag>
+      <account-tag account="serverGroup.account" pad="both"></account-tag>
+      <span ng-if="serverGroup.isDisabled" class="badge">disabled</span>
     </a>
     <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
   </div>
