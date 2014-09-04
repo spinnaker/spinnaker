@@ -21,6 +21,7 @@ import com.netflix.spinnaker.oort.data.aws.cachers.DiscoveryCachingAgent
 import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.Health
 import com.netflix.spinnaker.oort.model.HealthProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryInstance
 import groovy.transform.CompileStatic
@@ -35,6 +36,7 @@ class DiscoveryHealthProvider implements HealthProvider {
 
   @Override
   Health getHealth(String account, ServerGroup serverGroup, String instanceId) {
-    cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, DiscoveryCachingAgent.PROVIDER_NAME), DiscoveryInstance)
+    cacheService.retrieve(Keys.getInstanceHealthKey(instanceId, account, serverGroup.region, DiscoveryCachingAgent.PROVIDER_NAME), DiscoveryInstance) ?:
+      new AwsInstanceHealth(DiscoveryInstance.HEALTH_TYPE, HealthState.Unknown, instanceId)
   }
 }

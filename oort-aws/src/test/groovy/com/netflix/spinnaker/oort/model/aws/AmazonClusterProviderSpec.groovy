@@ -213,11 +213,11 @@ class AmazonClusterProviderSpec extends Specification {
     healthStates                            | isHealthy
     HealthState.with { [Up, Up] }           | true
     HealthState.with { [Up, Down] }         | false
-    HealthState.with { [Up, Unknown] }      | false
+    HealthState.with { [Up, Unknown] }      | true
     HealthState.with { [Down, Up] }         | false
     HealthState.with { [Down, Down] }       | false
     HealthState.with { [Down, Unknown] }    | false
-    HealthState.with { [Unknown, Up] }      | false
+    HealthState.with { [Unknown, Up] }      | true
     HealthState.with { [Unknown, Down] }    | false
     HealthState.with { [Unknown, Unknown] } | false
   }

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.oort.config.atlas
 
 import retrofit.RestAdapter
-import retrofit.client.Client
 import retrofit.converter.Converter
 
 class AtlasHealthApiFactory {
