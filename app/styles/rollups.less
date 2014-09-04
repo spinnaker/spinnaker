@@ -37,10 +37,13 @@
   background-color: #f1f1f1;
 
   &.disabled {
-    opacity: 0.7;
+    opacity: 0.4;
     border: 1px dashed #aaaaaa;
     .glyphicon-th {
       color: @mid_grey;
+    }
+    &:hover {
+      opacity: 1;
     }
   }
 
@@ -236,13 +239,15 @@
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
 
-  .load-balancer-server-group {
+  .rollup-row {
     padding: 10px;
     border-top: 1px solid #c4c4c4;
     &:first-child {
       border-top-width: 0;
     }
+  }
 
+  .load-balancer-server-group {
     .instances {
       padding: 5px 0 0 0;
     }

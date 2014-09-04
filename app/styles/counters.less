@@ -28,9 +28,11 @@
   }
 }
 
-.instance-health-counts {
+.instance-health-counts, .securityGroup-counts {
   .pull-right;
   padding-left: 5px;
+}
+.instance-health-counts {
 
   .healthy {
     color: #8cad6e;
@@ -46,5 +48,11 @@
     &:before {
       font-size: 75%;
     }
+  }
+}
+
+.securityGroup-counts {
+  .count {
+    margin-left: 5px;
   }
 }

@@ -7,7 +7,7 @@
       </a>
     </div>
     <div class="header-text">
-      <span class="glyphicon glyphicon-hdd health-status-{{instance.healthStatus}}"></span>
+      <span class="glyphicon glyphicon-hdd health-status-{{instance.isHealthy ? 'Healthy' : 'Unhealthy'}}"></span>
       <h3>
         {{instance.instanceId}}
       </h3>
@@ -44,14 +44,11 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
-      <p ng-if="instance.healthStatus === 'Healthy'">
+      <p ng-if="instance.isHealthy">
         <span class="glyphicon glyphicon-up-triangle healthy"></span> Up
       </p>
-      <p ng-if="instance.healthStatus === 'Unhealthy'">
+      <p ng-if="!instance.isHealthy">
         <span class="glyphicon glyphicon-down-triangle unhealthy"></span> Down
-      </p>
-      <p ng-if="instance.healthStatus === 'Unknown'">
-        <span class="glyphicon glyphicon-question-sign unknown"></span> Unknown
       </p>
     </collapsible-section>
     <div class="content-section" ng-if="instance.notFound">

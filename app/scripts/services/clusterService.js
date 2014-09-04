@@ -85,9 +85,9 @@ angular.module('deckApp')
     }
 
     function addHealthyCountsToServerGroup(serverGroup) {
-      serverGroup.upCount = _.filter(serverGroup.instances, {healthStatus: 'Healthy'}).length;
-      serverGroup.downCount = _.filter(serverGroup.instances, {healthStatus: 'Unhealthy'}).length;
-      serverGroup.unknownCount = _.filter(serverGroup.instances, {healthStatus: 'Unknown'}).length;
+      serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
+      serverGroup.downCount = _.filter(serverGroup.instances, {isHealthy: false}).length;
+      serverGroup.unknownCount = 0;
     }
 
     function normalizeInstances(serverGroup) {
@@ -121,6 +121,8 @@ angular.module('deckApp')
       serverGroup.instances = serverGroup.instances.map(function(instance) {
         var toReturn = instance.instance;
         toReturn.account = accountName;
+        toReturn.health = instance.health;
+        toReturn.isHealthy = instance.isHealthy;
         return toReturn;
       });
       serverGroup.account = accountName;
