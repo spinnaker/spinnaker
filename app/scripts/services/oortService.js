@@ -23,7 +23,6 @@ angular.module('deckApp')
                 deepCopyApplication(application, newApplication);
                 application.onAutoRefresh();
                 newApplication = null;
-                autoRefresh(scope);
               });
             });
             scope.$on('$destroy', function () {

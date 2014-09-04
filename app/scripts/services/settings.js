@@ -16,5 +16,5 @@ angular.module('deckApp')
         challengeDestructiveActions: true
       }
     },
-    pollSchedule: 30000
+    pollSchedule: 10000
   });
