@@ -52,7 +52,7 @@ class AmazonApplicationDAO implements ApplicationDAO {
       result
     } as Set
     if (!items) {
-      throw new NotFoundException("No Application found for search criteria $params in domain ${domain}")
+      throw new NotFoundException("No Application found for search criteria $attributes in domain ${domain}")
     }
     items
   }
