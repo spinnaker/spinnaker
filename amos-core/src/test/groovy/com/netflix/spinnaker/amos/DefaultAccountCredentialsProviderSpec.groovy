@@ -1,3 +1,5 @@
+package com.netflix.spinnaker.amos
+
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
