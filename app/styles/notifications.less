@@ -16,29 +16,75 @@
 
 @import "app/styles/imports/commonImports.less";
 
-.notification-center {
-  position: fixed;
-  top: @navbar-height;
-  right: 0;
-  width: 400px;
-  padding: 10px;
-  z-index: @zindex-navbar-fixed;
+.notifications {
+  margin-right: 10px;
 
-  .alert {
-    position: relative;
-    opacity: .95;
-    right: 0;
-    box-shadow: 0px 0px 8px 2px #BBBBBB;
-    border-radius: 8px;
-    &.ng-enter.ng-enter-active, &.ng-leave {
-      opacity: .95;
-      right: 0;
-      transition: all .15s ease-in;
-    }
-    &.ng-leave.ng-leave-active, &.ng-enter {
-      opacity: 0;
-      right: -400px;
-      transition: all .15s ease-in;
+  div {
+    display: inline;
+  }
+
+  .unread {
+
+    display: inline-block;
+    width: 15px;
+
+    div {
+      width: 1.3em;
+      display: inline;
+      background-color: #a6a6a6;
+      border-radius: 3px;
+      color: white;
+      padding-left: .5em;
+      padding-right: .5em;
     }
   }
+
+  ul {
+    background-color: #5b5b5b;
+    color: #999;
+    padding: 5px;
+    min-width: 400px;
+
+    li span {
+      margin-right: 10px;
+
+      span {
+        margin-right: 10px;
+      }
+
+      span.glyphicon {
+        font-size: .8em;
+        margin-right: 5px;
+        cursor: pointer;
+      }
+
+    }
+  }
+
+  .progress {
+    height: 5px;
+    margin: 0px;
+    border: none;
+    border-radius: 0px;
+  }
+}
+
+.notifications.open {
+  .dropdown-toggle {
+    background-color: #999 !important;
+  }
+}
+
+.notifications-nav {
+  margin-left: 5px;
+}
+
+.notifications-nav:hover,
+.notifications-nav *:hover,
+.notifications-nav:active,
+.notifications-nav *:active,
+.notifications-nav:focus,
+.notifications-nav *:focus {
+  background-color: @mid_grey !important;
+  border-color: @mid_grey !important;
 }
