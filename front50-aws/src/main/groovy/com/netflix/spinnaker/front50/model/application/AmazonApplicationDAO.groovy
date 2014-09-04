@@ -40,12 +40,12 @@ class AmazonApplicationDAO implements ApplicationDAO {
 
   @Override
   Set<Application> search(Map<String, String> attributes) {
-    def params = attributes.collect { k, v -> "$k = '$v'" }
+    //def params = attributes.collect { k, v -> "$k = '$v'" }
     //def items = query "select * from `${domain}` where ${params.join(" and ")} limit 2500"
     def items = all().findAll { app ->
       def result = true
       attributes.each { k, v ->
-        if (app[k] && ((String)app[k]).toLowerCase() != v.toLowerCase()) {
+        if (app.hasProperty(k) && (!app[k] || ((String)app[k]).toLowerCase() != v?.toLowerCase())) {
           result = false
         }
       }
