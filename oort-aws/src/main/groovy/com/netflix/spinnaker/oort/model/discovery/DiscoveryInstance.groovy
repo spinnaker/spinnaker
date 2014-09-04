@@ -59,10 +59,10 @@ class DiscoveryInstance implements Health {
     final HealthState healthState
     if ('UP' == status) {
       healthState = HealthState.Up
-    } else if ('OUT_OF_SERVICE' == status) {
-      healthState = HealthState.Down
-    } else {
+    } else if ('UNKNOWN' == status) {
       healthState = HealthState.Unknown
+    } else {
+      healthState = HealthState.Down
     }
     new DiscoveryInstance(HEALTH_TYPE,
       hostName,
