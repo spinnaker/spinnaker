@@ -14,17 +14,26 @@
     </form>
   </div>
 </div>
-<div class="row infrastructure" ng-repeat="group in categories" ng-if="$index % 3 === 0">
-  <div class="col-md-4" ng-repeat="category in categories.slice($index, $index + 3)">
-    <div class="panel category row">
-      <div class="summary">{{ category.category }}</div>
-      <div class="col-md-12 details-container">
-        <div class="details row padding">
-          <div class="col-md-12" ng-repeat="result in category.results">
-            <a href="{{ result.href }}">{{ result.name }}</a>
+<span ng-if="ctrl.hasResults()">
+  <div class="row infrastructure" ng-repeat="group in categories" ng-if="$index % 3 === 0">
+    <div class="col-md-4" ng-repeat="category in categories.slice($index, $index + 3)">
+      <div class="panel category row">
+        <div class="summary">{{ category.category }}</div>
+        <div class="col-md-12 details-container">
+          <div class="details row padding">
+            <div class="col-md-12" ng-repeat="result in category.results">
+              <a href="{{ result.href }}">{{ result.name }}</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</span>
+<span ng-if="ctrl.noMatches()">
+  <div class="row">
+    <div class="col-md-12">
+      <h4 class="text-center">No results matching {{ query }}.</h4>
+    </div>
+  </div>
+</span>

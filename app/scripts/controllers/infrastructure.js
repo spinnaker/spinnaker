@@ -15,4 +15,13 @@ angular.module('deckApp')
         $location.search('q', query);
       });
     });
+
+    this.hasResults = function() {
+      return Object.keys($scope.categories).length > 0 && $scope.query.length > 0;
+    };
+
+    this.noMatches = function() {
+      return angular.isObject($scope.categories) && Object.keys($scope.categories).length === 0 && $scope.query.length > 0;
+
+    };
   });
