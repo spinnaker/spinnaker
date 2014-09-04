@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('AllLoadBalancersCtrl', function($scope, application, _, $filter) {
+  .controller('AllLoadBalancersCtrl', function($scope, application, _, $filter, $modal) {
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -108,6 +108,14 @@ angular.module('deckApp')
         };
       });
     }
+
+    this.createLoadBalancer = function createLoadBalancer() {
+      console.warn('load balancer creation...');
+      $modal.open({
+        templateUrl: 'views/application/modal/createLoadBalancer.html',
+        controller: 'CreateLoadBalancerCtrl as ctrl'
+      });
+    };
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
