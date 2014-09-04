@@ -21,6 +21,7 @@ import com.netflix.spinnaker.oort.config.edda.EddaApi
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.oort.model.edda.LoadBalancerInstanceState
+import retrofit.RetrofitError
 
 class EddaLoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
 
@@ -40,7 +41,13 @@ class EddaLoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
     long startTime = System.currentTimeMillis()
     log.info "$cachePrefix - loading edda load balancer instance data from region $region for account ${account.name}"
 
-    List<LoadBalancerInstanceState> loadBalancerInstances = eddaApi.loadBalancerInstances()
+    List<LoadBalancerInstanceState> loadBalancerInstances
+    try {
+      loadBalancerInstances = eddaApi.loadBalancerInstances()
+    } catch (RetrofitError re) {
+      log.warn "$cachePrefix - failed to query edda: $re.message"
+      return
+    }
 
     log.info "$cachePrefix - edda load retrieved ${loadBalancerInstances.size()} loadBalancers in ${System.currentTimeMillis() - startTime} milliseconds"
     long translateTime = System.currentTimeMillis()

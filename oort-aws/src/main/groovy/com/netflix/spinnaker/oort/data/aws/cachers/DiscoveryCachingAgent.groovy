@@ -23,6 +23,7 @@ import com.netflix.spinnaker.oort.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryApplications
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryInstance
 import groovy.transform.CompileStatic
+import retrofit.RetrofitError
 
 @CompileStatic
 class DiscoveryCachingAgent extends AbstractInfrastructureCachingAgent {
@@ -47,7 +48,13 @@ class DiscoveryCachingAgent extends AbstractInfrastructureCachingAgent {
     long startTime = System.currentTimeMillis()
     log.info "$cachePrefix - loading discovery data from region $region for accounts ${accountNames}"
 
-    DiscoveryApplications disco = discoveryApi.loadDiscoveryApplications()
+    DiscoveryApplications disco
+    try {
+      disco = discoveryApi.loadDiscoveryApplications()
+    } catch (RetrofitError re) {
+      log.warn "$cachePrefix - failed to query discovery: $re.message"
+      return
+    }
 
     log.info "$cachePrefix - discovery load and parse completed in ${System.currentTimeMillis() - startTime} milliseconds (${disco?.applications?.size()} applications)"
     log.info "$cachePrefix - instances ${disco.applications.collect { it.instances.size() }.sum()}"
