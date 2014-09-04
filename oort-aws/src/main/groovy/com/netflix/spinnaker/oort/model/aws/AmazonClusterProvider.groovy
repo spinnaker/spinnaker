@@ -163,9 +163,17 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     }
     def modelInstance = new AmazonInstance(ec2Instance.instanceId)
     modelInstance.health = healths
-    modelInstance.isHealthy = healthProviders ? healths.every { it?.state == HealthState.Up } : false
+    modelInstance.isHealthy = healthProviders ? isInstanceHealthy(healths) : false
     modelInstance.instance = ec2Instance
     modelInstance
+  }
+
+  boolean isInstanceHealthy(Collection<Health> healths) {
+
+    boolean hasUp = healths.any { it?.state == HealthState.Up }
+    boolean hasDown = healths.any { it?.state == HealthState.Down }
+
+    hasUp && !hasDown
   }
 
   private class ServerGroupAttributeBuilder {

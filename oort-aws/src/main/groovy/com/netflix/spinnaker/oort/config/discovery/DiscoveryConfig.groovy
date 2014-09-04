@@ -19,19 +19,14 @@ package com.netflix.spinnaker.oort.config.discovery
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
-import retrofit.client.ApacheClient
-import retrofit.client.Client
 import retrofit.converter.Converter
 import retrofit.converter.JacksonConverter
 
 @Configuration
 class DiscoveryConfig {
   @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   Converter discoveryConverter() {
     new JacksonConverter(new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -41,7 +36,6 @@ class DiscoveryConfig {
   }
 
   @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   DiscoveryApiFactory discoveryApiFactory(Converter discoveryConverter) {
     new DiscoveryApiFactory(discoveryConverter)
   }
