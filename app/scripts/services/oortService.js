@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, scheduler, securityGroupService) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -70,19 +70,19 @@ angular.module('deckApp')
       original.clusters = newApplication.clusters;
       original.loadBalancers = newApplication.loadBalancers;
       original.tasks = newApplication.tasks;
-      original.securityGroups = newApplication.securityGroups;
+//      original.securityGroups = newApplication.securityGroups;
       newApplication.accounts = null;
       newApplication.clusters = null;
       newApplication.loadBalancers = null;
       newApplication.tasks = null;
-      newApplication.securityGroups = null;
+//      newApplication.securityGroups = null;
     }
 
     function getApplication(applicationName) {
       return getApplicationEndpoint(applicationName).get().then(function(application) {
         var clusterLoader = clusterService.loadClusters(application);
         var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
-        var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
+//        var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
         var taskLoader = pond.one('applications', applicationName)
           .all('tasks')
           .getList();
@@ -91,7 +91,7 @@ angular.module('deckApp')
           clusters: clusterLoader,
           loadBalancers: loadBalancerLoader,
           tasks: taskLoader,
-          securityGroups: securityGroupLoader
+//          securityGroups: securityGroupLoader
         })
           .then(function(results) {
             application.clusters = results.clusters;
@@ -100,7 +100,7 @@ angular.module('deckApp')
             application.tasks = results.tasks;
             loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
             clusterService.normalizeServerGroupsWithLoadBalancers(application);
-            securityGroupService.attachSecurityGroups(application, results.securityGroups);
+//            securityGroupService.attachSecurityGroups(application, results.securityGroups);
 
             return application;
           });
