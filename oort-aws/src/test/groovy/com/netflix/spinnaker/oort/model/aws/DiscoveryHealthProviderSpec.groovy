@@ -45,6 +45,6 @@ class DiscoveryHealthProviderSpec extends AbstractHealthProviderSpec {
 
   @Override
   Health createCachedHealth() {
-    new DiscoveryInstance(type: DiscoveryInstance.HEALTH_TYPE, state: HealthState.Up, instanceId: INSTANCE_ID)
+    new DiscoveryInstance(state: HealthState.Up, instanceId: INSTANCE_ID)
   }
 }

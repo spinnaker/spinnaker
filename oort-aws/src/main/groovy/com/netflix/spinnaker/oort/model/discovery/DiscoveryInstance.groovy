@@ -29,7 +29,9 @@ import groovy.transform.Immutable
 @EqualsAndHashCode(cache = true)
 class DiscoveryInstance implements Health {
   public static final String HEALTH_TYPE = 'Discovery'
-  String type
+  public String getType() {
+    HEALTH_TYPE
+  }
   String hostName
   String application
   String ipAddress
@@ -68,7 +70,7 @@ class DiscoveryInstance implements Health {
     } else {
       healthState = HealthState.Down
     }
-    new DiscoveryInstance(HEALTH_TYPE,
+    new DiscoveryInstance(
       hostName,
       app,
       ipAddr,

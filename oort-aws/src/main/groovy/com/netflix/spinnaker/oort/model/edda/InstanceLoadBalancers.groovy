@@ -28,6 +28,9 @@ import groovy.transform.TypeCheckingMode
 @EqualsAndHashCode(cache = true)
 class InstanceLoadBalancers implements Health {
   public static final String HEALTH_TYPE = 'LoadBalancer'
+  public String getType() {
+    HEALTH_TYPE
+  }
   String instanceId
   HealthState state
   List<InstanceLoadBalancerState> loadBalancers
