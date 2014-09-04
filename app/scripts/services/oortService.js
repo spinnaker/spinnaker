@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -20,6 +20,12 @@ angular.module('deckApp')
           if (application.autoRefreshEnabled) {
             var disposable = scheduler.subscribe(function() {
               getApplication(application.name).then(function (newApplication) {
+                // compute task diff and generate notifications for a completed task
+                taskTracker.generateNotifications(taskTracker.getCompleted(
+                  application.tasks,
+                  newApplication.tasks
+                ));
+
                 deepCopyApplication(application, newApplication);
                 application.onAutoRefresh();
                 newApplication = null;

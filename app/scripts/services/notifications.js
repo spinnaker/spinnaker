@@ -16,6 +16,6 @@ angular.module('deckApp')
           timestamp: Date.now()
         });
       },
-      subscribe: function(x) { stream.subscribe(x); }
+      subscribe: stream.subscribe.bind(stream),
     };
   });
