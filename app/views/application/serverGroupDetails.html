@@ -59,8 +59,8 @@
     </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
-        <li ng-repeat="securityGroup in securityGroups | orderBy:'toString()'">
-          {{securityGroup}}
+        <li ng-repeat="securityGroup in securityGroups">
+          {{securityGroup.groupName}}
         </li>
       </ul>
     </collapsible-section>
