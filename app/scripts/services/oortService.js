@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -102,12 +102,14 @@ angular.module('deckApp')
             application.clusters = results.clusters;
             application.serverGroups = _.flatten(_.pluck(results.clusters, 'serverGroups'));
             application.loadBalancers = results.loadBalancers;
-            application.tasks = results.tasks;
+            application.tasks = angular.isArray(results.tasks) ? results.tasks : [];
             loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
             clusterService.normalizeServerGroupsWithLoadBalancers(application);
 //            securityGroupService.attachSecurityGroups(application, results.securityGroups);
 
             return application;
+          }, function(err) {
+            $exceptionHandler(err, 'Failed to load application');
           });
       });
     }
