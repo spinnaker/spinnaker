@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca
 
 import com.google.common.collect.ImmutableMap
@@ -40,17 +36,17 @@ interface TaskResult {
     /**
      * The task is complete but the pipeline should now be stopped pending a trigger of some kind.
      */
-      SUSPENDED(false),
+    SUSPENDED(false),
 
     /**
      * The task executed successfully and the pipeline may now proceed to the next task.
      */
-      SUCCEEDED(true),
+    SUCCEEDED(true),
 
     /**
      * The task failed and the pipeline should stop with an error.
      */
-      FAILED(true)
+    FAILED(true)
 
     final boolean complete
 

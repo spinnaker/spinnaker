@@ -27,14 +27,16 @@ import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @ContextConfiguration(classes = [BatchTestConfiguration])
-//@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-class PipelineStarterSpec extends Specification {
+@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
+class PipelineStatusSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired JobBuilderFactory jobs
@@ -63,6 +65,17 @@ class PipelineStarterSpec extends Specification {
     expect:
     with(jobStarter.start(configJson)) {
       id ==~ /.+/
+    }
+
+    where:
+    config = [[type: "foo"]]
+    configJson = mapper.writeValueAsString(config)
+  }
+
+  def "can get a list of tasks from the pipeline"() {
+    expect:
+    with(jobStarter.start(configJson)) {
+      tasks.size() == 1
     }
 
     where:

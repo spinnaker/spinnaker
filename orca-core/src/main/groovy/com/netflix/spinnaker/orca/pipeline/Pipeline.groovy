@@ -20,4 +20,6 @@ interface Pipeline {
 
   String getId()
 
+  List getTasks()
+
 }

@@ -32,4 +32,9 @@ class DefaultPipeline implements Pipeline {
   String getId() {
     jobExecution.id
   }
+
+  @Override
+  List getTasks() {
+    []
+  }
 }
