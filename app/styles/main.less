@@ -106,7 +106,7 @@ dl {
   position: fixed;
   top: 150px;
   bottom: 10px;
-  overflow-y: scroll;
+  overflow-y: hidden;
   width: 240px;
 
   @media (max-width:768px) {
@@ -145,6 +145,12 @@ dl {
         }
       }
     }
+  }
+
+  .content {
+    overflow-y: scroll;
+    height: 100%;
+
   }
 
   .header {
