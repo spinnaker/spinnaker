@@ -1,6 +1,6 @@
 <div ng-repeat="group in groups" class="rollup">
   <div ng-repeat="subgroup in group.subgroups">
-    <h4>{{group.heading | regionAbbreviator}}: {{subgroup.heading | regionAbbreviator}}</h4>
+    <h4>{{group.heading}}: {{subgroup.heading}}</h4>
     <div ng-repeat="subsubGroup in subgroup.subgroups" class="sub-group">
       <load-balancer load-balancer="subsubGroup" display-options="displayOptions"></load-balancer>
     </div>

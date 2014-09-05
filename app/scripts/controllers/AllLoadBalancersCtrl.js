@@ -25,7 +25,7 @@ angular.module('deckApp')
         if (!loadBalancer.searchField) {
           loadBalancer.searchField = [
             loadBalancer.name,
-            $filter('regionAbbreviator')(loadBalancer.region).toLowerCase(),
+            loadBalancer.region.toLowerCase(),
             loadBalancer.account,
             _.pluck(loadBalancer.serverGroups, 'name').join(' ')
           ].join(' ');

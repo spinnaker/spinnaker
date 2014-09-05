@@ -1,7 +1,7 @@
 <div ng-repeat="group in groups" class="rollup">
   <div ng-repeat="subgroup in group.subgroups">
     <div ng-repeat="subsubGroup in subgroup.subgroups">
-      <h4>{{group.heading | regionAbbreviator}}: {{subgroup.heading | regionAbbreviator}}: {{subsubGroup.heading| regionAbbreviator}}</h4>
+      <h4>{{group.heading}}: {{subgroup.heading}}: {{subsubGroup.heading}}</h4>
       <server-group
         ng-repeat="serverGroup in subsubGroup.serverGroups | orderBy:'name'"
         server-group="serverGroup"
