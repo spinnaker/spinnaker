@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, $state) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
@@ -15,7 +15,10 @@ angular.module('deckApp')
       notifications.create({
         title: task.application,
         message: task.description,
-        href: $state.href($state.current),
+        href: urlBuilder({
+          type: 'tasks',
+          application: task.application,
+        }),
       });
       return scheduler.scheduleOnCompletion(endpoint.post(task));
     }

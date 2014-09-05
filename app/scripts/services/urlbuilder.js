@@ -63,7 +63,16 @@ angular.module('deckApp')
             accountId: input.account
           }
         );
-      }
+      },
+      // url for application tasks
+      'tasks': function(input) {
+        return $state.href(
+          'home.applications.application.tasks',
+          {
+            application: input.application,
+          }
+        );
+      },
     };
 
     return function(input) {
