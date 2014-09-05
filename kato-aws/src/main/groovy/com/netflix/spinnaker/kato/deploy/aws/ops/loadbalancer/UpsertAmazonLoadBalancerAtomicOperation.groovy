@@ -122,6 +122,8 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           if (description.subnetType == "internal") {
             request.scheme = description.subnetType
           }
+        } else {
+          request.withAvailabilityZones(availabilityZones)
         }
         task.updateStatus BASE_PHASE, " > Creating load balancer."
         request.withListeners(listeners)

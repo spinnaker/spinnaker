@@ -21,6 +21,7 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
@@ -104,7 +105,9 @@ class KatoAWSConfig {
     @PostConstruct
     void init() {
       if (!awsConfigurationProperties.accounts) {
-        accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(name: defaultEnv))
+        def credentials = new NetflixAmazonCredentials(name: defaultEnv)
+        credentials.credentialsProvider = awsCredentialsProvider
+        accountCredentialsRepository.save(defaultEnv, credentials)
       } else {
         for (account in awsConfigurationProperties.accounts) {
           account.credentialsProvider = awsCredentialsProvider

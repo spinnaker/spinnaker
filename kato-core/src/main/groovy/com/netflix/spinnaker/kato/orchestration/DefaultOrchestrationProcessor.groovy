@@ -54,8 +54,8 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.updateStatus(TASK_PHASE, "Orchestration completed.")
           } catch (e) {
             def message = e.message
+            e.printStackTrace()
             if (!message) {
-              e.printStackTrace()
               def stringWriter = new StringWriter()
               def printWriter = new PrintWriter(stringWriter)
               e.printStackTrace(printWriter)
