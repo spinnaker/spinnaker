@@ -21,7 +21,6 @@ import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -56,8 +55,9 @@ class PipelineStarter {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  JobExecution start(String configJson) {
-    launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
+  Pipeline start(String configJson) {
+    def jobExecution = launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
+    new DefaultPipeline(jobExecution)
   }
 
   @PostConstruct
