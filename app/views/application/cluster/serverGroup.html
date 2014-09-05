@@ -23,7 +23,9 @@
       <span ng-if="!serverGroup.buildInfo.jenkins.host">
           (No build info)
       </span>
-      <health-counts container="serverGroup"></health-counts>
+      <span ng-if="!serverGroup.isDisabled">
+        <health-counts container="serverGroup"></health-counts>
+      </span>
     </div>
     <div ng-if="displayOptions.showInstances">
       <instances highlight="displayOptions.filter" instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>

@@ -16,6 +16,11 @@ angular.module('deckApp')
       },
       link: function (scope) {
         scope.$state = $rootScope.$state;
+        if (scope.serverGroup.isDisabled) {
+          scope.serverGroup.instances.forEach(function(instance) {
+            instance.healthStatus = 'Disabled';
+          });
+        }
       }
     };
   }
