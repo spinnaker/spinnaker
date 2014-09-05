@@ -53,7 +53,9 @@ class SecurityGroupController {
       }
       objs[obj.accountName][obj.type] << obj.name
       objs
-    }) toBlocking() first()
+    }) doOnError {
+      it.printStackTrace()
+    } toBlocking() first()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}")
@@ -120,7 +122,7 @@ class SecurityGroupController {
     }.get(account, securityGroupName)
   }
 
-  private static Set<SecurityGroup> getSortedTreeSet() {
-    new TreeSet<>({ SecurityGroup a, SecurityGroup b -> a.name <=> b.name } as Comparator)
+  private static Set<String> getSortedTreeSet() {
+    new TreeSet<>({ String a, String b -> a.toLowerCase() <=> b.toLowerCase() } as Comparator)
   }
 }
