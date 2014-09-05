@@ -39,7 +39,7 @@ This description supplies the +BasicAmazonDeployHandler+ with the inputs necessa
           },
           {
             "deviceName": "/dev/sdc",
-            "virtualName: "ephemeral1"
+            "virtualName": "ephemeral1"
           }
         ],
         "credentials": "test"
