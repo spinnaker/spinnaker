@@ -36,6 +36,15 @@ angular.module('deckApp')
       this.updateClusterGroups();
     };
 
+    function checkAgainstActiveFilters(serverGroup) {
+      return [
+        $scope.sortFilter.hideHealthy && serverGroup.downCount > 0,
+        $scope.sortFilter.hideDisabled && !serverGroup.isDisabled,
+      ].any(function(x) {
+        return x;
+      }) ? false : true;
+    }
+
     function addSearchFields() {
       application.clusters.forEach(function(cluster) {
         cluster.serverGroups.forEach(function(serverGroup) {
@@ -52,7 +61,7 @@ angular.module('deckApp')
       });
     }
 
-    function filterServerGroupsForDisplay(serverGroups, hideHealthy, filter, hideDisabled) {
+    function filterServerGroupsForDisplay(serverGroups, filter) {
       return  _.chain(application.clusters)
         .collect('serverGroups')
         .flatten()
@@ -64,27 +73,13 @@ angular.module('deckApp')
             return serverGroup.searchField.indexOf(testWord) !== -1;
           });
         })
-        .filter(function(serverGroup) {
-          return [
-            hideHealthy && serverGroup.downCount > 0,
-            hideDisabled && !serverGroup.isDisabled,
-          ].any(function(x) {
-            return x;
-          }) ? false : true;
-        })
+        .filter(checkAgainstActiveFilters)
         .value();
     }
 
     function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroups) {
       return serverGroups
-        .filter(function(serverGroup) {
-          return [
-            $scope.sortFilter.hideHealthy && serverGroup.downCount > 0,
-            $scope.sortFilter.hideDisabled && !serverGroup.isDisabled,
-          ].any(function(x) {
-            return x;
-          }) ? false : true;
-        })
+        .filter(checkAgainstActiveFilters)
         .reduce(function(total, serverGroup) {
           return serverGroup.asg.instances.length + total;
         }, totalInstancesDisplayed);
@@ -99,7 +94,7 @@ angular.module('deckApp')
           secondarySort = $scope.sortFilter.sortSecondary,
           tertiarySort = sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
 
-        var serverGroups = filterServerGroupsForDisplay(application.serverGroups, $scope.sortFilter.hideHealthy, filter, $scope.sortFilter.hideDisabled);
+        var serverGroups = filterServerGroupsForDisplay(application.serverGroups, filter);
 
         var grouped = _.groupBy(serverGroups, primarySort);
 
