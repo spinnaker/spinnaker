@@ -34,7 +34,7 @@
               <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone | regionAbbreviator}}</li>
             </ul>
           </dd>
-          <dt ng-if="loadBalancer.serverGroupNames">Auto Scaling Groups:</dt>
+          <dt ng-if="loadBalancer.serverGroupNames">Server Groups:</dt>
           <dd ng-if="loadBalancer.serverGroupNames">
             <ul>
               <li ng-repeat="serverGroup in loadBalancer.serverGroupNames">{{serverGroup}}</li>
