@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.services
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.kato.deploy.aws.AsgReferenceCopier
 import com.netflix.spinnaker.kato.model.aws.SubnetAnalyzer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -60,6 +61,10 @@ class RegionScopedProviderFactory {
 
     AsgService getAsgService() {
       new AsgService(amazonClientProvider.getAutoScaling(amazonCredentials, region))
+    }
+
+    AsgReferenceCopier getAsgReferenceCopier(NetflixAmazonCredentials targetCredentials, String targetRegion) {
+      new AsgReferenceCopier(amazonClientProvider, amazonCredentials, region, targetCredentials, targetRegion, new IdGenerator())
     }
   }
 

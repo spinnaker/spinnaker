@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.config
 
+import groovy.transform.Canonical
+
 /**
  * Model for a block device mapping
  *
@@ -26,6 +28,7 @@ package com.netflix.spinnaker.kato.config
  *
  * @author Dan Woods
  */
+@Canonical
 class AmazonBlockDevice {
 
     // Required for all:
