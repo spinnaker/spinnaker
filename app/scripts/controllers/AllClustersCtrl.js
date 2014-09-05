@@ -65,13 +65,12 @@ angular.module('deckApp')
           });
         })
         .filter(function(serverGroup) {
-          if (hideHealthy) {
-            return serverGroup.downCount > 0;
-          }
-          if (hideDisabled) {
-            return !serverGroup.isDisabled;
-          }
-          return true;
+          return [
+            hideHealthy && serverGroup.downCount > 0,
+            hideDisabled && !serverGroup.isDisabled,
+          ].any(function(x) {
+            return x;
+          }) ? false : true;
         })
         .value();
     }
@@ -79,13 +78,12 @@ angular.module('deckApp')
     function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroups) {
       return serverGroups
         .filter(function(serverGroup) {
-          if ($scope.sortFilter.hideHealthy) {
-            return serverGroup.downCount > 0;
-          }
-          if ($scope.sortFilter.hideDisabled) {
-            return !serverGroup.isDisabled;
-          }
-          return true;
+          return [
+            $scope.sortFilter.hideHealthy && serverGroup.downCount > 0,
+            $scope.sortFilter.hideDisabled && !serverGroup.isDisabled,
+          ].any(function(x) {
+            return x;
+          }) ? false : true;
         })
         .reduce(function(total, serverGroup) {
           return serverGroup.asg.instances.length + total;
