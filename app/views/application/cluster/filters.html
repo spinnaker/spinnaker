@@ -34,14 +34,26 @@
     <label>Show</label>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="ctrl.updateClusterGroups()"/>
+        <input type="checkbox"
+               ng-model="sortFilter.showAllInstances"
+               ng-change="ctrl.updateClusterGroups()"/>
         Instances
       </label>
     </div>
     <div class="checkbox">
       <label>
-        <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="ctrl.updateClusterGroups()"/>
+        <input type="checkbox"
+               ng-model="sortFilter.hideHealthy"
+               ng-change="ctrl.updateClusterGroups()"/>
         Only Unhealthy
+      </label>
+    </div>
+    <div class="checkbox">
+      <label>
+        <input type="checkbox"
+               ng-model="sortFilter.hideDisabled"
+               ng-change="ctrl.updateClusterGroups()"/>
+         Only enabled
       </label>
     </div>
   </div>
