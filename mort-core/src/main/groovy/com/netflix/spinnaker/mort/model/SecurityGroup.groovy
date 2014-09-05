@@ -22,6 +22,14 @@ import com.netflix.spinnaker.mort.model.securitygroups.Rule
  * A representation of a security group
  */
 interface SecurityGroup {
+
+  /**
+   * The type of this security group. May reference the cloud provider to which it is associated
+   *
+   * @return
+   */
+  String getType()
+
   /**
    * The ID associated with this security group
    *

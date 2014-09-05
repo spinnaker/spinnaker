@@ -24,6 +24,7 @@ import groovy.transform.Immutable
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AmazonSecurityGroup implements SecurityGroup {
+  final String type = "aws"
   final String id
   final String name
   final String application
