@@ -30,3 +30,9 @@ aws:
       discovery: http://%s.discoveryprod.netflix.net:7001
       regions:
         - name: us-east-1
+    - name: cpl
+      edda: http://edda-cpl.%s.prod.netflix.net:7001
+      front50: http://front50-cpl.prod.netflix.net/cpl
+      discovery: http://%s.discoveryprod.netflix.net:7001
+      regions:
+        - name: us-east-1
