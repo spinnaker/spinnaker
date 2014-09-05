@@ -20,12 +20,16 @@ package com.netflix.spinnaker.kato.deploy.aws.ops
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateTagsRequest
 import com.amazonaws.services.ec2.model.DeleteTagsRequest
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.DescribeTagsResult
+import com.amazonaws.services.ec2.model.Image
 import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
 import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -38,13 +42,43 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
+  void "image amiId is resolved from name"() {
+    setup:
+    def ec2 = Mock(AmazonEC2)
+    def provider = Stub(AmazonClientProvider) {
+      getAmazonEC2(_, _) >> ec2
+    }
+
+    def creds = Stub(AccountCredentialsProvider) {
+      getCredentials(_) >> Stub(NetflixAssumeRoleAmazonCredentials)
+    }
+    def op = new AllowLaunchAtomicOperation(new AllowLaunchDescription(amiName: 'super-awesome-ami'))
+    op.accountCredentialsProvider = creds
+    op.amazonClientProvider = provider
+
+    when:
+    op.operate([])
+
+    then:
+    ec2.describeTags(_) >> new DescribeTagsResult()
+    1 * ec2.describeImages(_) >> { DescribeImagesRequest dir ->
+        assert dir.filters
+        assert dir.filters.size() == 1
+        assert dir.filters.first().name == 'name'
+        assert dir.filters.first().values == ['super-awesome-ami']
+
+        new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
+    }
+  }
+
   void "image attribute modification is invoked on request"() {
     setup:
-    def provider = Mock(AmazonClientProvider)
     def ec2 = Mock(AmazonEC2) {
       describeTags(_) >> new DescribeTagsResult()
     }
-    provider.getAmazonEC2(_, _) >> ec2
+    def provider = Stub(AmazonClientProvider) {
+      getAmazonEC2(_, _) >> ec2
+    }
     def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(NetflixAssumeRoleAmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
