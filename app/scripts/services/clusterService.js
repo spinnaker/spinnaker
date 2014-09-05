@@ -65,6 +65,9 @@ angular.module('deckApp')
         return;
       }
       cluster.serverGroups.forEach(function(serverGroup) {
+        if (serverGroup.isDisabled) {
+          return;
+        }
         cluster.upCount += serverGroup.upCount;
         cluster.downCount += serverGroup.downCount;
         cluster.unknownCount += serverGroup.unknownCount;
