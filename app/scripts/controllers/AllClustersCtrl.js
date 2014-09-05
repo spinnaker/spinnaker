@@ -38,8 +38,8 @@ angular.module('deckApp')
 
     function checkAgainstActiveFilters(serverGroup) {
       return [
-        $scope.sortFilter.hideHealthy && serverGroup.downCount > 0,
-        $scope.sortFilter.hideDisabled && !serverGroup.isDisabled,
+        $scope.sortFilter.hideHealthy && serverGroup.downCount == 0,
+        $scope.sortFilter.hideDisabled && serverGroup.isDisabled,
       ].any(function(x) {
         return x;
       }) ? false : true;
