@@ -4,15 +4,24 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, $state) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
       RestangularConfigurer.setDefaultHeaders( {'Content-Type':'application/context+json'} );
     }).all('ops');
 
+    function executeTask(task) {
+      notifications.create({
+        title: task.application,
+        message: task.description,
+        href: $state.href($state.current),
+      });
+      return scheduler.scheduleOnCompletion(endpoint.post(task));
+    }
+
     function destroyServerGroup(serverGroup, applicationName) {
-      return scheduler.scheduleOnCompletion(endpoint.post({
+      return executeTask({
         job: [
           {
             asgName: serverGroup.name,
@@ -24,11 +33,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Destroying ASG: ' + serverGroup.name
-      }));
+      });
     }
 
     function disableServerGroup(serverGroup, applicationName) {
-      return scheduler.scheduleOnCompletion(endpoint.post({
+      return executeTask({
         job: [
           {
             asgName: serverGroup.name,
@@ -40,11 +49,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Disabling ASG: ' + serverGroup.name
-      }));
+      });
     }
 
     function enableServerGroup(serverGroup, applicationName) {
-      return scheduler.scheduleOnCompletion(endpoint.post({
+      return executeTask({
         job: [
           {
             asgName: serverGroup.name,
@@ -56,11 +65,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Enabling ASG: ' + serverGroup.name
-      }));
+      });
     }
 
     function resizeServerGroup(serverGroup, capacity, applicationName) {
-      return scheduler.scheduleOnCompletion(endpoint.post({
+      return executeTask({
         job: [
           {
             asgName: serverGroup.name,
@@ -73,11 +82,11 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Resizing ASG: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
-      }));
+      });
     }
 
     function terminateInstance(instance, applicationName) {
-      return scheduler.scheduleOnCompletion(endpoint.post({
+      return executeTask({
         job: [
           {
             type: 'terminateInstances',
@@ -89,7 +98,7 @@ angular.module('deckApp')
         ],
         application: applicationName,
         description: 'Terminating instance: ' + instance.instanceId
-      }));
+      });
     }
 
     return {
