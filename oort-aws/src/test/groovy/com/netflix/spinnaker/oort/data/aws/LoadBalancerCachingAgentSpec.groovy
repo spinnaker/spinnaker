@@ -42,7 +42,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonElasticLoadBalancing.describeLoadBalancers() >> result
+    1 * amazonElasticLoadBalancing.describeLoadBalancers(_) >> result
     1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName1, ACCOUNT, REGION), loadBalancer1)
     1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName2, ACCOUNT, REGION), loadBalancer2)
 
@@ -51,7 +51,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonElasticLoadBalancing.describeLoadBalancers() >> result
+    1 * amazonElasticLoadBalancing.describeLoadBalancers(_) >> result
     0 * cacheService.put(_, _)
     1 * cacheService.free(Keys.getLoadBalancerKey(loadBalancerName2, ACCOUNT, REGION))
 
@@ -59,7 +59,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonElasticLoadBalancing.describeLoadBalancers() >> result
+    1 * amazonElasticLoadBalancing.describeLoadBalancers(_) >> result
     0 * cacheService.put(_, _)
     0 * cacheService.free(_)
   }

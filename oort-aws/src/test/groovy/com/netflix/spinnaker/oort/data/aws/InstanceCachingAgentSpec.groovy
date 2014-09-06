@@ -37,7 +37,7 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonEC2.describeInstances() >> result
+    1 * amazonEC2.describeInstances(_) >> result
     1 * cacheService.put(Keys.getInstanceKey(instance.instanceId, REGION), instance)
   }
 
@@ -53,7 +53,7 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonEC2.describeInstances() >> result
+    1 * amazonEC2.describeInstances(_) >> result
     1 * cacheService.put(Keys.getInstanceKey(instance1.instanceId, REGION), instance1)
     1 * cacheService.put(Keys.getInstanceKey(instance2.instanceId, REGION), instance2)
 
@@ -63,7 +63,7 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonEC2.describeInstances() >> result
+    1 * amazonEC2.describeInstances(_) >> result
     0 * cacheService.put(_, _)
     1 * cacheService.free(Keys.getInstanceKey(instance1.instanceId, REGION))
 
@@ -72,7 +72,7 @@ class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonEC2.describeInstances() >> result
+    1 * amazonEC2.describeInstances(_) >> result
     0 * cacheService.put(_, _)
     0 * cacheService.free(_)
   }

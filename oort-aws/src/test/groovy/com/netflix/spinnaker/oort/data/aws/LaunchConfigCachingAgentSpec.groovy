@@ -40,7 +40,7 @@ class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeLaunchConfigurations() >> result
+    1 * amazonAutoScaling.describeLaunchConfigurations(_) >> result
     1 * cacheService.put(Keys.getLaunchConfigKey(launchConfigName1, REGION), launchConfig1)
     1 * cacheService.put(Keys.getLaunchConfigKey(launchConfigName2, REGION), launchConfig2)
 
@@ -49,7 +49,7 @@ class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeLaunchConfigurations() >> result
+    1 * amazonAutoScaling.describeLaunchConfigurations(_) >> result
     0 * cacheService.put(_, _)
     1 * cacheService.free(Keys.getLaunchConfigKey(launchConfigName2, REGION))
 
@@ -57,7 +57,7 @@ class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeLaunchConfigurations() >> result
+    1 * amazonAutoScaling.describeLaunchConfigurations(_) >> result
     0 * cacheService.put(_, _)
     0 * cacheService.free(_)
   }

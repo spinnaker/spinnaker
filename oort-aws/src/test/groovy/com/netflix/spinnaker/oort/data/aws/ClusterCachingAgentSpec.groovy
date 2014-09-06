@@ -54,7 +54,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> result
     with(cacheService) {
       2 * retrieve(appKey, AmazonApplication) >> app
       2 * put(appKey, app)
@@ -69,7 +69,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg2])
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> result.withAutoScalingGroups([asg2])
     with(cacheService) {
       1 * free(serverGroupKey1)
       1 * keysByType(Keys.Namespace.SERVER_GROUPS) >> [serverGroupKey2]
@@ -81,7 +81,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> result
     0 * cacheService.retrieve(_, _)
   }
 
@@ -115,7 +115,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> result
     with(cacheService) {
       3 * retrieve(appKey, AmazonApplication) >> app
       3 * put(appKey, app)
@@ -131,7 +131,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg2, asg3])
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> result.withAutoScalingGroups([asg2, asg3])
     with(cacheService) {
       1 * free(serverGroupKey1)
       1 * keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [loadBalancerServerGroupKey1, loadBalancerServerGroupKey2]
@@ -146,7 +146,7 @@ class ClusterCachingAgentSpec extends AbstractCachingAgentSpec {
     agent.load()
 
     then:
-    1 * amazonAutoScaling.describeAutoScalingGroups() >> result.withAutoScalingGroups([asg3])
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> result.withAutoScalingGroups([asg3])
     with(cacheService) {
       1 * free(serverGroupKey2)
       1 * keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [loadBalancerServerGroupKey2]
