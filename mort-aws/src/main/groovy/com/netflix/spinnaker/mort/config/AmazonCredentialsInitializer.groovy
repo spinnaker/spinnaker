@@ -19,11 +19,18 @@ package com.netflix.spinnaker.mort.config
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Configuration
+
+
+import static com.amazonaws.regions.Regions.EU_WEST_1
+import static com.amazonaws.regions.Regions.US_EAST_1
+import static com.amazonaws.regions.Regions.US_WEST_1
+import static com.amazonaws.regions.Regions.US_WEST_2
 
 @Configuration
 @ConditionalOnExpression('!${bastion.enabled:false}')
@@ -43,7 +50,10 @@ class AmazonCredentialsInitializer implements CredentialsInitializer {
   @PostConstruct
   void init() {
     if (!awsConfigurationProperties.accounts) {
-      accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(name: defaultEnv))
+      def credentials = new NetflixAmazonCredentials(name: defaultEnv)
+      credentials.credentialsProvider = awsCredentialsProvider
+      credentials.regions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new AmazonCredentials.AWSRegion(name: it.name) }
+      accountCredentialsRepository.save(defaultEnv, credentials)
     } else {
       for (account in awsConfigurationProperties.accounts) {
         account.credentialsProvider = awsCredentialsProvider

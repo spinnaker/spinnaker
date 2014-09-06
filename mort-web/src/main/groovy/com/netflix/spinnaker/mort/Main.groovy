@@ -33,8 +33,8 @@ import javax.servlet.Filter
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static {
-    imposeSpinnakerFileConfig("kato-internal.yml")
-    imposeSpinnakerFileConfig("kato-local.yml")
+    imposeSpinnakerFileConfig("mort-internal.yml")
+    imposeSpinnakerFileConfig("mort-local.yml")
   }
 
   static void main(_) {

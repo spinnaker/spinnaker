@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.mort.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.mort.aws.cache.AmazonSecurityGroupCachingAgent
 import com.netflix.spinnaker.mort.aws.cache.AmazonSubnetCachingAgent
 import com.netflix.spinnaker.mort.model.CacheService
@@ -30,15 +32,19 @@ class AWSCachingAgentConfigurator {
   @Bean
   Void init(AmazonClientProvider clientProvider,
             CacheService cacheService,
-            AwsConfigurationProperties awsConfigurationProperties,
+            AccountCredentialsRepository accountCredentialsRepository,
             ConfigurableListableBeanFactory beanFactory) {
-    for (cred in awsConfigurationProperties.accounts) {
-      for (region in cred.regions) {
-        def ec2 = clientProvider.getAmazonEC2(cred, region.name)
-        beanFactory.registerSingleton("securityGroupCacher-${cred.name}-${region.name}",
-            new AmazonSecurityGroupCachingAgent(cred.name, region.name, ec2, cacheService))
-        beanFactory.registerSingleton("subnetCacher-${cred.name}-${region.name}",
-            new AmazonSubnetCachingAgent(cred.name, region.name, ec2, cacheService))
+    for (a in accountCredentialsRepository.all) {
+      if (!NetflixAmazonCredentials.isAssignableFrom(a.class)) {
+        continue
+      }
+      def account = (NetflixAmazonCredentials)a
+      for (region in account.regions) {
+        def ec2 = clientProvider.getAmazonEC2(account, region.name)
+        beanFactory.registerSingleton("securityGroupCacher-${account.name}-${region.name}",
+            new AmazonSecurityGroupCachingAgent(account.name, region.name, ec2, cacheService))
+        beanFactory.registerSingleton("subnetCacher-${account.name}-${region.name}",
+            new AmazonSubnetCachingAgent(account.name, region.name, ec2, cacheService))
       }
     }
     null
