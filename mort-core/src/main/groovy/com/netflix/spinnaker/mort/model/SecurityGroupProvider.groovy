@@ -18,6 +18,8 @@ package com.netflix.spinnaker.mort.model
 
 interface SecurityGroupProvider {
 
+  String getType()
+
   Set<SecurityGroup> getAll()
 
   Set<SecurityGroup> getAllByRegion(String region)

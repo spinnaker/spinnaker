@@ -32,6 +32,8 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider {
   @Autowired
   CacheService cacheService
 
+  String type = "aws"
+
   @Override
   Set<SecurityGroup> getAll() {
     def keys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS)
@@ -75,7 +77,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider {
   SecurityGroup get(String account, String name) {
     def keys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS).findAll { key ->
       def parts = Keys.parse(key)
-      parts.account == account && parts.id == name
+      parts.account == account && parts.name == name
     }
     keys.empty ? null : retrieve(keys.first())
   }
