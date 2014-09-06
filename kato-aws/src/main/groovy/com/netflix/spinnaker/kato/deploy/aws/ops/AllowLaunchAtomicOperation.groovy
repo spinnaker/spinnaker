@@ -33,6 +33,7 @@ import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.aws.AmiIdResolver
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.model.aws.AwsResultsRetriever
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -66,8 +67,13 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
+    def amiId = AmiIdResolver.resolveAmiId(sourceAmazonEC2, description.amiName)
+    if (!amiId) {
+      throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
+    }
+
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
-    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(description.amiName).withLaunchPermission(new LaunchPermissionModifications()
+    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(amiId).withLaunchPermission(new LaunchPermissionModifications()
       .withAdd(new LaunchPermission().withUserId(String.valueOf(targetCredentials.accountId)))))
 
     def request = new DescribeTagsRequest(filters: [new Filter(name: "resource-id", values: [description.amiName])])
@@ -77,9 +83,9 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
     def sourceTags = new TagsRetriever(sourceAmazonEC2).retrieve(request)
     def tagsToAddToTarget = sourceTags.collect { new Tag(key: it.key, value: it.value) }
 
-    targetAmazonEC2.deleteTags(new DeleteTagsRequest(resources: [description.amiName], tags: tagsToRemoveFromTarget))
+    targetAmazonEC2.deleteTags(new DeleteTagsRequest(resources: [amiId], tags: tagsToRemoveFromTarget))
     task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
-    targetAmazonEC2.createTags(new CreateTagsRequest(resources: [description.amiName], tags: tagsToAddToTarget))
+    targetAmazonEC2.createTags(new CreateTagsRequest(resources: [amiId], tags: tagsToAddToTarget))
 
     task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account."
     null

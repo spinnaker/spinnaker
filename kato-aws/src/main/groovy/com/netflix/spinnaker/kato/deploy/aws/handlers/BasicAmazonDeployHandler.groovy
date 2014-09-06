@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.handlers
 
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.Filter
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.config.KatoAWSConfig.AwsConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
@@ -24,6 +26,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.deploy.aws.AmiIdResolver
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -90,13 +93,18 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         }
       }
 
+      def amiId = AmiIdResolver.resolveAmiId(amazonEC2, description.amiName)
+      if (!amiId) {
+        throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
+      }
+
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,
         environment: description.credentials.name,
         stack: description.stack,
         freeFormDetails: description.freeFormDetails,
-        ami: description.amiName,
+        ami: amiId,
         minInstances: description.capacity.min,
         maxInstances: description.capacity.max,
         desiredInstances: description.capacity.desired,

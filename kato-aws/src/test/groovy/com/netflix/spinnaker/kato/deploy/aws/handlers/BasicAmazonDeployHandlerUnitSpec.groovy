@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.handlers
 
-import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.DescribeImagesResult
+import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
@@ -31,24 +33,24 @@ import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
-  @Shared
+  @Subject
   BasicAmazonDeployHandler handler
 
-  @Shared
-  Task task
+  AmazonEC2 amazonEC2
 
-  @Shared
   List<AmazonBlockDevice> blockDevices
 
-  def setupSpec() {
-    def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
-    mockAmazonClientProvider.getAmazonEC2(_, _) >> Mock(AmazonEC2)
+  def setup() {
+    amazonEC2 = Mock(AmazonEC2)
+    def mockAmazonClientProvider = Stub(AmazonClientProvider) {
+      getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
+      getAmazonEC2(_, _) >> amazonEC2
+    }
     KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(defaults: new KatoAWSConfig.DeployDefaults())
     awsConfigurationProperties.defaults.iamRole = "IamRole"
     awsConfigurationProperties.defaults.keyPair = "keypair"
@@ -57,8 +59,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties,
       regionScopedProviderFactory: Mock(RegionScopedProviderFactory))
     handler.regionScopedProviderFactory.forRegion(_, _) >> Mock(RegionScopedProviderFactory.RegionScopedProvider)
-    this.task = Mock(Task)
-    this.task.getResultObjects() >> []
+    Task task = Stub(Task) {
+        getResultObjects() >> []
+    }
     TaskRepository.threadLocalTask.set(task)
   }
 
@@ -74,7 +77,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setup:
     def deployCallCounts = 0
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
-    def description = new BasicAmazonDeployDescription()
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
     description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
 
@@ -91,7 +94,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def setlbCalls = 0
     AutoScalingWorker.metaClass.deploy = {}
     AutoScalingWorker.metaClass.setLoadBalancers = { setlbCalls++ }
-    def description = new BasicAmazonDeployDescription()
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.availabilityZones = ["us-east-1": []]
     description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
 
@@ -110,7 +113,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
       setBlockDevices = blockDevices
     }
-    def description = new BasicAmazonDeployDescription()
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.instanceType = "m3.medium"
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
     description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
@@ -124,7 +127,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setBlockDevices == this.blockDevices
   }
 
-  void "should favor explicit description block devices over default config"() {
+  void "should favour explicit description block devices over default config"() {
     setup:
     def deployCallCounts = 0
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
@@ -132,7 +135,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
       setBlockDevices = blockDevices
     }
-    def description = new BasicAmazonDeployDescription()
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.instanceType = "m3.medium"
     description.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
@@ -148,5 +151,26 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setBlockDevices == description.blockDevices
   }
 
+  void "should resolve amiId from amiName"() {
+    setup:
+    def deployCallCounts = 0
+    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
 
+    def description = new BasicAmazonDeployDescription(amiName: "the-greatest-ami-in-the-world", availabilityZones: ['us-west-1':[]])
+    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+
+    when:
+    def results = handler.handle(description, [])
+
+    then:
+    1 * amazonEC2.describeImages(_) >> { DescribeImagesRequest req ->
+        assert req.filters.size() == 1
+        assert req.filters.first().name == 'name'
+        assert req.filters.first().values == ['the-greatest-ami-in-the-world']
+
+        return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
+    }
+
+    deployCallCounts == 1
+  }
 }
