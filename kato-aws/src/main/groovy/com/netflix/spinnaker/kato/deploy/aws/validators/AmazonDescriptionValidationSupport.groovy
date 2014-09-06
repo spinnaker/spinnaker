@@ -54,7 +54,7 @@ public abstract class AmazonDescriptionValidationSupport<T> extends DescriptionV
   void validateRegions(Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
     if (!regionNames) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.empty")
-    } else if (!awsConfigurationProperties.regions.containsAll(regionNames)) {
+    } else if (awsConfigurationProperties.regions && !awsConfigurationProperties.regions.containsAll(regionNames)) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.not.configured")
     }
   }
