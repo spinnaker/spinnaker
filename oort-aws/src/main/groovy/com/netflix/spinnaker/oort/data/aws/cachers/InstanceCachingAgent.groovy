@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.data.aws.cachers
 
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.InstanceState
 import com.amazonaws.services.ec2.model.InstanceStateName
@@ -79,8 +80,18 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
     log.info "$cachePrefix - Beginning Instance Cache Load."
 
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
-    def instances = amazonEC2.describeInstances()
-    def allInstances = ((List<Instance>)instances.reservations.collectMany { it.instances ?: [] }).collectEntries { Instance instance -> [(instance.instanceId): instance]}
+    def request = new DescribeInstancesRequest()
+    List<Instance> instances = []
+    while (true) {
+      def resp = amazonEC2.describeInstances(request)
+      instances.addAll(resp.reservations.collectMany { it.instances })
+      if (resp.nextToken) {
+        request.withNextToken(request.nextToken)
+      } else {
+        break
+      }
+    }
+    def allInstances = instances.collectEntries { Instance instance -> [(instance.instanceId): instance]}
     Map<String, Integer> instancesThisRun = (Map<String, Integer>)allInstances.collectEntries { instanceId, instance -> [(instanceId): instance.hashCode()] }
     Map<String, Integer> newInstances = specialSubtract(instancesThisRun, lastKnownInstances)
     Set<String> missingInstances = new HashSet<String>(lastKnownInstances.keySet())

@@ -29,11 +29,9 @@ import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFac
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 import javax.annotation.PostConstruct
@@ -41,12 +39,6 @@ import javax.annotation.PostConstruct
 @CompileStatic
 @Configuration
 class OortAwsConfig {
-
-  @Component
-  @ConfigurationProperties("aws")
-  static class AwsConfigurationProperties {
-    List<NetflixAmazonCredentials> accounts
-  }
 
   @Bean
   AmazonClientProvider amazonClientProvider() {
@@ -67,16 +59,7 @@ class OortAwsConfig {
   @Configuration
   static class AmazonInitializer {
     @Autowired
-    AWSCredentialsProvider awsCredentialsProvider
-
-    @Autowired
-    AwsConfigurationProperties awsConfigurationProperties
-
-    @Autowired
     AccountCredentialsRepository accountCredentialsRepository
-
-    @Autowired
-    AmazonClientProvider amazonClientProvider
 
     @Autowired
     ApplicationContext applicationContext
@@ -87,23 +70,29 @@ class OortAwsConfig {
     @Autowired
     EddaApiFactory eddaApiFactory
 
+    // This is just so Spring gets the dependency graph right
+    @Autowired
+    CredentialsInitializer credentialsInitializer
+
     @PostConstruct
     void init() {
-      Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] }}
-      for (namedAccount in awsConfigurationProperties.accounts) {
-        namedAccount.credentialsProvider = awsCredentialsProvider
-        accountCredentialsRepository.save(namedAccount.name, namedAccount)
-        for (region in namedAccount.regions) {
-          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(namedAccount, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(namedAccount, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(namedAccount, region.name)
-          if (namedAccount.eddaEnabled) {
-            autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(namedAccount, region.name, eddaApiFactory)
+      Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
+      for (a in accountCredentialsRepository.all) {
+        if (!NetflixAmazonCredentials.isAssignableFrom(a.class)) {
+          continue
+        }
+        NetflixAmazonCredentials account = (NetflixAmazonCredentials)a
+        for (region in account.regions) {
+          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(account, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(account, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(account, region.name)
+          if (account.eddaEnabled) {
+            autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(account, region.name, eddaApiFactory)
           }
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(namedAccount, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(namedAccount, region.name)
-          if (namedAccount.discovery) {
-            discoveryAccounts[namedAccount.discovery][region.name].add(namedAccount)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(account, region.name)
+          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(account, region.name)
+          if (account.discoveryEnabled) {
+            discoveryAccounts[account.discovery][region.name].add(account)
           }
         }
       }

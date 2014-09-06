@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.data.aws.cachers
 
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
@@ -36,8 +37,18 @@ class LaunchConfigCachingAgent extends AbstractInfrastructureCachingAgent {
     log.info "$cachePrefix - Beginning Launch Config Cache Load."
 
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
-    def launchConfigs = autoScaling.describeLaunchConfigurations()
-    def allLaunchConfigs = launchConfigs.launchConfigurations.collectEntries { LaunchConfiguration launchConfiguration -> [(launchConfiguration.launchConfigurationName): launchConfiguration] }
+    List<LaunchConfiguration> launchConfigs = []
+    def request = new DescribeLaunchConfigurationsRequest()
+    while (true) {
+      def resp = autoScaling.describeLaunchConfigurations(request)
+      launchConfigs.addAll(resp.launchConfigurations)
+      if (resp.nextToken) {
+        request.withNextToken(resp.nextToken)
+      } else {
+        break
+      }
+    }
+    def allLaunchConfigs = launchConfigs.collectEntries { LaunchConfiguration launchConfiguration -> [(launchConfiguration.launchConfigurationName): launchConfiguration] }
     Map<String, Integer> launchConfigsThisRun = (Map<String, Integer>)allLaunchConfigs.collectEntries { launchConfigName, launchConfig -> [(launchConfigName): launchConfig.hashCode()] }
     Map<String, Integer> newLaunchConfigs = specialSubtract(launchConfigsThisRun, lastKnownLaunchConfigs)
     Set<String> missingLaunchConfigs = new HashSet<String>(lastKnownLaunchConfigs.keySet())

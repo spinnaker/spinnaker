@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
@@ -39,8 +40,18 @@ class ClusterCachingAgent extends AbstractInfrastructureCachingAgent {
 
   void load() {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
-    def asgs = autoScaling.describeAutoScalingGroups()
-    def allAsgs = asgs.autoScalingGroups.collectEntries { AutoScalingGroup asg -> [(asg.autoScalingGroupName): asg] }
+    def request = new DescribeAutoScalingGroupsRequest()
+    List<AutoScalingGroup> asgs = []
+    while (true) {
+      def resp = autoScaling.describeAutoScalingGroups(request)
+      asgs.addAll(resp.autoScalingGroups)
+      if (resp.nextToken) {
+        request.withNextToken(resp.nextToken)
+      } else {
+        break
+      }
+    }
+    def allAsgs = asgs.collectEntries { AutoScalingGroup asg -> [(asg.autoScalingGroupName): asg] }
     def asgsThisRun = (Map<String, Integer>)allAsgs.collectEntries { asgName, asg -> [(asgName): asg.hashCode()] }
     Map<String, Integer> changedAsgNames = specialSubtract(asgsThisRun, lastKnownAsgs)
     Set<String> missingAsgNames = new HashSet<String>(lastKnownAsgs.keySet())

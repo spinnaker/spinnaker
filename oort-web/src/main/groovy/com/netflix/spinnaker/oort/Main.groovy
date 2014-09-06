@@ -47,9 +47,30 @@ import javax.servlet.Filter
 @EnableMetrics
 class Main extends SpringBootServletInitializer {
 
+  static {
+    //imposeSpinnakerFileConfig("oort-internal.yml")
+    //imposeSpinnakerFileConfig("oort-local.yml")
+    //imposeSpinnakerClasspathConfig("oort-internal.yml")
+    //imposeSpinnakerClasspathConfig("oort-local.yml")
+  }
+
   static void main(_) {
     System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     SpringApplication.run this, [] as String
+  }
+
+  static void imposeSpinnakerFileConfig(String file) {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
+    if (internalConfig.exists()) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
+    }
+  }
+
+  static void imposeSpinnakerClasspathConfig(String resource) {
+    def internalConfig = getClass().getResourceAsStream("/${resource}")
+    if (internalConfig) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/${resource}")
+    }
   }
 
   @Bean

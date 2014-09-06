@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.data.aws.cachers
 
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
@@ -36,8 +37,18 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
     log.info "$cachePrefix - Beginning Load Balancer Cache Load."
 
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
-    def loadBalancers = loadBalancing.describeLoadBalancers()
-    def allLoadBalancers = loadBalancers.loadBalancerDescriptions.collectEntries { LoadBalancerDescription loadBalancerDescription -> [(loadBalancerDescription.loadBalancerName): loadBalancerDescription] }
+    List<LoadBalancerDescription> loadBalancers = []
+    def request = new DescribeLoadBalancersRequest()
+    while (true) {
+      def resp = loadBalancing.describeLoadBalancers(request)
+      loadBalancers.addAll(resp.loadBalancerDescriptions)
+      if (resp.nextMarker) {
+        request.withMarker(resp.nextMarker)
+      } else {
+        break
+      }
+    }
+    def allLoadBalancers = loadBalancers.collectEntries { LoadBalancerDescription loadBalancerDescription -> [(loadBalancerDescription.loadBalancerName): loadBalancerDescription] }
     Map<String, Integer> loadBalancersThisRun = (Map<String, Integer>)allLoadBalancers.collectEntries { loadBalancerName, loadBalancer -> [(loadBalancerName): loadBalancer.hashCode()]}
     Map<String, Integer> newLoadBalancers = specialSubtract(loadBalancersThisRun, lastKnownLoadBalancers)
     Set<String> missingLoadBalancers = new HashSet<String>(lastKnownLoadBalancers.keySet())
