@@ -24,6 +24,7 @@ buildscript {
   }
 }
 
+group = "com.netflix.spinnaker.deck"
 
 apply plugin: 'spinnaker-gradle-project'
 
