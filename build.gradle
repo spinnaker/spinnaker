@@ -28,8 +28,9 @@ group = "com.netflix.spinnaker.deck"
 
 apply plugin: 'spinnaker-gradle-project'
 
-task webjar(type: Jar, dependsOn: "jar") {
+jar {
   from(fileTree("dist")) {
     into "META-INF/resources"
   }
 }
+
