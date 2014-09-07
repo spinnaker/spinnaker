@@ -3,4 +3,5 @@ dependencies {
   compile spinnaker.dependency("frigga")
   compile 'com.netflix.amazoncomponents:amazoncomponents:0.9.15'
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+  compile 'com.netflix.spinnaker:amos-aws:0.8'
 }
