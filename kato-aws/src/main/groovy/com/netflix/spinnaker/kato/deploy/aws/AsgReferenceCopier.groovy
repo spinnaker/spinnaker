@@ -36,7 +36,6 @@ import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.model.aws.AwsResultsRetriever
 import com.netflix.spinnaker.kato.services.IdGenerator
 import groovy.transform.Canonical
-import org.springframework.beans.factory.annotation.Autowired
 
 @Canonical
 class AsgReferenceCopier {
@@ -51,7 +50,6 @@ class AsgReferenceCopier {
   final NetflixAmazonCredentials targetCredentials
   final String targetRegion
 
-  @Autowired
   IdGenerator idGenerator
 
   void copyScheduledActionsForAsg(String sourceAsgName, String targetAsgName) {
