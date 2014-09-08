@@ -13,7 +13,7 @@ angular.module('deckApp')
             $scope.serverGroup = toCheck;
             $scope.cluster = cluster;
             $scope.account = serverGroup.accountId;
-            if (toCheck.launchConfig) {
+            if (toCheck.launchConfig && toCheck.instances.length) {
               $scope.securityGroups = toCheck.instances[0].securityGroups;
               delete toCheck.launchConfig.createdTime;
               delete toCheck.launchConfig.userData;
