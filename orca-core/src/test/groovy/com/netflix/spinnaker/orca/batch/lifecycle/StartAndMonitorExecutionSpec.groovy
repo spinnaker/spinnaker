@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -80,7 +76,7 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
-        .build(jobBuilder)
-        .build()
+      .build(jobBuilder, null)
+      .build()
   }
 }

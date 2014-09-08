@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
@@ -34,13 +35,13 @@ abstract class LinearStage extends StageSupport<SimpleJobBuilder> {
   protected abstract List<Step> buildSteps()
 
   @Override
-  SimpleJobBuilder build(JobBuilder jobBuilder) {
+  SimpleJobBuilder build(JobBuilder jobBuilder, PipelineMonitor pipelineMonitor) {
     def steps = buildSteps()
     wireSteps(jobBuilder.start(steps.first()), steps.tail())
   }
 
   @Override
-  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
+  SimpleJobBuilder build(SimpleJobBuilder jobBuilder, PipelineMonitor pipelineMonitor) {
     wireSteps(jobBuilder, buildSteps())
   }
 

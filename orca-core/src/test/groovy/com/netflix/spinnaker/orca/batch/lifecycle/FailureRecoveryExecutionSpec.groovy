@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -69,7 +65,7 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     new FailureRecoveryStage(steps: steps, startTask: startTask, recoveryTask: recoveryTask, endTask: endTask)
-        .build(jobBuilder)
-        .build()
+      .build(jobBuilder, null)
+      .build()
   }
 }

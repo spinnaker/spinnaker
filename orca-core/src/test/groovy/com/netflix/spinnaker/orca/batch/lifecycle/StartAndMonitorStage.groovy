@@ -19,12 +19,11 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.StageSupport
-import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
+import com.netflix.spinnaker.orca.pipeline.LinearStage
+import org.springframework.batch.core.Step
 
 @CompileStatic
-class StartAndMonitorStage extends StageSupport<SimpleJobBuilder> {
+class StartAndMonitorStage extends LinearStage {
 
   Task startTask, monitorTask
 
@@ -33,19 +32,13 @@ class StartAndMonitorStage extends StageSupport<SimpleJobBuilder> {
   }
 
   @Override
-  SimpleJobBuilder build(JobBuilder jobBuilder) {
+  protected List<Step> buildSteps() {
     def step1 = steps.get("StartStep")
                      .tasklet(TaskTaskletAdapter.decorate(startTask))
                      .build()
     def step2 = steps.get("MonitorStep")
                      .tasklet(TaskTaskletAdapter.decorate(monitorTask))
                      .build()
-    jobBuilder.start(step1)
-              .next(step2)
-  }
-
-  @Override
-  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
-    throw new UnsupportedOperationException()
+    [step1, step2]
   }
 }

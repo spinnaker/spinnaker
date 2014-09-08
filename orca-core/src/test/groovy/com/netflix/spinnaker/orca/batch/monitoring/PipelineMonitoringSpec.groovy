@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch.pipeline
+package com.netflix.spinnaker.orca.batch.monitoring
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.batch.pipeline.TestStage
+import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.launch.JobLauncher
-import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,20 +35,18 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 
 @ContextConfiguration(classes = [BatchTestConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-class PipelineStatusSpec extends Specification {
+class PipelineMonitoringSpec extends Specification {
 
-  @Autowired AbstractApplicationContext applicationContext
-  @Autowired JobBuilderFactory jobs
-  @Autowired StepBuilderFactory steps
-  @Autowired JobLauncher jobLauncher
-  @Autowired JobRepository jobRepository
+  def pipelineMonitor = Mock(PipelineMonitor)
 
   @Subject pipelineStarter = new PipelineStarter()
 
+  @Autowired AbstractApplicationContext applicationContext
+  @Autowired StepBuilderFactory steps
+
   @Shared mapper = new ObjectMapper()
-  def fooTasklet = Stub(Tasklet) {
-    execute(*_) >> RepeatStatus.FINISHED
-  }
+
+  def fooTasklet = Stub(Tasklet)
 
   def setup() {
     applicationContext.beanFactory.with {
@@ -61,26 +58,21 @@ class PipelineStatusSpec extends Specification {
     pipelineStarter.initialize()
   }
 
-  def "creates a pipeline id"() {
-    expect:
-    with(pipelineStarter.start(configJson)) {
-      id ==~ /.+/
-    }
+  def "the pipeline monitor is notified as stages start and complete"() {
+    given:
+    fooTasklet.execute(*_) >> RepeatStatus.FINISHED
+
+    when:
+    pipelineStarter.start("""[{"type": "$stageName"}]""")
+
+    then:
+    1 * pipelineMonitor.beginStage(stageName)
+
+    then:
+    1 * pipelineMonitor.endStage(stageName)
 
     where:
-    config = [[type: "foo"]]
-    configJson = mapper.writeValueAsString(config)
-  }
-
-  def "can get a list of tasks from the pipeline"() {
-    expect:
-    with(pipelineStarter.start(configJson)) {
-      tasks.size() == 1
-    }
-
-    where:
-    config = [[type: "foo"]]
-    configJson = mapper.writeValueAsString(config)
+    stageName = "foo"
   }
 
 }
