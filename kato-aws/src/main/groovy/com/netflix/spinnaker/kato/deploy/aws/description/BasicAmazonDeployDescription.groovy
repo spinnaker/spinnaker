@@ -20,8 +20,10 @@ package com.netflix.spinnaker.kato.deploy.aws.description
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import groovy.transform.AutoClone
+import groovy.transform.Canonical
 
 @AutoClone
+@Canonical
 class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription implements DeployDescription {
   String application
   String amiName
@@ -38,10 +40,19 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   List<String> securityGroups
   Map<String, List<String>> availabilityZones = [:]
   Capacity capacity = new Capacity()
+  Source source = new Source()
 
+  @Canonical
   static class Capacity {
     int min
     int max
     int desired
+  }
+
+  @Canonical
+  static class Source {
+    String account
+    String region
+    String asgName
   }
 }

@@ -16,8 +16,6 @@
 
 
 package com.netflix.spinnaker.kato.deploy.aws.ops
-
-import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.ec2.AmazonEC2
@@ -26,11 +24,14 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.deploy.aws.AmazonDeploymentResult
+import com.netflix.spinnaker.kato.deploy.aws.AsgReferenceCopier
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.handlers.BasicAmazonDeployHandler
+import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import spock.lang.Specification
 
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {
@@ -42,10 +43,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
   void "operation builds description based on ancestor asg"() {
     setup:
     def deployHandler = Mock(BasicAmazonDeployHandler)
-    List<BasicAmazonDeployDescription> descriptions = []
-    deployHandler.handle(_, _) >> { BasicAmazonDeployDescription desc, _ -> descriptions << desc; new DeploymentResult() }
     def description = new BasicAmazonDeployDescription(application: "asgard", stack: "stack")
-    description.availabilityZones = ['us-west-1': []]
+    description.availabilityZones = ['us-east-1': [], 'us-west-1': []]
     description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
     description.securityGroups = ['someGroupName', 'sg-12345a']
     def mockEC2 = Mock(AmazonEC2)
@@ -56,12 +55,25 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def op = new CopyLastAsgAtomicOperation(description)
     op.amazonClientProvider = mockProvider
     op.basicAmazonDeployHandler = deployHandler
+    def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
+    op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+        getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
+      }
+    }
+    def expectedDeployDescription = { region ->
+      new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
+        blockDevices: [new AmazonBlockDevice(deviceName: '/dev/sdb', size: 125), new AmazonBlockDevice(deviceName: '/dev/sdc', virtualName: 'ephemeral1')],
+        securityGroups: ['someGroupName', 'otherGroupName'], availabilityZones: [(region): null],
+        capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 2, desired: 5),
+        source: new BasicAmazonDeployDescription.Source())
+    }
 
     when:
     op.operate([])
 
     then:
-    1 * mockEC2.describeSecurityGroups(_) >> { DescribeSecurityGroupsRequest request ->
+    2 * mockEC2.describeSecurityGroups(_) >> { DescribeSecurityGroupsRequest request ->
       assert request.groupNames == ['someGroupName']
       assert request.groupIds == ['sg-12345a']
       def grpByName = Mock(SecurityGroup)
@@ -72,7 +84,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       grpById.getGroupId() >> "sg-12345a"
       new DescribeSecurityGroupsResult().withSecurityGroups([grpByName, grpById])
     }
-    1 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
+    2 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
       assert request.launchConfigurationNames == ['foo']
       def mockLaunch = Mock(LaunchConfiguration)
       mockLaunch.getLaunchConfigurationName() >> "foo"
@@ -80,7 +92,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockLaunch.getBlockDeviceMappings() >> [new BlockDeviceMapping().withDeviceName('/dev/sdb').withEbs(new Ebs().withVolumeSize(125)), new BlockDeviceMapping().withDeviceName('/dev/sdc').withVirtualName('ephemeral1')]
       new DescribeLaunchConfigurationsResult().withLaunchConfigurations([mockLaunch])
     }
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> {
+    2 * mockAutoScaling.describeAutoScalingGroups(_) >> {
       def mockAsg = Mock(AutoScalingGroup)
       mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
       mockAsg.getMinSize() >> 1
@@ -89,16 +101,11 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockAsg.getLaunchConfigurationName() >> "foo"
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
-    descriptions
-    descriptions.first().capacity.min == 1
-    descriptions.first().capacity.max == 2
-    descriptions.first().capacity.desired == 5
-    descriptions.first().securityGroups == ['someGroupName', 'otherGroupName']
-    descriptions.first().keyPair == "key-pair-name"
-    descriptions.first().blockDevices.size() == 2
-    descriptions.first().blockDevices.first().deviceName == '/dev/sdb'
-    descriptions.first().blockDevices.first().size == 125
-    descriptions.first().blockDevices.last().deviceName == '/dev/sdc'
-    descriptions.first().blockDevices.last().virtualName == 'ephemeral1'
+    1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new AmazonDeploymentResult(asgNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new AmazonDeploymentResult(asgNameByRegion: ['us-west-1': 'asgard-stack-v001'])
+    with(mockAsgReferenceCopier) {
+      2 * copyScalingPoliciesWithAlarms('asgard-stack-v000', 'asgard-stack-v001')
+      2 * copyScheduledActionsForAsg('asgard-stack-v000', 'asgard-stack-v001')
+    }
   }
 }

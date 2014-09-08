@@ -16,7 +16,6 @@
 
 
 package com.netflix.spinnaker.kato.deploy.aws.handlers
-
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.Filter
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -25,8 +24,8 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
-import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.deploy.aws.AmiIdResolver
+import com.netflix.spinnaker.kato.deploy.aws.AmazonDeploymentResult
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -61,9 +60,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   }
 
   @Override
-  DeploymentResult handle(BasicAmazonDeployDescription description, List priorOutputs) {
+  AmazonDeploymentResult handle(BasicAmazonDeployDescription description, List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing handler..."
-    def deploymentResult = new DeploymentResult()
+    def deploymentResult = new AmazonDeploymentResult()
     task.updateStatus BASE_PHASE, "Preparing deployment to ${description.availabilityZones}..."
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       String region = entry.key
@@ -127,6 +126,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def asgName = autoScalingWorker.deploy()
 
       deploymentResult.serverGroupNames << "${region}:${asgName}".toString()
+      deploymentResult.asgNameByRegion[region] = asgName
     }
     deploymentResult
   }
