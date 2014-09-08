@@ -53,6 +53,7 @@ class AmazonCredentialsInitializer implements CredentialsInitializer {
       accountCredentialsRepository.save(defaultEnv, credentials)
     } else {
       for (account in awsConfigurationProperties.accounts) {
+        account.assumeRole = account.assumeRole ?:  awsConfigurationProperties.assumeRole
         account.credentialsProvider = awsCredentialsProvider
         accountCredentialsRepository.save(account.name, account)
       }

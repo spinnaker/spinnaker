@@ -44,6 +44,7 @@ class BastionCredentialsInitializer implements CredentialsInitializer {
         bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
 
     for (account in awsConfigurationProperties.accounts) {
+      account.assumeRole = account.assumeRole ?: awsConfigurationProperties.assumeRole
       account.credentialsProvider = provider
       accountCredentialsRepository.save(account.name, account)
     }
