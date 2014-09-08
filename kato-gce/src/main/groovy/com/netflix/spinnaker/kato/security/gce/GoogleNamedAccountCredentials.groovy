@@ -33,23 +33,30 @@ import java.security.PrivateKey
 class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
   private static final String APPLICATION_NAME = "Spinnaker"
 
-  final String name
   private final String kmsServer
   private final String pkcs12Password
+
+  final String accountName
+  final String projectName
   final GoogleCredentials credentials
 
-  GoogleNamedAccountCredentials(String kmsServer, String pkcs12Password, String projectName) {
+  GoogleNamedAccountCredentials(String kmsServer, String pkcs12Password, String accountName, String projectName) {
     this.kmsServer = kmsServer
-    this.name = projectName
     this.pkcs12Password = pkcs12Password
+    this.accountName = accountName
+    this.projectName = projectName
     this.credentials = new GoogleCredentials(projectName, getCompute(projectName))
+  }
+
+  String getName() {
+    return accountName
   }
 
   private Compute getCompute(String projectName) {
     JsonFactory JSON_FACTORY = JacksonFactory.defaultInstance
     HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     def rt = new RestTemplate()
-    def map = rt.getForObject("${kmsServer}/credentials/${projectName}", Map)
+    def map = rt.getForObject("${kmsServer}/credentials/${accountName}", Map)
     def key = new ByteArrayInputStream(Base64.decodeBase64(map.key as String))
     PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore, key, pkcs12Password, "privatekey", pkcs12Password)
     def credential = new GoogleCredential.Builder().setTransport(httpTransport)
