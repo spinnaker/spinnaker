@@ -14,23 +14,41 @@
  * limitations under the License.
  */
 
-buildscript {
-  repositories {
-    jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
-  }
-  dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.8'
-  }
+
+//buildscript {
+//  repositories {
+//    jcenter()
+//    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+//  }
+//  dependencies {
+//    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.8'
+//  }
+//}
+//
+//group = "com.netflix.spinnaker.deck"
+//
+//apply plugin: 'spinnaker-gradle-project'
+//
+//jar {
+//  from(fileTree("dist")) {
+//    into "META-INF/resources"
+//  }
+//}
+
+apply plugin: 'nebula'
+apply plugin: 'java'
+
+status = 'release'
+
+nebula {
+  readyForJava7 = true
+  versioningLinear = true
+  versioningPosition = 3
+  moduleVersion = '1.0.0'
 }
 
-group = "com.netflix.spinnaker.deck"
-
-apply plugin: 'spinnaker-gradle-project'
-
-jar {
+task webjar(type: Jar, dependsOn: "jar") {
   from(fileTree("dist")) {
     into "META-INF/resources"
   }
 }
-
