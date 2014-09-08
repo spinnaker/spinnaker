@@ -81,7 +81,7 @@ module.exports = function (grunt) {
 
     browserify: {
       dist: {
-        src: '<%= yeoman.app %>/scripts/**/*.js',
+        src: ['<%= yeoman.app %>/scripts/**/*.js', '!**/settings/settings.js'],
         dest: '.tmp/scripts/application.js',
       },
     },
@@ -292,7 +292,8 @@ module.exports = function (grunt) {
               'views/**/{,*/}*.html',
               'images/{,*/}*.{webp}',
               'bower_components/**/*',
-              'fonts/*'
+              'fonts/*',
+              '**/settings/settings.js'
             ]
           },
           {
