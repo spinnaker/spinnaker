@@ -38,10 +38,11 @@ class TestStage extends LinearStage {
   private final List<Tasklet> tasklets = []
   private final PipelineMonitor pipelineMonitor
 
-  TestStage(String name, StepBuilderFactory steps, PipelineMonitor pipelineMonitor) {
+  TestStage(String name, StepBuilderFactory steps, PipelineMonitor pipelineMonitor, Tasklet... tasklets) {
     super(name)
     this.steps = steps
     this.pipelineMonitor = pipelineMonitor
+    this.tasklets.addAll tasklets
   }
 
   void addTasklet(Tasklet tasklet) {

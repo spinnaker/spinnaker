@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -54,7 +55,7 @@ class PipelineStatusSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStage", new TestStage("foo", fooTasklet, steps)
+      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTasklet)
 
       autowireBean pipelineStarter
     }

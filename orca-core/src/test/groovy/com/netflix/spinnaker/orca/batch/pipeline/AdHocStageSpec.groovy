@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -68,7 +69,7 @@ class AdHocStageSpec extends Specification {
       getName() >> "bar"
     }
     applicationContext.beanFactory.with {
-      registerSingleton "fooStage", new TestStage("foo", fooTasklet, steps)
+      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTasklet)
       registerSingleton "barTask", barTask
     }
     jobStarter.initialize()
