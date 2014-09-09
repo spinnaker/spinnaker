@@ -13,7 +13,7 @@ angular.module('deckApp')
 
     $scope.account = securityGroup.account;
     $scope.region = securityGroup.region;
-    $scope.securityGroup = securityGroupService.getSecurityGroup(application, securityGroup.account, securityGroup.region, securityGroup.name);
+    $scope.securityGroup = securityGroupService.getSecurityGroupFromIndex(application, securityGroup.account, securityGroup.region, securityGroup.name);
 
     $scope.sortFilter = {
       allowSorting: false
