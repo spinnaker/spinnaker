@@ -21,10 +21,7 @@ import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,10 +65,7 @@ class PipelineMonitoringSpec extends Specification {
   def "a stage with a single task raises begin and end stage events"() {
     given: "a stage with a single task"
     def tasklet1 = Stub(Tasklet) {
-      execute(*_) >> { StepContribution contribution, ChunkContext context ->
-        contribution.exitStatus = new ExitStatus("STAGE_COMPLETED")
-        RepeatStatus.FINISHED
-      }
+      execute(*_) >> RepeatStatus.FINISHED
     }
     setupStages stageName, tasklet1
 
@@ -100,10 +94,7 @@ class PipelineMonitoringSpec extends Specification {
       execute(*_) >> RepeatStatus.FINISHED
     }
     def tasklet2 = Stub(Tasklet) {
-      execute(*_) >> { StepContribution contribution, ChunkContext context ->
-        contribution.exitStatus = new ExitStatus("STAGE_COMPLETED")
-        RepeatStatus.FINISHED
-      }
+      execute(*_) >> RepeatStatus.FINISHED
     }
     setupStages stageName, tasklet1, tasklet2
 

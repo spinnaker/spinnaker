@@ -56,11 +56,12 @@ class TestStage extends LinearStage {
   protected List<Step> buildSteps() {
     def index = 0
     tasklets.collect {
-      buildStep it, index++ == 0
+      index++
+      buildStep it, index == 1, index == tasklets.size()
     }
   }
 
-  private TaskletStep buildStep(Tasklet tasklet, boolean first) {
+  private TaskletStep buildStep(Tasklet tasklet, boolean first, boolean last) {
     def listener = new StepExecutionListener() {
       @Override
       void beforeStep(StepExecution stepExecution) {
@@ -74,7 +75,7 @@ class TestStage extends LinearStage {
       @Override
       ExitStatus afterStep(StepExecution stepExecution) {
         pipelineMonitor.endTask()
-        if (stepExecution.exitStatus.exitCode == "STAGE_COMPLETED") {
+        if (last) {
           pipelineMonitor.endStage(name)
         }
         return stepExecution.exitStatus
