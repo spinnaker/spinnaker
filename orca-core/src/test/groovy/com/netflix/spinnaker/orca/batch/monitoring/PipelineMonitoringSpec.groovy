@@ -46,29 +46,59 @@ class PipelineMonitoringSpec extends Specification {
 
   @Shared mapper = new ObjectMapper()
 
-  def fooTasklet = Stub(Tasklet)
-
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStage", new TestStage("foo", fooTasklet, steps)
+    }
+  }
 
+  private void setupStages(String name, Tasklet... tasklets) {
+    def stage = new TestStage(name, steps, pipelineMonitor)
+    tasklets.each { stage << it }
+    applicationContext.beanFactory.with {
+      registerSingleton "${name}Stage", stage
       autowireBean pipelineStarter
     }
     pipelineStarter.initialize()
   }
 
-  def "the pipeline monitor is notified as stages start and complete"() {
-    given:
-    fooTasklet.execute(*_) >> RepeatStatus.FINISHED
+  def "a stage with a single task raises begin and end stage events"() {
+    given: "a stage with a single task"
+    def tasklet1 = Stub(Tasklet) {
+      execute(*_) >> RepeatStatus.FINISHED
+    }
+    setupStages stageName, tasklet1
 
-    when:
+    when: "the pipeline runs"
     pipelineStarter.start("""[{"type": "$stageName"}]""")
 
-    then:
+    then: "we get an event at the start of the stage"
     1 * pipelineMonitor.beginStage(stageName)
 
-    then:
+    then: "we get an event at the end of the stage"
+    1 * pipelineMonitor.endStage(stageName)
+
+    where:
+    stageName = "foo"
+  }
+
+  def "a stage with multiple tasks raises a single begin and end stage event"() {
+    given: "a stage with a single task"
+    def tasklet1 = Stub(Tasklet) {
+      execute(*_) >> RepeatStatus.FINISHED
+    }
+    def tasklet2 = Stub(Tasklet) {
+      execute(*_) >> RepeatStatus.FINISHED
+    }
+    setupStages stageName, tasklet1, tasklet2
+
+    when: "the pipeline runs"
+    pipelineStarter.start("""[{"type": "$stageName"}]""")
+
+    then: "we get an event at the start of the stage"
+    1 * pipelineMonitor.beginStage(stageName)
+
+    then: "we get an event at the end of the stage"
     1 * pipelineMonitor.endStage(stageName)
 
     where:

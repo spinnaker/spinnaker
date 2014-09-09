@@ -17,9 +17,14 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Step
+import org.springframework.batch.core.StepExecution
+import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.step.builder.TaskletStepBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
 import static java.util.UUID.randomUUID
@@ -31,12 +36,21 @@ import static java.util.UUID.randomUUID
 @CompileStatic
 class TestStage extends LinearStage {
 
-  private final Tasklet tasklet
+  private final List<Tasklet> tasklets = []
+  private final PipelineMonitor pipelineMonitor
 
-  TestStage(String name, Tasklet tasklet, StepBuilderFactory steps) {
+  TestStage(String name, StepBuilderFactory steps, PipelineMonitor pipelineMonitor) {
     super(name)
-    this.tasklet = tasklet
     this.steps = steps
+    this.pipelineMonitor = pipelineMonitor
+  }
+
+  void addTasklet(Tasklet tasklet) {
+    tasklets << tasklet
+  }
+
+  void leftShift(Tasklet tasklet) {
+    addTasklet tasklet
   }
 
   @Override
@@ -45,8 +59,28 @@ class TestStage extends LinearStage {
   }
 
   private TaskletStep buildStep() {
-    steps.get(randomUUID().toString())
-         .tasklet(tasklet)
-         .build()
+    def listener = new StepExecutionListener() {
+      @Override
+      void beforeStep(StepExecution stepExecution) {
+        pipelineMonitor.beginStage(name)
+      }
+
+      @Override
+      ExitStatus afterStep(StepExecution stepExecution) {
+        pipelineMonitor.endStage(name)
+        return stepExecution.exitStatus
+      }
+    }
+
+    def firstTasklet = tasklets.remove(0)
+    def stepBuilder = steps.get(randomUUID().toString())
+                           .listener(listener)
+                           .tasklet(firstTasklet)
+    stepBuilder = (TaskletStepBuilder) tasklets.inject(stepBuilder) { TaskletStepBuilder builder, Tasklet tasklet ->
+      builder
+        .tasklet(tasklet)
+//        .listener(listener)
+    }
+    stepBuilder.build()
   }
 }
