@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('LoadBalancersNavCtrl', function ($scope, application, _) {

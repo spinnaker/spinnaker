@@ -1,6 +1,5 @@
 'use strict';
 
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch, $, $window) {

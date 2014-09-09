@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notifications, securityGroup, application, securityGroupService, $modal) {

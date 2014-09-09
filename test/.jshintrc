@@ -32,7 +32,8 @@
     "xit": false,
     "xdescribe": false,
     "jasmine": false,
-    "spyOn": false
+    "spyOn": false,
+    "loadDeckWithoutCacheInitializer": false
   }
 }
 

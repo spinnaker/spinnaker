@@ -1,6 +1,5 @@
 'use strict';
 
-var angular = require('angular');
 angular.module('deckApp')
   .factory('scheduledCache', function($cacheFactory, scheduler, $http) {
     // returns a cache that is cleared according to the scheduler

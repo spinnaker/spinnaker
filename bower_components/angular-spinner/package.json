@@ -1,0 +1,27 @@
+{
+	"name": "angular-spinner",
+	"version": "0.5.1",
+	"repository": {
+		"type": "git",
+		"url": "http://github.com/urish/angular-spinner.git"
+	},
+	"main": "angular-spinner.js",
+	"dependencies": {},
+	"devDependencies": {
+		"grunt": "~0.4.1",
+		"load-grunt-tasks": "0.6.0",
+		"grunt-contrib-jshint": "~0.10.0",
+		"grunt-contrib-uglify": "~0.5.0",
+		"grunt-karma": "~0.8.0",
+		"karma-coverage": "~0.2.0",
+		"karma-jasmine": "~0.2.2",
+		"karma-phantomjs-launcher": "~0.1.1",
+		"coveralls": "~2.11.0"
+	},
+	"engines": {
+		"node": ">=0.10.0"
+	},
+	"scripts": {
+		"test": "grunt test"
+	}
+}

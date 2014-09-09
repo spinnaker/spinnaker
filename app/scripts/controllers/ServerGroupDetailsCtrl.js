@@ -1,8 +1,6 @@
 'use strict';
 /* jshint camelcase:false */
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notifications,

@@ -1,0 +1,8 @@
+<div>
+    <div class="steps" ng-transclude></div>
+    <ul class="steps-indicator steps-{{steps.length}}" ng-if="!hideIndicators">
+      <li ng-class="{default: !step.completed && !step.selected, current: step.selected && !step.completed, done: step.completed && !step.selected, editing: step.selected && step.completed}" ng-repeat="step in steps">
+        <a ng-click="goTo(step)">{{step.title || step.wzTitle}}</a>
+      </li>
+    </ul>
+</div>

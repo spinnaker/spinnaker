@@ -1,6 +1,5 @@
 'use strict';
 
-var angular = require('angular');
 
 angular.module('deckApp')
   .directive('globalSearch', function() {

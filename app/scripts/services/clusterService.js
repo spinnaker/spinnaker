@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .factory('clusterService', function (settings, $q, Restangular, _, $exceptionHandler) {

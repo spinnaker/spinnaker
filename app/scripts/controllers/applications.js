@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, accountService, front50, notifications, oortService, orcaService, searchService, urlBuilder, $state, $timeout) {

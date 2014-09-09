@@ -16,8 +16,6 @@
 
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 // Source: https://gist.github.com/c0bra/5859295
 angular.module('deckApp')

@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q) {

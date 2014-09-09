@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, notifications, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
