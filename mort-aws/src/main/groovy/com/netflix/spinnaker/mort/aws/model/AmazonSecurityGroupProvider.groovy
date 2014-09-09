@@ -74,10 +74,21 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider {
   }
 
   @Override
-  SecurityGroup get(String account, String name) {
+  Set<SecurityGroup> getAllByAccountAndName(String account, String name) {
     def keys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS).findAll { key ->
       def parts = Keys.parse(key)
       parts.account == account && parts.name == name
+    }
+    keys.collect { key ->
+      retrieve(key)
+    }
+  }
+
+  @Override
+  SecurityGroup get(String account, String name, String region) {
+    def keys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS).findAll { key ->
+      def parts = Keys.parse(key)
+      parts.account == account && parts.name == name && parts.region == region
     }
     keys.empty ? null : retrieve(keys.first())
   }

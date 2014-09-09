@@ -19,6 +19,7 @@ package com.netflix.spinnaker.mort.web
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupProvider
+import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -37,7 +38,7 @@ class SecurityGroupController {
   List<SecurityGroupProvider> securityGroupProviders
 
   @RequestMapping(method = RequestMethod.GET)
-  Map<String, Map<String, Set<SecurityGroup>>> list() {
+  Map<String, Map<String, Map<String, Set<SecurityGroupSummary>>>> list() {
     rx.Observable.from(accountCredentialsProvider.all).flatMap { acct ->
       rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
         rx.Observable.from(secGrpProv.getAllByAccount(acct.name))
@@ -49,9 +50,12 @@ class SecurityGroupController {
         objs[obj.accountName] = [:]
       }
       if (!objs[obj.accountName].containsKey(obj.type)) {
-        objs[obj.accountName][obj.type] = sortedTreeSet
+        objs[obj.accountName][obj.type] = [:]
       }
-      objs[obj.accountName][obj.type] << obj.name
+      if (!objs[obj.accountName][obj.type].containsKey(obj.region)) {
+        objs[obj.accountName][obj.type][obj.region] = sortedTreeSet
+      }
+      objs[obj.accountName][obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id)
       objs
     }) doOnError {
       it.printStackTrace()
@@ -59,22 +63,25 @@ class SecurityGroupController {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}")
-  Map<String, Set<SecurityGroup>> listByAccount(@PathVariable String account) {
+  Map<String, Map<String, Set<SecurityGroupSummary>>> listByAccount(@PathVariable String account) {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
       rx.Observable.from(secGrpProv.getAllByAccount(account))
     } filter {
       it != null
     } reduce([:], { Map objs, SecurityGroup obj ->
       if (!objs.containsKey(obj.type)) {
-        objs[obj.type] = sortedTreeSet
+        objs[obj.type] = [:]
       }
-      objs[obj.type] << obj.name
+      if (!objs[obj.type].containsKey(obj.region)) {
+        objs[obj.type][obj.region] = sortedTreeSet
+      }
+      objs[obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id)
       objs
     }) toBlocking() first()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}", params = ['region'])
-  Map<String, Set<SecurityGroup>> listByAccountAndRegion(@PathVariable String account,
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndRegion(@PathVariable String account,
                                                           @RequestParam("region") String region) {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
       rx.Observable.from(secGrpProv.getAllByAccountAndRegion(account, region))
@@ -84,45 +91,70 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.type)) {
         objs[obj.type] = sortedTreeSet
       }
-      objs[obj.type] << obj.name
+      objs[obj.type] << new SecurityGroupSummary(obj.name, obj.id)
       objs
     }) toBlocking() first()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}")
-  Set<SecurityGroup> listByAccountAndType(@PathVariable String account, @PathVariable String type) {
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndType(@PathVariable String account, @PathVariable String type) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
       rx.Observable.from(it.getAllByAccount(account))
-    } reduce(sortedTreeSet, { Set objs, SecurityGroup obj ->
-      objs << obj.name
+    } reduce([:], { Map objs, SecurityGroup obj ->
+      if (!objs.containsKey(obj.region)) {
+        objs[obj.region] = sortedTreeSet
+      }
+      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id)
       objs
     }) toBlocking() first()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}", params = ['region'])
-  Set<SecurityGroup> listByAccountAndTypeAndRegion(@PathVariable String account, @PathVariable String type,
+  Set<SecurityGroupSummary> listByAccountAndTypeAndRegion(@PathVariable String account, @PathVariable String type,
                                            @RequestParam("region") String region) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
       rx.Observable.from(it.getAllByAccountAndRegion(account, region))
     } reduce(sortedTreeSet, { Set objs, SecurityGroup obj ->
-      objs << obj.name
+      objs << new SecurityGroupSummary(obj.name, obj.id)
       objs
     }) toBlocking() first()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName}")
-  SecurityGroup listByAccountAndType(@PathVariable String account, @PathVariable String type,
-                                           @PathVariable String securityGroupName) {
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndTypeAndName(@PathVariable String account, @PathVariable String type,
+                                                 @PathVariable String securityGroupName) {
+    rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
+      secGrpProv.type == type
+    } flatMap {
+      rx.Observable.from(it.getAllByAccountAndName(account, securityGroupName))
+    } reduce([:], { Map objs, SecurityGroup obj ->
+      if (!objs.containsKey(obj.region)) {
+        objs[obj.region] = sortedTreeSet
+      }
+      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id)
+      objs
+    }) toBlocking() first()
+    }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName}", params = ['region'])
+  SecurityGroup get(@PathVariable String account, @PathVariable String type,
+                                           @PathVariable String securityGroupName, @RequestParam("region") String region) {
     securityGroupProviders.find { secGrpProv ->
       secGrpProv.type == type
-    }.get(account, securityGroupName)
+    }.get(account, securityGroupName, region)
   }
 
-  private static Set<String> getSortedTreeSet() {
-    new TreeSet<>({ String a, String b -> a.toLowerCase() <=> b.toLowerCase() } as Comparator)
+  private static Set<SecurityGroupSummary> getSortedTreeSet() {
+    new TreeSet<>({ SecurityGroupSummary a, SecurityGroupSummary b -> a.name.toLowerCase() <=> b.name.toLowerCase() } as Comparator)
+  }
+
+  @Immutable
+  private static class SecurityGroupSummary {
+    String name
+    String id
   }
 }
