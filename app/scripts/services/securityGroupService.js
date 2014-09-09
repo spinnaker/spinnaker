@@ -7,7 +7,7 @@ angular.module('deckApp')
   .factory('securityGroupService', function (settings, $q, Restangular, _, $exceptionHandler) {
 
     var mortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.mortUrl + '/securityGroups');
+      RestangularConfigurer.setBaseUrl(settings.mortUrl);
     });
 
     function loadSecurityGroups(application) {
@@ -15,7 +15,7 @@ angular.module('deckApp')
       var securityGroupPromises = [];
 
       application.accounts.forEach(function(account) {
-        securityGroupPromises.push(mortEndpoint.one(account).get().then(function(groups) {
+        securityGroupPromises.push(mortEndpoint.all('securityGroups').one(account).get().then(function(groups) {
           return { account: account, securityGroups: groups.aws };
         }));
       });
@@ -87,7 +87,11 @@ angular.module('deckApp')
     }
 
     function getSecurityGroup(account, region, id) {
-      return mortEndpoint.one(account).one('aws').one(id).get({region: region});
+      return mortEndpoint.one('securityGroups', account).one('aws').one(id).get({region: region});
+    }
+
+    function getAllSecurityGroups() {
+      return mortEndpoint.one('securityGroups').get();
     }
 
     function getSecurityGroupFromIndex(application, account, region, id) {
@@ -103,7 +107,8 @@ angular.module('deckApp')
       loadSecurityGroups: loadSecurityGroups,
       attachSecurityGroups: attachSecurityGroups,
       getSecurityGroup: getSecurityGroup,
-      getSecurityGroupFromIndex: getSecurityGroupFromIndex
+      getSecurityGroupFromIndex: getSecurityGroupFromIndex,
+      getAllSecurityGroups: getAllSecurityGroups
     };
 
   });
