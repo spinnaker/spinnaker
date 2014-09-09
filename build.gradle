@@ -24,6 +24,7 @@ allprojects {
   }
 
   dependencies {
+    spinnaker.group("test")
     compile spinnaker.dependency('groovy')
     compile spinnaker.dependency('bootActuator')
   }

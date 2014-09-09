@@ -33,17 +33,17 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
   final AmazonEC2 ec2
   final CacheService cacheService
 
-  private Set<String> lastRun = []
+  private Map<String, Integer> lastRun = [:]
 
   @Override
   void call() {
     println "[$account:$region:sgs] - Caching..."
     def result = ec2.describeSecurityGroups()
-    def thisRun = []
+    def thisRun = [:]
     Observable.from(result.securityGroups).filter {
-      !lastRun.contains(it.groupId)
+      !lastRun.containsKey(it.groupId) || lastRun.get(it.groupId) != it.hashCode()
     }.subscribe {
-      thisRun << it.groupId
+      thisRun.put(it.groupId, it.hashCode())
 
       Map<String, SecurityGroupRule> rules = [:]
 
