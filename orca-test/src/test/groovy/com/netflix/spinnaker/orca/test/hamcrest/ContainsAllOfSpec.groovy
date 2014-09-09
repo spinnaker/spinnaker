@@ -39,8 +39,8 @@ class ContainsAllOfSpec extends Specification {
     that actual, containsAllOf(expected)
 
     where:
-    actual                   | expected
-    [a: "a", b: "b", c: "c"] | [a: "a", b: "b"]
+    expected         | actual
+    [a: "a", b: "b"] | [a: "a", b: "b", c: "c"]
   }
 
   def "should reject incomplete set of keys"() {
@@ -48,8 +48,8 @@ class ContainsAllOfSpec extends Specification {
     that actual, not(containsAllOf(expected))
 
     where:
-    actual   | expected
-    [a: "a"] | [a: "a", b: "b"]
+    expected         | actual
+    [a: "a", b: "b"] | [a: "a"]
   }
 
   def "should reject map with same keys but different values"() {
@@ -57,8 +57,8 @@ class ContainsAllOfSpec extends Specification {
     that actual, not(containsAllOf(expected))
 
     where:
-    actual           | expected
-    [a: "a", b: "b"] | [a: "A", b: "B"]
+    expected         | actual
+    [a: "A", b: "B"] | [a: "a", b: "b"]
   }
 
 }

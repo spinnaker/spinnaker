@@ -23,6 +23,14 @@ import org.hamcrest.Factory
 import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeDiagnosingMatcher
 
+/**
+ * A Hamcrest matcher for maps that should contain some particular mappings and may optionally contain others that are
+ * irrelevant to the assertion. All keys present in the *expected* map must be present in the *actual* map and have the
+ * same values. Extra keys in the *actual* map are ignored.
+ *
+ * @param < K >
+ * @param < V >
+ */
 @CompileStatic
 class ContainsAllOf<K, V> extends TypeSafeDiagnosingMatcher<Map<? extends K, ? extends V>> {
 
@@ -39,12 +47,35 @@ class ContainsAllOf<K, V> extends TypeSafeDiagnosingMatcher<Map<? extends K, ? e
 
   @Override
   protected boolean matchesSafely(Map<? extends K, ? extends V> item, Description mismatchDescription) {
+    def isMatch = true
+
     def difference = Maps.difference(item, expected)
-    return difference.entriesOnlyOnRight().isEmpty() && difference.entriesDiffering().isEmpty()
+    def onlyOnRight = difference.entriesOnlyOnRight()
+    def differing = difference.entriesDiffering()
+
+    if (!onlyOnRight.isEmpty()) {
+      isMatch = false
+      mismatchDescription.appendText("Missing the keys: ")
+                         .appendValue(onlyOnRight.keySet())
+    }
+
+    if (!differing.isEmpty()) {
+      isMatch = false
+      if (onlyOnRight.isEmpty()) {
+        mismatchDescription.appendText("W")
+      } else {
+        mismatchDescription.appendText(" and w")
+      }
+      mismatchDescription.appendText("ith different values: ")
+                         .appendValue(differing)
+    }
+
+    return isMatch
   }
 
   @Override
   void describeTo(Description description) {
-
+    description.appendText("a map containing all of ")
+               .appendValue(expected)
   }
 }
