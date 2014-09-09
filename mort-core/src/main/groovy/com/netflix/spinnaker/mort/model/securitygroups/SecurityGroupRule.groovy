@@ -24,10 +24,15 @@ class SecurityGroupRule implements Rule {
   /**
    * The security group associated with this rule
    */
-  SecurityGroup securityGroup
+  final SecurityGroup securityGroup
+
+  /**
+   * The IP protocol associated with this rule
+   */
+  final String protocol
 
   /**
    * {@inheritDoc}
    */
-  Set<Rule.PortRange> portRanges
+  final Set<Rule.PortRange> portRanges
 }

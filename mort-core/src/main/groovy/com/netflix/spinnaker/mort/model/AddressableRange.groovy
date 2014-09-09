@@ -16,17 +16,20 @@
 
 package com.netflix.spinnaker.mort.model
 
+import groovy.transform.Immutable
+
 /**
  * A class representing an addressable network range
  */
+@Immutable
 class AddressableRange {
   /**
    * The IP for this range
    */
-  String ip
+  final String ip
 
   /**
    * The CIDR mask for this range
    */
-  String cidr
+  final String cidr
 }

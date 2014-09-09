@@ -30,6 +30,8 @@ interface Rule {
    */
   Set<PortRange> getPortRanges()
 
+  String getProtocol()
+
   static class PortRange {
     Integer startPort
     Integer endPort

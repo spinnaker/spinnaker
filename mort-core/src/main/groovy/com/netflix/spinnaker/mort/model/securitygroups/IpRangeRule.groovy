@@ -27,6 +27,11 @@ class IpRangeRule implements Rule {
   final AddressableRange range
 
   /**
+   * The IP protocol associated with this rule
+   */
+  final String protocol
+
+  /**
    * {@inheritDoc}
    */
   final Set<Rule.PortRange> portRanges
