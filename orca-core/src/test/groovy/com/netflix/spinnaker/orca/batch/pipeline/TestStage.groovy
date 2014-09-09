@@ -24,7 +24,6 @@ import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.step.builder.TaskletStepBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
 import static java.util.UUID.randomUUID
@@ -55,32 +54,36 @@ class TestStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    [buildStep()]
+    def index = 0
+    tasklets.collect {
+      buildStep it, index++ == 0
+    }
   }
 
-  private TaskletStep buildStep() {
+  private TaskletStep buildStep(Tasklet tasklet, boolean first) {
     def listener = new StepExecutionListener() {
       @Override
       void beforeStep(StepExecution stepExecution) {
-        pipelineMonitor.beginStage(name)
+        println stepExecution.stepName
+        if (first) {
+          pipelineMonitor.beginStage(name)
+        }
+        pipelineMonitor.beginTask()
       }
 
       @Override
       ExitStatus afterStep(StepExecution stepExecution) {
-        pipelineMonitor.endStage(name)
+        pipelineMonitor.endTask()
+        if (stepExecution.exitStatus.exitCode == "STAGE_COMPLETED") {
+          pipelineMonitor.endStage(name)
+        }
         return stepExecution.exitStatus
       }
     }
 
-    def firstTasklet = tasklets.remove(0)
-    def stepBuilder = steps.get(randomUUID().toString())
-                           .listener(listener)
-                           .tasklet(firstTasklet)
-    stepBuilder = (TaskletStepBuilder) tasklets.inject(stepBuilder) { TaskletStepBuilder builder, Tasklet tasklet ->
-      builder
-        .tasklet(tasklet)
-//        .listener(listener)
-    }
-    stepBuilder.build()
+    steps.get(randomUUID().toString())
+         .listener(listener)
+         .tasklet(tasklet)
+         .build()
   }
 }

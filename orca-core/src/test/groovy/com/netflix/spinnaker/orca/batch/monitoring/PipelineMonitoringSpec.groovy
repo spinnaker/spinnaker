@@ -21,7 +21,10 @@ import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import org.springframework.batch.core.ExitStatus
+import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,7 +68,10 @@ class PipelineMonitoringSpec extends Specification {
   def "a stage with a single task raises begin and end stage events"() {
     given: "a stage with a single task"
     def tasklet1 = Stub(Tasklet) {
-      execute(*_) >> RepeatStatus.FINISHED
+      execute(*_) >> { StepContribution contribution, ChunkContext context ->
+        contribution.exitStatus = new ExitStatus("STAGE_COMPLETED")
+        RepeatStatus.FINISHED
+      }
     }
     setupStages stageName, tasklet1
 
@@ -74,6 +80,12 @@ class PipelineMonitoringSpec extends Specification {
 
     then: "we get an event at the start of the stage"
     1 * pipelineMonitor.beginStage(stageName)
+
+    then: "we get an event at the start of the task"
+    1 * pipelineMonitor.beginTask()
+
+    then: "we get an event at the end of the task"
+    1 * pipelineMonitor.endTask()
 
     then: "we get an event at the end of the stage"
     1 * pipelineMonitor.endStage(stageName)
@@ -88,7 +100,10 @@ class PipelineMonitoringSpec extends Specification {
       execute(*_) >> RepeatStatus.FINISHED
     }
     def tasklet2 = Stub(Tasklet) {
-      execute(*_) >> RepeatStatus.FINISHED
+      execute(*_) >> { StepContribution contribution, ChunkContext context ->
+        contribution.exitStatus = new ExitStatus("STAGE_COMPLETED")
+        RepeatStatus.FINISHED
+      }
     }
     setupStages stageName, tasklet1, tasklet2
 
@@ -97,6 +112,10 @@ class PipelineMonitoringSpec extends Specification {
 
     then: "we get an event at the start of the stage"
     1 * pipelineMonitor.beginStage(stageName)
+
+    then: "we get an event at the start and end of each task"
+    2 * pipelineMonitor.beginTask()
+    2 * pipelineMonitor.endTask()
 
     then: "we get an event at the end of the stage"
     1 * pipelineMonitor.endStage(stageName)

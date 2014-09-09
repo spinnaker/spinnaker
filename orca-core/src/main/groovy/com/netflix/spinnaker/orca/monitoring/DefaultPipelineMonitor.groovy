@@ -29,4 +29,14 @@ class DefaultPipelineMonitor implements PipelineMonitor {
   void endStage(String stageName) {
 
   }
+
+  @Override
+  void beginTask() {
+
+  }
+
+  @Override
+  void endTask() {
+
+  }
 }

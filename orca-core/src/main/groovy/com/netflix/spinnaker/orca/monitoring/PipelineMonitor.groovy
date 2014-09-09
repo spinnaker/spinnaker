@@ -20,4 +20,8 @@ interface PipelineMonitor {
   void beginStage(String stageName)
 
   void endStage(String stageName)
+
+  void beginTask()
+
+  void endTask()
 }
