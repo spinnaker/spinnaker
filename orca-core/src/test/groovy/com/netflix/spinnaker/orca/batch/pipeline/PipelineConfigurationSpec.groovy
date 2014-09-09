@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -25,8 +28,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.repository.JobRepository
-import org.springframework.batch.core.scope.context.ChunkContext
-import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
@@ -34,8 +35,10 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.hamcrest.ContainsAllOf.containsAllOf
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
+import static spock.util.matcher.HamcrestSupport.expect
 
 @ContextConfiguration(classes = [BatchTestConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
@@ -49,18 +52,18 @@ class PipelineConfigurationSpec extends Specification {
 
   @Subject jobStarter = new PipelineStarter()
 
-  def fooTasklet = Mock(Tasklet)
-  def barTasklet = Mock(Tasklet)
-  def bazTasklet = Mock(Tasklet)
+  def fooTask = Mock(Task)
+  def barTask = Mock(Task)
+  def bazTask = Mock(Task)
 
   @Shared mapper = new ObjectMapper()
 
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTasklet)
-      registerSingleton "barStage", new TestStage("bar", steps, new DefaultPipelineMonitor(), barTasklet)
-      registerSingleton "bazStage", new TestStage("baz", steps, new DefaultPipelineMonitor(), bazTasklet)
+      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTask)
+      registerSingleton "barStage", new TestStage("bar", steps, new DefaultPipelineMonitor(), barTask)
+      registerSingleton "bazStage", new TestStage("baz", steps, new DefaultPipelineMonitor(), bazTask)
 
       autowireBean jobStarter
     }
@@ -84,7 +87,7 @@ class PipelineConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    1 * fooTasklet.execute(*_) >> FINISHED
+    1 * fooTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
 
     where:
     config = [[type: "foo"]]
@@ -96,13 +99,13 @@ class PipelineConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    1 * fooTasklet.execute(*_) >> FINISHED
+    1 * fooTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
 
     then:
-    1 * barTasklet.execute(*_) >> FINISHED
+    1 * barTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
 
     then:
-    1 * bazTasklet.execute(*_) >> FINISHED
+    1 * bazTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
 
     where:
     config = [
@@ -115,9 +118,9 @@ class PipelineConfigurationSpec extends Specification {
 
   def "config is serialized to job execution context"() {
     given:
-    def jobExecutionContext
-    1 * fooTasklet.execute(*_) >> { _, ChunkContext chunkContext ->
-      jobExecutionContext = chunkContext.stepContext.jobExecutionContext
+    Map inputs
+    1 * fooTask.execute(*_) >> { TaskContext taskContext ->
+      inputs = taskContext.inputs
       FINISHED
     }
 
@@ -125,11 +128,11 @@ class PipelineConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    jobExecutionContext == expectedContext
+    expect inputs, containsAllOf(expectedInputs)
 
     where:
     config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     configJson = mapper.writeValueAsString(config)
-    expectedContext = ["foo.region": config[0].region, "foo.os": config[0].os, "foo.type": "foo"]
+    expectedInputs = ["foo.region": config[0].region, "foo.os": config[0].os, "foo.type": "foo"]
   }
 }

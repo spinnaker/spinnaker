@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
 
@@ -38,7 +37,7 @@ interface Stage<B extends JobBuilderHelper<B>> {
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  abstract B build(JobBuilder jobBuilder, PipelineMonitor pipelineMonitor)
+  abstract B build(JobBuilder jobBuilder)
 
   /**
    * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
@@ -47,6 +46,6 @@ interface Stage<B extends JobBuilderHelper<B>> {
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  abstract B build(B jobBuilder, PipelineMonitor pipelineMonitor)
+  abstract B build(B jobBuilder)
 
 }

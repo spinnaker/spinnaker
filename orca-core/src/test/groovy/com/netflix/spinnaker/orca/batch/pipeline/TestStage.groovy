@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.ExitStatus
@@ -24,45 +25,45 @@ import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
+import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 import static java.util.UUID.randomUUID
 
 /**
  * A stub +Stage+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
- * just add a single pre-defined +Tasklet+ (probably a mock) to the pipeline.
+ * just add one or more pre-defined +Tasks+ (probably mocks) to the pipeline.
  */
 @CompileStatic
 class TestStage extends LinearStage {
 
-  private final List<Tasklet> tasklets = []
+  private final List<Task> tasks = []
   private final PipelineMonitor pipelineMonitor
 
-  TestStage(String name, StepBuilderFactory steps, PipelineMonitor pipelineMonitor, Tasklet... tasklets) {
+  TestStage(String name, StepBuilderFactory steps, PipelineMonitor pipelineMonitor, Task... tasks) {
     super(name)
     this.steps = steps
     this.pipelineMonitor = pipelineMonitor
-    this.tasklets.addAll tasklets
+    this.tasks.addAll tasks
   }
 
-  void addTasklet(Tasklet tasklet) {
-    tasklets << tasklet
+  void addTasklet(Task task) {
+    tasks << task
   }
 
-  void leftShift(Tasklet tasklet) {
-    addTasklet tasklet
+  void leftShift(Task task) {
+    addTasklet task
   }
 
   @Override
   protected List<Step> buildSteps() {
     def index = 0
-    tasklets.collect {
+    tasks.collect {
       index++
-      buildStep it, index == 1, index == tasklets.size()
+      buildStep it, index == 1, index == tasks.size()
     }
   }
 
-  private TaskletStep buildStep(Tasklet tasklet, boolean first, boolean last) {
+  private TaskletStep buildStep(Task task, boolean first, boolean last) {
     def listener = new StepExecutionListener() {
       @Override
       void beforeStep(StepExecution stepExecution) {
@@ -85,7 +86,7 @@ class TestStage extends LinearStage {
 
     steps.get(randomUUID().toString())
          .listener(listener)
-         .tasklet(tasklet)
+         .tasklet(decorate(task))
          .build()
   }
 }

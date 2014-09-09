@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepContribution
@@ -105,7 +104,7 @@ class PipelineStarter {
 
   private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
     if (stages.containsKey(stepConfig.type)) {
-      stages.get(stepConfig.type).build(jobBuilder, new DefaultPipelineMonitor())
+      stages.get(stepConfig.type).build(jobBuilder)
     } else {
       throw new NoSuchStageException(stepConfig.type as String)
     }

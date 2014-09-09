@@ -76,7 +76,7 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
-      .build(jobBuilder, null)
+      .build(jobBuilder)
       .build()
   }
 }

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.StageSupport
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.FlowJobBuilder
@@ -35,7 +34,7 @@ class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
   }
 
   @Override
-  FlowJobBuilder build(JobBuilder jobBuilder, PipelineMonitor pipelineMonitor) {
+  FlowJobBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("PreInterventionStep")
                      .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
                      .build()
@@ -54,7 +53,7 @@ class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
   }
 
   @Override
-  FlowJobBuilder build(FlowJobBuilder jobBuilder, PipelineMonitor pipelineMonitor) {
+  FlowJobBuilder build(FlowJobBuilder jobBuilder) {
     throw new UnsupportedOperationException()
   }
 }

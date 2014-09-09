@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -24,8 +26,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.repository.JobRepository
-import org.springframework.batch.core.step.tasklet.Tasklet
-import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
@@ -48,14 +48,14 @@ class PipelineStatusSpec extends Specification {
   @Subject pipelineStarter = new PipelineStarter()
 
   @Shared mapper = new ObjectMapper()
-  def fooTasklet = Stub(Tasklet) {
-    execute(*_) >> RepeatStatus.FINISHED
+  def fooTask = Stub(Task) {
+    execute(*_) >> DefaultTaskResult.SUCCEEDED
   }
 
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTasklet)
+      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTask)
 
       autowireBean pipelineStarter
     }

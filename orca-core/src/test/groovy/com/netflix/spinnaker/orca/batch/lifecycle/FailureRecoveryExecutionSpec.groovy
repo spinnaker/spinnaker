@@ -65,7 +65,7 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     new FailureRecoveryStage(steps: steps, startTask: startTask, recoveryTask: recoveryTask, endTask: endTask)
-      .build(jobBuilder, null)
+      .build(jobBuilder)
       .build()
   }
 }

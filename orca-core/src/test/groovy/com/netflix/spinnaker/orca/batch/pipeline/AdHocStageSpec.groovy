@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
@@ -27,15 +28,12 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.repository.JobRepository
-import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.*
 import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
-import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @Narrative("Orca should support the addition of ad-hoc stages (i.e. those with no pre-defined stage that just consist of a single task) to a pipeline")
@@ -64,12 +62,12 @@ class AdHocStageSpec extends Specification {
 
   def "an unknown stage is interpreted as an ad-hoc task"() {
     given:
-    def fooTasklet = Mock(Tasklet)
+    def fooTask = Mock(Task)
     def barTask = Mock(StandaloneTask) {
       getName() >> "bar"
     }
     applicationContext.beanFactory.with {
-      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTasklet)
+      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTask)
       registerSingleton "barTask", barTask
     }
     jobStarter.initialize()
@@ -78,10 +76,10 @@ class AdHocStageSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    1 * fooTasklet.execute(*_) >> FINISHED
+    1 * fooTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
 
     then:
-    1 * barTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * barTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     where:
     config = [[type: "foo"], [type: "bar"]]
@@ -103,7 +101,7 @@ class AdHocStageSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    2 * fooTask.execute(_) >>> [new DefaultTaskResult(RUNNING), new DefaultTaskResult(SUCCEEDED)]
+    2 * fooTask.execute(_) >>> [new DefaultTaskResult(RUNNING), DefaultTaskResult.SUCCEEDED]
 
     where:
     config = [[type: "foo"]]
