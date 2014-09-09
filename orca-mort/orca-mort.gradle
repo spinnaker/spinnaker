@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-bakery",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
 
-rootProject.name = "orca"
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
 
-rootProject.children.each {
-  setBuildFile it
+
+
+
+apply from: "$rootDir/gradle/groovy-module.gradle"
+
+dependencies {
+  compile project(":orca-retrofit")
+  testCompile project(":orca-test")
 }

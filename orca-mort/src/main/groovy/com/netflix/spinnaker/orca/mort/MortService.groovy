@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-bakery",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
 
-rootProject.name = "orca"
+package com.netflix.spinnaker.orca.mort
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+import retrofit.client.Response
+import retrofit.http.GET
+import retrofit.http.Path
+import retrofit.http.Query
 
-rootProject.children.each {
-  setBuildFile it
+interface MortService {
+
+  @GET("/securityGroups/{account}/{type}/{securityGroupName}")
+  Response getSecurityGroup(
+    @Path("account") String account,
+    @Path("type") String type, @Path("securityGroupName") String securityGroupName, @Query("region") String region)
+
 }
