@@ -15,13 +15,13 @@ angular.module('deckApp')
       },
       templateUrl: 'views/collapsibleSection.html',
       link: function(scope) {
-        scope.expanded = scope.expanded !== 'false';
+        scope.state = {expanded: scope.expanded === 'true'};
         scope.getIcon = function() {
-          return scope.expanded ? 'down' : 'up';
+          return scope.state.expanded ? 'down' : 'up';
         };
 
         scope.toggle = function() {
-          scope.expanded = !scope.expanded;
+          scope.state.expanded = !scope.state.expanded;
         };
       }
     };

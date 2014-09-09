@@ -6,7 +6,10 @@
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
-    <div class="header-text">
+    <div ng-if="loading">
+      <h3 us-spinner="{radius:20, width:6, length: 12}"></h3>
+    </div>
+    <div class="header-text" ng-if="!loading">
       <span class="glyphicon glyphicon-transfer"></span>
       <h3>
         {{securityGroup.name || '(not found)'}}
@@ -36,18 +39,29 @@
         <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Inbound Rules" expanded="true">
-      <div ng-if="!securityGroup.inboundRules">
-        None
-      </div>
-      <dl ng-repeat="inboundRule in securityGroup.inboundRules">
-        <dt>Security Group</dt>
-        <dd ng-if="inboundRule.securityGroup.name">
-          {{inboundRule.securityGroup.name}} ({{inboundRule.securityGroup.id}})
+    <collapsible-section heading="IP Range Rules ({{ipRangeRules.length || 0}})" expanded="{{!!(ipRangeRules && ipRangeRules.length)}}">
+      <div ng-if="!ipRangeRules.length">None</div>
+
+      <dl ng-repeat="ipRangeRule in ipRangeRules">
+        <dt>IP Range</dt>
+        <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
+        <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges:</dt>
+        <dd ng-repeat="portRange in ipRangeRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+          {{ipRangeRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
-        <dt ng-if="inboundRule.portRanges && inboundRule.portRanges[0].startPort">Port Ranges:</dt>
-        <dd ng-repeat="portRange in inboundRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
-          {{portRange.startPort}} &rarr; {{portRange.endPort}}
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Security Group Rules ({{securityGroupRules.length || 0}})" expanded="{{!!securityGroupRules.length}}">
+      <div ng-if="!securityGroupRules.length">None</div>
+
+      <dl ng-repeat="rule in securityGroupRules">
+        <dt>Security Group</dt>
+        <dd ng-if="rule.securityGroup.name">
+          {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
+        </dd>
+        <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges:</dt>
+        <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+          {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
       </dl>
     </collapsible-section>

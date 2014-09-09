@@ -110,7 +110,6 @@ angular.module('deckApp')
     }
 
     this.createLoadBalancer = function createLoadBalancer() {
-      console.warn('load balancer creation...');
       $modal.open({
         templateUrl: 'views/application/modal/createLoadBalancer.html',
         controller: 'CreateLoadBalancerCtrl as ctrl'

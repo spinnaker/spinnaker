@@ -15,7 +15,9 @@ angular.module('deckApp')
       var securityGroupPromises = [];
 
       application.accounts.forEach(function(account) {
-        securityGroupPromises.push(mortEndpoint.one('account', account).getList());
+        securityGroupPromises.push(mortEndpoint.one(account).get().then(function(groups) {
+          return { account: account, securityGroups: groups.aws };
+        }));
       });
 
       return $q.all(securityGroupPromises).then(_.flatten);
@@ -33,11 +35,15 @@ angular.module('deckApp')
         if (loadBalancer.elb) {
           loadBalancer.elb.securityGroups.forEach(function(securityGroupId) {
             var securityGroup = indexedSecurityGroups[loadBalancer.account][loadBalancer.region][securityGroupId];
-            if (!securityGroup.usages) {
-              securityGroup.usages = { serverGroups: [], loadBalancers: [] };
+            if (!securityGroup) {
+              $exceptionHandler('could not find:', loadBalancer.name, securityGroupId);
+            } else {
+              if (!securityGroup.usages) {
+                securityGroup.usages = { serverGroups: [], loadBalancers: [] };
+              }
+              securityGroup.usages.loadBalancers.push(loadBalancer);
+              applicationSecurityGroups.push(securityGroup);
             }
-            securityGroup.usages.loadBalancers.push(loadBalancer);
-            applicationSecurityGroups.push(securityGroup);
           });
         }
       });
@@ -61,19 +67,30 @@ angular.module('deckApp')
 
     function indexSecurityGroups(securityGroups) {
       var securityGroupIndex = {};
-      var securityGroupsByAccount = _.groupBy(securityGroups, 'accountName');
-      _.forOwn(securityGroupsByAccount, function(securityGroup, accountName) {
-        var accountIndex = securityGroupIndex[accountName] = {};
-        var byRegion = _.groupBy(securityGroup, 'region');
-        _.forOwn(byRegion, function(securityGroups, region) {
-          accountIndex[region] = _.indexBy(securityGroups, 'id');
-          _.assign(accountIndex[region], _.indexBy(securityGroups, 'name'));
+      securityGroups.forEach(function(group) {
+        var accountName = group.account,
+            accountIndex = {};
+        securityGroupIndex[accountName] = accountIndex;
+        _.forOwn(group.securityGroups, function(groups, region) {
+          var regionIndex = {};
+          accountIndex[region] = regionIndex;
+          groups.forEach(function(group) {
+            group.accountName = accountName;
+            group.region = region;
+            regionIndex[group.id] = group;
+            regionIndex[group.name] = group;
+          });
+
         });
       });
       return securityGroupIndex;
     }
 
-    function getSecurityGroup(application, account, region, id) {
+    function getSecurityGroup(account, region, id) {
+      return mortEndpoint.one(account).one('aws').one(id).get({region: region});
+    }
+
+    function getSecurityGroupFromIndex(application, account, region, id) {
       if (application.securityGroupsIndex[account] &&
         application.securityGroupsIndex[account][region] &&
         application.securityGroupsIndex[account][region][id]) {
@@ -85,7 +102,8 @@ angular.module('deckApp')
     return {
       loadSecurityGroups: loadSecurityGroups,
       attachSecurityGroups: attachSecurityGroups,
-      getSecurityGroup: getSecurityGroup
+      getSecurityGroup: getSecurityGroup,
+      getSecurityGroupFromIndex: getSecurityGroupFromIndex
     };
 
   });
