@@ -18,8 +18,10 @@ package com.netflix.spinnaker.mort.model.securitygroups
 
 import com.netflix.spinnaker.mort.model.AddressableRange
 import groovy.transform.Immutable
+import groovy.transform.Sortable
 
 @Immutable
+@Sortable(excludes = 'portRanges')
 class IpRangeRule implements Rule {
   /**
    * The addressable range associated with this rule
@@ -34,5 +36,5 @@ class IpRangeRule implements Rule {
   /**
    * {@inheritDoc}
    */
-  final Set<Rule.PortRange> portRanges
+  final SortedSet<Rule.PortRange> portRanges
 }

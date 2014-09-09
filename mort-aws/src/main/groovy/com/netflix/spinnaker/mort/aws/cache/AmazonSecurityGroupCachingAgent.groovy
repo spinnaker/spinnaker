@@ -18,7 +18,6 @@ package com.netflix.spinnaker.mort.aws.cache
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.IpPermission
-import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.AddressableRange
@@ -57,14 +56,16 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
         addSecurityGroupRules(permission, rules)
       }
 
-      List<Rule> inboundRules = rules.values().collect { rule ->
+      List<SecurityGroupRule> securityGroupRules = rules.values().collect { rule ->
         new SecurityGroupRule(
             securityGroup: rule.securityGroup,
             portRanges: rule.portRanges,
             protocol: rule.protocol
         )
-      }
+      }.sort()
 
+      List<Rule> inboundRules = []
+      inboundRules.addAll securityGroupRules
       inboundRules.addAll ipRangeRules
 
       cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account),
@@ -81,7 +82,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     lastRun = thisRun
   }
 
-  private Iterable<UserIdGroupPair> addSecurityGroupRules(IpPermission permission, Map<String, SecurityGroupRule> rules) {
+  private void addSecurityGroupRules(IpPermission permission, Map<String, SecurityGroupRule> rules) {
     permission.userIdGroupPairs.each { sg ->
       if (!rules.containsKey(sg.groupId)) {
         rules.put(sg.groupId, [
@@ -94,20 +95,21 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
                     accountName: account,
                     region: region
                 ),
-            portRanges   : []])
+            portRanges   : [] as SortedSet])
       }
       rules.get(sg.groupId).portRanges += [new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)]
     }
   }
 
-  private Iterable<String> addIpRangeRules(IpPermission permission, List<IpRangeRule> ipRangeRules) {
+  private void addIpRangeRules(IpPermission permission, List<IpRangeRule> ipRangeRules) {
     permission.ipRanges.each { ipRange ->
       def rangeParts = ipRange.split('/')
       ipRangeRules << new IpRangeRule(
           range: new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
           protocol: permission.ipProtocol,
-          portRanges: [new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)]
+          portRanges: [new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)] as SortedSet
       )
     }
+    ipRangeRules.sort()
   }
 }

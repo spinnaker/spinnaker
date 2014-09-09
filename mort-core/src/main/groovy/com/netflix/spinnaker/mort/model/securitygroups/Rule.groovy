@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.mort.model.securitygroups
 
+import groovy.transform.Sortable
+
 /**
  * An abstract interface representing a security rule.
  *
@@ -28,10 +30,11 @@ interface Rule {
    *
    * @return
    */
-  Set<PortRange> getPortRanges()
+  SortedSet<PortRange> getPortRanges()
 
   String getProtocol()
 
+  @Sortable
   static class PortRange {
     Integer startPort
     Integer endPort

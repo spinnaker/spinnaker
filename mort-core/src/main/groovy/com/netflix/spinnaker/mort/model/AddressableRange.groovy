@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.mort.model
 
 import groovy.transform.Immutable
+import groovy.transform.Sortable
 
 /**
  * A class representing an addressable network range
  */
 @Immutable
+@Sortable
 class AddressableRange {
   /**
    * The IP for this range
