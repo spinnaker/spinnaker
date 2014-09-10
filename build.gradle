@@ -47,26 +47,10 @@ node {
     download = true
 }
 
-task npmInstallBower (type: NpmTask){
-  args = ['install', '-g', 'bower']
-}
-
-task npmUpdateBower (type: NpmTask){
-  args = ['update', '-g', 'bower']
-}
-
-task installBower(type: Exec){
-  commandLine 'node_modules/bower/bin/bower install'.split()
-}
-
 grunt_clean.dependsOn 'npmInstall'
 grunt_clean.dependsOn 'installGrunt'
 installGrunt.dependsOn 'npmInstall'
 clean.dependsOn 'grunt_clean'
 
-installBower.dependsOn 'npmInstall'
-installBower.dependsOn 'npmUpdateBower'
-npmUpdateBower.dependsOn 'npmInstallBower'
 grunt_build.dependsOn 'installGrunt'
-grunt_build.dependsOn 'installBower'
 build.dependsOn 'grunt_build'
