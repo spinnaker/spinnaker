@@ -41,7 +41,7 @@ NOTE: This operation will remove all existing ingress permissions before applyin
 |======================
 |Key                  | Type   | Required | Value
 |name                 | string | true     | The name of the security group
-|description          | string | true     | A short description of the security group
+|description          | string | true     | A short description of the security group. This is only valid on creation, and will be ignored on updates.
 |region               | string | true     | The region in which this security group is to be created
 |credentials          | string | true     | The named account credentials that are to be used for this operation.
 |vpcId                | string | false    | The target VPC id if applicable. If not, the security group will be created in EC2-Classic.
