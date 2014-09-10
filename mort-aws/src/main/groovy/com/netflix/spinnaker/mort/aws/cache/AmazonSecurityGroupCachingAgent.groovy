@@ -72,7 +72,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
         new AmazonSecurityGroup(
           id: it.groupId,
           name: it.groupName,
-          application: Names.parseName(it.groupName).app,
+          description: it.description,
           accountName: account,
           region: region,
           inboundRules: inboundRules
@@ -91,7 +91,6 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
                 new AmazonSecurityGroup(
                     id: sg.groupId,
                     name: sg.groupName,
-                    application: Names.parseName(sg.groupName).app,
                     accountName: account,
                     region: region
                 ),
