@@ -53,9 +53,10 @@ task installBower(type: Exec){
 
 grunt_clean.dependsOn 'npmInstall'
 grunt_clean.dependsOn 'installGrunt'
+installGrunt.dependsOn 'npmInstall'
 clean.dependsOn 'grunt_clean'
 
-grunt_build.dependsOn 'npmInstall'
+installBower.dependsOn 'npmInstall'
 grunt_build.dependsOn 'installGrunt'
 grunt_build.dependsOn 'installBower'
 build.dependsOn 'grunt_build'
