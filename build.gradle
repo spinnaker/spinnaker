@@ -22,15 +22,35 @@ buildscript {
   }
   dependencies {
     classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.8'
+    classpath 'com.moowork.gradle:gradle-node-plugin:0.5'
+    classpath 'com.moowork.gradle:gradle-grunt-plugin:0.5'
   }
 }
 
 group = "com.netflix.spinnaker.deck"
 
 apply plugin: 'spinnaker-gradle-project'
+apply plugin: 'node'
+apply plugin: 'grunt'
 
 jar {
   from(fileTree("dist")) {
     into "META-INF/resources"
   }
 }
+
+node {
+    // Version of node to use.
+    version = '0.10.31'
+
+    // Enabled the automatic download. False is the default (for now).
+    download = true
+}
+
+clean.dependsOn 'npmInstall'
+clean.dependsOn 'installGrunt'
+clean.dependsOn 'grunt_clean'
+
+grunt_build.dependsOn 'npmInstall'
+grunt_build.dependsOn 'installGrunt'
+build.dependsOn 'grunt_build'
