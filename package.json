@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "dependencies": {
     "angular": "1.2.20",
+    "bower": "1.3.9",
     "angular-module-animate": "1.2.19",
     "angular-bootstrap": "~0.11.0",
     "angular-spinner": "~0.5.1",

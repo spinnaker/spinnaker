@@ -47,10 +47,15 @@ node {
     download = true
 }
 
-clean.dependsOn 'npmInstall'
-clean.dependsOn 'installGrunt'
+task installBower(type: Exec){
+  commandLine 'node_modules/bower/bin/bower install'.split()
+}
+
+grunt_clean.dependsOn 'npmInstall'
+grunt_clean.dependsOn 'installGrunt'
 clean.dependsOn 'grunt_clean'
 
 grunt_build.dependsOn 'npmInstall'
 grunt_build.dependsOn 'installGrunt'
+grunt_build.dependsOn 'installBower'
 build.dependsOn 'grunt_build'
