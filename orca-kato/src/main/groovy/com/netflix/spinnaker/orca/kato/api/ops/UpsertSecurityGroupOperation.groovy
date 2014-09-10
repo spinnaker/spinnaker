@@ -16,15 +16,22 @@
 
 
 
+package com.netflix.spinnaker.orca.kato.api.ops
 
+import com.google.common.base.Optional
+import com.netflix.spinnaker.orca.kato.api.IpIngress
+import com.netflix.spinnaker.orca.kato.api.Operation
+import com.netflix.spinnaker.orca.kato.api.SecurityGroupIngress
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
-dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  compile project(":orca-mort")
-  testCompile project(":orca-test")
-  testCompile commonDependencies.objenesis
+@CompileStatic
+@EqualsAndHashCode
+class UpsertSecurityGroupOperation extends Operation {
+  String name
+  String region
+  String description
+  String credentials
+  Optional<Set<IpIngress>> ipIngress
+  Optional<Set<SecurityGroupIngress>> securityGroupIngress
 }
