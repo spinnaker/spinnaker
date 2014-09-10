@@ -114,7 +114,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
       ]
       mock
     }
-    def worker = new AutoScalingWorker(amazonEC2: ec2, subnetType: AutoScalingWorker.SubnetType.INTERNAL,
+    def worker = new AutoScalingWorker(amazonEC2: ec2, subnetType: "internal",
       availabilityZones: ["us-west-1a"])
 
     when:

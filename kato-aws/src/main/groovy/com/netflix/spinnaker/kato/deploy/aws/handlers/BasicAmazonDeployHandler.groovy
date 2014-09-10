@@ -16,16 +16,15 @@
 
 
 package com.netflix.spinnaker.kato.deploy.aws.handlers
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.Filter
+
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.config.KatoAWSConfig.AwsConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
-import com.netflix.spinnaker.kato.deploy.aws.AmiIdResolver
 import com.netflix.spinnaker.kato.deploy.aws.AmazonDeploymentResult
+import com.netflix.spinnaker.kato.deploy.aws.AmiIdResolver
 import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -69,7 +68,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       List<String> availabilityZones = entry.value
 
       // Get the properly typed version of the description's subnetType
-      def subnetType = description.subnetType ? AutoScalingWorker.SubnetType.fromString(description.subnetType) : null
+      def subnetType = description.subnetType
 
       // Get the list of load balancers that were created as part of this conglomerate job to apply to the ASG.
       List<UpsertAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<UpsertAmazonLoadBalancerResult.LoadBalancer>) priorOutputs.findAll {
@@ -120,7 +119,14 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         autoScaling: autoScaling,
         loadBalancers: description.loadBalancers,
         userDataProviders: userDataProviders,
-        securityGroupService: regionScopedProvider.securityGroupService
+        securityGroupService: regionScopedProvider.securityGroupService,
+        cooldown: description.cooldown,
+        healthCheckGracePeriod: description.healthCheckGracePeriod,
+        healthCheckType: description.healthCheckType,
+        terminationPolicies: description.terminationPolicies,
+        ramdiskId: description.ramdiskId,
+        instanceMonitoring: description.instanceMonitoring,
+        ebsOptimized: description.ebsOptimized,
       )
 
       def asgName = autoScalingWorker.deploy()
