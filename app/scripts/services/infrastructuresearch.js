@@ -39,7 +39,7 @@ angular.module('deckApp')
           var tmp = result.data[0].results.reduce(function(categories, entry) {
             var cat = entry.type;
             entry.name = entry[displayNameLookup[entry.type]];
-            entry.href = urlBuilder(entry);
+            entry.href = urlBuilder.buildFromMetadata(entry);
             if (angular.isDefined(categories[cat])) {
               categories[cat].push(entry);
             } else {

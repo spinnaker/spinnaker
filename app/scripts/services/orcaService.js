@@ -15,7 +15,7 @@ angular.module('deckApp')
       notifications.create({
         title: task.application,
         message: task.description,
-        href: urlBuilder({
+        href: urlBuilder.buildFromMetadata({
           type: 'tasks',
           application: task.application,
         }),
