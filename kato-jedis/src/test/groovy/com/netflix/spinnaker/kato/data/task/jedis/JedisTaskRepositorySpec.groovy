@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.data.task.jedis
 
+import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.kato.data.task.TaskState
 import redis.clients.jedis.JedisCommands
 import spock.lang.Shared
 import spock.lang.Specification
@@ -36,7 +38,6 @@ class JedisTaskRepositorySpec extends Specification {
     taskRepository = new JedisTaskRepository()
     config = new JedisConfig()
     jedis = config.jedis(0, '', 'redis://redistogo:9301e6a6073903ff02efc594420b83be@angelfish.redistogo.com:10439/')
-    JedisTask.metaClass.getRepository = { taskRepository }
     taskRepository.jedis = jedis
   }
 
@@ -102,14 +103,14 @@ class JedisTaskRepositorySpec extends Specification {
 
   void "Can add a result object and retrieve it"() {
     setup:
-    def t1 = taskRepository.create "Test", "Test Status"
+    JedisTask t1 = taskRepository.create "Test", "Test Status"
     final TestObject s = new TestObject(name:'blimp', value:'bah')
 
     expect:
     taskRepository.getResultObjects(t1).empty
 
     when:
-    taskRepository.addResultObject(s, t1)
+    taskRepository.addResultObjects([s], t1)
     List<Object> resultObjects = taskRepository.getResultObjects(t1)
 
     then:
@@ -118,7 +119,7 @@ class JedisTaskRepositorySpec extends Specification {
     resultObjects.first().value == s.value
 
     when:
-    taskRepository.addResultObject(new TestObject(name:"t1", value:'h2'), t1)
+    taskRepository.addResultObjects([new TestObject(name:"t1", value:'h2')], t1)
     resultObjects = taskRepository.getResultObjects(t1)
 
     then:
@@ -127,9 +128,9 @@ class JedisTaskRepositorySpec extends Specification {
 
   void "ResultObjects are retrieved in insertion order"() {
     given:
-    def t1 = taskRepository.create "Test", "Test Status"
+    JedisTask t1 = taskRepository.create "Test", "Test Status"
     4.times {
-      taskRepository.addResultObject(new TestObject(name:"Object${it}", value:'value'), t1)
+      taskRepository.addResultObjects([new TestObject(name:"Object${it}", value:'value')], t1)
     }
     expect:
     taskRepository.getResultObjects(t1).collect{it.name} == ['Object0', 'Object1', 'Object2', 'Object3']
@@ -137,14 +138,14 @@ class JedisTaskRepositorySpec extends Specification {
 
   void "task history is correctly persisted"() {
     given:
-    def t1 = taskRepository.create "Test", "Test Status"
+    JedisTask t1 = taskRepository.create "Test", "Test Status"
     def history = taskRepository.getHistory(t1)
 
     expect:
     history.size() == 1
 
     when:
-    taskRepository.addToHistory('Orchestration', 'started', t1)
+    taskRepository.addToHistory(new DefaultTaskStatus('Orchestration', 'started', TaskState.STARTED), t1)
     history = taskRepository.getHistory(t1)
     def newEntry = history[1]
 
@@ -156,7 +157,7 @@ class JedisTaskRepositorySpec extends Specification {
 
     when:
     3.times {
-      taskRepository.addToHistory('Orchestration', "update ${it}", t1)
+      taskRepository.addToHistory(new DefaultTaskStatus('Orchestration', "update ${it}", TaskState.STARTED), t1)
     }
 
     then:

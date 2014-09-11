@@ -65,7 +65,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.fail()
           }
         }
-        task.addResultObjects(results)
+        task.addResultObjects(results.findResults { it })
         if (!task.status?.isCompleted()) {
           task.complete()
         }

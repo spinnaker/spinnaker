@@ -25,6 +25,10 @@ buildscript {
   }
 }
 
+repositories {
+  maven { url 'http://clojars.org/repo' }
+}
+
 apply plugin: 'spring-boot'
 
 configurations.all {
@@ -38,8 +42,8 @@ dependencies {
   compile project(":kato-aws")
   compile project(":kato-gce")
   compile project(":kato-perforce-udp")
+  compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime commonDependencies.kork
-  compile commonDependencies.eureka
   compile commonDependencies.springBootActuator
   compile commonDependencies.springBootDataRest
 
