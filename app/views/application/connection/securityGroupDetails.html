@@ -37,6 +37,8 @@
         <dd>{{securityGroup.region}}</dd>
         <dt>Account:</dt>
         <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+        <dt>Description:</dt>
+        <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="IP Range Rules ({{ipRangeRules.length || 0}})" expanded="{{!!(ipRangeRules && ipRangeRules.length)}}">
