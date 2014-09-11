@@ -24,8 +24,7 @@ class InMemoryTaskRepository implements TaskRepository {
 
   @Override
   Task create(String phase, String status) {
-    def task = new DefaultTask(nextId)
-    task.updateStatus phase, status
+    def task = new DefaultTask(nextId, phase, status)
     repository[task.id] = task
   }
 
