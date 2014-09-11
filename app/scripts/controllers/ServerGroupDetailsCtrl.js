@@ -1,10 +1,13 @@
 'use strict';
+/* jshint camelcase:false */
 
 require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService, $modal, confirmationModalService) {
+  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService, searchService,
+                                                  mortService, accountService, securityGroupService,
+                                                  $modal, confirmationModalService) {
 
     function extractServerGroup(clusters) {
       clusters.some(function (cluster) {
@@ -75,6 +78,29 @@ angular.module('deckApp')
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
           application: function() { return application; }
+        }
+      });
+    };
+
+    this.cloneServerGroup = function cloneServerGroup(serverGroup) {
+      $modal.open({
+        templateUrl: 'views/application/modal/cloneServerGroup.html',
+        controller: 'CloneServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: function() { return serverGroup; },
+          loadBalancers: function() {
+            return searchService.search({q: '', type: 'loadBalancers', pageSize: 100000000})
+            .then(function(result) { return result.data[0].results; });
+          },
+          securityGroups: function() {
+            return securityGroupService.getAllSecurityGroups().then(function(result) { return result;});
+          },
+          subnets: function() { return mortService.listSubnets(); },
+          accounts: function() { return accountService.listAccounts(); },
+          packageImages: function() {
+            return searchService.search({q: serverGroup.buildInfo.package_name, type: 'namedImages', pageSize: 100000000})
+              .then(function(result) { return result.data[0].results; });
+          }
         }
       });
     };

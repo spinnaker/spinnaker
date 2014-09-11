@@ -25,6 +25,7 @@
             <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable ASG</a></li>
             <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable ASG</a></li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy ASG</a></li>
+            <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone ASG</a></li>
             <li class="dropdown-header">INSIGHT</li>
             <li><a href="#">View in Atlas</a></li>
             <li><a href="#">View in Chronos</a></li>
