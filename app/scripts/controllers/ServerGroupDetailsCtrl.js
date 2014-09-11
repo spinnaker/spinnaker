@@ -95,12 +95,8 @@ angular.module('deckApp')
           securityGroups: function() {
             return securityGroupService.getAllSecurityGroups().then(function(result) { return result;});
           },
-          subnets: function() {
-            return mortService.listSubnets().then(function(result) { return result;});
-          },
-          accounts: function() {
-            return accountService.listAccounts().then(function(result) { return result; });
-          },
+          subnets: function() { return mortService.listSubnets(); },
+          accounts: function() { return accountService.listAccounts(); },
           packageImages: function() {
             return searchService.search({q: serverGroup.buildInfo.package_name, type: 'namedImages', pageSize: 100000000})
               .then(function(result) { return result.data[0].results; });
