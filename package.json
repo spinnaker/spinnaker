@@ -70,11 +70,11 @@
     "angular-animate": "./node_modules/angular-module-animate/angular-animate.js",
     "angular-spinner": "./node_modules/angular-spinner/angular-spinner.js",
     "angular-ui-router": "./node_modules/angular-ui-router/release/angular-ui-router.min.js",
-    "angular-ui-select2": "./app/bower_components/angular-ui-select2/src/select2.js",
+    "angular-ui-select2": "./node_modules/angular-ui-select2/src/select2.js",
     "jquery": "./node_modules/jquery/dist/jquery.js",
     "lodash": "./node_modules/lodash/dist/lodash.compat.js",
     "restangular": "./node_modules/restangular/dist/restangular.js",
-    "select2": "./app/bower_components/select2/select2.js",
+    "select2": "./node_modules/select2/select2.js",
     "spin": "./node_modules/spin.js/spin.js"
   },
   "browserify-shim": {
