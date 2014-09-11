@@ -13,6 +13,8 @@ angular.module('deckApp')
 
     $scope.sgs = serverGroup.launchConfig.securityGroups;
 
+    $scope.subnets = subnets;
+
     var populateRegionalSecurityGroups = function() {
       $scope.regionalSecurityGroups = securityGroups[$scope.command.credentials].aws[$scope.command.region];
     };

@@ -92,11 +92,9 @@ angular.module('deckApp')
             return searchService.search({q: '', type: 'loadBalancers', pageSize: 100000000})
             .then(function(result) { return result.data[0].results; });
           },
-          securityGroups: function() {
-            return securityGroupService.getAllSecurityGroups().then(function(result) { return result;});
-          },
-          subnets: function() { return mortService.listSubnets(); },
-          accounts: function() { return accountService.listAccounts(); },
+          securityGroups: securityGroupService.getAllSecurityGroups,
+          subnets: mortService.listSubnets,
+          accounts: accountService.listAccounts,
           packageImages: function() {
             return searchService.search({q: serverGroup.buildInfo.package_name, type: 'namedImages', pageSize: 100000000})
               .then(function(result) { return result.data[0].results; });
