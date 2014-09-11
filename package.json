@@ -55,6 +55,7 @@
     "karma-ng-html2js-preprocessor": "~0.1.0",
     "karma-phantomjs-launcher": "~0.1.4",
     "load-grunt-tasks": "^0.4.0",
+    "select2": "3.5.1-browserify-fix",
     "select2-bootstrap-css": "1.2.4",
     "time-grunt": "^0.3.1"
   },
