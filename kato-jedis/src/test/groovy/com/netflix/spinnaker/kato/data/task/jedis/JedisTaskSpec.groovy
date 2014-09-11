@@ -16,55 +16,47 @@
 
 package com.netflix.spinnaker.kato.data.task.jedis
 
+import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.kato.data.task.TaskState
 import redis.clients.jedis.JedisCommands
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class JedisTaskSpec extends Specification {
 
-  @Shared JedisTaskRepository repository
-  @Shared JedisCommands jedis
+  @Shared
+  JedisTaskRepository repository
+  @Shared
+  JedisCommands jedis
+
+  @Subject
+  JedisTask task
+
+  @Shared
+  DefaultTaskStatus initialState = new DefaultTaskStatus('orchestration', 'start', TaskState.STARTED)
 
   void setup() {
     repository = Mock(JedisTaskRepository)
     repository.jedis = Mock(JedisCommands)
-  }
-
-  void 'creating a new task should persist the task'() {
-    when:
-    new JedisTask('666', 'orchestration', 'start', repository)
-
-    then:
-    1 * repository.set('666', _)
-    1 * repository.addToHistory('orchestration', 'start', _)
-  }
-
-  void 'retrieving an existing task should not save the task'() {
-    when:
-    new JedisTask('666', 'orchestration', 'start', 0, true, true)
-
-    then:
-    0 * repository._
+    task = new JedisTask('666', System.currentTimeMillis(), repository)
   }
 
   void 'updating task status adds a history entry'() {
-    given:
-    JedisTask task = new JedisTask('666', 'orchestration', 'start', 0, false, false)
-    task.repository = repository
-
     when:
-    task.updateStatus('orchestration', 'end')
+    task.updateStatus(newPhase, newState)
 
     then:
-    1 * repository.set('666', _)
-    1 * repository.addToHistory('orchestration', 'end', _)
+    1 * repository.currentState(task) >> initialState
+    1 * repository.addToHistory(initialState.update(newPhase, newState), task)
+    0 * _
+
+    where:
+    newPhase        | newState
+    'orchestration' | 'end'
   }
 
   void 'accessing the list of history entries retrieves it from Jedis'() {
-    given:
-    JedisTask task = new JedisTask('666', 'orchestration', 'start', 0, false, false)
-    task.repository = repository
-
     when:
     task.history
 
@@ -73,25 +65,36 @@ class JedisTaskSpec extends Specification {
   }
 
   void 'changing the status of a task to complete saves it to Jedis'() {
-    JedisTask task = new JedisTask('666', 'orchestration', 'start', 0, false, false)
-    task.repository = repository
-
     when:
     task.complete()
 
     then:
-    1 * repository.set('666', task)
+    1 * repository.currentState(task) >> initialState
+    1 * repository.addToHistory(initialState.update(TaskState.COMPLETED), task)
+    0 * _
   }
 
   void 'failing the status of a task saves it to Jedis'() {
-    JedisTask task = new JedisTask('666', 'orchestration', 'start', 0, false, false)
-    task.repository = repository
-
     when:
     task.fail()
 
     then:
-    1 * repository.set('666', task)
+    1 * repository.currentState(task) >> initialState
+    1 * repository.addToHistory(initialState.update(TaskState.FAILED), task)
+    0 * _
   }
 
+  void 'cant update a completed task'() {
+    when:
+    task.updateStatus('explode', 'plz')
+
+    then:
+    1 * repository.currentState(task) >> initialState.update(testState)
+    thrown IllegalStateException
+
+    where:
+    testState           | shouldFail
+    TaskState.COMPLETED | true
+    TaskState.FAILED    | true
+  }
 }

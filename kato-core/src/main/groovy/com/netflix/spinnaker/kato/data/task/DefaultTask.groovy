@@ -18,55 +18,51 @@
 package com.netflix.spinnaker.kato.data.task
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import groovy.transform.ToString
 
+import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.logging.Logger
 
+@CompileStatic
 public class DefaultTask implements Task {
-  private static final Logger log = Logger.getLogger(this.class.name)
+  private static final Logger log = Logger.getLogger(DefaultTask.name)
 
-  String id
-  List<Status> history = []
-  List<Object> resultObjects = []
-  long startTimeMs = new Date().time
+  final String id
+  private final Deque<Status> statusHistory = new ConcurrentLinkedDeque<Status>()
+  private final Deque<Object> resultObjects = new ConcurrentLinkedDeque<Object>()
+  final long startTimeMs = System.currentTimeMillis()
 
-  private String phase
-  private String status
-  private Boolean complete = Boolean.FALSE
-  private Boolean failed = Boolean.FALSE
+  public DefaultTask(String id) {
+    this(id, 'INIT', "Creating task ${id}")
+  }
 
-  public DefaultTask(final String id) {
+  public DefaultTask(String id, String phase, String status) {
+    def initialStatus = new DefaultTaskStatus(phase, status, TaskState.STARTED)
+    statusHistory.addLast(initialStatus)
     this.id = id
   }
 
   public void updateStatus(String phase, String status) {
-    if (complete) {
-      throw new IllegalStateException("Task is already completed! No further updates allowed!")
-    }
+    statusHistory.addLast(currentStatus().update(phase, status))
     log.info "[$phase] - $status"
-    this.phase = phase
-    this.status = status
-    history << new TaskDisplayStatus(phase, status)
   }
 
   public void complete() {
-    if (complete) {
-      throw new IllegalStateException("Task is already completed! No further updates allowed!")
-    }
-    this.complete = Boolean.TRUE
+    statusHistory.addLast(currentStatus().update(TaskState.COMPLETED))
+  }
+
+  public List<Status> getHistory() {
+    statusHistory.collect { new TaskDisplayStatus(it) }
   }
 
   public void fail() {
-    if (complete) {
-      throw new IllegalStateException("Task is already completed! No further updates allowed!")
-    }
-    this.failed = Boolean.TRUE
-    complete()
+    statusHistory.addLast(currentStatus().update(TaskState.FAILED))
   }
 
   public Status getStatus() {
-    new DefaultTaskStatus(phase, status, complete, failed)
+    currentStatus()
   }
 
   public String toString() {
@@ -74,42 +70,73 @@ public class DefaultTask implements Task {
   }
 
   public void addResultObjects(List<Object>results){
-    resultObjects.addAll(results)
-  }
-
-  @ToString
-  static class TaskDisplayStatus implements Status {
-    final String phase
-    final String status
-
-    TaskDisplayStatus(String phase, String status) {
-      this.phase = phase
-      this.status = status
+    if (results) {
+      currentStatus().ensureUpdateable()
+      resultObjects.addAll(results)
     }
-
-    @JsonIgnore
-    Boolean complete
-    @JsonIgnore
-    Boolean failed
-
-    @JsonIgnore
-    Boolean isCompleted() { complete }
-
-    @JsonIgnore
-    Boolean isFailed() { failed }
   }
 
-  @ToString
-  @Immutable
-  static class DefaultTaskStatus implements Status {
-    String phase
-    String status
-    Boolean complete
-    Boolean failed
+  @Override
+  List<Object> getResultObjects() {
+    resultObjects.collect()
+  }
 
-    Boolean isCompleted() { complete }
+  private DefaultTaskStatus currentStatus() {
+    statusHistory.getLast() as DefaultTaskStatus
+  }
+}
 
-    Boolean isFailed() { failed }
+@Immutable(knownImmutableClasses = [Status])
+@CompileStatic
+class TaskDisplayStatus implements Status {
+  @JsonIgnore
+  Status taskStatus
+
+  @Override
+  String getStatus() {
+    taskStatus.status
+  }
+
+  @Override
+  String getPhase() {
+    taskStatus.phase
+  }
+
+  @JsonIgnore
+  Boolean isCompleted() { taskStatus.isCompleted() }
+
+  @JsonIgnore
+  Boolean isFailed() { taskStatus.isFailed() }
+}
+
+@Immutable
+@CompileStatic
+class DefaultTaskStatus implements Status {
+  String phase
+  String status
+
+  @JsonIgnore
+  TaskState state
+
+  Boolean isCompleted() { state.completed }
+
+  Boolean isFailed() { state.failed }
+
+  DefaultTaskStatus update(String phase, String status) {
+    ensureUpdateable()
+    new DefaultTaskStatus(phase, status, state)
+  }
+
+  DefaultTaskStatus update(TaskState state) {
+    ensureUpdateable()
+    new DefaultTaskStatus(phase, status, state)
+  }
+
+  public void ensureUpdateable() {
+    if (isCompleted()) {
+      throw new IllegalStateException("Task is already completed! No further updates allowed!")
+    }
   }
 
 }
+

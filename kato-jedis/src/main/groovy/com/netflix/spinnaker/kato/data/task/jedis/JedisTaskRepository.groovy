@@ -16,15 +16,20 @@
 
 package com.netflix.spinnaker.kato.data.task.jedis
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kato.data.task.DefaultTask
+import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Status
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskDisplayStatus
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.data.task.TaskState
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisCommands
 
 class JedisTaskRepository implements TaskRepository {
+
+  private static final TypeReference<Map<String, String>> HISTORY_TYPE = new TypeReference<Map<String, String>>() {}
 
   @Autowired
   JedisCommands jedis
@@ -34,22 +39,19 @@ class JedisTaskRepository implements TaskRepository {
   @Override
   Task create(String phase, String status) {
     String taskId = jedis.incr('taskCounter')
-    new JedisTask(taskId, phase, status, this)
+    def task = new JedisTask(taskId, System.currentTimeMillis(), this)
+    addToHistory(new DefaultTaskStatus(phase, status, TaskState.STARTED), task)
+    set(taskId, task)
+    task
   }
 
   @Override
   Task get(String id) {
     Map<String, String> taskMap = jedis.hgetAll("task:${id}")
-    JedisTask task = new JedisTask(
+    new JedisTask(
       taskMap.id,
-      taskMap.phase,
-      taskMap.status,
       Long.parseLong(taskMap.startTimeMs),
-      taskMap.complete == 'true',
-      taskMap.failed == 'true'
-    )
-    task.repository = this
-    task
+      this)
   }
 
   @Override
@@ -61,45 +63,38 @@ class JedisTaskRepository implements TaskRepository {
 
   void set(String id, JedisTask task) {
     String taskId = "task:${task.id}"
-    Status status = task.status
     jedis.hset(taskId, 'id', task.id)
-    jedis.hset(taskId, 'phase', status.phase)
-    jedis.hset(taskId, 'status', status.status)
-    jedis.hset(taskId, 'complete', status.isCompleted() as String)
-    jedis.hset(taskId, 'failed', status.isFailed() as String)
     jedis.hset(taskId, 'startTimeMs', task.startTimeMs as String)
   }
 
-  void addResultObject(Object o, JedisTask task) {
-    String resultId = "taskResult:${task.id}:${jedis.incr('taskResultCounter')}"
-    jedis.set(resultId, mapper.writeValueAsString(o))
+  void addResultObjects(List<Object> objects, JedisTask task) {
+    String resultId = "taskResult:${task.id}"
+    String[] values = objects.collect { mapper.writeValueAsString(it) }
+    jedis.rpush(resultId, values)
   }
 
   List<Object> getResultObjects(JedisTask task) {
-    List<Map> list = []
-    jedis.keys("taskResult:${task.id}:*").sort { it.split(':').last() as long }.each { key ->
-      String queryResult = jedis.get(key) as String
-      if(queryResult){
-        Map entry = mapper.readValue(queryResult, Map)
-        list << entry
-      }
-    }
-    list
+    String resultId = "taskResult:${task.id}"
+    jedis.lrange(resultId, 0, -1).collect { mapper.readValue(it, Map) }
   }
 
-  void addToHistory(String phase, String status, JedisTask task) {
-    String historyId = "taskHistory:${task.id}:${jedis.incr('taskHistoryCounter')}"
-    jedis.hset(historyId, 'phase', phase)
-    jedis.hset(historyId, 'status', status)
+  DefaultTaskStatus currentState(JedisTask task) {
+    String historyId = "taskHistory:${task.id}"
+    Map<String, String> history = mapper.readValue(jedis.lindex(historyId, -1), HISTORY_TYPE)
+    new DefaultTaskStatus(history.phase, history.status, TaskState.valueOf(history.state))
+  }
+
+  void addToHistory(DefaultTaskStatus status, JedisTask task) {
+    String historyId = "taskHistory:${task.id}"
+    jedis.rpush(historyId, mapper.writeValueAsString([phase: status.phase, status: status.status, state:status.state.toString()]))
   }
 
   List<Status> getHistory(JedisTask task) {
-    List<Status> history = []
-    jedis.keys("taskHistory:${task.id}:*").sort { it.split(':').last() as long }.each { key ->
-      Map<String, String> entry = jedis.hgetAll(key)
-      history << new DefaultTask.TaskDisplayStatus(entry.phase, entry.status)
+    String historyId = "taskHistory:${task.id}"
+    jedis.lrange(historyId, 0, -1).collect {
+      Map<String, String> history = mapper.readValue(it, HISTORY_TYPE)
+      new TaskDisplayStatus(new DefaultTaskStatus(history.phase, history.status, TaskState.valueOf(history.state)))
     }
-    history
   }
 
 }

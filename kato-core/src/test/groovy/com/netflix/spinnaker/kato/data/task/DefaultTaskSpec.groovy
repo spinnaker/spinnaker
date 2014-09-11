@@ -20,23 +20,15 @@ package com.netflix.spinnaker.kato.data.task
 import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class DefaultTaskSpec extends Specification {
 
-  @Shared
+  @Subject
   DefaultTask task
 
-  def setupSpec() {
-    resetTask()
-  }
-
-  void cleanup() {
-    resetTask()
-  }
-
-  void resetTask() {
+  def setup() {
     task = new DefaultTask("1")
-    task.updateStatus "INIT", "Starting"
   }
 
   void "status updates and appends to history"() {

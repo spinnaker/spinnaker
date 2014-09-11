@@ -23,18 +23,18 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.context.ApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 import java.util.concurrent.TimeUnit
 
 class DefaultOrchestrationProcessorSpec extends Specification {
 
-  @Shared
+  @Subject
   DefaultOrchestrationProcessor processor
 
   @Shared
   ApplicationContext applicationContext
 
-  @Shared
   TaskRepository taskRepository
 
   def setup() {

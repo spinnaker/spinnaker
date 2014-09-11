@@ -17,53 +17,44 @@
 package com.netflix.spinnaker.kato.data.task.jedis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.kato.data.task.DefaultTask
+import com.netflix.spinnaker.kato.data.task.Status
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskState
 
-class JedisTask extends DefaultTask {
+class JedisTask implements Task {
 
   @JsonIgnore
   JedisTaskRepository repository
 
-  JedisTask(String id, String phase, String status, JedisTaskRepository repository = null) {
-    super(id)
-    super.updateStatus(phase, status)
-    this.repository = repository
-    updateStatus(phase, status)
-  }
+  final String id
+  final long startTimeMs
 
-  JedisTask(String id, String phase, String status, long startTimeMs, Boolean complete, Boolean failed) {
-    super(id)
-    super.updateStatus(phase, status)
-    if (failed) {
-      this.fail()
-    }
-    if (complete && !failed) {
-      this.complete()
-    }
-    this.startTimeMs = startTimeMs
+  JedisTask(String id, long startTimeMs, JedisTaskRepository repository) {
     this.id = id
+    this.startTimeMs = startTimeMs
+    this.repository = repository
   }
 
   @Override
   void updateStatus(String phase, String status) {
-    super.updateStatus(phase, status)
-    repository?.addToHistory(phase, status, this)
-    save()
+    repository.addToHistory(repository.currentState(this).update(phase, status), this)
   }
 
   @Override
   void complete() {
-    super.complete()
-    save()
+    repository.addToHistory(repository.currentState(this).update(TaskState.COMPLETED), this)
+  }
+
+  @Override
+  void fail() {
+    repository.addToHistory(repository.currentState(this).update(TaskState.FAILED), this)
   }
 
   @Override
   public void addResultObjects(List<Object> results) {
-    if (!repository) {
-      throw new IllegalStateException("No repository found!")
-    }
-    results.each {
-      repository.addResultObject(it, this)
+    if (results) {
+      repository.currentState(this).ensureUpdateable()
+      repository.addResultObjects(results, this)
     }
   }
 
@@ -71,12 +62,12 @@ class JedisTask extends DefaultTask {
     repository.getResultObjects(this)
   }
 
-  public List<Object> getHistory() {
+  public List<Status> getHistory() {
     repository.getHistory(this)
   }
 
-  private void save() {
-    repository?.set(this.id, this)
+  @Override
+  Status getStatus() {
+    repository.currentState(this)
   }
-
 }
