@@ -41,7 +41,7 @@ class AccountHostnameFilterSpec extends Specification {
     1 * req.getRequestDispatcher("/test/applications") >> Mock(RequestDispatcher)
   }
 
-  void "hostanme matches that already have the account pattner don't forward"() {
+  void "hostname matches that already have the account partner don't forward"() {
     setup:
     def req = Mock(HttpServletRequest)
     def res = Mock(HttpServletResponse)
