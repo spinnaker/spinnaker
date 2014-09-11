@@ -48,25 +48,17 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     }.subscribe {
       thisRun.put(it.groupId, it.hashCode())
 
-      Map<String, SecurityGroupRule> rules = [:]
-      List<IpRangeRule> ipRangeRules = []
+      Map<String, Map> rules = [:]
+      Map<String, Map> ipRangeRules = [:]
 
       it.ipPermissions.each { permission ->
         addIpRangeRules(permission, ipRangeRules)
         addSecurityGroupRules(permission, rules)
       }
 
-      List<SecurityGroupRule> securityGroupRules = rules.values().collect { rule ->
-        new SecurityGroupRule(
-            securityGroup: rule.securityGroup,
-            portRanges: rule.portRanges,
-            protocol: rule.protocol
-        )
-      }.sort()
-
       List<Rule> inboundRules = []
-      inboundRules.addAll securityGroupRules
-      inboundRules.addAll ipRangeRules
+      inboundRules.addAll buildSecurityGroupRules(rules)
+      inboundRules.addAll buildIpRangeRules(ipRangeRules)
 
       cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account),
         new AmazonSecurityGroup(
@@ -82,7 +74,30 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     lastRun = thisRun
   }
 
-  private void addSecurityGroupRules(IpPermission permission, Map<String, SecurityGroupRule> rules) {
+  private List<IpRangeRule> buildIpRangeRules(LinkedHashMap<String, Map> ipRangeRules) {
+    List<IpRangeRule> rangeRules = ipRangeRules.values().collect { rule ->
+      new IpRangeRule(
+          range: rule.range,
+          protocol: rule.protocol,
+          portRanges: rule.portRanges
+      )
+
+    }.sort()
+    rangeRules
+  }
+
+  private List<SecurityGroupRule> buildSecurityGroupRules(LinkedHashMap<String, Map> rules) {
+    List<SecurityGroupRule> securityGroupRules = rules.values().collect { rule ->
+      new SecurityGroupRule(
+          securityGroup: rule.securityGroup,
+          portRanges: rule.portRanges,
+          protocol: rule.protocol
+      )
+    }.sort()
+    securityGroupRules
+  }
+
+  private void addSecurityGroupRules(IpPermission permission, Map<String, Map> rules) {
     permission.userIdGroupPairs.each { sg ->
       if (!rules.containsKey(sg.groupId)) {
         rules.put(sg.groupId, [
@@ -94,21 +109,24 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
                     accountName: account,
                     region: region
                 ),
-            portRanges   : [] as SortedSet])
+            portRanges   : [] as SortedSet
+        ])
       }
-      rules.get(sg.groupId).portRanges += [new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)]
+      rules.get(sg.groupId).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
     }
   }
 
-  private void addIpRangeRules(IpPermission permission, List<IpRangeRule> ipRangeRules) {
+  private void addIpRangeRules(IpPermission permission, Map<String, Map> rules) {
     permission.ipRanges.each { ipRange ->
-      def rangeParts = ipRange.split('/')
-      ipRangeRules << new IpRangeRule(
-          range: new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
-          protocol: permission.ipProtocol,
-          portRanges: [new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)] as SortedSet
-      )
+      if (!rules.containsKey(ipRange)) {
+        def rangeParts = ipRange.split('/')
+        rules.put(ipRange, [
+            range: new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
+            protocol: permission.ipProtocol,
+            portRanges: [] as SortedSet
+        ])
+      }
+      rules.get(ipRange).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
     }
-    ipRangeRules.sort()
   }
 }

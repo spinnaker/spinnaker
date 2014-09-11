@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
+import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
@@ -157,6 +158,48 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     ipRangeRules.range.ip == ['0.0.0.0', '0.0.0.1']
     ipRangeRules.range.cidr == ['/32', '/31']
 
+  }
+
+  void "should group ipRangeRules by addressable range"() {
+    given:
+    SecurityGroup group = new SecurityGroup(
+        groupId: 'id-a',
+        groupName: 'name-a',
+        description: 'a',
+        ipPermissions: [
+            new IpPermission(
+                ipProtocol: 'tcp',
+                fromPort: 7001,
+                toPort: 8080,
+                ipRanges: ['0.0.0.0/32']
+            ),
+            new IpPermission(
+                ipProtocol: 'tcp',
+                fromPort: 7000,
+                toPort: 8000,
+                ipRanges: ['0.0.0.0/32', '0.0.0.1/31']
+            )
+        ])
+
+    AmazonSecurityGroup cachedValue
+
+    DescribeSecurityGroupsResult describeResult = Mock(DescribeSecurityGroupsResult)
+
+    when:
+    agent.call()
+
+    then:
+    1 * ec2.describeSecurityGroups() >> describeResult
+    1 * describeResult.getSecurityGroups() >> [group]
+    1 * cacheService.put(Keys.getSecurityGroupKey(group.groupName, group.groupId, region, account), _) >> { args -> cachedValue = args[1] }
+    cachedValue.inboundRules.size() == 2
+    cachedValue.inboundRules.protocol == ['tcp', 'tcp']
+    cachedValue.inboundRules.range.ip == ['0.0.0.0', '0.0.0.1']
+    cachedValue.inboundRules.range.cidr == ['/32', '/31']
+    cachedValue.inboundRules[0].portRanges.startPort == [7000, 7001]
+    cachedValue.inboundRules[0].portRanges.endPort == [8000, 8080]
+    cachedValue.inboundRules[1].portRanges.startPort == [7000]
+    cachedValue.inboundRules[1].portRanges.endPort == [8000]
   }
 
   @Shared
