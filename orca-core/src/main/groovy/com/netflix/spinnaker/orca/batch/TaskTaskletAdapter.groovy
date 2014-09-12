@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -62,6 +63,9 @@ class TaskTaskletAdapter implements Tasklet {
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
     contribution.exitStatus = batchStepStatus.exitStatus
+    if (contribution.exitStatus == ExitStatus.FAILED) {
+      chunkContext.stepContext.stepExecution.setTerminateOnly()
+    }
     return batchStepStatus.repeatStatus
   }
 }

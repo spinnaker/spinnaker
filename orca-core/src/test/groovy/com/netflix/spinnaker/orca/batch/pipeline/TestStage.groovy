@@ -77,7 +77,7 @@ class TestStage extends LinearStage {
       @Override
       ExitStatus afterStep(StepExecution stepExecution) {
         pipelineMonitor.endTask()
-        if (last) {
+        if (last || stepExecution.isTerminateOnly()) {
           pipelineMonitor.endStage(name)
         }
         return stepExecution.exitStatus

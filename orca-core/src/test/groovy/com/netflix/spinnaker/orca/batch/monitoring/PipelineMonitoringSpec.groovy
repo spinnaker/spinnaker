@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
-import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -91,13 +90,6 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
 
     where:
     stageName = "foo"
-  }
-
-  private Pipeline startPipeline(String... stageNames) {
-    def json = mapper.writeValueAsString stageNames.collect {
-      [type: it]
-    }
-    pipelineStarter.start json
   }
 
 }
