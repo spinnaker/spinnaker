@@ -94,11 +94,11 @@ angular.module('deckApp')
           },
           securityGroups: securityGroupService.getAllSecurityGroups,
           subnets: mortService.listSubnets,
-          accounts: accountService.listAccounts,
           packageImages: function() {
             return searchService.search({q: serverGroup.buildInfo.package_name, type: 'namedImages', pageSize: 100000000})
               .then(function(result) { return result.data[0].results; });
-          }
+          },
+          regionsKeyedByAccount: accountService.getRegionsKeyedByAccount
         }
       });
     };
