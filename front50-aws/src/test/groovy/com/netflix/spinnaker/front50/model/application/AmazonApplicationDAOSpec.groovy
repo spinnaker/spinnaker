@@ -223,4 +223,22 @@ class AmazonApplicationDAOSpec extends Specification {
     apps != null
     apps.size() == 2
   }
+
+  void 'should continue to query while the response contains a nextToken'() {
+    setup:
+    def awsClient = Mock(AmazonSimpleDB)
+    def dao = new AmazonApplicationDAO(awsSimpleDBClient: awsClient, domain: 'bacon')
+
+    when:
+    def results = dao.all()
+
+    then:
+    2 * awsClient.select(_) >>> [new SelectResult().withNextToken('tok').withItems(new Item(name: 'i1', attributes: [new Attribute(name:  'description', value: 'v1')])),
+                                 new SelectResult().withNextToken(null).withItems(new Item(name: 'i2', attributes: [new Attribute(name: 'description', value: 'v1')])),]
+    0 * _
+
+    results.size() == 2
+    results.find { it.name == 'i1' }
+    results.find { it.name == 'i2'}
+  }
 }
