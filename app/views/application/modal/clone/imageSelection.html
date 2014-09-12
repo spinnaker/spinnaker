@@ -51,7 +51,7 @@
         <div class="col-md-4 text-right"><b>Image</b></div>
         <div class="col-md-6">
           <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an instance type">
-            <option ng-repeat="image in images" value="{{image}}">{{image}}</option>
+            <option ng-repeat="image in images" value="{{image.imageName}}">{{image.imageName}}</option>
           </select>
         </div>
       </div>
