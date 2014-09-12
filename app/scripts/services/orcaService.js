@@ -105,16 +105,12 @@ angular.module('deckApp')
     }
 
     function cloneServerGroup(command, applicationName) {
+      command.asgName = command.source.asgName;
+      command.type = 'copyLastAsg';
+      command.user = 'deckUser';
       return executeTask({
         job: [
-          {
-            // make consistent with orca input
-            asgName: command.source.asgName,
-            type: 'copyLastAsg',
-            regions: [command.region],
-            credentials: command.credentials,
-            user: 'deckUser'
-          }
+          command
         ],
         application: applicationName,
         description: 'Copy ASG: ' + command.source.asgName

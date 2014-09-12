@@ -26,6 +26,19 @@ angular.module('deckApp')
       return deferred.promise;
     }
 
+    function getRegionsKeyedByAccount() {
+      var deferred = $q.defer();
+      listAccounts().then(function(accounts) {
+        $q.all(accounts.reduce(function(acc, account) {
+          acc[account] = credentialsEndpoint.all('credentials').one(account).get();
+          return acc;
+        }, {})).then(function(result) {
+          deferred.resolve(result);
+        });
+      });
+      return deferred.promise;
+    }
+
     function getAccountDetails(accountName) {
       var deferred = $q.defer();
       if (detailsCache[accountName]) {
@@ -53,6 +66,7 @@ angular.module('deckApp')
       challengeDestructiveActions: challengeDestructiveActions,
       listAccounts: listAccounts,
       getAccountDetails: getAccountDetails,
-      getRegionsForAccount: getRegionsForAccount
+      getRegionsForAccount: getRegionsForAccount,
+      getRegionsKeyedByAccount: getRegionsKeyedByAccount
     };
   });

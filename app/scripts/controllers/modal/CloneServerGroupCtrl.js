@@ -6,19 +6,17 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('CloneServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, mortService,
                                                searchService, instanceTypeService, serverGroup, loadBalancers,
-                                               securityGroups, subnets, accounts, packageImages, _) {
+                                               securityGroups, subnets, regionsKeyedByAccount, packageImages, _) {
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
-    $scope.accounts = accounts;
-
-    $scope.sgs = serverGroup.launchConfig.securityGroups;
+    $scope.accounts = _.keys(regionsKeyedByAccount);
+    $scope.regionsKeyedByAccount = regionsKeyedByAccount;
 
     $scope.subnets = subnets;
 
     var populateRegionalSecurityGroups = function() {
       $scope.regionalSecurityGroups = securityGroups[$scope.command.credentials].aws[$scope.command.region];
     };
-
 
     $scope.command = {};
     if (serverGroup) {
@@ -77,6 +75,16 @@ angular.module('deckApp')
       }
     }
 
+    var populateRegions = function() {
+      $scope.regions = regionsKeyedByAccount[$scope.command.credentials].regions;
+    };
+    populateRegions();
+
+    var populateRegionalAvailabilityZones = function() {
+      $scope.regionalAvailabilityZones = _.find(regionsKeyedByAccount[$scope.command.credentials].regions, {'name': $scope.command.region}).availabilityZones;
+    };
+    populateRegionalAvailabilityZones();
+
     var populateRegionalImages = function() {
       $scope.images = _(packageImages)
         .filter({'region': $scope.command.region})
@@ -84,20 +92,6 @@ angular.module('deckApp')
         .valueOf();
     };
     populateRegionalImages();
-
-    var populateRegionalAvailabilityZones = function() {
-      $scope.regionalAvailabilityZones = _($scope.regions)
-        .find({'name': $scope.command.region})
-        .availabilityZones;
-    };
-
-    var populateRegions = function() {
-      accountService.getRegionsForAccount($scope.command.credentials).then(function (result) {
-        $scope.regions = result;
-        populateRegionalAvailabilityZones();
-      });
-    };
-    populateRegions();
 
     var populateRegionalSubnetPurposes = function() {
       $scope.regionSubnetPurposes = _(subnets)
@@ -135,8 +129,8 @@ angular.module('deckApp')
     });
 
     var onRegionChange = function() {
-      populateRegionalSubnetPurposes();
       populateRegionalAvailabilityZones();
+      populateRegionalSubnetPurposes();
       populateRegionalLoadBalancers();
       populateRegionalSecurityGroups();
       populateRegionalAvailableTypes();
@@ -160,11 +154,11 @@ angular.module('deckApp')
       command.loadBalancers = loadBalancers;
       command.securityGroups = securityGroupNames;
       $scope.sentCommand = command;
-//      orcaService.cloneServerGroup(command)
-//        .then(function (response) {
-//          $modalInstance.close();
-//          console.warn('task:', response.ref);
-//        });
+      orcaService.cloneServerGroup(command)
+        .then(function (response) {
+          $modalInstance.close();
+          console.warn('task:', response.ref);
+        });
     };
 
     this.cancel = function () {
