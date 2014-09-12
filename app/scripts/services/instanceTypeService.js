@@ -182,26 +182,18 @@ angular.module('deckApp')
       return deferred.promise;
     }
 
-    var regionTypesCache = null;
-
     function getAllTypesByRegion() {
-      var deferred = $q.defer();
-      if (regionTypesCache) {
-        deferred.resolve(regionTypesCache);
-      } else {
-        $http({ url: settings.awsMetadataUrl + '/instanceType'}).then(function(response) {
-          regionTypesCache = response.data;
-          deferred.resolve(response.data);
-        });
-      }
-      return deferred.promise;
+      return $http({ 
+        url: settings.awsMetadataUrl + '/instanceType',
+        cache: true,
+      });
     }
 
     function getAvailableTypesForRegions(selectedRegions) {
       selectedRegions = selectedRegions || [];
       return getAllTypesByRegion().then(function(instanceTypes) {
         var availableTypes = [];
-        instanceTypes.forEach(function(instanceType) {
+        instanceTypes.data.forEach(function(instanceType) {
           if (_.intersection(selectedRegions, instanceType.regions).length === selectedRegions.length) {
             availableTypes.push(instanceType.name);
           }
@@ -217,15 +209,10 @@ angular.module('deckApp')
       });
     }
 
-    function clearCache() {
-      regionTypesCache = null;
-    }
-
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAvailableRegionsForType: getAvailableRegionsForType,
-      clearCache: clearCache
     };
   }
 );
