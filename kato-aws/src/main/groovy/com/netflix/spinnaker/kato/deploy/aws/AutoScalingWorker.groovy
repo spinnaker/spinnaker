@@ -228,7 +228,6 @@ class AutoScalingWorker {
     CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
       .withImageId(ami)
       .withIamInstanceProfile(iamRole)
-      .withInstanceMonitoring(new InstanceMonitoring().withEnabled(true))
       .withLaunchConfigurationName(name)
       .withUserData(userData)
       .withInstanceType(instanceType)
@@ -297,8 +296,6 @@ class AutoScalingWorker {
       .withMinSize(minInstances)
       .withMaxSize(maxInstances)
       .withDesiredCapacity(desiredInstances)
-      .withDefaultCooldown(10)
-      .withHealthCheckGracePeriod(600)
       .withLoadBalancerNames(loadBalancers)
 
     // Favor subnetIds over availability zones
