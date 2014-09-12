@@ -48,18 +48,20 @@ angular.module('deckApp')
         }
       });
       application.serverGroups.forEach(function(serverGroup) {
-        serverGroup.launchConfig.securityGroups.forEach(function(securityGroupId) {
-          var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
-          if (!securityGroup) {
-            $exceptionHandler('could not find:', serverGroup.name, securityGroupId);
-          } else {
-            if (!securityGroup.usages) {
-              securityGroup.usages = { serverGroups: [], loadBalancers: [] };
+        if (serverGroup.launchConfig) {
+          serverGroup.launchConfig.securityGroups.forEach(function (securityGroupId) {
+            var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
+            if (!securityGroup) {
+              $exceptionHandler('could not find:', serverGroup.name, securityGroupId);
+            } else {
+              if (!securityGroup.usages) {
+                securityGroup.usages = { serverGroups: [], loadBalancers: [] };
+              }
+              securityGroup.usages.serverGroups.push(serverGroup);
+              applicationSecurityGroups.push(securityGroup);
             }
-            securityGroup.usages.serverGroups.push(serverGroup);
-            applicationSecurityGroups.push(securityGroup);
-          }
-        });
+          });
+        }
       });
 
       application.securityGroups = _.unique(applicationSecurityGroups);
