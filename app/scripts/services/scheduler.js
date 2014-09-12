@@ -14,6 +14,7 @@ angular.module('deckApp')
       });
 
     return {
+      get: function() { return scheduler; },
       subscribe: scheduler.subscribe.bind(scheduler),
       scheduleImmediate: scheduler.onNext.bind(scheduler),
       scheduleOnCompletion: function(promise) {

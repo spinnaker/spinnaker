@@ -20,6 +20,8 @@ module.exports = function(config) {
       '.tmp/scripts/templates.js',
       'dist/scripts/settings/settings.js',
       'node_modules/angular-mocks/angular-mocks.js',
+      'node_modules/rx/dist/rx.all.js',
+      'test/poly/**/*.js',
       'test/mock/**/*.js',
       'test/spec/**/*.js'
     ],

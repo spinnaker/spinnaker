@@ -6,24 +6,13 @@ var angular = require('angular');
 angular.module('deckApp')
   .factory('accountService', function(settings, Restangular, $q) {
 
-    var detailsCache = {},
-        credentialsCache = [];
-
     var credentialsEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
+      RestangularConfigurer.setDefaultHttpFields({ cache: true });
       RestangularConfigurer.setBaseUrl(settings.credentialsUrl);
     });
 
     function listAccounts() {
-      var deferred = $q.defer();
-      if (credentialsCache.length) {
-        deferred.resolve(credentialsCache);
-      } else {
-        credentialsEndpoint.all('credentials').getList().then(function(list) {
-          credentialsCache = list;
-          deferred.resolve(list);
-        });
-      }
-      return deferred.promise;
+      return credentialsEndpoint.all('credentials').getList();
     }
 
     function getRegionsKeyedByAccount() {
@@ -40,16 +29,7 @@ angular.module('deckApp')
     }
 
     function getAccountDetails(accountName) {
-      var deferred = $q.defer();
-      if (detailsCache[accountName]) {
-        deferred.resolve(detailsCache[accountName]);
-      } else {
-        credentialsEndpoint.one('credentials', accountName).get().then(function(details) {
-          detailsCache[accountName] = details;
-          deferred.resolve(details);
-        });
-      }
-      return deferred.promise;
+      credentialsEndpoint.one('credentials', accountName).get();
     }
 
     function getRegionsForAccount(accountName) {
