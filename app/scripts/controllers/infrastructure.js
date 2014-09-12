@@ -17,11 +17,10 @@ angular.module('deckApp')
     });
 
     this.hasResults = function() {
-      return Object.keys($scope.categories).length > 0 && $scope.query.length > 0;
+      return angular.isObject($scope.categories) && Object.keys($scope.categories).length > 0 && $scope.query.length > 0;
     };
 
     this.noMatches = function() {
-      return angular.isObject($scope.categories) && Object.keys($scope.categories).length === 0 && $scope.query.length > 0;
-
+      return angular.isObject($scope.categories) && Object.keys($scope.categories).length === 0 && $scope.query && $scope.query.length > 0;
     };
   });
