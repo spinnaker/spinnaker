@@ -115,6 +115,15 @@ class AmazonApplicationDAO implements ApplicationDAO {
   }
 
   private List<Item> query(String query) {
-    awsSimpleDBClient.select(new SelectRequest(query)).getItems()
+    List<Item> results = []
+    String nextToken = null
+    while (true) {
+      def result = awsSimpleDBClient.select(new SelectRequest(query).withNextToken(nextToken))
+      results += result.items
+      nextToken = result.nextToken
+      if (!nextToken) {
+        return results
+      }
+    }
   }
 }
