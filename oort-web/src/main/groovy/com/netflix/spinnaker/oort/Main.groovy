@@ -48,10 +48,10 @@ import javax.servlet.Filter
 class Main extends SpringBootServletInitializer {
 
   static {
-    //imposeSpinnakerFileConfig("oort-internal.yml")
-    //imposeSpinnakerFileConfig("oort-local.yml")
-    //imposeSpinnakerClasspathConfig("oort-internal.yml")
-    //imposeSpinnakerClasspathConfig("oort-local.yml")
+    imposeSpinnakerFileConfig("oort-internal.yml")
+    imposeSpinnakerFileConfig("oort-local.yml")
+    imposeSpinnakerClasspathConfig("oort-internal.yml")
+    imposeSpinnakerClasspathConfig("oort-local.yml")
   }
 
   static void main(_) {
