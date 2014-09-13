@@ -2,54 +2,54 @@
 <div>
   <form role="form" class="container-fluid form-horizontal">
     <div class="modal-header">
-      <h3>Clone {{command.source.asgName}}</h3>
+      <h3>{{title}}</h3>
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Account</b></div>
-        <div class="col-md-6">
+        <div class="col-md-3 sm-label-left"><b>Application</b></div>
+        <div class="col-md-9"><input type="text"
+                                     class="form-control input-sm"
+                                     ng-model="command.application"/></div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-left"><b>Account</b></div>
+        <div class="col-md-9">
           <select ui-select2 class="form-control input-sm" ng-model="command.credentials" data-placeholder="Pick an account">
             <option ng-repeat="account in accounts" value="{{account}}">{{account}}</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Region</b></div>
-        <div class="col-md-6">
+        <div class="col-md-3 sm-label-left"><b>Region</b></div>
+        <div class="col-md-9">
           <select ui-select2 class="form-control input-sm" ng-model="command.region" data-placeholder="Pick a region">
             <option ng-repeat="region in regions" value="{{region.name}}">{{region.name}}</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>VPC</b></div>
-        <div class="col-md-6">
+        <div class="col-md-3 sm-label-left"><b>VPC</b></div>
+        <div class="col-md-9">
           <select ui-select2 class="form-control input-sm" ng-model="command.subnetType">
             <option ng-repeat="subnetPurpose in regionSubnetPurposes" value="{{subnetPurpose}}">{{subnetPurpose}}</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Application</b></div>
-        <div class="col-md-6"><input type="text"
-                                     class="form-control input-sm"
-                                     ng-model="command.application"/></div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-4 text-right"><b>Stack</b></div>
-        <div class="col-md-6"><input type="text"
+        <div class="col-md-3 sm-label-left"><b>Stack</b></div>
+        <div class="col-md-9"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.stack"/></div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Detail</b></div>
-        <div class="col-md-6"><input type="text"
+        <div class="col-md-3 sm-label-left"><b>Detail</b></div>
+        <div class="col-md-9"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.freeFormDetails"/></div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Image</b></div>
-        <div class="col-md-6">
+        <div class="col-md-3 sm-label-left"><b>Image</b></div>
+        <div class="col-md-9">
           <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an instance type">
             <option ng-repeat="image in images" value="{{image.imageName}}">{{image.imageName}}</option>
           </select>

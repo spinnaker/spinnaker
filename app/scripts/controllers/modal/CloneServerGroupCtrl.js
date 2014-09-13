@@ -6,7 +6,8 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('CloneServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, mortService,
                                                searchService, instanceTypeService, serverGroup, loadBalancers,
-                                               securityGroups, subnets, regionsKeyedByAccount, packageImages, _) {
+                                               securityGroups, subnets, regionsKeyedByAccount, packageImages,
+                                               application, _) {
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
     $scope.accounts = _.keys(regionsKeyedByAccount);
@@ -18,12 +19,12 @@ angular.module('deckApp')
       $scope.regionalSecurityGroups = securityGroups[$scope.command.credentials].aws[$scope.command.region];
     };
 
-    $scope.command = {};
     if (serverGroup) {
+      $scope.title = 'Clone ' + serverGroup.asg.autoScalingGroupName;
       var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
       var match = asgNameRegex.exec(serverGroup.asg.autoScalingGroupName);
       $scope.command = {
-        'application': match[1],
+        'application': application.name,
         'stack': match[4],
         'freeFormDetails': match[7],
         'credentials': serverGroup.account,
@@ -73,6 +74,15 @@ angular.module('deckApp')
           $scope.command.securityGroups = serverGroup.launchConfig.securityGroups;
         }
       }
+    } else {
+      $scope.title = 'Create ASG';
+      $scope.command = {
+        'application': application.name,
+        'credentials': 'test',
+        'region': 'us-east-1',
+        'capacity': {},
+        'source': {}
+      };
     }
 
     var populateRegions = function() {

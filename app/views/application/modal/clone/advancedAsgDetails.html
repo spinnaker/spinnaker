@@ -1,18 +1,18 @@
 <div>
   <form role="form" class="container-fluid form-horizontal">
     <div class="modal-header">
-      <h3>Clone {{command.source.asgName}}</h3>
+      <h3>{{title}}</h3>
     </div>
 
     <div class="modal-body">
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Cooldown</b></div>
+        <div class="col-md-5 sm-label-left"><b>Cooldown</b></div>
         <div class="col-md-2"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.cooldown"/></div>&nbsp;seconds
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Health Check Type</b></div>
+        <div class="col-md-5 sm-label-left"><b>Health Check Type</b></div>
         <div class="col-md-6">
           <select ui-select2 class="form-control input-sm" ng-model="command.healthCheckType">
             <option ng-repeat="healthCheckType in healthCheckTypes" value="{{healthCheckType}}">{{healthCheckType}}</option>
@@ -20,13 +20,13 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Health Check Grace Period</b></div>
+        <div class="col-md-5 sm-label-left"><b>Health Check Grace Period</b></div>
         <div class="col-md-2"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.healthCheckGracePeriod"/></div>&nbsp;seconds
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Termination Policies</b></div>
+        <div class="col-md-5 sm-label-left"><b>Termination Policies</b></div>
         <div class="col-md-6">
           <select ui-select2 class="form-control input-sm" ng-model="command.terminationPolicies">
             <option ng-repeat="terminationPolicy in terminationPolicies" value="{{terminationPolicy}}">{{terminationPolicy}}</option>
@@ -35,36 +35,36 @@
       </div>
 
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Key Name</b></div>
+        <div class="col-md-5 sm-label-left"><b>Key Name</b></div>
         <div class="col-md-6"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.keyPair"/></div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Ramdisk Id</b></div>
+        <div class="col-md-5 sm-label-left"><b>Ramdisk Id</b></div>
         <div class="col-md-6"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.ramdiskId"/></div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>IAM Instance Profile</b></div>
+        <div class="col-md-5 sm-label-left"><b>IAM Instance Profile</b></div>
         <div class="col-md-6"><input type="text"
                                      class="form-control input-sm"
                                      ng-model="command.iamRole"/></div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Instance Monitoring</b></div>
-        <div class="col-md-3">
+        <div class="col-md-5 sm-label-left"><b>Instance Monitoring</b></div>
+        <div class="col-md-2">
           <input type="radio" ng-model="command.instanceMonitoring" ng-value="true" id="instanceMonitoringIsEnabledTrue"/>
           &nbsp;<label for="instanceMonitoringIsEnabledTrue" class="choice">Enabled</label>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <input type="radio" ng-model="command.instanceMonitoring" ng-value="false" id="instanceMonitoringIsEnabledFalse"/>
           &nbsp;<label for="instanceMonitoringIsEnabledFalse" class="choice">Disabled</label>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>EBS Optimized</b></div>
+        <div class="col-md-5 sm-label-left"><b>EBS Optimized</b></div>
         <div class="col-md-2">
           <input type="radio" ng-model="command.ebsOptimized" ng-value="true" id="ebsOptimizedTrue"/>
           &nbsp;<label for="ebsOptimizedTrue" class="choice">Yes</label>
@@ -75,7 +75,7 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 text-right"><b>Associate Public IP Address</b></div>
+        <div class="col-md-5 sm-label-left"><b>Associate Public IP Address</b></div>
         <div class="col-md-2">
           <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
           &nbsp;<label for="associatePublicIpAddressTrue" class="choice">Yes</label>
