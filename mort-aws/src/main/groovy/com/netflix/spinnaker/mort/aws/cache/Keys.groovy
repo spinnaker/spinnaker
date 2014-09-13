@@ -42,15 +42,15 @@ class Keys {
     switch (parts[0]) {
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[1])
-        result = [application: names.app, name: parts[1], id: parts[2], region: parts[3], account: parts[4]]
+        result = [application: names.app, name: parts[1], id: parts[2], region: parts[3], account: parts[4], vpcId: parts[5]]
         break
     }
     result.type = parts[0]
     result
   }
 
-  static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String region, String account) {
-    "${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String region, String account, String vpcId) {
+    "${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
   }
 
   static String getSubnetKey(String subnetId, String region, String account) {

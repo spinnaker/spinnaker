@@ -64,8 +64,8 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> describeResult
     1 * describeResult.getSecurityGroups() >> initialGroups
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account), _)
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
     0 * _
   }
 
@@ -80,7 +80,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> initialDescribe
     1 * initialDescribe.getSecurityGroups() >> [securityGroupA]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null), _)
     0 * _
 
     when:
@@ -89,7 +89,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> secondDescribe
     1 * secondDescribe.getSecurityGroups() >> [securityGroupB]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
     0 * _
   }
 
@@ -104,8 +104,8 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> initialDescribe
     1 * initialDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account), _)
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
     0 * _
 
     when:
@@ -115,7 +115,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> secondDescribe
     1 * secondDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account), _)
+    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
     0 * _
   }
 
@@ -149,7 +149,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> describeResult
     1 * describeResult.getSecurityGroups() >> [mixedRangedGroupA]
-    1 * cacheService.put(Keys.getSecurityGroupKey(mixedRangedGroupA.groupName, mixedRangedGroupA.groupId, region, account), _) >> { args -> cachedValue = args[1] }
+    1 * cacheService.put(Keys.getSecurityGroupKey(mixedRangedGroupA.groupName, mixedRangedGroupA.groupId, region, account, null), _) >> { args -> cachedValue = args[1] }
     cachedValue.inboundRules.size() == 3
     securityGroupRules.size() == 1
     ipRangeRules.size() == 2
@@ -191,7 +191,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeSecurityGroups() >> describeResult
     1 * describeResult.getSecurityGroups() >> [group]
-    1 * cacheService.put(Keys.getSecurityGroupKey(group.groupName, group.groupId, region, account), _) >> { args -> cachedValue = args[1] }
+    1 * cacheService.put(Keys.getSecurityGroupKey(group.groupName, group.groupId, region, account, null), _) >> { args -> cachedValue = args[1] }
     cachedValue.inboundRules.size() == 2
     cachedValue.inboundRules.protocol == ['tcp', 'tcp']
     cachedValue.inboundRules.range.ip == ['0.0.0.0', '0.0.0.1']

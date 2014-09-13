@@ -75,7 +75,7 @@ class SecurityGroupController {
       if (!objs[obj.type].containsKey(obj.region)) {
         objs[obj.type][obj.region] = sortedTreeSet
       }
-      objs[obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id)
+      objs[obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
       objs
     }) toBlocking() first()
   }
@@ -91,7 +91,7 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.type)) {
         objs[obj.type] = sortedTreeSet
       }
-      objs[obj.type] << new SecurityGroupSummary(obj.name, obj.id)
+      objs[obj.type] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
       objs
     }) toBlocking() first()
   }
@@ -106,7 +106,7 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.region)) {
         objs[obj.region] = sortedTreeSet
       }
-      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id)
+      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
       objs
     }) toBlocking() first()
   }
@@ -119,7 +119,7 @@ class SecurityGroupController {
     } flatMap {
       rx.Observable.from(it.getAllByAccountAndRegion(account, region))
     } reduce(sortedTreeSet, { Set objs, SecurityGroup obj ->
-      objs << new SecurityGroupSummary(obj.name, obj.id)
+      objs << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
       objs
     }) toBlocking() first()
   }
@@ -135,7 +135,7 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.region)) {
         objs[obj.region] = sortedTreeSet
       }
-      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id)
+      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
       objs
     }) toBlocking() first()
     }
@@ -156,5 +156,6 @@ class SecurityGroupController {
   private static class SecurityGroupSummary {
     String name
     String id
+    String vpcId
   }
 }

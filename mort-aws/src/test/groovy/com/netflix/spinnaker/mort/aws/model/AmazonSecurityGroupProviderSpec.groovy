@@ -191,6 +191,6 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   }
 
   private String makeKey(AmazonSecurityGroup securityGroup) {
-    Keys.getSecurityGroupKey(securityGroup.name, securityGroup.id, securityGroup.region, securityGroup.accountName)
+    Keys.getSecurityGroupKey(securityGroup.name, securityGroup.id, securityGroup.region, securityGroup.accountName, securityGroup.vpcId)
   }
 }

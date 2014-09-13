@@ -60,7 +60,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       inboundRules.addAll buildSecurityGroupRules(rules)
       inboundRules.addAll buildIpRangeRules(ipRangeRules)
 
-      cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account),
+      cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account, it.vpcId),
         new AmazonSecurityGroup(
           id: it.groupId,
           vpcId: it.vpcId,
