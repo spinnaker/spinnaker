@@ -63,6 +63,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account),
         new AmazonSecurityGroup(
           id: it.groupId,
+          vpcId: it.vpcId,
           name: it.groupName,
           description: it.description,
           accountName: account,

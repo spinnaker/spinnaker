@@ -29,6 +29,7 @@ class AmazonSecurityGroup implements SecurityGroup {
   final String type = "aws"
   final String id
   final String name
+  final String vpcId
   final String description
   final String application
   final String accountName
