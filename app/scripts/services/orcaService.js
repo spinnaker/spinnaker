@@ -88,6 +88,18 @@ angular.module('deckApp')
       });
     }
 
+    function upsertSecurityGroup(securityGroup, applicationName) {
+      securityGroup.type = 'upsertSecurityGroup';
+      securityGroup.user = 'deckUser';
+      return executeTask({
+        job: [
+          securityGroup
+        ],
+        application: applicationName,
+        description: 'Upserting Security Group: ' + securityGroup.name
+      });
+    }
+
     function terminateInstance(instance, applicationName) {
       return executeTask({
         job: [
@@ -123,6 +135,7 @@ angular.module('deckApp')
       disableServerGroup: disableServerGroup,
       enableServerGroup: enableServerGroup,
       resizeServerGroup: resizeServerGroup,
-      terminateInstance: terminateInstance
+      terminateInstance: terminateInstance,
+      upsertSecurityGroup: upsertSecurityGroup
     };
   });

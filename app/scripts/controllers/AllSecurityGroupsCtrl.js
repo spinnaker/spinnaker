@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('AllSecurityGroupsCtrl', function($scope, application, _) {
+  .controller('AllSecurityGroupsCtrl', function($scope, application, _, $modal) {
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -48,6 +48,24 @@ angular.module('deckApp')
         return matchesFilter(filter, securityGroup);
       });
     }
+
+    this.createSecurityGroup = function createSecurityGroup() {
+      $modal.open({
+        templateUrl: 'views/application/modal/createSecurityGroup.html',
+        controller: 'CreateSecurityGroupCtrl as ctrl',
+        resolve: {
+          securityGroup: function() {
+            return {
+              credentials: 'test',
+              subnet: 'none',
+              vpcId: null,
+              securityGroupIngress: []
+            };
+          },
+          applicationName: function() { return application.name; }
+        }
+      });
+    };
 
     function updateSecurityGroups() {
       $scope.$evalAsync(function() {

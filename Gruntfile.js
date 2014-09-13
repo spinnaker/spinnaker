@@ -96,7 +96,6 @@ module.exports = function (grunt) {
       },
       livereload: {
         options: {
-          open: true,
           middleware: function (connect) {
             return [
               connect.static('.tmp'),
