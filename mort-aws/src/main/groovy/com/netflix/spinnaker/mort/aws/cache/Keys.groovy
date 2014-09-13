@@ -21,7 +21,8 @@ import com.netflix.frigga.Names
 class Keys {
   static enum Namespace {
     SECURITY_GROUPS,
-    SUBNETS
+    SUBNETS,
+    VPCS
 
     final String ns
 
@@ -44,6 +45,12 @@ class Keys {
         def names = Names.parseName(parts[1])
         result = [application: names.app, name: parts[1], id: parts[2], region: parts[3], account: parts[4], vpcId: parts[5]]
         break
+      case Namespace.VPCS.ns:
+        result = [id: parts[1], account: parts[2], region: parts[3]]
+        break
+      case Namespace.SUBNETS.ns:
+        result = [id: parts[1], account: parts[2], region: parts[3]]
+        break
     }
     result.type = parts[0]
     result
@@ -55,5 +62,9 @@ class Keys {
 
   static String getSubnetKey(String subnetId, String region, String account) {
       "${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
+  }
+
+  static String getVpcKey(String vpcId, String region, String account) {
+    "${Namespace.VPCS}:${vpcId}:${account}:${region}"
   }
 }

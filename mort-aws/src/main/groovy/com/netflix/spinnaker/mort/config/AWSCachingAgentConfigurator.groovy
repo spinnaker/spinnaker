@@ -21,6 +21,7 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.mort.aws.cache.AmazonSecurityGroupCachingAgent
 import com.netflix.spinnaker.mort.aws.cache.AmazonSubnetCachingAgent
+import com.netflix.spinnaker.mort.aws.cache.AmazonVpcCachingAgent
 import com.netflix.spinnaker.mort.model.CacheService
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.context.annotation.Bean
@@ -45,6 +46,8 @@ class AWSCachingAgentConfigurator {
             new AmazonSecurityGroupCachingAgent(account.name, region.name, ec2, cacheService))
         beanFactory.registerSingleton("subnetCacher-${account.name}-${region.name}",
             new AmazonSubnetCachingAgent(account.name, region.name, ec2, cacheService))
+        beanFactory.registerSingleton("vpcCacher-${account.name}-${region.name}",
+            new AmazonVpcCachingAgent(account.name, region.name, ec2, cacheService))
       }
     }
     null

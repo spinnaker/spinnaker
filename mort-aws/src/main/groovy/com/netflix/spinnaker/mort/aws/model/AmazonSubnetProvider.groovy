@@ -34,9 +34,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
     Set<AmazonSubnet> getAll() {
       def keys = cacheService.keysByType(Keys.Namespace.SUBNETS)
       keys.collect { String key ->
-          def parts = key.split(':')
-          String account = parts[2]
-          String region = parts[3]
+          def parts = Keys.parse(key)
           def subnet = cacheService.retrieve(key, Subnet)
           def tag = subnet.tags.find { it.key == METADATA_TAG_KEY }
           String json = tag?.value
@@ -54,8 +52,8 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
                   vpcId: subnet.vpcId,
                   cidrBlock: subnet.cidrBlock,
                   availableIpAddressCount: subnet.availableIpAddressCount,
-                  account: account,
-                  region: region,
+                  account: parts.account,
+                  region: parts.region,
                   availabilityZone: subnet.availabilityZone,
                   purpose: purpose,
                   target: target
