@@ -235,28 +235,6 @@ module.exports = function (grunt) {
       }
     },
 
-    imagemin: {
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/images',
-          src: '{,*/}*.{png,jpg,jpeg,gif}',
-          dest: '<%= yeoman.dist %>/images'
-        }]
-      }
-    },
-
-    svgmin: {
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/images',
-          src: '{,*/}*.svg',
-          dest: '<%= yeoman.dist %>/images'
-        }]
-      }
-    },
-
     htmlmin: {
       dist: {
         options: {
@@ -307,6 +285,13 @@ module.exports = function (grunt) {
             cwd: '.',
             dest: '<%= yeoman.dist %>/fonts',
             src: ['node_modules/bootstrap/dist/fonts/*.*']
+          },
+          {
+            expand: true,
+            flatten: true,
+            cwd: '.',
+            dest: '<%= yeoman.dist %>/styles',
+            src: 'node_modules/select2/*.png'
           }
         ]
       },
@@ -317,8 +302,8 @@ module.exports = function (grunt) {
           'node_modules/bootstrap/dist/css/bootstrap.css',
           'node_modules/bootstrap/dist/css/bootstrap.css.map',
           'node_modules/bootstrap/dist/fonts/*.*',
-          'node_modules/select2/*.*',
-          'node_modules/select2-bootstrap-css/select2-bootstrap.css'
+          'node_modules/select2-bootstrap-css/select2-bootstrap.css',
+          'node_modules/select2/*.{css,png}'
         ]
       }
     },
@@ -384,8 +369,6 @@ module.exports = function (grunt) {
     'less',
     'html2js',
     'copy:styles',
-    'imagemin',
-    'svgmin',
     'concurrent:dist',
     'concat',
     'copy:dist',
