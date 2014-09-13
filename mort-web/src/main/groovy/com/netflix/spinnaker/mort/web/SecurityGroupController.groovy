@@ -55,7 +55,7 @@ class SecurityGroupController {
       if (!objs[obj.accountName][obj.type].containsKey(obj.region)) {
         objs[obj.accountName][obj.type][obj.region] = sortedTreeSet
       }
-      objs[obj.accountName][obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id)
+      objs[obj.accountName][obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
       objs
     }) doOnError {
       it.printStackTrace()
