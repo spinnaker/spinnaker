@@ -29,7 +29,7 @@ angular.module('deckApp')
     }
 
     function getAccountDetails(accountName) {
-      credentialsEndpoint.one('credentials', accountName).get();
+      return credentialsEndpoint.one('credentials', accountName).get();
     }
 
     function getRegionsForAccount(accountName) {

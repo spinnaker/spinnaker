@@ -96,7 +96,6 @@ angular.module('deckApp')
     };
 
     this.upsert = function () {
-      console.warn(orcaService);
       orcaService.upsertSecurityGroup($scope.securityGroup, applicationName)
         .then(function (response) {
           $modalInstance.close();

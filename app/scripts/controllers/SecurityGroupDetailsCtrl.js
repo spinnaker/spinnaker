@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('SecurityGroupDetailsCtrl', function ($scope, $rootScope, securityGroup, application, securityGroupService) {
+  .controller('SecurityGroupDetailsCtrl', function ($scope, $rootScope, securityGroup, application, securityGroupService, $modal) {
 
     $scope.loading = true;
 
@@ -25,5 +25,18 @@ angular.module('deckApp')
         });
       }
     });
+
+    this.editInboundRules = function editInboundRules() {
+      $modal.open({
+        templateUrl: 'views/application/modal/createSecurityGroupPage2.html',
+        controller: 'EditSecurityGroupCtrl as ctrl',
+        resolve: {
+          securityGroup: function() {
+            return angular.copy($scope.securityGroup);
+          },
+          applicationName: function() { return application.name; }
+        }
+      });
+    };
   }
 );

@@ -4,6 +4,13 @@
       <h3>Ingress Rules</h3>
     </div>
     <div class="modal-body">
+      <div class="row">
+        <div class="col-md-12">
+          <p class="info">
+          <span class="glyphicon glyphicon-info-sign"></span> IP range rules can only be edited through the AWS Console.
+          </p>
+        </div>
+      </div>
       <div class="form-group">
         <div class="col-md-12">
           <table class="table table-condensed packed">
@@ -50,7 +57,7 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button type="submit" class="btn btn-default pull-left" ng-click="previousPage()">
+      <button ng-if="previousPage" type="submit" class="btn btn-default pull-left" ng-click="previousPage()">
         <span class="glyphicon glyphicon-chevron-left"></span> Previous: Ingress Rules
       </button>
       <button type="submit" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
