@@ -118,6 +118,8 @@ class DefaultTaskStatus implements Status {
   @JsonIgnore
   TaskState state
 
+  Boolean isComplete() { state.completed }
+
   Boolean isCompleted() { state.completed }
 
   Boolean isFailed() { state.failed }
