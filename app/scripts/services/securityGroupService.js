@@ -32,7 +32,7 @@ angular.module('deckApp')
       application.securityGroupsIndex = indexedSecurityGroups;
 
       application.loadBalancers.forEach(function(loadBalancer) {
-        if (loadBalancer.elb) {
+        if (loadBalancer.elb && loadBalancer.elb.securityGroups) {
           loadBalancer.elb.securityGroups.forEach(function(securityGroupId) {
             var securityGroup = indexedSecurityGroups[loadBalancer.account][loadBalancer.region][securityGroupId];
             if (!securityGroup) {
@@ -48,7 +48,7 @@ angular.module('deckApp')
         }
       });
       application.serverGroups.forEach(function(serverGroup) {
-        if (serverGroup.launchConfig) {
+        if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups) {
           serverGroup.launchConfig.securityGroups.forEach(function (securityGroupId) {
             var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
             if (!securityGroup) {
