@@ -8,7 +8,7 @@ versions:
   batch: 3.0.1.RELEASE
   frigga: 0.13
   cglib: 3.1
-  amos: 0.8
+  amos: 0.10
   amazoncomponents: 0.9.15
   aws: 1.8.7
   httpclient: 4.3.5
