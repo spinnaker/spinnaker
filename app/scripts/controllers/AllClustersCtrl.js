@@ -5,13 +5,13 @@ var angular = require('angular');
 
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
-                                          securityGroupService, accountService, _) {
+                                          securityGroupService, accountService, _, $stateParams, $location) {
 
     $scope.sortFilter = {
       allowSorting: true,
       sortPrimary: 'cluster',
       sortSecondary: 'region',
-      filter: '',
+      filter: $stateParams.q || '',
       showAllInstances: true,
       hideHealthy: false,
       hideDisabled: false,
@@ -87,6 +87,7 @@ angular.module('deckApp')
     }
 
     function updateClusterGroups() {
+      $location.search('q', $scope.sortFilter.filter);
       $scope.$evalAsync(function() {
         var groups = [],
           totalInstancesDisplayed = 0,

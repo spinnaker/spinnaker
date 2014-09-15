@@ -100,7 +100,7 @@ angular.module('deckApp')
         children: [
           {
           name: 'clusters',
-          url: '/clusters',
+          url: '/clusters?q',
           views: {
             'nav': {
               templateUrl: 'views/application/cluster/navigation.html',
