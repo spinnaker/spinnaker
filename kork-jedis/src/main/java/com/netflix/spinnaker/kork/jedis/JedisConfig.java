@@ -23,15 +23,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisDataException;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -44,24 +43,21 @@ public class JedisConfig {
   @Autowired
   Environment environment;
 
-  private static final Logger log = LoggerFactory.getLogger(JedisConfig.class);
-
   @Bean
-  public JedisCommands jedis(@Value("${redis.port:0}") int port,
-                             @Value("${redis.host:127.0.0.1}") String host,
-                             @Value("${redis.connection:none}") String connection
-  ) {
-    if (connection != null) {
-      try {
-        URI jedisConnection = new URI(connection);
-      } catch (URISyntaxException e) {
+  public JedisCommands jedis(@Value("${redis.connection:redis://localhost:6379}") String connection) {
+      URI jedisConnection = URI.create(connection);
 
+      final JedisPool pool;
+      if (jedisConnection.getUserInfo() != null) {
+          pool = new JedisPool(jedisConnection);
+      } else {
+          pool = new JedisPool(jedisConnection.getHost(), jedisConnection.getPort() == -1 ? 6379 : jedisConnection.getPort());
       }
-    }
-    return new JedisPool()
+
+      return (JedisCommands) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[] { JedisCommands.class }, new JedisDelegatingMethodInvocationHandler(pool));
   }
 
-  private static class JedisDelegatingMethodInvocationHandler implements InvocationHandler {
+  static class JedisDelegatingMethodInvocationHandler implements InvocationHandler {
 
     private final JedisPool delegate;
 

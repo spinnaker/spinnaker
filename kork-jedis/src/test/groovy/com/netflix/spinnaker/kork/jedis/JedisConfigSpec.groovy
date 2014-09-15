@@ -16,73 +16,42 @@
 
 package com.netflix.spinnaker.kork.jedis
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.JedisPool
 import spock.lang.Specification
+import spock.lang.Subject
 
 /**
  * Tests that embedded Redis server is started correctly
  */
 class JedisConfigSpec extends Specification {
 
-  void setupSpec() {
-    System.setProperty('org.slf4j.simpleLogger.defaultLogLevel', 'debug')
-  }
+    JedisPool pool = Mock(JedisPool)
+    Jedis jedis = Mock(Jedis)
 
-  def 'should run embedded redis #description'() {
-    given:
-    Map properties = [:]
-    properties.each { k, v -> System.setProperty(k, v) }
+    @Subject
+    JedisCommands commands = java.lang.reflect.Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), [JedisCommands] as Class[], new JedisConfig.JedisDelegatingMethodInvocationHandler(pool))
 
-    and:
-    def ctx = createContext()
 
-    expect:
-    ctx.getBean(JedisConfig).redisServer != null
+    def 'should get return resource on successful operation'() {
+        when:
+        commands.exists('foo')
 
-    cleanup:
-    ctx?.close()
-
-    and:
-    properties.each { k, v -> System.clearProperty(k) }
-  }
-
-  def 'should not run embedded redis #description'() {
-    given:
-    properties.each { k, v -> System.setProperty(k, v) }
-
-    and:
-    def ctx = createContext()
-
-    expect:
-    ctx.getBean(JedisConfig).redisServer == null
-
-    cleanup:
-    ctx?.close()
-
-    and:
-    properties.each { k, v -> System.clearProperty(k) }
-
-    where:
-    description                          | properties
-    'if redis host is non-local'         | ['redis.host': '54.243.116.211']
-    'if a connection string is provided' | ['redis.host': '127.0.0.1', 'redis.connection': 'redis://redistogo:8718a28b567e5676cb5a5cdca8d68365@grideye.redistogo.com:10912/']
-  }
-
-  private AnnotationConfigApplicationContext createContext() {
-    def configs = []
-    configs << JedisContext
-    configs << JedisConfig
-    new AnnotationConfigApplicationContext(configs as Class[])
-  }
-
-  @Configuration
-  static class JedisContext {
-    @Bean
-    static PropertySourcesPlaceholderConfigurer ppc() {
-      new PropertySourcesPlaceholderConfigurer()
+        then:
+        1 * pool.getResource() >> jedis
+        1 * jedis.exists('foo') >> true
+        1 * pool.returnResource(jedis)
     }
-  }
+
+    def 'should return broken resource on failure'() {
+        when:
+        commands.exists('foo')
+
+        then:
+        1 * pool.getResource() >> jedis
+        1 * jedis.exists('foo') >> { throw new IllegalArgumentException('foo') }
+        1 * pool.returnBrokenResource(jedis)
+        thrown IllegalArgumentException
+    }
 }
