@@ -1,8 +1,8 @@
 versions:
-  springBoot: 1.1.5.RELEASE
-  kork: 1.18
+  springBoot: 1.1.6.RELEASE
+  kork: 1.19
   groovy: 2.3.6
-  astyanax: 1.56.48
+  astyanax: 1.56.49
   rxJava: 0.19.1
   spock: 0.7-groovy-2.0
   batch: 3.0.1.RELEASE
