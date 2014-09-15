@@ -33,20 +33,20 @@ angular.module('deckApp')
     }
 
     function getCluster(application, account, clusterName) {
-      return getClustersForAccountEndpoint(application.name, account).all(clusterName).getList().then(function(cluster) {
-        if (!cluster.length) {
-          $exceptionHandler(cluster, 'no server groups'); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
+      return getClustersForAccountEndpoint(application.name, account).one(clusterName, 'aws').get().then(function(cluster) {
+        if (!cluster.name) {
+          $exceptionHandler(cluster, 'no cluster found'); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
           return {
             account: account,
             serverGroups: []
           };
         }
-        cluster[0].serverGroups.forEach(function(serverGroup) {
+        cluster.serverGroups.forEach(function(serverGroup) {
           normalizeServerGroup(serverGroup, account, clusterName);
         });
-        cluster[0].account = account;
-        addHealthCountsToCluster(cluster[0]);
-        return cluster[0];
+        cluster.account = account;
+        addHealthCountsToCluster(cluster);
+        return cluster;
       },
       function(error) {
         $exceptionHandler(error, 'error retrieving cluster');
