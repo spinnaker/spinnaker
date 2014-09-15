@@ -27,7 +27,7 @@ angular.module('deckApp')
     securityGroupService.getAllSecurityGroups().then(function(securityGroups) {
       var account = securityGroup.accountName,
           region = securityGroup.region,
-          vpcId = securityGroup.vpcId;
+          vpcId = securityGroup.vpcId || null;
       $scope.availableSecurityGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
     });
 
