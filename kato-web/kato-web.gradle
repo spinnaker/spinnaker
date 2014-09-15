@@ -25,10 +25,6 @@ buildscript {
   }
 }
 
-repositories {
-  maven { url 'http://clojars.org/repo' }
-}
-
 apply plugin: 'spring-boot'
 
 configurations.all {

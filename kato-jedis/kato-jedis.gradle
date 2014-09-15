@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-repositories {
-  maven { url 'http://clojars.org/repo' }
-}
-
 dependencies {
   compile project(":kato-core")
-  compile("com.netflix.spinnaker.kork:kork-jedis:1.14"){
-    exclude module: 'guava-io'
-  }
+  compile commonDependencies.korkJedis
 }
