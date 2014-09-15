@@ -19,7 +19,9 @@ package com.netflix.spinnaker.echo.events
 import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
 import rx.Observable
+import rx.Scheduler
 import rx.functions.Action0
+import rx.schedulers.Schedulers
 
 /**
  *  responsible for sending events to classes that implement an EchoEventListener
@@ -29,13 +31,17 @@ class EventPropagator {
 
     List<EchoEventListener> listeners = []
 
+    Scheduler scheduler = Schedulers.computation()
+
     void addListener(EchoEventListener listener) {
         listeners << listener
         log.info('Added listener ' + listener.class.simpleName)
     }
 
     void processEvent(Event event) {
-        Observable.from(listeners).subscribe(
+        Observable.from(listeners)
+        .subscribeOn(scheduler)
+        .subscribe(
             { EchoEventListener listener ->
                 listener.processEvent(event)
             }, {
