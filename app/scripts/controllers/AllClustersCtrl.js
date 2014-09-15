@@ -6,11 +6,11 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
                                           securityGroupService, accountService, _, $stateParams, $location) {
-
+    var defPrimary = 'cluster', defSecondary = 'region';
     $scope.sortFilter = {
       allowSorting: true,
-      sortPrimary: $stateParams.primary || 'cluster',
-      sortSecondary: $stateParams.secondary || 'region',
+      sortPrimary: $stateParams.primary || defPrimary,
+      sortSecondary: $stateParams.secondary || defSecondary,
       filter: $stateParams.q || '',
       showAllInstances: ($stateParams.hideInstances ? false : true),
       hideHealthy: ($stateParams.hideHealthy === 'true'),
@@ -92,8 +92,10 @@ angular.module('deckApp')
       $location.search('hideHealthy', $scope.sortFilter.hideHealthy ? true : null);
       $location.search('hideInstances', $scope.sortFilter.showAllInstances ? null : true);
       $location.search('hideDisabled', $scope.sortFilter.hideDisabled ? true : null);
-      $location.search('primary', $scope.sortFilter.sortPrimary);
-      $location.search('secondary', $scope.sortFilter.sortSecondary);
+      $location.search('primary',
+        $scope.sortFilter.sortPrimary===defPrimary ? null:$scope.sortFilter.sortPrimary);
+      $location.search('secondary',
+        $scope.sortFilter.sortSecondary===defSecondary ? null:$scope.sortFilter.sortSecondary);
     }
 
     function updateClusterGroups() {
