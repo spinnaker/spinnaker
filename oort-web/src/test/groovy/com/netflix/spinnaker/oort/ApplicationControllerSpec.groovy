@@ -56,15 +56,14 @@ class ApplicationControllerSpec extends Specification {
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
     def cluProvider1 = Mock(ClusterProvider)
-    def elbProvider1 = Mock(LoadBalancerProvider)
     applicationsController.applicationProviders = [appProvider1, appProvider2]
     applicationsController.clusterProviders = [cluProvider1]
-    applicationsController.loadBalancerProviders = [elbProvider1]
     def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
     def app2 = new AmazonApplication(name: "foo", clusterNames: [test: ["baz"] as Set], attributes: [:])
     def cluster = Mock(Cluster)
     cluster.getAccountName() >> "test"
     cluster.getName() >> "foo"
+    cluster.getLoadBalancers() >> []
     def sg1 = Mock(ServerGroup)
     sg1.getName() >> "bar"
     def sg2 = Mock(ServerGroup)
@@ -75,7 +74,6 @@ class ApplicationControllerSpec extends Specification {
     def result = applicationsController.get("foo")
 
     then:
-    2 * elbProvider1.getLoadBalancers(_, _)
     2 * cluProvider1.getClusters("foo") >> [test: cluster]
     1 * appProvider1.getApplication("foo") >> app1
     1 * appProvider2.getApplication("foo") >> app2

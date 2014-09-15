@@ -18,6 +18,6 @@ package com.netflix.spinnaker.oort.model.view
 
 class ApplicationViewModel {
   String name
-  Map<String, String> attributes
-  Map<String, Set<ApplicationClusterViewModel>> clusters
+  TreeMap<String, String> attributes
+  TreeMap<String, List<ApplicationClusterViewModel>> clusters
 }

@@ -18,6 +18,6 @@ package com.netflix.spinnaker.oort.model.view
 
 class ApplicationClusterViewModel {
   String name
-  Set<String> loadBalancers
-  Set<String> serverGroups
+  TreeSet<String> loadBalancers
+  TreeSet<String> serverGroups
 }
