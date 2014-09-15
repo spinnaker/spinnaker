@@ -12,9 +12,9 @@ angular.module('deckApp')
       sortPrimary: $stateParams.primary || 'cluster',
       sortSecondary: $stateParams.secondary || 'region',
       filter: $stateParams.q || '',
-      showAllInstances: true,
-      hideHealthy: false,
-      hideDisabled: false,
+      showAllInstances: ($stateParams.hideInstances ? false : true),
+      hideHealthy: ($stateParams.hideHealthy === 'true'),
+      hideDisabled: ($stateParams.hideDisabled === 'true'),
     };
 
     var sortOptions = [
@@ -34,8 +34,6 @@ angular.module('deckApp')
       if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
         sortFilter.sortSecondary = this.getSortOptions(sortFilter.sortPrimary)[0].key;
       }
-      $location.search('primary', sortFilter.sortPrimary);
-      $location.search('secondary', sortFilter.sortSecondary);
       this.updateClusterGroups();
     };
 
@@ -88,9 +86,18 @@ angular.module('deckApp')
         }, totalInstancesDisplayed);
     }
 
-    function updateClusterGroups() {
+    function updateQueryParams() {
       $location.search('q',
         $scope.sortFilter.filter.length > 0 ? $scope.sortFilter.filter : null);
+      $location.search('hideHealthy', $scope.sortFilter.hideHealthy ? true : null);
+      $location.search('hideInstances', $scope.sortFilter.showAllInstances ? null : true);
+      $location.search('hideDisabled', $scope.sortFilter.hideDisabled ? true : null);
+      $location.search('primary', $scope.sortFilter.sortPrimary);
+      $location.search('secondary', $scope.sortFilter.sortSecondary);
+    }
+
+    function updateClusterGroups() {
+      updateQueryParams();
       $scope.$evalAsync(function() {
         var groups = [],
           totalInstancesDisplayed = 0,

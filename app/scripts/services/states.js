@@ -100,7 +100,7 @@ angular.module('deckApp')
         children: [
           {
           name: 'clusters',
-          url: '/clusters?q&primary&secondary',
+          url: '/clusters?q&primary&secondary&hideInstances&hideHealthy&hideDisabled',
           views: {
             'nav': {
               templateUrl: 'views/application/cluster/navigation.html',
