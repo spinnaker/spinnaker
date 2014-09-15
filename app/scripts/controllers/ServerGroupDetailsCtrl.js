@@ -87,6 +87,7 @@ angular.module('deckApp')
         templateUrl: 'views/application/modal/cloneServerGroup.html',
         controller: 'CloneServerGroupCtrl as ctrl',
         resolve: {
+          application: function() { return application; },
           serverGroup: function() { return serverGroup; },
           loadBalancers: function() {
             return searchService.search({q: '', type: 'loadBalancers', pageSize: 100000000})

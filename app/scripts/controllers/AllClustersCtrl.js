@@ -4,7 +4,8 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('AllClustersCtrl', function($scope, application, _) {
+  .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
+                                          securityGroupService, accountService, _) {
 
     $scope.sortFilter = {
       allowSorting: true,
@@ -126,6 +127,28 @@ angular.module('deckApp')
         };
       });
     }
+
+    this.createServerGroup = function createServerGroup() {
+      $modal.open({
+        templateUrl: 'views/application/modal/cloneServerGroup.html',
+        controller: 'CloneServerGroupCtrl as ctrl',
+        resolve: {
+          application: function() { return application; },
+          serverGroup: function() { return null; },
+          loadBalancers: function() {
+            return searchService.search({q: '', type: 'loadBalancers', pageSize: 100000000})
+              .then(function(result) { return result.data[0].results; });
+          },
+          securityGroups: securityGroupService.getAllSecurityGroups,
+          subnets: mortService.listSubnets,
+          packageImages: function() {
+            return searchService.search({q: application.name, type: 'namedImages', pageSize: 100000000})
+              .then(function(result) { return result.data[0].results; });
+          },
+          regionsKeyedByAccount: accountService.getRegionsKeyedByAccount
+        }
+      });
+    };
 
     this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
