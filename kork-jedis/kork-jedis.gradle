@@ -1,11 +1,6 @@
-repositories {
-  maven { url 'http://clojars.org/repo' }
-}
-
 dependencies {
   compile 'org.slf4j:slf4j-api:1.7.7'
-  compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.5.RELEASE'
-  compile 'redis.embedded:embedded-redis:0.2'
+  compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.6.RELEASE'
   compile 'redis.clients:jedis:2.2.1'
   testCompile 'org.codehaus.groovy:groovy-all:2.3.6'
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
