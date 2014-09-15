@@ -48,6 +48,7 @@ angular.module('deckApp')
         }
       });
       application.serverGroups.forEach(function(serverGroup) {
+        if (serverGroup.launchConfig) {
           serverGroup.launchConfig.securityGroups.forEach(function (securityGroupId) {
             var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
             if (!securityGroup) {
@@ -60,6 +61,7 @@ angular.module('deckApp')
               applicationSecurityGroups.push(securityGroup);
             }
           });
+        }
       });
 
       application.securityGroups = _.unique(applicationSecurityGroups);
