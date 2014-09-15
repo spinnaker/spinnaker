@@ -23,16 +23,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Protocol;
-import redis.embedded.RedisServer;
+import redis.clients.jedis.*;
+import redis.clients.jedis.exceptions.JedisDataException;
 
-import javax.annotation.PreDestroy;
-import java.net.ServerSocket;
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Configuration for embedded redis instance and associated jedis
@@ -43,57 +43,38 @@ public class JedisConfig {
   @Autowired
   Environment environment;
 
-  RedisServer redisServer;
-
-  private static final Logger log = LoggerFactory.getLogger(JedisConfig.class);
-
   @Bean
-  public JedisCommands jedis(@Value("${redis.port:0}") int port,
-                             @Value("${redis.host:127.0.0.1}") String host,
-                             @Value("${redis.connection:none}") String connection
-  ) {
+  public JedisCommands jedis(@Value("${redis.connection:redis://localhost:6379}") String connection) {
+      URI jedisConnection = URI.create(connection);
 
-    if (!connection.equals("none")) {
-      try {
-        URI redisURI = new URI(connection);
-        return new JedisPool(new JedisPoolConfig(),
-          redisURI.getHost(),
-          redisURI.getPort(),
-          Protocol.DEFAULT_TIMEOUT,
-          redisURI.getUserInfo().split(":", 2)[1]).getResource();
-      } catch (Exception e) {
-        log.error("Could not connect to server", e);
-        return null;
+      final JedisPool pool;
+      if (jedisConnection.getUserInfo() != null) {
+          pool = new JedisPool(jedisConnection);
+      } else {
+          pool = new JedisPool(jedisConnection.getHost(), jedisConnection.getPort() == -1 ? 6379 : jedisConnection.getPort());
       }
-    }
 
-    int redisPort = port;
-    if (host.equals("127.0.0.1")) {
-      try {
-        if (redisPort == 0) {
-          ServerSocket serverSocket = new ServerSocket(0);
-          redisPort = serverSocket.getLocalPort();
-          serverSocket.close();
-        }
-        log.info("starting embedded redis server on" + host + ":" + redisPort);
-        redisServer = new RedisServer(redisPort);
-        redisServer.start();
-        log.info("started embedded redis server");
-      } catch (Exception e) {
-        log.error("Could not start embedded redis", e);
-      }
-    }
-    return new Jedis(host, redisPort);
+      return (JedisCommands) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[] { JedisCommands.class }, new JedisDelegatingMethodInvocationHandler(pool));
   }
 
-  @PreDestroy
-  void destroy() {
-    if (redisServer != null) {
-      log.info("stopping redis server");
+  static class JedisDelegatingMethodInvocationHandler implements InvocationHandler {
+
+    private final JedisPool delegate;
+
+    JedisDelegatingMethodInvocationHandler(JedisPool delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      Jedis jedis = delegate.getResource();
       try {
-        redisServer.stop();
-      } catch (Exception e) {
-        log.error("could not stop redis server", e);
+        Object result = method.invoke(jedis, args);
+        delegate.returnResource(jedis);
+        return result;
+      } catch (InvocationTargetException ex) {
+        delegate.returnBrokenResource(jedis);
+        throw ex.getTargetException();
       }
     }
   }
