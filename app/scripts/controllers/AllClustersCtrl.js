@@ -9,8 +9,8 @@ angular.module('deckApp')
 
     $scope.sortFilter = {
       allowSorting: true,
-      sortPrimary: 'cluster',
-      sortSecondary: 'region',
+      sortPrimary: $stateParams.primary || 'cluster',
+      sortSecondary: $stateParams.secondary || 'region',
       filter: $stateParams.q || '',
       showAllInstances: true,
       hideHealthy: false,
@@ -34,6 +34,8 @@ angular.module('deckApp')
       if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
         sortFilter.sortSecondary = this.getSortOptions(sortFilter.sortPrimary)[0].key;
       }
+      $location.search('primary', sortFilter.sortPrimary);
+      $location.search('secondary', sortFilter.sortSecondary);
       this.updateClusterGroups();
     };
 
