@@ -89,7 +89,7 @@ class JedisTaskRepositorySpec extends Specification {
     t2.status.isFailed()
   }
 
-  void "listing tasks returns all available tasks"() {
+  void "listing tasks returns all running tasks"() {
     setup:
     def t1 = taskRepository.create "TEST", "Test Status"
     def t2 = taskRepository.create "TEST", "Test Status"
@@ -99,6 +99,15 @@ class JedisTaskRepositorySpec extends Specification {
 
     then:
     list*.id.containsAll([t1.id, t2.id])
+
+    when:
+    t1.complete()
+
+    then:
+    !taskRepository.list()*.id.contains(t1.id)
+
+    and:
+    taskRepository.list()*.id.contains(t2.id)
   }
 
   void "Can add a result object and retrieve it"() {
