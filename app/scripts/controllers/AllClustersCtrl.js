@@ -89,7 +89,8 @@ angular.module('deckApp')
     }
 
     function updateClusterGroups() {
-      $location.search('q', $scope.sortFilter.filter);
+      $location.search('q',
+        $scope.sortFilter.filter.length > 0 ? $scope.sortFilter.filter : null);
       $scope.$evalAsync(function() {
         var groups = [],
           totalInstancesDisplayed = 0,
