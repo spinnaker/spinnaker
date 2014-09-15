@@ -2,38 +2,56 @@
 
 var angular = require('angular');
 angular.module('deckApp')
-  .factory('scheduledCache', function($cacheFactory, scheduler) {
+  .factory('scheduledCache', function($cacheFactory, scheduler, $http) {
     // returns a cache that is cleared according to the scheduler
-    return function(id, cycles) {
-      function ScheduledCache(id, cycles) {
-        var that = this;
-        that.cycles = cycles || 0;
+    var that = {};
 
-        that.cache = $cacheFactory(id);
+    function disposeAll() {
+      Object.keys(that.schedules).forEach(function(k) {
+        that.schedules[k].dispose();
+      });
+    }
+    
+    that.schedules = {}; 
 
-        that.disposable = scheduler.get()
-          .skip(that.cycles)
-          .subscribe(function() {
-            that.cache.removeAll();
-          });
-        
-        that.info = that.cache.info;  
-        that.put = that.cache.put;  
-        that.get = that.cache.get;  
-        that.remove = that.cache.remove;  
-        that.removeAll = that.cache.removeAll;  
+    that.cycles =  1;
 
-        that.destroy = function() {
-          that.disposable.dispose();
-          that.cache.destroy();
-          delete that.disposable;
-          delete that.cache;
-        };
-        
-        return this;
+    that.cache = $cacheFactory('scheduledHttp');
+
+    that.info = that.cache.info;
+
+    that.put = function(k, v) {
+      if (that.schedules[k]) {
+        that.schedules[k].dispose();
       }
+      that.schedules[k] = scheduler.get()
+        .skip(that.cycles)
+        .subscribe(function() {
+          $http.get(k).success(function(data) {
+            that.cache.remove(k);
+            that.cache.put(k,data);
+          });
+        });
+      return that.cache.put(k,v);
+    };  
 
-      return new ScheduledCache(id, cycles);
+    that.get = that.cache.get;
+
+    that.remove = function(k) {
+      that.cache.remove(k);
     };
+
+    that.removeAll = function() {
+      disposeAll();
+      that.cache.removeAll();
+    };
+
+    that.destroy = function() {
+      disposeAll();
+      that.cache.destroy();
+      delete that.cache;
+    };
+
+    return that;
   });
 

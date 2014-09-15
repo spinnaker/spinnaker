@@ -28,13 +28,12 @@ angular.module('deckApp', [
     'angularSpinner',
     'deckApp.templates'
   ])
-  .run(function($state, $rootScope, $log, $exceptionHandler, $http, scheduledCache) {
+  .run(function($state, $rootScope, $log, $exceptionHandler) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
     //
 
-    $http.defaults.cache = scheduledCache('http', 10);
     $rootScope.subscribeTo = function(observable) {
       this.subscribed = {
         data: undefined

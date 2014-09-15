@@ -4,22 +4,28 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('accountService', function(settings, Restangular, $q) {
+  .factory('accountService', function(settings, Restangular, $q, scheduledCache) {
 
     var credentialsEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setDefaultHttpFields({ cache: true });
       RestangularConfigurer.setBaseUrl(settings.credentialsUrl);
     });
 
     function listAccounts() {
-      return credentialsEndpoint.all('credentials').getList();
+      return credentialsEndpoint
+        .all('credentials')
+        .withHttpConfig({cache: scheduledCache})
+        .getList();
     }
 
     function getRegionsKeyedByAccount() {
       var deferred = $q.defer();
       listAccounts().then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
-          acc[account] = credentialsEndpoint.all('credentials').one(account).get();
+          acc[account] = credentialsEndpoint
+            .all('credentials')
+            .one(account)
+            .withHttpConfig({cache: scheduledCache})
+            .get();
           return acc;
         }, {})).then(function(result) {
           deferred.resolve(result);
