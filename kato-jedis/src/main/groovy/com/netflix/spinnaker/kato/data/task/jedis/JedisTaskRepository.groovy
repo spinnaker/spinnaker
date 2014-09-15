@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisCommands
 
 class JedisTaskRepository implements TaskRepository {
-
+  private static final String RUNNING_TASK_KEY = "kato:tasks"
   private static final TypeReference<Map<String, String>> HISTORY_TYPE = new TypeReference<Map<String, String>>() {}
 
   @Autowired
@@ -56,8 +56,8 @@ class JedisTaskRepository implements TaskRepository {
 
   @Override
   List<Task> list() {
-    jedis.keys('task:*').collect { key ->
-      get(key - 'task:')
+    jedis.smembers(RUNNING_TASK_KEY).collect { key ->
+      get(key)
     }
   }
 
@@ -65,6 +65,7 @@ class JedisTaskRepository implements TaskRepository {
     String taskId = "task:${task.id}"
     jedis.hset(taskId, 'id', task.id)
     jedis.hset(taskId, 'startTimeMs', task.startTimeMs as String)
+    jedis.sadd(RUNNING_TASK_KEY, id)
   }
 
   void addResultObjects(List<Object> objects, JedisTask task) {
@@ -87,6 +88,9 @@ class JedisTaskRepository implements TaskRepository {
   void addToHistory(DefaultTaskStatus status, JedisTask task) {
     String historyId = "taskHistory:${task.id}"
     jedis.rpush(historyId, mapper.writeValueAsString([phase: status.phase, status: status.status, state:status.state.toString()]))
+    if (status.isCompleted()) {
+      jedis.srem(RUNNING_TASK_KEY, task.id)
+    }
   }
 
   List<Status> getHistory(JedisTask task) {
