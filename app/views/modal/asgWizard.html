@@ -1,0 +1,39 @@
+<modal-wizard heading="Create New ASG">
+  <wizard-page key="Basic Settings">
+    <h3>Basic Settings</h3>
+    <a href ng-click="wizard.markComplete('Basic Settings'); wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+  <wizard-page key="Instance Type">
+    <h3>Instance Archetype</h3>
+    <a href ng-click="wizardCtrl.previousPage()">Back</a>
+    <a href ng-click="wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+  <wizard-page key="Instance Details">
+    <h3>Instance Details</h3>
+    <a href ng-click="wizard.includePage('Instance Size')">Include Instance Size</a>
+    <a href ng-click="wizard.excludePage('Instance Size')">Remove Instance Size</a>
+    <a href ng-click="wizardCtrl.previousPage()">Back</a>
+    <a href ng-click="wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+  <wizard-page key="Instance Size" render="false">
+    <h3>Specific Instance Size</h3>
+    <a href ng-click="wizardCtrl.previousPage()">Back</a>
+    <a href ng-click="wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+  <wizard-page key="ELBs">
+    <h3>All the ELB stuff...</h3>
+    <a href ng-click="wizardCtrl.previousPage()">Back</a>
+    <a href ng-click="wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+  <wizard-page key="Security Groups">
+    <h3>Security Group stuff</h3>
+    <a href ng-click="wizardCtrl.previousPage()">Back</a>
+    <a href ng-click="wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+  <wizard-page key="Advanced Settings">
+    <h3>Advanced Settings</h3>
+    <a href ng-click="wizardCtrl.previousPage()">Back</a>
+    <a href ng-click="wizardCtrl.nextPage()">Next</a>
+  </wizard-page>
+
+</modal-wizard>

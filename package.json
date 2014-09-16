@@ -19,6 +19,7 @@
   "devDependencies": {
     "angular-ui-select2": "0.0.5",
     "angular-mocks": "1.2.20",
+    "angular-wizard": "0.4.0",
     "browserify": "~4.2.3",
     "browserify-ngannotate": "^0.1.0",
     "browserify-shim": "~3.6.0",

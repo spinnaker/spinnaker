@@ -1,0 +1,171 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'use strict';
+
+require('../app');
+var angular = require('angular');
+
+angular.module('deckApp')
+  .directive('modalWizard', function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      templateUrl: 'views/modal/modalWizard.html',
+      controller: 'ModalWizardCtrl as wizardCtrl',
+      link: function(scope, elem, attrs) {
+        scope.heading = attrs.heading;
+      }
+    };
+  }
+).controller('ModalWizardCtrl', function($scope, _, modalWizardService) {
+
+    var wizard = modalWizardService.createWizard('cloneAsg');
+
+    $scope.wizard = wizard;
+
+    this.getWizard = function() {
+      return wizard;
+    };
+
+    this.nextPage = function () {
+      var currentPageIndex = wizard.getCurrentPageIndex();
+      if (currentPageIndex === wizard.renderedPages.length - 1) {
+        return;
+      }
+      wizard.setCurrentPage(wizard.renderedPages[currentPageIndex + 1]);
+      $scope.direction = 'forward';
+      $scope.jump = '';
+    };
+
+    this.previousPage = function () {
+      var currentPageIndex = wizard.getCurrentPageIndex();
+      if (currentPageIndex < 1) {
+        return;
+      }
+      wizard.setCurrentPage(wizard.renderedPages[currentPageIndex - 1]);
+      $scope.direction = 'back';
+      $scope.jump = '';
+    };
+
+    this.jumpToPage = function (page) {
+      var jumpIndex = wizard.getPageIndex(page),
+        currentPageIndex = wizard.getCurrentPageIndex();
+
+      if (jumpIndex === -1 || jumpIndex === currentPageIndex) {
+        return;
+      }
+
+      var jump = Math.abs(jumpIndex - currentPageIndex) > 1 ? 'jump' : '',
+        direction = jumpIndex > currentPageIndex ? 'forward' : 'back';
+
+      $scope.direction = direction;
+      $scope.jump = jump;
+      wizard.setCurrentPage(wizard.getPage(page));
+    };
+  }
+).factory('modalWizardService', function(_) {
+    var wizardRegistry = {};
+
+    function createWizard(name) {
+      var wizard = {
+        renderedPages: [],
+        pageRegistry: [],
+        currentPage: null
+      };
+
+      wizard.markComplete = function(pageKey) {
+        wizard.getPage(pageKey).state.done = true;
+      };
+
+      wizard.markIncomplete = function(pageKey) {
+        wizard.getPage(pageKey).state.done = false;
+      };
+
+      wizard.markInaccessible = function(pageKey) {
+        wizard.getPage(pageKey).state.blocked = true;
+      };
+
+      wizard.markAccessible = function(pageKey) {
+        wizard.getPage(pageKey).state.blocked = false;
+      };
+
+      wizard.setCurrentPage = function(page) {
+        wizard.pageRegistry.forEach(function(test) { test.state.current = test === page; });
+        wizard.currentPage = page;
+      };
+
+      wizard.getPage = function(pageKey) {
+        var matches = _.filter(wizard.pageRegistry, {key: pageKey});
+        return matches.length ? matches[0] : null;
+      };
+
+      wizard.getPageIndex = function(pageKey) {
+        return _.findIndex(wizard.pageRegistry, {key: pageKey});
+      };
+
+      wizard.getCurrentPageIndex = function() {
+        return wizard.renderedPages.indexOf(wizard.currentPage);
+      };
+
+      wizard.registerPage = function(pageKey, state) {
+        state = state || { done: false, blocked: true, rendered: true, current: false };
+        wizard.pageRegistry.push({key: pageKey, state: state});
+        wizard.renderPages();
+      };
+
+      wizard.renderPages = function() {
+        var renderedPages = _.filter(wizard.pageRegistry, function(page) { return page.state.rendered; });
+        wizard.renderedPages = renderedPages;
+        if (renderedPages.length === 1) {
+          wizard.setCurrentPage(renderedPages[0]);
+        }
+      };
+
+      function setRendered(pageKey, rendered) {
+        _(wizard.pageRegistry).filter({key: pageKey}).each(function(page) { page.state.rendered = rendered; });
+        wizard.renderPages();
+      }
+
+      wizard.includePage = function(pageKey) {
+        setRendered(pageKey, true);
+      };
+
+      wizard.excludePage = function(pageKey) {
+        setRendered(pageKey, false);
+      };
+
+      wizardRegistry[name] = wizard;
+
+      return wizard;
+    }
+
+    function deleteWizard(name) {
+      wizardRegistry[name] = null;
+    }
+
+    function getWizard(name) {
+      return wizardRegistry[name];
+    }
+
+    return {
+      createWizard: createWizard,
+      deleteWizard: deleteWizard,
+      getWizard: getWizard
+    };
+  }
+);
+

@@ -1,0 +1,80 @@
+@import "app/styles/imports/commonImports.less";
+
+.steps-indicator {
+  position: relative;
+  height: 50px;
+  transition: width 0.25s ease-in-out;
+  overflow-x: hidden;
+
+  &:before {
+    top: 10px;
+  }
+
+  li {
+    margin-top: 10px;
+    font-size: 80%;
+    transition: width 0.25s ease-in-out, opacity 0.25s linear;
+
+    &.current {
+      a:before {
+        background-color: #339933;
+      }
+    }
+    &.done {
+      a:before {
+        background-color: #808080;
+      }
+    }
+  }
+}
+
+.steps {
+  width: 1200px;
+  overfow-x: hidden;
+  .modal-page {
+    width: 600px;
+    float: left;
+  }
+  .clearfix();
+}
+
+.forward {
+  .modal-page {
+    &.ng-leave, &.ng-enter {
+      left: 0;
+    }
+    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
+      left: -600px;
+    }
+  }
+}
+
+.back {
+  .modal-page {
+    &.ng-leave, &.ng-enter {
+      left: -600px;
+    }
+    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
+      left: 0;
+    }
+  }
+}
+
+.jump {
+  .modal-page {
+    &.ng-leave, &.ng-enter.ng-enter-active {
+      opacity: 1;
+    }
+    &.ng-enter, &.ng-leave.ng-leave-active {
+      opacity: 0;
+    }
+  }
+}
+
+.forward, .back {
+  .modal-page {
+    &.ng-leave, &.ng-enter {
+      transition: opacity 0.15s ease-in-out, left 0.35s ease-in-out;
+    }
+  }
+}

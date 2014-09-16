@@ -1,0 +1,16 @@
+<div ng-class="[direction, jump]">
+  <div class="modal-header">
+    <h2>{{heading}}</h2>
+    <ul class="steps-indicator steps-{{wizard.renderedPages.length}}" ng-if="!hideIndicators">
+      <li ng-repeat="page in wizard.renderedPages"
+         ng-class="{
+            default: !page.state.done && !page.state.current,
+            current: page.state.current,
+            done: page.state.done
+      }">
+        <a href ng-click="wizardCtrl.jumpToPage(page.key)">{{page.key}}</a>
+      </li>
+    </ul>
+  </div>
+  <div class="steps" ng-transclude></div>
+</div>

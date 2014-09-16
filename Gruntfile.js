@@ -299,6 +299,7 @@ module.exports = function (grunt) {
         expand: true,
         dest: '.tmp/',
         src: [
+          'node_modules/angular-wizard/dist/angular-wizard.css',
           'node_modules/bootstrap/dist/css/bootstrap.css',
           'node_modules/bootstrap/dist/css/bootstrap.css.map',
           'node_modules/bootstrap/dist/fonts/*.*',
