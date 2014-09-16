@@ -33,21 +33,6 @@ describe('Service: InstanceType', function() {
     $http.when('GET', config.awsMetadataUrl + '/instanceType').respond(200, instanceTypes);
   }));
 
-  afterEach(function() {
-    service.clearCache();
-  });
-
-  it('list caches results and reuses them', function() {
-
-    service.getAvailableTypesForRegions();
-    $http.flush();
-    scope.$apply();
-    service.getAvailableTypesForRegions();
-
-    $http.verifyNoOutstandingExpectation();
-    $http.verifyNoOutstandingRequest();
-  });
-
   it('returns an intersection of instance types, sorted by name', function() {
 
     // setup:
@@ -69,20 +54,6 @@ describe('Service: InstanceType', function() {
 
   });
 
-  it('returns the regions for the supplied instance type, or an empty list if non-existent', function() {
-    instanceTypes.push({ name: 'small', regions: ['a','b']});
-    instanceTypes.push({ name: 'large', regions: ['c','d']});
-
-    service.getAvailableRegionsForType('small').then( function(result) {
-      expect(result).toEqual(['a','b']);
-    });
-
-    service.getAvailableRegionsForType('non-existent').then( function(result) {
-      expect(result).toEqual([]);
-    });
-
-    $http.flush();
-  });
 
   function testAvailableTypes(regions, expected) {
     service.getAvailableTypesForRegions(regions).then( function(result) {
