@@ -36,6 +36,7 @@ angular.module('deckApp')
     return {
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAvailableRegionsForType: getAvailableRegionsForType,
+      getAllTypesByRegion: getAllTypesByRegion,
     };
   }
 );
