@@ -21,10 +21,12 @@ angular.module('deckApp')
             var disposable = scheduler.subscribe(function() {
               getApplication(application.name).then(function (newApplication) {
                 // compute task diff and generate notifications for a completed task
-                taskTracker.generateNotifications(taskTracker.getCompleted(
-                  application.tasks,
-                  newApplication.tasks
-                ));
+                if (application.tasks && application.tasks.length > 0) {
+                  taskTracker.generateNotifications(taskTracker.getCompleted(
+                    application.tasks,
+                    newApplication.tasks
+                  ));
+                }
 
                 deepCopyApplication(application, newApplication);
                 application.onAutoRefresh();
@@ -97,18 +99,21 @@ angular.module('deckApp')
 
         return $q.all({
           clusters: clusterLoader,
-          loadBalancers: loadBalancerLoader,
-          tasks: taskLoader,
-          securityGroups: securityGroupLoader
         })
           .then(function(results) {
             application.clusters = results.clusters;
             application.serverGroups = _.flatten(_.pluck(results.clusters, 'serverGroups'));
-            application.loadBalancers = results.loadBalancers;
-            application.tasks = angular.isArray(results.tasks) ? results.tasks : [];
-            loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
-            clusterService.normalizeServerGroupsWithLoadBalancers(application);
-            securityGroupService.attachSecurityGroups(application, results.securityGroups);
+            $q.all({
+              loadBalancers: loadBalancerLoader,
+              tasks: taskLoader,
+              securityGroups: securityGroupLoader
+            }).then(function(res) {
+              application.loadBalancers = res.loadBalancers;
+              application.tasks = angular.isArray(res.tasks) ? results.tasks : [];
+              loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
+              clusterService.normalizeServerGroupsWithLoadBalancers(application);
+              securityGroupService.attachSecurityGroups(application, res.securityGroups);
+            });
 
             return application;
           }, function(err) {
