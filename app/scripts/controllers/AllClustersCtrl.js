@@ -7,19 +7,17 @@ angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
                                           securityGroupService, accountService, _, $stateParams, $location) {
     var defPrimary = 'cluster', defSecondary = 'region';
-    $scope.sortFilter = {
-      allowSorting: true,
-      sortPrimary: $stateParams.primary || defPrimary,
-      sortSecondary: $stateParams.secondary || defSecondary,
-      filter: $stateParams.q || '',
-      showAllInstances: ($stateParams.hideInstances ? false : true),
-      hideHealthy: ($stateParams.hideHealthy === 'true'),
-      hideDisabled: ($stateParams.hideDisabled === 'true'),
-    };
+    $scope.sortFilter.allowSorting = true;
+    $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
+    $scope.sortFilter.sortSecondary = $stateParams.secondary || defSecondary;
+    $scope.sortFilter.filter = $stateParams.q || '';
+    $scope.sortFilter.showAllInstances = ($stateParams.hideInstances ? false : true);
+    $scope.sortFilter.hideHealthy = ($stateParams.hideHealthy === 'true');
+    $scope.sortFilter.hideDisabled = ($stateParams.hideDisabled === 'true');
 
     var sortOptions = [
       { label: 'Account', key: 'account' },
-      { label: 'Cluster', key: 'cluster' },
+      { label: 'Cluster Name', key: 'cluster' },
       { label: 'Region', key: 'region' }
     ];
 
@@ -35,7 +33,9 @@ angular.module('deckApp')
         sortFilter.sortSecondary = this.getSortOptions(sortFilter.sortPrimary)[0].key;
       }
       this.updateClusterGroups();
-    };
+    }.bind(this);
+
+    $scope.$watch('sortFilter.sortPrimary', this.updateSorting);
 
     function checkAgainstActiveFilters(serverGroup) {
       return [

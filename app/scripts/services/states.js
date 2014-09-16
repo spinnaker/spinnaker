@@ -95,6 +95,7 @@ angular.module('deckApp')
         views: {
           'insight': {
             templateUrl: 'views/insight.html',
+            controller: 'InsightCtrl as ctrl',
           }
         },
         children: [

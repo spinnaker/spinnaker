@@ -7,12 +7,12 @@ angular.module('deckApp')
   .controller('ClustersNavCtrl', function ($scope, application, _) {
 
     $scope.application = application;
-    $scope.sortField = 'accountName';
 
     $scope.sortOptions = [
       {
         label: 'Account',
-        key: 'accountName',
+        key: 'account',
+        clusterKey: 'accountName',
         getDisplayValue: function(cluster) {
           return cluster.accountName || '';
         },
@@ -21,8 +21,9 @@ angular.module('deckApp')
         }
       },
       {
-        label: 'Name',
-        key: 'name',
+        label: 'Cluster Name',
+        key: 'cluster',
+        clusterKey: 'name',
         getDisplayValue: function(cluster) {
           return cluster.name;
         },
@@ -33,6 +34,7 @@ angular.module('deckApp')
       {
         label: 'Region',
         key: 'region',
+        clusterKey: 'region',
         getDisplayValue: function(cluster) {
           return _.unique(_.collect(cluster.serverGroups, 'region')).sort();
         },
@@ -44,7 +46,7 @@ angular.module('deckApp')
 
     function getSelectedSortOption() {
       return $scope.sortOptions.filter(function(option) {
-        return option.key === $scope.sortField;
+        return option.key === $scope.sortFilter.sortPrimary;
       })[0];
     }
 
@@ -56,17 +58,17 @@ angular.module('deckApp')
 
     this.getClustersFor = function getClustersFor(value) {
       return $scope.clusters.filter(function (cluster) {
-        if ($scope.sortField === 'region') {
+        if ($scope.sortFilter.sortPrimary === 'region') {
           return cluster.serverGroups.some(function(serverGroup) {
             return serverGroup.region === value;
           });
         }
-        return cluster[$scope.sortField] === value;
+        return cluster[getSelectedSortOption().clusterKey] === value;
       });
     };
 
     this.getClusterLabel = function getClusterLabel(cluster) {
-      if ($scope.sortField === 'name') {
+      if ($scope.sortFilter.sortPrimary === 'cluster') {
         return cluster.accountName;
       }
       return cluster.name;
@@ -74,10 +76,10 @@ angular.module('deckApp')
 
     this.getClusterSublabel = function getClusterSublabel(cluster) {
       var labelFields = $scope.sortOptions.filter(function(sortOption) {
-        if ($scope.sortField === 'name') {
+        if ($scope.sortFilter.sortPrimary === 'cluster') {
           return sortOption.key === 'region';
         }
-        return sortOption.key !== $scope.sortField && sortOption.key !== 'name';
+        return sortOption.key !== $scope.sortFilter.sortPrimary && sortOption.key !== 'cluster';
       });
       return labelFields[0].getDisplayLabel(cluster).toString();
     };
