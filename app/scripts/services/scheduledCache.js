@@ -14,7 +14,7 @@ angular.module('deckApp')
     
     that.schedules = {}; 
 
-    that.cycles =  1;
+    that.cycles =  10;
 
     that.cache = $cacheFactory('scheduledHttp');
 
@@ -33,7 +33,7 @@ angular.module('deckApp')
           });
         });
       return that.cache.put(k,v);
-    };  
+    };
 
     that.get = that.cache.get;
 
