@@ -29,12 +29,8 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.services.SecurityGroupService
-import groovy.transform.InheritConstructors
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
-
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
  *
@@ -42,27 +38,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
  */
 class AutoScalingWorker {
   static final String SUBNET_METADATA_KEY = "immutable_metadata"
-  private static final String SUBNET_PURPOSE_TYPE = "ec2"
+  private static final String SUBNET_TARGET = "ec2"
   private static final String AWS_PHASE = "AWS_DEPLOY"
-
-  enum SubnetType {
-    INTERNAL("internal"), EXTERNAL("external")
-
-    String type
-
-    SubnetType(String type) {
-      this.type = type
-    }
-
-    static SubnetType fromString(String type) {
-      for (t in values()) {
-        if (t.type == type) {
-          return t
-        }
-      }
-      throw new SubnetTypeNotFoundException()
-    }
-  }
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -81,7 +58,14 @@ class AutoScalingWorker {
   private String keyPair
   private Boolean ignoreSequence
   private Boolean associatePublicIpAddress
-  private SubnetType subnetType
+  private String subnetType
+  private Integer cooldown
+  private Integer healthCheckGracePeriod
+  private String healthCheckType
+  private Collection<String> terminationPolicies
+  private String ramdiskId
+  private Boolean instanceMonitoring
+  private Boolean ebsOptimized
   private List<String> loadBalancers
   private List<String> securityGroups
   private List<String> availabilityZones
@@ -120,7 +104,7 @@ class AutoScalingWorker {
     task.updateStatus AWS_PHASE, "Checking for security package."
     String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application)
     if (!applicationSecurityGroup) {
-      applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType?.type)
+      applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
     }
 
     task.updateStatus AWS_PHASE, "Looking up security groups..."
@@ -185,7 +169,7 @@ class AutoScalingWorker {
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType.type && metadata.target == SUBNET_PURPOSE_TYPE) {
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_TARGET) {
           mySubnets << subnet
         }
       }
@@ -234,6 +218,11 @@ class AutoScalingWorker {
       .withSecurityGroups(securityGroups)
       .withKeyName(keyPair)
       .withAssociatePublicIpAddress(associatePublicIpAddress)
+      .withRamdiskId(ramdiskId)
+      .withEbsOptimized(ebsOptimized)
+    if (instanceMonitoring) {
+      request.withInstanceMonitoring(new InstanceMonitoring(enabled: instanceMonitoring))
+    }
 
     if (blockDevices) {
       def mappings = []
@@ -297,14 +286,18 @@ class AutoScalingWorker {
       .withMaxSize(maxInstances)
       .withDesiredCapacity(desiredInstances)
       .withLoadBalancerNames(loadBalancers)
+      .withDefaultCooldown(cooldown)
+      .withHealthCheckGracePeriod(healthCheckGracePeriod)
+      .withHealthCheckType(healthCheckType)
+      .withTerminationPolicies(terminationPolicies)
 
     // Favor subnetIds over availability zones
     def subnetIds = subnetIds?.join(',')
     if (subnetIds) {
       task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
-    } else if (subnetType == SubnetType.INTERNAL && !subnets) {
-      throw new RuntimeException("No suitable subnet was found for internal subnet type!!")
+    } else if (subnetPurpose && !subnets) {
+      throw new RuntimeException("No suitable subnet was found for internal subnet purpose '${subnetPurpose}'!")
     } else {
       task.updateStatus AWS_PHASE, " > Deploying to availabilityZones: $availabilityZones"
       request.withAvailabilityZones(availabilityZones)
@@ -332,9 +325,5 @@ class AutoScalingWorker {
     }
     data ? new String(Base64.encodeBase64(data?.bytes)) : null
   }
-
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "subnet not found for the provided subnetType")
-  @InheritConstructors
-  static class SubnetTypeNotFoundException extends RuntimeException {}
 
 }

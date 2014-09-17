@@ -113,6 +113,13 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.keyPair = description.keyPair ?: ancestorLaunchConfiguration.keyName
       newDescription.blockDevices = description.blockDevices ?: convertBlockDevices(ancestorLaunchConfiguration.blockDeviceMappings)
       newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : ancestorLaunchConfiguration.associatePublicIpAddress
+      newDescription.cooldown = description.cooldown ?: ancestorAsg.defaultCooldown
+      newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod ?: ancestorAsg.healthCheckGracePeriod
+      newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
+      newDescription.terminationPolicies = description.terminationPolicies == null ? description.terminationPolicies : ancestorAsg.terminationPolicies
+      newDescription.ramdiskId = description.ramdiskId ?: (ancestorLaunchConfiguration.ramdiskId ?: null)
+      newDescription.instanceMonitoring = description.instanceMonitoring != null ?: ancestorLaunchConfiguration.instanceMonitoring
+      newDescription.ebsOptimized = description.ebsOptimized != null ?: ancestorLaunchConfiguration.ebsOptimized
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)

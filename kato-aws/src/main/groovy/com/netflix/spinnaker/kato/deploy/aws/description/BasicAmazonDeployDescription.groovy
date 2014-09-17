@@ -33,8 +33,17 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String subnetType
   String iamRole
   String keyPair
-  boolean ignoreSequence
   Boolean associatePublicIpAddress
+  Integer cooldown
+  Integer healthCheckGracePeriod
+  String healthCheckType
+  Collection<String> terminationPolicies
+  String ramdiskId
+  Boolean instanceMonitoring
+  Boolean ebsOptimized
+
+  boolean ignoreSequence
+
   List<AmazonBlockDevice> blockDevices
   List<String> loadBalancers
   List<String> securityGroups

@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.validators
 
-import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker.SubnetType
-import com.netflix.spinnaker.kato.deploy.aws.AutoScalingWorker.SubnetTypeNotFoundException
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
@@ -48,13 +46,6 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
       }
       if (!description.subnetType && acctRegion && !acctRegion.availabilityZones.containsAll(azs)) {
         errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.zone.not.configured")
-      }
-    }
-    if (description.subnetType) {
-      try {
-        SubnetType.fromString(description.subnetType)
-      } catch (SubnetTypeNotFoundException e) {
-        errors.rejectValue("subnetType", "createAmazonLoadBalancerDescription.subnetType.not.configured")
       }
     }
     if (!description.listeners) {

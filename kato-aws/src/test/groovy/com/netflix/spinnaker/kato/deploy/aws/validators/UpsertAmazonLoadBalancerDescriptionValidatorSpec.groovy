@@ -116,16 +116,4 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     0 * errors.rejectValue("availabilityZones", _)
   }
 
-  void "invalid subnet fails validation"() {
-    setup:
-    description.subnetType = "lol"
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue("subnetType", _)
-  }
-
 }
