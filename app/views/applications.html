@@ -57,10 +57,10 @@
             </a>
           </td>
           <td>
-            {{ application.attributes.createTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+            {{ application.attributes.createTs | relativeTime }}
           </td>
           <td>
-            {{ application.attributes.updateTs | dateFromTimestamp | date: 'yyyy-MM-dd' }}
+            {{ application.attributes.updateTs | relativeTime }}
           </td>
           <td>
             {{ application.attributes.email }}

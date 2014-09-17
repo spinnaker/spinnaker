@@ -1,0 +1,68 @@
+@import "app/styles/imports/commonImports.less";
+
+.tasks {
+  .task {
+    .summary {
+      background-color: @light_grey;
+      h5 {
+        margin-top: 5px;
+        margin-left: -10px;
+      }
+      .glyphicon {
+        margin-left: -10px;
+        font-size: 1.2em;
+      }
+      .glyphicon-ok {
+        color: @healthy_green_icon;
+      }
+      .glyphicon-warning-sign {
+        color: @unhealthy_red;
+      }
+    }
+    .progress {
+      margin: 0px;
+      border-radius: 0px;
+      height: 5px;
+      margin-top: -5px;
+      border: 0px;
+      .progress-bar-danger {
+        background-color: @unhealthy_red;
+      }
+      .progress-bar-success {
+        background-color: @healthy_green_icon;
+      }
+    }
+    .details {
+      dt {
+        float: left;
+        margin-right: 5px;
+      }
+      li {
+        list-style-type: none;
+      }
+    }
+  }
+}
+
+.task-details {
+  @media(min-width: 992px) {
+    .details-panel {
+      width: 34% !important;
+    }
+  }
+  @media(max-width: 992px) {
+    .details-panel {
+      display: none;
+    }
+  }
+  .glyphicon-ok {
+    color: @healthy_green_icon;
+  }
+  .glyphicon-warning-sign {
+    color: @unhealthy_red;
+  }
+  dt {
+    float: left;
+    margin-right: 5px;
+  }
+}

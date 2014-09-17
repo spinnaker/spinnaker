@@ -67,6 +67,7 @@ angular.module('deckApp', [
         fromParams: fromParams,
         error: error
       });
+      $state.go('home.404');
       $rootScope.routing = false;
     });
 

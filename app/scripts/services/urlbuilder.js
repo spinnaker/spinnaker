@@ -77,56 +77,46 @@ angular.module('deckApp')
 
     var pushVersion = /-v\d+$/;
 
-    function getValueForKey(task, k) {
-      return task.variables.filter(function(v) {
-        return v.key === k;
-      })[0];
-    }
-
-    function applicationTask(task) {
-      return lookup[{
-        application: getValueForKey(task, 'application'),
-      }];
-    }
-
     function asgTask(task, type) {
-      var asgName = getValueForKey(task, type+'disableAsg.asgName');
-      var account = getValueForKey(task, 'deploy.account.name');
+      var asgName = task.getValueFor(type+'Asg.asgName');
+      var account = task.getValueFor('deploy.account.name');
       if (!asgName.match(pushVersion)) { return '/'; }
-      return lookup[{
-        application: getValueForKey(task, 'application'),
-        cluster: asgName.replace(pushVersion, ''),
-        account: account,
-        accountId: account,
-        region: getValueForKey(task, type+'Asg.regions')[0],
-        serverGroup: asgName,
-      }];
+      return $state.href( 
+        'home.applications.application.insight.clusters.cluster.serverGroup',
+        {
+          application: task.getValueFor('application'),
+          cluster: asgName.replace(pushVersion, ''),
+          account: account,
+          accountId: account,
+          region: task.getValueFor(type+'Asg.regions')[0],
+          serverGroup: asgName,
+        });
     }
 
     function terminateInstancesTask(task) {
-      console.log(task);
+      angular.noop(task);
       return '/'; // TODO: where should this go?
     }
 
     function fromTask(task) {
-      var desc = getValueForKey(task, 'description').indexOf;
+      var desc = task.getValueFor('description');
       var contains = function(str) {
         return desc.indexOf(str) !== -1;
       };
 
       switch (true) {
-        case contains('Destroying ASG'):
-          return applicationTask(task);
-        case contains('Disabling ASG'):
+        case contains('Destroying Server Group'):
+          return false;
+        case contains('Disabling Server Group'):
           return asgTask(task, 'disable');
-        case contains('Enabling ASG'):
+        case contains('Enabling Server Group'):
           return asgTask(task, 'enable');
-        case contains('Resizing ASG'):
+        case contains('Resizing Server Group'):
           return asgTask(task, 'resize');
         case contains('Terminating instance'):
           return terminateInstancesTask(task);
         default:
-          return '/';
+          return false;
       }
     }
 

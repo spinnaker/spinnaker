@@ -1,81 +1,66 @@
-<div class="col-md-12">
-  <div class="row task-row" ng-click="toggleDetails()">
+<div class="col-md-12 task">
+  <div class="row panel">
     <div class="col-md-12">
-      <div class="row">
-        <div class="col-md-2 task-label">
-          <div>
-            <strong>{{ task.description }}</strong>
+      <div class="row summary">
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-1 col-sm-1 col-xs-1">
+              <status-glyph item="task"></status-glyph>
+            </div>
+            <div class="col-md-11 col-sm-11 col-xs-11">
+              <h5>
+                <a ui-sref=".taskDetails({ taskId: task.id })">
+                  {{ task.getValueFor('description') }}
+                </a>
+              </h5>
+            </div>
           </div>
-          <ul>
-            <li>Started: {{ task.startTimeAsDate | relativeTime }}
-            <li ng-switch="task.status">
-              <span ng-switch-when="COMPLETED">
-                Completed: {{ task.endTimeAsDate | relativeTime }}
-              </span>
-              <span ng-switch-default>
-              </span>
-            </li>
-            <li>Running time: {{ task.runningTime }}</li>
-            <li ng-hide="open">
-              <span class="glyphicon glyphicon-circle-arrow-down"></span> Show details
-            </li>
-            <li ng-show="open">
-              <span class="glyphicon glyphicon-circle-arrow-up"></span> Hide details
-            </li>
-          </ul>
-        </div>
-        <div class="col-md-10 task">
-          <progress max="1.0001" class="progress-status">
-            <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
-            <span tooltip="Started: {{ step.startTimeAsDate | relativeTime }}, Ended: {{ step.startTimeAsDate | relativeTime }}"></span>
-            </bar>
-          </progress>
-          <progress max="1.0001" class="progress-labels">
-            <bar ng-repeat="step in task.stages" value="step.percentage" type="{{ step.category }}" animated="{{ step.active }}">
-            {{ step.displayName }}
-            </bar>
-          </progress>
         </div>
       </div>
-      <div class="row details-row" ng-if="open">
+      <div class="row">
+        <div class="progress" style="">
+          <div class="progress-bar"
+               ng-class="{active: task.isRunning, 'progress-bar-info': task.isRunning, 'progress-bar-striped': task.isRunning, 'progress-bar-success': task.isCompleted, 'progress-bar-danger': task.isFailed}"
+               role="progressbar"
+               aria-valuenow="1"
+               aria-valuemin="0"
+               aria-valuemax="1"
+               style="width: 100%;">
+          </div>
+        </div>
+      </div>
+      <div class="row details" style="padding-top: 10px; padding-bottom: 10px;">
         <div class="col-md-12">
-          <table class="table table-striped table-hover">
-            <thead>
-              <th>
-                Step
-              </th>
-              <th>
-                Started
-              </th>
-              <th>
-                Completed
-              </th>
-              <th>
-                Running Time
-              </th>
-            </thead>
-            <tbody>
-             <tr ng-repeat="step in task.steps">
-               <td>
-                 {{ step.name }}
-               </td>
-               <td>
-                 {{ step.startTimeAsDate | relativeTime }}
-               </td>
-               <td ng-switch="step.status">
-                 <span ng-switch-when="COMPLETED">
-                   {{ step.endTimeAsDate | relativeTime }}
-                 </span>
-                 <span ng-switch-default>
-                   N/A
-                 </span>
-               </td>
-               <td>
-                 {{ step.runningTime }}
-               </td>
-             </tr>
-            </tbody>
-          </table>
+          <div class="row">
+            <div class="col-md-1 col-sm-1 col-xs-1">
+              <span class="glyphicon glyphicon-time"></span>
+            </div>
+            <div class="col-md-11 col-sm-11 col-xs-11">
+              <dl>
+                <dt>Started</dt> <dd>{{ task.startTime | relativeTime }}</dd>
+                <span ng-if="task.isCompleted">
+                  <dt>Completed</dt> <dd>{{ task.endTime | relativeTime }}</dd>
+                </span>
+                <dt>Running time<dt> <dd>{{ task.runningTime }}</dd>
+              </dl>
+            </div>
+          </div>
+          <div class="row" ng-if="task.failureMessage">
+            <div class="col-md-1 col-sm-1 col-xs-1">
+              <span class="glyphicon glyphicon-warning-sign"></span>
+            </div>
+            <div class="col-md-11 col-sm-11 col-xs-11">
+              {{ task.failureMessage }}
+            </div>
+          </div>
+          <div class="row" ng-if="task.href">
+            <div class="col-md-1 col-sm-1 col-xs-1">
+              <span class="glyphicon glyphicon-ok"></span>
+            </div>
+            <div class="col-md-11 col-sm-11 col-xs-11">
+              <a href="{{ task.href }}">Complete!</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "dependencies": {
     "angular": "1.2.20",
-    "angular-module-animate": "1.2.19",
     "angular-bootstrap": "~0.11.0",
+    "angular-module-animate": "1.2.19",
     "angular-spinner": "~0.5.1",
     "angular-ui-router": "~0.2.10",
     "bootstrap": "~3.2.0",
+    "d3": "^3.4.11",
     "jquery": "2.1.1",
     "lodash": "~2.4.1",
     "moment": "2.8.1",
@@ -81,11 +82,16 @@
   "browserify-shim": {
     "angular-ui-select2": {
       "exports": "uiSelect2",
-      "depends": ["angular:angular", "select2:select2"]
+      "depends": [
+        "angular:angular",
+        "select2:select2"
+      ]
     },
     "select2": {
       "exports": "select2",
-      "depends": ["jquery:jquery"]
+      "depends": [
+        "jquery:jquery"
+      ]
     },
     "jquery": {
       "exports": "$"

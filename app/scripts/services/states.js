@@ -89,6 +89,39 @@ angular.module('deckApp')
         }
       };
 
+      var notFound = {
+        name: '404',
+        url: '/404',
+        views: {
+          'main@': {
+            templateUrl: 'views/404.html',
+            controller: angular.noop,
+          }
+        }
+      };
+
+      var taskDetails = {
+        name: 'taskDetails',
+        url: '/:taskId',
+        views: {
+          'task-details': {
+            templateUrl: 'views/taskdetails.html',
+            controller: 'TaskDetailsCtrl as ctrl',
+          }
+        },
+        resolve: {
+          task: function(application, $stateParams, $state) {
+            var filtered = application.tasks.filter(function(task) {
+              return task.id === parseInt($stateParams.taskId);
+            });
+            if (filtered.length === 0) {
+              $state.go('home.404');
+            }
+            return filtered[0];
+          },
+        },
+      };
+
       var insight = {
         name: 'insight',
         abstract: true,
@@ -225,13 +258,7 @@ angular.module('deckApp')
             controller: 'TasksCtrl',
           },
         },
-        resolve: {
-          tasks: ['$stateParams', 'pond', function($stateParams, pond) {
-            return pond
-              .one('applications', $stateParams.application)
-              .all('tasks').getList();
-          }],
-        },
+        children: [taskDetails],
       };
 
       var application = {
@@ -290,6 +317,7 @@ angular.module('deckApp')
           }
         },
         children: [
+          notFound,
           applications,
           infrastructure
         ],
