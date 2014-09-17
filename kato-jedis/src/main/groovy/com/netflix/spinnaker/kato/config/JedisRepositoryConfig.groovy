@@ -19,8 +19,11 @@ package com.netflix.spinnaker.kato.config
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.data.task.jedis.JedisTaskRepository
 import groovy.transform.CompileStatic
+import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.JedisCommands
 
 /**
  * Configuration for embedded redis instance and associated jedis
@@ -32,6 +35,22 @@ class JedisRepositoryConfig {
   @Bean
   TaskRepository taskRepository() {
     new JedisTaskRepository()
+  }
+
+  @Bean
+  HealthIndicator redisHealthIndicator(JedisCommands jedisCommands) {
+      new HealthIndicator() {
+          @Override
+          Health health() {
+              def builder = new Health.Builder()
+              try {
+                  jedisCommands.exists('health')
+                  builder.up().build()
+              } catch (Exception ex) {
+                  builder.down(ex).build()
+              }
+          }
+      }
   }
   
 }
