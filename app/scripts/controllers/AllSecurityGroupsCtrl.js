@@ -51,7 +51,8 @@ angular.module('deckApp')
 
     this.createSecurityGroup = function createSecurityGroup() {
       $modal.open({
-        templateUrl: 'views/application/modal/createSecurityGroup.html',
+//        templateUrl: 'views/application/modal/createSecurityGroup.html',
+        templateUrl: 'views/modal/asgWizard.html',
         controller: 'CreateSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {

@@ -1,4 +1,4 @@
-<div ng-class="[direction, jump]">
+<div ng-class="[direction, jump]" modal-page>
   <div class="modal-header">
     <h2>{{heading}}</h2>
     <ul class="steps-indicator steps-{{wizard.renderedPages.length}}" ng-if="!hideIndicators">
@@ -8,7 +8,8 @@
             current: page.state.current,
             done: page.state.done
       }">
-        <a href ng-click="wizardCtrl.jumpToPage(page.key)">{{page.key}}</a>
+        <a ng-if="page.state.done || page.state.current" href ng-click="wizardCtrl.jumpToPage(page.key)">{{page.key}}</a>
+        <a ng-if="!page.state.done && !page.state.current">{{page.key}}</a>
       </li>
     </ul>
   </div>
