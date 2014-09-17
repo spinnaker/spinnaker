@@ -31,6 +31,7 @@ describe('Service: InstanceType', function() {
     $http = $httpBackend;
 
     $http.when('GET', config.awsMetadataUrl + '/instanceType').respond(200, instanceTypes);
+    $http.when('GET', config.credentialsUrl + 'credentials').respond(200, []);
   }));
 
   it('returns an intersection of instance types, sorted by name', function() {
