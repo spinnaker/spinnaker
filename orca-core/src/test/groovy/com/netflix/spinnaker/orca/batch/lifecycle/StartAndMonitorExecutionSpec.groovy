@@ -78,5 +78,6 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
       .build(jobBuilder)
       .build()
+      .build()
   }
 }

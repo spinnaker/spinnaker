@@ -106,5 +106,6 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
     new ManualInterventionStage(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
       .build(jobBuilder)
       .build()
+      .build()
   }
 }

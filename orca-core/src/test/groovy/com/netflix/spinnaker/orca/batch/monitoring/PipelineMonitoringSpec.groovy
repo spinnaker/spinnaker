@@ -44,6 +44,7 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
     new TestStage("foo", steps, pipelineMonitor, task1, task2)
       .build(jobBuilder)
       .build()
+      .build()
   }
 
   def "a stage with multiple tasks raises a single begin and end stage event"() {

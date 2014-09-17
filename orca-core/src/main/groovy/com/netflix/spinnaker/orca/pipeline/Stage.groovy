@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.JobBuilderHelper
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 /**
  * An object that constructs steps for a Spring Batch +Job+ relating to a specific Orca _stage_.
  */
-interface Stage<B extends JobBuilderHelper<B>> {
+interface Stage {
 
   /**
    * @return the name that corresponds to Mayo config.
@@ -37,7 +37,7 @@ interface Stage<B extends JobBuilderHelper<B>> {
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  abstract B build(JobBuilder jobBuilder)
+  abstract JobFlowBuilder build(JobBuilder jobBuilder)
 
   /**
    * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
@@ -46,6 +46,6 @@ interface Stage<B extends JobBuilderHelper<B>> {
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  abstract B build(B jobBuilder)
+  abstract JobFlowBuilder build(JobFlowBuilder jobBuilder)
 
 }

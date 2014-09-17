@@ -21,11 +21,11 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.StageSupport
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 @CompileStatic
-class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
+class ManualInterventionStage extends StageSupport {
 
   Task preInterventionTask, postInterventionTask, finalTask
 
@@ -34,7 +34,7 @@ class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
   }
 
   @Override
-  FlowJobBuilder build(JobBuilder jobBuilder) {
+  JobFlowBuilder build(JobBuilder jobBuilder) {
     def step1 = steps.get("PreInterventionStep")
                      .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
                      .build()
@@ -44,16 +44,15 @@ class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
     def step3 = steps.get("FinalStep")
                      .tasklet(TaskTaskletAdapter.decorate(finalTask))
                      .build()
-    jobBuilder.start(step1)
+    (JobFlowBuilder) jobBuilder.start(step1)
               .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
               .from(step1)
               .on(ExitStatus.COMPLETED.exitCode).to(step2)
               .next(step3)
-              .build()
   }
 
   @Override
-  FlowJobBuilder build(FlowJobBuilder jobBuilder) {
+  JobFlowBuilder build(JobFlowBuilder jobBuilder) {
     throw new UnsupportedOperationException()
   }
 }

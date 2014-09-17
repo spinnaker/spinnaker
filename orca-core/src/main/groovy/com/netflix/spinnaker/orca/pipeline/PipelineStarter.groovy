@@ -27,6 +27,7 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -80,9 +81,9 @@ class PipelineStarter {
   private Job pipelineFrom(List<Map<String, ?>> config) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
-                         .start(configStep(config))
-    jobBuilder = (JobBuilderHelper) config.inject(jobBuilder, this.&stageFromConfig)
-    job(jobBuilder)
+                         .flow(configStep(config))
+    def flow = (JobFlowBuilder) config.inject(jobBuilder, this.&stageFromConfig)
+    job flow.build()
   }
 
   private TaskletStep configStep(configMap) {
@@ -102,7 +103,7 @@ class PipelineStarter {
     } as Tasklet
   }
 
-  private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
+  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, Map stepConfig) {
     if (stages.containsKey(stepConfig.type)) {
       stages.get(stepConfig.type).build(jobBuilder)
     } else {

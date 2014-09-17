@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
@@ -29,7 +28,7 @@ import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
  * Base class for a component that constructs a _stage_ to be run as (part of) a _pipeline_.
  */
 @CompileStatic
-abstract class StageSupport<B extends JobBuilderHelper<B>> implements AutowiredComponentBuilder, Stage<B> {
+abstract class StageSupport implements AutowiredComponentBuilder, Stage {
 
   protected StepBuilderFactory steps
   private final String name

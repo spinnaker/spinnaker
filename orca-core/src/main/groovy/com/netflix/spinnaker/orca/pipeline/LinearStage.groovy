@@ -19,13 +19,13 @@ package com.netflix.spinnaker.orca.pipeline
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
 @CompileStatic
-abstract class LinearStage extends StageSupport<SimpleJobBuilder> {
+abstract class LinearStage extends StageSupport {
 
   LinearStage(String name) {
     super(name)
@@ -34,18 +34,18 @@ abstract class LinearStage extends StageSupport<SimpleJobBuilder> {
   protected abstract List<Step> buildSteps()
 
   @Override
-  SimpleJobBuilder build(JobBuilder jobBuilder) {
+  JobFlowBuilder build(JobBuilder jobBuilder) {
     def steps = buildSteps()
-    wireSteps(jobBuilder.start(steps.first()), steps.tail())
+    wireSteps jobBuilder.flow(steps.first()), steps.tail()
   }
 
   @Override
-  SimpleJobBuilder build(SimpleJobBuilder jobBuilder) {
-    wireSteps(jobBuilder, buildSteps())
+  JobFlowBuilder build(JobFlowBuilder jobBuilder) {
+    wireSteps jobBuilder, buildSteps()
   }
 
-  private SimpleJobBuilder wireSteps(SimpleJobBuilder jobBuilder, List<Step> steps) {
-    (SimpleJobBuilder) steps.inject(jobBuilder) { SimpleJobBuilder builder, Step step ->
+  private JobFlowBuilder wireSteps(JobFlowBuilder jobBuilder, List<Step> steps) {
+    (JobFlowBuilder) steps.inject(jobBuilder) { JobFlowBuilder builder, Step step ->
       builder.next(step)
     }
   }
