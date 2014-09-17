@@ -25,5 +25,6 @@ class BasicGoogleDeployDescription implements DeployDescription {
   String image
   String type
   String zone
+  String accountName
   GoogleCredentials credentials
 }
