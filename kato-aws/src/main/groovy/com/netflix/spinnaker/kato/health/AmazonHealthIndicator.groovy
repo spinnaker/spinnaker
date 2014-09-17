@@ -22,15 +22,22 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import groovy.transform.InheritConstructors
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.http.HttpStatus
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.ResponseStatus
 
+import java.util.concurrent.atomic.AtomicReference
+
 @Component
 class AmazonHealthIndicator implements HealthIndicator {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AmazonHealthIndicator)
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -38,21 +45,41 @@ class AmazonHealthIndicator implements HealthIndicator {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
+  private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
+
   @Override
   Health health() {
-    Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll { it instanceof NetflixAmazonCredentials } as Set<NetflixAmazonCredentials>
-    if (!amazonCredentials) {
-      throw new AmazonCredentialsNotFoundException()
+    def ex = lastException.get()
+    if (ex) {
+      throw ex
     }
-    for (NetflixAmazonCredentials credentials in amazonCredentials) {
-      try {
-        def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
-        ec2.describeAccountAttributes()
-      } catch (AmazonServiceException e) {
-        throw new AmazonUnreachableException(e)
-      }
-    }
+
     new Health.Builder().up().build()
+  }
+
+  @Scheduled(fixedDelay = 10000L)
+  void checkHealth() {
+    try {
+        Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
+            it instanceof NetflixAmazonCredentials
+        } as Set<NetflixAmazonCredentials>
+        if (!amazonCredentials) {
+            throw new AmazonCredentialsNotFoundException()
+        }
+        for (NetflixAmazonCredentials credentials in amazonCredentials) {
+            try {
+                def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
+                ec2.describeAccountAttributes()
+            } catch (AmazonServiceException e) {
+                throw new AmazonUnreachableException(e)
+            }
+        }
+        LOG.info "Healthy"
+        lastException.set(null)
+    } catch (Exception ex) {
+        LOG.warn "Unhealthy", ex
+        lastException.set(ex)
+    }
   }
 
   @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = 'AWS Module is configured, but no credentials found.')
