@@ -1,10 +1,14 @@
 @import "app/styles/imports/commonImports.less";
 
 .modal-header {
+
+  h2, h3 {
+    margin-top: 0;
+  }
+
   .steps-indicator {
     position: relative;
     height: 50px;
-    transition: width 0.25s ease-in-out;
     overflow-x: hidden;
 
     &:before {
@@ -14,7 +18,24 @@
     li {
       margin-top: 10px;
       font-size: 80%;
-      transition: width 0.25s ease-in-out, opacity 0.25s linear;
+      transition: all 0.25s ease-in-out;
+
+      &.ng-enter {
+        transform: scale(2.0);
+        opacity: 0.6;
+      }
+      &.ng-enter.ng-enter-active {
+        transform: scale(1.0);
+        opacity: 1;
+      }
+      &.ng-leave {
+        transform: scale(1.0);
+        opacity: 1;
+      }
+      &.ng-leave.ng-leave-active {
+        transform: scale(0.0);
+        opacity: 0;
+      }
 
       a:before {
         background-color: transparent;
