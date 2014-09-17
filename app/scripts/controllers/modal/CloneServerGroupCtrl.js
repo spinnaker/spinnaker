@@ -155,20 +155,21 @@ angular.module('deckApp')
 
     this.clone = function () {
       var command = angular.copy($scope.command);
-      var availabilityZones = _.intersection(command.availabilityZones, $scope.regionalAvailabilityZones);
-      var loadBalancers = _.intersection(command.loadBalancers, $scope.regionalLoadBalancers);
-      var securityGroupNames = _.intersection(command.securityGroups, _.pluck($scope.regionalSecurityGroups, 'name'));
-      command.amiName = _($scope.images).find({'imageName': command.amiName}).imageId;
-      command.availabilityZones = {};
-      command.availabilityZones[command.region] = availabilityZones;
-      command.loadBalancers = loadBalancers;
-      command.securityGroups = securityGroupNames;
-      $scope.sentCommand = command;
-      orcaService.cloneServerGroup(command)
-        .then(function (response) {
-          $modalInstance.close();
-          console.warn('task:', response.ref);
-        });
+//      var availabilityZones = _.intersection(command.availabilityZones, $scope.regionalAvailabilityZones);
+//      var loadBalancers = _.intersection(command.loadBalancers, $scope.regionalLoadBalancers);
+//      var securityGroupNames = _.intersection(command.securityGroups, _.pluck($scope.regionalSecurityGroups, 'name'));
+//      command.amiName = _($scope.images).find({'imageName': command.amiName}).imageId;
+//      command.availabilityZones = {};
+//      command.availabilityZones[command.region] = availabilityZones;
+//      command.loadBalancers = loadBalancers;
+//      command.securityGroups = securityGroupNames;
+//      $scope.sentCommand = command;
+//      orcaService.cloneServerGroup(command)
+//        .then(function (response) {
+//          $modalInstance.close();
+//          console.warn('task:', response.ref);
+//        });
+      $modalInstance.close(command);
     };
 
     this.cancel = function () {

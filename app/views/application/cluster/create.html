@@ -1,0 +1,10 @@
+<div style="margin-left: 30px; background-color: #ffffff">
+  <h4>{{serverGroupToCreate.application}} <account-tag account="serverGroupToCreate.credentials"></account-tag> </h4>
+  <dl>
+    <dt>Region</dt>
+    <dd>{{serverGroupToCreate.region}}</dd>
+  </dl>
+
+  <button class="btn btn-default" ng-click="ctrl.cancelCreateServerGroup()">Cancel</button>
+  <button class="btn btn-primary" ng-click="ctrl.submitCreateServerGroup()">Submit</button>
+</div>

@@ -164,7 +164,19 @@ angular.module('deckApp')
           },
           regionsKeyedByAccount: accountService.getRegionsKeyedByAccount
         }
+      }).result.then(function(command) {
+        $scope.serverGroupToCreate = command;
       });
+    };
+
+    this.submitCreateServerGroup = function submitCreateServerGroup() {
+      console.warn('creating:', $scope.serverGroupToCreate);
+      $scope.serverGroupToCreate = null;
+    };
+
+    this.cancelCreateServerGroup = function cancelCreateServerGroup() {
+      console.warn('cancel creation of:', $scope.serverGroupToCreate);
+      $scope.serverGroupToCreate = null;
     };
 
     this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
