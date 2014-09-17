@@ -1,28 +1,44 @@
 @import "app/styles/imports/commonImports.less";
 
-.steps-indicator {
-  position: relative;
-  height: 50px;
-  transition: width 0.25s ease-in-out;
-  overflow-x: hidden;
+.modal-header {
+  .steps-indicator {
+    position: relative;
+    height: 50px;
+    transition: width 0.25s ease-in-out;
+    overflow-x: hidden;
 
-  &:before {
-    top: 10px;
-  }
-
-  li {
-    margin-top: 10px;
-    font-size: 80%;
-    transition: width 0.25s ease-in-out, opacity 0.25s linear;
-
-    &.done {
-      a:before {
-        background-color: #808080;
-      }
+    &:before {
+      top: 10px;
     }
-    &.current {
+
+    li {
+      margin-top: 10px;
+      font-size: 80%;
+      transition: width 0.25s ease-in-out, opacity 0.25s linear;
+
       a:before {
-        background-color: #339933;
+        background-color: transparent;
+        font-size: 120%;
+        font-family: 'Glyphicons Halflings';
+      }
+
+      &.done {
+        a:before {
+          color: #339933;
+          content: "\e089";
+        }
+      }
+      &.current {
+        a:before {
+          background-color: @spinnaker-blue;
+          content: '';
+        }
+      }
+      &.default {
+        a:before {
+          color: #808080;
+          content: '\e090';
+        }
       }
     }
   }
