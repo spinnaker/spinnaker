@@ -29,13 +29,16 @@ class BasicGoogleDeployAtomicOperationConverter extends AbstractAtomicOperations
   }
 
   BasicGoogleDeployDescription convertDescription(Map input) {
-    input.credentials = getCredentialsObject(input.credentials as String)
+    input.accountName = input.credentials
+    input.credentials = getCredentialsObject(input.accountName as String)
 
     // The value associated with the 'credentials' key in the map |input| is now of type GoogleNamedAccountCredentials.
     // The credentials property of BasicGoogleDeployDescription, one of which we are about to construct below, is of
     // type GoogleCredentials. Since GoogleNamedAccountCredentials exposes a property named 'credentials', of the
     // desired type GoogleCredentials, we just need to dereference it. If we don't, GroovyCastExceptions ensue.
-    input.credentials = (input.credentials).credentials
+    if (input.credentials) {
+      input.credentials = (input.credentials).credentials
+    }
 
     new BasicGoogleDeployDescription(input)
   }

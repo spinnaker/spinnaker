@@ -53,6 +53,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing deployment..."
 
+    if (!description.credentials) {
+      throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
+    }
+
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
