@@ -40,10 +40,10 @@
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="IP Range Rules ({{ipRangeRules.length || 0}})" expanded="{{!!(ipRangeRules && ipRangeRules.length)}}">
-      <div ng-if="!ipRangeRules.length">None</div>
+    <collapsible-section heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
+      <div ng-if="!securityGroup.ipRangeRules.length">None</div>
 
-      <dl ng-repeat="ipRangeRule in ipRangeRules">
+      <dl ng-repeat="ipRangeRule in securityGroup.ipRangeRules">
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
         <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges:</dt>
@@ -52,10 +52,10 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Group Rules ({{securityGroupRules.length || 0}})" expanded="{{!!securityGroupRules.length}}">
-      <div ng-if="!securityGroupRules.length">None</div>
+    <collapsible-section heading="Security Group Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
+      <div ng-if="!securityGroup.securityGroupRules.length">None</div>
 
-      <dl ng-repeat="rule in securityGroupRules">
+      <dl ng-repeat="rule in securityGroup.securityGroupRules">
         <dt>Security Group</dt>
         <dd ng-if="rule.securityGroup.name">
           {{rule.securityGroup.name}} ({{rule.securityGroup.id}})

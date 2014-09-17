@@ -88,15 +88,30 @@ angular.module('deckApp')
       return securityGroupIndex;
     }
 
-    function getSecurityGroup(account, region, id) {
-      return mortEndpoint.one('securityGroups', account).one('aws').one(id).get({region: region});
+    function getSecurityGroupDetails(application, account, region, id) {
+      return mortEndpoint.one('securityGroups', account).one('aws').one(id).get({region: region}).then(function(details) {
+        if (details && details.inboundRules) {
+          details.ipRangeRules = details.inboundRules.filter(function(rule) {
+            return rule.range;
+          });
+          details.securityGroupRules = details.inboundRules.filter(function(rule) {
+            return rule.securityGroup;
+          });
+          details.securityGroupRules.forEach(function(inboundRule) {
+            if (!inboundRule.securityGroup.name) {
+              inboundRule.securityGroup.name = getApplicationSecurityGroup(application, details.accountName, details.region, inboundRule.securityGroup.id).name;
+            }
+          });
+          return details;
+        }
+      });
     }
 
     function getAllSecurityGroups() {
       return mortEndpoint.one('securityGroups').get();
     }
 
-    function getSecurityGroupFromIndex(application, account, region, id) {
+    function getApplicationSecurityGroup(application, account, region, id) {
       if (application.securityGroupsIndex[account] &&
         application.securityGroupsIndex[account][region] &&
         application.securityGroupsIndex[account][region][id]) {
@@ -108,8 +123,8 @@ angular.module('deckApp')
     return {
       loadSecurityGroups: loadSecurityGroups,
       attachSecurityGroups: attachSecurityGroups,
-      getSecurityGroup: getSecurityGroup,
-      getSecurityGroupFromIndex: getSecurityGroupFromIndex,
+      getSecurityGroupDetails: getSecurityGroupDetails,
+      getApplicationSecurityGroup: getApplicationSecurityGroup,
       getAllSecurityGroups: getAllSecurityGroups
     };
 
