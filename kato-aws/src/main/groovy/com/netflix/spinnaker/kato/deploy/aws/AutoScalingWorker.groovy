@@ -62,6 +62,8 @@ class AutoScalingWorker {
   private Integer cooldown
   private Integer healthCheckGracePeriod
   private String healthCheckType
+  String spotPrice
+  Collection<String> suspendedProcesses
   private Collection<String> terminationPolicies
   private String ramdiskId
   private Boolean instanceMonitoring
@@ -220,6 +222,7 @@ class AutoScalingWorker {
       .withAssociatePublicIpAddress(associatePublicIpAddress)
       .withRamdiskId(ramdiskId)
       .withEbsOptimized(ebsOptimized)
+      .withSpotPrice(spotPrice)
     if (instanceMonitoring) {
       request.withInstanceMonitoring(new InstanceMonitoring(enabled: instanceMonitoring))
     }
@@ -282,9 +285,9 @@ class AutoScalingWorker {
     CreateAutoScalingGroupRequest request = new CreateAutoScalingGroupRequest()
       .withAutoScalingGroupName(asgName)
       .withLaunchConfigurationName(launchConfigurationName)
-      .withMinSize(minInstances)
-      .withMaxSize(maxInstances)
-      .withDesiredCapacity(desiredInstances)
+      .withMinSize(0)
+      .withMaxSize(0)
+      .withDesiredCapacity(0)
       .withLoadBalancerNames(loadBalancers)
       .withDefaultCooldown(cooldown)
       .withHealthCheckGracePeriod(healthCheckGracePeriod)
@@ -296,14 +299,19 @@ class AutoScalingWorker {
     if (subnetIds) {
       task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
-    } else if (subnetPurpose && !subnets) {
-      throw new RuntimeException("No suitable subnet was found for internal subnet purpose '${subnetPurpose}'!")
+    } else if (subnetType && !subnets) {
+      throw new RuntimeException("No suitable subnet was found for internal subnet purpose '${subnetType}'!")
     } else {
       task.updateStatus AWS_PHASE, " > Deploying to availabilityZones: $availabilityZones"
       request.withAvailabilityZones(availabilityZones)
     }
 
     autoScaling.createAutoScalingGroup(request)
+    if (suspendedProcesses) {
+      autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
+    }
+    autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest(autoScalingGroupName: asgName,
+      minSize: minInstances, maxSize: maxInstances, desiredCapacity: desiredInstances))
 
     asgName
   }

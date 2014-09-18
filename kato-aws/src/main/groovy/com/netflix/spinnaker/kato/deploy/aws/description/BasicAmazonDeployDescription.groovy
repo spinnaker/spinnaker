@@ -37,6 +37,8 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Integer cooldown
   Integer healthCheckGracePeriod
   String healthCheckType
+  String spotPrice
+  Collection<String> suspendedProcesses
   Collection<String> terminationPolicies
   String ramdiskId
   Boolean instanceMonitoring

@@ -116,10 +116,12 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.cooldown = description.cooldown ?: ancestorAsg.defaultCooldown
       newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod ?: ancestorAsg.healthCheckGracePeriod
       newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
-      newDescription.terminationPolicies = description.terminationPolicies == null ? description.terminationPolicies : ancestorAsg.terminationPolicies
+      newDescription.spotPrice = description.spotPrice != null ? description.spotPrice : ancestorLaunchConfiguration.spotPrice
+      newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses*.processName
+      newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : ancestorAsg.terminationPolicies
       newDescription.ramdiskId = description.ramdiskId ?: (ancestorLaunchConfiguration.ramdiskId ?: null)
-      newDescription.instanceMonitoring = description.instanceMonitoring != null ?: ancestorLaunchConfiguration.instanceMonitoring
-      newDescription.ebsOptimized = description.ebsOptimized != null ?: ancestorLaunchConfiguration.ebsOptimized
+      newDescription.instanceMonitoring = description.instanceMonitoring != null ? description.instanceMonitoring : ancestorLaunchConfiguration.instanceMonitoring
+      newDescription.ebsOptimized = description.ebsOptimized != null ? description.ebsOptimized : ancestorLaunchConfiguration.ebsOptimized
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)

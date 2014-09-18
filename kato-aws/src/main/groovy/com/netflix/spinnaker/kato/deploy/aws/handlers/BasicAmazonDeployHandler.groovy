@@ -124,6 +124,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         healthCheckGracePeriod: description.healthCheckGracePeriod,
         healthCheckType: description.healthCheckType,
         terminationPolicies: description.terminationPolicies,
+        spotPrice: description.spotPrice,
+        suspendedProcesses: description.suspendedProcesses,
         ramdiskId: description.ramdiskId,
         instanceMonitoring: description.instanceMonitoring,
         ebsOptimized: description.ebsOptimized,
