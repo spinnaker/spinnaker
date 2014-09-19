@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
-import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
@@ -46,7 +45,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  def description = new UpsertAmazonLoadBalancerDescription(clusterName: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
+  def description = new UpsertAmazonLoadBalancerDescription(name: "kato-main-frontend", availabilityZones: ["us-east-1": ["us-east-1a"]],
     listeners: [
       new UpsertAmazonLoadBalancerDescription.Listener(
         externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
@@ -87,7 +86,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     then:
     2 * loadBalancing.describeLoadBalancers(_) >>> [null, new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancer)]
     1 * loadBalancing.createLoadBalancer(_) >> { CreateLoadBalancerRequest request ->
-      assert request.loadBalancerName == "${description.clusterName}-frontend"
+      assert request.loadBalancerName == description.name
     }
   }
 

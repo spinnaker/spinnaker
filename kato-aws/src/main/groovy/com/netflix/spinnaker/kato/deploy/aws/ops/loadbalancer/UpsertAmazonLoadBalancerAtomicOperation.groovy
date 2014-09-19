@@ -36,9 +36,7 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.client.RestTemplate
 
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerDescription}.
@@ -72,7 +70,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       def region = entry.key
       def availabilityZones = entry.value
-      def loadBalancerName = "${description.clusterName}-frontend".toString()
+      def loadBalancerName = description.name
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 

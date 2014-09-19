@@ -40,7 +40,7 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
 
   void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {
     setup:
-    def input = [clusterName: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
+    def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
                  listeners  :
                    [[externalProtocol: "HTTP", internalProtocol: "HTTP", externalPort: 7001, internalPort: 7001]],
                  credentials: "test"]
