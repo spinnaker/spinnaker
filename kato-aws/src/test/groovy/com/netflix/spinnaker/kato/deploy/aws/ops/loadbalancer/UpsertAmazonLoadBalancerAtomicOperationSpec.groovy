@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer
 
-import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
@@ -46,20 +45,10 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  def description = new UpsertAmazonLoadBalancerDescription(clusterName: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
-    listeners: [
-      new UpsertAmazonLoadBalancerDescription.Listener(
-        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
-        externalPort: 80,
-        internalPort: 8501
-      )
-    ],
-    securityGroups: ["foo"],
-    credentials: new NetflixAssumeRoleAmazonCredentials(name: "bar"),
-    healthCheck: "HTTP:7001/health"
-  )
+  @Shared
+  UpsertAmazonLoadBalancerDescription description
 
-  @Subject operation = new UpsertAmazonLoadBalancerAtomicOperation(description)
+  @Subject operation
 
   @Shared
   AmazonElasticLoadBalancing loadBalancing
@@ -69,12 +58,41 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
 
   def setup() {
     loadBalancing = Mock(AmazonElasticLoadBalancing)
+    description = new UpsertAmazonLoadBalancerDescription(name: "kato-main-frontend", availabilityZones: ["us-east-1": ["us-east-1a"]],
+      listeners: [
+        new UpsertAmazonLoadBalancerDescription.Listener(
+          externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
+          externalPort: 80,
+          internalPort: 8501
+        )
+      ],
+      securityGroups: ["foo"],
+      credentials: new NetflixAssumeRoleAmazonCredentials(name: "bar"),
+      healthCheck: "HTTP:7001/health"
+    )
+    operation = new UpsertAmazonLoadBalancerAtomicOperation(description)
     ec2 = Mock(AmazonEC2)
     ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult().withSecurityGroups(new SecurityGroup().withGroupName("foo").withGroupId("sg-1234"))
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
     mockAmazonClientProvider.getAmazonEC2(_, _) >> ec2
     operation.amazonClientProvider = mockAmazonClientProvider
+  }
+
+  void "should use clusterName if name not provided"() {
+    setup:
+    description.clusterName = "kato-test"
+    description.name = null
+    def loadBalancer = Mock(LoadBalancerDescription)
+
+    when:
+    operation.operate([])
+
+    then:
+    2 * loadBalancing.describeLoadBalancers(_) >>> [null, new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancer)]
+    1 * loadBalancing.createLoadBalancer(_) >> { CreateLoadBalancerRequest request ->
+      assert request.loadBalancerName == "${description.clusterName}-frontend".toString()
+    }
   }
 
   void "should create a new load balancer if one doesn't already exist"() {
@@ -87,7 +105,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     then:
     2 * loadBalancing.describeLoadBalancers(_) >>> [null, new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancer)]
     1 * loadBalancing.createLoadBalancer(_) >> { CreateLoadBalancerRequest request ->
-      assert request.loadBalancerName == "${description.clusterName}-frontend"
+      assert request.loadBalancerName == description.name
     }
   }
 
