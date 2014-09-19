@@ -1,0 +1,34 @@
+<form class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left table-offset">Health Check</div>
+      <div class="col-md-9">
+        <table class="table table-condensed packed">
+          <thead>
+          <tr>
+            <th width="35%">Protocol</th>
+            <th>Port</th>
+            <th>Path</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td><select class="form-control input-sm" ng-model="loadBalancer.healthCheckProtocol" required
+                        ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
+            <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
+                       required min="0"/></td>
+            <td><input class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
+                       required/></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default pull-left"
+            ng-click="wizard.previousPage()">Back</button>
+    <button class="btn btn-primary"
+            ng-click="ctrl.submit()">Submit</button>
+  </div>
+</form>

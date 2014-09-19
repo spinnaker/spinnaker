@@ -100,6 +100,21 @@ angular.module('deckApp')
       });
     }
 
+    function upsertLoadBalancer(loadBalancer, applicationName) {
+      loadBalancer.type = 'upsertAmazonLoadBalancer';
+      loadBalancer.user = 'deckUser';
+      loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
+      loadBalancer.availabilityZones = {};
+      loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones;
+      return executeTask({
+        job: [
+          loadBalancer
+        ],
+        application: applicationName,
+        description: 'Upserting Load Balancer: ' + loadBalancer.clusterName
+      });
+    }
+
     function terminateInstance(instance, applicationName) {
       return executeTask({
         job: [
@@ -136,6 +151,7 @@ angular.module('deckApp')
       enableServerGroup: enableServerGroup,
       resizeServerGroup: resizeServerGroup,
       terminateInstance: terminateInstance,
-      upsertSecurityGroup: upsertSecurityGroup
+      upsertSecurityGroup: upsertSecurityGroup,
+      upsertLoadBalancer: upsertLoadBalancer
     };
   });

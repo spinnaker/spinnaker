@@ -1,0 +1,70 @@
+<form class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Name</div>
+      <div class="col-md-7">
+        <div class="input-group">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="loadBalancer.clusterName"
+                 ng-pattern="/^[a-zA-Z0-9\-]{1,32}$/"
+                 validate-unique="usedLoadBalancerNames"
+                 validate-ignore-case="true"
+                 name="loadBalancerName"
+                 required/>
+          <span class="input-group-addon">-frontend</span>
+        </div>
+        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="That name is already in use"></validation-error>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Account</div>
+      <div class="col-md-7">
+        <select class="form-control input-sm"
+                ng-model="loadBalancer.credentials"
+                ng-options="account for account in accounts"
+                ng-change="ctrl.accountUpdated()"
+                required>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Region</div>
+      <div class="col-md-7" ng-if="!loadBalancer.credentials">(Select an account)</div>
+      <div class="col-md-7">
+        <select class="form-control input-sm" ng-model="loadBalancer.region"
+                ng-if="loadBalancer.credentials"
+                ng-change="ctrl.regionUpdated()"
+                ng-options="region.name as region.name for region in regions"
+                required>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Availability Zones</div>
+      <div class="col-md-7" ng-if="!loadBalancer.region">(Select a region)</div>
+      <checklist class="col-md-9" ng-if="loadBalancer.region" items="availabilityZones"
+                 model="loadBalancer.regionZones"></checklist>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Subnet</div>
+      <div class="col-md-7" ng-if="!loadBalancer.region">(Select an account)</div>
+      <div class="col-md-7" ng-if="loadBalancer.region">
+        <select class="form-control input-sm" ng-model="loadBalancer.subnet"
+                ng-change="ctrl.subnetUpdated()"
+                ng-options="subnet.purpose as subnet.label for subnet in subnets">
+          <option value="">None (Classic)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default pull-left"
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <button class="btn btn-primary"
+            ng-disabled="!form.$valid || loadBalancer.regionZones.length === 0"
+            ng-click="wizard.markComplete('Location'); wizard.nextPage()">Next
+    </button>
+  </div>
+</form>
