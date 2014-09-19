@@ -46,9 +46,15 @@ class UpsertAmazonLoadBalancerTask implements Task {
     Map outputs = [
       "kato.task.id"      : taskId,
       "upsert.account"    : upsertAmazonLoadBalancerOperation.credentials,
-      "upsert.clusterName": upsertAmazonLoadBalancerOperation.clusterName,
       "upsert.regions"    : upsertAmazonLoadBalancerOperation.availabilityZones.keySet().join(',')
     ]
+
+    if (upsertAmazonLoadBalancerOperation.clusterName) {
+      outputs."upsert.clusterName" = upsertAmazonLoadBalancerOperation.clusterName
+    }
+    if (upsertAmazonLoadBalancerOperation.name) {
+      outputs."upsert.name" = upsertAmazonLoadBalancerOperation.name
+    }
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED, outputs)
   }

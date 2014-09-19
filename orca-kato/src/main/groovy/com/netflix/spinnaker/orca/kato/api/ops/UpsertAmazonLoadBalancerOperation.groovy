@@ -25,7 +25,8 @@ import groovy.transform.EqualsAndHashCode
 @CompileStatic
 @EqualsAndHashCode
 class UpsertAmazonLoadBalancerOperation extends Operation {
-  String clusterName
+  Optional<String> clusterName
+  Optional<String> name
   String subnetType
   Optional<Set<String>> securityGroups
   Map<String, List<String>> availabilityZones
