@@ -27,64 +27,31 @@ angular.module('deckApp')
       templateUrl: 'views/modal/modalWizard.html',
       controller: 'ModalWizardCtrl as wizardCtrl',
       link: function(scope, elem, attrs) {
-        scope.heading = attrs.heading;
+        scope.wizard.setHeading(attrs.heading);
       }
     };
   }
-).controller('ModalWizardCtrl', function($scope, _, modalWizardService) {
+).controller('ModalWizardCtrl', function($scope, modalWizardService) {
 
-    var wizard = modalWizardService.createWizard('cloneAsg');
-
-    $scope.wizard = wizard;
+    $scope.wizard  = modalWizardService.createWizard();
 
     this.getWizard = function() {
-      return wizard;
+      return $scope.wizard;
     };
 
-    this.nextPage = function () {
-      var currentPageIndex = wizard.getCurrentPageIndex();
-      if (currentPageIndex === wizard.renderedPages.length - 1) {
-        return;
-      }
-      wizard.setCurrentPage(wizard.renderedPages[currentPageIndex + 1]);
-      $scope.direction = 'forward';
-      $scope.jump = '';
-    };
-
-    this.previousPage = function () {
-      var currentPageIndex = wizard.getCurrentPageIndex();
-      if (currentPageIndex < 1) {
-        return;
-      }
-      wizard.setCurrentPage(wizard.renderedPages[currentPageIndex - 1]);
-      $scope.direction = 'back';
-      $scope.jump = '';
-    };
-
-    this.jumpToPage = function (page) {
-      var jumpIndex = wizard.getPageIndex(page),
-        currentPageIndex = wizard.getCurrentPageIndex();
-
-      if (jumpIndex === -1 || jumpIndex === currentPageIndex) {
-        return;
-      }
-
-      var jump = Math.abs(jumpIndex - currentPageIndex) > 1 ? 'jump' : '',
-        direction = jumpIndex > currentPageIndex ? 'forward' : 'back';
-
-      $scope.direction = direction;
-      $scope.jump = jump;
-      wizard.setCurrentPage(wizard.getPage(page));
-    };
   }
 ).factory('modalWizardService', function(_) {
-    var wizardRegistry = {};
+    var modalWizard;
 
-    function createWizard(name) {
+    function createWizard() {
       var wizard = {
         renderedPages: [],
         pageRegistry: [],
         currentPage: null
+      };
+
+      wizard.setHeading = function(heading) {
+        wizard.heading = heading;
       };
 
       wizard.markComplete = function(pageKey) {
@@ -135,6 +102,42 @@ angular.module('deckApp')
         }
       };
 
+      wizard.nextPage = function () {
+        var currentPageIndex = wizard.getCurrentPageIndex();
+        if (currentPageIndex === wizard.renderedPages.length - 1) {
+          return;
+        }
+        wizard.setCurrentPage(wizard.renderedPages[currentPageIndex + 1]);
+        wizard.direction = 'forward';
+        wizard.jump = '';
+      };
+
+      wizard.previousPage = function () {
+        var currentPageIndex = wizard.getCurrentPageIndex();
+        if (currentPageIndex < 1) {
+          return;
+        }
+        wizard.setCurrentPage(wizard.renderedPages[currentPageIndex - 1]);
+        wizard.direction = 'back';
+        wizard.jump = '';
+      };
+
+      wizard.jumpToPage = function (page) {
+        var jumpIndex = wizard.getPageIndex(page),
+          currentPageIndex = wizard.getCurrentPageIndex();
+
+        if (jumpIndex === -1 || jumpIndex === currentPageIndex) {
+          return;
+        }
+
+        var jump = Math.abs(jumpIndex - currentPageIndex) > 1 ? 'jump' : '',
+          direction = jumpIndex > currentPageIndex ? 'forward' : 'back';
+
+        wizard.direction = direction;
+        wizard.jump = jump;
+        wizard.setCurrentPage(wizard.getPage(page));
+      };
+
       function setRendered(pageKey, rendered) {
         _(wizard.pageRegistry).filter({key: pageKey}).each(function(page) { page.state.rendered = rendered; });
         wizard.renderPages();
@@ -148,17 +151,17 @@ angular.module('deckApp')
         setRendered(pageKey, false);
       };
 
-      wizardRegistry[name] = wizard;
+      modalWizard = wizard;
 
       return wizard;
     }
 
-    function deleteWizard(name) {
-      wizardRegistry[name] = null;
+    function deleteWizard() {
+      modalWizard = null;
     }
 
-    function getWizard(name) {
-      return wizardRegistry[name];
+    function getWizard() {
+      return modalWizard;
     }
 
     return {
