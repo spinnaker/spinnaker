@@ -70,7 +70,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       def region = entry.key
       def availabilityZones = entry.value
-      def loadBalancerName = description.name
+      def loadBalancerName = description.name ?: "${description.clusterName}-frontend".toString()
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 

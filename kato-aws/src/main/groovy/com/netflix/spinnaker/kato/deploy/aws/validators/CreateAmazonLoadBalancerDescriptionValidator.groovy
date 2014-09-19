@@ -25,8 +25,8 @@ import org.springframework.validation.Errors
 class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
   @Override
   void validate(List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
-    if (!description.name) {
-      errors.rejectValue("clusterName", "createAmazonLoadBalancerDescription.name.empty")
+    if (!description.name && !description.clusterName) {
+      errors.rejectValue("clusterName", "createAmazonLoadBalancerDescription.missing.name.or.clusterName")
     }
     if (!description.subnetType && !description.availabilityZones) {
       errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.missing.subnetType.or.availabilityZones")
