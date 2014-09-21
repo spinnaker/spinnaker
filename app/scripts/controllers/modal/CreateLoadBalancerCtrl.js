@@ -25,10 +25,7 @@ angular.module('deckApp')
       if ($scope.loadBalancer.vpcId) {
         preloadSecurityGroups().then(function() {
           updateAvailableSecurityGroups([$scope.loadBalancer.vpcId]);
-          $scope.initialized = true;
         });
-      } else {
-        $scope.initialized = true;
       }
     }
 
@@ -37,7 +34,6 @@ angular.module('deckApp')
       accountService.listAccounts().then(function (accounts) {
         $scope.accounts = accounts;
         ctrl.accountUpdated();
-        $scope.initialized = true;
       });
     }
 
