@@ -4,9 +4,15 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, $timeout, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService) {
+  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService) {
 
     var ctrl = this;
+
+    $scope.state = {
+      securityGroupsLoaded: false,
+      accountsLoaded: false,
+      loadBalancerNamesLoaded: false
+    };
 
     var allSecurityGroups = {},
         allLoadBalancerNames = {};
@@ -23,6 +29,7 @@ angular.module('deckApp')
       preloadSecurityGroups();
       accountService.listAccounts().then(function (accounts) {
         $scope.accounts = accounts;
+        $scope.state.accountsLoaded = true;
         ctrl.accountUpdated();
       });
     }
@@ -30,6 +37,7 @@ angular.module('deckApp')
     function preloadSecurityGroups() {
       return securityGroupService.getAllSecurityGroups().then(function (securityGroups) {
         allSecurityGroups = securityGroups;
+        $scope.state.securityGroupsLoaded = true;
       });
     }
 
@@ -60,6 +68,7 @@ angular.module('deckApp')
           } else {
             allLoadBalancerNames[result.account][result.region].push(name);
           }
+          $scope.state.loadBalancerNamesLoaded = true;
         });
       });
     }

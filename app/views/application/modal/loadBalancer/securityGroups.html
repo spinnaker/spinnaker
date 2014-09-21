@@ -1,5 +1,8 @@
 <form class="container-fluid form-horizontal" name="form" novalidate>
-  <div class="modal-body">
+  <div class="modal-body" ng-if="!state.securityGroupsLoaded">
+    <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
+  </div>
+  <div class="modal-body" ng-if="state.securityGroupsLoaded">
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Security Groups</div>
       <div class="col-md-9">

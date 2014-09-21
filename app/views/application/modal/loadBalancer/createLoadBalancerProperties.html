@@ -3,7 +3,10 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Name</div>
       <div class="col-md-7">
-        <div class="input-group">
+        <div class="input-group" ng-if="!state.loadBalancerNamesLoaded">
+          <h5><span us-spinner="{radius:12, width:3, length: 6}"></span></h5>
+        </div>
+        <div class="input-group" ng-if="state.loadBalancerNamesLoaded">
           <input type="text"
                  class="form-control input-sm"
                  ng-model="loadBalancer.clusterName"
@@ -20,7 +23,11 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Account</div>
       <div class="col-md-7">
+        <h5 class="text-center" ng-if="!state.accountsLoaded">
+          <span us-spinner="{radius:5, width:2, length: 3}"></span>
+        </h5>
         <select class="form-control input-sm"
+                ng-if="state.accountsLoaded"
                 ng-model="loadBalancer.credentials"
                 ng-options="account for account in accounts"
                 ng-change="ctrl.accountUpdated()"
