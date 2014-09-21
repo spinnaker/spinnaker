@@ -12,16 +12,6 @@ angular.module('deckApp')
         allLoadBalancerNames = {};
 
     function initializeEditMode() {
-      $timeout(function() {
-        var wizard = modalWizardService.getWizard();
-        wizard.markComplete('Health Check');
-        wizard.markComplete('Listeners');
-        if ($scope.loadBalancer.vpcId) {
-          wizard.includePage('Security Groups');
-          wizard.markComplete('Security Groups');
-          wizard.jumpToPage('Security Groups');
-        }
-      });
       if ($scope.loadBalancer.vpcId) {
         preloadSecurityGroups().then(function() {
           updateAvailableSecurityGroups([$scope.loadBalancer.vpcId]);
