@@ -4,58 +4,105 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, accountService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService) {
-    $scope.loadBalancer = {
-      credentials: null,
-      vpcId: 'none',
-      listeners: [
-        {
-          internalProtocol: 'HTTP',
-          internalPort: 7001,
-          externalProtocol: 'HTTP',
-          externalPort: 80
-        }
-      ],
-      healthCheckProtocol: 'HTTPS',
-      healthCheckPort: 7001,
-      healthCheckPath: '/health',
-      regionZones: [],
-      securityGroups: []
-    };
+  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, $timeout, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService) {
 
     var ctrl = this;
 
-    var allSecurityGroups = {};
+    var allSecurityGroups = {},
+        allLoadBalancerNames = {};
 
-    var allLoadBalancerNames = {};
-
-    searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(response) {
-      response.data[0].results.forEach(function(result) {
-        if (!allLoadBalancerNames[result.account]) {
-          allLoadBalancerNames[result.account] = {};
-        }
-        if (!allLoadBalancerNames[result.account][result.region]) {
-          allLoadBalancerNames[result.account][result.region] = [];
-        }
-        var suffixIndex = result.loadBalancer.lastIndexOf('-frontend');
-        var name = result.loadBalancer.toLowerCase();
-        if (suffixIndex !== -1 && suffixIndex === name.length - 9) {
-          allLoadBalancerNames[result.account][result.region].push(name.substring(0, suffixIndex));
-        } else {
-          allLoadBalancerNames[result.account][result.region].push(name);
+    function initializeEditMode() {
+      $timeout(function() {
+        var wizard = modalWizardService.getWizard();
+        wizard.markComplete('Health Check');
+        wizard.markComplete('Listeners');
+        if ($scope.loadBalancer.vpcId) {
+          wizard.includePage('Security Groups');
+          wizard.markComplete('Security Groups');
+          wizard.jumpToPage('Security Groups');
         }
       });
-    });
+      if ($scope.loadBalancer.vpcId) {
+        preloadSecurityGroups().then(function() {
+          updateAvailableSecurityGroups([$scope.loadBalancer.vpcId]);
+          $scope.initialized = true;
+        });
+      } else {
+        $scope.initialized = true;
+      }
+    }
 
-    securityGroupService.getAllSecurityGroups().then(function(securityGroups) {
-      allSecurityGroups = securityGroups;
-    });
+    function initializeCreateMode() {
+      preloadSecurityGroups();
+      accountService.listAccounts().then(function (accounts) {
+        $scope.accounts = accounts;
+        ctrl.accountUpdated();
+        $scope.initialized = true;
+      });
+    }
 
-    accountService.listAccounts().then(function(accounts) {
-      $scope.accounts = accounts;
-      ctrl.accountUpdated();
-    });
+    function preloadSecurityGroups() {
+      return securityGroupService.getAllSecurityGroups().then(function (securityGroups) {
+        allSecurityGroups = securityGroups;
+      });
+    }
 
+    function initializeController() {
+      if (loadBalancer) {
+        $scope.loadBalancer = loadBalancerService.convertLoadBalancerForEditing(loadBalancer);
+        initializeEditMode();
+      } else {
+        $scope.loadBalancer = loadBalancerService.constructNewLoadBalancerTemplate();
+        initializeLoadBalancerNames();
+        initializeCreateMode();
+      }
+    }
+
+    function initializeLoadBalancerNames() {
+      searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(response) {
+        response.data[0].results.forEach(function(result) {
+          if (!allLoadBalancerNames[result.account]) {
+            allLoadBalancerNames[result.account] = {};
+          }
+          if (!allLoadBalancerNames[result.account][result.region]) {
+            allLoadBalancerNames[result.account][result.region] = [];
+          }
+          var suffixIndex = result.loadBalancer.lastIndexOf('-frontend');
+          var name = result.loadBalancer.toLowerCase();
+          if (suffixIndex !== -1 && suffixIndex === name.length - 9) {
+            allLoadBalancerNames[result.account][result.region].push(name.substring(0, suffixIndex));
+          } else {
+            allLoadBalancerNames[result.account][result.region].push(name);
+          }
+        });
+      });
+    }
+
+    function updateAvailableSecurityGroups(availableVpcIds) {
+      var account = $scope.loadBalancer.credentials,
+        region = $scope.loadBalancer.region;
+
+      if (account && region && allSecurityGroups[account] && allSecurityGroups[account].aws[region]) {
+        $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
+          return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
+        });
+        $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
+        var existingNames = ['nf-datacenter-vpc', 'nf-infrastructure-vpc'];
+        $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
+          if ($scope.existingSecurityGroupNames.indexOf(securityGroup) === -1) {
+            var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
+            if (matches.length) {
+              existingNames.push(matches[0].name);
+            }
+          } else {
+            existingNames.push(securityGroup);
+          }
+        });
+        $scope.loadBalancer.securityGroups = _.unique(existingNames);
+      } else {
+        clearSecurityGroups();
+      }
+    }
 
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
@@ -92,6 +139,10 @@ angular.module('deckApp')
       $scope.existingSecurityGroupNames = [];
     }
 
+    initializeController();
+
+    // Controller API
+
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
         $scope.regions = regions;
@@ -114,8 +165,8 @@ angular.module('deckApp')
           }
           return accumulator;
         }, {});
-        if (_.findIndex(subnetOptions, {purpose: $scope.loadBalancer.subnet}).length === 0) {
-          $scope.loadBalancer.subnet = '';
+        if (_.findIndex(subnetOptions, {purpose: $scope.loadBalancer.subnetType}).length === 0) {
+          $scope.loadBalancer.subnetType = '';
         }
         $scope.subnets = _.values(subnetOptions);
         ctrl.subnetUpdated();
@@ -123,19 +174,10 @@ angular.module('deckApp')
     };
 
     this.subnetUpdated = function() {
-      var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region,
-        subnetPurpose = $scope.loadBalancer.subnet || null,
-        subnet = $scope.subnets.filter(function(test) { return test.purpose === subnetPurpose; }),
-        availableVpcIds = subnet.length ? subnet[0].vpcIds : [];
-      if (account && region && allSecurityGroups[account] && allSecurityGroups[account].aws[region]) {
-        $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
-          return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
-        });
-        $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
-      } else {
-        clearSecurityGroups();
-      }
+      var subnetPurpose = $scope.loadBalancer.subnetType || null,
+          subnet = $scope.subnets.filter(function(test) { return test.purpose === subnetPurpose; }),
+          availableVpcIds = subnet.length ? subnet[0].vpcIds : [];
+        updateAvailableSecurityGroups(availableVpcIds);
       if (subnetPurpose) {
         modalWizardService.getWizard().includePage('Security Groups');
       } else {
@@ -152,7 +194,7 @@ angular.module('deckApp')
     };
 
     this.addSecurityGroup = function() {
-      $scope.loadBalancer.securityGroups.push({});
+      $scope.loadBalancer.securityGroups.push('');
     };
 
     this.removeSecurityGroup = function(index) {

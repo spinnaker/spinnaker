@@ -138,6 +138,18 @@ angular.module('deckApp')
         wizard.setCurrentPage(wizard.getPage(page));
       };
 
+      wizard.isComplete = function () {
+        return _(wizard.renderedPages).collect('state').every({done: true});
+      };
+
+      wizard.isFirstPage = function(key) {
+        return wizard.renderedPages.length && wizard.renderedPages[0].key === key;
+      };
+
+      wizard.isLastPage = function(key) {
+        return wizard.renderedPages.length && wizard.renderedPages[wizard.renderedPages.length-1].key === key;
+      };
+
       function setRendered(pageKey, rendered) {
         _(wizard.pageRegistry).filter({key: pageKey}).each(function(page) { page.state.rendered = rendered; });
         wizard.renderPages();

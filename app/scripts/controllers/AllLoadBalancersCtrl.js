@@ -114,7 +114,8 @@ angular.module('deckApp')
         templateUrl: 'views/application/modal/loadBalancer/createLoadBalancer.html',
         controller: 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
-          application: function() { return application; }
+          application: function() { return application; },
+          loadBalancer: function() { return null; }
         }
       });
     };

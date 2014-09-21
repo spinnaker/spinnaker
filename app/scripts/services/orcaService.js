@@ -106,6 +106,9 @@ angular.module('deckApp')
       loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
       loadBalancer.availabilityZones = {};
       loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones;
+      if (loadBalancer.securityGroups) {
+
+      }
       return executeTask({
         job: [
           loadBalancer

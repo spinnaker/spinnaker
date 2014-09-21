@@ -1,8 +1,5 @@
-<modal-wizard heading="Create New Load Balancer">
-  <wizard-page key="Location">
-    <ng-include src="'views/application/modal/loadBalancer/createLoadBalancerProperties.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Security Groups" render="false" done="true">
+<modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}} - {{loadBalancer.elb.vpcid}}">
+  <wizard-page key="Security Groups" done="true" render="{{!!loadBalancer.elb.vpcid}}">
     <ng-include src="'views/application/modal/loadBalancer/securityGroups.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Listeners" done="true">

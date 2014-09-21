@@ -27,8 +27,16 @@
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
-            ng-click="wizard.previousPage()">Back</button>
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
     <button class="btn btn-primary"
-            ng-click="ctrl.submit()">Submit</button>
+            ng-disabled="!form.$valid || !wizard.isComplete()"
+            ng-click="ctrl.submit()">
+      <span class="glyphicon glyphicon-ok-circle"></span> Submit
+    </button>
   </div>
 </form>

@@ -16,6 +16,19 @@
         {{loadBalancer.name}}
       </h3>
     </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown">
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle">
+            Load Balancer Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li class="dropdown-header">CONFIG</li>
+            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
   <div ng-if="loadBalancer" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
