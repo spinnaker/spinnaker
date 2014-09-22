@@ -4,30 +4,29 @@
       <div class="col-md-12">
         <h4>{{selectedInstanceProfile.label}}: {{family.type}}</h4>
         <p>{{family.description}}</p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-3 col-narrow" ng-repeat="instanceType in family.instanceTypes">
-        <button class="panel panel-default instance-profile"
-                ng-class="{active: command.instanceProfile === instanceProfile.type}"
-                ng-click="ctrl.selectInstanceType(instanceProfile.type, $event)">
-          <span is-visible="command.instanceProfile === instanceProfile.type"
-                class="glyphicon glyphicon-ok-circle selected-indicator"></span>
-          <div class="panel-heading">
-            <h4><span class="glyphicon glyphicon-hdd"></span><br/> {{instanceProfile.label}}</h4>
-          </div>
-        </button>
-      </div>
-      <div class="col-md-3 col-narrow">
-        <button class="panel panel-default instance-profile"
-                ng-class="{active: command.instanceProfile === 'custom'}"
-                ng-click="ctrl.selectInstanceType('custom', $event)">
-          <span is-visible="command.instanceProfile === 'custom'"
-                class="glyphicon glyphicon-ok-circle selected-indicator custom"></span>
-          <div class="panel-heading">
-            <h4><span class="glyphicon glyphicon-asterisk"></span><br/> Specific Type</h4>
-          </div>
-        </button>
+        <table class="table table-hover">
+          <thead>
+          <tr>
+            <th></th>
+            <th>Size</th>
+            <th>vCPU</th>
+            <th>Mem (GiB)</th>
+            <th>SSD Storage (GB)</th>
+            <th>Cost</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="instanceType in family.instanceTypes" ng-class="{info: command.instanceType === instanceType.name}">
+              <td><input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/></td>
+              <td>{{instanceType.label}}</td>
+              <td>{{instanceType.cpu}}</td>
+              <td>{{instanceType.memory}}</td>
+              <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
+              <td ng-if="instanceType.storage.type === 'SSD'">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
+              <td><span class="label-cost label-cost-{{instanceType.costFactor}}"></span><span class="sr-only">{{instanceType.costFactor}}&times;</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

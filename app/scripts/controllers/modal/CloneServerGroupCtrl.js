@@ -167,30 +167,6 @@ angular.module('deckApp')
       populateRegionalAvailableTypes();
     };
 
-    instanceTypeService.getCategories().then(function(categories) {
-      $scope.instanceProfiles = categories;
-    });
-
-    this.selectInstanceType = function (type, $event) {
-      if ($event.target && $($event.target).is('select, a')) {
-        return;
-      }
-      if ($scope.command.instanceProfile === type) {
-        type = null;
-      }
-      $scope.command.instanceProfile = type;
-      if (type === 'custom') {
-        modalWizardService.getWizard().excludePage('Instance Type');
-      } else {
-        modalWizardService.getWizard().includePage('Instance Type');
-        $scope.instanceProfiles.forEach(function(profile) {
-          if (profile.type === type) {
-            $scope.selectedInstanceProfile = profile;
-          }
-        });
-      }
-    };
-
     this.isValid = function () {
       return ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
