@@ -52,6 +52,10 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     return accountName
   }
 
+  GoogleCredentials getCredentials() {
+    return credentials
+  }
+
   private Compute getCompute(String projectName) {
     JsonFactory JSON_FACTORY = JacksonFactory.defaultInstance
     HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport()
