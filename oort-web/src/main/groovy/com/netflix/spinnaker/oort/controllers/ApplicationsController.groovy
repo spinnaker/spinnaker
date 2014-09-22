@@ -60,7 +60,7 @@ class ApplicationsController {
     try {
       def apps = applicationProviders.collect {
         it.getApplication(name)
-      }
+      } - null
       if (!apps) {
         throw new ApplicationNotFoundException(name: name)
       } else {
