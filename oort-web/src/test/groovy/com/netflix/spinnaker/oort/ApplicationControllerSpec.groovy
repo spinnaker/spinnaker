@@ -81,4 +81,48 @@ class ApplicationControllerSpec extends Specification {
     result.clusters.test*.serverGroups.flatten() == ["bar", "baz"]
     result.attributes == [tag: "val"]
   }
+
+  Should "prune nulls when subset of application providers find app"() {
+    setup:
+    def appProvider1 = Mock(ApplicationProvider)
+    def appProvider2 = Mock(ApplicationProvider)
+    def cluProvider1 = Mock(ClusterProvider)
+    applicationsController.applicationProviders = [appProvider1, appProvider2]
+    applicationsController.clusterProviders = [cluProvider1]
+    def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
+    def cluster = Mock(Cluster)
+    cluster.getAccountName() >> "test"
+    cluster.getName() >> "foo"
+    cluster.getLoadBalancers() >> []
+    def sg1 = Mock(ServerGroup)
+    sg1.getName() >> "bar"
+    cluster.getServerGroups() >> [sg1]
+
+    when:
+    def result = applicationsController.get("foo")
+
+    then:
+    1 * cluProvider1.getClusters("foo") >> [test: cluster]
+    1 * appProvider1.getApplication("foo") >> app1
+    1 * appProvider2.getApplication("foo") >> null
+    result.name == "foo"
+    result.clusters.test*.serverGroups.flatten() == ["bar"]
+    result.attributes == [tag: "val"]
+  }
+
+  Should "throw ApplicationNotFoundException when no apps are found"() {
+    setup:
+    def appProvider1 = Mock(ApplicationProvider)
+    def appProvider2 = Mock(ApplicationProvider)
+    applicationsController.applicationProviders = [appProvider1, appProvider2]
+
+    when:
+    def result = applicationsController.get("foo")
+
+    then:
+    1 * appProvider1.getApplication("foo") >> null
+    1 * appProvider2.getApplication("foo") >> null
+    ApplicationsController.ApplicationNotFoundException e = thrown()
+    e.name == "foo"
+  }
 }
