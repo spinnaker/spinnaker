@@ -60,7 +60,7 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
 
     then: "we get an event at the start and end of each task"
     2 * pipelineMonitor.beginTask()
-    2 * pipelineMonitor.endTask()
+    2 * pipelineMonitor.endTask(TaskResult.Status.SUCCEEDED)
 
     then: "we get an event at the end of the stage"
     1 * pipelineMonitor.endStage(stageName)
@@ -84,10 +84,10 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
 
     and: "we get an event at the start and end of the first task"
     1 * pipelineMonitor.beginTask()
-    1 * pipelineMonitor.endTask()
+    1 * pipelineMonitor.endTask(TaskResult.Status.FAILED)
 
-    then: "we get an event at the end of the stage"
-    1 * pipelineMonitor.endStage(stageName)
+    then: "we don't get an event at the end of the stage"
+    0 * pipelineMonitor.endStage(stageName)
 
     where:
     stageName = "foo"

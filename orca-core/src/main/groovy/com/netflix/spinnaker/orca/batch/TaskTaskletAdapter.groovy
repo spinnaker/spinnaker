@@ -61,7 +61,7 @@ class TaskTaskletAdapter implements Tasklet {
     }
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
-    contribution.exitStatus = batchStepStatus.exitStatus
+    contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
 //    if (contribution.exitStatus == ExitStatus.FAILED) {
 //      chunkContext.stepContext.stepExecution.setTerminateOnly()
 //    }
