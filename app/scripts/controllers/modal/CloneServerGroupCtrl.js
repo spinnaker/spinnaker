@@ -5,9 +5,9 @@ var angular = require('angular');
 
 angular.module('deckApp')
   .controller('CloneServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, mortService,
-                                               searchService, instanceTypeService, serverGroup, loadBalancers,
-                                               securityGroups, subnets, regionsKeyedByAccount, packageImages,
-                                               application, _) {
+                                               searchService, instanceTypeService, modalWizardService,serverGroup,
+                                               loadBalancers, securityGroups, subnets, regionsKeyedByAccount,
+                                               packageImages, application, $, _) {
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
     $scope.accounts = _.keys(regionsKeyedByAccount);
@@ -143,6 +143,30 @@ angular.module('deckApp')
       populateRegionalLoadBalancers();
       populateRegionalSecurityGroups();
       populateRegionalAvailableTypes();
+    };
+
+    instanceTypeService.getCategories().then(function(categories) {
+      $scope.instanceProfiles = categories;
+    });
+
+    this.selectInstanceType = function (type, $event) {
+      if ($event.target && $($event.target).is('select, a')) {
+        return;
+      }
+      if ($scope.command.instanceProfile === type) {
+        type = null;
+      }
+      $scope.command.instanceProfile = type;
+      if (type === 'custom') {
+        modalWizardService.getWizard().excludePage('Instance Type');
+      } else {
+        modalWizardService.getWizard().includePage('Instance Type');
+        $scope.instanceProfiles.forEach(function(profile) {
+          if (profile.type === type) {
+            $scope.selectedInstanceProfile = profile;
+          }
+        });
+      }
     };
 
     this.isValid = function () {

@@ -730,15 +730,7 @@ server-error-flag {
     font-size: 115%;
   }
   .content-body {
-    &.ng-enter, &.ng-leave {
-      transition: opacity 0.15s ease-in;
-    }
-    &.ng-enter, &.ng-leave.ng-leave-active {
-      opacity: 0;
-    }
-    &.ng-leave, &.ng-enter.ng-enter-active {
-      opacity: 1;
-    }
+    .fade-in();
     .clearfix;
     padding-left: 17px;
     margin-bottom: 20px;
@@ -773,5 +765,17 @@ server-error-flag {
 .global-search-header {
   .input-md {
     margin-top: 10px;
+  }
+}
+
+.fade-in {
+  &.ng-enter, &.ng-leave {
+    transition: opacity 0.15s ease-in;
+  }
+  &.ng-enter, &.ng-leave.ng-leave-active {
+    opacity: 0;
+  }
+  &.ng-leave, &.ng-enter.ng-enter-active {
+    opacity: 1;
   }
 }

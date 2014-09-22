@@ -4,36 +4,22 @@
       <h3>Basic Settings</h3>
     </div>
     <div class="modal-footer">
-      <a class="btn btn-primary" href ng-click="wizard.markComplete('Basic Settings'); wizardCtrl.nextPage()">Next</a>
+      <a class="btn btn-primary" href ng-click="wizard.markComplete('Basic Settings'); wizard.nextPage()">Next</a>
     </div>
   </wizard-page>
-  <wizard-page key="Instance Type">
-    <div class="modal-body">
-      <h3>Instance Archetype</h3>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizard.markComplete('Instance Type'); wizardCtrl.nextPage()">Next</a>
-    </div>
+  <wizard-page key="Instance Profile">
+    <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
   </wizard-page>
-  <wizard-page key="Instance Details">
-    <div class="modal-body">
-      <h3>Instance Details</h3>
-      <a class="btn btn-default" href ng-click="wizard.includePage('Instance Size')">Include Instance Size</a>
-      <a class="btn btn-default" href ng-click="wizard.excludePage('Instance Size')">Remove Instance Size</a>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizard.markComplete('Instance Details'); wizardCtrl.nextPage()">Next</a>
-    </div>
+  <wizard-page key="Instance Type" render="false">
+    <ng-include src="'views/application/modal/serverGroup/instanceType.html'"></ng-include>
   </wizard-page>
-  <wizard-page key="Instance Size" render="false">
+  <wizard-page key="Instance Size">
     <div class="modal-body">
       <h3>Specific Instance Size</h3>
     </div>
     <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizard.markComplete('Instance Size'); wizardCtrl.nextPage()">Next</a>
+      <a class="btn btn-default pull-left" href ng-click="wizard.previousPage()">Back</a>
+      <a class="btn btn-primary" href ng-click="wizard.markComplete('Instance Size'); wizard.nextPage()">Next</a>
     </div>
   </wizard-page>
   <wizard-page key="ELBs">
