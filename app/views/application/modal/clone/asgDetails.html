@@ -54,7 +54,7 @@
         <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
         <div class="col-md-9">
           <select multiple ui-select2 class="form-control input-sm" ng-model="command.securityGroups">
-            <option ng-repeat="regionalSecurityGroup in regionalSecurityGroups" value="{{regionalSecurityGroup.name}}">{{regionalSecurityGroup.name}}</option>
+            <option ng-repeat="securityGroup in regionalSecurityGroups" value="{{securityGroup}}">{{securityGroup}}</option>
           </select>
         </div>
       </div>

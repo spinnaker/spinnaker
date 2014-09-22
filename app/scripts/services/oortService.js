@@ -123,9 +123,17 @@ angular.module('deckApp')
       });
     }
 
+    function listLoadBalancers() {
+      return applicationListEndpoint
+        .all('aws/loadBalancers')
+        .withHttpConfig({cache: scheduledCache })
+        .getList();
+    }
+
     return {
       listApplications: listApplications,
       getApplication: getApplication,
-      findAmis: findAmis
+      findAmis: findAmis,
+      listLoadBalancers: listLoadBalancers
     };
   });
