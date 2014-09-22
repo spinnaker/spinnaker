@@ -73,7 +73,7 @@ angular.module('deckApp')
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: 'views/application/modal/resizeServerGroup.html',
+        templateUrl: 'views/application/modal/serverGroup/resizeServerGroup.html',
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -84,7 +84,7 @@ angular.module('deckApp')
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'views/application/modal/cloneServerGroup.html',
+        templateUrl: 'views/application/modal/serverGroup/cloneServerGroup.html',
         controller: 'CloneServerGroupCtrl as ctrl',
         resolve: {
           application: function() { return application; },
