@@ -5,12 +5,16 @@ var angular = require('angular');
 
 angular.module('deckApp')
   .controller('CloneServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, mortService,
-                                               searchService, instanceTypeService, modalWizardService,serverGroup,
+                                               searchService, instanceTypeService, modalWizardService, serverGroup,
                                                loadBalancers, securityGroups, subnets, regionsKeyedByAccount,
                                                packageImages, application, $, _) {
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
     $scope.accounts = _.keys(regionsKeyedByAccount);
+    $scope.subnets = subnets;
+    $scope.securityGroups = securityGroups;
+    $scope.regionsKeyedByAccount = regionsKeyedByAccount;
+    $scope.packageImages = packageImages;
 
     if (serverGroup) {
       $scope.title = 'Clone ' + serverGroup.asg.autoScalingGroupName;
@@ -149,14 +153,6 @@ angular.module('deckApp')
     $scope.$watch('command.region', function () {
       onRegionChange();
       populateRegionalImages();
-    });
-
-    $scope.$watch('command.subnetType', function () {
-      var subnet = _(subnets)
-        .find({'purpose': $scope.command.subnetType, 'availabilityZone': $scope.command.availabilityZones[0]});
-      $scope.command.vpcId = subnet ? subnet.vpcId : null;
-      populateRegionalLoadBalancers();
-      populateRegionalSecurityGroups();
     });
 
     var onRegionChange = function() {

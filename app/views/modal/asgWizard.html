@@ -1,11 +1,6 @@
 <modal-wizard heading="Create New ASG">
   <wizard-page key="Basic Settings">
-    <div class="modal-body">
-      <h3>Basic Settings</h3>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-primary" href ng-click="wizard.markComplete('Basic Settings'); wizard.nextPage()">Next</a>
-    </div>
+    <ng-include src="'views/application/modal/serverGroup/basicSettings.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Instance Profile">
     <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
