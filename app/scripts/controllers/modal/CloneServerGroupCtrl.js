@@ -11,13 +11,6 @@ angular.module('deckApp')
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
     $scope.accounts = _.keys(regionsKeyedByAccount);
-    $scope.regionsKeyedByAccount = regionsKeyedByAccount;
-
-    $scope.subnets = subnets;
-
-    var populateRegionalSecurityGroups = function() {
-      $scope.regionalSecurityGroups = securityGroups[$scope.command.credentials].aws[$scope.command.region];
-    };
 
     if (serverGroup) {
       $scope.title = 'Clone ' + serverGroup.asg.autoScalingGroupName;
@@ -55,16 +48,18 @@ angular.module('deckApp')
         }
       };
       var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
-      populateRegionalSecurityGroups();
       if (vpcZoneIdentifier !== '') {
         var subnetId = vpcZoneIdentifier.split(',')[0];
-        $scope.command.subnetType = _($scope.subnets).find({'id': subnetId}).purpose;
+        var subnet = _(subnets).find({'id': subnetId}).purpose;
+        $scope.command.subnetType = subnet.purpose;
+        $scope.command.vpcId = subnet.vpcId;
       } else  {
         $scope.command.subnetType = '';
+        $scope.command.vpcId = null;
       }
       if (serverGroup.launchConfig.securityGroups.length) {
         if (serverGroup.launchConfig.securityGroups[0].indexOf('sg-') === 0) {
-          $scope.command.securityGroups = _($scope.regionalSecurityGroups)
+          $scope.command.securityGroups = _(securityGroups[$scope.command.credentials].aws[$scope.command.region])
             .filter(function(item) {
               return _.contains(serverGroup.launchConfig.securityGroups, item.id);
             })
@@ -84,6 +79,14 @@ angular.module('deckApp')
         'source': {}
       };
     }
+
+    var populateRegionalSecurityGroups = function() {
+      $scope.regionalSecurityGroups = _(securityGroups[$scope.command.credentials].aws[$scope.command.region])
+        .filter({'vpcId': $scope.command.vpcId})
+        .pluck('name')
+        .valueOf();
+    };
+    populateRegionalSecurityGroups();
 
     var populateRegions = function() {
       $scope.regions = regionsKeyedByAccount[$scope.command.credentials].regions;
@@ -113,9 +116,20 @@ angular.module('deckApp')
     populateRegionalSubnetPurposes();
 
     var populateRegionalLoadBalancers = function() {
-      $scope.regionalLoadBalancers = _(loadBalancers)
-        .filter({'account': $scope.command.credentials, 'region': $scope.command.region})
-        .pluck('loadBalancer')
+      $scope.regionalLoadBalancers  = _(loadBalancers)
+        .pluck('accounts')
+        .flatten(true)
+        .filter({'name': $scope.command.credentials})
+        .pluck('regions')
+        .flatten(true)
+        .filter({'name': $scope.command.region})
+        .pluck('loadBalancers')
+        .flatten(true)
+        .pluck('elb')
+        .remove(undefined)
+        .filter({'vpcid': $scope.command.vpcId})
+        .pluck('loadBalancerName')
+        .unique()
         .valueOf();
     };
     populateRegionalLoadBalancers();
@@ -135,6 +149,14 @@ angular.module('deckApp')
     $scope.$watch('command.region', function () {
       onRegionChange();
       populateRegionalImages();
+    });
+
+    $scope.$watch('command.subnetType', function () {
+      var subnet = _(subnets)
+        .find({'purpose': $scope.command.subnetType, 'availabilityZone': $scope.command.availabilityZones[0]});
+      $scope.command.vpcId = subnet ? subnet.vpcId : null;
+      populateRegionalLoadBalancers();
+      populateRegionalSecurityGroups();
     });
 
     var onRegionChange = function() {

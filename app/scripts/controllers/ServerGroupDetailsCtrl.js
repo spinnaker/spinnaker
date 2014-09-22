@@ -6,7 +6,7 @@ var angular = require('angular');
 
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService, searchService,
-                                                  mortService, accountService, securityGroupService,
+                                                  mortService, oortService, accountService, securityGroupService,
                                                   $modal, confirmationModalService) {
 
     function extractServerGroup(clusters) {
@@ -89,10 +89,7 @@ angular.module('deckApp')
         resolve: {
           application: function() { return application; },
           serverGroup: function() { return serverGroup; },
-          loadBalancers: function() {
-            return searchService.search({q: '', type: 'loadBalancers', pageSize: 100000000})
-            .then(function(result) { return result.data[0].results; });
-          },
+          loadBalancers: oortService.listLoadBalancers,
           securityGroups: securityGroupService.getAllSecurityGroups,
           subnets: mortService.listSubnets,
           packageImages: function() {
