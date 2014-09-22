@@ -5,7 +5,8 @@ var angular = require('angular');
 
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
-                                          securityGroupService, accountService, _, $stateParams, $location) {
+                                          securityGroupService, accountService, oortService,
+                                          _, $stateParams, $location) {
     var defPrimary = 'cluster', defSecondary = 'region';
     $scope.sortFilter.allowSorting = true;
     $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
@@ -142,7 +143,7 @@ angular.module('deckApp')
     }
 
     this.createServerGroup = function createServerGroup() {
-      var templateUrl = 'views/application/modal/cloneServerGroup.html';
+      var templateUrl = 'views/application/modal/serverGroup/cloneServerGroup.html';
       if (application.name === 'deck') {
         templateUrl = 'views/modal/asgWizard.html';
       }
@@ -152,10 +153,7 @@ angular.module('deckApp')
         resolve: {
           application: function() { return application; },
           serverGroup: function() { return null; },
-          loadBalancers: function() {
-            return searchService.search({q: '', type: 'loadBalancers', pageSize: 100000000})
-              .then(function(result) { return result.data[0].results; });
-          },
+          loadBalancers: oortService.listLoadBalancers,
           securityGroups: securityGroupService.getAllSecurityGroups,
           subnets: mortService.listSubnets,
           packageImages: function() {
