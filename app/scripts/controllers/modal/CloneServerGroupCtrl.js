@@ -100,16 +100,7 @@ angular.module('deckApp')
           $scope.command.vpcId = null;
         }
         if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
-          if (serverGroup.launchConfig.securityGroups[0].indexOf('sg-') === 0) {
-            $scope.command.securityGroups = _($scope.securityGroups[$scope.command.credentials].aws[$scope.command.region])
-              .filter(function (item) {
-                return _.contains(serverGroup.launchConfig.securityGroups, item.id);
-              })
-              .pluck('name')
-              .valueOf();
-          } else {
-            $scope.command.securityGroups = serverGroup.launchConfig.securityGroups;
-          }
+          $scope.command.securityGroups = serverGroup.launchConfig.securityGroups;
         }
       } else {
         $scope.title = 'Create ASG';

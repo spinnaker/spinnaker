@@ -9,7 +9,6 @@ angular.module('deckApp')
     var populateRegionalSecurityGroups = function() {
       $scope.regionalSecurityGroups = _($scope.securityGroups[$scope.command.credentials].aws[$scope.command.region])
         .filter({'vpcId': $scope.command.vpcId || null})
-        .pluck('name')
         .valueOf();
     };
     populateRegionalSecurityGroups();

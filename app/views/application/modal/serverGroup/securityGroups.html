@@ -8,7 +8,9 @@
             <select ui-select2 class="form-control input-sm"
                     ng-model="command.securityGroups[$index]"
                     required>
-              <option ng-repeat="regionalSecurityGroup in regionalSecurityGroups" value="{{regionalSecurityGroup}}">{{regionalSecurityGroup}}</option>
+              <option ng-repeat="regionalSecurityGroup in regionalSecurityGroups" value="{{regionalSecurityGroup.id}}">
+                {{regionalSecurityGroup.name}} ({{regionalSecurityGroup.id}})
+              </option>
             </select>
           </div>
           <div class="col-md-2">
