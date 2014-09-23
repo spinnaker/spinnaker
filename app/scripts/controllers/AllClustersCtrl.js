@@ -143,12 +143,8 @@ angular.module('deckApp')
     }
 
     this.createServerGroup = function createServerGroup() {
-      var templateUrl = 'views/application/modal/serverGroup/cloneServerGroup.html';
-      if (application.name === 'deck') {
-        templateUrl = 'views/modal/asgWizard.html';
-      }
       $modal.open({
-        templateUrl: templateUrl,
+        templateUrl: 'views/modal/asgWizard.html',
         controller: 'CloneServerGroupCtrl as ctrl',
         resolve: {
           application: function() { return application; },

@@ -84,19 +84,11 @@ angular.module('deckApp')
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/cloneServerGroup.html',
+        templateUrl: 'views/modal/asgWizard.html',
         controller: 'CloneServerGroupCtrl as ctrl',
         resolve: {
           application: function() { return application; },
-          serverGroup: function() { return serverGroup; },
-          loadBalancers: oortService.listLoadBalancers,
-          securityGroups: securityGroupService.getAllSecurityGroups,
-          subnets: mortService.listSubnets,
-          packageImages: function() {
-            return searchService.search({q: serverGroup.buildInfo.package_name, type: 'namedImages', pageSize: 100000000})
-              .then(function(result) { return result.data[0].results; });
-          },
-          regionsKeyedByAccount: accountService.getRegionsKeyedByAccount
+          serverGroup: function() { return serverGroup; }
         }
       });
     };
