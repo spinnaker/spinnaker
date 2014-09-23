@@ -36,12 +36,12 @@ class MonitorKatoTaskSpec extends Specification {
   def "result depends on Kato task status"() {
     given:
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), []))
+      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), [], []))
     }
 
     and:
     def context = new SimpleTaskContext()
-    context."kato.task.id" = new TaskId(taskId)
+    context."kato.last.task.id" = new TaskId(taskId)
 
     expect:
     task.execute(context).status == expectedResult

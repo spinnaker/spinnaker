@@ -54,10 +54,11 @@ class UpsertSecurityGroupTask implements Task {
       .first()
 
     Map outputs = [
-      "kato.task.id"  : taskId,
-      "upsert.account": upsertSecurityGroupOperation.credentials,
-      "upsert.name"   : upsertSecurityGroupOperation.name,
-      "upsert.region" : upsertSecurityGroupOperation.region
+      "kato.last.task.id"   : taskId,
+      "kato.task.id"        : taskId, // TODO retire this.
+      "upsert.account"      : upsertSecurityGroupOperation.credentials,
+      "upsert.name"         : upsertSecurityGroupOperation.name,
+      "upsert.region"       : upsertSecurityGroupOperation.region
     ]
     if (currentValue) {
       outputs.put("upsert.pre.response", currentValue)

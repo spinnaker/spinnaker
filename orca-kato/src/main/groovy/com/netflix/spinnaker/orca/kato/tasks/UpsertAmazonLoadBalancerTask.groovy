@@ -44,7 +44,8 @@ class UpsertAmazonLoadBalancerTask implements Task {
       .first()
 
     Map outputs = [
-      "kato.task.id"      : taskId,
+      "kato.last.task.id" : taskId,
+      "kato.task.id"      : taskId, // TODO retire this.
       "upsert.account"    : upsertAmazonLoadBalancerOperation.credentials,
       "upsert.regions"    : upsertAmazonLoadBalancerOperation.availabilityZones.keySet().join(',')
     ]

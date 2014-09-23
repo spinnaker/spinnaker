@@ -46,7 +46,8 @@ class CreateCopyLastAsgTask implements Task {
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
         [
-            "kato.task.id"       : taskId,
+            "kato.last.task.id"  : taskId,
+            "kato.task.id"       : taskId, // TODO retire this.
             "deploy.account.name": operation.credentials,
         ]
     )

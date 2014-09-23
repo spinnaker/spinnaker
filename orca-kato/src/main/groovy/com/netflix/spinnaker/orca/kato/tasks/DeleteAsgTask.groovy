@@ -46,7 +46,8 @@ class DeleteAsgTask implements Task {
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
       ["deploy.account.name" : operation.credentials,
-       "kato.task.id"        : taskId,
+       "kato.last.task.id"   : taskId,
+       "kato.task.id"        : taskId, // TODO retire this.
        "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }
       ])
   }

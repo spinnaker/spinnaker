@@ -30,10 +30,17 @@ class Task {
   String id
   Status status
   List<Map> resultObjects
+  List<StatusLine> history
 
   @Immutable
   static class Status {
     boolean completed
     boolean failed
+  }
+
+  @Immutable
+  static class StatusLine {
+    String phase
+    String status
   }
 }

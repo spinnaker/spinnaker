@@ -38,16 +38,29 @@ class MonitorKatoTask implements RetryableTask {
 
   @Override
   TaskResult execute(TaskContext context) {
-    TaskId taskId = context.inputs."kato.task.id" as TaskId
-    def katoTask = kato.lookupTask(taskId.id).toBlocking().first()
-    def status = katoStatusToTaskStatus(katoTask.status)
-    if (status == TaskResult.Status.FAILED) {
-      new DefaultTaskResult(status)
-    } else if (status == TaskResult.Status.SUCCEEDED) {
-      new DefaultTaskResult(status, ["deploy.server.groups": getServerGroupNames(katoTask)])
-    } else {
-      new DefaultTaskResult(TaskResult.Status.RUNNING)
+    TaskId taskId = context.inputs."kato.last.task.id" as TaskId
+    Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
+    TaskResult.Status status = katoStatusToTaskStatus(katoTask.status)
+
+    if (status != TaskResult.Status.FAILED && status != TaskResult.Status.SUCCEEDED) {
+      status = TaskResult.Status.RUNNING
     }
+
+    Map<String, ? extends Object> outputs = [:]
+    if (status == TaskResult.Status.SUCCEEDED) {
+      outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
+    }
+    if (status == TaskResult.Status.SUCCEEDED || status == TaskResult.Status.FAILED) {
+      List<Map<String, Object>> katoTasks = []
+      if (context.inputs.containsKey("kato.tasks")) {
+        katoTasks = context.inputs."kato.tasks" as List<Map<String, Object>>
+      }
+      Map<String, Object> m = [id: katoTask.id, status: katoTask.status, history: katoTask.history]
+      katoTasks << m
+      outputs["kato.tasks"] = katoTasks
+    }
+
+    new DefaultTaskResult(status, outputs)
   }
 
   private static TaskResult.Status katoStatusToTaskStatus(Task.Status katoStatus) {
