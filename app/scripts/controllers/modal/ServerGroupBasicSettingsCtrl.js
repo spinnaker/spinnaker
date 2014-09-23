@@ -43,7 +43,7 @@ angular.module('deckApp')
 
     this.subnetUpdated = function() {
       var subnet = _($scope.subnets)
-        .find({'purpose': $scope.command.subnetType, 'availabilityZone': $scope.command.availabilityZones[0]});
+        .find({'purpose': $scope.command.subnetType, 'account': $scope.command.credentials, 'region': $scope.command.region});
       $scope.command.vpcId = subnet ? subnet.vpcId : null;
     };
 
