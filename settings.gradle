@@ -16,7 +16,7 @@
 
 rootProject.name="amos"
 
-include "amos-aws", "amos-core"
+include "amos-aws", "amos-core", "amos-gce"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
