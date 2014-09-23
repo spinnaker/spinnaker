@@ -60,7 +60,7 @@ class ApplicationsController {
     try {
       def apps = applicationProviders.collect {
         it.getApplication(name)
-      }
+      } - null
       if (!apps) {
         throw new ApplicationNotFoundException(name: name)
       } else {
@@ -95,18 +95,14 @@ class ApplicationsController {
         it.getClusters(app.name)?.values()?.flatten() as Set ?: []
       }.each { Cluster cluster ->
         def account = cluster.accountName
-        def loadBalancers = loadBalancerProviders.collectMany { provider ->
-          def lbs = (Set<LoadBalancer>)provider.getLoadBalancers(account, cluster.name)
-          lbs ? lbs*.name : []
-        }
         if (!result.clusters.containsKey(account)) {
-          result.clusters[account] = new HashSet()
+          result.clusters[account] = []
         }
         if (!result.clusters[account].find { it.name == cluster.name }) {
-          result.clusters[account] << new ApplicationClusterViewModel(name: cluster.name, loadBalancers: loadBalancers, serverGroups: cluster.serverGroups*.name as Set)
+          result.clusters[account] << new ApplicationClusterViewModel(name: cluster.name, loadBalancers: cluster.loadBalancers.name as TreeSet, serverGroups: cluster.serverGroups*.name as TreeSet)
         } else {
-          result.clusters[account].loadBalancers.addAll(loadBalancers)
-          result.clusters[account].serverGroups.addAll(cluster.serverGroups*.name as Set)
+          result.clusters[account].loadBalancers.addAll(cluster.loadBalancers*.name)
+          result.clusters[account].serverGroups.addAll(cluster.serverGroups*.name)
         }
       }
     }
