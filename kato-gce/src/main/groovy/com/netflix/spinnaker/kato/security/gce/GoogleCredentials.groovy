@@ -16,11 +16,29 @@
 
 package com.netflix.spinnaker.kato.security.gce
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.http.HttpTransport
+import com.google.api.client.json.JsonFactory
 import com.google.api.services.compute.Compute
 import groovy.transform.Canonical
+import java.security.PrivateKey
 
 @Canonical
 class GoogleCredentials {
   final String project
   final Compute compute
+
+  private final HttpTransport httpTransport
+  private final JsonFactory jsonFactory
+  private final String email
+  private final PrivateKey privateKey
+
+  // This is used to gain access to the "limited preview" capabilities like Replica Pools.
+  GoogleCredential.Builder createCredentialBuilder(String... serviceAccountScopes) {
+    new GoogleCredential.Builder().setTransport(httpTransport)
+            .setJsonFactory(jsonFactory)
+            .setServiceAccountId(email)
+            .setServiceAccountScopes(Arrays.asList(serviceAccountScopes))
+            .setServiceAccountPrivateKey(privateKey)
+  }
 }
