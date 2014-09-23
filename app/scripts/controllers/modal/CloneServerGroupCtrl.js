@@ -96,7 +96,8 @@ angular.module('deckApp')
         'keyPair': 'nf-test-keypair-a',
 
         'terminationPolicies': ['Default'],
-        'source': {}
+        'source': {},
+        'vpcId': null
       };
     }
 
