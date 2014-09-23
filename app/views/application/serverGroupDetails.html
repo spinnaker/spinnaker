@@ -17,26 +17,23 @@
       <div class="actions">
         <div class="dropdown">
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle">
-            ASG Actions <span class="caret"></span>
+            Server Group Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
             <li class="dropdown-header">CONFIG</li>
-            <li><a href ng-click="ctrl.resizeServerGroup()">Resize ASG</a></li>
-            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable ASG</a></li>
-            <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable ASG</a></li>
-            <li><a href ng-click="ctrl.destroyServerGroup()">Destroy ASG</a></li>
-            <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone ASG</a></li>
-            <li class="dropdown-header">INSIGHT</li>
-            <li><a href="#">View in Atlas</a></li>
-            <li><a href="#">View in Chronos</a></li>
+            <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
+            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
+            <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
+            <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
           </ul>
         </div>
       </div>
     </div>
   </div>
   <div class="content">
-    <h4 class="text-center" ng-if="serverGroup.isDisabled">[THIS ASG IS NOT ENABLED]</h4>
-    <collapsible-section heading="ASG Information" expanded="true">
+    <h4 class="text-center" ng-if="serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
+    <collapsible-section heading="Server Group Information" expanded="true">
       <dl>
         <dt>Created:</dt>
         <dd>{{serverGroup.asg.createdTime | relativeTime}}</dd>

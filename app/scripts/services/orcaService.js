@@ -35,7 +35,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Destroying ASG: ' + serverGroup.name
+        description: 'Destroying Server Group: ' + serverGroup.name
       });
     }
 
@@ -51,7 +51,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Disabling ASG: ' + serverGroup.name
+        description: 'Disabling Server Group: ' + serverGroup.name
       });
     }
 
@@ -67,7 +67,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Enabling ASG: ' + serverGroup.name
+        description: 'Enabling Server Group: ' + serverGroup.name
       });
     }
 
@@ -84,7 +84,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Resizing ASG: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
+        description: 'Resizing Server Group: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
       });
     }
 
@@ -143,7 +143,7 @@ angular.module('deckApp')
           command
         ],
         application: applicationName,
-        description: 'Copy ASG: ' + command.source.asgName
+        description: 'Copy Server Group: ' + command.source.asgName
       });
     }
 
