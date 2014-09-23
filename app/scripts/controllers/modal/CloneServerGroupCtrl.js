@@ -79,7 +79,23 @@ angular.module('deckApp')
         'application': application.name,
         'credentials': 'test',
         'region': 'us-east-1',
-        'capacity': {},
+        'availabilityZones': [],
+        'capacity': {
+          'min': 0,
+          'max': 0,
+          'desired': 0
+        },
+        'cooldown': 10,
+        'healthCheckType': 'EC2',
+        'healthCheckGracePeriod': 600,
+        'instanceMonitoring': false,
+        'ebsOptimized': false,
+
+        //These two should not be hard coded here, and keyPair options should be loaded from AWS
+        'iamRole': 'BaseIAMRole',
+        'keyPair': 'nf-test-keypair-a',
+
+        'terminationPolicies': ['Default'],
         'source': {}
       };
     }
