@@ -57,8 +57,10 @@ class InstanceCachingAgent extends AbstractInfrastructureCachingAgent {
 
       if (instanceState.code != null) {
         value = values().find { it.code == instanceState.code }
-      } else if (instanceState.name != null) {
-        value = values().find { it.name == instanceState.name }
+      }
+
+      if (value == null && instanceState.name != null) {
+        value = values().find { it.name.toString() == instanceState.name }
       }
 
       if (!value) {
