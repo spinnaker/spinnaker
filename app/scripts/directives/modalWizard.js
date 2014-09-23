@@ -102,20 +102,26 @@ angular.module('deckApp')
         }
       };
 
-      wizard.nextPage = function () {
+      wizard.nextPage = function (markComplete) {
         var currentPageIndex = wizard.getCurrentPageIndex();
         if (currentPageIndex === wizard.renderedPages.length - 1) {
           return;
+        }
+        if (markComplete) {
+          wizard.markComplete(wizard.currentPage.key);
         }
         wizard.setCurrentPage(wizard.renderedPages[currentPageIndex + 1]);
         wizard.direction = 'forward';
         wizard.jump = '';
       };
 
-      wizard.previousPage = function () {
+      wizard.previousPage = function (markComplete) {
         var currentPageIndex = wizard.getCurrentPageIndex();
         if (currentPageIndex < 1) {
           return;
+        }
+        if (markComplete) {
+          wizard.markComplete(wizard.currentPage.key);
         }
         wizard.setCurrentPage(wizard.renderedPages[currentPageIndex - 1]);
         wizard.direction = 'back';

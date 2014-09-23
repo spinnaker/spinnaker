@@ -27,7 +27,7 @@
 
   <div class="modal-footer">
     <button class="btn btn-default pull-left" ng-click="ctrl.cancel()">Cancel</button>
-    <button type="button" class="btn btn-primary" ng-click="wizard.nextPage()" ng-disabled="!form.$valid">
+    <button type="button" class="btn btn-primary" ng-click="wizard.nextPage(form.$valid)" ng-disabled="!form.$valid">
       Next <span class="glyphicon glyphicon-chevron-right"></span>
     </button>
   </div>
