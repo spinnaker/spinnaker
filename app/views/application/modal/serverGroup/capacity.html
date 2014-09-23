@@ -23,7 +23,7 @@
     </div>
   </div>
   <input type="hidden" ng-model="command.regionZones[0]" required/>
-  <availability-zone-select-field component="command" field="regionZones" region="command.region" availability-zones="regionalAvailabilityZones"></availability-zone-select-field>
+  <availability-zone-select-field component="command" field="availabilityZones" region="command.region" availability-zones="regionalAvailabilityZones"></availability-zone-select-field>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
             ng-click="ctrl.cancel()">Cancel
