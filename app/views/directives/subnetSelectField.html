@@ -1,0 +1,11 @@
+<div class="form-group">
+  <div class="col-md-3 sm-label-left">Subnet</div>
+  <div class="col-md-7" ng-if="!region">(Select an account)</div>
+  <div class="col-md-7" ng-if="region">
+    <select class="form-control input-sm" ng-model="component[field]"
+            ng-change="onChange()"
+            ng-options="subnet.purpose as subnet.label for subnet in subnets">
+      <option value="">None (Classic)</option>
+    </select>
+  </div>
+</div>

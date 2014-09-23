@@ -3,15 +3,9 @@
     <span class="glyphicon glyphicon-cloud"></span> Load Balancers
   </h3>
   <div class="application-actions">
-    <div class="dropdown">
-      <button type="button" class="btn btn-sm btn-default dropdown-toggle" ng-disabled="disabled">
-        Load Balancer Actions <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li class="dropdown-header">CONFIG</li>
-        <li><a href ng-click="ctrl.createLoadBalancer()">Create Load Balancer</a></li>
-      </ul>
-    </div>
+    <button class="btn btn-sm btn-default" ng-click="ctrl.createLoadBalancer()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Create Load Balancer
+    </button>
   </div>
 </div>
 <div ng-include="'views/application/loadBalancer/filters.html'"></div>

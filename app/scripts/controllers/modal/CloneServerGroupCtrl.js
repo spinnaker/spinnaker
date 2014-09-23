@@ -154,13 +154,6 @@ angular.module('deckApp')
     };
     populateRegionalLoadBalancers();
 
-    var populateRegionalAvailableTypes = function() {
-      instanceTypeService.getAvailableTypesForRegions([$scope.command.region]).then(function (result) {
-        $scope.regionalInstanceTypes = result;
-      });
-    };
-    populateRegionalAvailableTypes();
-
     $scope.$watch('command.credentials', function () {
       populateRegions();
       onRegionChange();
@@ -176,7 +169,6 @@ angular.module('deckApp')
       populateRegionalSubnetPurposes();
       populateRegionalLoadBalancers();
       populateRegionalSecurityGroups();
-      populateRegionalAvailableTypes();
     };
 
     this.isValid = function () {

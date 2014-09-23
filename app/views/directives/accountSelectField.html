@@ -1,0 +1,15 @@
+<div class="form-group">
+  <div class="col-md-3 sm-label-left">Account</div>
+  <div class="col-md-7">
+    <h5 class="text-center" ng-if="loading">
+      <span us-spinner="{radius:5, width:2, length: 3}"></span>
+    </h5>
+    <select class="form-control input-sm"
+            ng-if="!loading"
+            ng-model="component[field]"
+            ng-options="account for account in accounts"
+            ng-change="onChange()"
+            required>
+    </select>
+  </div>
+</div>

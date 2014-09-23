@@ -28,28 +28,27 @@ angular.module('deckApp')
         .filter({'account': $scope.command.credentials, 'region': $scope.command.region, 'target': 'ec2'})
         .pluck('purpose')
         .uniq()
-        .union([''])
+        .map(function(purpose) { return { purpose: purpose, label: purpose };})
+        .union([{purpose: '', label: 'None (Classic)'}])
         .valueOf();
     };
     populateRegionalSubnetPurposes();
 
-    $scope.$watch('command.credentials', function () {
+    this.accountUpdated = function() {
       populateRegions();
       onRegionChange();
-    });
+    };
 
-    $scope.$watch('command.region', function () {
+    this.regionUpdated = function () {
       onRegionChange();
       populateRegionalImages();
-    });
+    };
 
-    $scope.$watch('command.subnetType', function (oldVal, newVal) {
-      if (newVal) {
-        var subnet = _($scope.subnets)
-          .find({'purpose': $scope.command.subnetType, 'availabilityZone': $scope.command.availabilityZones[0]});
-        $scope.command.vpcId = subnet ? subnet.vpcId : null;
-      }
-    });
+    this.subnetUpdated = function() {
+      var subnet = _($scope.subnets)
+        .find({'purpose': $scope.command.subnetType, 'availabilityZone': $scope.command.availabilityZones[0]});
+      $scope.command.vpcId = subnet ? subnet.vpcId : null;
+    };
 
     var onRegionChange = function() {
       populateRegionalAvailabilityZones();
