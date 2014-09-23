@@ -142,7 +142,7 @@ angular.module('deckApp')
       var availabilityZones = _.intersection(command.availabilityZones, $scope.regionalAvailabilityZones);
       var loadBalancers = _.intersection(command.loadBalancers, $scope.regionalLoadBalancers);
       var securityGroupNames = _.intersection(command.securityGroups, _.pluck($scope.regionalSecurityGroups, 'name'));
-      command.amiName = _($scope.images).find({'imageName': command.amiName}).imageId;
+      command.amiName = _($scope.packageImages).find({'imageName': command.amiName}).imageId;
       command.availabilityZones = {};
       command.availabilityZones[command.region] = availabilityZones;
       command.loadBalancers = loadBalancers;
