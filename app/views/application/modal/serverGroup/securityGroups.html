@@ -3,7 +3,7 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
       <div class="col-md-9">
-        <div ng-repeat="loadBalancer in command.securityGroups track by $index">
+        <div ng-repeat="securityGroup in command.securityGroups track by $index">
           <div class="col-md-10">
             <select ui-select2 class="form-control input-sm"
                     ng-model="command.securityGroups[$index]"

@@ -81,7 +81,7 @@ angular.module('deckApp')
         var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
         if (vpcZoneIdentifier !== '') {
           var subnetId = vpcZoneIdentifier.split(',')[0];
-          var subnet = _($scope.subnets).find({'id': subnetId}).purpose;
+          var subnet = _($scope.subnets).find({'id': subnetId});
           $scope.command.subnetType = subnet.purpose;
           $scope.command.vpcId = subnet.vpcId;
         } else {
