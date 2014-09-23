@@ -16,4 +16,8 @@ angular.module('deckApp')
       });
     });
 
+    this.selectInstanceType = function(type) {
+      $scope.command.instanceType = type;
+    };
+
   });

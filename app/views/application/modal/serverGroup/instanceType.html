@@ -1,4 +1,4 @@
-<form ng-controller="InstanceTypeCtrl" class="container-fluid form-horizontal" name="form" novalidate>
+<form ng-controller="InstanceTypeCtrl as instanceTypeCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
     <div class="row" ng-repeat="family in selectedInstanceProfile.families">
       <div class="col-md-12">
@@ -16,7 +16,10 @@
           </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="instanceType in family.instanceTypes" ng-class="{info: command.instanceType === instanceType.name}">
+            <tr class="clickable"
+                ng-repeat="instanceType in family.instanceTypes"
+                ng-class="{info: command.instanceType === instanceType.name}"
+                ng-click="instanceTypeCtrl.selectInstanceType(instanceType.name)">
               <td><input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/></td>
               <td>{{instanceType.label}}</td>
               <td>{{instanceType.cpu}}</td>
