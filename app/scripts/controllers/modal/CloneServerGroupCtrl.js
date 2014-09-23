@@ -102,23 +102,10 @@ angular.module('deckApp')
       };
     }
 
-    var populateRegionalSecurityGroups = function() {
-      $scope.regionalSecurityGroups = _(securityGroups[$scope.command.credentials].aws[$scope.command.region])
-        .filter({'vpcId': $scope.command.vpcId})
-        .pluck('name')
-        .valueOf();
-    };
-    populateRegionalSecurityGroups();
-
     var populateRegions = function() {
       $scope.regions = regionsKeyedByAccount[$scope.command.credentials].regions;
     };
     populateRegions();
-
-    var populateRegionalAvailabilityZones = function() {
-      $scope.regionalAvailabilityZones = _.find(regionsKeyedByAccount[$scope.command.credentials].regions, {'name': $scope.command.region}).availabilityZones;
-    };
-    populateRegionalAvailabilityZones();
 
     var populateRegionalImages = function() {
       $scope.images = _(packageImages)

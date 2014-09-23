@@ -6,14 +6,7 @@
     <ng-include src="'views/application/modal/serverGroup/loadBalancers.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Security Groups">
-    <div class="modal-body">
-      <h3>Security Group stuff</h3>
-      <a class="btn btn-default" href ng-click="wizard.includePage('New Security Groups')">Create New Security Groups</a>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizardCtrl.nextPage()">Next</a>
-    </div>
+    <ng-include src="'views/application/modal/serverGroup/securityGroups.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Instance Profile">
     <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
