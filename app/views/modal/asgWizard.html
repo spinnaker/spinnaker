@@ -1,29 +1,35 @@
-<modal-wizard heading="Create New ASG">
-  <wizard-page key="Basic Settings">
-    <ng-include src="'views/application/modal/serverGroup/basicSettings.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="ELBs">
-    <ng-include src="'views/application/modal/serverGroup/loadBalancers.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Security Groups">
-    <ng-include src="'views/application/modal/serverGroup/securityGroups.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Instance Profile">
-    <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Instance Type" render="false">
-    <ng-include src="'views/application/modal/serverGroup/instanceType.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Capacity">
-    <ng-include src="'views/application/modal/serverGroup/capacity.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Advanced Settings">
-    <div class="modal-body">
-      <h3>Advanced Settings</h3>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-    </div>
-  </wizard-page>
+<div>
+  <div ng-if="!state.loaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <modal-wizard ng-if="state.loaded" heading="Create New ASG">
+    <wizard-page key="Basic Settings">
+      <ng-include src="'views/application/modal/serverGroup/basicSettings.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="Load Balancers">
+      <ng-include src="'views/application/modal/serverGroup/loadBalancers.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="Security Groups">
+      <ng-include src="'views/application/modal/serverGroup/securityGroups.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="Instance Profile">
+      <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="Instance Type" render="false">
+      <ng-include src="'views/application/modal/serverGroup/instanceType.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="Capacity">
+      <ng-include src="'views/application/modal/serverGroup/capacity.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="Advanced Settings">
+      <div class="modal-body">
+        <h3>Advanced Settings</h3>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
+      </div>
+    </wizard-page>
 
-</modal-wizard>
+  </modal-wizard>
+
+</div>

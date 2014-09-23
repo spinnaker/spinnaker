@@ -152,15 +152,7 @@ angular.module('deckApp')
         controller: 'CloneServerGroupCtrl as ctrl',
         resolve: {
           application: function() { return application; },
-          serverGroup: function() { return null; },
-          loadBalancers: oortService.listLoadBalancers,
-          securityGroups: securityGroupService.getAllSecurityGroups,
-          subnets: mortService.listSubnets,
-          packageImages: function() {
-            return searchService.search({q: application.name, type: 'namedImages', pageSize: 100000000})
-              .then(function(result) { return result.data[0].results; });
-          },
-          regionsKeyedByAccount: accountService.getRegionsKeyedByAccount
+          serverGroup: function() { return null; }
         }
       });
     };
