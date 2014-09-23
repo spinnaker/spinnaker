@@ -10,7 +10,8 @@
                  placeholder="Search applications"
                  class="form-control input-md"
                  focus
-                 ng-model="applicationFilter">
+                 ng-model="applicationFilter"
+                 ng-change="ctrl.filterApplications()"/>
         </div>
       </div>
     </form>
@@ -21,19 +22,35 @@
 </div>
 <div class="row">
   <div class="col-md-12">
-    <button style="display:none" ng-click="ctrl.demoMultiPageModal()">Fire up multi-page modal</button>
     <h2 ng-if="!applicationsLoaded" class="text-center" style="margin-bottom: 250px">
       <span us-spinner="{radius:30, width:8, length: 16}"></span>
     </h2>
     <table ng-if="applicationsLoaded" class="table table-striped">
-      <thead>
-        <th sort-toggle key="name" label="Name" default="true"></th>
-        <th sort-toggle key="attributes.createTs" label="Created"></th>
-        <th sort-toggle key="attributes.updateTs" label="Updated"></th>
-        <th sort-toggle key="attributes.email" label="Owner">
+      <thead ng-if="partiallyLoaded">
+        <tr>
+          <th sort-toggle key="name" label="Name" default="true"></th>
+          <th class="loading-header"><div us-spinner="{left: '-4px', radius:4, width:2, length: 3}"></div> Loading: Created, Updated, Owner</th>
+        </tr>
       </thead>
-      <tbody>
-        <tr ng-repeat="application in applications | filter:applicationFilter | orderBy:sortModel.sortKey:sortModel.reverse">
+      <tbody ng-if="partiallyLoaded">
+        <tr ng-repeat="application in ctrl.resultPage()">
+          <td>
+            <a ui-sref=".application({ application: application.name })">
+              {{ application.name }}
+            </a>
+          </td>
+        </tr>
+      </tbody>
+      <thead ng-if="fullyLoaded">
+        <tr>
+          <th sort-toggle key="name" label="Name" default="true"></th>
+          <th sort-toggle key="attributes.createTs" label="Created"></th>
+          <th sort-toggle key="attributes.updateTs" label="Updated"></th>
+          <th sort-toggle key="attributes.email" label="Owner"></th>
+        </tr>
+      </thead>
+      <tbody ng-if="fullyLoaded">
+        <tr ng-repeat="application in ctrl.resultPage()">
           <td>
             <a ui-sref=".application({ application: application.name })">
               {{ application.name }}
@@ -51,5 +68,10 @@
         </tr>
       </tbody>
     </table>
+    <pagination ng-if="applicationsLoaded"
+                total-items="filteredApplications.length"
+                max-size="pagination.maxSize"
+                ng-model="pagination.currentPage"
+      ></pagination>
   </div>
 </div>
