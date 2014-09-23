@@ -52,18 +52,10 @@ angular.module('deckApp')
           'stack': match[4],
           'freeFormDetails': match[7],
           'credentials': serverGroup.account,
-          'amiName': _($scope.packageImages).find({'imageId': serverGroup.launchConfig.imageId}).imageName,
-          'instanceType': serverGroup.launchConfig.instanceType,
-          'iamRole': serverGroup.launchConfig.iamInstanceProfile,
-          'keyPair': serverGroup.launchConfig.keyName,
-          'associatePublicIpAddress': serverGroup.launchConfig.associatePublicIpAddress,
           'cooldown': serverGroup.asg.defaultCooldown,
           'healthCheckGracePeriod': serverGroup.asg.healthCheckGracePeriod,
           'healthCheckType': serverGroup.asg.healthCheckType,
           'terminationPolicies': serverGroup.asg.terminationPolicies,
-          'ramdiskId': serverGroup.launchConfig.ramdiskId,
-          'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring.enabled,
-          'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
           'loadBalancers': serverGroup.asg.loadBalancerNames,
           'region': serverGroup.region,
           'availabilityZones': serverGroup.asg.availabilityZones,
@@ -78,6 +70,25 @@ angular.module('deckApp')
             'asgName': serverGroup.asg.autoScalingGroupName
           }
         };
+        if (serverGroup.launchConfig) {
+          var amiName = null;
+          if (serverGroup.launchConfig.imageId) {
+            var foundImage = _($scope.packageImages).find({'imageId': serverGroup.launchConfig.imageId});
+            if (foundImage) {
+              amiName = foundImage.imageName;
+            }
+          }
+          angular.extend($scope.command, {
+            'instanceType': serverGroup.launchConfig.instanceType,
+            'iamRole': serverGroup.launchConfig.iamInstanceProfile,
+            'keyPair': serverGroup.launchConfig.keyName,
+            'associatePublicIpAddress': serverGroup.launchConfig.associatePublicIpAddress,
+            'ramdiskId': serverGroup.launchConfig.ramdiskId,
+            'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring.enabled,
+            'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
+            'amiName': amiName
+          });
+        }
         var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
         if (vpcZoneIdentifier !== '') {
           var subnetId = vpcZoneIdentifier.split(',')[0];
@@ -88,7 +99,7 @@ angular.module('deckApp')
           $scope.command.subnetType = '';
           $scope.command.vpcId = null;
         }
-        if (serverGroup.launchConfig.securityGroups.length) {
+        if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
           if (serverGroup.launchConfig.securityGroups[0].indexOf('sg-') === 0) {
             $scope.command.securityGroups = _($scope.securityGroups[$scope.command.credentials].aws[$scope.command.region])
               .filter(function (item) {
@@ -139,21 +150,15 @@ angular.module('deckApp')
 
     this.clone = function () {
       var command = angular.copy($scope.command);
-      var availabilityZones = _.intersection(command.availabilityZones, $scope.regionalAvailabilityZones);
-      var loadBalancers = _.intersection(command.loadBalancers, $scope.regionalLoadBalancers);
-      var securityGroupNames = _.intersection(command.securityGroups, _.pluck($scope.regionalSecurityGroups, 'name'));
       command.amiName = _($scope.packageImages).find({'imageName': command.amiName}).imageId;
       command.availabilityZones = {};
-      command.availabilityZones[command.region] = availabilityZones;
-      command.loadBalancers = loadBalancers;
-      command.securityGroups = securityGroupNames;
+      command.availabilityZones[command.region] = $scope.command.availabilityZones;
       $scope.sentCommand = command;
       orcaService.cloneServerGroup(command)
         .then(function (response) {
           $modalInstance.close();
           console.warn('task:', response.ref);
         });
-      $modalInstance.close(command);
     };
 
     this.cancel = function () {
