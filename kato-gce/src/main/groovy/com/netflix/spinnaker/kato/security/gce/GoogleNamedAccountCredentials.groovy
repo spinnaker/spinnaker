@@ -45,7 +45,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     this.pkcs12Password = pkcs12Password
     this.accountName = accountName
     this.projectName = projectName
-    this.credentials = new GoogleCredentials(projectName, getCompute(projectName))
+    this.credentials = buildCredentials()
   }
 
   String getName() {
@@ -56,22 +56,33 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     return credentials
   }
 
-  private Compute getCompute(String projectName) {
+  private GoogleCredentials buildCredentials() {
     JsonFactory JSON_FACTORY = JacksonFactory.defaultInstance
     HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     def rt = new RestTemplate()
     def map = rt.getForObject("${kmsServer}/credentials/${accountName}", Map)
     def key = new ByteArrayInputStream(Base64.decodeBase64(map.key as String))
-    PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore, key, pkcs12Password, "privatekey", pkcs12Password)
+    PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore,
+                                                                     key,
+                                                                     pkcs12Password,
+                                                                     "privatekey",
+                                                                     pkcs12Password)
     def credential = new GoogleCredential.Builder().setTransport(httpTransport)
-      .setJsonFactory(JSON_FACTORY)
-      .setServiceAccountId(map.email as String)
-      .setServiceAccountScopes(Collections.singleton(ComputeScopes.COMPUTE))
-      .setServiceAccountPrivateKey(privateKey)
-      .build()
-    new Compute.Builder(
-      httpTransport, JSON_FACTORY, null).setApplicationName(APPLICATION_NAME)
-      .setHttpRequestInitializer(credential).build()
+            .setJsonFactory(JSON_FACTORY)
+            .setServiceAccountId(map.email as String)
+            .setServiceAccountScopes(Collections.singleton(ComputeScopes.COMPUTE))
+            .setServiceAccountPrivateKey(privateKey).build()
+    def compute = new Compute.Builder(httpTransport,
+                                      JSON_FACTORY,
+                                      null)
+            .setApplicationName(APPLICATION_NAME)
+            .setHttpRequestInitializer(credential)
+            .build()
+    return new GoogleCredentials(projectName,
+                                 compute,
+                                 httpTransport,
+                                 JSON_FACTORY,
+                                 map.email as String,
+                                 privateKey)
   }
-
 }
