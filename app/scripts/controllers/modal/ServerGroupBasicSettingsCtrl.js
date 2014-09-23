@@ -26,7 +26,6 @@ angular.module('deckApp')
         .pluck('purpose')
         .uniq()
         .map(function(purpose) { return { purpose: purpose, label: purpose };})
-        .union([{purpose: '', label: 'None (Classic)'}])
         .valueOf();
     };
     populateRegionalSubnetPurposes();
