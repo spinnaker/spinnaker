@@ -4,7 +4,10 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ClustersNavCtrl', function ($scope, application, _) {
+  .controller('ClustersNavCtrl', function ($scope, application, _, $stateParams) {
+
+    var defPrimary = 'cluster';
+    $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
 
     $scope.application = application;
 
