@@ -3,10 +3,10 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Load Balancers</b></div>
       <div class="col-md-9">
-        <div ng-repeat="loadBalancer in command.loadBalancers">
+        <div ng-repeat="loadBalancer in command.loadBalancers track by $index">
           <div class="col-md-10">
             <select ui-select2 class="form-control input-sm"
-                    ng-model="command.loadBalancers"
+                    ng-model="command.loadBalancers[$index]"
                     required>
               <option ng-repeat="regionalBalancer in regionalLoadBalancers" value="{{regionalBalancer}}">{{regionalBalancer}}</option>
             </select>
@@ -16,9 +16,14 @@
               class="glyphicon glyphicon-trash"></span></a>
           </div>
         </div>
-        <button class="btn btn-sm add-new" ng-click="serverGroupLoadBalancersCtrl.addLoadBalancer()">
-          <span class="glyphicon glyphicon-plus-sign"></span> Add another load balancer
-        </button>
+        <div class="col-md-10" ng-if="!command.loadBalancers.length">
+          (None)
+        </div>
+        <div class="col-md-10">
+          <button class="btn btn-sm add-new sub-select" ng-click="serverGroupLoadBalancersCtrl.addLoadBalancer()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add Load Balancer
+          </button>
+        </div>
       </div>
     </div>
   </div>
