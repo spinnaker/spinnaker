@@ -2,39 +2,8 @@
   <wizard-page key="Basic Settings">
     <ng-include src="'views/application/modal/serverGroup/basicSettings.html'"></ng-include>
   </wizard-page>
-  <wizard-page key="Instance Profile">
-    <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Instance Type" render="false">
-    <ng-include src="'views/application/modal/serverGroup/instanceType.html'"></ng-include>
-  </wizard-page>
-  <wizard-page key="Instance Size">
-    <div class="modal-body">
-      <h3>Specific Instance Size</h3>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizard.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizard.markComplete('Instance Size'); wizard.nextPage()">Next</a>
-    </div>
-  </wizard-page>
   <wizard-page key="ELBs">
-    <div class="modal-body">
-      <h3>All the ELB stuff...</h3>
-      <a class="btn btn-default" href ng-click="wizard.includePage('New ELBs')">Create New ELBs</a>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizardCtrl.nextPage()">Next</a>
-    </div>
-  </wizard-page>
-  <wizard-page key="New ELBs" render="false">
-    <div class="modal-body">
-      <h3>Create new ELB view</h3>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizardCtrl.nextPage()">Next</a>
-    </div>
+    <ng-include src="'views/application/modal/serverGroup/loadBalancers.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Security Groups">
     <div class="modal-body">
@@ -46,14 +15,14 @@
       <a class="btn btn-primary" href ng-click="wizardCtrl.nextPage()">Next</a>
     </div>
   </wizard-page>
-  <wizard-page key="New Security Groups" render="false">
-    <div class="modal-body">
-      <h3>Create New Security Groups</h3>
-    </div>
-    <div class="modal-footer">
-      <a class="btn btn-default pull-left" href ng-click="wizardCtrl.previousPage()">Back</a>
-      <a class="btn btn-primary" href ng-click="wizardCtrl.nextPage()">Next</a>
-    </div>
+  <wizard-page key="Instance Profile">
+    <ng-include src="'views/application/modal/serverGroup/instanceArchetype.html'"></ng-include>
+  </wizard-page>
+  <wizard-page key="Instance Type" render="false">
+    <ng-include src="'views/application/modal/serverGroup/instanceType.html'"></ng-include>
+  </wizard-page>
+  <wizard-page key="Capacity">
+    <ng-include src="'views/application/modal/serverGroup/capacity.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Advanced Settings">
     <div class="modal-body">

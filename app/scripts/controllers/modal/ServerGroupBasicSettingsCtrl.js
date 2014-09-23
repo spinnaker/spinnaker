@@ -11,11 +11,6 @@ angular.module('deckApp')
     };
     populateRegions();
 
-    var populateRegionalAvailabilityZones = function() {
-      $scope.regionalAvailabilityZones = _.find($scope.regionsKeyedByAccount[$scope.command.credentials].regions, {'name': $scope.command.region}).availabilityZones;
-    };
-    populateRegionalAvailabilityZones();
-
     var populateRegionalImages = function() {
       $scope.images = _($scope.packageImages)
         .filter({'region': $scope.command.region})
@@ -51,7 +46,6 @@ angular.module('deckApp')
     };
 
     var onRegionChange = function() {
-      populateRegionalAvailabilityZones();
       populateRegionalSubnetPurposes();
     };
 

@@ -15,6 +15,7 @@ angular.module('deckApp')
     $scope.securityGroups = securityGroups;
     $scope.regionsKeyedByAccount = regionsKeyedByAccount;
     $scope.packageImages = packageImages;
+    $scope.loadBalancers = loadBalancers;
 
     if (serverGroup) {
       $scope.title = 'Clone ' + serverGroup.asg.autoScalingGroupName;
@@ -135,42 +136,6 @@ angular.module('deckApp')
         .valueOf();
     };
     populateRegionalSubnetPurposes();
-
-    var populateRegionalLoadBalancers = function() {
-      $scope.regionalLoadBalancers  = _(loadBalancers)
-        .pluck('accounts')
-        .flatten(true)
-        .filter({'name': $scope.command.credentials})
-        .pluck('regions')
-        .flatten(true)
-        .filter({'name': $scope.command.region})
-        .pluck('loadBalancers')
-        .flatten(true)
-        .pluck('elb')
-        .remove(undefined)
-        .filter({'vpcid': $scope.command.vpcId})
-        .pluck('loadBalancerName')
-        .unique()
-        .valueOf();
-    };
-    populateRegionalLoadBalancers();
-
-    $scope.$watch('command.credentials', function () {
-      populateRegions();
-      onRegionChange();
-    });
-
-    $scope.$watch('command.region', function () {
-      onRegionChange();
-      populateRegionalImages();
-    });
-
-    var onRegionChange = function() {
-      populateRegionalAvailabilityZones();
-      populateRegionalSubnetPurposes();
-      populateRegionalLoadBalancers();
-      populateRegionalSecurityGroups();
-    };
 
     this.isValid = function () {
       return ($scope.command.amiName !== null) && ($scope.command.application !== null) &&

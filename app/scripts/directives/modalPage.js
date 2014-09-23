@@ -10,7 +10,7 @@ angular.module('deckApp')
       link: function (scope, elem) {
         var $elem = $(elem);
         function getTabbableElements() {
-          return $elem.find('a,input,select,button,textarea').filter(':visible').not(':disabled');
+          return $elem.find('a[href],input,select,button,textarea').filter(':visible').not(':disabled');
         }
 
         var ts = Math.floor(Math.random() * 4294967295);

@@ -3,9 +3,7 @@
 
     <account-select-field component="command" field="credentials" accounts="accounts" loading="false" on-change="basicSettingsCtrl.accountUpdated()"></account-select-field>
     <region-select-field component="command" field="region" account="command.credentials" on-change="basicSettingsCtrl.regionUpdated()" regions="regions"></region-select-field>
-    <availability-zone-select-field component="command" field="regionZones" region="command.region" availability-zones="regionalAvailabilityZones"></availability-zone-select-field>
     <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes" on-change="basicSettingsCtrl.subnetUpdated()"></subnet-select-field>
-    <input type="hidden" ng-model="command.regionZones[0]" required/>
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Stack</b></div>
       <div class="col-md-9"><input type="text"
