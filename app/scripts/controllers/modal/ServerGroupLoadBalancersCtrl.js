@@ -25,15 +25,4 @@ angular.module('deckApp')
     };
     populateRegionalLoadBalancers();
 
-    this.removeLoadBalancer = function(index) {
-      $scope.command.loadBalancers.splice(index, 1);
-    };
-
-    this.addLoadBalancer = function() {
-      if (!$scope.command.loadBalancers || !$scope.command.loadBalancers.length) {
-        $scope.command.loadBalancers = [];
-      }
-      $scope.command.loadBalancers.push('');
-    };
-
   });

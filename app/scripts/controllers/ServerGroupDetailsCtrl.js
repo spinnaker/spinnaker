@@ -87,6 +87,7 @@ angular.module('deckApp')
         templateUrl: 'views/modal/asgWizard.html',
         controller: 'CloneServerGroupCtrl as ctrl',
         resolve: {
+          title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
           serverGroup: function() { return serverGroup; }
         }

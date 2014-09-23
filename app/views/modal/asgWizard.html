@@ -2,7 +2,7 @@
   <div ng-if="!state.loaded" style="height: 200px">
     <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
   </div>
-  <modal-wizard ng-if="state.loaded" heading="Create New ASG">
+  <modal-wizard ng-if="state.loaded" heading="{{title}}">
     <wizard-page key="Basic Settings">
       <ng-include src="'views/application/modal/serverGroup/basicSettings.html'"></ng-include>
     </wizard-page>

@@ -188,14 +188,6 @@ angular.module('deckApp')
       $scope.loadBalancer.listeners.push({});
     };
 
-    this.addSecurityGroup = function() {
-      $scope.loadBalancer.securityGroups.push('');
-    };
-
-    this.removeSecurityGroup = function(index) {
-      $scope.loadBalancer.securityGroups.splice(index, 1);
-    };
-
     this.submit = function () {
       orcaService.upsertLoadBalancer($scope.loadBalancer, application.name).then(function(response) {
         $modalInstance.close();

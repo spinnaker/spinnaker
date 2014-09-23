@@ -3,28 +3,15 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
       <div class="col-md-9">
-        <div ng-repeat="securityGroup in command.securityGroups track by $index">
-          <div class="col-md-10">
-            <select ui-select2 class="form-control input-sm"
-                    ng-model="command.securityGroups[$index]"
-                    required>
-              <option ng-repeat="regionalSecurityGroup in regionalSecurityGroups" value="{{regionalSecurityGroup.id}}">
-                {{regionalSecurityGroup.name}} ({{regionalSecurityGroup.id}})
-              </option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <a href class="sm-label" ng-click="serverGroupSecurityGroupsCtrl.removeSecurityGroup($index)"><span
-              class="glyphicon glyphicon-trash"></span></a>
-          </div>
-        </div>
+        <select ui-select2 multiple class="form-control input-sm"
+                ng-model="command.securityGroups"
+                required>
+          <option ng-repeat="regionalSecurityGroup in regionalSecurityGroups" value="{{regionalSecurityGroup.id}}">
+            {{regionalSecurityGroup.name}} ({{regionalSecurityGroup.id}})
+          </option>
+        </select>
         <div class="col-md-10" ng-if="!command.securityGroups.length">
           (None)
-        </div>
-        <div class="col-md-10">
-          <button class="btn btn-sm add-new sub-select" ng-click="serverGroupSecurityGroupsCtrl.addSecurityGroup()">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Security Group
-          </button>
         </div>
       </div>
     </div>

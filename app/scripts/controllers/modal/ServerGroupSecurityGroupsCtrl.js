@@ -13,15 +13,4 @@ angular.module('deckApp')
     };
     populateRegionalSecurityGroups();
 
-    this.removeSecurityGroup = function(index) {
-      $scope.command.securityGroups.splice(index, 1);
-    };
-
-    this.addSecurityGroup = function() {
-      if (!$scope.command.securityGroups || !$scope.command.securityGroups.length) {
-        $scope.command.securityGroups = [];
-      }
-      $scope.command.securityGroups.push('');
-    };
-
   });

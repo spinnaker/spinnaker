@@ -7,7 +7,8 @@ angular.module('deckApp')
   .controller('CloneServerGroupCtrl', function($scope, $modalInstance, _, $q,
                                                accountService, orcaService, mortService, oortService, searchService,
                                                instanceTypeService, modalWizardService, securityGroupService,
-                                               serverGroup, application) {
+                                               serverGroup, application, title) {
+    $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
@@ -44,7 +45,6 @@ angular.module('deckApp')
 
     function initializeCommand() {
       if (serverGroup) {
-        $scope.title = 'Clone ' + serverGroup.asg.autoScalingGroupName;
         var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
         var match = asgNameRegex.exec(serverGroup.asg.autoScalingGroupName);
         $scope.command = {
@@ -103,7 +103,6 @@ angular.module('deckApp')
           $scope.command.securityGroups = serverGroup.launchConfig.securityGroups;
         }
       } else {
-        $scope.title = 'Create ASG';
         $scope.command = {
           'application': application.name,
           'credentials': 'test',
