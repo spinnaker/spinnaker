@@ -291,7 +291,7 @@ module.exports = function (grunt) {
             flatten: true,
             cwd: '.',
             dest: '<%= yeoman.dist %>/styles',
-            src: 'node_modules/select2/*.png'
+            src: 'node_modules/select2/*.{png,gif}'
           }
         ]
       },
@@ -304,7 +304,7 @@ module.exports = function (grunt) {
           'node_modules/bootstrap/dist/css/bootstrap.css.map',
           'node_modules/bootstrap/dist/fonts/*.*',
           'node_modules/select2-bootstrap-css/select2-bootstrap.css',
-          'node_modules/select2/*.{css,png}'
+          'node_modules/select2/*.{css,png,gif}'
         ]
       }
     },
