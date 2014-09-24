@@ -49,7 +49,7 @@ class TerminateInstancesTask implements Task {
        "terminate.region"       : operation.region,
        "kato.last.task.id"      : taskId,
        "kato.task.id"           : taskId, // TODO retire this.
-       "terminate.instance.ids" : operation.instanceIds
+       "terminate.instance.ids" : operation.instanceIds,
       ])
   }
 

@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.PreconfigureDestroyAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
@@ -51,10 +52,13 @@ class DestroyAsgStage extends LinearStage {
     def step3 = steps.get("MonitorAsgStep")
                      .tasklet(buildTask(MonitorKatoTask))
                      .build()
-    def step4 = steps.get("WaitForCapacityMatchStep")
+    def step4 = steps.get("ForceCacheRefreshStep")
+                     .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
+                     .build()
+    def step5 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
 
-    [step1, resizeSteps, step2, step3, step4].flatten().toList()
+    [step1, resizeSteps, step2, step3, step4, step5].flatten().toList()
   }
 }

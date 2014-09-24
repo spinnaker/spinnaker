@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
@@ -42,10 +43,13 @@ class ResizeAsgStage extends LinearStage {
     def step2 = steps.get("MonitorAsgStep")
                      .tasklet(buildTask(MonitorKatoTask))
                      .build()
-    def step3 = steps.get("WaitForCapacityMatchStep")
+    def step3 = steps.get("ForceCacheRefreshStep")
+                     .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
+                     .build()
+    def step4 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
 
-    [step1, step2, step3]
+    [step1, step2, step3, step4]
   }
 }
