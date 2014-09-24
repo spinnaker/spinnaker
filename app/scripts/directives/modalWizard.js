@@ -28,6 +28,7 @@ angular.module('deckApp')
       controller: 'ModalWizardCtrl as wizardCtrl',
       link: function(scope, elem, attrs) {
         scope.wizard.setHeading(attrs.heading);
+        scope.showSubheadings = attrs.showSubheadings !== 'false';
       }
     };
   }
