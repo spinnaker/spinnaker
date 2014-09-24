@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.oort.config
 
-import com.amazonaws.auth.AWSCredentialsProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
