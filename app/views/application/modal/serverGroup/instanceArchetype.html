@@ -28,13 +28,13 @@
         </button>
       </div>
     </div>
-    <div class="row fade-in" ng-if="command.instanceProfile === 'custom'">
+    <div class="row fade-in" is-visible="command.instanceProfile === 'custom'">
       <div class="col-md-12">
         <select class="form-control input-sm"
                 ng-model="command.instanceType"
                 ng-options="customType for customType in regionalInstanceTypes"
                 ng-required="command.instanceProfile === 'custom'"
-                is-visible="command.instanceProfile === 'custom'">
+                ng-change="instanceArchetypeCtrl.instanceTypeSelected()">
           <option value="">Select a type...</option>
         </select>
       </div>

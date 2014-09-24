@@ -6,10 +6,11 @@
          ng-class="{
             default: !page.state.done && !page.state.current,
             current: page.state.current,
-            done: page.state.done
+            done: page.state.done,
+            dirty: page.state.dirty
       }">
-        <a ng-if="page.state.done || page.state.current" href ng-click="wizard.jumpToPage(page.key)">{{page.key}}</a>
-        <a ng-if="!page.state.done && !page.state.current">{{page.key}}</a>
+        <a ng-if="page.state.done || page.state.current" href ng-click="wizard.jumpToPage(page.key)">{{page.label}}</a>
+        <a ng-if="!page.state.done && !page.state.current">{{page.label}}</a>
       </li>
     </ul>
   </div>

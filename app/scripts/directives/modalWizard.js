@@ -54,6 +54,14 @@ angular.module('deckApp')
         wizard.heading = heading;
       };
 
+      wizard.markDirty = function(pageKey) {
+        wizard.getPage(pageKey).state.dirty = true;
+      };
+
+      wizard.markClean = function(pageKey) {
+        wizard.getPage(pageKey).state.dirty = false;
+      };
+
       wizard.markComplete = function(pageKey) {
         wizard.getPage(pageKey).state.done = true;
       };
@@ -76,8 +84,7 @@ angular.module('deckApp')
       };
 
       wizard.getPage = function(pageKey) {
-        var matches = _.filter(wizard.pageRegistry, {key: pageKey});
-        return matches.length ? matches[0] : null;
+        return _.find(wizard.pageRegistry, {key: pageKey});
       };
 
       wizard.getPageIndex = function(pageKey) {
@@ -88,9 +95,9 @@ angular.module('deckApp')
         return wizard.renderedPages.indexOf(wizard.currentPage);
       };
 
-      wizard.registerPage = function(pageKey, state) {
+      wizard.registerPage = function(pageKey, label, state) {
         state = state || { done: false, blocked: true, rendered: true, current: false };
-        wizard.pageRegistry.push({key: pageKey, state: state});
+        wizard.pageRegistry.push({key: pageKey, label: label, state: state});
         wizard.renderPages();
       };
 

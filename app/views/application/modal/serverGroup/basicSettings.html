@@ -1,9 +1,9 @@
 <form name="form" class="container-fluid form-horizontal" ng-controller="ServerGroupBasicSettingsCtrl as basicSettingsCtrl" novalidate>
   <div class="modal-body">
 
-    <account-select-field component="command" field="credentials" accounts="accounts" loading="false" on-change="basicSettingsCtrl.accountUpdated()"></account-select-field>
-    <region-select-field component="command" field="region" account="command.credentials" on-change="basicSettingsCtrl.regionUpdated()" regions="regions"></region-select-field>
-    <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes" on-change="basicSettingsCtrl.subnetUpdated()"></subnet-select-field>
+    <account-select-field component="command" field="credentials" accounts="accounts" loading="false"></account-select-field>
+    <region-select-field component="command" field="region" account="command.credentials" regions="regions"></region-select-field>
+    <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Stack</b></div>
       <div class="col-md-3"><input type="text"
@@ -18,8 +18,8 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Image</b></div>
       <div class="col-md-9">
-        <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an instance type" required>
-          <option ng-repeat="image in images" value="{{image.imageName}}">{{image.imageName}}</option>
+        <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an image" required>
+          <option ng-repeat="image in regionalImages" value="{{image.imageName}}">{{image.imageName}}</option>
         </select>
       </div>
     </div>

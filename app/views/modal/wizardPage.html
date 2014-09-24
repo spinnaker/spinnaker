@@ -1,3 +1,3 @@
-<div class="modal-page" ng-if="wizard.currentPage.key === key">
+<div class="modal-page" ng-show="wizard.currentPage.key === key" ng-if="!lazy || wizard.currentPage.key === key">
   <div ng-transclude></div>
 </div>

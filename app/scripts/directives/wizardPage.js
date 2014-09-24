@@ -19,6 +19,19 @@
 require('../app');
 var angular = require('angular');
 
+/**
+ * Wizard page directive
+ * possible attributes:
+ *   - key (required): Any string value, unique within the wizard; it becomes the the hook to access the page state
+ *     through the wizard, e.g. wizard.getPage('page-1').markComplete()
+ *   - label (required): Any string value; it becomes label in the wizard flow
+ *   - render (optional, default: true): when set to false, registers the page with the wizard, but does not participate
+ *     in the wizard flow. To add the page to the flow, call wizard.includePage(key)
+ *   - blocked (optional, default: true): when set to true, the page is immediately available by clicking on the link in
+ *     the wizard flow
+ *   - lazy (optional, default: false): when set to true, the page will actually be rendered and initialized but will
+ *     not be displayed. This is useful if the page's controller should be initialized immediately
+ */
 angular.module('deckApp')
   .directive('wizardPage', function () {
     return {
@@ -34,7 +47,9 @@ angular.module('deckApp')
             blocked: attrs.blocked !== 'false'
           };
         $scope.key = attrs.key;
-        wizardCtrl.getWizard().registerPage($scope.key, state);
+        $scope.label = attrs.label;
+        $scope.lazy = attrs.lazy !== 'true';
+        wizardCtrl.getWizard().registerPage($scope.key, $scope.label, state);
       }
     };
   }

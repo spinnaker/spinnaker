@@ -3,16 +3,13 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
       <div class="col-md-9">
-        <select ui-select2 multiple class="form-control input-sm"
+        <select ui-select2 class="form-control input-sm"
                 ng-model="command.securityGroups"
-                required>
+                multiple>
           <option ng-repeat="regionalSecurityGroup in regionalSecurityGroups" value="{{regionalSecurityGroup.id}}">
             {{regionalSecurityGroup.name}} ({{regionalSecurityGroup.id}})
           </option>
         </select>
-        <div class="col-md-10" ng-if="!command.securityGroups.length">
-          (None)
-        </div>
       </div>
     </div>
   </div>
