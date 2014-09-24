@@ -88,7 +88,7 @@ angular.module('deckApp')
       };
 
       wizard.getPageIndex = function(pageKey) {
-        return _.findIndex(wizard.pageRegistry, {key: pageKey});
+        return _.findIndex(wizard.renderedPages, {key: pageKey});
       };
 
       wizard.getCurrentPageIndex = function() {
