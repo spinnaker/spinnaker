@@ -78,8 +78,6 @@ angular.module('deckApp')
         }
         subnetChanged();
         configureInstanceTypes();
-        configureSecurityGroupOptions();
-        configureLoadBalancerOptions();
         configureAvailabilityZones();
         configureImages();
       } else {
@@ -95,7 +93,8 @@ angular.module('deckApp')
       var subnet = _($scope.subnets)
         .find({'purpose': $scope.command.subnetType, 'account': $scope.command.credentials, 'region': $scope.command.region});
       $scope.command.vpcId = subnet ? subnet.vpcId : null;
-
+      configureSecurityGroupOptions();
+      configureLoadBalancerOptions();
     }
 
     function configureAvailabilityZones() {
