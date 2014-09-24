@@ -150,15 +150,60 @@ public class AmazonClientProvider {
     return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
+  public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonCloudWatch getAmazonCloudWatch(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    checkCredentials(amazonCredentials);
+    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
+  }
+
+
   protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
+    return getThrottlingHandler(interfaceKlazz, impl, amazonCredentials, region, false);
+  }
+
+  protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     try {
       T delegate = getClient(impl, amazonCredentials, region);
       U client = (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz}, new ThrottledAmazonClientInvocationHandler(delegate, retryCallback));
-      if (!amazonCredentials.getEddaEnabled()) {
-        return client;
-      } else {
+      if (amazonCredentials.getEddaEnabled() && !skipEdda) {
         return (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
           getInvocationHandler(client, delegate.getServiceName(), region, amazonCredentials));
+      } else {
+        return client;
       }
     } catch (Exception e) {
       throw new RuntimeException("Instantiation of client implementation failed!", e);

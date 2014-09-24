@@ -167,6 +167,21 @@ class AmazonClientProviderSpec extends Specification {
     retryCallbackCalled
   }
 
+  void "should skip edda when specified"() {
+    setup:
+    def provider = Spy(AmazonClientProvider)
+    def ec2 = Mock(AmazonEC2)
+    provider.getAmazonEC2(_, _, _) >> ec2
+
+    when:
+    def client = provider.getAmazonEC2(new NetflixAmazonCredentials(edda: "foo", credentialsProvider: credentialsProvider), "us-east-1", true)
+    client.describeSecurityGroups()
+
+    then:
+    client.is ec2
+    1 * ec2.describeSecurityGroups()
+  }
+
   static def OBJECT_ASG_CONTENT = '{ "autoScalingGroupName": "my-app-v000" }'
   static def ARRAY_ASG_CONTENT = "[$OBJECT_ASG_CONTENT]"
 
