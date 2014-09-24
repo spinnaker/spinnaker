@@ -41,7 +41,7 @@ class EurekaDispatchingOnDemandCacheUpdater implements OnDemandCacheUpdater {
   LookupService lookupService
 
   @Autowired
-  ApplicationInfoManager applicationInfoManager
+  ApplicationInfoManager appInfoManager
 
   @Autowired
   RestTemplate restTemplate
@@ -56,8 +56,8 @@ class EurekaDispatchingOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   @PostConstruct
   void init() {
-    if (applicationInfoManager.info.ASGName) {
-      Names names = Names.parseName(applicationInfoManager.info.ASGName)
+    if (appInfoManager.info.ASGName) {
+      Names names = Names.parseName(appInfoManager.info.ASGName)
       myCluster = names.cluster
     }
   }
