@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.kato.deploy.gce.GCEUtil
 import org.springframework.stereotype.Component
 
 @Component
@@ -61,33 +62,16 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def project = description.credentials.project
     def zone = description.zone
 
-    task.updateStatus BASE_PHASE, "Looking up machine type..."
-    def machineType = compute.machineTypes().list(project, zone).execute().getItems().find { it.getName() == description.type }
+    def machineType = GCEUtil.queryMachineType(project, zone, description.type, compute, task, BASE_PHASE)
 
-    task.updateStatus BASE_PHASE, "Looking up Source Image..."
-    def sourceImage = null
-    def imageProjects = [project, "centos-cloud", "coreos-cloud", "debian-cloud", "google-containers", "opensuse-cloud", "rhel-cloud", "suse-cloud"]
-    for (imageProject in imageProjects) {
-      sourceImage = compute.images().list(imageProject).execute().getItems().find { it.getName() == description.image }
-      if (sourceImage != null) {
-        break;
-      }
-    }
-    if (sourceImage == null) {
-      def sourceImageNotFoundMsg = "Source image ${description.image} not found in any of these projects: ${imageProjects}"
-      task.updateStatus BASE_PHASE, sourceImageNotFoundMsg
-      throw new GceSourceImageNotFoundException(sourceImageNotFoundMsg)
-    }
+    def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
-    task.updateStatus BASE_PHASE, "Looking up default network..."
-    def networking = compute.networks().list(project).execute().getItems().find { it.getName() == "default" }
+    def network = GCEUtil.queryNetwork(project, "default", compute, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Composing instance..."
-    def rootDrive = new AttachedDisk(boot: true, autoDelete: true, type: "PERSISTENT",
-      initializeParams: new AttachedDiskInitializeParams(sourceImage: sourceImage.getSelfLink()))
+    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, "PERSISTENT")
 
-    def network = new com.google.api.services.compute.model.NetworkInterface(network: networking.getSelfLink(),
-      accessConfigs: [new AccessConfig(type: "ONE_TO_ONE_NAT")])
+    def networkInterface = GCEUtil.buildNetworkInterface(network, "ONE_TO_ONE_NAT")
 
     def clusterName = "${description.application}-${description.stack}"
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
@@ -96,7 +80,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def instanceName = "${clusterName}-v${nextSequence}-instance1".toString()
     task.updateStatus BASE_PHASE, "Produced instance name: $instanceName"
 
-    def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive], networkInterfaces: [network])
+    def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive], networkInterfaces: [networkInterface])
 
     task.updateStatus BASE_PHASE, "Creating instance $instanceName..."
     compute.instances().insert(project, zone, instance).execute()

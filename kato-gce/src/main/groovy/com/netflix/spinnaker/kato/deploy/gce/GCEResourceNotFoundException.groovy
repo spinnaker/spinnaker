@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 
 
-package com.netflix.spinnaker.kato.deploy.gce.handlers
+package com.netflix.spinnaker.kato.deploy.gce
 
 import groovy.transform.InheritConstructors
 
 @InheritConstructors
-class GceSourceImageNotFoundException extends RuntimeException {}
+class GCEResourceNotFoundException extends RuntimeException {}
