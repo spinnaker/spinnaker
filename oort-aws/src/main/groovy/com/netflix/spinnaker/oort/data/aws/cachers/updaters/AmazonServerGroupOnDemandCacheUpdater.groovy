@@ -140,7 +140,7 @@ class AmazonServerGroupOnDemandCacheUpdater implements OnDemandCacheUpdater {
   void updateImage(LaunchConfiguration launchConfiguration, NetflixAmazonCredentials credentials, String region) {
     def imageCachingAgent = getWiredImageCachingAgent(credentials, region)
 
-    def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, false)
+    def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
     def result = ec2.describeImages(new DescribeImagesRequest(imageIds: [launchConfiguration.imageId]))
     if (result.images) {
       def image = result.images.get(0)
