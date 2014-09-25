@@ -40,9 +40,21 @@ angular.module('deckApp')
     $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
+      initializeWizardState();
       initializeSelectOptions();
       initializeWatches();
     });
+
+    function initializeWizardState() {
+      if (serverGroup) {
+        modalWizardService.getWizard().markComplete('location');
+        modalWizardService.getWizard().markComplete('load-balancers');
+        modalWizardService.getWizard().markComplete('security-groups');
+        modalWizardService.getWizard().markComplete('instance-profile');
+        modalWizardService.getWizard().markComplete('capacity');
+        modalWizardService.getWizard().markComplete('advanced');
+      }
+    }
 
     function initializeWatches() {
       $scope.$watch('command.credentials', credentialsChanged);
@@ -72,6 +84,7 @@ angular.module('deckApp')
 
     function regionChanged() {
       configureSubnetPurposes();
+      var currentZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
       if ($scope.command.region) {
         if (!_($scope.regionSubnetPurposes).some({purpose: $scope.command.subnetType})) {
           $scope.command.subnetType = null;
@@ -83,10 +96,11 @@ angular.module('deckApp')
       } else {
         $scope.regionalAvailabilityZones = null;
       }
-      if (modalWizardService.getWizard()) {
+      $scope.command.availabilityZones = _.intersection($scope.command.availabilityZones, $scope.regionalAvailabilityZones);
+      var newZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
+      if (currentZoneCount !== newZoneCount) {
         modalWizardService.getWizard().markDirty('capacity');
       }
-      $scope.command.availabilityZones = null;
     }
 
     function subnetChanged() {
