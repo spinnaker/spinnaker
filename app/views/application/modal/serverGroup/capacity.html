@@ -26,18 +26,16 @@
   <availability-zone-select-field component="command" field="availabilityZones" region="command.region" availability-zones="regionalAvailabilityZones"></availability-zone-select-field>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <button class="btn btn-default"
             ng-click="wizard.previousPage(form.$valid)">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
+    <button class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
             ng-click="ctrl.clone()"
             ng-disabled="!ctrl.isValid() || !form.$valid">
-      <span class="glyphicon glyphicon-ok-circle"></span> Submit
+      <span class="glyphicon glyphicon-ok-circle"></span> Create
     </button>
-    <button class="btn btn-primary"
+    <button class="btn btn-default"
             ng-disabled="!form.$valid"
             ng-click="wizard.nextPage(form.$valid)">
       Advanced Settings <span class="glyphicon glyphicon-chevron-right"></span>

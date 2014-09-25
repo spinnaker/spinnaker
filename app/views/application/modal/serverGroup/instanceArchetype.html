@@ -35,19 +35,17 @@
                 ng-options="customType for customType in regionalInstanceTypes"
                 ng-required="command.instanceProfile === 'custom'"
                 ng-change="instanceArchetypeCtrl.instanceTypeSelected()">
-          <option value="">Select a type...</option>
+          <option value="">Select an instance type...</option>
         </select>
       </div>
     </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <button class="btn btn-default"
             ng-click="wizard.previousPage(form.$valid)">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
+    <button class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
             ng-disabled="!command.instanceProfile || !form.$valid"
             ng-click="wizard.nextPage(form.$valid)">
