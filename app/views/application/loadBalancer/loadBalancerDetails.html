@@ -38,7 +38,7 @@
           <dt>Region:</dt>
           <dd>{{loadBalancer.region}}</dd>
           <dt>Account:</dt>
-          <dd><account-tag account="loadBalancer.account"></account-tag></dd>
+          <dd><account-tag account="loadBalancer.accountId"></account-tag></dd>
         </dl>
         <dl>
           <dt>Availability Zones:</dt>
@@ -74,8 +74,8 @@
     </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
-        <li ng-repeat="securityGroup in loadBalancer.elb.securityGroups">
-          {{securityGroup}}
+        <li ng-repeat="securityGroup in securityGroups">
+          {{securityGroup.name}} ({{securityGroup.id}})
         </li>
       </ul>
     </collapsible-section>
