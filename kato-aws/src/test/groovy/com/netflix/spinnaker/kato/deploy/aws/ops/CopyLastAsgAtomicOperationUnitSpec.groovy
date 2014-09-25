@@ -47,6 +47,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     description.availabilityZones = ['us-east-1': [], 'us-west-1': []]
     description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
     description.securityGroups = ['someGroupName', 'sg-12345a']
+    description.capacity = new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5)
     def mockEC2 = Mock(AmazonEC2)
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockProvider = Mock(AmazonClientProvider)
@@ -65,7 +66,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
         blockDevices: [new AmazonBlockDevice(deviceName: '/dev/sdb', size: 125), new AmazonBlockDevice(deviceName: '/dev/sdc', virtualName: 'ephemeral1')],
         securityGroups: ['someGroupName', 'otherGroupName'], availabilityZones: [(region): null],
-        capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 2, desired: 5),
+        capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
         source: new BasicAmazonDeployDescription.Source())
     }
 
@@ -95,9 +96,9 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     2 * mockAutoScaling.describeAutoScalingGroups(_) >> {
       def mockAsg = Mock(AutoScalingGroup)
       mockAsg.getAutoScalingGroupName() >> "asgard-stack-v000"
-      mockAsg.getMinSize() >> 1
+      mockAsg.getMinSize() >> 0
       mockAsg.getMaxSize() >> 2
-      mockAsg.getDesiredCapacity() >> 5
+      mockAsg.getDesiredCapacity() >> 4
       mockAsg.getLaunchConfigurationName() >> "foo"
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
