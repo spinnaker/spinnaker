@@ -44,12 +44,12 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
-      <p ng-if="instance.isHealthy">
-        <span class="glyphicon glyphicon-up-triangle healthy"></span> Up
-      </p>
-      <p ng-if="!instance.isHealthy">
-        <span class="glyphicon glyphicon-down-triangle unhealthy"></span> Down
-      </p>
+      <dl class="dl-medium dl-horizontal">
+        <dt ng-repeat-start="metric in instance.health">{{metric.type}}</dt>
+        <dd ng-repeat-end>
+          <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span> {{metric.state}}
+        </dd>
+      </dl>
     </collapsible-section>
     <div class="content-section" ng-if="instance.notFound">
       <div class="content-body">

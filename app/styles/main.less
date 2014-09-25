@@ -89,12 +89,21 @@ body {
 .glyphicon-up-triangle {
   &:before {
     content: "\25B2";
+    color: @healthy_green_border;
   }
 }
 
 .glyphicon-down-triangle {
   &:before {
     content: "\25BC";
+    color: @unhealthy_red;
+  }
+}
+.glyphicon-unknown-triangle {
+  &:before {
+    content: "?";
+    font-weight: 900;
+    color: @mid_lighter_grey;
   }
 }
 
@@ -227,6 +236,14 @@ dl {
 }
 
 .dl-horizontal {
+  &.dl-medium {
+    dt {
+      width: 100px;
+    }
+    dd {
+      margin-left: 120px;
+    }
+  }
   &.dl-narrow {
     dt {
       width: 80px;
