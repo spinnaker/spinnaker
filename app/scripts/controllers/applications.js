@@ -25,16 +25,6 @@ angular.module('deckApp')
           }).result.then(function(app) {
             front50.all('applications').post(app).then(function(resp) {
               $log.debug(resp);
-              notifications.observableTask({
-                title: 'Creating application ' + app.name,
-                message: app.name + ' Created!',
-                observable: $scope.applications.flatMap(function(applications) {
-                  return RxService.Observable.fromArray(applications)
-                  .filter(function(other) {
-                    return other.name === app.name;
-                  });
-                })
-              });
             }, function(err) {
               $exceptionHandler(err);
             });
