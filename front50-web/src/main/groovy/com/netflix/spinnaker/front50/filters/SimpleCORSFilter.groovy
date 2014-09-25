@@ -20,11 +20,13 @@
 package com.netflix.spinnaker.front50.filters
 
 import org.springframework.stereotype.Component
+import org.springframework.core.annotation.Order
 
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
 
 @Component
+@Order(Integer.MIN_VALUE)
 public class SimpleCORSFilter implements Filter {
 
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {

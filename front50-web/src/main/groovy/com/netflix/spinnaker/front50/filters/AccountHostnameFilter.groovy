@@ -18,11 +18,14 @@ package com.netflix.spinnaker.front50.filters
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.springframework.core.annotation.Order
+
 
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 
 @Component
+@Order(Integer.MAX_VALUE)
 class AccountHostnameFilter implements Filter {
 
   @Value('${front50.prefix:front50}')
