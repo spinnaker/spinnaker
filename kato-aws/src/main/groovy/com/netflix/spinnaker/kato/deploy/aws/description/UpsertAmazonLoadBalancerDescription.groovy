@@ -26,6 +26,9 @@ class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescr
   Map<String, List<String>> availabilityZones
   List<Listener> listeners
   String healthCheck
+  Integer healthInterval = 10
+  Integer healthTimeout  = 5
+  Integer unhealthyThreshold = 2
 
   static class Listener {
     enum ListenerType {
