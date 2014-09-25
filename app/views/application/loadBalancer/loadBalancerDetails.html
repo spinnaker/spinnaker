@@ -38,7 +38,7 @@
           <dt>Region:</dt>
           <dd>{{loadBalancer.region}}</dd>
           <dt>Account:</dt>
-          <dd><account-tag account="loadBalancer.accountId"></account-tag></dd>
+          <dd><account-tag account="loadBalancer.account"></account-tag></dd>
         </dl>
         <dl>
           <dt>Availability Zones:</dt>
@@ -75,7 +75,9 @@
     <collapsible-section heading="Security Groups">
       <ul>
         <li ng-repeat="securityGroup in securityGroups">
-          {{securityGroup.name}} ({{securityGroup.id}})
+          <a ui-sref="^.securityGroupDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region})">
+            {{securityGroup.name}} ({{securityGroup.id}})
+          </a>
         </li>
       </ul>
     </collapsible-section>

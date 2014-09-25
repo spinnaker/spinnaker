@@ -69,7 +69,9 @@
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
         <ul>
           <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
-            {{securityGroup.groupName}} ({{securityGroup.groupId}})
+            <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: instance.region})">
+              {{securityGroup.groupName}} ({{securityGroup.groupId}})
+            </a>
           </li>
         </ul>
     </collapsible-section>

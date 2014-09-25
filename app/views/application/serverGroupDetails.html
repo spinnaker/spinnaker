@@ -58,7 +58,9 @@
     <collapsible-section heading="Security Groups">
       <ul>
         <li ng-repeat="securityGroup in securityGroups">
-          {{securityGroup.groupName}} ({{securityGroup.groupId}})
+          <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: cluster.account, region: serverGroup.region})">
+            {{securityGroup.groupName}} ({{securityGroup.groupId}})
+          </a>
         </li>
       </ul>
     </collapsible-section>

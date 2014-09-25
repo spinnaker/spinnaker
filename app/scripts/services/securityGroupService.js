@@ -102,8 +102,8 @@ angular.module('deckApp')
               inboundRule.securityGroup.name = getApplicationSecurityGroup(application, details.accountName, details.region, inboundRule.securityGroup.id).name;
             }
           });
-          return details;
         }
+        return details;
       });
     }
 
