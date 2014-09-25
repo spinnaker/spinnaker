@@ -4,13 +4,14 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .directive('notifications', function ($exceptionHandler) {
+  .directive('notifications', function ($exceptionHandler, $timeout) {
     return {
       scope: {},
       restrict: 'E',
       replace: true,
       templateUrl: 'views/notifications.html',
       controller: function ($scope, notifications) {
+
         var addNotificationProps = function (notificationsObj) {
           return Object.defineProperties(notificationsObj, {
             unread: {
@@ -34,6 +35,7 @@ angular.module('deckApp')
               value: function () {
                 this.forEach(function (notification) {
                   notification.$read = true;
+                  notification.$ephemeral = false;
                 });
               },
             },
@@ -44,13 +46,39 @@ angular.module('deckApp')
                 }));
               },
             },
+            hasEphemeral: {
+              get: function() {
+                return this.some(function(notification) {
+                  return notification.$ephemeral;
+                });
+              },
+            },
+            ephemeral: {
+              get: function() {
+                return this.filter(function(notification) {
+                  return notification.$ephemeral && !notification.$dismissed;
+                });
+              },
+            },
           });
         };
 
         $scope.notifications = addNotificationProps([]);
 
+        $scope.showEphemeral = function() {
+
+          if ($scope.notifications.hasEphemeral) {
+            return !$scope.open;
+          }
+          return false;
+        };
+
         notifications.subscribe(function (notification) {
           Object.defineProperties(notification, {
+            $ephemeral: {
+              value: true,
+              writable: true,
+            },
             $read: {
               value: false,
               writable: true,
@@ -67,6 +95,12 @@ angular.module('deckApp')
           });
 
           $scope.notifications.push(notification);
+
+          $scope.$evalAsync(function() {
+            $timeout(function() {
+              notification.$ephemeral = false;
+            }, 5000);
+          });
         }, function (err) {
           $exceptionHandler(err);
         });
