@@ -3,7 +3,7 @@
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch, $) {
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch, $, $window) {
     var search = infrastructureSearch();
 
     $scope.showSearchResults = false;
@@ -14,6 +14,12 @@ angular.module('deckApp')
       $scope.showSearchResults = false;
       $element.find('input').focus();
     }
+
+    this.displayResults = function() {
+      if ($scope.query) {
+        $scope.showSearchResults = true;
+      }
+    };
 
     this.dispatchQueryInput = function(event) {
       if (!$scope.query) {
@@ -43,6 +49,19 @@ angular.module('deckApp')
         $scope.showSearchResults = true;
       });
     };
+
+    $($window).bind('click.globalsearch', function(event) {
+      if (event.target === $element.find('input').get(0)) {
+        return;
+      }
+      $scope.$apply(function(scope) {
+        scope.showSearchResults = false;
+      });
+    });
+
+    $scope.$on('$destroy', function() {
+      $window.unbind('.globalsearch');
+    });
 
     function focusFirstSearchResult() {
       event.preventDefault();

@@ -5,6 +5,7 @@
         class="form-control"
         placeholder="Search"
         ng-model="query"
+        ng-focus="ctrl.displayResults($event)"
         ng-keyup="ctrl.dispatchQueryInput($event)">
       </input>
     </div>
