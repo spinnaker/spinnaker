@@ -135,16 +135,69 @@
   }
 }
 
-.select2-container-multi .select2-choices {
-  .select2-search-field {
-    &:before {
-      content: 'Add...';
-      padding-left: 8px;
-      opacity: 0.5;
+
+
+.select2-container-multi {
+  &.select2-container-active {
+    .select2-choices {
+      border: 0;
+      box-shadow: none;
+      .select2-search-field {
+        border: 1px solid #66afe9;
+
+        &:before {
+          content: '';
+        }
+      }
     }
   }
-  .select2-search-choice {
-    float: none;
-    margin-right: 5px;
+  .select2-choices {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    .select2-search-field {
+      width: calc(~"100% - 30px");
+      float: none;
+      border: 1px dashed #a5a5a5;
+      color: #a5a5a5;
+      padding: 0;
+      margin: 4px 0 0 0;
+      cursor: pointer;
+      background-color: transparent;
+
+      &:before {
+        content: 'Add...';
+        padding-left: 8px;
+        opacity: 0.5;
+      }
+    }
+    .select2-search-choice {
+      float: none;
+      margin: 0 0 5px 0;
+      border: 0;
+      padding: 0;
+      div {
+        padding: 5px;
+        width: calc(~"100% - 30px");
+        display: inline-block;
+        border: 1px solid #cccccc;
+        border-radius: 4px;
+      }
+      .select2-search-choice-close {
+        float: none;
+        position: relative;
+        top: 50%;
+        display: inline-block;
+        margin-top: 4px;
+        &:before {
+          content: "\e020";
+          font-size: 12px;
+          font-family: 'Glyphicons Halflings';
+          width: 13px;
+          display: inline-block;
+        }
+        width: 2px;
+      }
+    }
   }
 }
