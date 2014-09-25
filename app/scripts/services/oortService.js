@@ -134,6 +134,7 @@ angular.module('deckApp')
       listApplications: listApplications,
       getApplication: getApplication,
       findAmis: findAmis,
-      listLoadBalancers: listLoadBalancers
+      listLoadBalancers: listLoadBalancers,
+      getApplicationWithoutAppendages: getApplicationEndpoint,
     };
   });

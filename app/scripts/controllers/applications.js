@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, oortService, searchService, urlBuilder, $state) {
+  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, oortService, searchService, urlBuilder, $state, $timeout) {
 
     $scope.applicationsLoaded = false;
 
@@ -25,18 +25,31 @@ angular.module('deckApp')
             front50.createApplication(app).then(function(resp) {
               $log.debug(resp);
               notifications.create({
-                title: 'Creating application',
-                message: app.name+' Created!',
-                href: urlBuilder.buildFromMetadata({
-                  type: 'applications',
-                  application: app.name,
-                }),
+                title: 'Creating application '+app.name,
               });
-              $state.go(
-                'home.applications.application', {
-                  application: app.name,
-                }
-              );
+              var pollForApp = function() {
+                oortService.getApplicationWithoutAppendages(app.name).get()
+                .then(function() {
+                    notifications.create({
+                      title: app.name,
+                      message: 'Created!',
+                      href: urlBuilder.buildFromMetadata({
+                        type: 'applications',
+                        application: app.name,
+                      }),
+                    });
+                    $state.go(
+                      'home.applications.application', {
+                        application: app.name,
+                      }
+                    );
+                }, function() {
+                  $timeout(pollForApp, 500);
+                });
+              };
+              $timeout(pollForApp);
+
+
             }, function(err) {
               $exceptionHandler(err);
             });
