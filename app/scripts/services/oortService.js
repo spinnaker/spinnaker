@@ -21,7 +21,7 @@ angular.module('deckApp')
             var disposable = scheduler.subscribe(function() {
               getApplication(application.name).then(function (newApplication) {
                 // compute task diff and generate notifications for a completed task
-                taskTracker.generateNotifications(taskTracker.getCompleted(
+                taskTracker.handleCompletedTasks(taskTracker.getCompleted(
                   application.tasks,
                   newApplication.tasks
                 ));
