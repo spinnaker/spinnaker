@@ -57,7 +57,8 @@ class PipelineStarter {
    * @return the pipeline that was created.
    */
   Pipeline start(String configJson) {
-    def jobExecution = launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
+    def job = pipelineFrom(parseConfig(configJson))
+    def jobExecution = launcher.run(job, new JobParameters())
     new DefaultPipeline(jobExecution)
   }
 

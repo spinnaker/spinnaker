@@ -51,7 +51,7 @@ abstract class BatchExecutionSpec extends Specification implements JobFactory {
   @Autowired private JobOperator jobOperator
   @Autowired private JobRegistry jobRegistry
 
-  private jobLauncherTestUtils = new JobLauncherTestUtils()
+  protected jobLauncherTestUtils = new JobLauncherTestUtils()
 
   def setup() {
     jobRegistry.register(this)
