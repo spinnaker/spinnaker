@@ -39,7 +39,7 @@ class CreateCopyLastAsgTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    CopyLastAsgOperation operation = deployOperationFromContext(context)
+    Map operation = deployOperationFromContext(context)
     def taskId = kato.requestOperations([[copyLastAsgDescription: operation]])
                      .toBlocking()
                      .first()
@@ -53,11 +53,11 @@ class CreateCopyLastAsgTask implements Task {
     )
   }
 
-  private CopyLastAsgOperation deployOperationFromContext(TaskContext context) {
+  private Map deployOperationFromContext(TaskContext context) {
     def operation = mapper.copy()
                           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(context.getInputs("copyLastAsg"), CopyLastAsgOperation)
-    operation.amiName = operation.amiName.or(Optional.fromNullable(context.inputs.'bake.ami' as String))
+                          .convertValue(context.getInputs("copyLastAsg"), Map)
+    operation.amiName = operation.amiName ?: Optional.fromNullable(context.inputs.'bake.ami' as String)
     return operation
   }
 }
