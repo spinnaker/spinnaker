@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-core")
-  compile "com.google.apis:google-api-services-compute:v1-rev17-1.18.0-rc"
-  compile 'com.google.apis:google-api-services-replicapool:v1beta1-rev16-1.19.0'
-  compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
+package com.netflix.spinnaker.kato.deploy.gce.description
+
+import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
+
+class ResizeGoogleReplicaPoolDescription {
+  String application
+  String stack
+  int numReplicas
+  String zone
+  String accountName
+  GoogleCredentials credentials
 }
