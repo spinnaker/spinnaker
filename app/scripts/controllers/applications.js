@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, oortService, searchService) {
+  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, oortService, searchService, urlBuilder) {
 
     $scope.applicationsLoaded = false;
 
@@ -23,8 +23,16 @@ angular.module('deckApp')
             templateUrl: 'views/newapplication.html'
             // TODO: how to create a new scope
           }).result.then(function(app) {
-            front50.all('applications').post(app).then(function(resp) {
+            front50.createApplication(app).then(function(resp) {
               $log.debug(resp);
+              notifications.create({
+                title: 'Creating application',
+                message: app.name+' Created!',
+                href: urlBuilder.buildFromMetadata({
+                  type: 'applications',
+                  application: app.name,
+                }),
+              });
             }, function(err) {
               $exceptionHandler(err);
             });
