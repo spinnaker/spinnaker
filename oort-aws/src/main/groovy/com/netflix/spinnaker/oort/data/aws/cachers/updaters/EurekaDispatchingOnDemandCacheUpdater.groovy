@@ -70,7 +70,7 @@ class EurekaDispatchingOnDemandCacheUpdater implements OnDemandCacheUpdater {
   @SuppressWarnings("GroovyAssignabilityCheck")
   @Override
   void handle(Map<String, ? extends Object> data) {
-    for (instance in lookupService.getApplication(EUREKA_NAME).instances) {
+    for (instance in lookupService.getApplication(EUREKA_NAME)?.instances) {
       def cluster = Names.parseName(instance.ASGName)
       if (myCluster && myCluster != cluster) {
         continue
