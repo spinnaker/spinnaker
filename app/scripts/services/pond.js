@@ -34,6 +34,18 @@ angular.module('deckApp')
 
     return Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
+      RestangularConfigurer.addElementTransformer('tasks', true, function(taskCollection) {
+        Object.defineProperties(taskCollection, {
+          runningCount: {
+            get: function() {
+              return taskCollection.reduce(function(acc, current) {
+                return current.status === 'STARTED' ? acc + 1 : acc;
+              }, 0);
+            }
+          }
+        });
+        return taskCollection;
+      });
       RestangularConfigurer.addElementTransformer('tasks', false, function(task) {
         task.getValueFor = function(key) {
           var matching = task.variables.filter(function(item) {
