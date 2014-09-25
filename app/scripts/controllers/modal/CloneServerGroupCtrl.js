@@ -313,11 +313,16 @@ angular.module('deckApp')
     }
 
     this.isValid = function () {
-      return ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
+      return $scope.command && ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
         ($scope.command.region !== null) && ($scope.command.availabilityZones !== null) &&
         ($scope.command.capacity.min !== null) && ($scope.command.capacity.max !== null) &&
-        ($scope.command.capacity.desired !== null);
+        ($scope.command.capacity.desired !== null) &&
+        modalWizardService.getWizard().isComplete();
+    };
+
+    this.showSubmitButton = function () {
+      return modalWizardService.getWizard().allPagesVisited();
     };
 
     this.clone = function () {

@@ -4,7 +4,10 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('InstanceTypeCtrl', function($scope, instanceTypeService) {
+  .controller('InstanceTypeCtrl', function($scope, instanceTypeService, modalWizardService) {
+
+    modalWizardService.getWizard().markComplete('instance-type');
+    modalWizardService.getWizard().markClean('instance-type');
 
     $scope.instanceTypeCtrl = this;
 

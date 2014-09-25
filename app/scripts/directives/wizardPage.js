@@ -44,7 +44,9 @@ angular.module('deckApp')
         var state = {
             rendered: attrs.render !== 'false',
             done: attrs.done === 'true',
-            blocked: attrs.blocked !== 'false'
+            dirty: false,
+            blocked: attrs.blocked !== 'false',
+            required: attrs.mandatory !== 'false'
           };
         $scope.key = attrs.key;
         $scope.label = attrs.label;

@@ -153,7 +153,17 @@ angular.module('deckApp')
       };
 
       wizard.isComplete = function () {
-        return _(wizard.renderedPages).collect('state').every({done: true});
+        return _(wizard.renderedPages)
+          .collect('state')
+          .filter({rendered: true, required: true})
+          .every({done: true, dirty: false});
+      };
+
+      wizard.allPagesVisited = function () {
+        return _(wizard.renderedPages)
+          .collect('state')
+          .filter({rendered: true, required: true})
+          .every({done: true});
       };
 
       wizard.isFirstPage = function(key) {

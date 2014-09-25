@@ -47,6 +47,12 @@
     </button>
     <button class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
+            ng-click="ctrl.clone()"
+            ng-if="ctrl.showSubmitButton()"
+            ng-disabled="!ctrl.isValid() || !form.$valid">
+      <span class="glyphicon glyphicon-ok-circle"></span> Create
+    </button>
+    <button class="btn btn-primary"
             ng-disabled="!command.instanceProfile || !form.$valid"
             ng-click="wizard.nextPage(form.$valid)">
       Next <span class="glyphicon glyphicon-chevron-right"></span>
