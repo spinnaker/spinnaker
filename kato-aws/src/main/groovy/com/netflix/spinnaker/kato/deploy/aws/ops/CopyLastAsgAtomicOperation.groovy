@@ -105,16 +105,16 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.amiName = description.amiName ?: ancestorLaunchConfiguration.imageId
       newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones]
       newDescription.instanceType = description.instanceType ?: ancestorLaunchConfiguration.instanceType
-      newDescription.loadBalancers = description.loadBalancers ?: ancestorAsg.loadBalancerNames
-      newDescription.securityGroups = getSecurityGroupNamesForIds(sourceRegion, description.securityGroups ?: ancestorLaunchConfiguration.securityGroups)
-      newDescription.capacity.min = ancestorAsg.minSize
-      newDescription.capacity.max = ancestorAsg.maxSize
-      newDescription.capacity.desired = ancestorAsg.desiredCapacity
+      newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames
+      newDescription.securityGroups = getSecurityGroupNamesForIds(sourceRegion, description.securityGroups != null ? description.securityGroups : ancestorLaunchConfiguration.securityGroups)
+      newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize
+      newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize
+      newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity
       newDescription.keyPair = description.keyPair ?: ancestorLaunchConfiguration.keyName
-      newDescription.blockDevices = description.blockDevices ?: convertBlockDevices(ancestorLaunchConfiguration.blockDeviceMappings)
+      newDescription.blockDevices = description.blockDevices != null ? description.blockDevices : convertBlockDevices(ancestorLaunchConfiguration.blockDeviceMappings)
       newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : ancestorLaunchConfiguration.associatePublicIpAddress
-      newDescription.cooldown = description.cooldown ?: ancestorAsg.defaultCooldown
-      newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod ?: ancestorAsg.healthCheckGracePeriod
+      newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown
+      newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod != null ? description.healthCheckGracePeriod : ancestorAsg.healthCheckGracePeriod
       newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
       newDescription.spotPrice = description.spotPrice != null ? description.spotPrice : ancestorLaunchConfiguration.spotPrice
       newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses*.processName
