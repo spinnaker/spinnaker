@@ -38,13 +38,14 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Integer healthCheckGracePeriod
   String healthCheckType
   String spotPrice
-  Collection<String> suspendedProcesses
+  Collection<String> suspendedProcesses = []
   Collection<String> terminationPolicies
   String ramdiskId
   Boolean instanceMonitoring
   Boolean ebsOptimized
 
   boolean ignoreSequence
+  boolean startDisabled
 
   List<AmazonBlockDevice> blockDevices
   List<String> loadBalancers

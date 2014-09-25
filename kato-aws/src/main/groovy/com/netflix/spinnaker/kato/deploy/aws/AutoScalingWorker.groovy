@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 import com.netflix.spinnaker.kato.services.SecurityGroupService
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
@@ -57,6 +58,7 @@ class AutoScalingWorker {
   private String iamRole
   private String keyPair
   private Boolean ignoreSequence
+  private Boolean startDisabled
   private Boolean associatePublicIpAddress
   private String subnetType
   private Integer cooldown
@@ -102,6 +104,10 @@ class AutoScalingWorker {
    */
   String deploy() {
     task.updateStatus AWS_PHASE, "Beginning Amazon deployment."
+
+    if (startDisabled) {
+      suspendedProcesses.addAll(AutoScalingProcessType.getDisableProcesses()*.name())
+    }
 
     task.updateStatus AWS_PHASE, "Checking for security package."
     String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application)
