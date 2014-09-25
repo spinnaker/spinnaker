@@ -112,6 +112,8 @@ include::src/asciidoc/ops/createNetworkInterfaceDescription.adoc[]
 - - -
 include::src/asciidoc/ops/deleteAsgDescription.adoc[]
 - - -
+include::src/asciidoc/ops/deleteAmazonLoadBalancerDescription.adoc[]
+- - -
 include::src/asciidoc/ops/destroyAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/enableAsgDescription.adoc[]

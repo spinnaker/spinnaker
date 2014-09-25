@@ -74,7 +74,6 @@ class AmazonHealthIndicator implements HealthIndicator {
                 throw new AmazonUnreachableException(e)
             }
         }
-        LOG.info "Healthy"
         lastException.set(null)
     } catch (Exception ex) {
         LOG.warn "Unhealthy", ex
