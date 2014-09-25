@@ -28,7 +28,7 @@
         </button>
       </div>
     </div>
-    <div class="row fade-in" is-visible="command.instanceProfile === 'custom'">
+    <div class="row fade-in" ng-if="command.instanceProfile === 'custom'">
       <div class="col-md-12">
         <select class="form-control input-sm"
                 ng-model="command.instanceType"
