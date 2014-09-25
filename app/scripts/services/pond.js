@@ -48,7 +48,6 @@ angular.module('deckApp')
         Object.defineProperties(task, {
           katoTasks: {
             get: function() {
-              debugger;
               if (task.getValueFor('kato.tasks')) {
                 var katoTasks = task.getValueFor('kato.tasks');
                 var katoSteps = katoTasks[katoTasks.length -1].history;
