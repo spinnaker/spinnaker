@@ -66,7 +66,9 @@ angular.module('deckApp')
             return serverGroup.region === value;
           });
         }
-        return cluster[getSelectedSortOption().clusterKey] === value;
+        return cluster.serverGroups &&
+          cluster.serverGroups.length > 0 &&
+          cluster[getSelectedSortOption().clusterKey] === value;
       });
     };
 
