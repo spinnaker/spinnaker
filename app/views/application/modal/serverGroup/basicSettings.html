@@ -17,10 +17,15 @@
     </div>
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Image</b></div>
-      <div class="col-md-9">
+      <div class="col-md-9" ng-if="state.queryAllImages || regionalImages.length === 0">
+        <input ng-change="command.amiName = command.allImageSelection.id" type="hidden" ui-select2="select2Params" class="form-control input-sm" ng-model="command.allImageSelection" data-placeholder="Pick an image" required />
+        <a ng-if="regionalImages.length > 0" href ng-click="state.queryAllImages = false">Only show images matching "{{applicationName}}"</a>
+      </div>
+      <div class="col-md-9" ng-if="!state.queryAllImages &&  regionalImages.length > 0">
         <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an image" required>
           <option ng-repeat="image in regionalImages" value="{{image.imageName}}">{{image.imageName}}</option>
         </select>
+        <a href ng-click="state.queryAllImages = true">Search All Images</a>
       </div>
     </div>
   </div>

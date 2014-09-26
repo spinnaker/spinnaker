@@ -12,8 +12,11 @@ angular.module('deckApp')
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
+    $scope.applicationName = application.name;
+
     $scope.state = {
-      loaded: false
+      loaded: false,
+      queryAllImages: false
     };
 
     var accountLoader = accountService.getRegionsKeyedByAccount().then(function(regionsKeyedByAccount) {
@@ -35,6 +38,9 @@ angular.module('deckApp')
 
     var imageLoader = searchService.search({q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(result) {
       $scope.packageImages = result.data[0].results;
+      if (result.data[0].results.length === 0) {
+        $scope.state.queryAllImages = true;
+      }
     });
 
     $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
@@ -240,7 +246,8 @@ angular.module('deckApp')
           'account': serverGroup.account,
           'region': serverGroup.region,
           'asgName': serverGroup.asg.autoScalingGroupName
-        }
+        },
+        allImageSelection: null
       };
       if (serverGroup.launchConfig) {
         var amiName = null;
@@ -300,7 +307,8 @@ angular.module('deckApp')
 
         'terminationPolicies': ['Default'],
         'source': {},
-        'vpcId': null
+        'vpcId': null,
+        allImageSelection: null
       };
     }
 
@@ -327,7 +335,9 @@ angular.module('deckApp')
 
     this.clone = function () {
       var command = angular.copy($scope.command);
-      command.amiName = _($scope.packageImages).find({'imageName': command.amiName}).imageId;
+      command.amiName = $scope.state.queryAllImages ?
+        command.allImageSelection.id :
+        _($scope.packageImages).find({'imageName': command.amiName}).imageId;
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       $scope.sentCommand = command;
