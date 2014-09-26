@@ -19,12 +19,15 @@ package com.netflix.spinnaker.orca.batch.monitoring
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.job.flow.FlowJob
+import org.springframework.batch.core.step.tasklet.TaskletStep
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import static com.netflix.spinnaker.orca.DefaultTaskResult.SUCCEEDED
@@ -45,6 +48,24 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
       .build(jobBuilder)
       .build()
       .build()
+  }
+
+  def "can extract details of tasks"() {
+    given: "the stage's tasks succeed"
+    task1.execute(*_) >> SUCCEEDED
+    task2.execute(*_) >> SUCCEEDED
+
+    when: "the pipeline runs"
+    launchJob()
+
+    then:
+    jobLauncherTestUtils.job instanceof FlowJob
+    def steps = jobLauncherTestUtils.job.stepNames.collect {
+      jobLauncherTestUtils.job.getStep(it)
+    }
+    steps.size() == 2
+    steps.every { it instanceof TaskletStep }
+    steps.every { ((TaskletStep) it).tasklet instanceof TaskTaskletAdapter }
   }
 
   def "a stage with multiple tasks raises a single begin and end stage event"() {
