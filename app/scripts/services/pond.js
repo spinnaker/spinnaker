@@ -14,7 +14,7 @@ angular.module('deckApp')
         },
         isRunning: {
           get: function() {
-            return item.status === 'RUNNING';
+            return item.status === 'STARTED';
           },
         },
         isFailed: {

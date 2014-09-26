@@ -19,7 +19,7 @@ angular.module('deckApp')
             return oldTask.id !== task.id;
           });
           var hasBeenSeenIncomplete = oldTasks.some(function(oldTask) {
-            return oldTask.id === task.id && oldTask.status === 'COMPLETED';
+            return oldTask.id === task.id && oldTask.status === 'STARTED';
           });
           return hasNotBeenSeen || hasBeenSeenIncomplete;
         });
