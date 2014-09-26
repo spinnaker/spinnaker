@@ -110,7 +110,7 @@ angular.module('deckApp')
           }
         },
         resolve: {
-          task: function(application, $stateParams, $state) {
+          task: ['application', '$stateParams', '$state', function(application, $stateParams, $state) {
             var filtered = application.tasks.filter(function(task) {
               return task.id === parseInt($stateParams.taskId);
             });
@@ -118,8 +118,8 @@ angular.module('deckApp')
               $state.go('home.404');
             }
             return filtered[0];
-          },
-        },
+          }]
+        }
       };
 
       var insight = {
