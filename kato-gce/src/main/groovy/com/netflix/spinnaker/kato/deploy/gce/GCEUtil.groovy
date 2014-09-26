@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.kato.deploy.gce
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.AccessConfig
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.Network
-import com.google.api.services.compute.model.NetworkInterface
+import com.google.api.services.replicapool.model.NewDisk
+import com.google.api.services.replicapool.model.NewDiskInitializeParams
 import com.netflix.spinnaker.kato.data.task.Task
 
 class GCEUtil {
@@ -82,10 +82,29 @@ class GCEUtil {
     return new AttachedDisk(boot: true, autoDelete: true, type: "PERSISTENT", initializeParams: attachedDiskInitializeParams)
   }
 
-  static NetworkInterface buildNetworkInterface(Network network, String accessConfigType) {
-    def accessConfig = new AccessConfig(type: accessConfigType)
+  static NewDisk buildNewDisk(Image sourceImage, long diskSizeGb) {
+    def newDiskInitializeParams = new NewDiskInitializeParams(sourceImage: sourceImage.selfLink, diskSizeGb: diskSizeGb)
+
+    return new NewDisk(boot: true, initializeParams: newDiskInitializeParams)
+  }
+
+  // There are 2 distinct types named NetworkInterface since the Replica Pool logic is in limited preview.
+  // TODO(duftler): Reconcile this once com.google.apis:google-api-services-compute includes everything.
+  static com.google.api.services.compute.model.NetworkInterface buildNetworkInterface(Network network,
+                                                                                      String accessConfigType) {
+    def accessConfig = new com.google.api.services.compute.model.AccessConfig(type: accessConfigType)
 
     return new com.google.api.services.compute.model.NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
+  }
+
+  // There are 2 distinct types named NetworkInterface since the Replica Pool logic is in limited preview.
+  // TODO(duftler): Reconcile this once com.google.apis:google-api-services-compute includes everything.
+  static com.google.api.services.replicapool.model.NetworkInterface buildNetworkInterface(String networkName,
+                                                                                          String accessConfigName,
+                                                                                          String accessConfigType) {
+    def accessConfig = new com.google.api.services.replicapool.model.AccessConfig(name: accessConfigName, type: accessConfigType)
+
+    return new com.google.api.services.replicapool.model.NetworkInterface(network: networkName, accessConfigs: [accessConfig])
   }
 
   private static void updateStatusAndThrowException(String errorMsg, Task task, String phase) {
