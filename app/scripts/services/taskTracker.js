@@ -12,24 +12,17 @@ angular.module('deckApp')
 
     return {
       getCompleted: function(oldTasks, newTasks) {
-        return oldTasks.filter(function(task) {
-          // filter out completed tasks
-          return task.status !== 'COMPLETED';
-        }).reduce(function(acc, oldTask) {
-          // find tasks that have since completed
-          var completed = newTasks.filter(function(newTask) {
-            var hasNotBeenSeenAndIsComplete = oldTasks.every(function(oldTask) {
-              return oldTask.id !== newTask.id;
-            }) && newTask.status === 'COMPLETED';
-            var hasBeenSeenAndIsComplete = newTask.id && newTask.status === 'COMPLETED';
-            return hasNotBeenSeenAndIsComplete || hasBeenSeenAndIsComplete;
+        return newTasks.filter(function(task) {
+          return task.status === 'COMPLETED';
+        }).filter(function(task) {
+          var hasNotBeenSeen = oldTasks.every(function(oldTask) {
+            return oldTask.id !== task.id;
           });
-          if (completed.length > 0) {
-            // assume there is only one
-            acc.push(completed[0]);
-          }
-          return acc;
-        },[]);
+          var hasBeenSeenIncomplete = oldTasks.some(function(oldTask) {
+            return oldTask.id === task.id && oldTask.status === 'COMPLETED';
+          });
+          return hasNotBeenSeen || hasBeenSeenIncomplete;
+        });
       },
       handleCompletedTasks: function(tasks) {
         if (tasks.some(function(task) {
