@@ -27,7 +27,11 @@ angular.module('deckApp')
         }
       },
       initSelection: function(elem, callback) {
-        callback($scope.command.amiName);
+        if ($scope.command) {
+          callback($scope.command.amiName);
+        } else {
+          callback('');
+        }
       },
       minimumInputLength: 2
     };
