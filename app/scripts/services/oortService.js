@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler, scheduledCache) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -65,7 +65,7 @@ angular.module('deckApp')
     function listApplications() {
       return applicationListEndpoint
         .all('applications')
-        .withHttpConfig({cache: scheduledCache })
+//        .withHttpConfig({cache: scheduledCache })
         .getList();
     }
 
@@ -126,7 +126,7 @@ angular.module('deckApp')
     function listLoadBalancers() {
       return applicationListEndpoint
         .all('aws/loadBalancers')
-        .withHttpConfig({cache: scheduledCache })
+//        .withHttpConfig({cache: scheduledCache })
         .getList();
     }
 
