@@ -268,7 +268,7 @@ module.exports = function (grunt) {
               '*.html',
               'views/{,*/}*.html',
               'views/**/{,*/}*.html',
-              'images/{,*/}*.{webp}',
+              'images/*',
               'fonts/*',
               '**/settings/settings.js'
             ]
@@ -306,6 +306,14 @@ module.exports = function (grunt) {
           'node_modules/select2-bootstrap-css/select2-bootstrap.css',
           'node_modules/select2/*.{css,png,gif}'
         ]
+      },
+      images: {
+        expand: true,
+        cwd: '<%= yeoman.app %>',
+        dest: '.tmp/',
+        src: [
+          'images/*.{svg,gif}'
+        ]
       }
     },
 
@@ -342,6 +350,7 @@ module.exports = function (grunt) {
       'less',
       'html2js',
       'copy:styles',
+      'copy:images',
       'concurrent:server',
       'connect:livereload',
       'watch'
@@ -370,6 +379,7 @@ module.exports = function (grunt) {
     'less',
     'html2js',
     'copy:styles',
+    'copy:images',
     'concurrent:dist',
     'concat',
     'copy:dist',
