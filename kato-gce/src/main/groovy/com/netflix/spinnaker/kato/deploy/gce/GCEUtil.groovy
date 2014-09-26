@@ -89,7 +89,7 @@ class GCEUtil {
   }
 
   // There are 2 distinct types named NetworkInterface since the Replica Pool logic is in limited preview.
-  // TODO(duftler): Reconcile this once com.google.apis:google-api-services-compute includes everything.
+  // TODO(duftler): Reconcile these methods once com.google.apis:google-api-services-compute includes everything.
   static com.google.api.services.compute.model.NetworkInterface buildNetworkInterface(Network network,
                                                                                       String accessConfigType) {
     def accessConfig = new com.google.api.services.compute.model.AccessConfig(type: accessConfigType)
@@ -98,7 +98,7 @@ class GCEUtil {
   }
 
   // There are 2 distinct types named NetworkInterface since the Replica Pool logic is in limited preview.
-  // TODO(duftler): Reconcile this once com.google.apis:google-api-services-compute includes everything.
+  // TODO(duftler): Reconcile these methods once com.google.apis:google-api-services-compute includes everything.
   static com.google.api.services.replicapool.model.NetworkInterface buildNetworkInterface(String networkName,
                                                                                           String accessConfigName,
                                                                                           String accessConfigType) {

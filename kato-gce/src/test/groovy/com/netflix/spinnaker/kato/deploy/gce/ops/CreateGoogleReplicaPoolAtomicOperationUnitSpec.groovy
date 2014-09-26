@@ -89,13 +89,13 @@ class CreateGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def poolsInsertMock = Mock(Replicapool.Pools.Insert)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleReplicaPoolDescription(application: APPLICATION,
-              stack: STACK,
-              initialNumReplicas: INITIAL_NUM_REPLICAS,
-              image: IMAGE,
-              type: TYPE,
-              zone: ZONE,
-              accountName: ACCOUNT_NAME,
-              credentials: credentials)
+                                                               stack: STACK,
+                                                               initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                               image: IMAGE,
+                                                               type: TYPE,
+                                                               zone: ZONE,
+                                                               accountName: ACCOUNT_NAME,
+                                                               credentials: credentials)
       @Subject def operation = new CreateGoogleReplicaPoolAtomicOperation(description, replicaPoolBuilderMock)
 
     when:
