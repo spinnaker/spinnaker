@@ -341,7 +341,7 @@ angular.module('deckApp')
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       $scope.sentCommand = command;
-      orcaService.cloneServerGroup(command)
+      orcaService.cloneServerGroup(command, application.name)
         .then(function (response) {
           $modalInstance.close();
           console.warn('task:', response.ref);
