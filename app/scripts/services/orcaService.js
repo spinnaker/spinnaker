@@ -134,7 +134,7 @@ angular.module('deckApp')
       });
     }
 
-    function cloneServerGroup(command, applicationName) {
+    function cloneServerGroup(command, applicationName, descriptor) {
       command.asgName = command.source.asgName;
       command.type = 'copyLastAsg';
       command.user = 'deckUser';
@@ -143,7 +143,7 @@ angular.module('deckApp')
           command
         ],
         application: applicationName,
-        description: 'Copy Server Group: ' + command.source.asgName
+        description: descriptor + ' Server Group: ' + command.source.asgName
       });
     }
 

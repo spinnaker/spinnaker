@@ -335,13 +335,30 @@ angular.module('deckApp')
 
     this.clone = function () {
       var command = angular.copy($scope.command);
+      var descriptor = 'Clone';
+      if (!serverGroup) {
+        descriptor = 'Create New';
+        var asgName = application.name;
+        if (command.stack) {
+          asgName += '-' + command.stack;
+        }
+        if (!command.stack && command.freeFormDetails) {
+          asgName += '-';
+        }
+        if (command.freeFormDetails) {
+          asgName += '-' + command.freeFormDetails;
+        }
+        command.source = {
+          asgName: asgName
+        };
+      }
       command.amiName = $scope.state.queryAllImages ?
         command.allImageSelection.id :
         _($scope.packageImages).find({'imageName': command.amiName}).imageId;
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       $scope.sentCommand = command;
-      orcaService.cloneServerGroup(command, application.name)
+      orcaService.cloneServerGroup(command, application.name, descriptor)
         .then(function (response) {
           $modalInstance.close();
           console.warn('task:', response.ref);
