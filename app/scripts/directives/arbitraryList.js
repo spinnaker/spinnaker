@@ -20,7 +20,8 @@ angular.module('deckApp')
         }
 
         var source = scope.source;
-        var formattedEntries = [];
+        var formattedEntries = [],
+            children = null;
         _.keys(source).forEach(function (key) {
           var rawEntry = source[key],
             formattedEntry = rawEntry;
@@ -33,24 +34,22 @@ angular.module('deckApp')
             formattedEntry = rawEntry.join(', ');
           }
 
-          var includeEntry = scope.includeEmptyValues || !!formattedEntry;
+          if (rawEntry && _.isPlainObject(rawEntry)) {
+            children = [];
+            _.forOwn(rawEntry, function(val, key) {
+              children.push({key: key, val: val});
+            });
 
-          // to upper camel case
-          var formattedKey = key.charAt(0).toUpperCase() + key.substr(1);
+          }
 
-          // then clear camel case
-          formattedKey = formattedKey.replace(/[A-Z]/g, ' $&');
-
-          // then clear snake case
-          formattedKey = formattedKey.replace(/_[a-z]/g, function (str) {
-            return ' ' + str.charAt(1).toUpperCase() + str.substr(2);
-          });
+          var formattedKey = $filter('robotToHuman')(key);
 
           formattedKey = formattedKey.replace(scope.omit, '');
-          formattedKey = formattedKey.replace(/([A-Z])\s([A-Z])\s/g, '$1$2');
+
+          var includeEntry = scope.includeEmptyValues || !!formattedEntry;
 
           if (includeEntry) {
-            formattedEntries.push({label: formattedKey, entry: formattedEntry});
+            formattedEntries.push({label: formattedKey, entry: formattedEntry, children: children});
           }
         });
         formattedEntries = _.sortBy(formattedEntries, 'label');

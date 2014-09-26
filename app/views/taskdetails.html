@@ -33,7 +33,7 @@
     <collapsible-section heading="Orchestration Log" expanded="true">
       <h5 ng-repeat-start="step in task.steps">
         <status-glyph item="step"></status-glyph>
-        {{ step.name}}
+        {{ step.name | robotToHuman }}
       </h5>
       <dl class="well" style="padding: 10px;" ng-repeat-end>
         <dt>Started</dt>
