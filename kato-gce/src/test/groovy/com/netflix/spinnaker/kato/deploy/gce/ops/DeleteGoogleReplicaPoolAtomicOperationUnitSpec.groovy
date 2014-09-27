@@ -28,8 +28,7 @@ import spock.lang.Subject
 class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
 
   def setupSpec() {
@@ -44,8 +43,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def poolsMock = Mock(Replicapool.Pools)
       def poolsDeleteMock = Mock(Replicapool.Pools.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new DeleteGoogleReplicaPoolDescription(application: APPLICATION,
-                                                               stack: STACK,
+      def description = new DeleteGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,
                                                                credentials: credentials)

@@ -44,12 +44,8 @@ class DeleteGoogleReplicaPoolDescriptionValidator extends DescriptionValidator<D
       }
     }
 
-    if (!description.application) {
-      errors.rejectValue "application", "deleteGoogleReplicaPoolDescription.application.empty"
-    }
-
-    if (!description.stack) {
-      errors.rejectValue "stack", "deleteGoogleReplicaPoolDescription.stack.empty"
+    if (!description.replicaPoolName) {
+      errors.rejectValue "replicaPoolName", "deleteGoogleReplicaPoolDescription.replicaPoolName.empty"
     }
 
     // TODO(duftler): Also validate against set of supported GCE zones.

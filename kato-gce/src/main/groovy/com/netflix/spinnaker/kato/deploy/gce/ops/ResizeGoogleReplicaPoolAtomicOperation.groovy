@@ -42,11 +42,7 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    // TODO(duftler): Implement proper sequential naming and tests for same. Best done when this class is reconciled
-    // with logic in BasicGoogleDeployHandler.
-    def replicaPoolName = "${description.application}-${description.stack}-v000"
-
-    task.updateStatus BASE_PHASE, "Initializing resize of replica pool $replicaPoolName in ${description.zone}..."
+    task.updateStatus BASE_PHASE, "Initializing resize of replica pool $description.replicaPoolName in $description.zone..."
 
     def project = description.credentials.project
 
@@ -56,9 +52,9 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
     replicapool.pools().resize(project,
                                description.zone,
-                               replicaPoolName).setNumReplicas(description.numReplicas).execute()
+                               description.replicaPoolName).setNumReplicas(description.numReplicas).execute()
 
-    task.updateStatus BASE_PHASE, "Done resizing replica pool $replicaPoolName in ${description.zone}."
+    task.updateStatus BASE_PHASE, "Done resizing replica pool $description.replicaPoolName in $description.zone."
     null
   }
 }

@@ -24,8 +24,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class ResizeGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specification {
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
   private static final DESIRED_NUM_REPLICAS = 5
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
@@ -43,8 +42,7 @@ class ResizeGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specificat
 
   void "resizeGoogleReplicaPoolDescription type returns ResizeGoogleReplicaPoolDescription and ResizeGoogleReplicaPoolAtomicOperation"() {
     setup:
-      def input = [application: APPLICATION,
-                   stack: STACK,
+      def input = [replicaPoolName: REPLICA_POOL_NAME,
                    numReplicas: DESIRED_NUM_REPLICAS,
                    zone: ZONE,
                    accountName: ACCOUNT_NAME]
