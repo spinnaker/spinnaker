@@ -102,7 +102,10 @@ class GoogleResourceRetriever {
             def earliestReplicaTimestamp = Long.MAX_VALUE
             def replicasListResult = replicapool.replicas().list(project, ZONE, pool.name).execute()
             for (def replica : replicasListResult.resources) {
-              long replicaTimestamp = simpleDateFormat.parse(replica.status.vmStartTime).getTime()
+              long replicaTimestamp = replica.status.vmStartTime
+                                      ? simpleDateFormat.parse(replica.status.vmStartTime).getTime()
+                                      : Long.MAX_VALUE
+
               // Use earliest replica launchTime as createdTime of replica pool for now.
               earliestReplicaTimestamp = Math.min(earliestReplicaTimestamp, replicaTimestamp)
 
