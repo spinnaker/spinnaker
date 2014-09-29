@@ -27,10 +27,7 @@ import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.FlowJobBuilder
-import org.springframework.batch.core.job.builder.JobBuilderHelper
 import org.springframework.batch.core.job.builder.JobFlowBuilder
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -98,7 +95,7 @@ class PipelineStarter {
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
                          .flow(configStep(config))
     def flow = (JobFlowBuilder) stages.inject(jobBuilder, this.&stageFromConfig)
-    job flow.build()
+    flow.build().build()
   }
 
   private TaskletStep configStep(configMap) {
@@ -121,20 +118,5 @@ class PipelineStarter {
   // TODO: the type of the 2nd parameter here is annoying. I don't want to expose the build method on the Stage interface for SoC reasons
   private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, SpringBatchStage stage) {
     stage.build(jobBuilder)
-  }
-
-  private Job job(JobBuilderHelper jobBuilder) {
-    // Have to do some horror here as we don't know what type of builder we'll end up with.
-    // Two of them have a build method that returns a Job but it's not on a common superclass.
-    // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
-    switch (jobBuilder) {
-      case SimpleJobBuilder:
-        return (jobBuilder as SimpleJobBuilder).build()
-      case FlowJobBuilder:
-        return (jobBuilder as FlowJobBuilder).build()
-      default:
-        // (╯°□°)╯︵ ┻━┻
-        throw new IllegalStateException("Cannot build a Job using a ${jobBuilder.getClass()} - did you add any steps to it?")
-    }
   }
 }
