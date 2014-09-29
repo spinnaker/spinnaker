@@ -15,16 +15,15 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
-
+import spock.lang.Specification
+import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.google.common.base.Optional
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.kato.api.ops.CopyLastAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import rx.Observable
-import spock.lang.Specification
-import spock.lang.Subject
 
 class CreateCopyLastAsgTaskSpec extends Specification {
     @Subject task = new CreateCopyLastAsgTask()
@@ -64,19 +63,12 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
         then:
         operations.size() == 1
-        with(operations[0].copyLastAsgDescription) {
-            it instanceof CopyLastAsgOperation
-            application == copyLastAsgConfig.application
-            availabilityZones == copyLastAsgConfig.availabilityZones
-            credentials == copyLastAsgConfig.credentials
-
-            !amiName.present
-            !stack.present
-            !instanceType.present
-            !securityGroups.present
-            !subnetType.present
-            !capacity.present
-        }
+        operations[0].copyLastAsgDescription == [
+            amiName: Optional.absent(),
+            application: "hodor",
+            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
+            credentials: "fzlem"
+        ]
     }
 
     def "can include optional parameters"() {
@@ -97,10 +89,14 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
         then:
         operations.size() == 1
-        with(operations[0].copyLastAsgDescription) {
-            instanceType.get() == context."copyLastAsg.instanceType"
-            stack.get() == context."copyLastAsg.stack"
-        }
+        operations[0].copyLastAsgDescription == [
+            amiName: Optional.absent(),
+            application: "hodor",
+            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
+            credentials: "fzlem",
+            instanceType: "t1.megaBig",
+            stack: "hodork"
+        ]
     }
 
     def "amiName prefers value from context over bake input"() {
@@ -122,9 +118,12 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
         then:
         operations.size() == 1
-        with(operations[0].copyLastAsgDescription) {
-            amiName.get() == context."copyLastAsg.amiName"
-        }
+        operations[0].copyLastAsgDescription == [
+            amiName: "ami-696969",
+            application: "hodor",
+            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
+            credentials: "fzlem"
+        ]
     }
 
     def "amiName uses value from bake"() {
@@ -145,8 +144,11 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
         then:
         operations.size() == 1
-        with(operations[0].copyLastAsgDescription) {
-            amiName.get() == context."bake.ami"
-        }
+        operations[0].copyLastAsgDescription == [
+            amiName: Optional.of("ami-soixante-neuf"),
+            application: "hodor",
+            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
+            credentials: "fzlem"
+        ]
     }
 }
