@@ -21,7 +21,7 @@ import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 /**
- * An object that constructs steps for a Spring Batch +Job+ relating to a specific Orca _stage_.
+ * An Orca _stage_ that constructs an underlying representation in Spring Batch.
  */
 interface SpringBatchStage extends Stage {
 
