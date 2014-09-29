@@ -269,7 +269,7 @@ module.exports = function (grunt) {
               'views/{,*/}*.html',
               'views/**/{,*/}*.html',
               'images/*',
-              'fonts/*',
+              'fonts/**/*.*',
               '**/settings/settings.js'
             ]
           },
