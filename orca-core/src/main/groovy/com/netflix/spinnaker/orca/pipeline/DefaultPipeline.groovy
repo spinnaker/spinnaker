@@ -17,15 +17,18 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import com.google.common.collect.ImmutableList
 import org.springframework.batch.core.JobExecution
 
 @CompileStatic
 class DefaultPipeline implements Pipeline {
 
   private final JobExecution jobExecution
+  private final ImmutableList<Stage> stages
 
-  DefaultPipeline(JobExecution jobExecution) {
+  DefaultPipeline(JobExecution jobExecution, List<Stage> stages) {
     this.jobExecution = jobExecution
+    this.stages = ImmutableList.copyOf(stages)
   }
 
   @Override
@@ -36,5 +39,9 @@ class DefaultPipeline implements Pipeline {
   @Override
   List getTasks() {
     []
+  }
+
+  ImmutableList<Stage> getStages() {
+    return stages
   }
 }

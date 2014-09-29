@@ -73,10 +73,10 @@ class PipelineStatusSpec extends Specification {
     configJson = mapper.writeValueAsString(config)
   }
 
-  def "can get a list of tasks from the pipeline"() {
+  def "can get a list of stages from the pipeline"() {
     expect:
     with(pipelineStarter.start(configJson)) {
-      tasks.size() == 1
+      stages.size() == 1
     }
 
     where:

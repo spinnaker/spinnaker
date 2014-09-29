@@ -57,9 +57,11 @@ class PipelineStarter {
    * @return the pipeline that was created.
    */
   Pipeline start(String configJson) {
-    def job = pipelineFrom(parseConfig(configJson))
+    def config = parseConfig(configJson)
+    def stages = constructStagesFrom(config)
+    def job = createJobFrom(stages, config)
     def jobExecution = launcher.run(job, new JobParameters())
-    new DefaultPipeline(jobExecution)
+    new DefaultPipeline(jobExecution, stages)
   }
 
   @PostConstruct
@@ -79,11 +81,21 @@ class PipelineStarter {
     mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
   }
 
-  private Job pipelineFrom(List<Map<String, ?>> config) {
+  private List<Stage> constructStagesFrom(List<Map<String, ?>> config) {
+    config.collect {
+      if (stages.containsKey(it.type)) {
+        stages.get(it.type)
+      } else {
+        throw new NoSuchStageException(it.type as String)
+      }
+    }
+  }
+
+  private Job createJobFrom(List<Stage> stages, List<Map<String, ?>> config) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
                          .flow(configStep(config))
-    def flow = (JobFlowBuilder) config.inject(jobBuilder, this.&stageFromConfig)
+    def flow = (JobFlowBuilder) stages.inject(jobBuilder, this.&stageFromConfig)
     job flow.build()
   }
 
@@ -104,12 +116,8 @@ class PipelineStarter {
     } as Tasklet
   }
 
-  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, Map stepConfig) {
-    if (stages.containsKey(stepConfig.type)) {
-      stages.get(stepConfig.type).build(jobBuilder)
-    } else {
-      throw new NoSuchStageException(stepConfig.type as String)
-    }
+  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, Stage stage) {
+    stage.build(jobBuilder)
   }
 
   private Job job(JobBuilderHelper jobBuilder) {
