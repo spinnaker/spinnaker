@@ -16,23 +16,19 @@
 
 package com.netflix.spinnaker.kork.jedis;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import redis.clients.jedis.*;
-import redis.clients.jedis.exceptions.JedisDataException;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
-import java.net.URISyntaxException;
+
 
 /**
  * Configuration for embedded redis instance and associated jedis

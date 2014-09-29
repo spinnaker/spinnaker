@@ -1,8 +1,8 @@
 dependencies {
   compile 'org.slf4j:slf4j-api:1.7.7'
-  compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.6.RELEASE'
-  compile 'redis.clients:jedis:2.2.1'
-  testCompile 'org.codehaus.groovy:groovy-all:2.3.6'
+  compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.7.RELEASE'
+  compile 'redis.clients:jedis:2.5.2'
+  testCompile 'org.codehaus.groovy:groovy-all:2.3.7'
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
   testRuntime 'org.objenesis:objenesis:2.1'
   testRuntime 'cglib:cglib-nodep:3.1'
