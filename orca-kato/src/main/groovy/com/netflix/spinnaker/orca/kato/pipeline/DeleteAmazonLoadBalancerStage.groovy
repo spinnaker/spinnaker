@@ -38,12 +38,12 @@ class DeleteAmazonLoadBalancerStage extends LinearStage {
       .tasklet(buildTask(DeleteAmazonLoadBalancerTask))
       .build()
 
-    def step2 = steps.get("MonitorDeleteStep")
-      .tasklet(buildTask(MonitorKatoTask))
+    def step2 = steps.get("ForceCacheRefreshStep")
+      .tasklet(buildTask(AmazonLoadBalancerForceRefreshTask))
       .build()
 
-    def step3 = steps.get("ForceCacheRefreshStep")
-      .tasklet(buildTask(AmazonLoadBalancerForceRefreshTask))
+    def step3 = steps.get("MonitorDeleteStep")
+      .tasklet(buildTask(MonitorKatoTask))
       .build()
 
     [step1, step2, step3]
