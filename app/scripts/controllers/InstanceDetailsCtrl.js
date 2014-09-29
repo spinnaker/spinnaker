@@ -6,12 +6,25 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('InstanceDetailsCtrl', function ($scope, $rootScope, instance, application, orcaService, confirmationModalService) {
 
+    function extractHealthMetrics(instance) {
+      if (!instance.health) {
+        $scope.healthMetrics = [];
+        return;
+      }
+      var displayableMetrics = instance.health.filter(
+        function(metric) {
+          return metric.type !== 'Amazon' || metric.state !== 'Unknown';
+        });
+      $scope.healthMetrics = displayableMetrics;
+    }
+
     function extractInstance(clusters) {
       clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.instanceId === instance.instanceId) {
               $scope.instance = possibleInstance;
+              extractHealthMetrics(possibleInstance);
               return true;
             }
           });
