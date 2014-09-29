@@ -55,7 +55,9 @@ class PipelineStatusSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTask)
+      ["foo", "bar", "baz"].each { name ->
+        registerSingleton "${name}Stage", new TestStage(name, steps, new DefaultPipelineMonitor(), fooTask)
+      }
 
       autowireBean pipelineStarter
     }
@@ -76,13 +78,15 @@ class PipelineStatusSpec extends Specification {
   def "can get a list of stages from the pipeline"() {
     expect:
     with(pipelineStarter.start(configJson)) {
-      stages.size() == 1
-      stages.name == [stageName]
+      stages.size() == 3
+      stages.name == stageNames
     }
 
     where:
-    stageName = "foo"
-    config = [[type: stageName]]
+    stageNames = ["foo", "bar", "baz"]
+    config = stageNames.collect {
+      [type: it]
+    }
     configJson = mapper.writeValueAsString(config)
   }
 
