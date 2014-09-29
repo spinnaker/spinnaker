@@ -6,7 +6,7 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('ClustersNavCtrl', function ($scope, application, _, $stateParams) {
 
-    var defPrimary = 'cluster';
+    var defPrimary = 'account';
     $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
 
     $scope.application = application;

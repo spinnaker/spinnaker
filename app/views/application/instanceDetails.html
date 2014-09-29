@@ -7,7 +7,7 @@
       </a>
     </div>
     <div class="header-text">
-      <span class="glyphicon glyphicon-hdd health-status-{{instance.isHealthy ? 'Healthy' : 'Unhealthy'}}"></span>
+      <span class="glyphicon glyphicon-hdd {{instance.isHealthy ? 'healthy' : 'unhealthy'}}"></span>
       <h3>
         {{instance.instanceId}}
       </h3>

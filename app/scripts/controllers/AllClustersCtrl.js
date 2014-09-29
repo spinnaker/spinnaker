@@ -7,7 +7,7 @@ angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
                                           securityGroupService, accountService, oortService,
                                           _, $stateParams, $location) {
-    var defPrimary = 'cluster', defSecondary = 'region';
+    var defPrimary = 'account', defSecondary = 'region';
     $scope.sortFilter.allowSorting = true;
     $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
     $scope.sortFilter.sortSecondary = $stateParams.secondary || defSecondary;
