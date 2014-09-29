@@ -20,6 +20,8 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.batch.SpringBatchPipeline
+import com.netflix.spinnaker.orca.batch.SpringBatchStage
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepContribution
@@ -48,7 +50,7 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
-  private final Map<String, Stage> stages = [:]
+  private final Map<String, SpringBatchStage> stages = [:]
 
   /**
    * Builds and launches a _pipeline_ based on config from _Mayo_.
@@ -61,12 +63,12 @@ class PipelineStarter {
     def stages = constructStagesFrom(config)
     def job = createJobFrom(stages, config)
     def jobExecution = launcher.run(job, new JobParameters())
-    new DefaultPipeline(jobExecution, stages)
+    new SpringBatchPipeline(jobExecution, stages)
   }
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(Stage).values().each {
+    applicationContext.getBeansOfType(SpringBatchStage).values().each {
       stages[it.name] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
@@ -81,7 +83,7 @@ class PipelineStarter {
     mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
   }
 
-  private List<Stage> constructStagesFrom(List<Map<String, ?>> config) {
+  private List<SpringBatchStage> constructStagesFrom(List<Map<String, ?>> config) {
     config.collect {
       if (stages.containsKey(it.type)) {
         stages.get(it.type)
@@ -91,7 +93,7 @@ class PipelineStarter {
     }
   }
 
-  private Job createJobFrom(List<Stage> stages, List<Map<String, ?>> config) {
+  private Job createJobFrom(List<SpringBatchStage> stages, List<Map<String, ?>> config) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
                          .flow(configStep(config))
@@ -116,7 +118,7 @@ class PipelineStarter {
     } as Tasklet
   }
 
-  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, Stage stage) {
+  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, SpringBatchStage stage) {
     stage.build(jobBuilder)
   }
 

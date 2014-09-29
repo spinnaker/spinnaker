@@ -77,10 +77,12 @@ class PipelineStatusSpec extends Specification {
     expect:
     with(pipelineStarter.start(configJson)) {
       stages.size() == 1
+      stages.name == [stageName]
     }
 
     where:
-    config = [[type: "foo"]]
+    stageName = "foo"
+    config = [[type: stageName]]
     configJson = mapper.writeValueAsString(config)
   }
 

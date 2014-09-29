@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import com.google.common.collect.ImmutableList
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.JobExecution
 
 @CompileStatic
-class DefaultPipeline implements Pipeline {
+class SpringBatchPipeline implements Pipeline {
 
+  final ImmutableList<SpringBatchStage> stages
   private final JobExecution jobExecution
-  private final ImmutableList<Stage> stages
 
-  DefaultPipeline(JobExecution jobExecution, List<Stage> stages) {
+  SpringBatchPipeline(JobExecution jobExecution, List<SpringBatchStage> stages) {
     this.jobExecution = jobExecution
     this.stages = ImmutableList.copyOf(stages)
   }
@@ -34,14 +35,5 @@ class DefaultPipeline implements Pipeline {
   @Override
   String getId() {
     jobExecution.id
-  }
-
-  @Override
-  List getTasks() {
-    []
-  }
-
-  ImmutableList<Stage> getStages() {
-    return stages
   }
 }
