@@ -68,7 +68,6 @@ class TestStage extends LinearStage {
     def listener = new StepExecutionListener() {
       @Override
       void beforeStep(StepExecution stepExecution) {
-        println stepExecution.stepName
         if (first) {
           pipelineMonitor.beginStage(name)
         }

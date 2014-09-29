@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+/**
+ * A _stage_ of an Orca _pipeline_.
+ */
 interface Stage {
 
   /**

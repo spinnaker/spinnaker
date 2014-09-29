@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.Task
 
 /**
  * Represents a `Task` that can be run on its own as a pipeline stage. Such tasks do _not_ need to have a
- * {@link com.netflix.spinnaker.orca.batch.SpringBatchStage} registered in the application context, they just need to be registered in the application
+ * `Stage` registered in the application context, they just need to be registered in the application
  * context themselves.
  *
  * Retryable standalone tasks should implement this interface _and_ {@link com.netflix.spinnaker.orca.RetryableTask}.

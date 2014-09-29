@@ -18,14 +18,14 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.StageSupport
+import com.netflix.spinnaker.orca.batch.SpringBatchStage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @CompileStatic
-class FailureRecoveryStage extends StageSupport {
+class FailureRecoveryStage extends SpringBatchStage {
 
   Task startTask, recoveryTask, endTask
 

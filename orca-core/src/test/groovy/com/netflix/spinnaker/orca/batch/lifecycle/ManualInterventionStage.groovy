@@ -18,14 +18,14 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.SpringBatchStage
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.StageSupport
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 @CompileStatic
-class ManualInterventionStage extends StageSupport {
+class ManualInterventionStage extends SpringBatchStage {
 
   Task preInterventionTask, postInterventionTask, finalTask
 

@@ -16,16 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.batch.SpringBatchStage
-
-// should contain a List<Stage> (let's not worry about tasks just yet)
-// Stage interface <- abstract BatchStage <- impl classes
-// BatchStage does the translation from our DSL to batch types (and back for monitoring?)
-// stages can be persisted so we can easily retrieve a plan of the pipeline and current progress
 interface Pipeline {
 
   String getId()
 
-  List<SpringBatchStage> getStages()
+  List<Stage> getStages()
 
 }

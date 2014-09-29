@@ -55,8 +55,9 @@ class PipelineStatusSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
+      def monitor = new DefaultPipelineMonitor()
       ["foo", "bar", "baz"].each { name ->
-        registerSingleton "${name}Stage", new TestStage(name, steps, new DefaultPipelineMonitor(), fooTask)
+        registerSingleton "${name}Stage", new TestStage(name, steps, monitor, fooTask)
       }
 
       autowireBean pipelineStarter

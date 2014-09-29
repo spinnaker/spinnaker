@@ -50,7 +50,7 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
-  private final Map<String, SpringBatchStage> stages = [:]
+  private final Map<String, Stage> stages = [:]
 
   /**
    * Builds and launches a _pipeline_ based on config from _Mayo_.
@@ -68,7 +68,7 @@ class PipelineStarter {
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(SpringBatchStage).values().each {
+    applicationContext.getBeansOfType(Stage).values().each {
       stages[it.name] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
@@ -83,7 +83,7 @@ class PipelineStarter {
     mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
   }
 
-  private List<SpringBatchStage> constructStagesFrom(List<Map<String, ?>> config) {
+  private List<Stage> constructStagesFrom(List<Map<String, ?>> config) {
     config.collect {
       if (stages.containsKey(it.type)) {
         stages.get(it.type)
@@ -93,7 +93,7 @@ class PipelineStarter {
     }
   }
 
-  private Job createJobFrom(List<SpringBatchStage> stages, List<Map<String, ?>> config) {
+  private Job createJobFrom(List<Stage> stages, List<Map<String, ?>> config) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
                          .flow(configStep(config))
@@ -118,6 +118,7 @@ class PipelineStarter {
     } as Tasklet
   }
 
+  // TODO: the type of the 2nd parameter here is annoying. I don't want to expose the build method on the Stage interface for SoC reasons
   private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, SpringBatchStage stage) {
     stage.build(jobBuilder)
   }

@@ -16,14 +16,30 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.step.tasklet.Tasklet
+import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 /**
- * An Orca _stage_ that constructs an underlying representation in Spring Batch.
+ * Base class for a component that constructs a _stage_ to be run as (part of) a _pipeline_.
  */
-interface SpringBatchStage extends Stage {
+@CompileStatic
+abstract class SpringBatchStage implements AutowiredComponentBuilder, Stage {
+
+  final String name
+
+  protected StepBuilderFactory steps
+
+  SpringBatchStage(String name) {
+    this.name = name
+  }
 
   // TODO: may not need this method if we always have a config handling step first
   /**
@@ -33,7 +49,7 @@ interface SpringBatchStage extends Stage {
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  JobFlowBuilder build(JobBuilder jobBuilder)
+  abstract JobFlowBuilder build(JobBuilder jobBuilder)
 
   /**
    * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
@@ -42,6 +58,23 @@ interface SpringBatchStage extends Stage {
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @return the resulting builder after any steps are appended.
    */
-  JobFlowBuilder build(JobFlowBuilder jobBuilder)
+  abstract JobFlowBuilder build(JobFlowBuilder jobBuilder)
 
+  /**
+   * Builds and autowires a task.
+   *
+   * @param taskType The +Task+ implementation class.
+   * @return a +Tasklet+ that wraps the task implementation. This can be appended to the job as a tasklet step.
+   * @see org.springframework.batch.core.step.builder.StepBuilder#tasklet(org.springframework.batch.core.step.tasklet.Tasklet)
+   */
+  protected Tasklet buildTask(Class<? extends Task> taskType) {
+    def task = taskType.newInstance()
+    autowire task
+    decorate task
+  }
+
+  @Autowired
+  void setSteps(StepBuilderFactory steps) {
+    this.steps = steps
+  }
 }
