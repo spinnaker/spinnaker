@@ -19,7 +19,7 @@
 <div class="sub-nav" ng-repeat="heading in ctrl.getHeadings() | orderBy:'toString()'">
   <div class="sub-nav-item">
     <h4>{{heading}}</h4>
-    <a ng-repeat="loadBalancer in ctrl.getLoadBalancersFor(heading)"
+    <a ng-repeat="loadBalancer in ctrl.getLoadBalancersFor(heading) | orderBy:'name'"
        ui-sref=".loadBalancer({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account})"
        ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account} )}">
       {{ctrl.getLoadBalancerLabel(loadBalancer)}} <health-counts container="loadBalancer.healthCounts"></health-counts>
