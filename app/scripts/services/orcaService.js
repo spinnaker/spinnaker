@@ -30,8 +30,10 @@ angular.module('deckApp')
             asgName: serverGroup.name,
             type: 'destroyAsg',
             regions: [serverGroup.region],
+            zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: 'deckUser'
+            user: 'deckUser',
+            providerType: serverGroup.type
           }
         ],
         application: applicationName,
@@ -78,9 +80,11 @@ angular.module('deckApp')
             asgName: serverGroup.name,
             type: 'resizeAsg',
             regions: [serverGroup.region],
+            zones: serverGroup.zones,
             credentials: serverGroup.account,
             user: 'deckUser',
-            capacity: capacity
+            capacity: capacity,
+            providerType: serverGroup.type
           }
         ],
         application: applicationName,
@@ -125,8 +129,10 @@ angular.module('deckApp')
             type: 'terminateInstances',
             instanceIds: [instance.instanceId],
             region: instance.region,
+            zone: instance.placement.availabilityZone,
             credentials: instance.account,
-            user: 'deckUser'
+            user: 'deckUser',
+            providerType: instance.providerType
           }
         ],
         application: applicationName,
