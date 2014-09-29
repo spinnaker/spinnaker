@@ -5,7 +5,7 @@
       ng-click="popover.show = !popover.show"
       tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{loadBalancers.length}} load balancers">
     <span class="icon">
-      <span class="glyphicon glyphicon-elb"></span>
+      <span class="icon-elb"></span>
     </span>
     <span class="badge counter">{{loadBalancers.length}}</span>
   </button>
@@ -25,8 +25,8 @@
        ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"
        ui-sref-active="active"
-       tooltip="ELB: {{loadBalancer.name}}"
-      ><span class="glyphicon glyphicon-elb"></span>
+       tooltip="ELB: {{loadBalancer.name}}">
+      <span class="icon-elb"></span>
     </button>
   </div>
 </div>

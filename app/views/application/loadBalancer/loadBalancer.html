@@ -3,7 +3,7 @@
   <div class="rollup-summary">
     <a class="title-link"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})">
-      <span class="glyphicon glyphicon-elb"></span> {{loadBalancer.name}}
+      <span class="icon icon-elb"></span> {{loadBalancer.name}}
       <account-tag account="loadBalancer.account" pad="left"></account-tag>
       <span ng-if="!displayOptions.showServerGroups">
         <health-counts container="loadBalancer.health"></health-counts>

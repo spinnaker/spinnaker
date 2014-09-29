@@ -126,9 +126,9 @@
 .rollup-title-cell-load-balancers {
   .text-right;
 
-  .glyphicon {
-    line-height: 0;
-    font-size: 125%;
+  .icon-elb {
+    position: relative;
+    font-size: 120%;
   }
 
   button {
@@ -137,7 +137,9 @@
     margin-right: 5px;
     line-height: 0;
     &.active, &:focus {
+      color: #2a6496;
       outline: 0;
+      box-shadow: none;
     }
     &:focus {
       color: #428bca;
@@ -210,11 +212,15 @@
   }
   .icon {
     width: 30px;
+    right: -12px;
   }
-  .glyphicon {
-    top: 10px;
-    width: 5px;
-    color: transparent;
+  .icon-elb {
+    height: 0;
+    top: 6px;
+    width: 0;
+    &::before {
+      text-shadow: #fff 0 0 1px, #fff 0 0 2px, #fff 0 0 3px;
+    }
   }
   .counter {
     color: #2A6496;

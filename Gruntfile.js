@@ -295,6 +295,14 @@ module.exports = function (grunt) {
           }
         ]
       },
+      fonts: {
+        expand: true,
+        cwd: '<%= yeoman.app %>',
+        dest: '.tmp/',
+        src: [
+          'fonts/**/*.*'
+        ]
+      },
       styles: {
         expand: true,
         dest: '.tmp/',
@@ -349,6 +357,7 @@ module.exports = function (grunt) {
       'browserify:dist',
       'less',
       'html2js',
+      'copy:fonts',
       'copy:styles',
       'copy:images',
       'concurrent:server',
@@ -378,6 +387,7 @@ module.exports = function (grunt) {
     'useminPrepare',
     'less',
     'html2js',
+    'copy:fonts',
     'copy:styles',
     'copy:images',
     'concurrent:dist',
