@@ -40,7 +40,7 @@ angular.module('deckApp')
     };
 
     this.upsert = function () {
-      orcaService.upsertSecurityGroup($scope.securityGroup, applicationName)
+      orcaService.upsertSecurityGroup($scope.securityGroup, applicationName, 'Update')
         .then(function () {
           $modalInstance.close();
         });

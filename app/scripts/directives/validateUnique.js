@@ -15,18 +15,14 @@ angular.module('deckApp')
           }
         });
         var uniqueValidator = function (value) {
-          var options = scope.$eval(attr.validateUnique) || [];
+          var options = scope.$eval(attr.validateUnique) || [],
+              test = value;
           if (attr.validateIgnoreCase === 'true') {
             options = options.map(function(option) { return option ? option.toLowerCase() : null; });
-            value = value ? value.toLowerCase() : value;
+            test = value ? value.toLowerCase() : value;
           }
-          if (options.indexOf(value) !== -1) {
-            ctrl.$setValidity('validateUnique', false);
-            return undefined;
-          } else {
-            ctrl.$setValidity('validateUnique', true);
-            return value;
-          }
+          ctrl.$setValidity('validateUnique', options.indexOf(test) === -1);
+          return value;
         };
 
         ctrl.$parsers.push(uniqueValidator);

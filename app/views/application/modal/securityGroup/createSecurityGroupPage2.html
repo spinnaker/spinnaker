@@ -63,7 +63,7 @@
       <button type="submit" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
       <button type="submit" class="btn btn-primary" ng-click="ctrl.upsert()"
               ng-disabled="form.$invalid">
-        Submit
+        <span class="glyphicon glyphicon-ok-circle"></span> {{isNew ? 'Create' : 'Update'}}
       </button>
     </div>
   </form>

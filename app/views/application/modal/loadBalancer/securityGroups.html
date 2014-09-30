@@ -28,7 +28,7 @@
     <button class="btn btn-primary"
             ng-disabled="!form.$valid || !wizard.isComplete()"
             ng-click="ctrl.submit()">
-      <span class="glyphicon glyphicon-ok-circle"></span> Submit
+      <span class="glyphicon glyphicon-ok-circle"></span> {{isNew ? 'Create' : 'Update'}}
     </button>
     <button class="btn btn-primary"
           ng-disabled="!form.$valid"

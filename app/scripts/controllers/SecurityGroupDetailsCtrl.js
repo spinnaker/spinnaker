@@ -19,7 +19,7 @@ angular.module('deckApp')
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {
-            return angular.copy($scope.securityGroup);
+            return angular.copy($scope.securityGroup.plain());
           },
           applicationName: function() { return application.name; }
         }

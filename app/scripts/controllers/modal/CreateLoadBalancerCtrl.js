@@ -4,9 +4,11 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService) {
+  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService, isNew) {
 
     var ctrl = this;
+
+    $scope.isNew = isNew;
 
     $scope.state = {
       securityGroupsLoaded: false,
@@ -154,9 +156,9 @@ angular.module('deckApp')
 
     this.updateName = function() {
       var elb = $scope.loadBalancer,
-          name = application.name + '-' + (elb.stack || '') + '-frontend';
+          name = application.name + '-' + (elb.stack || '');
       elb.clusterName = name;
-      $scope.namePreview = name;
+      $scope.namePreview = name + '-frontend';
     };
 
     this.accountUpdated = function() {
@@ -195,7 +197,8 @@ angular.module('deckApp')
     };
 
     this.submit = function () {
-      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name).then(function(response) {
+      var descriptor = isNew ? 'Create' : 'Update';
+      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor).then(function(response) {
         $modalInstance.close();
         console.warn('task:', response.ref);
       });

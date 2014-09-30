@@ -10,14 +10,7 @@ angular.module('deckApp')
 
     var allSecurityGroups = {};
 
-    var noVpcOption = {
-      id: null,
-      label: 'None (Classic)'
-    };
-
     $scope.securityGroup = securityGroup;
-    $scope.vpcs = [noVpcOption];
-
 
     securityGroupService.getAllSecurityGroups().then(function(securityGroups) {
       allSecurityGroups = securityGroups;
@@ -37,6 +30,8 @@ angular.module('deckApp')
       accountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
         $scope.regions = regions;
         clearSecurityGroups();
+        ctrl.regionUpdated();
+        ctrl.updateName();
       });
     };
 
@@ -53,8 +48,7 @@ angular.module('deckApp')
                 };
               })
               .value();
-
-        $scope.vpcs = [noVpcOption].concat(availableVpcs);
+        $scope.vpcs = availableVpcs;
         $scope.securityGroup.vpcId = null;
         ctrl.vpcUpdated();
       });
@@ -79,6 +73,16 @@ angular.module('deckApp')
       return $scope.securityGroup.vpc ? vpcPattern : classicPattern;
     };
 
+    this.updateName = function() {
+      var securityGroup = $scope.securityGroup,
+        name = applicationName;
+      if (securityGroup.detail) {
+        name += '-' + securityGroup.detail;
+      }
+      securityGroup.name = name;
+      $scope.namePreview = name;
+    };
+
     this.namePattern = (function() {
       return {
         test: function(name) {
@@ -96,7 +100,7 @@ angular.module('deckApp')
     };
 
     this.upsert = function () {
-      orcaService.upsertSecurityGroup($scope.securityGroup, applicationName)
+      orcaService.upsertSecurityGroup($scope.securityGroup, applicationName, 'Create')
         .then(function (response) {
           $modalInstance.close();
           console.warn('task:', response.ref);

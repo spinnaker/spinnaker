@@ -6,15 +6,13 @@
     <div class="form-group">
       <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
         <strong>Your load balancer will be named:</strong>
-        <span ng-bind="namePreview"></span>
+        <span>{{namePreview}}</span>
         <input type="hidden"
                class="form-control input-sm"
-               ng-model="loadBalancer.clusterName"
-               ng-pattern="/^[a-zA-Z0-9\-]{1,32}$/"
+               ng-model="namePreview"
                validate-unique="usedLoadBalancerNames"
                validate-ignore-case="true"
-               name="loadBalancerName"
-               required/>
+               name="loadBalancerName"/>
         <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}}:{{loadBalancer.region}} with that name."></validation-error>
       </div>
     </div>
@@ -39,7 +37,9 @@
     </button>
     <button class="btn btn-primary"
             ng-disabled="!form.$valid || !state.accountsLoaded"
-            ng-click="ctrl.submit()"><span class="glyphicon glyphicon-ok-circle"></span> Submit</button>
+            ng-click="ctrl.submit()">
+      <span class="glyphicon glyphicon-ok-circle"></span> {{isNew ? 'Create' : 'Update'}}
+    </button>
     <button class="btn btn-primary"
             ng-disabled="!form.$valid || loadBalancer.regionZones.length === 0"
             ng-click="wizard.markComplete('Location'); wizard.nextPage()">

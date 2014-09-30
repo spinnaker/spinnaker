@@ -27,7 +27,8 @@ angular.module('deckApp')
         controller: 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
-          loadBalancer: function() { return angular.copy($scope.loadBalancer); }
+          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
+          isNew: function() { return false; }
         }
       });
     };

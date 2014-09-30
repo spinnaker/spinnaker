@@ -92,7 +92,7 @@ angular.module('deckApp')
       });
     }
 
-    function upsertSecurityGroup(securityGroup, applicationName) {
+    function upsertSecurityGroup(securityGroup, applicationName, descriptor) {
       securityGroup.type = 'upsertSecurityGroup';
       securityGroup.user = 'deckUser';
       return executeTask({
@@ -100,13 +100,12 @@ angular.module('deckApp')
           securityGroup
         ],
         application: applicationName,
-        description: 'Upserting Security Group: ' + securityGroup.name
+        description: descriptor + ' Security Group: ' + securityGroup.name
       });
     }
 
-    function upsertLoadBalancer(loadBalancer, applicationName) {
-      var descriptionVerb = loadBalancer.clusterName ? 'Creating' : 'Updating',
-          name = loadBalancer.clusterName || loadBalancer.name;
+    function upsertLoadBalancer(loadBalancer, applicationName, descriptor) {
+      var name = loadBalancer.clusterName || loadBalancer.name;
       loadBalancer.type = 'upsertAmazonLoadBalancer';
       loadBalancer.user = 'deckUser';
       loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
@@ -120,7 +119,7 @@ angular.module('deckApp')
           loadBalancer
         ],
         application: applicationName,
-        description: descriptionVerb + ' Load Balancer: ' + name
+        description: descriptor + ' Load Balancer: ' + name
       });
     }
 
