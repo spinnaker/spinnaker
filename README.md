@@ -83,7 +83,10 @@ For this event:
     {
         "details": {
             "source" : "myapp",
-            "type" : "build"
+            "type" : "build",
+            "organization" : "delivery",
+            "project" : "spinnaker",
+            "application" : "echo"
         },
         "content": {
             "build-date": "2014-08-26",
