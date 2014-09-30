@@ -1,27 +1,35 @@
 <form class="container-fluid form-horizontal" name="form" novalidate>
-  <div class="modal-body">
+  <div ng-if="!state.accountsLoaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <div class="modal-body" ng-if="state.accountsLoaded">
     <div class="form-group">
-      <div class="col-md-3 sm-label-left">Name</div>
-      <div class="col-md-7">
-        <div class="input-group" ng-if="!state.loadBalancerNamesLoaded">
-          <h5><span us-spinner="{radius:12, width:3, length: 6}"></span></h5>
-        </div>
-        <div class="input-group" ng-if="state.loadBalancerNamesLoaded">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="loadBalancer.clusterName"
-                 ng-pattern="/^[a-zA-Z0-9\-]{1,32}$/"
-                 validate-unique="usedLoadBalancerNames"
-                 validate-ignore-case="true"
-                 name="loadBalancerName"
-                 required/>
-          <span class="input-group-addon">-frontend</span>
-        </div>
-        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="That name is already in use"></validation-error>
+      <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
+        <strong>Your load balancer will be named:</strong>
+        <span ng-bind="namePreview"></span>
+        <input type="hidden"
+               class="form-control input-sm"
+               ng-model="loadBalancer.clusterName"
+               ng-pattern="/^[a-zA-Z0-9\-]{1,32}$/"
+               validate-unique="usedLoadBalancerNames"
+               validate-ignore-case="true"
+               name="loadBalancerName"
+               required/>
+        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}}:{{loadBalancer.region}} with that name."></validation-error>
       </div>
     </div>
-    <account-select-field component="loadBalancer" field="credentials" accounts="accounts" loading="!state.accountsLoaded" on-change="ctrl.accountUpdated()"></account-select-field>
+    <account-select-field component="loadBalancer" field="credentials" accounts="accounts" on-change="ctrl.accountUpdated()"></account-select-field>
     <region-select-field component="loadBalancer" field="region" account="loadBalancer.credentials" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Stack</div>
+      <div class="col-md-3">
+        <input type="text"
+               class="form-control input-sm"
+               ng-model="loadBalancer.stack"
+               ng-change="ctrl.updateName()"
+               ng-pattern="/^[a-zA-Z0-9\-]*$/"/>
+      </div>
+    </div>
     <availability-zone-select-field component="loadBalancer" field="regionZones" region="loadBalancer.region" availability-zones="availabilityZones"></availability-zone-select-field>
     <subnet-select-field component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
   </div>

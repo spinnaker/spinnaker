@@ -105,20 +105,22 @@ angular.module('deckApp')
     }
 
     function upsertLoadBalancer(loadBalancer, applicationName) {
+      var descriptionVerb = loadBalancer.clusterName ? 'Creating' : 'Updating',
+          name = loadBalancer.clusterName || loadBalancer.name;
       loadBalancer.type = 'upsertAmazonLoadBalancer';
       loadBalancer.user = 'deckUser';
       loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
       loadBalancer.availabilityZones = {};
       loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones;
-      if (loadBalancer.securityGroups) {
-
+      if (!loadBalancer.vpcId) {
+        loadBalancer.securityGroups = null;
       }
       return executeTask({
         job: [
           loadBalancer
         ],
         application: applicationName,
-        description: 'Upserting Load Balancer: ' + loadBalancer.clusterName
+        description: descriptionVerb + ' Load Balancer: ' + name
       });
     }
 

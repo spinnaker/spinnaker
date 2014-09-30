@@ -61,13 +61,7 @@ angular.module('deckApp')
           if (!allLoadBalancerNames[result.account][result.region]) {
             allLoadBalancerNames[result.account][result.region] = [];
           }
-          var suffixIndex = result.loadBalancer.lastIndexOf('-frontend');
-          var name = result.loadBalancer.toLowerCase();
-          if (suffixIndex !== -1 && suffixIndex === name.length - 9) {
-            allLoadBalancerNames[result.account][result.region].push(name.substring(0, suffixIndex));
-          } else {
-            allLoadBalancerNames[result.account][result.region].push(name);
-          }
+          allLoadBalancerNames[result.account][result.region].push(result.loadBalancer.toLowerCase());
           $scope.state.loadBalancerNamesLoaded = true;
         });
       });
@@ -129,26 +123,7 @@ angular.module('deckApp')
       }
     }
 
-    function clearSecurityGroups() {
-      $scope.availableSecurityGroups = [];
-      $scope.existingSecurityGroupNames = [];
-    }
-
-    initializeController();
-
-    // Controller API
-
-    this.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
-        $scope.regions = regions;
-        clearSecurityGroups();
-        ctrl.regionUpdated();
-      });
-    };
-
-    this.regionUpdated = function() {
-      updateAvailabilityZones();
-      updateLoadBalancerNames();
+    function updateSubnets() {
       getAvailableSubnets().then(function(subnets) {
         var subnetOptions = subnets.reduce(function(accumulator, subnet) {
           if (!accumulator[subnet.purpose]) {
@@ -166,6 +141,37 @@ angular.module('deckApp')
         $scope.subnets = _.values(subnetOptions);
         ctrl.subnetUpdated();
       });
+    }
+
+    function clearSecurityGroups() {
+      $scope.availableSecurityGroups = [];
+      $scope.existingSecurityGroupNames = [];
+    }
+
+    initializeController();
+
+    // Controller API
+
+    this.updateName = function() {
+      var elb = $scope.loadBalancer,
+          name = application.name + '-' + (elb.stack || '') + '-frontend';
+      elb.clusterName = name;
+      $scope.namePreview = name;
+    };
+
+    this.accountUpdated = function() {
+      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
+        $scope.regions = regions;
+        clearSecurityGroups();
+        ctrl.regionUpdated();
+      });
+    };
+
+    this.regionUpdated = function() {
+      updateAvailabilityZones();
+      updateLoadBalancerNames();
+      updateSubnets();
+      ctrl.updateName();
     };
 
     this.subnetUpdated = function() {

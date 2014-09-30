@@ -140,7 +140,7 @@ angular.module('deckApp')
     function constructNewLoadBalancerTemplate() {
       return {
         credentials: null,
-        vpcId: 'none',
+        vpcId: null,
         healthCheckProtocol: 'HTTPS',
         healthCheckPort: 7001,
         healthCheckPath: '/health',
