@@ -117,8 +117,4 @@ angular.module('deckApp')
   $scope.isSuccessful = function(activity) {
     return activity.statusCode === 'Successful';
   };
-  $scope.open = function() {
-    console.log('foo');
-  };
-
 });
