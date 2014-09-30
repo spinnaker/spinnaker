@@ -24,11 +24,13 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.kato.api.ops.CopyLastAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import static com.google.common.base.Optional.absent
 
-@CompileStatic
 class CreateCopyLastAsgTask implements Task {
 
   @Autowired
@@ -37,10 +39,16 @@ class CreateCopyLastAsgTask implements Task {
   @Autowired
   ObjectMapper mapper
 
+  @Value('${default.bake.account:test}')
+  String defaultBakeAccount
+
   @Override
   TaskResult execute(TaskContext context) {
-    Map operation = deployOperationFromContext(context)
-    def taskId = kato.requestOperations([[copyLastAsgDescription: operation]])
+    def operation = mapper.copy()
+      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(context.getInputs("copyLastAsg"), CopyLastAsgOperation)
+    operation.amiName = operation.amiName.or(Optional.fromNullable(context.getInputs().'bake.ami' as String))
+    def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
 
@@ -53,11 +61,19 @@ class CreateCopyLastAsgTask implements Task {
     )
   }
 
-  private Map deployOperationFromContext(TaskContext context) {
-    def operation = mapper.copy()
-                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(context.getInputs("copyLastAsg"), Map)
-    operation.amiName = operation.amiName ?: Optional.fromNullable(context.inputs.'bake.ami' as String)
-    return operation
+  private List<Map<String, Object>> getDescriptions(CopyLastAsgOperation operation) {
+    List<Map<String, Object>> descriptions = []
+    if (operation.credentials != defaultBakeAccount) {
+      def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
+        [allowLaunchDescription: convertAllowLaunch(operation.credentials, defaultBakeAccount, region, operation.amiName)]
+      }
+      descriptions.addAll(allowLaunchDescriptions)
+    }
+    descriptions.add([copyLastAsgDescription: operation])
+    descriptions
+  }
+
+  private static AllowLaunchOperation convertAllowLaunch(String targetAccount, String sourceAccount, String region, Optional<String> ami) {
+    new AllowLaunchOperation(account: targetAccount, credentials: sourceAccount, region: region, amiName: ami.orNull())
   }
 }
