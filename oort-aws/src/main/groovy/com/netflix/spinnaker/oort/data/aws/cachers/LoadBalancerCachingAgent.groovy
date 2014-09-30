@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.data.aws.Keys
 import groovy.transform.CompileStatic
@@ -75,10 +76,19 @@ class LoadBalancerCachingAgent extends AbstractInfrastructureCachingAgent {
   }
 
   void loadNewLoadBalancer(LoadBalancerDescription loadBalancerDescription, String account, String region) {
+    def elbName = loadBalancerDescription.loadBalancerName
+    def names = Names.parseName(elbName)
+    if (names.app) {
+      cacheService.put(Keys.getApplicationLoadBalancerKey(names.app, elbName, account, region), '')
+    }
     cacheService.put(Keys.getLoadBalancerKey(loadBalancerDescription.loadBalancerName, account, region), loadBalancerDescription)
   }
 
   void removeMissingLoadBalancer(String loadBalancerName, String account, String region) {
+    def names = Names.parseName(loadBalancerName)
+    if (names.app) {
+      cacheService.free(Keys.getApplicationLoadBalancerKey(names.app, loadBalancerName, account, region))
+    }
     cacheService.free(Keys.getLoadBalancerKey(loadBalancerName, account, region))
   }
 

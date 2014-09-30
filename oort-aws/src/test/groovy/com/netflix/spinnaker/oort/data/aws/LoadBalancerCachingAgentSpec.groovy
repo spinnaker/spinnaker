@@ -32,6 +32,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
 
   void "load new load balancers and remove those that have gone missing"() {
     setup:
+    def appName = 'kato'
     def loadBalancerName1 = "kato-main-frontend"
     def loadBalancer1 = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName1)
     def loadBalancerName2 = "kato-main-frontend2"
@@ -44,7 +45,9 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     then:
     1 * amazonElasticLoadBalancing.describeLoadBalancers(_) >> result
     1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName1, ACCOUNT, REGION), loadBalancer1)
+    1 * cacheService.put(Keys.getApplicationLoadBalancerKey(appName, loadBalancerName2, ACCOUNT, REGION), '')
     1 * cacheService.put(Keys.getLoadBalancerKey(loadBalancerName2, ACCOUNT, REGION), loadBalancer2)
+    1 * cacheService.put(Keys.getApplicationLoadBalancerKey(appName, loadBalancerName1, ACCOUNT, REGION), '')
 
     when:
     result.setLoadBalancerDescriptions([loadBalancer1])
@@ -54,6 +57,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     1 * amazonElasticLoadBalancing.describeLoadBalancers(_) >> result
     0 * cacheService.put(_, _)
     1 * cacheService.free(Keys.getLoadBalancerKey(loadBalancerName2, ACCOUNT, REGION))
+    1 * cacheService.free(Keys.getApplicationLoadBalancerKey(appName, loadBalancerName2, ACCOUNT, REGION))
 
     when:
     agent.load()
@@ -73,6 +77,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * cacheService.put(Keys.getLoadBalancerKey(mocks.loadBalancerName, mocks.account, mocks.region), mocks.loadBalancer)
+    1 * cacheService.put(Keys.getApplicationLoadBalancerKey(mocks.applicationName, mocks.loadBalancerName, mocks.account, mocks.region), '')
   }
 
   void "missing load balancer should remove from cache"() {
@@ -84,6 +89,7 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
 
     then:
     1 * cacheService.free(Keys.getLoadBalancerKey(mocks.loadBalancerName, mocks.account, mocks.region))
+    1 * cacheService.free(Keys.getApplicationLoadBalancerKey(mocks.applicationName, mocks.loadBalancerName, mocks.account, mocks.region))
   }
 
   def getCommonMocks() {
@@ -91,6 +97,6 @@ class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
     account.getName() >> ACCOUNT
     def loadBalancerName = "kato-main-frontend"
     def loadBalancer = new LoadBalancerDescription().withLoadBalancerName(loadBalancerName)
-    [account: ACCOUNT, accountObj: account, region: REGION, loadBalancerName: loadBalancerName, loadBalancer: loadBalancer]
+    [applicationName: 'kato', account: ACCOUNT, accountObj: account, region: REGION, loadBalancerName: loadBalancerName, loadBalancer: loadBalancer]
   }
 }
