@@ -103,6 +103,10 @@ class PipelineStarter {
   }
 
   private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
+    if (stepConfig.providerType == "gce") {
+      stepConfig["type"] = stepConfig["type"].toString() + "_gce"
+    }
+
     if (stages.containsKey(stepConfig.type)) {
       stages.get(stepConfig.type).build(jobBuilder)
     } else {
