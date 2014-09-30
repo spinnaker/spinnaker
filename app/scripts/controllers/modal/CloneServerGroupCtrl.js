@@ -242,11 +242,6 @@ angular.module('deckApp')
           'max': serverGroup.asg.maxSize,
           'desired': serverGroup.asg.desiredCapacity
         },
-        'source': {
-          'account': serverGroup.account,
-          'region': serverGroup.region,
-          'asgName': serverGroup.asg.autoScalingGroupName
-        },
         allImageSelection: null
       };
       if (serverGroup.launchConfig) {
@@ -306,7 +301,6 @@ angular.module('deckApp')
         'keyPair': 'nf-test-keypair-a',
 
         'terminationPolicies': ['Default'],
-        'source': {},
         'vpcId': null,
         allImageSelection: null
       };
@@ -335,9 +329,17 @@ angular.module('deckApp')
 
     this.clone = function () {
       var command = angular.copy($scope.command);
-      var descriptor = 'Clone';
-      if (!serverGroup) {
-        descriptor = 'Create New';
+      var description;
+      if (serverGroup) {
+        description = 'Create Cloned Server Group from ' + serverGroup.asg.autoScalingGroupName;
+        command.type = 'copyLastAsg';
+        command.source = {
+          'account': serverGroup.account,
+          'region': serverGroup.region,
+          'asgName': serverGroup.asg.autoScalingGroupName
+        };
+      } else {
+        command.type = 'deploy';
         var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;
@@ -348,17 +350,11 @@ angular.module('deckApp')
         if (command.freeFormDetails) {
           asgName += '-' + command.freeFormDetails;
         }
-        command.source = {
-          asgName: asgName
-        };
+        description = 'Create New Server Group in cluster ' + asgName;
       }
-      command.amiName = $scope.state.queryAllImages ?
-        command.allImageSelection.id :
-        _($scope.packageImages).find({'imageName': command.amiName}).imageId;
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
-      $scope.sentCommand = command;
-      orcaService.cloneServerGroup(command, application.name, descriptor)
+      orcaService.cloneServerGroup(command, application.name, description)
         .then(function (response) {
           $modalInstance.close();
           console.warn('task:', response.ref);

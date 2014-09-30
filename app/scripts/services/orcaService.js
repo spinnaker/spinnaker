@@ -157,16 +157,14 @@ angular.module('deckApp')
       });
     }
 
-    function cloneServerGroup(command, applicationName, descriptor) {
-      command.asgName = command.source.asgName;
-      command.type = 'copyLastAsg';
+    function cloneServerGroup(command, applicationName, description) {
       command.user = 'deckUser';
       return executeTask({
         job: [
           command
         ],
         application: applicationName,
-        description: descriptor + ' Server Group: ' + command.source.asgName
+        description: description
       });
     }
 
