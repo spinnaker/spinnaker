@@ -1,0 +1,4 @@
+dependencies {
+  compile project(":kato-core")
+  compile commonDependencies.springBootActuator
+}

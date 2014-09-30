@@ -92,7 +92,7 @@ The response from a call to the operations endpoint will look like the JSON depi
 .Listing 1.2
 [source,javascript]
 ----
-{ "id": "e1jbn3", "resourceLink": "/task/e1jbn3" }
+{ "id": "e1jbn3", "resourceUri": "/task/e1jbn3" }
 ----
 
 It is the "resourceLink" piece of this response that defines the endpoint that clients can use to query the status of their job execution.
@@ -149,6 +149,18 @@ include::src/asciidoc/ops/upsertSecurityGroupDescription.adoc[]
 
 TODO
 
+==== Docker Operations
+
+NOTE: Kato's Docker module (+kato-docker+) provides operations that are relevant for deployments and deployment-related function with a Docker host.
+
+- - -
+include::src/asciidoc/ops/docker/dockerDeployDescription.adoc[]
+- - -
+include::src/asciidoc/ops/docker/restartContainerDescription.adoc[]
+- - -
+include::src/asciidoc/ops/docker/stopContainerDescription.adoc[]
+- - -
+
 ==== Azure Operations
 
 TODO
@@ -160,6 +172,91 @@ TODO
 ==== SoftLayer Operations
 
 TODO
+
+=== Account Configuration
+
+Kato uses the account repository and credentials provider paradigm exposed by http://github.com/spinnaker/amos[Amos].
+
+==== Amazon
+
+===== Single Amazon Account Configuration
+
+Kato's Amazon integration allows for two types of account configuration; the first, where a http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain] can be used to resolve pre-configured credentials for a _single_ account. This is the simplest setup and requires nothing more than following the directions to export your AWS account credentials as environment variables, Java System properties, or through Amazon's other conventional structure.
+
+===== Multiple Amazon Account Configuration
+
+Kato, like all Spinnaker services, is capable of managing a cross-account cloud presence. With respect to integration at AWS, Kato makes use of http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-assume-role.html[Assume Role] configuration to allow a set of pre-configured credentials to manage multiple accounts. Given that, a set of "master" account credentials must be resolvable through the http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html[DefaultAWSCredentialsProviderChain], and Kato will utilize the configuration outlined to apply the appropriate _assume role_ conditions to each AWS call.
+
+====== Listing: Example Cross Account Configuration
+
+[source,yaml]
+----
+aws:
+  regions:
+   - eu-west-1
+   - us-east-1
+   - us-west-1
+   - us-west-2
+  accountIamRole: SpinnakerInstanceProfile
+  assumeRole: role/spinnaker
+  defaults:
+    iamRole: BaseIAMRole
+    keyPair: test-keypair-a
+  accounts:
+    - name: test
+      accountId: 000000
+      regions:
+        - name: us-east-1
+          availabilityZones:
+          - us-east-1a
+          - us-east-1b
+          - us-east-1c
+          - us-east-1d
+          - us-east-1e
+    - name: prod
+      accountId: 123456
+      regions:
+        - name: us-east-1
+          availabilityZones:
+          - us-east-1a
+          - us-east-1b
+          - us-east-1c
+          - us-east-1d
+          - us-east-1e
+----
+
+In the example cross-account configuration can be made available to Kato by placing it on the root of the classpath in a file named +application.yml+.
+Alternatively, the configuration can be resolved from the file system by supplying the +-Dspring.config.location=/path/to/config.yml+ directive as a Java System property to Kato's startup script.
+In the above example, the +aws.regions+ keys informs Kato as to the regions in which the application is capable of operating. Kato will use this detail during validation to ensure the application is able to deploy to a specified target.
+The +aws.assumeRole+ directive is what Kato will use to construct the _assume role_ calls that it will use to traverse accounts. In order to facilitate the cross-account presence, accounts must be configured with thier account Ids, under the +aws.accounts+ collection.
+These objects are to conform to the object structure as defined by the +NetflixAssumeRoleAmazonCredentials+ object.
+
+==== Google
+
+TODO
+
+==== Docker
+
+A Docker account configuration must come with a configured URL to the host's API, and a link to a private http://blog.docker.com/2013/07/how-to-use-your-own-registry/[registry].
+The registry will be used to resolve applications to their corresponding images and image versions. Given that, the public docker repository will be insufficient as a configuration directive,
+since we cannot query its search API directly; accounts _must_ be configured with a private registry.
+
+===== Example Docker Account Configuration
+
+[source,yaml]
+----
+docker:
+  accounts:
+    - name: local
+      url: http://localhost:2375
+      registry: http://localhost:5000
+    - name: remote
+      url: http://remote-host:2375
+      registry: http://remote-registry:5000
+----
+
+Docker accounts are configured under the +docker.accounts+ key, and must be made available to Kato by placing them on the root of the classpath in a file named +application.yml+.
+Alternatively, the configuration can be resolved off the filesystem by providing the +-Dspring.config.location=/path/to/config.yml+ Java System property to Kato's startup script.
 
 === Tasks
 

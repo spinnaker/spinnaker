@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-rootProject.name="kato"
+package com.netflix.spinnaker.kato.security.docker
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-jedis", "kato-docker"
+import com.netflix.spinnaker.amos.AccountCredentials
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+class DockerAccountCredentials implements AccountCredentials<Docker> {
+  String name
+  String url
+  String registry
+
+  @Override
+  Docker getCredentials() {
+    new Docker(url, registry)
   }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
 }

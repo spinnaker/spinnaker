@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-rootProject.name="kato"
+package com.netflix.spinnaker.kato.deploy.docker.description
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-jedis", "kato-docker"
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.kato.security.docker.DockerAccountCredentials
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+abstract class AbstractDockerCredentialsDescription {
+  @JsonIgnore
+  DockerAccountCredentials credentials
+
+  @JsonProperty("credentials")
+  String getCredentialAccount() {
+    credentials.name
   }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
 }

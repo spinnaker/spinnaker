@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-rootProject.name="kato"
+package com.netflix.spinnaker.kato.services.docker
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-perforce-udp", "kato-jedis", "kato-docker"
+import com.netflix.spinnaker.kato.model.docker.Image
+import com.netflix.spinnaker.kato.security.docker.Docker
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+interface RegistryService {
+  Image getImage(Docker docker, String application, String version)
 }

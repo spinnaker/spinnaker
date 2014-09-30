@@ -20,13 +20,24 @@ package com.netflix.spinnaker.kato.security
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 
 abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   def <T extends AccountCredentials> T getCredentialsObject(String name) {
-    accountCredentialsProvider.getCredentials(name)
+    try {
+      accountCredentialsProvider.getCredentials(name)
+    } catch (Exception e) {
+      throw new CredentialsNotFoundException(name)
+    }
   }
+
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Credentials not found.")
+  @InheritConstructors
+  static class CredentialsNotFoundException extends RuntimeException {}
 }
