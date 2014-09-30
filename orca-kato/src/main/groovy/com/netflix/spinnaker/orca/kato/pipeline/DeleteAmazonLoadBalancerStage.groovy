@@ -19,11 +19,16 @@ import com.netflix.spinnaker.orca.kato.tasks.AmazonLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
+import org.springframework.stereotype.Component
 
 /**
  * Created by aglover on 9/26/14.
  */
+
+@Component
+@CompileStatic
 class DeleteAmazonLoadBalancerStage extends LinearStage {
 
   public static final String MAYO_CONFIG_TYPE = "deleteAmazonLoadBalancer"
