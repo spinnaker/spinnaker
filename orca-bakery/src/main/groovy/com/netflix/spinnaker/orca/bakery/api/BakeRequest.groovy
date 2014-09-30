@@ -30,20 +30,35 @@ import com.google.gson.annotations.SerializedName
  *
  * @see BakeryService#createBake
  */
-@Immutable
+@Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, Label.release, OperatingSystem.ubuntu, null, null, null, null, null)
+  
   String user
   @JsonProperty("package") @SerializedName("package") String packageName
   Label baseLabel
   OperatingSystem baseOs
-
+  VmType vmType
+  StoreType storeType
+  Boolean enhancedNetworking
+  String amiName
+  String amiSuffix
+  
   enum Label {
-    release, candidate
+    release, candidate, previous, unstable, foundation
   }
 
   enum OperatingSystem {
-    centos, ubuntu
+    centos, ubuntu, trusty
+  }
+  
+  enum VmType {
+    pv, hvm
+  }
+
+  enum StoreType {
+    ebs, s3, docker
   }
 }
+
