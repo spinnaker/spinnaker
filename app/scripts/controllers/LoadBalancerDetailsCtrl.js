@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('LoadBalancerDetailsCtrl', function ($scope, $rootScope, loadBalancer, application, securityGroupService, $modal, _) {
+  .controller('LoadBalancerDetailsCtrl', function ($scope, $rootScope, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
 
     $scope.loadBalancer = application.loadBalancers.filter(function (test) {
       return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
@@ -30,6 +30,23 @@ angular.module('deckApp')
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
           isNew: function() { return false; }
         }
+      });
+    };
+
+    this.deleteLoadBalancer = function deleteLoadBalancer() {
+      if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
+        return;
+      }
+      confirmationModalService.confirm({
+        header: 'Really delete ' + loadBalancer.name + '?',
+        buttonText: 'Delete ' + loadBalancer.name,
+        destructive: true,
+        account: loadBalancer.account
+      }).then(function () {
+        orcaService.deleteLoadBalancer(loadBalancer, $scope.application.name)
+          .then(function (response) {
+            console.warn('task: ', response.ref);
+          });
       });
     };
 

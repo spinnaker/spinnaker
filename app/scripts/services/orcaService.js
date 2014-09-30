@@ -37,7 +37,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Destroying Server Group: ' + serverGroup.name
+        description: 'Destroy Server Group: ' + serverGroup.name
       });
     }
 
@@ -53,7 +53,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Disabling Server Group: ' + serverGroup.name
+        description: 'Disable Server Group: ' + serverGroup.name
       });
     }
 
@@ -69,7 +69,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Enabling Server Group: ' + serverGroup.name
+        description: 'Enable Server Group: ' + serverGroup.name
       });
     }
 
@@ -88,7 +88,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Resizing Server Group: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
+        description: 'Resize Server Group: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
       });
     }
 
@@ -123,6 +123,22 @@ angular.module('deckApp')
       });
     }
 
+    function deleteLoadBalancer(loadBalancer, applicationName) {
+      return executeTask({
+        job: [
+          {
+            type: 'deleteAmazonLoadBalancer',
+            loadBalancerName: loadBalancer.name,
+            regions: [loadBalancer.region],
+            credentials: loadBalancer.accountId,
+            user: 'deckUser'
+          }
+        ],
+        application: applicationName,
+        description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
+      });
+    }
+
     function terminateInstance(instance, applicationName) {
       return executeTask({
         job: [
@@ -137,7 +153,7 @@ angular.module('deckApp')
           }
         ],
         application: applicationName,
-        description: 'Terminating instance: ' + instance.instanceId
+        description: 'Terminate instance: ' + instance.instanceId
       });
     }
 
@@ -156,6 +172,7 @@ angular.module('deckApp')
 
     return {
       cloneServerGroup: cloneServerGroup,
+      deleteLoadBalancer: deleteLoadBalancer,
       destroyServerGroup: destroyServerGroup,
       disableServerGroup: disableServerGroup,
       enableServerGroup: enableServerGroup,
