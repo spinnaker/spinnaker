@@ -10,31 +10,30 @@ angular.module('deckApp')
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
     });
 
-    function loadLoadBalancers(application) {
-      var getSearchResults = searchService.search('oort', {q: application.name, type: 'applicationLoadBalancers', pageSize: 10000}).then(function(searchResults) {
-        return _.filter(searchResults.results, { application: application.name });
+    function loadLoadBalancersByApplicationName(applicationName) {
+      return searchService.search('oort', {q: applicationName, type: 'applicationLoadBalancers', pageSize: 10000}).then(function(searchResults) {
+        return _.filter(searchResults.results, { application: applicationName });
       });
+    }
 
-      return getSearchResults.then(function(searchResults) {
-        var loadBalancerNames = _.pluck(searchResults, 'loadBalancer'),
+    function loadLoadBalancers(application, loadBalancersByApplicationName) {
+        var loadBalancerNames = _.pluck(loadBalancersByApplicationName, 'loadBalancer'),
           loadBalancerPromises = [];
 
         application.accounts.forEach(function(account) {
-          var accountClusters = application.clusters[account];
+          var accountClusters = application.clusters[account] || [];
           accountClusters.forEach(function(cluster) {
             loadBalancerNames.push(cluster.loadBalancers);
           });
         });
 
         loadBalancerNames = _.unique(_.flatten(loadBalancerNames));
-
         loadBalancerNames.forEach(function(loadBalancer) {
-          var loadBalancerPromise = getLoadBalancer(loadBalancer, application);
+          var loadBalancerPromise = getLoadBalancer(loadBalancer);
           loadBalancerPromises.push(loadBalancerPromise);
         });
 
         return $q.all(loadBalancerPromises).then(_.flatten);
-      });
     }
 
     function updateHealthCounts(loadBalancer) {
@@ -164,6 +163,7 @@ angular.module('deckApp')
 
     return {
       loadLoadBalancers: loadLoadBalancers,
+      loadLoadBalancersByApplicationName: loadLoadBalancersByApplicationName,
       normalizeLoadBalancersWithServerGroups: normalizeLoadBalancersWithServerGroups,
       serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,

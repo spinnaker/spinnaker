@@ -15,7 +15,6 @@ angular.module('deckApp')
       })
         .then(
           function(response) {
-            console.warn('data:', response.data[0]);
             return response.data[0];
           },
           function (response) {

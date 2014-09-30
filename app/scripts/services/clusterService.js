@@ -22,7 +22,7 @@ angular.module('deckApp')
       var clusterPromises = [];
 
       application.accounts.forEach(function (account) {
-        var accountClusters = application.clusters[account];
+        var accountClusters = application.clusters[account] || [];
         accountClusters.forEach(function (cluster) {
           var clusterPromise = getCluster(application, account, cluster.name);
           clusterPromises.push(clusterPromise);

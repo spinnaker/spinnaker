@@ -87,36 +87,53 @@ angular.module('deckApp')
     }
 
     function getApplication(applicationName) {
-      return getApplicationEndpoint(applicationName).get().then(function(application) {
-        var clusterLoader = clusterService.loadClusters(application);
-        var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
-        var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
-        var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(application.name);
-        var taskLoader = pond.one('applications', applicationName)
-          .all('tasks')
-          .getList();
+      var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(applicationName),
+          loadBalancersByApplicationNameLoader = loadBalancerService.loadLoadBalancersByApplicationName(applicationName),
+          applicationLoader = getApplicationEndpoint(applicationName).get();
 
-        return $q.all({
-          clusters: clusterLoader,
-          loadBalancers: loadBalancerLoader,
-          tasks: taskLoader,
-          securityGroups: securityGroupLoader,
-          namedSecurityGroups: securityGroupsByApplicationNameLoader
-        })
-          .then(function(results) {
-            application.clusters = results.clusters;
-            application.serverGroups = _.flatten(_.pluck(results.clusters, 'serverGroups'));
-            application.loadBalancers = results.loadBalancers;
-            application.tasks = angular.isArray(results.tasks) ? results.tasks : [];
-            loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
-            clusterService.normalizeServerGroupsWithLoadBalancers(application);
-            securityGroupService.attachSecurityGroups(application, results.securityGroups, results.namedSecurityGroups);
+      return $q.all({
+        securityGroups: securityGroupsByApplicationNameLoader,
+        loadBalancersByApplicationName: loadBalancersByApplicationNameLoader,
+        application: applicationLoader
+      })
+        .then(function(applicationLoader) {
+          var application = applicationLoader.application;
+          var securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
+          var loadBalancerAccounts = _(applicationLoader.loadBalancersByApplicationName).pluck('account').unique().value();
+          application.accounts = _([applicationLoader.accounts, securityGroupAccounts, loadBalancerAccounts])
+            .flatten()
+            .compact()
+            .unique()
+            .value();
 
-            return application;
-          }, function(err) {
-            $exceptionHandler(err, 'Failed to load application');
-          });
-      });
+          var clusterLoader = clusterService.loadClusters(application);
+          var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application, applicationLoader.loadBalancersByApplicationName);
+          var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
+
+          var taskLoader = pond.one('applications', applicationName)
+            .all('tasks')
+            .getList();
+
+          return $q.all({
+            clusters: clusterLoader,
+            loadBalancers: loadBalancerLoader,
+            tasks: taskLoader,
+            securityGroups: securityGroupLoader
+          })
+            .then(function(results) {
+              application.clusters = results.clusters;
+              application.serverGroups = _.flatten(_.pluck(results.clusters, 'serverGroups'));
+              application.loadBalancers = results.loadBalancers;
+              application.tasks = angular.isArray(results.tasks) ? results.tasks : [];
+              loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
+              clusterService.normalizeServerGroupsWithLoadBalancers(application);
+              securityGroupService.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
+
+              return application;
+            }, function(err) {
+              $exceptionHandler(err, 'Failed to load application');
+            });
+        });
     }
 
     function findAmis(applicationName) {
