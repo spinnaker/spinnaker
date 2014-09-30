@@ -117,7 +117,9 @@ class AutoScalingWorker {
 
     task.updateStatus AWS_PHASE, "Looking up security groups..."
     if (securityGroups) {
-      securityGroups = securityGroupService.getSecurityGroupIds(securityGroups).values() as List
+      if (!securityGroups[0].startsWith("sg-")) {
+        securityGroups = securityGroupService.getSecurityGroupIds(securityGroups).values() as List
+      }
     } else {
       securityGroups = []
     }
