@@ -53,6 +53,7 @@ class SearchIndexSpec extends Specification {
         config = new ElasticSearchConfig()
         searchIndex = new SearchIndex()
         searchIndex.client = config.manufacture()
+        searchIndex.ES_INDEX = 'event_history'
     }
 
     void setup() {

@@ -25,6 +25,7 @@ import io.searchbox.core.Index
 import io.searchbox.core.Search
 import io.searchbox.core.SearchResult
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 
 /**
@@ -36,7 +37,10 @@ class SearchIndex {
     @Autowired
     JestClient client
 
-    static final String ES_INDEX = 'event_history'
+    @SuppressWarnings(['GStringExpressionWithinString', 'PropertyName'])
+    @Value('${search.index}')
+    String ES_INDEX
+
     static final String METADATA_KEY = 'metadata'
 
     ObjectMapper mapper = new ObjectMapper()

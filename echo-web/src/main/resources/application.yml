@@ -5,5 +5,7 @@ spinnaker:
 netflix:
   appinfo:
     name: 'echo-core'
+search:
+  index: 'event_history'
 # server:
   # port: 8120
