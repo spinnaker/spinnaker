@@ -7,7 +7,7 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService, searchService,
                                                   mortService, oortService, accountService, securityGroupService,
-                                                  $modal, confirmationModalService) {
+                                                  serverGroupService, $modal, confirmationModalService) {
 
     function extractServerGroup(clusters) {
       clusters.some(function (cluster) {
@@ -99,5 +99,26 @@ angular.module('deckApp')
       });
     };
 
+    this.showScalingActivities = function showScalingActivities() {
+      $scope.activities = [];
+      var modal = $modal.open({
+        templateUrl: 'views/application/modal/serverGroup/scalingActivities.html',
+        controller: 'ScalingActivitiesCtrl as ctrl',
+        scope: $scope
+      });
+      modal.opened.then(function() {
+        serverGroupService.getScalingActivities(application, $scope.account, $scope.cluster.name, $scope.serverGroup.name, $scope.serverGroup.region).then(function(response) {
+          $scope.activities = response;
+        });
+      });
+    };
   }
-);
+).controller('ScalingActivitiesCtrl', function($scope) {
+  $scope.isSuccessful = function(activity) {
+    return activity.statusCode === 'Successful';
+  };
+  $scope.open = function() {
+    console.log('foo');
+  };
+
+});
