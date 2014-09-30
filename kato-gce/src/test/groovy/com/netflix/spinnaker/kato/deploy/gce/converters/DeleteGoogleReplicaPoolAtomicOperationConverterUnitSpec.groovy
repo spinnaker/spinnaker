@@ -24,8 +24,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DeleteGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specification {
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -42,8 +41,7 @@ class DeleteGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specificat
 
   void "deleteGoogleReplicaPoolDescription type returns DeleteGoogleReplicaPoolDescription and DeleteGoogleReplicaPoolAtomicOperation"() {
     setup:
-      def input = [application: APPLICATION,
-                   stack: STACK,
+      def input = [replicaPoolName: REPLICA_POOL_NAME,
                    zone: ZONE,
                    accountName: ACCOUNT_NAME]
 

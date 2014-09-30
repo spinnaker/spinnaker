@@ -19,8 +19,7 @@ package com.netflix.spinnaker.kato.deploy.gce.description
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class ResizeGoogleReplicaPoolDescription {
-  String application
-  String stack
+  String replicaPoolName
   int numReplicas
   String zone
   String accountName

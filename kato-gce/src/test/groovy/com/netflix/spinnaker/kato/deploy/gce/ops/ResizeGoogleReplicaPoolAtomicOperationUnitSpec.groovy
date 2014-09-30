@@ -30,8 +30,7 @@ import spock.lang.Subject
 class ResizeGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
   private static final DESIRED_NUM_REPLICAS = 5
   private static final ZONE = "us-central1-b"
 
@@ -47,8 +46,7 @@ class ResizeGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def poolsMock = Mock(Replicapool.Pools)
       def poolsResizeMock = Mock(Replicapool.Pools.Resize)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new ResizeGoogleReplicaPoolDescription(application: APPLICATION,
-                                                               stack: STACK,
+      def description = new ResizeGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                numReplicas: DESIRED_NUM_REPLICAS,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,

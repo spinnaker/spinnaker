@@ -43,11 +43,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    // TODO(duftler): Implement proper sequential naming and tests for same. Best done when this class is reconciled
-    // with logic in BasicGoogleDeployHandler.
-    def replicaPoolName = "${description.application}-${description.stack}-v000"
-
-    task.updateStatus BASE_PHASE, "Initializing delete of replica pool $replicaPoolName in ${description.zone}..."
+    task.updateStatus BASE_PHASE, "Initializing delete of replica pool $description.replicaPoolName in $description.zone..."
 
     def project = description.credentials.project
 
@@ -55,9 +51,9 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
 
-    replicapool.pools().delete(project, description.zone, replicaPoolName, new PoolsDeleteRequest()).execute()
+    replicapool.pools().delete(project, description.zone, description.replicaPoolName, new PoolsDeleteRequest()).execute()
 
-    task.updateStatus BASE_PHASE, "Done deleting replica pool $replicaPoolName in ${description.zone}."
+    task.updateStatus BASE_PHASE, "Done deleting replica pool $description.replicaPoolName in $description.zone."
     null
   }
 }
