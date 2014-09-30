@@ -18,14 +18,10 @@ package com.netflix.spinnaker.mort.aws.cache
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.IpPermission
-import com.netflix.frigga.Names
+import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
-import com.netflix.spinnaker.mort.model.AddressableRange
-import com.netflix.spinnaker.mort.model.CacheService
-import com.netflix.spinnaker.mort.model.CachingAgent
-import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
-import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
+import com.netflix.spinnaker.mort.model.*
+import com.netflix.spinnaker.mort.model.securitygroups.*
 import groovy.transform.Immutable
 import rx.Observable
 
@@ -47,32 +43,36 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       !lastRun.containsKey(it.groupId) || lastRun.get(it.groupId) != it.hashCode()
     }.subscribe {
       thisRun.put(it.groupId, it.hashCode())
-
-      Map<String, Map> rules = [:]
-      Map<String, Map> ipRangeRules = [:]
-
-      it.ipPermissions.each { permission ->
-        addIpRangeRules(permission, ipRangeRules)
-        addSecurityGroupRules(permission, rules)
-      }
-
-      List<Rule> inboundRules = []
-      inboundRules.addAll buildSecurityGroupRules(rules)
-      inboundRules.addAll buildIpRangeRules(ipRangeRules)
-
-      cacheService.put(Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account, it.vpcId),
-        new AmazonSecurityGroup(
-          id: it.groupId,
-          vpcId: it.vpcId,
-          name: it.groupName,
-          description: it.description,
-          accountName: account,
-          region: region,
-          inboundRules: inboundRules
-        )
-      )
+      cacheOne it
     }
     lastRun = thisRun
+  }
+
+  void cacheOne(SecurityGroup securityGroup) {
+    Map<String, Map> rules = [:]
+    Map<String, Map> ipRangeRules = [:]
+
+    securityGroup.ipPermissions.each { permission ->
+      addIpRangeRules(permission, ipRangeRules)
+      addSecurityGroupRules(permission, rules)
+    }
+
+    List<Rule> inboundRules = []
+    inboundRules.addAll buildSecurityGroupRules(rules)
+    inboundRules.addAll buildIpRangeRules(ipRangeRules)
+
+    cacheService.put(
+        Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account, securityGroup.vpcId),
+        new AmazonSecurityGroup(
+            id: securityGroup.groupId,
+            vpcId: securityGroup.vpcId,
+            name: securityGroup.groupName,
+            description: securityGroup.description,
+            accountName: account,
+            region: region,
+            inboundRules: inboundRules
+        )
+    )
   }
 
   private List<IpRangeRule> buildIpRangeRules(LinkedHashMap<String, Map> ipRangeRules) {
@@ -102,7 +102,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     permission.userIdGroupPairs.each { sg ->
       if (!rules.containsKey(sg.groupId)) {
         rules.put(sg.groupId, [
-            protocol: permission.ipProtocol,
+            protocol     : permission.ipProtocol,
             securityGroup:
                 new AmazonSecurityGroup(
                     id: sg.groupId,
@@ -122,8 +122,8 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       if (!rules.containsKey(ipRange)) {
         def rangeParts = ipRange.split('/')
         rules.put(ipRange, [
-            range: new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
-            protocol: permission.ipProtocol,
+            range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
+            protocol  : permission.ipProtocol,
             portRanges: [] as SortedSet
         ])
       }
