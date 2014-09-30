@@ -30,6 +30,7 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.data.task.Task
@@ -77,6 +78,33 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     mockAmazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
     mockAmazonClientProvider.getAmazonEC2(_, _) >> ec2
     operation.amazonClientProvider = mockAmazonClientProvider
+  }
+
+  void "should respect crossZone balancing directive"() {
+    setup:
+    "by default, we'll enable cross-zone balancing"
+    def loadBalancer = Stub(LoadBalancerDescription)
+    loadBalancer.getLoadBalancerName() >> "foo"
+
+    when:
+    operation.operate([])
+
+    then:
+    2 * loadBalancing.describeLoadBalancers(_) >>> [null, new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancer)]
+    1 * loadBalancing.modifyLoadBalancerAttributes(_) >> { ModifyLoadBalancerAttributesRequest request ->
+      assert request.loadBalancerAttributes.crossZoneLoadBalancing.enabled
+    }
+
+    when:
+    "when requesting crossZone to be disabled, we'll turn it off"
+    description.crossZoneBalancing = false
+    operation.operate([])
+
+    then:
+    2 * loadBalancing.describeLoadBalancers(_) >>> [null, new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancer)]
+    1 * loadBalancing.modifyLoadBalancerAttributes(_) >> { ModifyLoadBalancerAttributesRequest request ->
+      assert !request.loadBalancerAttributes.crossZoneLoadBalancing.enabled
+    }
   }
 
   void "should use clusterName if name not provided"() {

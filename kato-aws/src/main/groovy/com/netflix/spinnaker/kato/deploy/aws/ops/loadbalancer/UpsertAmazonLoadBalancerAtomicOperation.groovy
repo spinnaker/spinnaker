@@ -25,11 +25,14 @@ import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLo
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
 import com.amazonaws.services.elasticloadbalancing.model.Listener
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
@@ -134,6 +137,16 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, listeners))
         task.updateStatus BASE_PHASE, "New listeners applied for ${loadBalancerName} in ${region}!"
       }
+
+      // Apply balancing opinions...
+      loadBalancing.modifyLoadBalancerAttributes(
+        new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancer.loadBalancerName)
+          .withLoadBalancerAttributes(
+            new LoadBalancerAttributes(
+              crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: description.crossZoneBalancing)
+            )
+        )
+      )
 
       // Apply security groups...
       if (description.securityGroups) {

@@ -30,6 +30,7 @@ class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescr
   Integer healthTimeout  = 5
   Integer unhealthyThreshold = 2
   Integer healthyThreshold = 10
+  Boolean crossZoneBalancing = Boolean.TRUE
 
   static class Listener {
     enum ListenerType {
