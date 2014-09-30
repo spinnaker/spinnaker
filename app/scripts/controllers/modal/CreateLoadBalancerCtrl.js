@@ -55,8 +55,8 @@ angular.module('deckApp')
     }
 
     function initializeLoadBalancerNames() {
-      searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(response) {
-        response.data[0].results.forEach(function(result) {
+      searchService.search('oort', {q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
+        searchResults.results.forEach(function(result) {
           if (!allLoadBalancerNames[result.account]) {
             allLoadBalancerNames[result.account] = {};
           }

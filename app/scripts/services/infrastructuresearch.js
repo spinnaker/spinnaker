@@ -30,13 +30,13 @@ angular.module('deckApp')
           if (!query || !angular.isDefined(query) || query.length < 1) {
             return RxService.Observable.just({ data: [{ results: [] }] });
           }
-          return RxService.Observable.fromPromise(searchService.search({
+          return RxService.Observable.fromPromise(searchService.search('oort', {
             q: query,
             type: ['applications', 'clusters', 'serverGroupInstances', 'serverGroups', 'loadBalancerServerGroups'],
           }));
         })
         .subscribe(function(result) {
-          var tmp = result.data[0].results.reduce(function(categories, entry) {
+          var tmp = result.results.reduce(function(categories, entry) {
             var cat = entry.type;
             entry.name = entry[displayNameLookup[entry.type]];
             entry.href = urlBuilder.buildFromMetadata(entry);

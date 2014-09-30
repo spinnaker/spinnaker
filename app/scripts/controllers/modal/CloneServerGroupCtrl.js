@@ -36,9 +36,9 @@ angular.module('deckApp')
       $scope.subnets = subnets;
     });
 
-    var imageLoader = searchService.search({q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(result) {
-      $scope.packageImages = result.data[0].results;
-      if (result.data[0].results.length === 0) {
+    var imageLoader = searchService.search('oort', {q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
+      $scope.packageImages = searchResults.results;
+      if (searchResults.results.length === 0) {
         $scope.state.queryAllImages = true;
       }
     });

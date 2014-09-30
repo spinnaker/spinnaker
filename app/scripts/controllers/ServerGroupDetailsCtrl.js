@@ -5,7 +5,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService, searchService,
+  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService,
                                                   mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService) {
 

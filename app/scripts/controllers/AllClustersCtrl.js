@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('AllClustersCtrl', function($scope, application, $modal, searchService, mortService,
+  .controller('AllClustersCtrl', function($scope, application, $modal, mortService,
                                           securityGroupService, accountService, oortService,
                                           _, $stateParams, $location) {
     var defPrimary = 'account', defSecondary = 'region';

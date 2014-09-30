@@ -58,9 +58,9 @@ angular.module('deckApp')
       }
     ];
 
-    searchService.search({q:'', type: 'applications', pageSize:100000}).then(function(response) {
+    searchService.search('oort', {q:'', type: 'applications', pageSize:100000}).then(function(searchResults) {
       if (!$scope.applications) {
-        $scope.applications = response.data[0].results.map(function (app) {
+        $scope.applications = searchResults.results.map(function (app) {
           return {name: app.application};
         });
         ctrl.filterApplications();

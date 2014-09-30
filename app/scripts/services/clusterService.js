@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('clusterService', function (searchService, settings, $q, Restangular, _, $exceptionHandler) {
+  .factory('clusterService', function (settings, $q, Restangular, _, $exceptionHandler) {
 
     var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);

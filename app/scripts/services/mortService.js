@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('mortService', function (searchService, settings, $q, Restangular) {
+  .factory('mortService', function (settings, $q, Restangular) {
 
     var subnetsCache = [],
         vpcsCache = [];

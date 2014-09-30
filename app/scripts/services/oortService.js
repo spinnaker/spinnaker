@@ -118,8 +118,8 @@ angular.module('deckApp')
     }
 
     function findAmis(applicationName) {
-      return searchService.search({q: applicationName, type: 'namedImages'}).then(function(results) {
-        return results.data[0].results;
+      return searchService.search('oort', {q: applicationName, type: 'namedImages'}).then(function(results) {
+        return results.results;
       });
     }
 
