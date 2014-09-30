@@ -38,8 +38,22 @@ angular.module('deckApp')
 
     var imageLoader = searchService.search('oort', {q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
       $scope.packageImages = searchResults.results;
-      if (searchResults.results.length === 0) {
-        $scope.state.queryAllImages = true;
+      if ($scope.packageImages.length === 0) {
+        if (serverGroup) {
+          searchService.search('oort', {q: serverGroup.launchConfig.imageId, type: 'namedImages'}).then(function (searchResults) {
+            if (searchResults.results.length > 0) {
+              var packageRegex = /(\w+)-?\w+/;
+              $scope.imageName = searchResults.results[0].imageName;
+              var match = packageRegex.exec($scope.imageName);
+              $scope.applicationName = match[1];
+              searchService.search('oort', {q: $scope.applicationName, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
+                $scope.packageImages = searchResults.results;
+              });
+            }
+          });
+        } else {
+          $scope.state.queryAllImages = true;
+        }
       }
     });
 
