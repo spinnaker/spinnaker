@@ -91,7 +91,7 @@ angular.module('deckApp')
         var clusterLoader = clusterService.loadClusters(application);
         var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
         var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
-        var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(application);
+        var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(application.name);
         var taskLoader = pond.one('applications', applicationName)
           .all('tasks')
           .getList();

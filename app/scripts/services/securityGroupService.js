@@ -24,9 +24,9 @@ angular.module('deckApp')
 
     }
 
-    function loadSecurityGroupsByApplicationName(application) {
-      return searchService.search('mort', {q: application.name, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
-        return searchResults.results;
+    function loadSecurityGroupsByApplicationName(applicationName) {
+      return searchService.search('mort', {q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
+        return _.filter(searchResults.results, {application: applicationName});
       });
     }
 
