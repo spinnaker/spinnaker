@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('securityGroupService', function (settings, $q, Restangular, _, $exceptionHandler) {
+  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler) {
 
     var mortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.mortUrl);
@@ -24,12 +24,34 @@ angular.module('deckApp')
 
     }
 
-    function attachSecurityGroups(application, securityGroups) {
+    function loadSecurityGroupsByApplicationName(application) {
+      return searchService.search('mort', {q: application.name, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
+        return searchResults.results;
+      });
+    }
+
+    function attachUsageFields(securityGroup) {
+      if (!securityGroup.usages) {
+        securityGroup.usages = { serverGroups: [], loadBalancers: [] };
+      }
+    }
+
+    function attachSecurityGroups(application, securityGroups, nameBasedSecurityGroups) {
       var applicationSecurityGroups = [];
 
       var indexedSecurityGroups = indexSecurityGroups(securityGroups);
 
       application.securityGroupsIndex = indexedSecurityGroups;
+
+      nameBasedSecurityGroups.forEach(function(securityGroup) {
+        var match = indexedSecurityGroups[securityGroup.account][securityGroup.region][securityGroup.id];
+        if (match) {
+          attachUsageFields(match);
+          applicationSecurityGroups.push(match);
+        } else {
+          $exceptionHandler('could not find', securityGroup, indexedSecurityGroups);
+        }
+      });
 
       application.loadBalancers.forEach(function(loadBalancer) {
         if (loadBalancer.elb && loadBalancer.elb.securityGroups) {
@@ -38,9 +60,7 @@ angular.module('deckApp')
             if (!securityGroup) {
               $exceptionHandler('could not find:', loadBalancer.name, securityGroupId);
             } else {
-              if (!securityGroup.usages) {
-                securityGroup.usages = { serverGroups: [], loadBalancers: [] };
-              }
+              attachUsageFields(securityGroup);
               securityGroup.usages.loadBalancers.push(loadBalancer);
               applicationSecurityGroups.push(securityGroup);
             }
@@ -122,6 +142,7 @@ angular.module('deckApp')
 
     return {
       loadSecurityGroups: loadSecurityGroups,
+      loadSecurityGroupsByApplicationName: loadSecurityGroupsByApplicationName,
       attachSecurityGroups: attachSecurityGroups,
       getSecurityGroupDetails: getSecurityGroupDetails,
       getApplicationSecurityGroup: getApplicationSecurityGroup,

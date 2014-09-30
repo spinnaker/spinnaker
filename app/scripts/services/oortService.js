@@ -91,6 +91,7 @@ angular.module('deckApp')
         var clusterLoader = clusterService.loadClusters(application);
         var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application);
         var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
+        var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(application);
         var taskLoader = pond.one('applications', applicationName)
           .all('tasks')
           .getList();
@@ -99,7 +100,8 @@ angular.module('deckApp')
           clusters: clusterLoader,
           loadBalancers: loadBalancerLoader,
           tasks: taskLoader,
-          securityGroups: securityGroupLoader
+          securityGroups: securityGroupLoader,
+          namedSecurityGroups: securityGroupsByApplicationNameLoader
         })
           .then(function(results) {
             application.clusters = results.clusters;
@@ -108,7 +110,7 @@ angular.module('deckApp')
             application.tasks = angular.isArray(results.tasks) ? results.tasks : [];
             loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
             clusterService.normalizeServerGroupsWithLoadBalancers(application);
-            securityGroupService.attachSecurityGroups(application, results.securityGroups);
+            securityGroupService.attachSecurityGroups(application, results.securityGroups, results.namedSecurityGroups);
 
             return application;
           }, function(err) {
