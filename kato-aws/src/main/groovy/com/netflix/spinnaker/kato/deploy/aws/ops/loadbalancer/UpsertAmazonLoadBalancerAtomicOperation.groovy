@@ -149,7 +149,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck()
           .withTarget(description.healthCheck).withInterval(description.healthInterval)
           .withTimeout(description.healthTimeout).withUnhealthyThreshold(description.unhealthyThreshold)
-          .withHealthyThreshold(10))
+          .withHealthyThreshold(description.healthyThreshold))
         loadBalancing.configureHealthCheck(healthCheck)
         task.updateStatus BASE_PHASE, "Healthcheck configured!"
       }
