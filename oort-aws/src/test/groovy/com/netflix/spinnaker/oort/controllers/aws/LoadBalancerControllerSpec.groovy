@@ -46,6 +46,7 @@ class LoadBalancerControllerSpec extends Specification {
     then:
     resp.size() == 1
     resp[0].name == "foo"
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS) >> [Keys.getLoadBalancerKey('foo', 'test', 'us-west-1')]
     1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [Keys.getLoadBalancerServerGroupKey('foo', 'test', 'asg-v001', 'us-west-1')]
     1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
   }
@@ -60,6 +61,7 @@ class LoadBalancerControllerSpec extends Specification {
 
     then:
     resp.name == "foo"
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS) >> [Keys.getLoadBalancerKey('foo', 'test', 'us-west-1')]
     1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [Keys.getLoadBalancerServerGroupKey('foo', 'test', 'asg-v001', 'us-west-1')]
     1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
   }
@@ -80,10 +82,44 @@ class LoadBalancerControllerSpec extends Specification {
     resp.accounts[0].regions[0].name == 'us-west-1'
     resp.accounts[0].regions[0].loadBalancers.size() == 1
     resp.accounts[0].regions[0].loadBalancers[0].serverGroups.asList() == ['asg-v001', 'asg-v002']
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS) >> [Keys.getLoadBalancerKey('foo', 'test', 'us-west-1')]
     1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> [
       Keys.getLoadBalancerServerGroupKey('foo', 'test', 'asg-v001', 'us-west-1'),
       Keys.getLoadBalancerServerGroupKey('foo', 'test', 'asg-v002', 'us-west-1')
     ]
+    1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
+  }
+
+  void "should include load balancers with no server groups"() {
+    setup:
+    def elb = Mock(LoadBalancerDescription)
+    elb.getLoadBalancerName() >> "foo"
+
+    when:
+    def resp = controller.list()
+
+    then:
+    resp.size() == 1
+    resp[0].name == "foo"
+    resp.accounts[0].regions[0].loadBalancers[0].serverGroups.asList().flatten() == []
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS) >> [Keys.getLoadBalancerKey('foo', 'test', 'us-west-1')]
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> []
+    1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
+  }
+
+  void "should include single load balancer with no server groups"() {
+    setup:
+    def elb = Mock(LoadBalancerDescription)
+    elb.getLoadBalancerName() >> "foo"
+
+    when:
+    def resp = controller.get("foo")
+
+    then:
+    resp.name == "foo"
+    resp.accounts[0].regions[0].loadBalancers[0].serverGroups.asList() == []
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS) >> [Keys.getLoadBalancerKey('foo', 'test', 'us-west-1')]
+    1 * cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS) >> []
     1 * cacheService.retrieve(Keys.getLoadBalancerKey("foo", "test", "us-west-1"), LoadBalancerDescription) >> elb
   }
 }

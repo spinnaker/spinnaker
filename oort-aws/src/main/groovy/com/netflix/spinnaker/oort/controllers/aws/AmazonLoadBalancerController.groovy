@@ -38,17 +38,23 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
-    def keys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS)
-    getSummaryForKeys(groupKeysByLoadBalancer(keys)).values() as List
+    def loadBalancerKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS)
+    def serverGroupKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS)
+    getSummaryForKeys(loadBalancerKeys, groupKeysByLoadBalancer(serverGroupKeys)).values() as List
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
-    def keys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS).findAll { key ->
+    def loadBalancerKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS).findAll { key ->
       def parts = Keys.parse(key)
       parts.loadBalancer == name
     }
-    getSummaryForKeys(groupKeysByLoadBalancer(keys))?.get(name)
+    def serverGroupKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS).findAll { key ->
+      def parts = Keys.parse(key)
+      parts.loadBalancer == name
+    }
+
+    getSummaryForKeys(loadBalancerKeys, groupKeysByLoadBalancer(serverGroupKeys))?.get(name)
   }
 
   private Map<String, List<String>> groupKeysByLoadBalancer(Collection<String> keys) {
@@ -61,23 +67,36 @@ class AmazonLoadBalancerController {
     }
   }
 
-  private Map<String, AmazonLoadBalancerSummary> getSummaryForKeys(Map<String, List<String>> summaries) {
+  private Map<String, AmazonLoadBalancerSummary> getSummaryForKeys(Collection<String> loadBalancerKeys, Map<String, List<String>> summaries) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
+    for (entry in loadBalancerKeys) {
+      def parts = Keys.parse(entry)
+      String name = parts.loadBalancer
+      String region = parts.region
+      String account = parts.account
+      def summary = map.get(name)
+      if (!summary) {
+        summary = new AmazonLoadBalancerSummary(name: name)
+        map.put name, summary
+      }
+      def loadBalancer = new AmazonLoadBalancer(name, region)
+      loadBalancer.elb = cacheService.retrieve(entry, LoadBalancerDescription)
+      summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
+    }
     for (entry in summaries.entrySet()) {
       def parts = entry.key.split(':')
       def name = parts[1]
       def account = parts[3]
       def region = parts[4]
       def summary = map.get(name)
-      if (!summary) {
-        summary = new AmazonLoadBalancerSummary(name: name)
-        map.put name, summary
+      if (summary) {
+        def loadBalancer = summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers.find { loadBalancer ->
+          loadBalancer.getName() == name
+        }
+        if (loadBalancer) {
+          loadBalancer.serverGroups.addAll(entry.value)
+        }
       }
-
-      def loadBalancer = new AmazonLoadBalancer(name, region)
-      loadBalancer.elb = cacheService.retrieve(Keys.getLoadBalancerKey(name, account, region), LoadBalancerDescription)
-      loadBalancer.serverGroups.addAll(entry.value)
-      summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
     }
     map
   }
