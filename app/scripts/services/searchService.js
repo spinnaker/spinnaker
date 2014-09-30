@@ -4,11 +4,11 @@ var angular = require('angular');
 angular.module('deckApp')
   .factory('searchService', function($q, $http, settings, $log) {
 
-    var defaultParams = {
-      pageSize: 100
-    };
-
     function search(source, params) {
+      var defaultParams = {
+        pageSize: 100
+      };
+
       return $http({
         url: settings[source + 'Url'] + '/search',
         params: angular.extend(defaultParams, params)
