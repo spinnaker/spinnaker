@@ -15,17 +15,16 @@
  */
 
 
+package com.netflix.spinnaker.orca.echo
 
+import retrofit.http.Body
+import retrofit.http.POST
 
+import javax.xml.ws.Response
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
+interface EchoService {
 
-dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  compile project(":orca-mort")
-  compile project(":orca-echo")
-  testCompile project(":orca-test")
-  testCompile commonDependencies.objenesis
+  @POST('/')
+  Response postBuild(@Body Map notification)
+
 }

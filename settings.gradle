@@ -17,6 +17,7 @@
 include "orca-core",
   "orca-retrofit",
   "orca-bakery",
+  "orca-echo",
   "orca-jedis",
   "orca-kato",
   "orca-mort",
