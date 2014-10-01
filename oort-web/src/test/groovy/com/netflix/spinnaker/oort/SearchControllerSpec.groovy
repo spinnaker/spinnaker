@@ -45,11 +45,12 @@ class SearchControllerSpec extends Specification {
     SearchResultSet resultSetB = Mock(SearchResultSet)
 
     when:
-    List searchResultSets = searchController.search('aBC', null, '', 1, 10)
+    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
+    List searchResultSets = searchController.search(q)
 
     then:
-    1 * searchProviderA.search('aBC', 1, 10) >> resultSetA
-    1 * searchProviderB.search('aBC', 1, 10) >> resultSetB
+    1 * searchProviderA.search('aBC', 1, 10, null) >> resultSetA
+    1 * searchProviderB.search('aBC', 1, 10, null) >> resultSetB
     0 * _
 
     searchResultSets == [resultSetA, resultSetB]
@@ -60,12 +61,13 @@ class SearchControllerSpec extends Specification {
     SearchResultSet resultSetA = Mock(SearchResultSet)
 
     when:
-    List searchResultSets = searchController.search('a', null, 'aws', 1, 10)
+    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'a', platform: 'aws', page: 1, pageSize: 10)
+    List searchResultSets = searchController.search(q)
 
     then:
     1 * searchProviderA.platform >> 'aws'
     1 * searchProviderB.platform >> 'gce'
-    1 * searchProviderA.search('a', 1, 10) >> resultSetA
+    1 * searchProviderA.search('a', 1, 10, null) >> resultSetA
     0 * _
 
     searchResultSets == [resultSetA]
@@ -77,11 +79,12 @@ class SearchControllerSpec extends Specification {
     SearchResultSet resultSetB = Mock(SearchResultSet)
 
     when:
-    List searchResultSets = searchController.search('aBC', ['applications'], '', 1, 10)
+    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', type: ['applications'], page: 1, pageSize: 10)
+    List searchResultSets = searchController.search(q)
 
     then:
-    1 * searchProviderA.search('aBC', ['applications'], 1, 10) >> resultSetA
-    1 * searchProviderB.search('aBC', ['applications'], 1, 10) >> resultSetB
+    1 * searchProviderA.search('aBC', ['applications'], 1, 10, null) >> resultSetA
+    1 * searchProviderB.search('aBC', ['applications'], 1, 10, null) >> resultSetB
     0 * _
 
     searchResultSets == [resultSetA, resultSetB]

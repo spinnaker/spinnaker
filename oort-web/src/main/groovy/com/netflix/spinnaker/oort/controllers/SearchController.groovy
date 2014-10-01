@@ -22,7 +22,6 @@ import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
@@ -41,28 +40,59 @@ class SearchController {
    * @param platform a filter, used to only return results from providers whose platform value matches this
    * @param pageNumber the page number, starting with 1
    * @param pageSize the maximum number of results to return per page
+   * @param filters (optional) a map of key-value pairs to further filter the keys
    * @return a list {@link SearchResultSet)s
    */
   @RequestMapping(value = '/search')
-  List<SearchResultSet> search(
-    @RequestParam(value = 'q') String query,
-    @RequestParam(value = 'type', required = false) List<String> types,
-    @RequestParam(value = 'platform', defaultValue = '') String platform,
-    @RequestParam(value = 'page', defaultValue = '1') Integer pageNumber,
-    @RequestParam(value = 'pageSize', defaultValue = '10') Integer pageSize) {
+  List<SearchResultSet> search(SearchQueryCommand q) {
 
-    log.info("Fetching search results for ${query}, platform: ${platform}, type: ${types}, pageSize: ${pageSize}, pageNumber: ${pageNumber}")
+    log.info("Fetching search results for ${q.q}, platform: ${q.platform}, type: ${q.type}, pageSize: ${q.pageSize}, pageNumber: ${q.page}, filter: ${q.filter}")
 
-    def providers = platform ? searchProviders.findAll {
-      it.platform == platform
-    } : searchProviders
+    def providers = q.platform ?
+      searchProviders.findAll { it.platform == q.platform } :
+      searchProviders
 
     providers.collect {
-      if (types && !types.isEmpty()) {
-        it.search(query, types, pageNumber, pageSize)
+      if (q.type && !q.type.isEmpty()) {
+        it.search(q.q, q.type, q.page, q.pageSize, q.filter)
       } else {
-        it.search(query, pageNumber, pageSize)
+        it.search(q.q, q.page, q.pageSize, q.filter)
       }
     }
   }
+
+  static class SearchQueryCommand {
+    /**
+     * the phrase to query
+     */
+    String q
+
+    /**
+     * (optional) a filter, used to only return results of that type. If no value is supplied, all types will be returned
+     */
+    List<String> type
+
+    /**
+     * a filter, used to only return results from providers whose platform value matches this
+     */
+    String platform = ''
+
+    /**
+     * the page number, starting with 1
+     */
+    Integer page = 1
+
+    /**
+     * the maximum number of results to return per page
+     */
+    Integer pageSize = 10
+
+    /**
+     * (optional) a map of ad-hoc key-value pairs to further filter the keys,
+     * based on the map provided by {@link com.netflix.spinnaker.oort.data.aws.Keys#parse(java.lang.String)}
+     * potential matches must fully intersect the filter map entries
+     */
+    Map<String, String> filter
+  }
+
 }

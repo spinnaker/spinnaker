@@ -65,13 +65,23 @@ class AmazonSearchProvider implements SearchProvider {
 
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize) {
-    List<String> matches = findMatches(query, defaultCaches)
-    generateResultSet(query, matches, pageNumber, pageSize)
+    search(query, pageNumber, pageSize, null)
   }
 
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize) {
-    List<String> matches = findMatches(query, types)
+    search(query, types, pageNumber, pageSize, null)
+  }
+
+  @Override
+  SearchResultSet search(String query, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+    List<String> matches = findMatches(query, defaultCaches, filters)
+    generateResultSet(query, matches, pageNumber, pageSize)
+  }
+
+  @Override
+  SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+    List<String> matches = findMatches(query, types, filters)
     generateResultSet(query, matches, pageNumber, pageSize)
   }
 
@@ -97,13 +107,21 @@ class AmazonSearchProvider implements SearchProvider {
     resultSet
   }
 
-  private List<String> findMatches(String q, List<String> toQuery) {
+  private List<String> findMatches(String q, List<String> toQuery, Map<String, String> filters) {
     log.info("Querying ${toQuery} for term: ${q}")
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
       matches.addAll(cacheService.keysByType(cache).findAll { String key ->
-        key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0
+        if (key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0) {
+          if (!filters) {
+            return true
+          }
+          def parts = Keys.parse(key)
+          filters.entrySet().every { entry ->
+            parts[entry.key] && parts[entry.key] == entry.value
+          }
+        }
       })
     }
     matches.sort { String a, String b ->

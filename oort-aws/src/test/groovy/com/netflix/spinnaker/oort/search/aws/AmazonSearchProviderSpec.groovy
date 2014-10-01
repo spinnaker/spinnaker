@@ -87,6 +87,42 @@ class AmazonSearchProviderSpec extends Specification {
     }
   }
 
+  @Unroll('for query "#query" with filters "#filters", expect "#expected"')
+  void 'filter results via filters and query'() {
+    given:
+    List keys = [
+      Keys.getLoadBalancerKey('elb1', 'prod', 'us-west-1'),
+      Keys.getLoadBalancerKey('elb2', 'test', 'us-east-1'),
+      Keys.getLoadBalancerKey('elb3', 'test', 'us-west-1'),
+      Keys.getLoadBalancerKey('miss', 'test', 'us-west-1')
+    ]
+
+
+    when:
+    SearchResultSet resultSet = searchProvider.search(query, 1, 10, filters)
+
+    then:
+    1 * cacheService.keysByType(Keys.Namespace.APPLICATIONS.ns) >> keys
+    cacheService.keysByType(_) >> []
+    0 * _
+
+    resultSet.results.loadBalancer == expected
+
+    where:
+    query | filters                                 || expected
+    ''    | null                                    || ['elb1', 'elb2', 'elb3', 'miss']
+    'elb' | null                                    || ['elb1', 'elb2', 'elb3']
+    'elb' | [account: 'test']                       || ['elb2', 'elb3']
+    ''    | [region: 'us-west-1']                   || ['elb1', 'elb3', 'miss']
+    ''    | [region: 'us-west-1', account: 'test']  || ['elb3', 'miss']
+    'mis' | [:]                                     || ['miss']
+    'zzz' | [:]                                     || []
+    'elb' | [badparam: 'miss']                      || []
+    'elb' | [region: 'sa-west-1']                   || []
+
+
+  }
+
   void 'ignores key type'() {
     given:
     List keys = [
