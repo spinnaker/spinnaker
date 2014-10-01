@@ -83,16 +83,7 @@ angular.module('deckApp')
       if (serverGroup.region !== loadBalancer.region || loadBalancer.serverGroups.indexOf(serverGroup.name) === -1) {
         return false;
       }
-      // only include if load balancer is fronting an instance
-      try {
-        var elbInstanceIds = _.pluck(loadBalancer.elb.instances, 'instanceId'),
-          serverGroupInstanceIds = _.pluck(serverGroup.instances, 'instanceId');
-        return elbInstanceIds.some(function (elbInstanceId) {
-          return serverGroupInstanceIds.indexOf(elbInstanceId) !== -1;
-        });
-      } catch (e) {
-        return false;
-      }
+      return true;
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
