@@ -13,7 +13,8 @@ angular.module('deckApp')
           return {
             q: term,
             page: page,
-            type: 'namedImages'
+            type: 'namedImages',
+            filter: {region: $scope.command.region}
           };
         },
         results: function(data) {
