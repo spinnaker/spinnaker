@@ -177,9 +177,7 @@ angular.module('deckApp')
     ];
 
     function getCategories() {
-      var deferred = $q.defer();
-      deferred.resolve(categories);
-      return deferred.promise;
+      return $q.when(categories);
     }
 
     function getAllTypesByRegion() {

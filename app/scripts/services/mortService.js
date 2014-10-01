@@ -14,29 +14,29 @@ angular.module('deckApp')
     });
 
     function listSubnets() {
-      var deferred = $q.defer();
       if (subnetsCache.length) {
-        deferred.resolve(subnetsCache);
+        return $q.when(subnetsCache);
       } else {
+        var deferred = $q.defer();
         endpoint.all('subnets').getList().then(function(list) {
           subnetsCache = list;
           deferred.resolve(list);
         });
+        return deferred.promise;
       }
-      return deferred.promise;
     }
 
     function listVpcs() {
-      var deferred = $q.defer();
       if (vpcsCache.length) {
-        deferred.resolve(vpcsCache);
+        return $q.when(vpcsCache);
       } else {
+        var deferred = $q.defer();
         endpoint.all('vpcs').getList().then(function(list) {
           vpcsCache = list;
           deferred.resolve(list);
         });
+        return deferred.promise;
       }
-      return deferred.promise;
     }
 
     return {
