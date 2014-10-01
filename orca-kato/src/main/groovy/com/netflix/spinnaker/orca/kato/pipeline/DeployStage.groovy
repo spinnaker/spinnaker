@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
@@ -52,6 +53,9 @@ class DeployStage extends LinearStage {
     def step5 = steps.get("ForceCacheRefreshStep")
                      .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
                      .build()
-    [step1, step2, step3, step4, step5]
+    def step6 = steps.get("NotifyEchoStep")
+                     .tasklet(buildTask(NotifyEchoTask))
+                     .build()
+    [step1, step2, step3, step4, step5, step6]
   }
 }

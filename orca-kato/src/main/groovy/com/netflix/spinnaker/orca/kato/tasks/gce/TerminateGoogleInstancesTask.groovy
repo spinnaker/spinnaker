@@ -45,7 +45,9 @@ class TerminateGoogleInstancesTask implements Task {
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-                          ["terminate.account.name" : operation.credentials,
+                          [
+                           "notification.type"      : "terminategoogleinstances",
+                           "terminate.account.name" : operation.credentials,
                            "terminate.region"       : operation.zone,
                            "kato.last.task.id"      : taskId,
                            "kato.task.id"           : taskId, // TODO retire this.

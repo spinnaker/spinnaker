@@ -46,7 +46,7 @@ class EchoConfiguration {
     newFixedEndpoint(echoBaseUrl)
   }
 
-  @Bean EchoService echoDeployService(Endpoint echoEndpoint, Gson gson) {
+  @Bean EchoService notificationService(Endpoint echoEndpoint, Gson gson) {
     new RestAdapter.Builder()
       .setEndpoint(echoEndpoint)
       .setClient(retrofitClient)

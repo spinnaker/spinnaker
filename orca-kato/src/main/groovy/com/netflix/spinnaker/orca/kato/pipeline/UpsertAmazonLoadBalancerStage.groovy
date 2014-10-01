@@ -4,6 +4,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import groovy.transform.CompileStatic
@@ -30,6 +31,10 @@ class UpsertAmazonLoadBalancerStage extends LinearStage {
       .tasklet(buildTask(MonitorKatoTask))
       .build()
 
-    [step1, step2]
+    def step3 = steps.get("NotifyEchoStep")
+      .tasklet(buildTask(NotifyEchoTask))
+      .build()
+
+    [step1, step2, step3]
   }
 }

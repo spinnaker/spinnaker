@@ -25,6 +25,6 @@ import javax.xml.ws.Response
 interface EchoService {
 
   @POST('/')
-  Response postBuild(@Body Map notification)
+  Response recordEvent(@Body HashMap notification)
 
 }

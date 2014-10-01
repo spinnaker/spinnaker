@@ -55,7 +55,10 @@ class DestroyGoogleReplicaPoolStage extends LinearStage {
     def step5 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
+    def step6 = steps.get("NotifyEchoStep")
+                     .tasklet(buildTask(NotifyEchoTask))
+                     .build()
 
-    [step1, resizeSteps, step2, step3, step4, step5].flatten().toList()
+    [step1, resizeSteps, step2, step3, step4, step5, step6].flatten().toList()
   }
 }

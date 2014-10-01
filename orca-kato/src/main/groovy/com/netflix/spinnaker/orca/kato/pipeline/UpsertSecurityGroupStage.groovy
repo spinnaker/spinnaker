@@ -15,13 +15,11 @@
  */
 
 
-
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertSecurityGroupTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import groovy.transform.CompileStatic
@@ -52,6 +50,10 @@ class UpsertSecurityGroupStage extends LinearStage {
       .tasklet(buildTask(WaitForUpsertedSecurityGroupTask))
       .build()
 
-    [step1, step2, step3]
+    def step4 = steps.get("NotifyEchoStep")
+      .tasklet(buildTask(NotifyEchoTask))
+      .build()
+
+    [step1, step2, step3, step4]
   }
 }

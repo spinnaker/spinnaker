@@ -45,6 +45,7 @@ class DeleteAmazonLoadBalancerTask implements Task {
       .first()
 
     Map outputs = [
+      "notification.type"  : "deleteamazonloadbalancer",
       "kato.last.task.id"  : taskId,
       "kato.task.id"       : taskId, // TODO retire this.
       "delete.name"        : deleteAmazonLoadBalancerOperation.loadBalancerName,

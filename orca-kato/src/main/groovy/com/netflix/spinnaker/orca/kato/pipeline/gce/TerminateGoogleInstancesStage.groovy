@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.TerminateGoogleInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
@@ -48,6 +49,10 @@ class TerminateGoogleInstancesStage extends LinearStage {
       .tasklet(buildTask(WaitForTerminatedInstancesTask))
       .build()
 
-    [step1, step2, step3]
+    def step4 = steps.get("NotifyEchoStep")
+      .tasklet(buildTask(NotifyEchoTask))
+      .build()
+
+    [step1, step2, step3, step4]
   }
 }

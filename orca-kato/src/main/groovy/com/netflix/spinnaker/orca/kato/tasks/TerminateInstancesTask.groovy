@@ -45,7 +45,8 @@ class TerminateInstancesTask implements Task {
       .first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-      ["terminate.account.name" : operation.credentials,
+      ["notification.type"      : "terminateinstances",
+       "terminate.account.name" : operation.credentials,
        "terminate.region"       : operation.region,
        "kato.last.task.id"      : taskId,
        "kato.task.id"           : taskId, // TODO retire this.

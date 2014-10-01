@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
@@ -48,6 +49,10 @@ class TerminateInstancesStage extends LinearStage {
       .tasklet(buildTask(WaitForTerminatedInstancesTask))
       .build()
 
-    [step1, step2, step3]
+    def step4 = steps.get("NotifyEchoStep")
+      .tasklet(buildTask(NotifyEchoTask))
+      .build()
+
+    [step1, step2, step3, step4]
   }
 }
