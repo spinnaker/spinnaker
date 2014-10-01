@@ -7,7 +7,6 @@ angular.module('deckApp')
   .controller('SecurityGroupsNavCtrl', function ($scope, application, _) {
 
     $scope.application = application;
-    $scope.securityGroups = application.securityGroups;
 
     $scope.sortField = 'accountName';
 
@@ -18,12 +17,12 @@ angular.module('deckApp')
     ];
 
     this.getHeadings = function getHeadings() {
-      var allValues = _.collect($scope.securityGroups, $scope.sortField);
+      var allValues = _.collect(application.securityGroups, $scope.sortField);
       return _.compact(_.unique(allValues)).sort();
     };
 
     this.getSecurityGroupsFor = function getSecurityGroupsFor(value) {
-      return $scope.securityGroups.filter(function (securityGroup) {
+      return application.securityGroups.filter(function (securityGroup) {
         return securityGroup[$scope.sortField] === value;
       });
     };

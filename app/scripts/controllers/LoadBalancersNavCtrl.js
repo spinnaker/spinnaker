@@ -23,7 +23,7 @@ angular.module('deckApp')
     };
 
     this.getLoadBalancersFor = function getLoadBalancersFor(value) {
-      return $scope.loadBalancers.filter(function (loadBalancer) {
+      return application.loadBalancers.filter(function (loadBalancer) {
         return loadBalancer[$scope.sortField] === value;
       });
     };

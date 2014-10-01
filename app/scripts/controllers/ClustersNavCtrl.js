@@ -60,7 +60,7 @@ angular.module('deckApp')
     };
 
     this.getClustersFor = function getClustersFor(value) {
-      return $scope.clusters.filter(function (cluster) {
+      return application.clusters.filter(function (cluster) {
         if ($scope.sortFilter.sortPrimary === 'region') {
           return cluster.serverGroups.some(function(serverGroup) {
             return serverGroup.region === value;

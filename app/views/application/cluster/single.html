@@ -7,19 +7,6 @@
     <span class="glyphicon glyphicon-th-large"></span>
     {{account}}: {{cluster.name}}
   </h3>
-
-  <div class="application-actions">
-    <div class="dropdown">
-      <button type="button" class="btn btn-sm btn-default dropdown-toggle" ng-disabled="disabled">
-        Cluster Actions <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li class="dropdown-header">INSIGHT</li>
-        <li><a href="#">View in Atlas</a></li>
-        <li><a href="#">View in Chronos</a></li>
-      </ul>
-    </div>
-  </div>
 </div>
 <div ng-include="'views/application/cluster/filters.html'"></div>
 <div class="rollup content">
