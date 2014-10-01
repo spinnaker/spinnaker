@@ -44,12 +44,8 @@ class ResizeGoogleReplicaPoolDescriptionValidator extends DescriptionValidator<R
       }
     }
 
-    if (!description.application) {
-      errors.rejectValue "application", "resizeGoogleReplicaPoolDescription.application.empty"
-    }
-
-    if (!description.stack) {
-      errors.rejectValue "stack", "resizeGoogleReplicaPoolDescription.stack.empty"
+    if (!description.replicaPoolName) {
+      errors.rejectValue "replicaPoolName", "resizeGoogleReplicaPoolDescription.replicaPoolName.empty"
     }
 
     if (description.numReplicas < 0) {

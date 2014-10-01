@@ -168,4 +168,27 @@ class AutoScalingWorkerUnitSpec extends Specification {
     worker.getAutoScalingGroupName(0) == "foo-bar--us-east-1c"
   }
 
+  void "should lookup security groups when appropriate"() {
+    setup:
+    def mockAutoScalingWorker = Spy(AutoScalingWorker)
+    mockAutoScalingWorker.application = "myasg"
+    mockAutoScalingWorker.securityGroups = ["sg-12345", "mysecurityGroup"]
+    mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
+      1 * getSecurityGroupForApplication("myasg")
+      1 * createSecurityGroup("myasg", null) >> "sg-1234"
+      1 * getSecurityGroupIds(["mysecurityGroup"]) >> ["mysecurityGroup": "sg-0000"]
+    }
+
+    when:
+    mockAutoScalingWorker.deploy()
+
+    then:
+    1 * mockAutoScalingWorker.getUserData(_, _) >> null
+    1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
+
+    1 * mockAutoScalingWorker.getAncestorAsg() >> null
+    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> { "launchConfigName" }
+    1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
+  }
+
 }

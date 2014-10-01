@@ -19,8 +19,7 @@ package com.netflix.spinnaker.kato.deploy.gce.description
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class DeleteGoogleReplicaPoolDescription {
-  String application
-  String stack
+  String replicaPoolName
   String zone
   String accountName
   GoogleCredentials credentials
