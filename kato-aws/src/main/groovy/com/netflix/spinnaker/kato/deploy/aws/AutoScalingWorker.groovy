@@ -128,7 +128,7 @@ class AutoScalingWorker {
       }
       if (securityGroupsWithNames) {
         def lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames)
-        securityGroupsWithIds.addAll(lookedUpIds)
+        securityGroupsWithIds.addAll(lookedUpIds.values())
       }
       securityGroups = securityGroupsWithIds
     } else {
