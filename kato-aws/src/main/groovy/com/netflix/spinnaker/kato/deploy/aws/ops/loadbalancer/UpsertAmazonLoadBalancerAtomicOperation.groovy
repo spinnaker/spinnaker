@@ -134,7 +134,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         // Apply listeners...
         if (listeners) {
           def ports = loadBalancer.listenerDescriptions.collect { it.listener.loadBalancerPort }
-          loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerName, ports))
+          if (ports) {
+            loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerName, ports))
+          }
           loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, listeners))
           task.updateStatus BASE_PHASE, "New listeners applied for ${loadBalancerName} in ${region}!"
         }
