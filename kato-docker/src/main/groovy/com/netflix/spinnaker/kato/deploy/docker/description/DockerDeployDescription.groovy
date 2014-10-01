@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kato.deploy.DeployDescription
 
 class DockerDeployDescription extends AbstractDockerCredentialsDescription implements DeployDescription {
   String application
+  String stack
   String version
   String command
   Map<String, String> envVars = [:]

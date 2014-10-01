@@ -95,8 +95,9 @@ class DockerDeployHandler implements DeployHandler<DockerDeployDescription> {
         NetworkDisabled: false
       ]
 
+      containerConfig.Env = ["SPINNAKER_APP=${description.application}".toString(), "SPINNAKER_STACK=${description.stack}".toString()]
       if (description.envVars) {
-        containerConfig.Env = description.envVars
+        containerConfig.Env.addAll(description.envVars.collect { k,v -> "$k=$v".toString() })
       }
       if (description.command) {
         containerConfig.Cmd = ['/bin/bash', '-c', description.command]

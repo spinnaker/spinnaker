@@ -14,6 +14,7 @@ This description supplies the +DockerDeployHandler+ with the inputs necessary to
 [{
     "deployDockerDescription": {
         "application": "kato",
+        "stack": "main",
         "version": "latest",
         "config": {
             "ports": [{
@@ -57,6 +58,7 @@ This description supplies the +DockerDeployHandler+ with the inputs necessary to
 |application              | string  | true     | The name of the application to which this deployment is concerned. This will be used to resolve the application image from the repository.
 |version                  | string  | true     | The version of the application's image. This, matched with the application name, will be used to resolve the appropriate Image ID from which the container will be created.
 |credentials              | string  | true     | The named account credentials that are to be used for this operation.
+|stack                    | string  | false    | The stack within which this deployment is to be associated.
 |command                  | string  | false    | A command to be executed within the container at startup. This is only necessary if the image does not define a startup command.
 |envVars                  | object  | false    | An object of key-to-value correlation which will be injected into the container as environment variables. Example: +{ "ENVIRONMENT": "test" }+, will set the environment variable +ENVIRONMENT+ to +test+ on the container's runtime.
 |publishPorts             | boolean | false    | Indicates whether all ports from the container should be published to the host. If this value is +true+, then random host ports will be chosen.
