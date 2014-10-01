@@ -111,7 +111,7 @@ angular.module('deckApp')
       loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
       loadBalancer.availabilityZones = {};
       loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones;
-      if (!loadBalancer.vpcId) {
+      if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
         loadBalancer.securityGroups = null;
       }
       return executeTask({
