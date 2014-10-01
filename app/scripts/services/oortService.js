@@ -100,7 +100,7 @@ angular.module('deckApp')
           var application = applicationLoader.application;
           var securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
           var loadBalancerAccounts = _(applicationLoader.loadBalancersByApplicationName).pluck('account').unique().value();
-          application.accounts = _([applicationLoader.accounts, securityGroupAccounts, loadBalancerAccounts])
+          application.accounts = _([applicationLoader.application.accounts, securityGroupAccounts, loadBalancerAccounts])
             .flatten()
             .compact()
             .unique()
