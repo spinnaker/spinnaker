@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.deploy.docker.description.DockerDeployDescription
+import com.netflix.spinnaker.kato.security.docker.Docker
 import com.netflix.spinnaker.kato.services.docker.RegistryService
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,11 @@ import org.springframework.web.client.RestTemplate
 
 @Component
 class DockerDeployHandler implements DeployHandler<DockerDeployDescription> {
+  private static final String APP_ENV_KEY = "SPINNAKER_APP"
+  private static final String STACK_ENV_KEY = "SPINNAKER_STACK"
+  private static final String SEQ_ENV_VAR = "SPINNAKER_PUSH"
   private static final String BASE_PHASE = "DOCKER_DEPLOY"
+
   private static final HttpHeaders headers = new HttpHeaders() {
     {
       put "Content-type", ["application/json"]
@@ -95,7 +100,12 @@ class DockerDeployHandler implements DeployHandler<DockerDeployDescription> {
         NetworkDisabled: false
       ]
 
-      containerConfig.Env = ["SPINNAKER_APP=${description.application}".toString(), "SPINNAKER_STACK=${description.stack}".toString()]
+      def sequence = getAncestorContainer(description.application, description.stack, description.credentials.credentials)
+      containerConfig.Env = ["${APP_ENV_KEY}=${description.application}".toString(),
+                             "${SEQ_ENV_VAR}=${String.format("v%03d", sequence)}".toString()]
+      if (description.stack) {
+        containerConfig.Env << "${STACK_ENV_KEY}=${description.stack}".toString()
+      }
       if (description.envVars) {
         containerConfig.Env.addAll(description.envVars.collect { k,v -> "$k=$v".toString() })
       }
@@ -167,6 +177,27 @@ class DockerDeployHandler implements DeployHandler<DockerDeployDescription> {
       default:
         "ok"
     }
+  }
+
+  private Integer getAncestorContainer(String app, String stack, Docker docker) {
+    int seq = 0
+    try {
+      List<Map> allContainers = restTemplate.getForObject("${docker.url}/containers/json", List)
+      for (container in allContainers) {
+        Map fullContainerObj = restTemplate.getForObject("${docker.url}/containers/${container.Id}/json", Map)
+        List<String> env = fullContainerObj.Config.Env
+        def appName = env.find { it.split('=')[0] == APP_ENV_KEY }
+        def stackName = env.find { it.split('=')[0] == STACK_ENV_KEY }
+        def sequence = env.find { it.split('=')[0] == SEQ_ENV_VAR }
+        if (appName == app && (stack && stack == stackName) && sequence) {
+          seq = Integer.valueOf(sequence)
+        }
+      }
+    } catch (e) {
+      e.printStackTrace()
+      throw new DockerDeployFailedException("Error while resolving container ancestry", e)
+    }
+    seq
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Docker deployable was not found")
