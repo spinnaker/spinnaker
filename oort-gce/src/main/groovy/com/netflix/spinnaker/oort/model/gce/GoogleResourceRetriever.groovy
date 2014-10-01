@@ -94,6 +94,8 @@ class GoogleResourceRetriever {
 
             def cluster = tempAppMap[appName].clusters[accountName][names.cluster]
 
+            tempAppMap[appName].clusterNames[accountName] << names.cluster
+
             // pool.name == names.group
             def googleServerGroup = new GoogleServerGroup(pool.name, GOOGLE_SERVER_GROUP_TYPE, REGION)
             googleServerGroup.zones << ZONE
