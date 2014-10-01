@@ -102,7 +102,11 @@ angular.module('deckApp')
 
     this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
 
-    this.updateSecurityGroups();
+    application.onAutoRefresh = function() {
+      updateSecurityGroups();
+    };
+
+    application.onAutoRefresh();
 
   }
 );
