@@ -76,7 +76,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
     sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(amiId).withLaunchPermission(new LaunchPermissionModifications()
       .withAdd(new LaunchPermission().withUserId(String.valueOf(targetCredentials.accountId)))))
 
-    def request = new DescribeTagsRequest(filters: [new Filter(name: "resource-id", values: [description.amiName])])
+    def request = new DescribeTagsRequest(filters: [new Filter(name: "resource-id", values: [amiId])])
 
     def targetTags = new TagsRetriever(targetAmazonEC2).retrieve(request)
     def tagsToRemoveFromTarget = targetTags.collect { new Tag(key: it.key) }
