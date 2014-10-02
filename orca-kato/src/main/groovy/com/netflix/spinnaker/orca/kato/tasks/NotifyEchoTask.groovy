@@ -31,14 +31,16 @@ class NotifyEchoTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
 
+    def inputs = context.getInputs()
+
     echo.recordEvent(
       [
         "details": [
           "source": "kato",
-          "type"  : context.inputs."notification.type",
-          "application" : context.inputs.application
+          "type"  : inputs."notification.type",
+          "application" : inputs.application
         ],
-        "content": context.inputs
+        "content": inputs
       ]
     )
 
