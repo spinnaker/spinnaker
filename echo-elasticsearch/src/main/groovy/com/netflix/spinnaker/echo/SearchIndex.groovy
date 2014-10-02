@@ -123,8 +123,8 @@ class SearchIndex {
             """
         )
 
-        [total         : result.jsonObject.hits.get('total').asLong,
-         hits          : result.jsonObject.hits.hits.collect {
+        [total         : result.jsonObject.hits?.get('total').asLong ?: -1,
+         hits          : result.jsonObject.hits?.hits.collect {
              def fields = it.fields
              full ? get(
                  fields.get('source').asString,
@@ -136,7 +136,7 @@ class SearchIndex {
                  id     : fields.get('_content_id').asString,
                  created: fields.get('created').asString
              ]
-         },
+         } ?: [],
          paginationFrom: from,
          paginationSize: size
         ]
