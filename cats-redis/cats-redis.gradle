@@ -1,0 +1,4 @@
+dependencies {
+  compile project(':cats-core')
+  compile 'redis.clients:jedis:2.5.2'
+}

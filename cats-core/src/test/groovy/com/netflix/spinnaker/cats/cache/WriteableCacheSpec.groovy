@@ -38,6 +38,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 1
         bar.attributes.merge1 == 'merge1'
 
@@ -46,6 +47,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 2
         bar.attributes.merge1 == 'merge1'
         bar.attributes.merge2 == 'merge2'
@@ -59,6 +61,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 1
         bar.attributes.merge1 == 'merge1'
 
@@ -67,6 +70,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 1
         bar.attributes.merge2 == 'merge2'
     }
@@ -88,13 +92,16 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def allFoo = cache.getAll('foo')
 
         then:
+        bar != null
         bar.id == 'bar'
         bar.attributes.size() == 2
         bar.attributes.att1 == 'val1'
         bar.attributes.att2 == 'val2'
+        bar2 != null
         bar2.id == 'bar2'
         bar2.attributes.size() == 1
         bar2.attributes.bar2 == 'bar2'
+        allFoo != null
         allFoo.size() == 2
     }
 
@@ -146,6 +153,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def allFoo = cache.getAll('foo')
 
         then:
+        allFoo != null
         allFoo.size() == 5
 
         when:
@@ -153,6 +161,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         allFoo = cache.getAll('foo')
 
         then:
+        allFoo != null
         allFoo.size() == 3
 
         when:
@@ -160,6 +169,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         allFoo = cache.getAll('foo')
 
         then:
+        allFoo != null
         allFoo.isEmpty()
 
         when:
