@@ -38,7 +38,7 @@ import rx.functions.Func2
 import rx.schedulers.Schedulers
 
 
-@Component
+//@Component
 @CompileStatic
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Autowired

@@ -42,7 +42,6 @@ class BastionCredentialsInitializer implements CredentialsInitializer {
   void init() {
     def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
         bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
-
     provider.refresh()
 
     for (account in awsConfigurationProperties.accounts) {

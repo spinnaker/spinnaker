@@ -22,6 +22,7 @@ package com.netflix.spinnaker.oort.model
  * @author Dan Woods
  */
 interface Instance {
+  static final String DATA_TYPE = Instance.simpleName
   /**
    * The name of the instance
    *

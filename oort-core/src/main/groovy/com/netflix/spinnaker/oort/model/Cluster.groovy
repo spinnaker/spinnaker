@@ -24,6 +24,8 @@ import com.netflix.spinnaker.oort.documentation.Empty
  * @author Dan Woods
  */
 interface Cluster {
+  static final String DATA_TYPE = Cluster.simpleName
+
   /**
    * The name of the cluster
    *

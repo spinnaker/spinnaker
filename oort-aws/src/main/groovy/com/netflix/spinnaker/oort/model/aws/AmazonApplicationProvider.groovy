@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.schedulers.Schedulers
 
-@Component
+//@Component
 class AmazonApplicationProvider implements ApplicationProvider {
 
   @Autowired

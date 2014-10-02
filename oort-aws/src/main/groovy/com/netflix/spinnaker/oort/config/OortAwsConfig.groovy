@@ -82,28 +82,26 @@ class OortAwsConfig {
         if (account.front50Enabled) {
           autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
         }
-        for (region in (account?.regions ?: [])) {
-          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(account, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(account, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(account, region.name)
-          if (account.eddaEnabled) {
-            autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(account, region.name, eddaApiFactory)
-          }
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(account, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(account, region.name)
-          if (account.discoveryEnabled) {
-            discoveryAccounts[account.discovery][region.name].add(account)
-          }
+        for (region in account.regions) {
+          //autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(account, region.name)
+          //autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(account, region.name)
+          //autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(account, region.name)
+          //if (account.eddaEnabled) {
+            //autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(account, region.name, eddaApiFactory)
+          //}
+          //if (account.front50Enabled) {
+            //autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
+          //}
+          //autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(account, region.name)
+          //autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(account, region.name)
+          //if (account.discoveryEnabled) {
+            //discoveryAccounts[account.discovery][region.name].add(account)
+          //}
         }
       }
-      for (discMap in discoveryAccounts) {
-        def actMap = discMap.value
-
-        for (regionEntry in actMap) {
-          def region = regionEntry.key
-          def accounts = regionEntry.value
-
-            autowireAndInitialize(InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory))
+      discoveryAccounts.each { disco, actMap ->
+        actMap.each { region, accounts ->
+          //autowireAndInitialize InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory)
         }
       }
     }
