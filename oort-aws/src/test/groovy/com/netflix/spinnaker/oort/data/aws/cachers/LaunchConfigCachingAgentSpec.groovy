@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
-import com.netflix.spinnaker.oort.data.aws.cachers.LaunchConfigCachingAgent
+import com.netflix.spinnaker.oort.data.aws.Keys
 
 class LaunchConfigCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override

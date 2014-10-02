@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.data.aws.cachers.ImageCachingAgent
+import com.netflix.spinnaker.oort.data.aws.Keys
 
 class ImageCachingAgentSpec extends AbstractCachingAgentSpec {
 

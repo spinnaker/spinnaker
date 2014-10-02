@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.ec2.model.*
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.data.aws.cachers.InstanceCachingAgent.InstanceStateValue
 
 class InstanceCachingAgentSpec extends AbstractCachingAgentSpec {

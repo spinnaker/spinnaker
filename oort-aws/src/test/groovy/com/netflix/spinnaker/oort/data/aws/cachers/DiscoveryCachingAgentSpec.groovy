@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
-import com.netflix.spinnaker.oort.data.aws.cachers.DiscoveryCachingAgent
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApi
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryApplications

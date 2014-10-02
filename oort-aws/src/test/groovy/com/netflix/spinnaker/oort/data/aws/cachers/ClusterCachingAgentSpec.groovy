@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
-import com.netflix.spinnaker.oort.data.aws.cachers.ClusterCachingAgent
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.aws.AmazonApplication
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup

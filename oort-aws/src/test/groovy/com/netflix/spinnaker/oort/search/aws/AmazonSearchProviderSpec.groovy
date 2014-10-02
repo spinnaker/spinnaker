@@ -220,6 +220,6 @@ class AmazonSearchProviderSpec extends Specification {
     results.totalMatches == 2
     results.results == []
   }
-  
-  
+
+
 }

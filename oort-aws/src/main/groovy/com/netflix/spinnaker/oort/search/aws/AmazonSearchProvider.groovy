@@ -43,7 +43,7 @@ class AmazonSearchProvider implements SearchProvider {
     Keys.Namespace.SERVER_GROUP_INSTANCES.ns,
     Keys.Namespace.SERVER_GROUPS.ns
   ]
-  
+
   static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
 
   static Map<String, Template> urlMappings = [

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.data.aws
+package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.data.aws.cachers.AbstractInfrastructureCachingAgent
-import com.netflix.spinnaker.oort.data.aws.cachers.LoadBalancerCachingAgent
+import com.netflix.spinnaker.oort.data.aws.Keys
 
 class LoadBalancerCachingAgentSpec extends AbstractCachingAgentSpec {
   @Override

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.oort.data.aws.cachers
 
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.config.edda.EddaApi
-import com.netflix.spinnaker.oort.data.aws.AbstractCachingAgentSpec
 import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.edda.InstanceLoadBalancerState
