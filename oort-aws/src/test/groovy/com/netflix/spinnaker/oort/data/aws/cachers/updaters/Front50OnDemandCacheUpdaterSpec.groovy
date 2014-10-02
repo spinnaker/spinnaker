@@ -60,10 +60,10 @@ class Front50OnDemandCacheUpdaterSpec extends Specification {
   void "should invoke the front50 caching agent to update applications for this account and region"() {
     setup:
     def mockAgent = Mock(Front50ApplicationCachingAgent)
-    InfrastructureCachingAgentFactory.getFront50CachingAgent(credentials, region) >> mockAgent
+    InfrastructureCachingAgentFactory.getFront50CachingAgent(credentials) >> mockAgent
 
     when:
-    updater.handle([account: "test", region: region])
+    updater.handle([account: "test"])
 
     then:
     1 * mockAgent.load()

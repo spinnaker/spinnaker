@@ -26,8 +26,8 @@ class Front50ApplicationCachingAgent extends AbstractInfrastructureCachingAgent 
   @Autowired
   RestTemplate restTemplate
 
-  Front50ApplicationCachingAgent(NetflixAmazonCredentials account, String region) {
-    super(account, region)
+  Front50ApplicationCachingAgent(NetflixAmazonCredentials account) {
+    super(account, null)
   }
 
   private Set<String> lastKnown = []
@@ -56,6 +56,6 @@ class Front50ApplicationCachingAgent extends AbstractInfrastructureCachingAgent 
   }
 
   def getCachePrefix() {
-    "[caching:${region}:${account.name}:f50]"
+    "[caching:${account.name}:f50]"
   }
 }

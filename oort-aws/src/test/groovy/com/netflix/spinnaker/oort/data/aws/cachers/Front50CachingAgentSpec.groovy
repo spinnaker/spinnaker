@@ -34,7 +34,7 @@ class Front50CachingAgentSpec extends Specification {
   CacheService cacheService
 
   @Subject
-  Front50ApplicationCachingAgent front50 = new Front50ApplicationCachingAgent(creds, "us-west-1")
+  Front50ApplicationCachingAgent front50 = new Front50ApplicationCachingAgent(creds)
 
   def setup() {
     cacheService = Mock(CacheService)

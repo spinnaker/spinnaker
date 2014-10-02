@@ -89,7 +89,7 @@ class OortAwsConfig {
             autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(account, region.name, eddaApiFactory)
           }
           if (account.front50Enabled) {
-            autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account, region.name)
+            autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
           }
           autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(account, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(account, region.name)

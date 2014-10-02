@@ -32,8 +32,8 @@ class InfrastructureCachingAgentFactory {
     new ClusterCachingAgent(account, region)
   }
 
-  static InfrastructureCachingAgent getFront50CachingAgent(NetflixAmazonCredentials account, String region) {
-    new Front50ApplicationCachingAgent(account, region)
+  static InfrastructureCachingAgent getFront50CachingAgent(NetflixAmazonCredentials account) {
+    new Front50ApplicationCachingAgent(account)
   }
 
   static InfrastructureCachingAgent getInstanceCachingAgent(NetflixAmazonCredentials account, String region) {

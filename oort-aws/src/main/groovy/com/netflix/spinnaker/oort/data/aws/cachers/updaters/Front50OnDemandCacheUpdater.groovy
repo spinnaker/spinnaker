@@ -41,12 +41,8 @@ class Front50OnDemandCacheUpdater implements OnDemandCacheUpdater {
     if (!data.containsKey("account")) {
       return
     }
-    if (!data.containsKey("region")) {
-      return
-    }
 
     def account = data.account as String
-    def region = data.region as String
 
     def credentials = accountCredentialsProvider.getCredentials(account)
     if (!credentials) {
@@ -56,12 +52,12 @@ class Front50OnDemandCacheUpdater implements OnDemandCacheUpdater {
       return
     }
 
-    def cachingAgent = getWiredCachingAgent(credentials, region)
+    def cachingAgent = getWiredCachingAgent(credentials)
     cachingAgent.load()
   }
 
-  private def getWiredCachingAgent(NetflixAmazonCredentials credentials, String region) {
-    (Front50ApplicationCachingAgent) autowire(InfrastructureCachingAgentFactory.getFront50CachingAgent(credentials, region))
+  private def getWiredCachingAgent(NetflixAmazonCredentials credentials) {
+    (Front50ApplicationCachingAgent) autowire(InfrastructureCachingAgentFactory.getFront50CachingAgent(credentials))
   }
 
   def autowire(obj) {
