@@ -1,9 +1,9 @@
-<div class="modal-pages" multi-page-modal ng-switch="page">
-  <div ng-switch-when="0" class="modal-page" modal-page>
-    <ng-include src="'views/application/modal/securityGroup/createSecurityGroupPage1.html'"></ng-include>
-  </div>
-  <div ng-switch-when="1" class="modal-page" modal-page>
-    <ng-include src="'views/application/modal/securityGroup/createSecurityGroupPage2.html'"></ng-include>
-  </div>
-  <div class="clearfix"></div>
-</div>
+
+<modal-wizard heading="Create New Security Group">
+  <wizard-page key="Location" label="Location">
+    <ng-include src="'views/application/modal/securityGroup/createSecurityGroupProperties.html'"></ng-include>
+  </wizard-page>
+  <wizard-page key="Ingress" label="Ingress" done="true">
+    <ng-include src="'views/application/modal/securityGroup/createSecurityGroupIngress.html'"></ng-include>
+  </wizard-page>
+</modal-wizard>

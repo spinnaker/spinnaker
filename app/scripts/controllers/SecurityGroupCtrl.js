@@ -21,7 +21,7 @@ angular.module('deckApp')
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
-        templateUrl: 'views/application/modal/securityGroup/createSecurityGroupPage2.html',
+        templateUrl: 'views/application/modal/securityGroup/editSecurityGroup.html',
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {
