@@ -42,7 +42,7 @@ class MonitorKatoTask implements RetryableTask {
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     TaskResult.Status status = katoStatusToTaskStatus(katoTask.status)
 
-    if (status != TaskResult.Status.FAILED && status != TaskResult.Status.SUCCEEDED) {
+    if (status != TaskResult.Status.TERMINAL && status != TaskResult.Status.SUCCEEDED) {
       status = TaskResult.Status.RUNNING
     }
 
@@ -50,7 +50,7 @@ class MonitorKatoTask implements RetryableTask {
     if (status == TaskResult.Status.SUCCEEDED) {
       outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
     }
-    if (status == TaskResult.Status.SUCCEEDED || status == TaskResult.Status.FAILED) {
+    if (status == TaskResult.Status.SUCCEEDED || status == TaskResult.Status.TERMINAL) {
       List<Map<String, Object>> katoTasks = []
       if (context.inputs.containsKey("kato.tasks")) {
         katoTasks = context.inputs."kato.tasks" as List<Map<String, Object>>
@@ -65,7 +65,7 @@ class MonitorKatoTask implements RetryableTask {
 
   private static TaskResult.Status katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
-      return TaskResult.Status.FAILED
+      return TaskResult.Status.TERMINAL
     } else if (katoStatus.completed) {
       return TaskResult.Status.SUCCEEDED
     } else {
