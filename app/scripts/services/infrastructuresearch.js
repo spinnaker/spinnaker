@@ -28,7 +28,7 @@ angular.module('deckApp')
         .distinctUntilChanged()
         .flatMapLatest(function(query) {
           if (!query || !angular.isDefined(query) || query.length < 1) {
-            return RxService.Observable.just({ data: [{ results: [] }] });
+            return RxService.Observable.just(searchService.getFallbackResults());
           }
           return RxService.Observable.fromPromise(searchService.search('oort', {
             q: query,

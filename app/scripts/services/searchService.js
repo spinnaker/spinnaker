@@ -4,6 +4,10 @@ var angular = require('angular');
 angular.module('deckApp')
   .factory('searchService', function($q, $http, settings, $log) {
 
+    function getFallbackResults() {
+      return { results: [] };
+    }
+
     function search(source, params) {
       var defaultParams = {
         pageSize: 100
@@ -19,12 +23,13 @@ angular.module('deckApp')
           },
           function (response) {
             $log.error(response.data, response);
-            return { results: [] };
+            return getFallbackResults();
           }
         );
     }
 
     return {
-      search: search
+      search: search,
+      getFallbackResults: getFallbackResults
     };
   });
