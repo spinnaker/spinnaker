@@ -16,6 +16,7 @@
         <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}}:{{loadBalancer.region}} with that name."></validation-error>
       </div>
     </div>
+    <kato-error error-wrapper="state" title="We could not create your load balancer."></kato-error>
     <account-select-field component="loadBalancer" field="credentials" accounts="accounts" on-change="ctrl.accountUpdated()"></account-select-field>
     <region-select-field component="loadBalancer" field="region" account="loadBalancer.credentials" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
     <div class="form-group">
@@ -35,11 +36,8 @@
     <button class="btn btn-default pull-left"
             ng-click="ctrl.cancel()">Cancel
     </button>
-    <button class="btn btn-primary"
-            ng-disabled="!form.$valid || !state.accountsLoaded"
-            ng-click="ctrl.submit()">
-      <span class="glyphicon glyphicon-ok-circle"></span> {{isNew ? 'Create' : 'Update'}}
-    </button>
+    <submit-button is-disabled="!form.$valid || !state.accountsLoaded || state.submitting"
+             submitting="state.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
     <button class="btn btn-primary"
             ng-disabled="!form.$valid || loadBalancer.regionZones.length === 0"
             ng-click="wizard.markComplete('Location'); wizard.nextPage()">

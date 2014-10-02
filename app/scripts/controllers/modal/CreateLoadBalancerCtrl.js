@@ -4,7 +4,7 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService, isNew) {
+  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService, isNew, $exceptionHandler) {
 
     var ctrl = this;
 
@@ -13,7 +13,9 @@ angular.module('deckApp')
     $scope.state = {
       securityGroupsLoaded: false,
       accountsLoaded: false,
-      loadBalancerNamesLoaded: false
+      loadBalancerNamesLoaded: false,
+      submitting: false,
+      katoError: null
     };
 
     var allSecurityGroups = {},
@@ -198,9 +200,27 @@ angular.module('deckApp')
 
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';
-      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor).then(function(response) {
-        $modalInstance.close();
-        console.warn('task:', response.ref);
+
+      $scope.state.submitting = true;
+      $scope.state.katoError = null;
+
+      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor).then(function(task) {
+        task.watchForKatoCompletion().then(
+          function(updatedTask) { // kato succeeded
+            $modalInstance.close();
+            updatedTask.watchForForceRefresh().then(
+              function() { // cache has been refreshed; object should be available
+                application.refreshImmediately();
+              },
+              function(task) { // cache refresh never happened?
+                $exceptionHandler('task failed to force cache refresh:', task);
+              }
+            );
+          },
+          function(updatedTask) { // kato failed
+            $scope.state.submitting = false;
+            $scope.state.katoError = updatedTask.failureMessage || 'There was an unknown server error.';
+          });
       });
     };
 

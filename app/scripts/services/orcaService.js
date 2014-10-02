@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
@@ -20,7 +20,11 @@ angular.module('deckApp')
           application: task.application,
         }),
       });
-      return scheduler.scheduleOnCompletion(endpoint.post(task));
+      var op = endpoint.post(task).then(function(task) {
+        var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
+        return pond.one('tasks', taskId).get();
+      });
+      return scheduler.scheduleOnCompletion(op);
     }
 
     function destroyServerGroup(serverGroup, applicationName) {

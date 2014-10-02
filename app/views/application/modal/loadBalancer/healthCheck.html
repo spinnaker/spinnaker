@@ -33,10 +33,7 @@
             ng-click="wizard.previousPage()">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
-    <button class="btn btn-primary"
-            ng-disabled="!form.$valid || !wizard.isComplete()"
-            ng-click="ctrl.submit()">
-      <span class="glyphicon glyphicon-ok-circle"></span> {{isNew ? 'Create' : 'Update'}}
-    </button>
+    <submit-button is-disabled="!form.$valid || !wizard.isComplete() || state.submitting"
+                   submitting="state.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
   </div>
 </form>

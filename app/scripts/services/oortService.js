@@ -15,28 +15,34 @@ angular.module('deckApp')
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
+        function refreshApplication() {
+          getApplication(application.name).then(function (newApplication) {
+            // compute task diff and generate notifications for a completed task
+            taskTracker.handleCompletedTasks(taskTracker.getCompleted(
+              application.tasks,
+              newApplication.tasks
+            ));
+
+            deepCopyApplication(application, newApplication);
+            application.onAutoRefresh();
+            newApplication = null;
+          });
+        }
+
         function autoRefresh(scope) {
           application.onAutoRefresh = application.onAutoRefresh || angular.noop;
           if (application.autoRefreshEnabled) {
-            var disposable = scheduler.subscribe(function() {
-              getApplication(application.name).then(function (newApplication) {
-                // compute task diff and generate notifications for a completed task
-                taskTracker.handleCompletedTasks(taskTracker.getCompleted(
-                  application.tasks,
-                  newApplication.tasks
-                ));
-
-                deepCopyApplication(application, newApplication);
-                application.onAutoRefresh();
-                newApplication = null;
-              });
-            });
+            var disposable = scheduler.subscribe(refreshApplication);
             scope.$on('$destroy', function () {
               application.disableAutoRefresh();
               disposable.dispose();
             });
           }
         }
+
+        application.refreshImmediately = function refreshImmediately() {
+          scheduler.scheduleImmediate(refreshApplication);
+        };
 
         application.disableAutoRefresh = function disableAutoRefresh() {
           application.autoRefreshEnabled = false;

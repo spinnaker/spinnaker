@@ -1,0 +1,8 @@
+<div class="form-group" ng-if="errorWrapper.katoError">
+  <div class="col-md-12">
+    <alert type="danger" close="errorWrapper.katoError = null;">
+      <h4>{{title}}</h4>
+      <strong>Reason:</strong> {{errorWrapper.katoError}}
+    </alert>
+  </div>
+</div>
