@@ -50,7 +50,7 @@ class ResizeAsgStage extends LinearStage {
     def step4 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
-    def step5 = steps.get("NotifyEchoStep")
+    def step5 = steps.get("SendNotificationStep")
                      .tasklet(buildTask(NotifyEchoTask))
                      .build()
 

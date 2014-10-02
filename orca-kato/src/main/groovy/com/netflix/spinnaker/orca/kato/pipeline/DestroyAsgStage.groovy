@@ -59,7 +59,7 @@ class DestroyAsgStage extends LinearStage {
     def step5 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
-    def step6 = steps.get("NotifyEchoStep")
+    def step6 = steps.get("SendNotificationStep")
                      .tasklet(buildTask(NotifyEchoTask))
                      .build()
 

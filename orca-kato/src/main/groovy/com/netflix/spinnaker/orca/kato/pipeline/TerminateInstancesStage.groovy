@@ -49,7 +49,7 @@ class TerminateInstancesStage extends LinearStage {
       .tasklet(buildTask(WaitForTerminatedInstancesTask))
       .build()
 
-    def step4 = steps.get("NotifyEchoStep")
+    def step4 = steps.get("SendNotificationStep")
       .tasklet(buildTask(NotifyEchoTask))
       .build()
 

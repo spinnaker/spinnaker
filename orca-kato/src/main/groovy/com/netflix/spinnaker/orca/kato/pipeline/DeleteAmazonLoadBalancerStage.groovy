@@ -52,7 +52,7 @@ class DeleteAmazonLoadBalancerStage extends LinearStage {
       .tasklet(buildTask(MonitorKatoTask))
       .build()
 
-    def step4 = steps.get("NotifyEchoStep")
+    def step4 = steps.get("SendNotificationStep")
       .tasklet(buildTask(NotifyEchoTask))
       .build()
 

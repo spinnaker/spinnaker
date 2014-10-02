@@ -46,7 +46,7 @@ class DisableAsgStage extends LinearStage {
     def step3 = steps.get("WaitFoDownInstancesStep")
                      .tasklet(buildTask(AsgActionWaitForDownInstancesTask))
                      .build()
-    def step4 = steps.get("NotifyEchoStep")
+    def step4 = steps.get("SendNotificationStep")
                      .tasklet(buildTask(NotifyEchoTask))
                      .build()
     [step1, step2, step3, step4]

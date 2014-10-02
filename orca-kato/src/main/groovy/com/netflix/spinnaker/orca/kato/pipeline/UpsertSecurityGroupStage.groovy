@@ -50,7 +50,7 @@ class UpsertSecurityGroupStage extends LinearStage {
       .tasklet(buildTask(WaitForUpsertedSecurityGroupTask))
       .build()
 
-    def step4 = steps.get("NotifyEchoStep")
+    def step4 = steps.get("SendNotificationStep")
       .tasklet(buildTask(NotifyEchoTask))
       .build()
 

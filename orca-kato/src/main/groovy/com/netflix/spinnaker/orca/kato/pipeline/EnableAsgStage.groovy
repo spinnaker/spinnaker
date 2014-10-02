@@ -46,7 +46,7 @@ class EnableAsgStage extends LinearStage {
     def step3 = steps.get("WaitForUpInstancesStep")
                      .tasklet(buildTask(WaitForUpInstancesTask))
                      .build()
-    def step4 = steps.get("NotifyEchoStep")
+    def step4 = steps.get("SendNotificationStep")
                      .tasklet(buildTask(NotifyEchoTask))
                      .build()
     [step1, step2, step3, step4]

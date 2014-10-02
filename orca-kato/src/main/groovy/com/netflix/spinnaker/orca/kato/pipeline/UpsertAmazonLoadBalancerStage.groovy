@@ -36,7 +36,7 @@ class UpsertAmazonLoadBalancerStage extends LinearStage {
       .tasklet(buildTask(AmazonLoadBalancerForceRefreshTask))
       .build()
 
-    def step4 = steps.get("NotifyEchoStep")
+    def step4 = steps.get("SendNotificationStep")
       .tasklet(buildTask(NotifyEchoTask))
       .build()
 

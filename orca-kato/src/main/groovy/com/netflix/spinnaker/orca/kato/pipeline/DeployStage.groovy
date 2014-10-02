@@ -53,7 +53,7 @@ class DeployStage extends LinearStage {
     def step5 = steps.get("ForceCacheRefreshStep")
                      .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
                      .build()
-    def step6 = steps.get("NotifyEchoStep")
+    def step6 = steps.get("SendNotificationStep")
                      .tasklet(buildTask(NotifyEchoTask))
                      .build()
     [step1, step2, step3, step4, step5, step6]
