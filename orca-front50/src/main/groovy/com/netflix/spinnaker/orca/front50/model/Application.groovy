@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
 
-dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  compile project(":orca-mort")
-  testCompile project(":orca-test")
-  testCompile commonDependencies.objenesis
+
+package com.netflix.spinnaker.orca.front50.model
+
+import groovy.transform.Immutable
+
+class Application {
+  String name
+  String description
+  String email
+  String owner
+  String type
+  String group
+  String monitorBucketType
+  String pdApiKey
+  String updateTs
+  String createTs
+  String tags
+  String regions
 }

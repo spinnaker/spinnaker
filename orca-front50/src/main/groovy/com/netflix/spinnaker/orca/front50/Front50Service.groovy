@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
 
-dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  compile project(":orca-mort")
-  testCompile project(":orca-test")
-  testCompile commonDependencies.objenesis
+
+
+package com.netflix.spinnaker.orca.front50
+
+import com.netflix.spinnaker.orca.front50.model.Application
+import retrofit.client.Response
+import retrofit.http.*
+
+interface Front50Service {
+
+  @POST("/{account}/applications/name/{name}")
+  Response create(@Path("account") String account, @Path("name") String name, @Body Application application)
+
+  @PUT("/{account}/applications")
+  Response update(@Path("account") String account, @Body Application application)
 }
