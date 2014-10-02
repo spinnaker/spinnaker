@@ -74,6 +74,24 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     task.status.isFailed()
   }
 
+  void "failure should be logged in the result objects"() {
+    setup:
+    def task = new DefaultTask("1")
+    def atomicOperation = Mock(AtomicOperation)
+
+    when:
+    submitAndWait atomicOperation
+
+    then:
+    1 * taskRepository.create(_, _) >> task
+    1 * atomicOperation.operate(_) >> { throw new RuntimeException(message) }
+    task.resultObjects.find { it.type == "EXCEPTION" }
+    task.resultObjects.find { it.type == "EXCEPTION" }.message == message
+
+    where:
+    message = "foo"
+  }
+
   private void submitAndWait(AtomicOperation atomicOp) {
     processor.process([atomicOp])
     processor.executorService.shutdown()

@@ -62,6 +62,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
               message = stringWriter.toString()
             }
             task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${message}]"
+            task.addResultObjects([[type: "EXCEPTION", operation: atomicOperation.class.simpleName, cause: e.class.simpleName, message: message]])
             task.fail()
           }
         }
@@ -72,6 +73,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       } catch (Exception e) {
         if (e instanceof TimeoutException) {
           task.updateStatus "INIT", "Orchestration timed out."
+          task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Orchestration timed out."]])
           task.fail()
         } else {
           e.printStackTrace()
@@ -79,6 +81,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           def printWriter = new PrintWriter(stringWriter)
           e.printStackTrace(printWriter)
           task.updateStatus("INIT", "Unknown failure -- ${stringWriter.toString()}")
+          task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Failed for unknown reason."]])
           task.fail()
         }
       } finally {
