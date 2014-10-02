@@ -40,17 +40,22 @@ interface TaskResult {
     /**
      * The task is complete but the pipeline should now be stopped pending a trigger of some kind.
      */
-      SUSPENDED(false),
+    SUSPENDED(false),
 
     /**
      * The task executed successfully and the pipeline may now proceed to the next task.
      */
-      SUCCEEDED(true),
+    SUCCEEDED(true),
 
     /**
-     * The task failed and the pipeline should stop with an error.
+     * The task failed and the pipeline should be able to recover through subsequent steps.
      */
-      FAILED(true)
+    FAILED(true),
+
+    /**
+     * The task failed and the failure was terminal. The pipeline will not progress any further.
+     */
+    TERMINAL(true)
 
     final boolean complete
 

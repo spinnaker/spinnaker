@@ -50,7 +50,7 @@ class MonitorKatoTaskSpec extends Specification {
     completed | failed | expectedResult
     true      | false  | TaskResult.Status.SUCCEEDED
     false     | false  | TaskResult.Status.RUNNING
-    true      | true   | TaskResult.Status.FAILED
+    true      | true   | TaskResult.Status.TERMINAL
 
     taskId = "kato-task-id"
     katoStatus = completed ? "completed" : "incomplete"

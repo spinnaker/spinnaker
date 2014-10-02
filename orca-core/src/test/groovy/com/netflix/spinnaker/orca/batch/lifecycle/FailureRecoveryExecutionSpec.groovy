@@ -27,6 +27,7 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import static com.netflix.spinnaker.orca.TaskResult.Status.FAILED
 import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
+import static com.netflix.spinnaker.orca.TaskResult.Status.TERMINAL
 
 class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
@@ -64,6 +65,21 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
     and:
     jobExecution.exitStatus == ExitStatus.COMPLETED
+  }
+
+  def "if a task is TERMINAL, the pipeline stops"() {
+    given:
+    startTask.execute(_) >> new DefaultTaskResult(TERMINAL)
+
+    when:
+    def jobExecution = launchJob()
+
+    then:
+    0 * recoveryTask.execute(_)
+    0 * endTask.execute(_)
+
+    and:
+    jobExecution.exitStatus == ExitStatus.STOPPED
   }
 
   @Override
