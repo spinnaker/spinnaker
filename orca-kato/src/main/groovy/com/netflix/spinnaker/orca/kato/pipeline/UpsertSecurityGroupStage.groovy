@@ -17,13 +17,13 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.SecurityGroupForceCacheRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertSecurityGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
