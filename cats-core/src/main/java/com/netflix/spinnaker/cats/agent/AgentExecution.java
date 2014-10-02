@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.cats;
 
-public interface CachingAgent {
+package com.netflix.spinnaker.cats.agent;
+
+public interface AgentExecution {
+    void executeAgent(CachingAgent agent);
 }
