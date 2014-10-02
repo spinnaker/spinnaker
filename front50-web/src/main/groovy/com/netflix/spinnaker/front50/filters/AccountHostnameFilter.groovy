@@ -45,7 +45,7 @@ class AccountHostnameFilter implements Filter {
       def reqParts = request.requestURI.tokenize('/')
       def reqAccount = reqParts[0]
       if (account != reqAccount) {
-        req.getRequestDispatcher("/${account}/${reqParts.join('/')}").forward(req, res)
+        req.getRequestDispatcher("/${reqAccount}/${reqParts.join('/')}").forward(req, res)
         return
       }
     }
