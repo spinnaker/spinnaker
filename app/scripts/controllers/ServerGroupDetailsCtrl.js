@@ -7,7 +7,7 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService,
                                                   mortService, oortService, accountService, securityGroupService,
-                                                  serverGroupService, $modal, confirmationModalService) {
+                                                  serverGroupService, $modal, confirmationModalService, _) {
 
     function extractServerGroup(clusters) {
       clusters.some(function (cluster) {
@@ -18,13 +18,13 @@ angular.module('deckApp')
             $scope.account = serverGroup.accountId;
             if (toCheck.launchConfig) {
               var launchConfig = angular.copy(toCheck.launchConfig);
+              $scope.securityGroups = _.map(launchConfig.securityGroups, function(id) {
+                return _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'id': id });
+              });
               delete launchConfig.createdTime;
               delete launchConfig.userData;
               delete launchConfig.securityGroups;
               $scope.launchConfig = launchConfig;
-            }
-            if (toCheck.instances.length) {
-              $scope.securityGroups = toCheck.instances[0].securityGroups;
             }
             return true;
           }
