@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
@@ -25,6 +24,13 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
+  private static final APPLICATION = "spinnaker"
+  private static final STACK = "spinnaker-test"
+  private static final INITIAL_NUM_REPLICAS = 3
+  private static final IMAGE = "debian-7-wheezy-v20140415"
+  private static final MACHINE_TYPE = "f1-micro"
+  private static final ZONE = "us-central1-b"
+  private static final ACCOUNT_NAME = "auto"
 
   @Shared
   BasicGoogleDeployAtomicOperationConverter converter
@@ -39,8 +45,13 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
 
   void "basicGoogleDeployDescription type returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
     setup:
-      def input = [application: "asgard", stack: "asgard-test", image: "debian-7-wheezy-v20140415", type: "f1-micro",
-                   zone: "us-central1-b", credentials: "test"]
+      def input = [application: APPLICATION,
+                   stack: STACK,
+                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   image: IMAGE,
+                   type: MACHINE_TYPE,
+                   zone: ZONE,
+                   credentials: ACCOUNT_NAME]
 
     when:
       def description = converter.convertDescription(input)

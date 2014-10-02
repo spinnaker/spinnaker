@@ -27,6 +27,12 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
+  private static final APPLICATION = "spinnaker"
+  private static final STACK = "spinnaker-test"
+  private static final INITIAL_NUM_REPLICAS = 3
+  private static final IMAGE = "debian-7-wheezy-v20140415"
+  private static final TYPE = "f1-micro"
+  private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -45,9 +51,13 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-      def description = new BasicGoogleDeployDescription(application: "asgard", stack: "asgard-test",
-                                                         image: "debian-7-wheezy-v20140415", type: "f1-micro",
-                                                         zone: "us-central1-b", accountName: ACCOUNT_NAME)
+    def description = new BasicGoogleDeployDescription(application: APPLICATION,
+                                                       stack: STACK,
+                                                       initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                       image: IMAGE,
+                                                       type: TYPE,
+                                                       zone: ZONE,
+                                                       accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -55,6 +65,18 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
     then:
       0 * errors._
+  }
+
+  void "invalid initialNumReplicas fails validation"() {
+    setup:
+    def description = new BasicGoogleDeployDescription(initialNumReplicas: -1)
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue("initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.invalid")
   }
 
   void "null input fails validation"() {

@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.handlers
 
-import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.AccessConfig
-import com.google.api.services.compute.model.AttachedDisk
-import com.google.api.services.compute.model.AttachedDiskInitializeParams
-import com.google.api.services.compute.model.Instance
+import com.google.api.services.replicapool.ReplicapoolScopes
+import com.google.api.services.replicapool.model.Pool
+import com.google.api.services.replicapool.model.Template
+import com.google.api.services.replicapool.model.VmParams
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
@@ -28,14 +27,29 @@ import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.deploy.gce.GCEUtil
+import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
 import org.springframework.stereotype.Component
 
 @Component
 class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescription> {
+  // TODO(duftler): This should move to a common location.
+  private static final String APPLICATION_NAME = "Spinnaker"
   private static final String BASE_PHASE = "DEPLOY"
+
+  // TODO(duftler): These should be exposed/configurable.
+  private static final long diskSizeGb = 100
+  private static final String networkName = "default"
+  private static final String accessConfigName = "External NAT"
+  private static final String accessConfigType = "ONE_TO_ONE_NAT"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
+  }
+
+  ReplicaPoolBuilder replicaPoolBuilder
+
+  BasicGoogleDeployHandler() {
+    replicaPoolBuilder = new ReplicaPoolBuilder()
   }
 
   @Override
@@ -44,7 +58,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20140415", "type": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20140415", "initialNumReplicas": 3, "type": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
    *
    * @param description
    * @param priorOutputs
@@ -52,54 +66,40 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
    */
   @Override
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing deployment..."
+    // TODO(duftler): Implement proper sequential naming and tests for same. Best done when this class is reconciled
+    // with logic in BasicGoogleDeployHandler.
+    def replicaPoolName = "${description.application}-${description.stack}-v000"
 
-    if (!description.credentials) {
-      throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
-    }
+    task.updateStatus BASE_PHASE, "Initializing creation of replica pool $replicaPoolName..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
-    def zone = description.zone
-
-    def machineType = GCEUtil.queryMachineType(project, zone, description.type, compute, task, BASE_PHASE)
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
-    def network = GCEUtil.queryNetwork(project, "default", compute, task, BASE_PHASE)
+    task.updateStatus BASE_PHASE, "Composing replica pool $replicaPoolName..."
 
-    task.updateStatus BASE_PHASE, "Composing instance..."
-    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, "PERSISTENT")
+    def newDisk = GCEUtil.buildNewDisk(sourceImage, diskSizeGb)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, "ONE_TO_ONE_NAT")
+    def networkInterface = GCEUtil.buildNetworkInterface(networkName, accessConfigName, accessConfigType)
 
-    def clusterName = "${description.application}-${description.stack}"
-    task.updateStatus BASE_PHASE, "Looking up next sequence..."
-    def nextSequence = getNextSequence(clusterName, project, zone, compute)
-    task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
-    def instanceName = "${clusterName}-v${nextSequence}-instance1".toString()
-    task.updateStatus BASE_PHASE, "Produced instance name: $instanceName"
+    def vmParams = new VmParams(machineType: description.type,
+            disksToCreate: [newDisk],
+            networkInterfaces: [networkInterface])
 
-    def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive], networkInterfaces: [networkInterface])
+    def template = new Template(vmParams: vmParams)
 
-    task.updateStatus BASE_PHASE, "Creating instance $instanceName..."
-    compute.instances().insert(project, zone, instance).execute()
-    task.updateStatus BASE_PHASE, "Done."
-    new DeploymentResult(serverGroupNames: ["${clusterName}-v${nextSequence}".toString()])
-  }
+    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
 
-  static def getNextSequence(String clusterName, String project, String zone, Compute compute) {
-    def instance = compute.instances().list(project, zone).execute().getItems().find {
-      def parts = it.getName().split('-')
-      def cluster = "${parts[0]}-${parts[1]}"
-      cluster == clusterName
-    }
-    if (instance) {
-      def parts = instance.getName().split('-')
-      def seq = Integer.valueOf(parts[2].replaceAll("v", ""))
-      String.format("%03d", ++seq)
-    } else {
-      "000"
-    }
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
+
+    replicapool.pools().insert(project,
+            description.zone,
+            new Pool(name: replicaPoolName,
+                    initialNumReplicas: description.initialNumReplicas,
+                    template: template)).execute()
+
+    task.updateStatus BASE_PHASE, "Done creating replica pool $replicaPoolName."
+    new DeploymentResult(serverGroupNames: [replicaPoolName.toString()])
   }
 }

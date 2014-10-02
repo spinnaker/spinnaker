@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 class BasicGoogleDeployDescription implements DeployDescription {
   String application
   String stack
+  int initialNumReplicas
   String image
   String type
   String zone
