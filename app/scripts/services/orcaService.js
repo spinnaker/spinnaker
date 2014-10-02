@@ -95,6 +95,7 @@ angular.module('deckApp')
     function upsertSecurityGroup(securityGroup, applicationName, descriptor) {
       securityGroup.type = 'upsertSecurityGroup';
       securityGroup.user = 'deckUser';
+      securityGroup.credentials = securityGroup.accountName;
       return executeTask({
         job: [
           securityGroup
