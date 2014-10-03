@@ -1,0 +1,8 @@
+<div class="form-group" ng-if="taskStatus.lastStage && !taskStatus.hideProgressMessage">
+  <div class="col-md-12">
+    <alert type="info" close="taskStatus.hideProgressMessage = true">
+      <h4>{{title}}</h4>
+      <p class="pulsing"><strong>Right now:</strong> {{taskStatus.lastStage}}</p>
+    </alert>
+  </div>
+</div>

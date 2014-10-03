@@ -4,7 +4,7 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CloneServerGroupCtrl', function($scope, $modalInstance, _, $q,
+  .controller('CloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler,
                                                accountService, orcaService, mortService, oortService, searchService,
                                                instanceTypeService, modalWizardService, securityGroupService,
                                                serverGroup, application, title) {
@@ -16,7 +16,16 @@ angular.module('deckApp')
 
     $scope.state = {
       loaded: false,
-      queryAllImages: false
+      queryAllImages: false,
+      submitting: false
+    };
+
+    $scope.taskStatus = {
+      errorMessage: null,
+      lastStage: null,
+      hideProgressMessage: false,
+      taskId: null,
+      applicationName: application.name
     };
 
     var accountLoader = accountService.getRegionsKeyedByAccount().then(function(regionsKeyedByAccount) {
@@ -332,6 +341,12 @@ angular.module('deckApp')
     };
 
     this.clone = function () {
+
+      $scope.state.submitting = true;
+      $scope.taskStatus.errorMessage = null;
+      $scope.taskStatus.hideProgressMessage = false;
+      $scope.taskStatus.taskId = null;
+
       var command = angular.copy($scope.command);
       var description;
       if (serverGroup) {
@@ -359,9 +374,29 @@ angular.module('deckApp')
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       orcaService.cloneServerGroup(command, application.name, description)
-        .then(function (response) {
-          $modalInstance.close();
-          console.warn('task:', response.ref);
+        .then(function (task) {
+          $scope.taskStatus.taskId = task.id;
+          task.watchForKatoCompletion().then(
+            function() { // kato succeeded
+              $modalInstance.close();
+              task.watchForForceRefresh().then(
+                function() { // cache has been refreshed; object should be available
+                  application.refreshImmediately();
+                },
+                function(task) { // cache refresh never happened?
+                  $exceptionHandler('task failed to force cache refresh:', task);
+                }
+              );
+            },
+            function(updatedTask) { // kato failed
+              $scope.state.submitting = false;
+              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
+              $scope.taskStatus.lastStage = null;
+            },
+            function(notification) {
+              $scope.taskStatus.lastStage = notification;
+            }
+          );
         });
     };
 

@@ -1,5 +1,7 @@
 <form ng-controller="ServerGroupCapacityCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
+    <kato-error task-status="taskStatus" title="We could not create your server group."></kato-error>
+    <kato-progress task-status="taskStatus" title="Creating your server group."></kato-progress>
     <div class="form-group">
       <div class="col-md-2 text-right col-md-offset-4"><b>Min</b></div>
       <div class="col-md-2 text-right"><b>Max</b></div>
@@ -30,13 +32,9 @@
             ng-click="wizard.previousPage(form.$valid)">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
-    <button class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-    <button class="btn btn-primary"
-            ng-click="ctrl.clone()"
-            ng-if="ctrl.showSubmitButton()"
-            ng-disabled="!ctrl.isValid() || !form.$valid">
-      <span class="glyphicon glyphicon-ok-circle"></span> Create
-    </button>
+    <button ng-disabled="state.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="!form.$valid || !ctrl.isValid() || state.submitting"
+                   state="state" on-click="ctrl.clone()" is-new="true"></submit-button>
     <button class="btn btn-default"
             ng-disabled="!form.$valid"
             ng-click="wizard.nextPage(form.$valid)">

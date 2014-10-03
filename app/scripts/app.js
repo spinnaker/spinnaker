@@ -28,7 +28,7 @@ angular.module('deckApp', [
     'angularSpinner',
     'deckApp.templates'
   ])
-  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer) {
+  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
@@ -48,6 +48,7 @@ angular.module('deckApp', [
 
     $rootScope.$state = $state;
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+      $modalStack.dismissAll();
       $log.debug({
         event: event,
         toState: toState,

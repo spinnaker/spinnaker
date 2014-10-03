@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q) {
+  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato) {
     function setStatusProperties(item) {
       Object.defineProperties(item, {
         isCompleted: {
@@ -51,22 +51,36 @@ angular.module('deckApp')
       };
 
       task.watchForKatoCompletion = function() {
+        var deferred = $q.defer();
+
         var katoTasks = getKatoTasks(task);
         var katoStatus = katoTasks ? katoTasks[katoTasks.length-1].status : null;
-        if (katoStatus) {
-          if (katoStatus.failed) {
-            return $q.reject(task);
-          }
-          if (katoStatus.completed && !katoStatus.failed) {
-            return $q.when(task);
-          }
-        } else {
-          return $timeout(function() {
-            return task.get().then(function(updatedTask) {
-              return updatedTask.watchForKatoCompletion();
-            });
-          }, 300);
+        var failed = katoStatus && katoStatus.failed,
+          succeeded = katoStatus && katoStatus.completed && !katoStatus.failed,
+          running = !failed && !succeeded;
+
+        if (failed) {
+          deferred.reject(task);
         }
+        if (succeeded) {
+          deferred.resolve(task);
+        }
+        if (running) {
+          var katoTaskId = task.getValueFor('kato.last.task.id');
+          if (katoTaskId) {
+            kato.one('task', katoTaskId.id).get().then(function(katoTask) {
+              katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, deferred.notify);
+            });
+          } else {
+            $timeout(function() {
+              task.get().then(function(updatedTask) {
+                updatedTask.watchForKatoCompletion().then(deferred.resolve, deferred.reject, deferred.notify);
+              });
+            }, 250);
+          }
+        }
+
+        return deferred.promise;
       };
 
       task.watchForForceRefresh = function() {
@@ -112,6 +126,17 @@ angular.module('deckApp')
         href: {
           get: function() {
             return task.isCompleted ? urlBuilder.buildFromTask(task) : false;
+          }
+        },
+        lastKatoMessage: {
+          get: function() {
+            var katoTasks = getKatoTasks(task);
+            if (katoTasks) {
+              debugger;
+              var steps = katoTasks[katoTasks.length-1].history;
+              return steps[steps.length-1].status;
+            }
+            return null;
           }
         }
       });

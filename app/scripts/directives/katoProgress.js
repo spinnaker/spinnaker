@@ -4,10 +4,10 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .directive('katoError', function () {
+  .directive('katoProgress', function () {
     return {
       restrict: 'E',
-      templateUrl: 'views/directives/katoError.html',
+      templateUrl: 'views/directives/katoProgress.html',
       scope: {
         taskStatus: '=',
         title: '@'

@@ -1,8 +1,14 @@
-<div class="form-group" ng-if="errorWrapper.katoError">
+<div class="form-group" ng-if="taskStatus.errorMessage">
   <div class="col-md-12">
-    <alert type="danger" close="errorWrapper.katoError = null;">
+    <alert type="danger" close="taskStatus.errorMessage = null;">
       <h4>{{title}}</h4>
-      <strong>Reason:</strong> {{errorWrapper.katoError}}
+      <p><strong>Reason:</strong> {{taskStatus.errorMessage}}</p>
+      <p>
+        <a ui-sref="home.applications.application.tasks.taskDetails({application: taskStatus.applicationName, taskId: taskStatus.taskId})">
+          View this failed task in the tasks pane.
+        </a>
+      </p>
+
     </alert>
   </div>
 </div>

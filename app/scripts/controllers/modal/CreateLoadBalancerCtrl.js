@@ -220,7 +220,8 @@ angular.module('deckApp')
           function(updatedTask) { // kato failed
             $scope.state.submitting = false;
             $scope.state.katoError = updatedTask.failureMessage || 'There was an unknown server error.';
-          });
+          }
+        );
       });
     };
 
