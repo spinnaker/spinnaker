@@ -18,8 +18,9 @@ angular.module('deckApp')
       $scope.healthMetrics = displayableMetrics;
     }
 
-    function extractInstance(clusters) {
-      clusters.some(function (cluster) {
+    function extractInstance() {
+      console.warn('extracting instance...');
+      application.clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.instanceId === instance.instanceId) {
@@ -52,7 +53,9 @@ angular.module('deckApp')
       });
     };
 
-    extractInstance(application.clusters);
+    extractInstance();
+
+    application.registerAutoRefreshHandler(extractInstance, $scope);
 
     $scope.account = instance.account;
 
