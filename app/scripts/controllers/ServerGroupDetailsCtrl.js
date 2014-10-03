@@ -126,6 +126,14 @@ angular.module('deckApp')
         });
       });
     };
+
+    this.buildJenkinsLink = function() {
+      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.jenkins) {
+        var jenkins = $scope.serverGroup.buildInfo.jenkins;
+        return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
+      }
+      return null;
+    };
   }
 ).controller('ScalingActivitiesCtrl', function($scope) {
   $scope.isSuccessful = function(activity) {

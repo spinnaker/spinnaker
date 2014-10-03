@@ -65,7 +65,20 @@
       </ul>
     </collapsible-section>
     <collapsible-section heading="Package">
-      <arbitrary-list source="serverGroup.buildInfo"></arbitrary-list>
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo && serverGroup.buildInfo.jenkins">
+        <dt>Job</dt>
+        <dd>{{serverGroup.buildInfo.jenkins.name}}</dd>
+        <dt>Package</dt>
+        <dd>{{serverGroup.buildInfo.package_name}}</dd>
+        <dt>Build</dt>
+        <dd>{{serverGroup.buildInfo.jenkins.number}}</dd>
+        <dt>Commit</dt>
+        <dd>{{serverGroup.buildInfo.commit}}</dd>
+        <dt>Version</dt>
+        <dd>{{serverGroup.buildInfo.version}}</dd>
+        <dt>Build Link</dt>
+        <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+      </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
