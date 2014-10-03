@@ -99,6 +99,9 @@ angular.module('deckApp')
           $scope.$evalAsync(function() {
             $timeout(function() {
               notification.$ephemeral = false;
+              if (notification.autoDismiss) {
+                notification.dismiss();
+              }
             }, 5000);
           });
         }, function (err) {

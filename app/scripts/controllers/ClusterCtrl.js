@@ -46,6 +46,9 @@ angular.module('deckApp')
     };
 
     $scope.cluster = cluster;
+
     this.updateClusterGroups();
+
+    application.registerAutoRefreshHandler(this.updateClusterGroups, $scope);
   }
 );

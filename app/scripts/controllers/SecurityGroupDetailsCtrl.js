@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('SecurityGroupDetailsCtrl', function ($scope, $rootScope, securityGroup, application, securityGroupService, $modal) {
+  .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notifications, securityGroup, application, securityGroupService, $modal) {
 
     $scope.loading = true;
 
@@ -12,7 +12,23 @@ angular.module('deckApp')
       securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.name).then(function (details) {
         $scope.loading = false;
         $scope.securityGroup = details;
+        if (!details) {
+          fourOhFour();
+        }
+      },
+      function() {
+        fourOhFour();
       });
+    }
+
+    function fourOhFour() {
+      notifications.create({
+        message: 'No security group named "' + securityGroup.name + '" was found in ' + securityGroup.accountId + ':' + securityGroup.region,
+        autoDismiss: true,
+        hideTimestamp: true,
+        strong: true
+      });
+      $state.go('^');
     }
 
     extractSecurityGroup();

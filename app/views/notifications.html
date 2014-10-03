@@ -21,16 +21,19 @@
     </li>
   </ul>
   <ul class="dropdown-menu" style="z-index: 999" ng-class="{'show-ephemeral': showEphemeral()}" role="menu">
-    <li ng-repeat="notification in notifications.ephemeral">
+    <li ng-repeat="notification in notifications.ephemeral" ng-class="{strong: notification.strong}">
       <progressbar animate="true" value="100" class="progress-striped active" ng-hide="notification.$done"></progressbar>
       <span>{{ notification.title }}</span>
-      <span>
+      <span ng-if="notification.href">
         <a href="{{ notification.href }}">
           {{ notification.message }}
         </a>
       </span>
+      <span ng-if="!notification.href">
+        {{ notification.message }}
+      </span>
       <span class="navbar-right">
-        <span>{{ notification.timestamp | date: 'HH:mm:ss' }}</span>
+        <span ng-if="notification.timestamp">{{ notification.timestamp | date: 'HH:mm:ss' }}</span>
         <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss()"></span>
       </span>
     </li>

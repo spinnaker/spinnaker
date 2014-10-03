@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('InstanceDetailsCtrl', function ($scope, $rootScope, instance, application, orcaService, confirmationModalService) {
+  .controller('InstanceDetailsCtrl', function ($scope, $state, notifications, instance, application, orcaService, confirmationModalService) {
 
     function extractHealthMetrics(instance) {
       if (!instance.health) {
@@ -19,7 +19,6 @@ angular.module('deckApp')
     }
 
     function extractInstance() {
-      console.warn('extracting instance...');
       application.clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
@@ -32,6 +31,13 @@ angular.module('deckApp')
         });
       });
       if (!$scope.instance) {
+        notifications.create({
+          message: 'Could not find instance "' + instance.instanceId,
+          autoDismiss: true,
+          hideTimestamp: true,
+          strong: true
+        });
+        $state.go('^');
         instance.notFound = true;
         instance.healthStatus = 'Unhealthy';
         $scope.instance = instance;
@@ -47,8 +53,8 @@ angular.module('deckApp')
         account: instance.account
       }).then(function () {
         orcaService.terminateInstance(instance, $scope.application.name)
-          .then(function (response) {
-            console.warn('task: ', response.ref);
+          .then(function (task) {
+            console.warn('task id: ', task.id);
           });
       });
     };

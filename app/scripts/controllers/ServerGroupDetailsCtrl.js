@@ -5,7 +5,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, application, serverGroup, orcaService,
+  .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notifications,
                                                   mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
@@ -30,6 +30,15 @@ angular.module('deckApp')
           }
         });
       });
+      if (!$scope.serverGroup) {
+        notifications.create({
+          message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
+          autoDismiss: true,
+          hideTimestamp: true,
+          strong: true
+        });
+        $state.go('^');
+      }
     }
 
     extractServerGroup();
@@ -44,9 +53,10 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account
       }).then(function () {
-        orcaService.destroyServerGroup(serverGroup, application.name).then(function (response) {
-          console.warn('task: ', response.ref);
-        });
+        orcaService.destroyServerGroup(serverGroup, application.name)
+          .then(function (task) {
+            console.warn('task id: ', task.id);
+          });
       });
     };
 
@@ -58,9 +68,10 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account
       }).then(function () {
-        orcaService.disableServerGroup(serverGroup, application.name).then(function (response) {
-          console.warn('task: ', response.ref);
-        });
+        orcaService.disableServerGroup(serverGroup, application.name)
+          .then(function (task) {
+            console.warn('task id: ', task.id);
+          });
       });
     };
 
@@ -72,9 +83,10 @@ angular.module('deckApp')
         destructive: false,
         account: serverGroup.account
       }).then(function () {
-        orcaService.enableServerGroup(serverGroup, application.name).then(function (response) {
-          console.warn('task: ', response.ref);
-        });
+        orcaService.enableServerGroup(serverGroup, application.name)
+          .then(function (task) {
+            console.warn('task id: ', task.id);
+          });
       });
     };
 

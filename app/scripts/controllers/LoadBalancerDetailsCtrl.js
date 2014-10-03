@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('LoadBalancerDetailsCtrl', function ($scope, $rootScope, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
+  .controller('LoadBalancerDetailsCtrl', function ($scope, $state, notifications, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
@@ -20,6 +20,15 @@ angular.module('deckApp')
           }
         });
         $scope.securityGroups = _.sortBy(securityGroups, 'name');
+      }
+      if (!$scope.loadBalancer) {
+        notifications.create({
+          message: 'No load balancer named "' + loadBalancer.name + '" was found in ' + loadBalancer.accountId + ':' + loadBalancer.region,
+          autoDismiss: true,
+          hideTimestamp: true,
+          strong: true
+        });
+        $state.go('^');
       }
     }
 
@@ -50,8 +59,8 @@ angular.module('deckApp')
         account: loadBalancer.account
       }).then(function () {
         orcaService.deleteLoadBalancer(loadBalancer, $scope.application.name)
-          .then(function (response) {
-            console.warn('task: ', response.ref);
+          .then(function (task) {
+            console.warn('task id: ', task.id);
           });
       });
     };

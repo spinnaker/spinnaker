@@ -13,7 +13,9 @@ angular.module('deckApp')
           title: config.title,
           message: config.message,
           href: config.href,
-          timestamp: Date.now()
+          timestamp: config.hideTimestamp ? '' : Date.now(),
+          autoDismiss: config.autoDismiss,
+          strong: config.strong
         });
       },
       subscribe: stream.subscribe.bind(stream),
