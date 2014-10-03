@@ -160,8 +160,8 @@ angular.module('deckApp')
                 }
               },
               resolve: {
-                cluster: ['$stateParams', 'application', function ($stateParams, application) {
-                  return application.getCluster($stateParams.account, $stateParams.cluster);
+                cluster: ['$stateParams', function ($stateParams) {
+                  return {account: $stateParams.account, clusterName: $stateParams.cluster};
                 }]
               },
               children: [loadBalancerDetails, serverGroupDetails, instanceDetails],

@@ -7,8 +7,6 @@ angular.module('deckApp')
   .controller('ClusterCtrl', function($scope, cluster, application, oortService, _) {
 
     $scope.account = cluster.account;
-    $scope.cluster = cluster;
-    $scope.asgsByRegion = [];
 
     $scope.sortFilter = {
       allowSorting: false,
@@ -26,8 +24,8 @@ angular.module('deckApp')
       });
     }
 
-    this.updateClusterGroups = function updateClusterGroups() {
-      var groupedAsgs = _.groupBy(cluster.serverGroups, 'region'),
+    function updateClusterGroups() {
+      var groupedAsgs = _.groupBy($scope.cluster.serverGroups, 'region'),
         regions = _.keys(groupedAsgs),
         serverGroupsByRegion = [];
 
@@ -43,12 +41,22 @@ angular.module('deckApp')
         showInstances: $scope.sortFilter.showAllInstances,
         hideHealthy: $scope.sortFilter.hideHealthy
       };
-    };
+    }
 
-    $scope.cluster = cluster;
+    this.updateClusterGroups = updateClusterGroups;
 
-    this.updateClusterGroups();
+    function initializeController() {
+      extractCluster();
+      updateClusterGroups();
+    }
 
-    application.registerAutoRefreshHandler(this.updateClusterGroups, $scope);
+    function extractCluster() {
+      $scope.cluster = application.getCluster(cluster.account, cluster.clusterName);
+    }
+
+    initializeController();
+
+    application.registerAutoRefreshHandler(initializeController, $scope);
+
   }
 );
