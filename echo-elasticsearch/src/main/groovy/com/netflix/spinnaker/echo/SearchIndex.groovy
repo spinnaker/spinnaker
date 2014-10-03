@@ -32,6 +32,7 @@ import org.springframework.stereotype.Repository
  * An elastic search backed search index that provides metrics aggregation and filtering
  */
 @Repository
+@SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
 class SearchIndex {
 
     @Autowired
