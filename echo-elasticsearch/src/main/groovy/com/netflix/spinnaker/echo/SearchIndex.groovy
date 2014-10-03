@@ -118,12 +118,12 @@ class SearchIndex {
                             }
                         }
                     },
-                    "fields": ["_content_id", "source", "type", "created"]
+                    "fields": ["_content_id", "source", "type", "application", "project", "organization", "created"]
                 }
             """
         )
 
-        [total         : result.jsonObject.hits?.get('total').asLong ?: -1,
+        [total         : result.jsonObject.hits?.get('total')?.asLong ?: 0,
          hits          : result.jsonObject.hits?.hits.collect {
              def fields = it.fields
              full ? get(
@@ -131,10 +131,13 @@ class SearchIndex {
                  fields.get('type').asString,
                  fields.get('_content_id').asString
              ) : [
-                 source : fields.get('source').asString,
-                 type   : fields.get('type').asString,
-                 id     : fields.get('_content_id').asString,
-                 created: fields.get('created').asString
+                 application : fields.get('application')?.asString,
+                 source      : fields.get('source').asString,
+                 type        : fields.get('type').asString,
+                 id          : fields.get('_content_id').asString,
+                 project     : fields.get('project')?.asString,
+                 organization: fields.get('organization')?.asString,
+                 created     : fields.get('created').asString
              ]
          } ?: [],
          paginationFrom: from,
