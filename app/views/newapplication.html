@@ -16,6 +16,28 @@
         </div>
       </div>
       <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Owner Email</div>
+        <div class="col-sm-9">
+          <input type="email"
+                 class="form-control input-sm"
+                 ng-model="application.email"
+                 placeholder="Enter an email address"
+                 id="ownerEmail">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="pagerDutyApiKeyLabel">PagerDuty API Key</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="application.pdApiKey"
+                 placeholder="Enter your PagerDuty API key"
+                 id="pagerDutyApiKey">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Description</div>
         <div class="col-sm-9">
           <textarea
@@ -27,14 +49,13 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left">Owner Email</div>
-        <div class="col-sm-9">
-          <input type="email"
-                 class="form-control input-sm"
-                 ng-model="application.email"
-                 placeholder="Enter an email address"
-                 id="ownerEmail">
-          </input>
+        <div class="col-md-3 sm-label-left">Account</div>
+        <div class="col-md-9">
+          <select class="form-control input-sm"
+                  ng-model="application.account"
+                  ng-options="account for account in accounts"
+                  required>
+          </select>
         </div>
       </div>
     </div>

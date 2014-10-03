@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, front50, notifications, oortService, searchService, urlBuilder, $state, $timeout) {
+  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, accountService, front50, notifications, oortService, orcaService, searchService, urlBuilder, $state, $timeout) {
 
     $scope.applicationsLoaded = false;
 
@@ -15,14 +15,19 @@ angular.module('deckApp')
 
     $scope.applicationFilter = '';
 
+    accountService.listAccounts().then(function(accounts) {
+      $scope.accounts = accounts;
+    });
+
     $scope.menuActions = [
       {
         displayName: 'Create Application',
         action: function() {
           $modal.open({
+            scope: $scope,
             templateUrl: 'views/newapplication.html'
           }).result.then(function(app) {
-            front50.createApplication(app).then(function(resp) {
+            orcaService.createApplication(app).then(function(resp) {
               $log.debug(resp);
               notifications.create({
                 title: 'Creating application '+app.name,
