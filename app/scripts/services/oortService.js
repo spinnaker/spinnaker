@@ -24,13 +24,25 @@ angular.module('deckApp')
             ));
 
             deepCopyApplication(application, newApplication);
-            application.onAutoRefresh();
+            application.autoRefreshHandlers.forEach(function(handler) {
+              handler.call();
+            });
             newApplication = null;
           });
         }
 
+        application.autoRefreshHandlers = [];
+
+        application.registerAutoRefreshHandler = function(method, scope) {
+          application.autoRefreshHandlers.push(method);
+          scope.$on('$destroy', function () {
+            application.autoRefreshHandlers = application.autoRefreshHandlers.filter(function(handler) {
+              return handler !== method;
+            });
+          });
+        };
+
         function autoRefresh(scope) {
-          application.onAutoRefresh = application.onAutoRefresh || angular.noop;
           if (application.autoRefreshEnabled) {
             var disposable = scheduler.subscribe(refreshApplication);
             scope.$on('$destroy', function () {

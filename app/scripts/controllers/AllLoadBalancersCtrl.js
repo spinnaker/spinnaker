@@ -123,11 +123,9 @@ angular.module('deckApp')
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    application.onAutoRefresh = function() {
-      updateLoadBalancerGroups();
-    };
+    application.registerAutoRefreshHandler(updateLoadBalancerGroups, $scope);
 
-    application.onAutoRefresh();
+    updateLoadBalancerGroups();
 
   }
 );

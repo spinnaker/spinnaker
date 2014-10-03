@@ -9,8 +9,8 @@ angular.module('deckApp')
                                                   mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
-    function extractServerGroup(clusters) {
-      clusters.some(function (cluster) {
+    function extractServerGroup() {
+      application.clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (toCheck) {
           if (toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region) {
             $scope.serverGroup = toCheck;
@@ -32,7 +32,9 @@ angular.module('deckApp')
       });
     }
 
-    extractServerGroup(application.clusters);
+    extractServerGroup();
+
+    application.registerAutoRefreshHandler(extractServerGroup, $scope);
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;

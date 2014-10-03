@@ -8,10 +8,16 @@ angular.module('deckApp')
 
     $scope.loading = true;
 
-    securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.name).then(function(details) {
-      $scope.loading = false;
-      $scope.securityGroup = details;
-    });
+    function extractSecurityGroup() {
+      securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.name).then(function (details) {
+        $scope.loading = false;
+        $scope.securityGroup = details;
+      });
+    }
+
+    extractSecurityGroup();
+
+    application.registerAutoRefreshHandler(extractSecurityGroup, $scope);
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({

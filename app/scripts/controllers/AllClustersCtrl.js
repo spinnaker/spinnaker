@@ -156,12 +156,13 @@ angular.module('deckApp')
 
     this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
-    application.onAutoRefresh = function() {
+    function autoRefreshHandler() {
       addSearchFields();
       updateClusterGroups();
-    };
+    }
 
-    application.onAutoRefresh();
+    autoRefreshHandler();
 
+    application.registerAutoRefreshHandler(autoRefreshHandler, $scope);
   }
 );
