@@ -44,7 +44,8 @@ class DestroyAsgTask implements Task {
                      .first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        ["deploy.account.name" : operation.credentials,
+        ["notification.type"   : "destroyasg",
+         "deploy.account.name" : operation.credentials,
          "kato.last.task.id"   : taskId,
          "kato.task.id"        : taskId, // TODO retire this.
          "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }

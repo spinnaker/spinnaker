@@ -54,6 +54,7 @@ class UpsertSecurityGroupTask implements Task {
       .first()
 
     Map outputs = [
+      "notification.type"   : "upsertsecuritygroup",
       "kato.last.task.id"   : taskId,
       "kato.task.id"        : taskId, // TODO retire this.
       "upsert.account"      : upsertSecurityGroupOperation.credentials,

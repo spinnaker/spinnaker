@@ -44,6 +44,7 @@ class UpsertAmazonLoadBalancerTask implements Task {
       .first()
 
     Map outputs = [
+      "notification.type" : "upsertamazonloadbalancer",
       "kato.last.task.id" : taskId,
       "kato.task.id"      : taskId, // TODO retire this.
       "upsert.account"    : upsertAmazonLoadBalancerOperation.credentials,

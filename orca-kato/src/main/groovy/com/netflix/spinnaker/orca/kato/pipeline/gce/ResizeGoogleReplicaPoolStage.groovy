@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.ResizeGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
@@ -49,7 +50,10 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
     def step4 = steps.get("WaitForCapacityMatchStep")
                      .tasklet(buildTask(WaitForCapacityMatchTask))
                      .build()
+    def step5 = steps.get("SendNotificationStep")
+                     .tasklet(buildTask(NotifyEchoTask))
+                     .build()
 
-    [step1, step2, step3, step4]
+    [step1, step2, step3, step4, step5]
   }
 }

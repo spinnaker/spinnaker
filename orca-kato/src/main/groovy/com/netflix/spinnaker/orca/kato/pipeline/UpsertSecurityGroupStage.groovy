@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.SecurityGroupForceCacheRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertSecurityGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -53,6 +55,10 @@ class UpsertSecurityGroupStage extends LinearStage {
       .tasklet(buildTask(WaitForUpsertedSecurityGroupTask))
       .build()
 
-    [step1, step2, step3, step4]
+    def step5 = steps.get("SendNotificationStep")
+      .tasklet(buildTask(NotifyEchoTask))
+      .build()
+
+    [step1, step2, step3, step4, step5]
   }
 }

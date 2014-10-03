@@ -35,7 +35,8 @@ class ResizeGoogleReplicaPoolTask implements Task {
                      .toBlocking()
                      .first()
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-                          ["deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
+                          ["notification.type"   : "resizegooglereplicapool",
+                           "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
                            "kato.last.task.id"   : taskId,
                            "kato.task.id"        : taskId, // TODO retire this.
                            "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.zone): [resizeGoogleReplicaPoolOperation.replicaPoolName]],

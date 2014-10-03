@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
 
-dependencies {
-  compile 'com.netflix.frigga:frigga:0.13'
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  compile project(":orca-mort")
-  compile project(":orca-echo")
-  testCompile project(":orca-test")
-  testCompile commonDependencies.objenesis
+package com.netflix.spinnaker.orca.echo
+
+import retrofit.http.Body
+import retrofit.http.POST
+
+import javax.xml.ws.Response
+
+interface EchoService {
+
+  @POST('/')
+  Response recordEvent(@Body HashMap notification)
+
 }
