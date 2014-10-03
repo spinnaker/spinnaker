@@ -149,7 +149,9 @@ class SecurityGroupController {
   }
 
   private static Set<SecurityGroupSummary> getSortedTreeSet() {
-    new TreeSet<>({ SecurityGroupSummary a, SecurityGroupSummary b -> a.name.toLowerCase() <=> b.name.toLowerCase() } as Comparator)
+    new TreeSet<>({ SecurityGroupSummary a, SecurityGroupSummary b ->
+      a.name.toLowerCase() <=> b.name.toLowerCase() ?: a.id <=> b.id
+    } as Comparator)
   }
 
   @Immutable
