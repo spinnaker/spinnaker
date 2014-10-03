@@ -27,6 +27,32 @@ angular.module('deckApp')
       return scheduler.scheduleOnCompletion(op);
     }
 
+    function createApplication(app) {
+      return executeTask({
+        job: [
+          {
+            type: 'createApplication',
+            account: app.account,
+            application: {
+              name: app.name,
+              description: app.description,
+              email: app.email,
+              owner: app.owner,
+              type: app.type,
+              group: app.group,
+              monitorBucketType: app.monitorBucketType,
+              pdApiKey: app.pdApiKey,
+              updateTs: app.updateTs,
+              createTs: app.createTs,
+              tags: app.tags
+            }
+          }
+        ],
+        application: app.name,
+        description: 'Create Application: ' + app.name
+      });
+    }
+
     function destroyServerGroup(serverGroup, applicationName) {
       return executeTask({
         job: [
@@ -175,6 +201,7 @@ angular.module('deckApp')
 
     return {
       cloneServerGroup: cloneServerGroup,
+      createApplication: createApplication,
       deleteLoadBalancer: deleteLoadBalancer,
       destroyServerGroup: destroyServerGroup,
       disableServerGroup: disableServerGroup,
