@@ -219,22 +219,11 @@ angular.module('deckApp')
         instanceTypeService.getAvailableTypesForRegions([$scope.command.region]).then(function (result) {
           $scope.regionalInstanceTypes = result;
           if ($scope.command.instanceType && result.indexOf($scope.command.instanceType) === -1) {
-            $scope.command.instanceType = null;
-            if (modalWizardService.getWizard()) {
-              var instanceTypePage = modalWizardService.getWizard().getPage('instance-type');
-              if (instanceTypePage.state.rendered) {
-                instanceTypePage.state.dirty = true;
-              } else {
-                modalWizardService.getWizard().markDirty('instance-profile');
-              }
-            }
+            $scope.regionalInstanceTypes.push($scope.command.instanceType);
           }
         });
       }
     }
-
-
-
 
     function buildCommandFromExisting(serverGroup) {
       var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
@@ -256,7 +245,8 @@ angular.module('deckApp')
           'max': serverGroup.asg.maxSize,
           'desired': serverGroup.asg.desiredCapacity
         },
-        allImageSelection: null
+        'allImageSelection': null,
+        'instanceProfile': 'custom'
       };
       if (serverGroup.launchConfig) {
         var amiName = null;
