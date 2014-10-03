@@ -58,7 +58,7 @@
             </ul>
           </dd>
           <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
-          <dd>{{loadBalancer.elb.dnsname}}</dd>
+          <dd><a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a></dd>
           <dt ng-if="loadBalancer.elb.vpcid">VPC ID</dt>
           <dd>{{loadBalancer.elb.vpcid}}</dd>
         </dl>

@@ -59,7 +59,7 @@
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
       <dl>
         <dt>Private DNS Name:</dt>
-        <dd><a href="http://{{instance.privateDnsName}}">{{instance.privateDnsName}}</a></dd>
+        <dd>{{instance.privateDnsName}}</dd>
         <dt>Private IP Address:</dt>
         <dd><a href="http://{{instance.privateIpAddress}}" target="_blank">{{instance.privateIpAddress}}</a></dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
