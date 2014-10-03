@@ -42,7 +42,7 @@ class DisableAsgStage extends LinearStage {
     def step2 = steps.get("MonitorAsgStep")
                      .tasklet(buildTask(MonitorKatoTask))
                      .build()
-    def step3 = steps.get("WaitFoDownInstancesStep")
+    def step3 = steps.get("WaitForDownInstancesStep")
                      .tasklet(buildTask(AsgActionWaitForDownInstancesTask))
                      .build()
 
