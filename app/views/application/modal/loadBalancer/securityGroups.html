@@ -3,6 +3,8 @@
     <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
   </div>
   <div class="modal-body" ng-if="state.securityGroupsLoaded">
+    <kato-error task-status="taskStatus" title="We could not {{isNew ? 'create': 'update'}} your load balancer."></kato-error>
+    <kato-progress task-status="taskStatus" title="{{isNew ? 'Creating': 'Updating'}}  your load balancer."></kato-progress>
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Security Groups</div>
       <div class="col-md-9">
@@ -18,7 +20,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-default pull-left" ng-click="ctrl.cancel()">Cancel</button>
+    <button ng-disabled="state.submitting" class="btn btn-default pull-left" ng-click="ctrl.cancel()">Cancel</button>
     <button class="btn btn-default"
             ng-click="wizard.previousPage()"
             ng-if="!wizard.isFirstPage('Security Groups')">

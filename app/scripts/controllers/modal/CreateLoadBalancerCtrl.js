@@ -14,8 +14,15 @@ angular.module('deckApp')
       securityGroupsLoaded: false,
       accountsLoaded: false,
       loadBalancerNamesLoaded: false,
-      submitting: false,
-      katoError: null
+      submitting: false
+    };
+
+    $scope.taskStatus = {
+      errorMessage: null,
+      lastStage: null,
+      hideProgressMessage: false,
+      taskId: null,
+      applicationName: application.name
     };
 
     var allSecurityGroups = {},
@@ -205,10 +212,11 @@ angular.module('deckApp')
       $scope.state.katoError = null;
 
       orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor).then(function(task) {
+        $scope.taskStatus.taskId = task.id;
         task.watchForKatoCompletion().then(
-          function(updatedTask) { // kato succeeded
+          function() { // kato succeeded
             $modalInstance.close();
-            updatedTask.watchForForceRefresh().then(
+            task.watchForForceRefresh().then(
               function() { // cache has been refreshed; object should be available
                 application.refreshImmediately();
               },
@@ -219,7 +227,11 @@ angular.module('deckApp')
           },
           function(updatedTask) { // kato failed
             $scope.state.submitting = false;
-            $scope.state.katoError = updatedTask.failureMessage || 'There was an unknown server error.';
+            $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
+            $scope.taskStatus.lastStage = null;
+          },
+          function(notification) {
+            $scope.taskStatus.lastStage = notification;
           }
         );
       });

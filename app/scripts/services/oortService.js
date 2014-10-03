@@ -40,9 +40,7 @@ angular.module('deckApp')
           }
         }
 
-        application.refreshImmediately = function refreshImmediately() {
-          scheduler.scheduleImmediate(refreshApplication);
-        };
+        application.refreshImmediately = refreshApplication;
 
         application.disableAutoRefresh = function disableAutoRefresh() {
           application.autoRefreshEnabled = false;
