@@ -54,6 +54,6 @@ class AccountHostnameFilterSpec extends Specification {
     then:
     1 * req.getRequestURL() >> new StringBuffer("http://front50.test.netflix.net")
     1 * req.getRequestURI() >> "/test/applications"
-    0 * req.getRequestDispatcher("/test/applications") >> Mock(RequestDispatcher)
+    1 * req.getRequestDispatcher("/test/applications") >> Mock(RequestDispatcher)
   }
 }
