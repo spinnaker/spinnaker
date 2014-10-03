@@ -397,7 +397,14 @@ angular.module('deckApp')
               $scope.taskStatus.lastStage = notification;
             }
           );
-        });
+        },
+        function(error) {
+          $scope.state.submitting = false;
+          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
+          $scope.taskStatus.lastStage = null;
+          $exceptionHandler('Post to pond failed:', error);
+        }
+      );
     };
 
     this.cancel = function () {

@@ -1,6 +1,8 @@
 
   <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
     <div class="modal-body">
+      <kato-error task-status="taskStatus" title="We could not {{isNew ? 'create': 'update'}} your security group."></kato-error>
+      <kato-progress task-status="taskStatus" title="{{isNew ? 'Creating': 'Updating'}}  your security group."></kato-progress>
       <div class="row">
         <div class="col-md-12">
           <p class="info">
@@ -61,9 +63,7 @@
               ng-click="wizard.previousPage()">
         <span class="glyphicon glyphicon-chevron-left"></span> Back
       </button>
-      <button type="submit" class="btn btn-primary" ng-click="ctrl.upsert()"
-              ng-disabled="form.$invalid">
-        <span class="glyphicon glyphicon-ok-circle"></span> {{isNew ? 'Create' : 'Update'}}
-      </button>
+      <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
+                     submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
     </div>
   </form>

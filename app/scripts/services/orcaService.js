@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.pondUrl);
@@ -20,10 +20,24 @@ angular.module('deckApp')
           application: task.application,
         }),
       });
-      var op = endpoint.post(task).then(function(task) {
-        var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
-        return pond.one('tasks', taskId).get();
-      });
+      var op = endpoint.post(task).then(
+        function(task) {
+          var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
+          return pond.one('tasks', taskId).get();
+        },
+        function(response) {
+          var error = {
+            status: response.status,
+            message: response.statusText
+          };
+          if (response.data && response.data.message) {
+            error.log = response.data.message;
+          } else {
+            error.log = 'Sorry, no more information.';
+          }
+          return $q.reject(error);
+        }
+      );
       return scheduler.scheduleOnCompletion(op);
     }
 

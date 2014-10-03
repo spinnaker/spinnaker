@@ -4,11 +4,27 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, accountService, orcaService, securityGroupService, mortService, _, applicationName, securityGroup) {
+  .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler,
+                                                  accountService, orcaService, securityGroupService, mortService,
+                                                  _, application, securityGroup) {
 
     var ctrl = this;
 
     var allSecurityGroups = {};
+
+    $scope.isNew = true;
+
+    $scope.state = {
+      submitting: false
+    };
+
+    $scope.taskStatus = {
+      errorMessage: null,
+      lastStage: null,
+      hideProgressMessage: false,
+      taskId: null,
+      applicationName: application.name
+    };
 
     $scope.securityGroup = securityGroup;
 
@@ -75,7 +91,7 @@ angular.module('deckApp')
 
     this.updateName = function() {
       var securityGroup = $scope.securityGroup,
-        name = applicationName;
+        name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
       }
@@ -100,11 +116,41 @@ angular.module('deckApp')
     };
 
     this.upsert = function () {
-      orcaService.upsertSecurityGroup($scope.securityGroup, applicationName, 'Create')
-        .then(function (response) {
-          $modalInstance.close();
-          console.warn('task:', response.ref);
-        });
+      $scope.state.submitting = true;
+      $scope.taskStatus.errorMessage = null;
+
+      orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Create')
+        .then(function (task) {
+          $scope.taskStatus.taskId = task.id;
+          task.watchForKatoCompletion().then(
+            function() { // kato succeeded
+              $modalInstance.close();
+              task.watchForForceRefresh().then(
+                function() { // cache has been refreshed; object should be available
+                  application.refreshImmediately();
+                },
+                function(task) { // cache refresh never happened?
+                  $exceptionHandler('task failed to force cache refresh:', task);
+                }
+              );
+            },
+            function(updatedTask) { // kato failed
+              $scope.state.submitting = false;
+              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
+              $scope.taskStatus.lastStage = null;
+            },
+            function(notification) {
+              $scope.taskStatus.lastStage = notification;
+            }
+          );
+        },
+        function(error) {
+          $scope.state.submitting = false;
+          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
+          $scope.taskStatus.lastStage = null;
+          $exceptionHandler('Post to pond failed:', error);
+        }
+      );
     };
 
     this.cancel = function () {

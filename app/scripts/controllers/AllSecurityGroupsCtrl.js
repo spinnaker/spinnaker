@@ -62,7 +62,7 @@ angular.module('deckApp')
               securityGroupIngress: []
             };
           },
-          applicationName: function() { return application.name; }
+          application: function() { return application; }
         }
       });
     };

@@ -21,7 +21,7 @@ angular.module('deckApp')
           securityGroup: function() {
             return angular.copy($scope.securityGroup.plain());
           },
-          applicationName: function() { return application.name; }
+          application: function() { return application; }
         }
       });
     };

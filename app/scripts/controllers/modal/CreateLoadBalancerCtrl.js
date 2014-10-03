@@ -209,32 +209,40 @@ angular.module('deckApp')
       var descriptor = isNew ? 'Create' : 'Update';
 
       $scope.state.submitting = true;
-      $scope.state.katoError = null;
+      $scope.taskStatus.errorMessage = null;
 
-      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor).then(function(task) {
-        $scope.taskStatus.taskId = task.id;
-        task.watchForKatoCompletion().then(
-          function() { // kato succeeded
-            $modalInstance.close();
-            task.watchForForceRefresh().then(
-              function() { // cache has been refreshed; object should be available
-                application.refreshImmediately();
-              },
-              function(task) { // cache refresh never happened?
-                $exceptionHandler('task failed to force cache refresh:', task);
-              }
-            );
-          },
-          function(updatedTask) { // kato failed
-            $scope.state.submitting = false;
-            $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
-            $scope.taskStatus.lastStage = null;
-          },
-          function(notification) {
-            $scope.taskStatus.lastStage = notification;
-          }
-        );
-      });
+      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor)
+        .then(function(task) {
+          $scope.taskStatus.taskId = task.id;
+          task.watchForKatoCompletion().then(
+            function() { // kato succeeded
+              $modalInstance.close();
+              task.watchForForceRefresh().then(
+                function() { // cache has been refreshed; object should be available
+                  application.refreshImmediately();
+                },
+                function(task) { // cache refresh never happened?
+                  $exceptionHandler('task failed to force cache refresh:', task);
+                }
+              );
+            },
+            function(updatedTask) { // kato failed
+              $scope.state.submitting = false;
+              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
+              $scope.taskStatus.lastStage = null;
+            },
+            function(notification) {
+              $scope.taskStatus.lastStage = notification;
+            }
+          );
+        },
+        function(error) {
+          $scope.state.submitting = false;
+          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
+          $scope.taskStatus.lastStage = null;
+          $exceptionHandler('Post to pond failed:', error);
+        }
+      );
     };
 
     this.cancel = function () {

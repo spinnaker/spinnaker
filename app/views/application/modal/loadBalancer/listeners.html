@@ -51,10 +51,10 @@
             ng-click="wizard.previousPage()">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
-    <submit-button is-disabled="!form.$valid || !wizard.isComplete() || state.submitting"
+    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
                    submitting="state.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
     <button class="btn btn-primary"
-            ng-disabled="!form.$valid"
+            ng-disabled="form.$invalid"
             ng-click="wizard.markComplete('Listeners'); wizard.nextPage()">
       Next <span class="glyphicon glyphicon-chevron-right"></span>
     </button>

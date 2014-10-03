@@ -19,10 +19,15 @@ angular.module('deckApp')
       scheduleImmediate: scheduler.onNext.bind(scheduler),
       scheduleOnCompletion: function(promise) {
         var deferred = $q.defer();
-        promise.then(function(result) {
-          scheduler.onNext();
-          deferred.resolve(result);
-        });
+        promise.then(
+          function(result) {
+            scheduler.onNext();
+            deferred.resolve(result);
+          },
+          function(error) {
+            deferred.reject(error);
+          }
+        );
         return deferred.promise;
       },
     };
