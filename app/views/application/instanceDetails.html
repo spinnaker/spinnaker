@@ -75,7 +75,7 @@
           </li>
         </ul>
     </collapsible-section>
-    <collapsible-section heading="Logs" ng-if="!instance.notFound">
+    <collapsible-section heading="Logs" ng-if="!instance.notFound && instance.privateIpAddress">
       <ul>
         <li>
           <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
