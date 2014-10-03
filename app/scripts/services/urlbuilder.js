@@ -73,6 +73,15 @@ angular.module('deckApp')
           }
         );
       },
+      'task': function(input) {
+        return $state.href(
+          'home.applications.application.tasks.taskDetails',
+          {
+            application: input.application,
+            taskId: input.taskId
+          }
+        );
+      }
     };
 
     var pushVersion = /-v\d+$/;
@@ -81,7 +90,7 @@ angular.module('deckApp')
       var asgName = task.getValueFor(type+'Asg.asgName');
       var account = task.getValueFor('deploy.account.name');
       if (!asgName.match(pushVersion)) { return '/'; }
-      return $state.href( 
+      return $state.href(
         'home.applications.application.insight.clusters.cluster.serverGroup',
         {
           application: task.getValueFor('application'),

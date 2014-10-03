@@ -11,18 +11,19 @@ angular.module('deckApp')
       RestangularConfigurer.setDefaultHeaders( {'Content-Type':'application/context+json'} );
     }).all('ops');
 
-    function executeTask(task) {
-      notifications.create({
-        title: task.application,
-        message: task.description,
-        href: urlBuilder.buildFromMetadata({
-          type: 'tasks',
-          application: task.application,
-        }),
-      });
-      var op = endpoint.post(task).then(
+    function executeTask(taskCommand) {
+      var op = endpoint.post(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
+          notifications.create({
+            title: taskCommand.application,
+            message: taskCommand.description,
+            href: urlBuilder.buildFromMetadata({
+              type: 'task',
+              application: taskCommand.application,
+              taskId: taskId
+            })
+          });
           return pond.one('tasks', taskId).get();
         },
         function(response) {
