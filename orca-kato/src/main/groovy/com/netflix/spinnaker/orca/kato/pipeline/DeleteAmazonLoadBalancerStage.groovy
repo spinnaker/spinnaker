@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.AmazonLoadBalancerForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
@@ -45,7 +46,7 @@ class DeleteAmazonLoadBalancerStage extends LinearStage {
       .build()
 
     def step2 = steps.get("ForceCacheRefreshStep")
-      .tasklet(buildTask(AmazonLoadBalancerForceRefreshTask))
+      .tasklet(buildTask(DeleteAmazonLoadBalancerForceRefreshTask))
       .build()
 
     def step3 = steps.get("MonitorDeleteStep")
