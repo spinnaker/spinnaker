@@ -63,6 +63,8 @@ class CreateDeployTask implements Task {
     if (context.inputs."bake.ami") {
       operation.amiName = context.inputs."bake.ami"
     }
+    operation.remove('type')
+    operation.remove('user')
     operation.keyPair = operation.keyPair ?: "nf-${operation.credentials}-keypair-a"
     return operation
   }

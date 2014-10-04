@@ -44,6 +44,8 @@ class CreateCopyLastAsgTask implements Task {
       .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(context.getInputs("copyLastAsg"), Map)
     operation.amiName = operation.amiName ?: context.getInputs().'bake.ami' as String
+    operation.remove('type')
+    operation.remove('user')
     def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
