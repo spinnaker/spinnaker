@@ -87,11 +87,11 @@ angular.module('deckApp')
         if (task.isFailed) {
           return $q.reject(task);
         }
-        if (task.isCompleted) {
-          var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
-          if (forceRefreshStep.length && forceRefreshStep[0].status === 'COMPLETED') {
-            return $q.when(task);
-          } else {
+        var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
+        if (forceRefreshStep.length && forceRefreshStep[0].status === 'COMPLETED') {
+          return $q.when(task);
+        } else {
+          if (task.isCompleted) {
             return $q.reject(task);
           }
         }
