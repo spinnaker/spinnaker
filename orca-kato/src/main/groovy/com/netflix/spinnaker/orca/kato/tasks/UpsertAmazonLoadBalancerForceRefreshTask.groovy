@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 /**
  * Created by aglover on 9/29/14.
  */
-public class AmazonLoadBalancerForceRefreshTask implements Task {
+public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
   static final String REFRESH_TYPE = "AmazonLoadBalancer"
 
   @Autowired
@@ -33,9 +33,12 @@ public class AmazonLoadBalancerForceRefreshTask implements Task {
 
   @Override
   TaskResult execute(TaskContext context) {
-    String account = context.getInputs()."deleteAmazonLoadBalancer.account.name"
-    String name = context.getInputs()."deleteAmazonLoadBalancer.loadBalancerName"
-    List<String> regions = context.getInputs()."deleteAmazonLoadBalancer.regions"
+    def inputs = context.getInputs()
+    String account = inputs."upsertAmazonLoadBalancer.credentials"
+    String name = inputs."upsertAmazonLoadBalancer.clusterName" ?
+      "${inputs."upsertAmazonLoadBalancer.clusterName"}-frontend" :
+      inputs."upsertAmazonLoadBalancer.name"
+    List<String> regions = [inputs."upsertAmazonLoadBalancer.region"].flatten()
 
     regions.each { region ->
       def model = [loadBalancerName: name, region: region, account: account]

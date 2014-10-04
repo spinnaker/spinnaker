@@ -3,7 +3,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.AmazonLoadBalancerForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerTask
@@ -33,7 +33,7 @@ class UpsertAmazonLoadBalancerStage extends LinearStage {
       .build()
 
     def step3 = steps.get("ForceCacheRefreshStep")
-      .tasklet(buildTask(AmazonLoadBalancerForceRefreshTask))
+      .tasklet(buildTask(UpsertAmazonLoadBalancerForceRefreshTask))
       .build()
 
     def step4 = steps.get("SendNotificationStep")

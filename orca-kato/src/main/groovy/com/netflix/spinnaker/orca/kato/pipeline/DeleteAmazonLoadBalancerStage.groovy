@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.AmazonLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
