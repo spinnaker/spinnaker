@@ -373,6 +373,9 @@ angular.module('deckApp')
       }
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
+      delete command.region;
+      delete command.allImageSelection;
+      delete command.instanceProfile;
       orcaService.cloneServerGroup(command, application.name, description)
         .then(function (task) {
           $scope.taskStatus.taskId = task.id;
