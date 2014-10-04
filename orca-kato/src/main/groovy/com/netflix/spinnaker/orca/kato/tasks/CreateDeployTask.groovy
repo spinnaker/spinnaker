@@ -69,6 +69,7 @@ class CreateDeployTask implements Task {
 
   @CompileStatic(TypeCheckingMode.SKIP)
   private TaskId deploy(Map deployOperation) {
+    deployOperation.securityGroups = deployOperation.securityGroups ?: []
     deployOperation.securityGroups.addAll((deployOperation.subnetType) ? ["nf-infrastructure-vpc", "nf-datacenter-vpc"] : ["nf-infrastructure", "nf-datacenter"])
     List<Map<String, Object>> descriptions = []
 
