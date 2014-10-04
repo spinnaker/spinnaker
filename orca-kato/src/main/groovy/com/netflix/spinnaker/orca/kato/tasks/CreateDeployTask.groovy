@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
@@ -57,10 +56,10 @@ class CreateDeployTask implements Task {
     )
   }
 
-  private DeployOperation deployOperationFromContext(TaskContext context) {
+  private Map deployOperationFromContext(TaskContext context) {
     def operation = mapper.copy()
                           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(context.getInputs("deploy"), DeployOperation)
+                          .convertValue(context.getInputs("deploy"), Map)
     if (context.inputs."bake.ami") {
       operation.amiName = context.inputs."bake.ami"
     }
@@ -69,7 +68,7 @@ class CreateDeployTask implements Task {
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
-  private TaskId deploy(DeployOperation deployOperation) {
+  private TaskId deploy(Map deployOperation) {
     deployOperation.securityGroups.addAll((deployOperation.subnetType) ? ["nf-infrastructure-vpc", "nf-datacenter-vpc"] : ["nf-infrastructure", "nf-datacenter"])
     List<Map<String, Object>> descriptions = []
 

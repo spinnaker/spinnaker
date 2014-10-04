@@ -18,12 +18,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -69,26 +69,17 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
+    def expected = Maps.newHashMap(deployConfig)
+    expected.with {
+      keyPair = 'nf-fzlem-keypair-a'
+      securityGroups = securityGroups + ['nf-infrastructure', 'nf-datacenter']
+    }
 
     when:
     task.execute(context)
 
     then:
-    with(operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription) {
-      it instanceof DeployOperation
-      application == deployConfig.application
-      amiName == deployConfig.amiName
-      instanceType == deployConfig.instanceType
-      securityGroups == deployConfig.securityGroups + ['nf-infrastructure-vpc', 'nf-datacenter-vpc']
-      availabilityZones == deployConfig.availabilityZones
-      capacity.min == deployConfig.capacity.min
-      capacity.max == deployConfig.capacity.max
-      capacity.desired == deployConfig.capacity.desired
-      credentials == deployConfig.credentials
-
-      !stack.present
-      !subnetType.present
-    }
+    operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription == expected
   }
 
   def "requests an allowLaunch operation for each region"() {
@@ -149,16 +140,25 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
+    def expected = [:]
 
     when:
     task.execute(context)
 
     then:
     operations.size() == 2
-    with(operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription) {
-      stack.get() == context."deploy.stack"
-      subnetType.get() == context."deploy.subnetType"
-    }
+    operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription == [
+        amiName: 'hodor-ubuntu-1',
+        application: 'hodor',
+        availabilityZones: ['us-east-1': ['a', 'd']],
+        capacity: [min: 1, max: 20, desired: 5],
+        credentials: 'fzlem',
+        instanceType: 'large',
+        keyPair: 'nf-fzlem-keypair-a',
+        securityGroups: ['a', 'b', 'c', 'nf-infrastructure-vpc', 'nf-datacenter-vpc'],
+        stack: 'the-stack-value',
+        subnetType: 'the-subnet-type-value'
+    ]
 
     where:
     stackValue = "the-stack-value"
