@@ -68,7 +68,7 @@ angular.module('deckApp')
         if (running) {
           var katoTaskId = task.getValueFor('kato.last.task.id');
           if (katoTaskId) {
-            kato.one('task', katoTaskId.id).get().then(function(katoTask) {
+            kato.getTask(katoTaskId.id).get().then(function(katoTask) {
               katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, deferred.notify);
             });
           } else {
@@ -132,7 +132,6 @@ angular.module('deckApp')
           get: function() {
             var katoTasks = getKatoTasks(task);
             if (katoTasks) {
-              debugger;
               var steps = katoTasks[katoTasks.length-1].history;
               return steps[steps.length-1].status;
             }

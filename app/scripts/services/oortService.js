@@ -16,7 +16,7 @@ angular.module('deckApp')
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
         function refreshApplication() {
-          getApplication(application.name).then(function (newApplication) {
+          return getApplication(application.name).then(function (newApplication) {
             // compute task diff and generate notifications for a completed task
             taskTracker.handleCompletedTasks(taskTracker.getCompleted(
               application.tasks,

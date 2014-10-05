@@ -62,6 +62,10 @@ angular.module('deckApp')
       });
     }
 
-    return configureRestangular();
+    return {
+      getTask: function(taskId) {
+        return configureRestangular().one('task', taskId);
+      }
+    };
 
   });

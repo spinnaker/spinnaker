@@ -4,7 +4,7 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService, isNew, $exceptionHandler) {
+  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, $state, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService, isNew, $exceptionHandler) {
 
     var ctrl = this;
 
@@ -216,10 +216,22 @@ angular.module('deckApp')
           $scope.taskStatus.taskId = task.id;
           task.watchForKatoCompletion().then(
             function() { // kato succeeded
-              $modalInstance.close();
               task.watchForForceRefresh().then(
                 function() { // cache has been refreshed; object should be available
-                  application.refreshImmediately();
+                  $scope.taskStatus.lastStage = 'Getting your new load balancer from Amazon...';
+                  application.refreshImmediately().then(function() {
+                    $modalInstance.close();
+                    var newStateParams = {
+                      name: $scope.loadBalancer.name || $scope.loadBalancer.clusterName + '-frontend',
+                      accountId: $scope.loadBalancer.credentials,
+                      region: $scope.loadBalancer.region
+                    };
+                    if (!$state.includes('**.loadBalancerDetails')) {
+                      $state.go('.loadBalancerDetails', newStateParams);
+                    } else {
+                      $state.go('^.loadBalancerDetails', newStateParams);
+                    }
+                  });
                 },
                 function(task) { // cache refresh never happened?
                   $exceptionHandler('task failed to force cache refresh:', task);
