@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.cats.agent;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * An AgentScheduler that executes on a fixed interval.
@@ -31,29 +27,30 @@ import java.util.concurrent.atomic.AtomicLong;
  * An exception thrown while reporting executionFailure will abort the schedule for
  * the CachingAgent.
  */
-public class FixedIntervalAgentScheduler implements AgentScheduler {
-    public static final long DEFAULT_INTERVAL_SECONDS = 60;
-    private final long interval;
-    private final TimeUnit unit;
-    private final ScheduledExecutorService executorService;
+public class DefaultAgentScheduler implements AgentScheduler {
+    private static final long DEFAULT_INTERVAL = 60000;
 
-    public FixedIntervalAgentScheduler() {
-        this(DEFAULT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+    private final RunnableScheduler rs;
+
+    public DefaultAgentScheduler() {
+        this(DEFAULT_INTERVAL);
     }
 
-    public FixedIntervalAgentScheduler(long interval, TimeUnit unit) {
-        this.interval = interval;
-        this.unit = unit;
-        executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), new AgentThreadFactory());
+    public DefaultAgentScheduler(long interval) {
+        this(interval, TimeUnit.MILLISECONDS);
+    }
+
+    public DefaultAgentScheduler(long interval, TimeUnit unit) {
+        this(new FixedIntervalRunnableScheduler(DefaultAgentScheduler.class.getSimpleName(), interval, unit));
+    }
+
+    public DefaultAgentScheduler(RunnableScheduler rs) {
+        this.rs = rs;
     }
 
     @Override
     public void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-        executorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, interval, unit);
-    }
-
-    public void shutdown() {
-        executorService.shutdown();
+        rs.schedule(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation));
     }
 
     private static class AgentExecutionRunnable implements Runnable {
@@ -75,16 +72,6 @@ public class FixedIntervalAgentScheduler implements AgentScheduler {
             } catch (Throwable t) {
                 executionInstrumentation.executionFailed(agent, t);
             }
-        }
-    }
-
-    private static class AgentThreadFactory implements ThreadFactory {
-        private final AtomicLong threadNumber = new AtomicLong();
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = Executors.defaultThreadFactory().newThread(r);
-            t.setName(FixedIntervalAgentScheduler.class.getSimpleName() + "-" + threadNumber.incrementAndGet());
-            return t;
         }
     }
 }

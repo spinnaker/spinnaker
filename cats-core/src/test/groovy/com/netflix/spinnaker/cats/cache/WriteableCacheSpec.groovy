@@ -30,6 +30,22 @@ abstract class WriteableCacheSpec extends CacheSpec {
         cache.get('foo', 'bar') != null
     }
 
+    def 'merge stores relationships'() {
+        when:
+        cache.merge('fooWithRels', createData('bar', [mergeAtt: 'merged'], [rel1: ['abc', 'def'], rel2: ['ghi', 'jkl']]))
+        def retrieved = cache.get('fooWithRels', 'bar')
+
+        then:
+        retrieved != null
+        retrieved.id == 'bar'
+        retrieved.attributes.mergeAtt == 'merged'
+        retrieved.relationships.size() == 2
+        retrieved.relationships.rel1.size() == 2
+        retrieved.relationships.rel1.containsAll(['abc', 'def'])
+        retrieved.relationships.rel2.size() == 2
+        retrieved.relationships.rel2.containsAll(['ghi', 'jkl'])
+    }
+
     def 'merge updates an existing value'() {
         setup:
         cache.merge('foo', createData('bar', [merge1: 'merge1']))
@@ -38,6 +54,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 1
         bar.attributes.merge1 == 'merge1'
 
@@ -46,6 +63,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 2
         bar.attributes.merge1 == 'merge1'
         bar.attributes.merge2 == 'merge2'
@@ -59,6 +77,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 1
         bar.attributes.merge1 == 'merge1'
 
@@ -67,6 +86,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         bar = cache.get('foo', 'bar')
 
         then:
+        bar != null
         bar.attributes.size() == 1
         bar.attributes.merge2 == 'merge2'
     }
@@ -88,13 +108,16 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def allFoo = cache.getAll('foo')
 
         then:
+        bar != null
         bar.id == 'bar'
         bar.attributes.size() == 2
         bar.attributes.att1 == 'val1'
         bar.attributes.att2 == 'val2'
+        bar2 != null
         bar2.id == 'bar2'
         bar2.attributes.size() == 1
         bar2.attributes.bar2 == 'bar2'
+        allFoo != null
         allFoo.size() == 2
     }
 
@@ -146,6 +169,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         def allFoo = cache.getAll('foo')
 
         then:
+        allFoo != null
         allFoo.size() == 5
 
         when:
@@ -153,6 +177,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         allFoo = cache.getAll('foo')
 
         then:
+        allFoo != null
         allFoo.size() == 3
 
         when:
@@ -160,6 +185,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         allFoo = cache.getAll('foo')
 
         then:
+        allFoo != null
         allFoo.isEmpty()
 
         when:
