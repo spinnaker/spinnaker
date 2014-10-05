@@ -14,41 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis;
+package com.netflix.spinnaker.cats.redis.cache;
 
-import com.netflix.spinnaker.cats.cache.CacheData;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
+import com.netflix.spinnaker.cats.redis.JedisSource;
 
-import java.util.Collection;
+public class RedisNamedCacheFactory implements NamedCacheFactory {
 
-public class RedisCache implements WriteableCache {
-    @Override
-    public void merge(String type, CacheData cacheData) {
+    private final JedisSource jedisSource;
+    private final ObjectMapper objectMapper;
 
+    public RedisNamedCacheFactory(JedisSource jedisSource, ObjectMapper objectMapper) {
+        this.jedisSource = jedisSource;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public void mergeAll(String type, Collection<CacheData> items) {
-
-    }
-
-    @Override
-    public void evict(String type, String id) {
-
-    }
-
-    @Override
-    public void evictAll(String type, Collection<String> ids) {
-
-    }
-
-    @Override
-    public CacheData get(String type, String id) {
-        return null;
-    }
-
-    @Override
-    public Collection<CacheData> getAll(String type) {
-        return null;
+    public WriteableCache getCache(String name) {
+        return new RedisCache(name, jedisSource, objectMapper);
     }
 }

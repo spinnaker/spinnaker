@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis
+package com.netflix.spinnaker.cats.redis.cluster
 
 import spock.lang.Specification
 
-class ClusteredAgentSchedulerSpec extends Specification {
-    def 'cache run aborted if agent doesnt acquire execution token'() {
-        expect: 'this should get impld'
-        false
-    }
+class DefaultNodeIdentitySpec extends Specification {
 
-    def 'cache run proceeds if agent aquires execution token'() {
-        expect: 'this should get impld'
-        false
-    }
+    def 'should resolve to valid network interface'() {
+        when:
+        def id = new DefaultNodeIdentity('www.google.com', 80)
 
-    def 'execution token is TTLd when agent execution completes successfully'() {
-        expect: 'this should get impld'
-        false
-    }
-
-    def 'execution token is TTLd when agent execution fails'() {
-        expect: 'this should get impld'
-        false
+        then:
+        id.nodeIdentity != null
+        !id.nodeIdentity.contains(DefaultNodeIdentity.UNKNOWN_HOST)
     }
 }

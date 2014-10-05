@@ -54,7 +54,7 @@ public interface CatsModule {
         }
 
         public Builder intervalScheduler(long interval) {
-            return scheduler(new FixedIntervalAgentScheduler(interval, TimeUnit.MILLISECONDS));
+            return scheduler(new DefaultAgentScheduler(interval, TimeUnit.MILLISECONDS));
         }
 
         public Builder intervalScheduler(long interval, TimeUnit unit) {
@@ -90,7 +90,7 @@ public interface CatsModule {
             }
 
             if (scheduler == null) {
-                scheduler = new FixedIntervalAgentScheduler();
+                scheduler = new DefaultAgentScheduler();
             }
 
             if (cacheFactory == null) {

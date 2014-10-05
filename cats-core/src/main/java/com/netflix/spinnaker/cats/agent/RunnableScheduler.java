@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis
+package com.netflix.spinnaker.cats.agent;
 
-import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
-
-class RedisCacheSpec extends WriteableCacheSpec {
-    @Override
-    Cache getSubject() {
-        return new RedisCache()
-    }
+public interface RunnableScheduler {
+    void schedule(Runnable r);
+    void shutdown();
 }

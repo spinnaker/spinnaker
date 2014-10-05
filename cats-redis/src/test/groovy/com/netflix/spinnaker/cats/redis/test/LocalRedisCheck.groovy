@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis;
+package com.netflix.spinnaker.cats.redis.test
 
-import com.netflix.spinnaker.cats.agent.AgentExecution;
-import com.netflix.spinnaker.cats.agent.AgentScheduler;
-import com.netflix.spinnaker.cats.agent.CachingAgent;
-import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+class LocalRedisCheck {
+    public static boolean redisUnavailable() {
+        Socket s
+        try {
+            byte[] localhost = [127, 0, 0, 1]
+            def resolvedAddress = new InetSocketAddress(InetAddress.getByAddress('localhost', localhost), 6379)
+            s = new Socket()
+            s.connect(resolvedAddress, 125)
+            false
+        } catch (Throwable t) {
+            true
+        } finally {
+            try {
+                s?.close()
+            } catch (IOException ignored) {
 
-public class ClusteredAgentScheduler implements AgentScheduler {
-    @Override
-    public void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-
+            }
+        }
     }
 }

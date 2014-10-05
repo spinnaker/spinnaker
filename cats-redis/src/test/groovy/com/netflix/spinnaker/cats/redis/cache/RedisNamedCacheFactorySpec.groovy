@@ -14,16 +14,38 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis
+package com.netflix.spinnaker.cats.redis.cache
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.redis.JedisPoolSource
+import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Subject
 
+@IgnoreIf({ LocalRedisCheck.redisUnavailable() })
 class RedisNamedCacheFactorySpec extends Specification {
 
     @Subject
-    RedisNamedCacheFactory factory = new RedisNamedCacheFactory()
+    RedisNamedCacheFactory factory
+
+    def setup() {
+        def pool = new JedisPool("localhost", 6379)
+        def source = new JedisPoolSource(pool)
+        Jedis jedis
+        try {
+            jedis = source.jedis
+            jedis.flushAll()
+        } finally {
+            jedis?.close()
+        }
+
+        def mapper = new ObjectMapper();
+        factory = new RedisNamedCacheFactory(source, mapper)
+    }
 
     def 'caches with the same name share content'() {
         def c1 = factory.getCache('foo')

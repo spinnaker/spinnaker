@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.redis;
+package com.netflix.spinnaker.cats.thread;
 
-import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
-import com.netflix.spinnaker.cats.cache.WriteableCache;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class RedisNamedCacheFactory implements NamedCacheFactory {
+public class NamedThreadFactory implements ThreadFactory {
+    private final AtomicLong threadNumber = new AtomicLong();
+    private final String baseName;
+
+    public NamedThreadFactory(String baseName) {
+        this.baseName = baseName;
+    }
+
     @Override
-    public WriteableCache getCache(String name) {
-        return new RedisCache();
+    public Thread newThread(Runnable r) {
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setName(baseName + "-" + threadNumber.incrementAndGet());
+        return t;
     }
 }
