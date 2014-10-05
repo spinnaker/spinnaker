@@ -33,6 +33,7 @@ public class DefaultNodeIdentity implements NodeIdentity {
     public static final String UNKNOWN_HOST = "UnknownHost";
     private static final long REFRESH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
 
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     private static String getHostName(String validationHost, int validationPort) {
         final Enumeration<NetworkInterface> interfaces;
         try {
@@ -109,23 +110,21 @@ public class DefaultNodeIdentity implements NodeIdentity {
 
     @Override
     public String getNodeIdentity() {
-        if (!validIdentity.get()) {
-            if (shouldRefresh()) {
-                refreshLock.lock();
-                try {
-                    if (shouldRefresh()) {
-                        loadIdentity();
-                    }
-                } finally {
-                    refreshLock.unlock();
+        if (!validIdentity.get() && shouldRefresh()) {
+            refreshLock.lock();
+            try {
+                if (!validIdentity.get() && shouldRefresh()) {
+                    loadIdentity();
                 }
+            } finally {
+                refreshLock.unlock();
             }
         }
         return identity.get();
     }
 
     private boolean shouldRefresh() {
-        return (System.currentTimeMillis() - refreshTime.get() > refreshInterval);
+        return System.currentTimeMillis() - refreshTime.get() > refreshInterval;
     }
 
     private void loadIdentity() {
