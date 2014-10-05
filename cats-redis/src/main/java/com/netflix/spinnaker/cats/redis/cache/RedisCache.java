@@ -61,22 +61,20 @@ public class RedisCache implements WriteableCache {
         }
         hash.put(ID_ATTRIBUTE, cacheData.getId());
 
-        Collection<String> relationshipKeys = new ArrayList<>(cacheData.getRelationships().size());
-        for (String relationship : cacheData.getRelationships().keySet()) {
-            relationshipKeys.add(relationshipId(type, cacheData.getId(), relationship));
-        }
         try (Jedis jedis = source.getJedis()) {
             jedis.sadd(allOfTypeId(type), cacheData.getId());
             if (!hashDeletions.isEmpty()) {
                 jedis.hdel(attributesId(type, cacheData.getId()), hashDeletions.toArray(new String[hashDeletions.size()]));
             }
             jedis.hmset(attributesId(type, cacheData.getId()), hash);
-            if (!relationshipKeys.isEmpty()) {
-                jedis.sadd(allRelationshipsId(type, cacheData.getId()), relationshipKeys.toArray(new String[relationshipKeys.size()]));
+            if (!cacheData.getRelationships().isEmpty()) {
+                jedis.sadd(allRelationshipsId(type, cacheData.getId()), cacheData.getRelationships().keySet().toArray(new String[cacheData.getRelationships().size()]));
                 for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
                     Transaction xa = jedis.multi();
                     xa.del(relationshipId(type, cacheData.getId(), relationship.getKey()));
-                    xa.sadd(relationshipId(type, cacheData.getId(), relationship.getKey()), relationship.getValue().toArray(new String[relationship.getValue().size()]));
+                    if (!relationship.getValue().isEmpty()) {
+                        xa.sadd(relationshipId(type, cacheData.getId(), relationship.getKey()), relationship.getValue().toArray(new String[relationship.getValue().size()]));
+                    }
                     xa.exec();
                 }
             }
