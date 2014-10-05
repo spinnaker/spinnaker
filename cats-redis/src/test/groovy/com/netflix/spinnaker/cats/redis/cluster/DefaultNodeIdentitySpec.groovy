@@ -28,4 +28,29 @@ class DefaultNodeIdentitySpec extends Specification {
         id.nodeIdentity != null
         !id.nodeIdentity.contains(DefaultNodeIdentity.UNKNOWN_HOST)
     }
+
+    def 'should refresh when unknown host'() {
+        setup:
+        def serverSocket = new ServerSocket(0)
+        def localPort = serverSocket.getLocalPort()
+        serverSocket.close()
+
+        when:
+        def id = new DefaultNodeIdentity('localhost', localPort, 10)
+
+        then:
+        id.nodeIdentity != null
+        id.nodeIdentity.contains(DefaultNodeIdentity.UNKNOWN_HOST)
+
+        when:
+        serverSocket = new ServerSocket(localPort)
+
+        then:
+        Thread.currentThread().sleep(100)
+        id.nodeIdentity != null
+        !id.nodeIdentity.contains(DefaultNodeIdentity.UNKNOWN_HOST)
+
+        cleanup:
+        serverSocket.close()
+    }
 }

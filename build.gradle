@@ -34,6 +34,7 @@ allprojects {
 subprojects {
   apply plugin: 'java'
   apply plugin: 'groovy'
+  apply plugin: 'findbugs'
 
   sourceCompatibility = 1.7
   targetCompatibility = 1.7
@@ -48,5 +49,10 @@ subprojects {
   }
 
   tasks.compileGroovy.enabled = false
+  tasks.findbugsTest.enabled = false
+
+  findbugs {
+    toolVersion = '3.0.0'
+  }
 }
 

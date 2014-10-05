@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.*;
 import java.util.Collections;
@@ -33,13 +34,18 @@ public class DefaultNodeIdentity implements NodeIdentity {
     private static final long REFRESH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
 
     private static String getHostName(String validationHost, int validationPort) {
+        final Enumeration<NetworkInterface> interfaces;
         try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            if (interfaces == null) {
-                return UNKNOWN_HOST;
-            }
+            interfaces = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException ignored) {
+            return UNKNOWN_HOST;
+        }
+        if (interfaces == null) {
+            return UNKNOWN_HOST;
+        }
 
-            for (NetworkInterface networkInterface : Collections.list(interfaces)) {
+        for (NetworkInterface networkInterface : Collections.list(interfaces)) {
+            try {
                 if (networkInterface.isLoopback()) {
                     continue;
                 }
@@ -47,29 +53,31 @@ public class DefaultNodeIdentity implements NodeIdentity {
                 if (!networkInterface.isUp()) {
                     continue;
                 }
+            } catch (SocketException ignored) {
+                continue;
+            }
 
-                for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
-                    Socket socket = null;
-                    try {
-                        socket = new Socket();
-                        socket.bind(new InetSocketAddress(address, 0));
-                        socket.connect(new InetSocketAddress(validationHost, validationPort), 125);
-                        return address.getHostName();
-                    } catch (Exception ignored) {
-                        //
-                    } finally {
-                        if (socket != null) {
-                            try {
-                                socket.close();
-                            } catch (Exception ignored) {
-                                //
-                            }
+            for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
+                Socket socket = null;
+                try {
+                    socket = new Socket();
+                    socket.bind(new InetSocketAddress(address, 0));
+                    socket.connect(new InetSocketAddress(validationHost, validationPort), 125);
+                    return address.getHostName();
+                } catch (IOException ignored) {
+                    //ignored
+                } finally {
+                    if (socket != null) {
+                        try {
+                            socket.close();
+                        } catch (IOException ignored) {
+                            //ignored
                         }
                     }
                 }
             }
-        } catch (Exception ignored) {
         }
+
         return UNKNOWN_HOST;
     }
 
@@ -80,15 +88,21 @@ public class DefaultNodeIdentity implements NodeIdentity {
     private final AtomicBoolean validIdentity = new AtomicBoolean(false);
     private final AtomicLong refreshTime = new AtomicLong(0);
     private final Lock refreshLock = new ReentrantLock();
+    private final long refreshInterval;
 
     public DefaultNodeIdentity() {
         this("www.google.com", 80);
     }
 
     public DefaultNodeIdentity(String validationAddress, int validationPort) {
+        this(validationAddress, validationPort, REFRESH_INTERVAL);
+    }
+
+    public DefaultNodeIdentity(String validationAddress, int validationPort, long refreshInterval) {
         this.validationAddress = validationAddress;
         this.validationPort = validationPort;
         this.runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+        this.refreshInterval = refreshInterval;
         loadIdentity();
 
     }
@@ -111,12 +125,12 @@ public class DefaultNodeIdentity implements NodeIdentity {
     }
 
     private boolean shouldRefresh() {
-        return (System.currentTimeMillis() - refreshTime.get() > REFRESH_INTERVAL);
+        return (System.currentTimeMillis() - refreshTime.get() > refreshInterval);
     }
 
     private void loadIdentity() {
         identity.set(String.format("%s:%s", getHostName(validationAddress, validationPort), runtimeName));
-        validIdentity.set(identity.get().contains(UNKNOWN_HOST));
+        validIdentity.set(!identity.get().contains(UNKNOWN_HOST));
         refreshTime.set(System.currentTimeMillis());
     }
 }
