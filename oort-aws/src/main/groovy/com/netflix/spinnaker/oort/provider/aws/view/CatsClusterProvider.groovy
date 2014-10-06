@@ -16,16 +16,19 @@
 
 package com.netflix.spinnaker.oort.provider.aws.view
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.LoadBalancer
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
+import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -102,6 +105,41 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
     def sg = new AmazonServerGroup(matcher.group(3), 'aws', matcher.group(2))
     sg.putAll(serverGroupData.attributes)
+
+    sg.instances = resolveRelationshipData(serverGroupData, Instance.DATA_TYPE).collect {
+      [name: it.attributes.instanceId,
+       instance: it.attributes]
+    }
+
+    if (serverGroupData.relationships[AwsProvider.LAUNCH_CONFIG_TYPE]) {
+      CacheData lc = serverGroupData.relationships[AwsProvider.LAUNCH_CONFIG_TYPE].findResult { String lcId ->
+        cacheView.get(AwsProvider.LAUNCH_CONFIG_TYPE, lcId)
+      }
+      if (lc) {
+        sg.launchConfig = lc.attributes
+        CacheData image = lc.relationships[AwsProvider.IMAGE_TYPE].findResult { String imageId ->
+          cacheView.get(AwsProvider.IMAGE_TYPE, imageId)
+        }
+        if (image) {
+          sg.image = image.attributes
+          String appVersionTag = image.attributes.tags?.find { it.key == "appversion" }?.value
+          if (appVersionTag) {
+            def appVersion = AppVersion.parseName(appVersionTag)
+            if (appVersion) {
+              Map buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+              if (appVersion.buildJobName) {
+                buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
+              }
+              def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value
+              if (buildHost) {
+                ((Map) buildInfo.jenkins).host = buildHost
+              }
+            }
+          }
+
+        }
+      }
+    }
     sg
   }
 

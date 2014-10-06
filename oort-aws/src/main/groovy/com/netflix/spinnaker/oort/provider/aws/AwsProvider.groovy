@@ -24,6 +24,8 @@ class AwsProvider implements Provider {
 
   public static final String LAUNCH_CONFIG_TYPE = "LaunchConfig"
 
+  public static final String IMAGE_TYPE = "Image"
+
   private final Collection<CachingAgent> agents
 
   AwsProvider(Collection<CachingAgent> agents) {
@@ -57,6 +59,10 @@ class AwsProvider implements Provider {
 
     String instanceId(String instanceId) {
       "${account}/${region}/${instanceId}".toString()
+    }
+
+    String imageId(String imageId) {
+      "${region}/${imageId}"
     }
   }
 

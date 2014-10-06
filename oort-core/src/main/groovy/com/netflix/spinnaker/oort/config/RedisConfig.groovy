@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentScheduler
+import com.netflix.spinnaker.cats.agent.FixedIntervalRunnableScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.JedisSource
@@ -55,6 +56,6 @@ class RedisConfig {
 
   @Bean
   AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.host:localhost}') String redisHost, @Value('${redis.port:6379}') int redisPort) {
-    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), new DefaultAgentIntervalProvider(TimeUnit.SECONDS.toMillis(60)))
+    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), new DefaultAgentIntervalProvider(TimeUnit.SECONDS.toMillis(60)), new FixedIntervalRunnableScheduler(ClusteredAgentScheduler.class.getSimpleName(), 5, TimeUnit.SECONDS))
   }
 }

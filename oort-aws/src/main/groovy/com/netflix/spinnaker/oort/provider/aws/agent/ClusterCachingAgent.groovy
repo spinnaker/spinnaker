@@ -182,8 +182,7 @@ class ClusterCachingAgent implements CachingAgent {
   private void cacheInstances(AsgData data, Map<String, CacheData> instances) {
     for (com.amazonaws.services.autoscaling.model.Instance instance : data.asg.instances) {
       instances[identifiers.instanceId(instance.instanceId)].with {
-        attributes.name = instance.instanceId
-        attributes.instance = objectMapper.convertValue(instance, ATTRIBUTES)
+        attributes.putAll(objectMapper.convertValue(instance, ATTRIBUTES))
         relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
       }
     }

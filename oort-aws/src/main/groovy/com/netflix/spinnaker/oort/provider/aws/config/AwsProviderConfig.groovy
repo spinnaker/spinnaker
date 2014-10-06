@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.oort.provider.aws.config
 
-import com.amazonaws.auth.AWSCredentialsProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
@@ -26,6 +25,9 @@ import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
 import com.netflix.spinnaker.oort.config.CredentialsInitializer
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import com.netflix.spinnaker.oort.provider.aws.agent.ClusterCachingAgent
+import com.netflix.spinnaker.oort.provider.aws.agent.ImageCachingAgent
+import com.netflix.spinnaker.oort.provider.aws.agent.InstanceCachingAgent
+import com.netflix.spinnaker.oort.provider.aws.agent.LaunchConfigCachingAgent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -43,6 +45,9 @@ class AwsProviderConfig {
     for (NetflixAmazonCredentials credentials : awsConfigurationProperties.accounts) {
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         agents << new ClusterCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        agents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        agents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        agents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
       }
     }
     new AwsProvider(agents)
