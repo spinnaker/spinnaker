@@ -33,7 +33,8 @@ class JenkinsCache {
     @Autowired
     JedisCommands jedis
 
-    @Value('${redis.prefix:igor}')
+    @SuppressWarnings('GStringExpressionWithinString')
+    @Value('${spinnaker.jedis.prefix:igor}')
     String prefix
 
     List<String> getJobNames(String master) {
