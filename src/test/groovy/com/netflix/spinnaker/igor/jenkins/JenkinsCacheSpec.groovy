@@ -125,13 +125,30 @@ class JenkinsCacheSpec extends Specification {
         cache.getTypeaheadResults(query) == expected
 
         where:
-        query   || expected
-        'job'   || ['master:job1', 'master:job2', 'test:job1', 'test:job3']
-        'job1'  || ['master:job1', 'test:job1']
-        'ob1'   || ['master:job1', 'test:job1']
-        'B2'    || ['master:job2']
-        '3'     || ['test:job3']
-        'nope'  || []
+        query  || expected
+        'job'  || ['master:job1', 'master:job2', 'test:job1', 'test:job3']
+        'job1' || ['master:job1', 'test:job1']
+        'ob1'  || ['master:job1', 'test:job1']
+        'B2'   || ['master:job2']
+        '3'    || ['test:job3']
+        'nope' || []
+    }
+
+    void 'a cache with another prefix does not pollute the current cache'() {
+        when:
+        JenkinsCache secondInstance = new JenkinsCache(jedis: jedis)
+        secondInstance.prefix = 'newPrefix'
+        secondInstance.setLastBuild(master, 'job1', 1, 'success')
+
+        then:
+        secondInstance.getJobNames(master) == ['job1']
+        cache.getJobNames(master) == []
+
+        when:
+        cache.remove(master, 'job1')
+
+        then:
+        secondInstance.getJobNames(master) == ['job1']
     }
 
 }

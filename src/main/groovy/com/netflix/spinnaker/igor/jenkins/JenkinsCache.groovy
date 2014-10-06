@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.jenkins
 
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import redis.clients.jedis.JedisCommands
 
@@ -32,12 +33,15 @@ class JenkinsCache {
     @Autowired
     JedisCommands jedis
 
+    @Value('${redis.prefix:igor}')
+    String prefix
+
     List<String> getJobNames(String master) {
-        jedis.keys("${master}:*").collect { extractJobName(it) }.sort()
+        jedis.keys("${prefix}:${master}:*").collect { extractJobName(it) }.sort()
     }
 
     List<String> getTypeaheadResults(String search) {
-        jedis.keys("*:*${search.toUpperCase()}*:*").collect { extractTypeaheadResult(it) }.sort()
+        jedis.keys("${prefix}:*:*${search.toUpperCase()}*:*").collect { extractTypeaheadResult(it) }.sort()
     }
 
     Map getLastBuild(String master, String job) {
@@ -61,17 +65,17 @@ class JenkinsCache {
         jedis.del(makeKey(master, job))
     }
 
-    private static String makeKey(String master, String job) {
-        "${master}:${job.toUpperCase()}:${job}"
+    private String makeKey(String master, String job) {
+        "${prefix}:${master}:${job.toUpperCase()}:${job}"
     }
 
     private static String extractJobName(String key) {
-        key.split(':')[2]
+        key.split(':')[3]
     }
 
     private static String extractTypeaheadResult(String key) {
         def parts = key.split(':')
-        "${parts[0]}:${parts[2]}"
+        "${parts[1]}:${parts[3]}"
     }
 
 }
