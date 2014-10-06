@@ -65,7 +65,7 @@ class CreateDeployTask implements Task {
     }
     operation.remove('type')
     operation.remove('user')
-    operation.keyPair = operation.keyPair ?: "nf-${operation.credentials}-keypair-a"
+    operation.keyPair = (operation.keyPair ?: "nf-${operation.credentials}-keypair-a").toString()
     return operation
   }
 
