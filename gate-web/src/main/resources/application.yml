@@ -1,9 +1,0 @@
-routes:
-# e.g.:
-#  routeMappings:
-#    - contextPath: kato
-#      routeHost: http://localhost:8999/
-#    - contextPath: oort
-#      routeHost: http://localhost:8998/
-#    - contextPath: pond
-#      routeHost: http://localhost:8997/

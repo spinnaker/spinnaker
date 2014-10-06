@@ -1,0 +1,15 @@
+discoveryHosts:
+  - http://us-east-1.discoveryprod.netflix.net:7001
+  - http://us-west-1.discoveryprod.netflix.net:7001
+  - http://us-west-2.discoveryprod.netflix.net:7001
+  - http://eu-west-1.discoveryprod.netflix.net:7001
+
+services:
+  - name: oort
+    group: applications
+  - name: pond
+    group: orchestration
+  - name: echo
+    group: events
+  - name: flapjack
+    group: tags
