@@ -22,6 +22,6 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import java.util.Collection;
 
 public interface ProviderCache extends Cache {
-    Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType);
     void putCacheResult(String source, Collection<String> authoritativeTypes, CacheResult cacheResult);
+    void evictDeletedItems(String type, Collection<String> ids);
 }

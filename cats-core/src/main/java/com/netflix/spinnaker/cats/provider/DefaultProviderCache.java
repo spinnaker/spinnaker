@@ -110,8 +110,7 @@ public class DefaultProviderCache implements ProviderCache {
         return type.indexOf(':') == -1;
     }
 
-    @Override
-    public Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
+    private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
         CacheData all = backingStore.get(type, ALL_ID);
         if (all == null) {
             return Collections.emptySet();
@@ -164,7 +163,8 @@ public class DefaultProviderCache implements ProviderCache {
         return new DefaultCacheData(source.getId(), source.getAttributes(), relationships);
     }
 
-    private void evictDeletedItems(String type, Collection<String> ids) {
+    @Override
+    public void evictDeletedItems(String type, Collection<String> ids) {
         backingStore.evictAll(type, ids);
     }
 }

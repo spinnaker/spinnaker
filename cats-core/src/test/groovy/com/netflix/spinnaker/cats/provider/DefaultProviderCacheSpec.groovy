@@ -80,6 +80,26 @@ class DefaultProviderCacheSpec extends Specification {
 
     }
 
+    def "items can be evicted by type and id"() {
+        setup:
+        String usEast1Agent = 'AwsProvider:test/us-east-1/ClusterCachingAgent'
+        CacheResult testUsEast1 = buildCacheResult('test', 'us-east-1')
+        defaultProviderCache.putCacheResult(usEast1Agent, ['serverGroup'], testUsEast1)
+
+        when:
+        def sg = defaultProviderCache.get('serverGroup', 'test/us-east-1/testapp-test-v001')
+
+        then:
+        sg != null
+
+        when:
+        defaultProviderCache.evictDeletedItems('serverGroup', ['test/us-east-1/testapp-test-v001'])
+        sg = defaultProviderCache.get('serverGroup', 'test/us-east-1/testapp-test-v001')
+
+        then:
+        sg == null
+    }
+
     private CacheResult buildCacheResult(String account, String region, String sgVersion = 'v001') {
         String serverGroup = "$account/$region/testapp-test-$sgVersion"
         String cluster =  "$account/testapp-test"
