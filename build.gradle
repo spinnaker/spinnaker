@@ -1,0 +1,112 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+    repositories {
+        if (project.hasProperty('internalArtifactory')) {
+            maven { url project.internalArtifactory }
+        } else {
+            jcenter()
+        }
+        maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
+
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.5.RELEASE'
+        classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.3'
+    }
+}
+
+repositories {
+    if (project.hasProperty('internalArtifactory')) {
+        maven { url project.internalArtifactory }
+    } else {
+        jcenter()
+    }
+    maven { url 'http://clojars.org/repo'}
+}
+
+group = 'com.netflix.spinnaker.igor'
+
+apply plugin: 'spinnaker-gradle-project'
+apply plugin: 'groovy'
+apply plugin: 'spring-boot'
+apply plugin: 'codenarc'
+apply plugin: 'jacoco'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+def rxJavaVersion = '0.16.1'
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.apache.log4j:log4j:1.2.17'
+        force 'com.google.guava:guava:14.0.1'
+        force 'commons-codec:commons-codec:1.7'
+    }
+    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: 'org.mortbay.jetty', module: 'servlet-api'
+    exclude group: 'ch.qos.logback', module: 'logback-classic'
+    exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+    exclude group: 'commons-logging', module: 'commons-logging'
+}
+
+dependencies {
+    compile "org.slf4j:slf4j-api:1.7.7"
+    runtime 'org.springframework:springloaded:1.2.0.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-web:1.1.5.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-actuator:1.1.5.RELEASE'
+    compile 'com.google.guava:guava:14.0.1'
+    compile 'joda-time:joda-time:2.3'
+    compile 'com.netflix.servo:servo-core:0.7.3'
+    runtime 'com.netflix.servo:servo-aws:0.7.3'
+    runtime 'com.netflix.servo:servo-apache:0.7.3'
+    compile 'org.codehaus.groovy:groovy-all:2.3.3'
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.1.4"
+    compile "com.netflix.rxjava:rxjava-core:0.18.3"
+    compile "com.fasterxml.jackson.core:jackson-core:2.1.4"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.1.4"
+    compile "com.netflix.eureka:eureka-client:1.1.134"
+    compile "cz.jirutka.spring:spring-rest-exception-handler:1.0.0"
+    runtime "org.slf4j:slf4j-log4j12:1.7.7"
+    runtime "org.slf4j:jcl-over-slf4j:1.7.7"
+    runtime "org.slf4j:jul-to-slf4j:1.7.7"
+    compile("com.netflix.spinnaker.kork:kork-jedis:1.13"){
+        exclude module: 'guava-io'
+    }
+    compile 'com.squareup.retrofit:retrofit:1.5.1'
+    compile 'com.squareup.retrofit:converter-simplexml:1.5.1'
+    compile 'com.squareup.okhttp:okhttp:1.5.4'
+    testCompile 'com.squareup.okhttp:mockwebserver:1.5.4'
+    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'org.spockframework:spock-spring:0.7-groovy-2.0'
+    testRuntime 'org.objenesis:objenesis:2.1'
+    testRuntime 'cglib:cglib-nodep:3.1'
+    testCompile 'org.springframework:spring-test:4.0.5.RELEASE'
+}
+
+codenarc {
+    toolVersion = '0.21'
+    configFile = rootProject.file('config/codenarc/rules.groovy')
+}
+
+jacoco {
+    toolVersion = '0.7.0.201403182114'
+}
+
+tasks.bootRepackage.enabled = false
+tasks.build.dependsOn('jacocoTestReport')

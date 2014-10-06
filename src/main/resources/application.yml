@@ -1,0 +1,21 @@
+netflix:
+  appinfo:
+    name: 'igor'
+
+jenkins:
+  masters:
+    -
+      name: 'jenkins1'
+      address: 'http://jenkins.example.com/'
+      username: 'username'
+      password: 'password'
+
+
+spinnaker:
+  build:
+    pollInterval: 30
+  echo:
+    host: 'http://localhost:8080/'
+
+server:
+  port: 8091
