@@ -376,6 +376,7 @@ angular.module('deckApp')
       delete command.region;
       delete command.allImageSelection;
       delete command.instanceProfile;
+      delete command.vpcId;
       orcaService.cloneServerGroup(command, application.name, description)
         .then(function (task) {
           $scope.taskStatus.taskId = task.id;
