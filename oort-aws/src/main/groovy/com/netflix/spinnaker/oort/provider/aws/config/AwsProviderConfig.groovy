@@ -23,15 +23,17 @@ import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
 import com.netflix.spinnaker.oort.config.CredentialsInitializer
-import com.netflix.spinnaker.oort.config.discovery.DiscoveryApi
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
+import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import com.netflix.spinnaker.oort.provider.aws.agent.ClusterCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.DiscoveryCachingAgent
+import com.netflix.spinnaker.oort.provider.aws.agent.EddaLoadBalancerCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.Front50CachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.ImageCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.InstanceCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.LaunchConfigCachingAgent
+import com.netflix.spinnaker.oort.provider.aws.agent.LoadBalancerCachingAgent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -45,7 +47,7 @@ class AwsProviderConfig {
   CredentialsInitializer credentialsInitializer
 
   @Bean
-  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AwsConfigurationProperties awsConfigurationProperties, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, RestTemplate restTemplate) {
+  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AwsConfigurationProperties awsConfigurationProperties, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, RestTemplate restTemplate) {
     Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
     List<CachingAgent> agents = []
     for (NetflixAmazonCredentials credentials : awsConfigurationProperties.accounts) {
@@ -57,6 +59,10 @@ class AwsProviderConfig {
         agents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         agents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         agents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        agents << new LoadBalancerCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        if (credentials.eddaEnabled) {
+          agents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
+        }
         if (credentials.discoveryEnabled) {
           discoveryAccounts[credentials.discovery][region.name].add(credentials)
         }

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.cats.provider.Provider
 
 class AwsProvider implements Provider {
 
-  public static final Set<String> HEALTH_PROVIDERS = [DISCOVERY_HEALTH_TYPE]
+  public static final Set<String> HEALTH_PROVIDERS = [DISCOVERY_HEALTH_TYPE, LOAD_BALANCER_HEALTH_TYPE]
 
   public static final String PROVIDER_NAME = AwsProvider.name
 
@@ -30,6 +30,8 @@ class AwsProvider implements Provider {
   public static final String IMAGE_TYPE = "Image"
 
   public static final String DISCOVERY_HEALTH_TYPE = "DiscoveryHealth"
+
+  public static final String LOAD_BALANCER_HEALTH_TYPE = "LoadBalancerHealth"
 
   private final Collection<CachingAgent> agents
 
