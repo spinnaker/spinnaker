@@ -52,13 +52,40 @@ class SearchController {
       searchProviders.findAll { it.platform == q.platform } :
       searchProviders
 
-    providers.collect {
+    // Commenting this out and using the routine that follows allows the ui to display search results from multiple providers.
+//    providers.collect {
+//      if (q.type && !q.type.isEmpty()) {
+//        it.search(q.q, q.type, q.page, q.pageSize, q.filter)
+//      } else {
+//        it.search(q.q, q.page, q.pageSize, q.filter)
+//      }
+//    }
+
+    // TODO: Shouldn't the pageSize and pageNumber parameters be applied to the aggregated results, and not to each provider individually?
+    def result = new SearchResultSet(totalMatches: 0,
+      pageNumber: q.page,
+      pageSize: q.pageSize,
+      platform: "aws",
+      query: q.q)
+
+    for (def provider : providers) {
+      def searchResults
+
       if (q.type && !q.type.isEmpty()) {
-        it.search(q.q, q.type, q.page, q.pageSize, q.filter)
+        searchResults = provider.search(q.q, q.type, q.page, q.pageSize, q.filter)
       } else {
-        it.search(q.q, q.page, q.pageSize, q.filter)
+        searchResults = provider.search(q.q, q.page, q.pageSize, q.filter)
       }
+
+      // Aggregate the platform names here somehow?
+//      result.platform = searchResults.platform
+      result.totalMatches += searchResults.totalMatches
+      result.results.addAll(searchResults.results)
     }
+
+    // Based on the return type, it seems the caller (Deck) should be doing the aggregating. But when using the original routine,
+    // I only see (in the ui) the results from the first SearchResultSet in the returned list.
+    [result]
   }
 
   static class SearchQueryCommand {
