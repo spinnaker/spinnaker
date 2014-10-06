@@ -25,6 +25,7 @@ import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
 import com.netflix.spinnaker.oort.config.CredentialsInitializer
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
+import com.netflix.spinnaker.oort.model.OnDemandCacheUpdater
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import com.netflix.spinnaker.oort.provider.aws.agent.ClusterCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.DiscoveryCachingAgent
@@ -35,6 +36,7 @@ import com.netflix.spinnaker.oort.provider.aws.agent.InstanceCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.LoadBalancerCachingAgent
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestTemplate
@@ -76,5 +78,7 @@ class AwsProviderConfig {
 
     new AwsProvider(agents)
   }
+
+
 
 }

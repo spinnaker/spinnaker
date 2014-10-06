@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component
  *
  * KEY: AmazonServerGroup
  */
-@Component
+//@Component
 class AmazonServerGroupOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   @Autowired
@@ -55,7 +55,7 @@ class AmazonServerGroupOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(Map<String, ? extends Object> data) {
+  void handle(String type, Map<String, ? extends Object> data) {
     if (!data.containsKey("asgName")) {
       return
     }

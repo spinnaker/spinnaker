@@ -24,12 +24,13 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.oort.model.Application
+import com.netflix.spinnaker.oort.model.OnDemandCacheUpdater
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.springframework.web.client.RestTemplate
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
-class Front50CachingAgent implements CachingAgent {
+class Front50CachingAgent implements CachingAgent, OnDemandAgent {
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(Application.DATA_TYPE)
@@ -67,5 +68,15 @@ class Front50CachingAgent implements CachingAgent {
     }
 
     new DefaultCacheResult((Application.DATA_TYPE): results)
+  }
+
+  @Override
+  boolean handles(String type) {
+    type == "Front50Applications"
+  }
+
+  @Override
+  OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
+    new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: loadData(), authoritativeTypes: [Application.DATA_TYPE])
   }
 }

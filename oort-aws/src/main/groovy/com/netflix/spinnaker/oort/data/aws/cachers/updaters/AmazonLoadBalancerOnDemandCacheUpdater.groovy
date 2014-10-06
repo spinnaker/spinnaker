@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 
-@Component
+//@Component
 class AmazonLoadBalancerOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   @Autowired
@@ -45,7 +45,7 @@ class AmazonLoadBalancerOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(Map<String, ? extends Object> data) {
+  void handle(String type, Map<String, ? extends Object> data) {
     if (!data.containsKey("loadBalancerName")) {
       return
     }

@@ -40,8 +40,7 @@ import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class ClusterCachingAgent implements CachingAgent {
-
+class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
@@ -94,6 +93,41 @@ class ClusterCachingAgent implements CachingAgent {
   }
 
   @Override
+  boolean handles(String type) {
+    type == "AmazonServerGroup"
+  }
+
+  @Override
+  OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
+    if (!data.containsKey("asgName")) {
+      return
+    }
+    if (!data.containsKey("account")) {
+      return
+    }
+    if (!data.containsKey("region")) {
+      return
+    }
+
+    if (account.name != data.account) {
+      return
+    }
+
+    if (region != data.region) {
+      return
+    }
+
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region)
+    List<AutoScalingGroup> asg = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName)).autoScalingGroups
+    CacheResult result = buildCacheResult(asg)
+    new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: result)
+  }
+
+  private Map<String, CacheData> cache() {
+    [:].withDefault { String id -> new MutableCacheData(id) }
+  }
+
+  @Override
   CacheResult loadData() {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
     def request = new DescribeAutoScalingGroupsRequest()
@@ -107,10 +141,10 @@ class ClusterCachingAgent implements CachingAgent {
         break
       }
     }
+    buildCacheResult(asgs)
+  }
 
-    Closure<Map<String, CacheData>> cache = {
-      [:].withDefault { String id -> new MutableCacheData(id) }
-    }
+  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs) {
 
     Map<String, CacheData> applications = cache()
     Map<String, CacheData> clusters = cache()

@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.model
+package com.netflix.spinnaker.oort.provider.aws.agent
 
-import org.springframework.stereotype.Component
+import com.netflix.spinnaker.cats.agent.CacheResult
 
-/**
- * A default, no-op implementation of an {@link OnDemandCacheUpdater}
- */
-@Component
-class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
-  @Override
-  boolean handles(String type) {
-    false
+interface OnDemandAgent {
+  static class OnDemandResult {
+    String sourceAgentType
+    Collection<String> authoritativeTypes = []
+    CacheResult cacheResult
+    Map<String, Collection<String>> evictions = [:]
   }
 
-  @Override
-  void handle(String type, Map<String, ? extends Object> data) {
+  boolean handles(String type)
 
-  }
+  OnDemandResult handle(Map<String, ? extends Object> data)
 }

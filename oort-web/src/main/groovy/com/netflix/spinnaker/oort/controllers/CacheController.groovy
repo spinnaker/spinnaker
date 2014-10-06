@@ -33,7 +33,7 @@ class CacheController {
   ResponseEntity handleOnDemand(@PathVariable String type, @RequestBody Map<String, ? extends Object> data) {
     for (updater in onDemandCacheUpdaters) {
       if (updater.handles(type)) {
-        updater.handle(data)
+        updater.handle(type, data)
       }
     }
     new ResponseEntity(HttpStatus.ACCEPTED)

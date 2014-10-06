@@ -37,7 +37,7 @@ class Front50OnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(Map<String, ? extends Object> data) {
+  void handle(String type, Map<String, ? extends Object> data) {
     if (!data.containsKey("account")) {
       return
     }

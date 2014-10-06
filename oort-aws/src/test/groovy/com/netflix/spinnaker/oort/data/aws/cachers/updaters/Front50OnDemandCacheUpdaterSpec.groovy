@@ -63,7 +63,7 @@ class Front50OnDemandCacheUpdaterSpec extends Specification {
     InfrastructureCachingAgentFactory.getFront50CachingAgent(credentials) >> mockAgent
 
     when:
-    updater.handle([account: "test"])
+    updater.handle('Front50Applications', [account: "test"])
 
     then:
     1 * mockAgent.load()

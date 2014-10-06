@@ -36,5 +36,5 @@ interface OnDemandCacheUpdater {
    *
    * @param data
    */
-  void handle(Map<String, ? extends Object> data)
+  void handle(String type, Map<String, ? extends Object> data)
 }

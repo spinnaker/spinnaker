@@ -34,7 +34,7 @@ import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
-class LoadBalancerCachingAgent  implements CachingAgent {
+class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
@@ -81,6 +81,46 @@ class LoadBalancerCachingAgent  implements CachingAgent {
   }
 
   @Override
+  boolean handles(String type) {
+    type == "AmazonLoadBalancer"
+  }
+
+  @Override
+  OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
+    if (!data.containsKey("loadBalancerName")) {
+      return
+    }
+    if (!data.containsKey("account")) {
+      return
+    }
+    if (!data.containsKey("region")) {
+      return
+    }
+
+    if (account.name != data.account) {
+      return
+    }
+
+    if (region != data.region) {
+      return
+    }
+
+    if (data.evict as boolean) {
+      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), evictions: [(LoadBalancer.DATA_TYPE): [identifiers.loadBalancerId(data.loadBalancerName as String)]])
+    } else {
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
+      def lb = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName)).loadBalancerDescriptions
+
+      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), buildCacheResult(lb))
+    }
+
+  }
+
+  private Map<String, CacheData> cache() {
+    [:].withDefault { String id -> new MutableCacheData(id) }
+  }
+
+  @Override
   CacheResult loadData() {
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     List<LoadBalancerDescription> allLoadBalancers = []
@@ -94,10 +134,10 @@ class LoadBalancerCachingAgent  implements CachingAgent {
         break
       }
     }
+    buildCacheResult(allLoadBalancers)
+  }
 
-    Closure<Map<String, CacheData>> cache = {
-      [:].withDefault { String id -> new MutableCacheData(id) }
-    }
+  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers) {
 
     Map<String, CacheData> instances = cache()
     Map<String, CacheData> loadBalancers = cache()

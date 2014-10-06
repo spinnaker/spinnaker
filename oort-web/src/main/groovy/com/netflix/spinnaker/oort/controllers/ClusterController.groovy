@@ -41,7 +41,7 @@ class ClusterController {
   Map<String, Set<String>> list(@PathVariable String application) {
     def apps = ((List<Application>) applicationProviders.collectMany {
       [it.getApplication(application)] ?: []
-    }).findResults().sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
+    }).findAll().sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
     def clusterNames = [:]
     def lastApp = null
     for (app in apps) {
