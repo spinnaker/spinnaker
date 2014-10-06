@@ -20,11 +20,16 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
 
 class AwsProvider implements Provider {
+
+  public static final Set<String> HEALTH_PROVIDERS = [DISCOVERY_HEALTH_TYPE]
+
   public static final String PROVIDER_NAME = AwsProvider.name
 
   public static final String LAUNCH_CONFIG_TYPE = "LaunchConfig"
 
   public static final String IMAGE_TYPE = "Image"
+
+  public static final String DISCOVERY_HEALTH_TYPE = "DiscoveryHealth"
 
   private final Collection<CachingAgent> agents
 

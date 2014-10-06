@@ -46,7 +46,7 @@ class ClusterCachingAgent implements CachingAgent {
 
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
-  final Set<AgentDataType> types = Collections.unmodifiableSet([
+  static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(ServerGroup.DATA_TYPE),
     INFORMATIVE.forType(Application.DATA_TYPE),
     INFORMATIVE.forType(Cluster.DATA_TYPE),

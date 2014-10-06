@@ -106,9 +106,22 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     def sg = new AmazonServerGroup(matcher.group(3), 'aws', matcher.group(2))
     sg.putAll(serverGroupData.attributes)
 
-    sg.instances = resolveRelationshipData(serverGroupData, Instance.DATA_TYPE).collect {
-      [name: it.attributes.instanceId,
-       instance: it.attributes]
+    sg.instances = resolveRelationshipData(serverGroupData, Instance.DATA_TYPE).collect { CacheData instance ->
+      Collection<Map<String, Object>> healths = []
+      for (String healthProvider : AwsProvider.HEALTH_PROVIDERS) {
+        def health = cacheView.get(healthProvider, instance.id)
+        if (health) {
+          healths.add(health.attributes)
+        }
+      }
+
+      boolean healthy = healths.any { it.state == 'Up' } && !healths.any { it.state == 'Down' }
+      [
+        name: instance.attributes.instanceId,
+        instance: instance.attributes,
+        healths: healths,
+        isHealthy: healthy
+      ]
     }
 
     if (serverGroupData.relationships[AwsProvider.LAUNCH_CONFIG_TYPE]) {
