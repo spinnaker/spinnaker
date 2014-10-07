@@ -19,11 +19,17 @@ package com.netflix.spinnaker.amos.aws;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
- * @see com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
  * @author Dan Woods
+ * @see com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
  */
 public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {
+    private final AtomicReference<STSAssumeRoleSessionCredentialsProvider> stsSessionCredentialsProvider = new AtomicReference<>(null);
+    private final ReentrantLock lock = new ReentrantLock();
+
     /**
      * The role to assume on the target account.
      */
@@ -48,7 +54,18 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
 
     @Override
     public AWSCredentials getCredentials() {
-        return new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
-                String.format("arn:aws:iam::%s:%s", getAccountId(), assumeRole), sessionName).getCredentials();
+        if (stsSessionCredentialsProvider.get() == null) {
+            lock.lock();
+            try {
+                if (stsSessionCredentialsProvider.get() == null) {
+                    this.stsSessionCredentialsProvider.set(new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
+                            String.format("arn:aws:iam::%s:%s", getAccountId(), assumeRole), sessionName));
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        return this.stsSessionCredentialsProvider.get().getCredentials();
     }
 }
