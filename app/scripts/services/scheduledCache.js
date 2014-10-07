@@ -27,10 +27,11 @@ angular.module('deckApp')
       that.schedules[k] = scheduler.get()
         .skip(that.cycles)
         .subscribe(function() {
-          $http.get(k).success(function(data) {
-            that.cache.remove(k);
-            that.cache.put(k,data);
-          });
+          $http({
+            url: k,
+            method: 'GET',
+            cache: that.cache,
+          }).success(angular.noop);
         });
       return that.cache.put(k,v);
     };

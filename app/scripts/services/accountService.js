@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('accountService', function(settings, Restangular, $q/*, scheduledCache*/) {
+  .factory('accountService', function(settings, Restangular, $q, scheduledCache) {
 
     var credentialsEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.credentialsUrl);
@@ -13,7 +13,7 @@ angular.module('deckApp')
     function listAccounts() {
       return credentialsEndpoint
         .all('credentials')
-//        .withHttpConfig({cache: scheduledCache})
+        .withHttpConfig({cache: scheduledCache})
         .getList();
     }
 
@@ -24,7 +24,7 @@ angular.module('deckApp')
           acc[account] = credentialsEndpoint
             .all('credentials')
             .one(account)
-//            .withHttpConfig({cache: scheduledCache})
+            .withHttpConfig({cache: scheduledCache})
             .get();
           return acc;
         }, {})).then(function(result) {
