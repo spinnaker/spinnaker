@@ -8,6 +8,16 @@ buildscript {
   }
 }
 
+ext {
+  springBootVersion = "1.1.6.RELEASE"
+
+  commonDependencies = [
+          groovy            : "org.codehaus.groovy:groovy-all:2.3.6",
+          springBootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}",
+          spock             : "org.spockframework:spock-core:0.7-groovy-2.0",
+  ]
+}
+
 allprojects {
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
@@ -23,9 +33,8 @@ allprojects {
   }
 
   dependencies {
-    testCompile 'org.codehaus.groovy:groovy-all:2.3.6'
-    testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+    compile commonDependencies.groovy
+    compile commonDependencies.springBootDataRest
+    testCompile commonDependencies.spock
   }
-
-  tasks.compileGroovy.enabled = false
 }
