@@ -4,22 +4,21 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.8'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.12'
   }
 }
 
 ext {
-  springBootVersion = "1.1.6.RELEASE"
 
   commonDependencies = [
-          groovy            : "org.codehaus.groovy:groovy-all:2.3.6",
-          springBootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${springBootVersion}",
+          groovy            : "org.codehaus.groovy:groovy-all:2.3.7",
           spock             : "org.spockframework:spock-core:0.7-groovy-2.0",
   ]
 }
 
 allprojects {
   apply plugin: 'spinnaker-gradle-project'
+  apply plugin: 'java'
   apply plugin: 'groovy'
   apply plugin: 'idea'
 
@@ -33,8 +32,8 @@ allprojects {
   }
 
   dependencies {
-    compile commonDependencies.groovy
-    compile commonDependencies.springBootDataRest
+    testCompile commonDependencies.groovy
     testCompile commonDependencies.spock
   }
+  tasks.compileGroovy.enabled = false
 }

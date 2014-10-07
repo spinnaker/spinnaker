@@ -1,5 +1,9 @@
 dependencies {
   compile project(":amos-core")
+  compile commonDependencies.groovy
+  compile 'org.springframework:spring-web:4.0.7.RELEASE'
   compile "com.google.apis:google-api-services-compute:v1-rev17-1.18.0-rc"
   compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
 }
+
+tasks.compileGroovy.enabled = true
