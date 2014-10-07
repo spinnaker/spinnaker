@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.description
 
+import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
-class CreateGoogleReplicaPoolDescription {
+class CreateGoogleInstanceDescription implements DeployDescription {
   String application
   String stack
-  int initialNumReplicas
   String image
   String type
   String zone

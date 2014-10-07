@@ -16,23 +16,19 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleReplicaPoolDescription
-import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleReplicaPoolAtomicOperation
-import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
+import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleInstanceAtomicOperation
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("createGoogleReplicaPoolDescription")
-class CreateGoogleReplicaPoolAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  @Override
+@Component("createGoogleInstanceDescription")
+class CreateGoogleInstanceAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new CreateGoogleReplicaPoolAtomicOperation(convertDescription(input), new ReplicaPoolBuilder())
+    new CreateGoogleInstanceAtomicOperation(convertDescription(input))
   }
 
-  @Override
-  CreateGoogleReplicaPoolDescription convertDescription(Map input) {
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
+  CreateGoogleInstanceDescription convertDescription(Map input) {
     input.accountName = input.credentials
 
     if (input.accountName) {
@@ -43,6 +39,6 @@ class CreateGoogleReplicaPoolAtomicOperationConverter extends AbstractAtomicOper
       input.credentials = getCredentialsObject(input.accountName as String)?.getCredentials()
     }
 
-    new CreateGoogleReplicaPoolDescription(input)
+    new CreateGoogleInstanceDescription(input)
   }
 }

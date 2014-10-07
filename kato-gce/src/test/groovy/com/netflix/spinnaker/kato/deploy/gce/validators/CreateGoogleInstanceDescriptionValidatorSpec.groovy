@@ -18,27 +18,26 @@ package com.netflix.spinnaker.kato.deploy.gce.validators
 
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleReplicaPoolDescription
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.security.gce.GoogleNamedAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
+class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
-  private static final INITIAL_NUM_REPLICAS = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
-  CreateGoogleReplicaPoolDescriptionValidator validator
+  CreateGoogleInstanceDescriptionValidator validator
 
   void setupSpec() {
-    validator = new CreateGoogleReplicaPoolDescriptionValidator()
+    validator = new CreateGoogleInstanceDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
@@ -50,13 +49,12 @@ class CreateGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-      def description = new CreateGoogleReplicaPoolDescription(application: APPLICATION,
-                                                               stack: STACK,
-                                                               initialNumReplicas: INITIAL_NUM_REPLICAS,
-                                                               image: IMAGE,
-                                                               type: TYPE,
-                                                               zone: ZONE,
-                                                               accountName: ACCOUNT_NAME)
+    def description = new CreateGoogleInstanceDescription(application: APPLICATION,
+                                                          stack: STACK,
+                                                          image: IMAGE,
+                                                          type: TYPE,
+                                                          zone: ZONE,
+                                                          accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -66,21 +64,9 @@ class CreateGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
-  void "invalid initialNumReplicas fails validation"() {
-    setup:
-      def description = new CreateGoogleReplicaPoolDescription(initialNumReplicas: -1)
-      def errors = Mock(Errors)
-
-    when:
-      validator.validate([], description, errors)
-
-    then:
-      1 * errors.rejectValue("initialNumReplicas", "createGoogleReplicaPoolDescription.initialNumReplicas.invalid")
-  }
-
   void "null input fails validation"() {
     setup:
-      def description = new CreateGoogleReplicaPoolDescription()
+      def description = new CreateGoogleInstanceDescription()
       def errors = Mock(Errors)
 
     when:

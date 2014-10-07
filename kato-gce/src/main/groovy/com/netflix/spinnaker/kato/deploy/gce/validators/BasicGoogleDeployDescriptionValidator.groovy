@@ -34,6 +34,7 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
     def credentials = null
 
+    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
     if (!description.accountName) {
       errors.rejectValue "credentials", "basicGoogleDeployDescription.credentials.empty"
     } else {
@@ -50,6 +51,10 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
 
     if (!description.stack) {
       errors.rejectValue "stack", "basicGoogleDeployDescription.stack.empty"
+    }
+
+    if (description.initialNumReplicas < 0) {
+      errors.rejectValue "initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.invalid"
     }
 
     // TODO(duftler): Also validate against set of supported GCE images.

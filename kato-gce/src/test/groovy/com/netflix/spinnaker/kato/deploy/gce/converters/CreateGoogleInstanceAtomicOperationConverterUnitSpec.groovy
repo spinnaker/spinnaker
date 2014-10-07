@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,44 +14,53 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleInstanceAtomicOperation
 import com.netflix.spinnaker.kato.security.gce.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
-import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
 import spock.lang.Shared
 import spock.lang.Specification
 
-class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
+class CreateGoogleInstanceAtomicOperationConverterUnitSpec extends Specification {
+  private static final APPLICATION = "spinnaker"
+  private static final STACK = "spinnaker-test"
+  private static final IMAGE = "debian-7-wheezy-v20140415"
+  private static final TYPE = "f1-micro"
+  private static final ZONE = "us-central1-b"
+  private static final ACCOUNT_NAME = "auto"
 
   @Shared
-  BasicGoogleDeployAtomicOperationConverter converter
+  CreateGoogleInstanceAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new BasicGoogleDeployAtomicOperationConverter()
+    this.converter = new CreateGoogleInstanceAtomicOperationConverter()
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
     converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
-  void "basicGoogleDeployDescription type returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
+  void "createGoogleInstanceDescription type returns CreateGoogleInstanceDescription and CreateGoogleInstanceAtomicOperation"() {
     setup:
-      def input = [application: "asgard", stack: "asgard-test", image: "debian-7-wheezy-v20140415", type: "f1-micro",
-                   zone: "us-central1-b", credentials: "test"]
+      def input = [application: APPLICATION,
+                   stack: STACK,
+                   image: IMAGE,
+                   type: TYPE,
+                   zone: ZONE,
+                   accountName: ACCOUNT_NAME]
 
     when:
       def description = converter.convertDescription(input)
 
     then:
-      description instanceof BasicGoogleDeployDescription
+      description instanceof CreateGoogleInstanceDescription
 
     when:
       def operation = converter.convertOperation(input)
 
     then:
-      operation instanceof DeployAtomicOperation
+      operation instanceof CreateGoogleInstanceAtomicOperation
   }
 }

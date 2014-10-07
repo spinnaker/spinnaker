@@ -18,57 +18,52 @@ package com.netflix.spinnaker.kato.deploy.gce.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleReplicaPoolDescription
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("createGoogleReplicaPoolDescriptionValidator")
-class CreateGoogleReplicaPoolDescriptionValidator extends DescriptionValidator<CreateGoogleReplicaPoolDescription> {
+@Component("createGoogleInstanceDescriptionValidator")
+class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<CreateGoogleInstanceDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, CreateGoogleReplicaPoolDescription description, Errors errors) {
+  void validate(List priorDescriptions, CreateGoogleInstanceDescription description, Errors errors) {
     def credentials = null
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
     if (!description.accountName) {
-      errors.rejectValue "credentials", "createGoogleReplicaPoolDescription.credentials.empty"
+      errors.rejectValue "credentials", "createGoogleInstanceDescription.credentials.empty"
     } else {
       credentials = accountCredentialsProvider.getCredentials(description.accountName)
 
       if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "createGoogleReplicaPoolDescription.credentials.invalid")
+        errors.rejectValue("credentials", "createGoogleInstanceDescription.credentials.invalid")
       }
     }
 
     if (!description.application) {
-      errors.rejectValue "application", "createGoogleReplicaPoolDescription.application.empty"
+      errors.rejectValue "application", "createGoogleInstanceDescription.application.empty"
     }
 
     if (!description.stack) {
-      errors.rejectValue "stack", "createGoogleReplicaPoolDescription.stack.empty"
-    }
-
-    if (description.initialNumReplicas < 0) {
-      errors.rejectValue "initialNumReplicas", "createGoogleReplicaPoolDescription.initialNumReplicas.invalid"
+      errors.rejectValue "stack", "createGoogleInstanceDescription.stack.empty"
     }
 
     // TODO(duftler): Also validate against set of supported GCE images.
     if (!description.image) {
-      errors.rejectValue "image", "createGoogleReplicaPoolDescription.image.empty"
+      errors.rejectValue "image", "createGoogleInstanceDescription.image.empty"
     }
 
     // TODO(duftler): Also validate against set of supported GCE types.
     if (!description.type) {
-      errors.rejectValue "type", "createGoogleReplicaPoolDescription.type.empty"
+      errors.rejectValue "type", "createGoogleInstanceDescription.type.empty"
     }
 
     // TODO(duftler): Also validate against set of supported GCE zones.
     if (!description.zone) {
-      errors.rejectValue "zone", "createGoogleReplicaPoolDescription.zone.empty"
+      errors.rejectValue "zone", "createGoogleInstanceDescription.zone.empty"
     }
   }
 }
