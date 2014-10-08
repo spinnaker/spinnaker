@@ -30,7 +30,7 @@ describe('Service: InstanceType', function() {
     config = settings;
     $http = $httpBackend;
 
-    $http.when('GET', config.awsMetadataUrl + '/instanceType').respond(200, instanceTypes);
+    $http.when('JSONP', 'http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js').respond(200, instanceTypes);
     $http.when('GET', config.credentialsUrl + 'credentials').respond(200, []);
   }));
 
