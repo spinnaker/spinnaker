@@ -100,7 +100,13 @@ class AmazonConfig {
     void init() {
       if (!awsConfigurationProperties.accounts) {
         accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(name: defaultEnv,
-                                                                            credentialsProvider: awsCredentialsProvider))
+          credentialsProvider: awsCredentialsProvider))
+        if (awsConfigurationProperties.defaultAccountAliases) {
+          for (alias in awsConfigurationProperties.defaultAccountAliases) {
+            accountCredentialsRepository.save(alias, new AmazonCredentials(name: alias,
+              credentialsProvider: awsCredentialsProvider))
+          }
+        }
       } else {
         for (account in awsConfigurationProperties.accounts) {
           account.credentialsProvider = awsCredentialsProvider
@@ -116,6 +122,7 @@ class AmazonConfig {
   static class AwsConfigurationProperties {
     String accountIamRole
     String assumeRole
+    List<String> defaultAccountAliases
     String defaultSimpleDBDomain = "RESOURCE_REGISTRY"
     List<NetflixAssumeRoleAmazonCredentials> accounts
   }

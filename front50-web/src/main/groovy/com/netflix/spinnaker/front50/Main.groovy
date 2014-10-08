@@ -32,13 +32,13 @@ import org.springframework.context.annotation.Configuration
 @ComponentScan("com.netflix.spinnaker.front50")
 public class Main extends SpringBootServletInitializer {
 
-  static {
+/*  static {
     if (!System.properties["netflix.environment"]) {
       System.setProperty("netflix.environment", "test")
     }
     imposeSpinnakerFileConfig("kato-internal.yml")
     imposeSpinnakerFileConfig("kato-local.yml")
-  }
+  }*/
 
   static void main(_) {
     SpringApplication.run this, [] as String[]
