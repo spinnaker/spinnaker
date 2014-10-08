@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('LoadBalancerDetailsCtrl', function ($scope, $state, notifications, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
+  .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, notifications, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
@@ -52,16 +52,26 @@ angular.module('deckApp')
       if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
         return;
       }
+
+      var taskMonitor = {
+        application: application,
+        title: 'Deleting ' + loadBalancer.name,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true
+      };
+
+      var submitMethod = function () {
+        return orcaService.deleteLoadBalancer(loadBalancer, application.name);
+      };
+
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
         destructive: true,
-        account: loadBalancer.account
-      }).then(function () {
-        orcaService.deleteLoadBalancer(loadBalancer, $scope.application.name)
-          .then(function (task) {
-            console.warn('task id: ', task.id);
-          });
+        account: loadBalancer.account,
+        applicationName: application.name,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
       });
     };
 

@@ -4,9 +4,9 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler,
+  .controller('CloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                accountService, orcaService, mortService, oortService, searchService,
-                                               instanceTypeService, modalWizardService, securityGroupService,
+                                               instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
                                                serverGroup, application, title) {
     $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
@@ -16,17 +16,16 @@ angular.module('deckApp')
 
     $scope.state = {
       loaded: false,
-      queryAllImages: false,
-      submitting: false
+      queryAllImages: false
     };
 
-    $scope.taskStatus = {
-      errorMessage: null,
-      lastStage: null,
-      hideProgressMessage: false,
-      taskId: null,
-      applicationName: application.name
-    };
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      application: application,
+      title: 'Creating your server group',
+      forceRefreshMessage: 'Getting your new server group from Amazon...',
+      modalInstance: $modalInstance,
+      forceRefreshEnabled: true
+    });
 
     var accountLoader = accountService.getRegionsKeyedByAccount().then(function(regionsKeyedByAccount) {
       $scope.accounts = _.keys(regionsKeyedByAccount);
@@ -340,12 +339,32 @@ angular.module('deckApp')
       return modalWizardService.getWizard().allPagesVisited();
     };
 
-    this.clone = function () {
+    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
+      $scope.taskMonitor.task.getCompletedKatoTask().then(function(katoTask) {
+        if (katoTask.resultObjects && katoTask.resultObjects.length && katoTask.resultObjects[0].serverGroupNames) {
+          var newStateParams = {
+            serverGroup: katoTask.resultObjects[0].serverGroupNames[0].split(':')[1],
+            accountId: $scope.command.credentials,
+            region: $scope.command.region
+          };
+          if (!$state.includes('**.clusters.**')) {
+            $state.go('^.^.^.clusters.serverGroup', newStateParams);
+          } else {
+            if ($state.includes('**.serverGroup')) {
+              $state.go('^.^.serverGroup', newStateParams);
+            } else {
+              if ($state.includes('**.clusters.*')) {
+                $state.go('^.serverGroup', newStateParams);
+              } else {
+                $state.go('.serverGroup', newStateParams);
+              }
+            }
+          }
+        }
+      });
+    };
 
-      $scope.state.submitting = true;
-      $scope.taskStatus.errorMessage = null;
-      $scope.taskStatus.hideProgressMessage = false;
-      $scope.taskStatus.taskId = null;
+    this.clone = function () {
 
       var command = angular.copy($scope.command);
       var description;
@@ -377,36 +396,10 @@ angular.module('deckApp')
       delete command.allImageSelection;
       delete command.instanceProfile;
       delete command.vpcId;
-      orcaService.cloneServerGroup(command, application.name, description)
-        .then(function (task) {
-          $scope.taskStatus.taskId = task.id;
-          task.watchForKatoCompletion().then(
-            function() { // kato succeeded
-              $modalInstance.close();
-              task.watchForForceRefresh().then(
-                function() { // cache has been refreshed; object should be available
-                  application.refreshImmediately();
-                },
-                function(task) { // cache refresh never happened?
-                  $exceptionHandler('task failed to force cache refresh:', task);
-                }
-              );
-            },
-            function(updatedTask) { // kato failed
-              $scope.state.submitting = false;
-              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
-              $scope.taskStatus.lastStage = null;
-            },
-            function(notification) {
-              $scope.taskStatus.lastStage = notification;
-            }
-          );
-        },
-        function(error) {
-          $scope.state.submitting = false;
-          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
-          $scope.taskStatus.lastStage = null;
-          $exceptionHandler('Post to pond failed:', error);
+
+      $scope.taskMonitor.submit(
+        function() {
+          return orcaService.cloneServerGroup(command, application.name, description);
         }
       );
     };

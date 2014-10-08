@@ -10,7 +10,7 @@ angular.module('deckApp')
       task.waitUntilComplete = function waitUntilComplete() {
         var deferred = $q.defer();
         $timeout(function() {
-          deferred.notify(task.statusMessage);
+          deferred.notify(task);
         });
         if (task.isRunning) {
           $timeout(function() {

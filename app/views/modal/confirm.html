@@ -1,4 +1,5 @@
-<div modal-page>
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="taskMonitor"></task-monitor>
   <form role="form" class="container-fluid">
     <div class="modal-header">
       <h3>{{params.header}}</h3>
@@ -21,9 +22,12 @@
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
       <button class="btn btn-primary"
-              ng-disabled="verification.requireAccountEntry && verification.verifyAccount !== params.account.toUpperCase()"
+              ng-disabled="taskMonitor.submitting || (verification.requireAccountEntry && verification.verifyAccount !== params.account.toUpperCase())"
               ng-click="ctrl.confirm()">
         <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
+        <span ng-if="submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
+          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
+        </span>
         {{params.buttonText}}
       </button>
     </div>

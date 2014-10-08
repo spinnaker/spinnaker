@@ -1,0 +1,31 @@
+'use strict';
+
+require('../app');
+var angular = require('angular');
+
+angular.module('deckApp')
+  .directive('modalOverlay', function($, $timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, elem) {
+        $timeout(function() {
+          var $elem = $(elem),
+              $modal = $elem.closest('.modal-content'),
+              modalHeight = $modal.height();
+
+          if (modalHeight < 350) {
+            modalHeight = 350;
+          }
+
+          $modal.height(modalHeight);
+          $elem.show().height(modalHeight).css({opacity: 1});
+
+          scope.$on('$destroy', function() {
+            $elem.hide();
+            $elem.height(0).css({opacity: 0, scrollTop: 0});
+            $modal.height('auto');
+          });
+        });
+      }
+    };
+  });

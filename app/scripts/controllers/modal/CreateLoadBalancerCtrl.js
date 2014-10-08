@@ -4,7 +4,10 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, $state, application, loadBalancer, accountService, loadBalancerService, securityGroupService, mortService, _, searchService, modalWizardService, orcaService, isNew, $exceptionHandler) {
+  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
+                                                 application, loadBalancer, isNew,
+                                                 accountService, loadBalancerService, securityGroupService, mortService,
+                                                 _, searchService, modalWizardService, orcaService, taskMonitorService) {
 
     var ctrl = this;
 
@@ -17,13 +20,13 @@ angular.module('deckApp')
       submitting: false
     };
 
-    $scope.taskStatus = {
-      errorMessage: null,
-      lastStage: null,
-      hideProgressMessage: false,
-      taskId: null,
-      applicationName: application.name
-    };
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      application: application,
+      title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
+      forceRefreshMessage: 'Getting your new load balancer from Amazon...',
+      modalInstance: $modalInstance,
+      forceRefreshEnabled: true
+    });
 
     var allSecurityGroups = {},
         allLoadBalancerNames = {};
@@ -205,54 +208,27 @@ angular.module('deckApp')
       $scope.loadBalancer.listeners.push({});
     };
 
+    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
+      $modalInstance.close();
+      var newStateParams = {
+        name: $scope.loadBalancer.name || $scope.loadBalancer.clusterName + '-frontend',
+        accountId: $scope.loadBalancer.credentials,
+        region: $scope.loadBalancer.region
+      };
+      if (!$state.includes('**.loadBalancerDetails')) {
+        $state.go('.loadBalancerDetails', newStateParams);
+      } else {
+        $state.go('^.loadBalancerDetails', newStateParams);
+      }
+    };
+
+
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.state.submitting = true;
-      $scope.taskStatus.errorMessage = null;
-
-      orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor)
-        .then(function(task) {
-          $scope.taskStatus.taskId = task.id;
-          task.watchForKatoCompletion().then(
-            function() { // kato succeeded
-              task.watchForForceRefresh().then(
-                function() { // cache has been refreshed; object should be available
-                  $scope.taskStatus.lastStage = 'Getting your new load balancer from Amazon...';
-                  application.refreshImmediately().then(function() {
-                    $modalInstance.close();
-                    var newStateParams = {
-                      name: $scope.loadBalancer.name || $scope.loadBalancer.clusterName + '-frontend',
-                      accountId: $scope.loadBalancer.credentials,
-                      region: $scope.loadBalancer.region
-                    };
-                    if (!$state.includes('**.loadBalancerDetails')) {
-                      $state.go('.loadBalancerDetails', newStateParams);
-                    } else {
-                      $state.go('^.loadBalancerDetails', newStateParams);
-                    }
-                  });
-                },
-                function(task) { // cache refresh never happened?
-                  $exceptionHandler('task failed to force cache refresh:', task);
-                }
-              );
-            },
-            function(updatedTask) { // kato failed
-              $scope.state.submitting = false;
-              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
-              $scope.taskStatus.lastStage = null;
-            },
-            function(notification) {
-              $scope.taskStatus.lastStage = notification;
-            }
-          );
-        },
-        function(error) {
-          $scope.state.submitting = false;
-          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
-          $scope.taskStatus.lastStage = null;
-          $exceptionHandler('Post to pond failed:', error);
+      $scope.taskMonitor.submit(
+        function() {
+          return orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor);
         }
       );
     };
