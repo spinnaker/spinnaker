@@ -99,7 +99,8 @@ class AmazonConfig {
     @PostConstruct
     void init() {
       if (!awsConfigurationProperties.accounts) {
-        accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(credentialsProvider: awsCredentialsProvider))
+        accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(name: defaultEnv,
+                                                                            credentialsProvider: awsCredentialsProvider))
       } else {
         for (account in awsConfigurationProperties.accounts) {
           account.credentialsProvider = awsCredentialsProvider
