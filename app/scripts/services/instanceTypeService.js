@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('instanceTypeService', function ($http, $q, settings, _, scheduledCache) {
+  .factory('instanceTypeService', function ($http, $q, settings, _, scheduledCache, $window) {
 
     var m3 = {
       type: 'M3',
@@ -181,37 +181,57 @@ angular.module('deckApp')
     }
 
     function getAllTypesByRegion() {
-      return $http({
-        url: settings.awsMetadataUrl + '/instanceType',
-        cache: scheduledCache,
-      });
+      var deferred = $q.defer();
+
+      $window.callback = function(data) {
+        var regions = data.config.regions;
+        var typesByRegion = [];
+        regions.forEach(function(region) {
+          var sizes = [];
+          region.instanceTypes.forEach(function(instanceType) {
+            instanceType.sizes.forEach(function(size) {
+              sizes.push(size.size);
+            });
+          });
+          var regionName = region.region;
+          if (regionName.search(/-[1-9]/) === -1) {
+            regionName = regionName + '-1';
+          }
+          typesByRegion.push({region: regionName, sizes: sizes});
+        });
+        deferred.resolve(typesByRegion);
+      };
+
+      $http.jsonp('http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js', { cache: scheduledCache } );
+
+      return deferred.promise;
+
     }
 
     function getAvailableTypesForRegions(selectedRegions) {
       selectedRegions = selectedRegions || [];
-      return getAllTypesByRegion().then(function(instanceTypes) {
+      return getAllTypesByRegion().then(function(availableRegions) {
         var availableTypes = [];
-        instanceTypes.data.forEach(function(instanceType) {
-          if (_.intersection(selectedRegions, instanceType.regions).length === selectedRegions.length) {
-            availableTypes.push(instanceType.name);
-          }
-        });
-        return availableTypes.sort();
-      });
-    }
 
-    function getAvailableRegionsForType(instanceType) {
-      return getAllTypesByRegion().then(function(data) {
-        var instance = _.find(data, { name: instanceType });
-        return instance ? instance.regions : [];
+        var regions = availableRegions.filter(function(region) {
+          return selectedRegions.indexOf(region.region) !== -1;
+        });
+        if (regions.length) {
+          availableTypes = regions[0].sizes;
+        }
+
+        regions.forEach(function(region) {
+          availableTypes = _.intersection(availableTypes, region.sizes);
+        });
+
+        return availableTypes.sort();
       });
     }
 
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
-      getAvailableRegionsForType: getAvailableRegionsForType,
-      getAllTypesByRegion: getAllTypesByRegion,
+      getAllTypesByRegion: getAllTypesByRegion
     };
   }
 );
