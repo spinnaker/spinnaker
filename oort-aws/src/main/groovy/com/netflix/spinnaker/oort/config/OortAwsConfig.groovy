@@ -25,7 +25,6 @@ import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
 import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
@@ -35,7 +34,6 @@ import org.springframework.web.client.RestTemplate
 
 import javax.annotation.PostConstruct
 
-@CompileStatic
 @Configuration
 class OortAwsConfig {
 
@@ -80,16 +78,16 @@ class OortAwsConfig {
         if (!NetflixAmazonCredentials.isAssignableFrom(a.class)) {
           continue
         }
-        NetflixAmazonCredentials account = (NetflixAmazonCredentials)a
-        for (region in account.regions) {
+        NetflixAmazonCredentials account = (NetflixAmazonCredentials) a
+        if (account.front50Enabled) {
+          autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
+        }
+        for (region in (account?.regions ?: [])) {
           autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(account, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(account, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(account, region.name)
           if (account.eddaEnabled) {
             autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(account, region.name, eddaApiFactory)
-          }
-          if (account.front50Enabled) {
-            autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
           }
           autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(account, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(account, region.name)
