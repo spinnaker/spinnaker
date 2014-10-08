@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-
-
-
-
-
-
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
   compile project(":orca-retrofit")
+  compile spinnaker.dependency('bootAutoConfigure')
   testCompile project(":orca-test")
 }

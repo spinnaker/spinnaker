@@ -24,6 +24,7 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -36,6 +37,7 @@ import retrofit.converter.GsonConverter
 
 @Configuration
 @Import(RetrofitConfiguration)
+@ConditionalOnProperty(value='echo.baseUrl')
 @CompileStatic
 class EchoConfiguration {
 

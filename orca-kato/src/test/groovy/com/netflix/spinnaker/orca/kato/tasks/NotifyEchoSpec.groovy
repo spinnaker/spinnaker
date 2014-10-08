@@ -34,4 +34,18 @@ class NotifyEchoSpec extends Specification {
     )
   }
 
+  void 'does not send an event if echo is not configured'(){
+    setup:
+    task.echo = null
+
+    SimpleTaskContext context = new SimpleTaskContext()
+
+    when:
+    task.execute(context)
+
+    then:
+    0 * task.echo._
+
+  }
+
 }
