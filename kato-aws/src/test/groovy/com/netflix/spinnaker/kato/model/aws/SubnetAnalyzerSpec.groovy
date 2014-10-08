@@ -222,7 +222,7 @@ class SubnetAnalyzerSpec extends Specification {
 
     then:
     IllegalArgumentException e = thrown(IllegalArgumentException)
-    e.message.startsWith 'duplicate key: '
+    e.message.startsWith 'Multiple entries with same key: '
   }
 
   def 'should not return subnets without purpose'() {

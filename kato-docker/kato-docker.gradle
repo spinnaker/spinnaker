@@ -1,4 +1,4 @@
 dependencies {
   compile project(":kato-core")
-  compile commonDependencies.springBootActuator
+  compile spinnaker.dependency('bootActuator')
 }

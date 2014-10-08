@@ -15,7 +15,7 @@
  */
 
 dependencies {
-  compile commonDependencies.springBootDataRest
-  compile commonDependencies.springBootActuator
-  compile commonDependencies.amos
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootDataRest')
+  compile spinnaker.dependency('amos')
 }

@@ -16,8 +16,8 @@
 
 
 dependencies {
-  compile commonDependencies.groovy
-  compile commonDependencies.frigga
+  compile spinnaker.dependency('groovy')
+  compile spinnaker.dependency('frigga')
   compile project(":kato-aws")
   compile 'com.perforce:p4java:2010.1.269249'
 }

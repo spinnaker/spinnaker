@@ -21,7 +21,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE"
   }
 }
 
@@ -40,11 +40,9 @@ dependencies {
   compile project(":kato-docker")
   compile project(":kato-perforce-udp")
   compile 'javax.ws.rs:jsr311-api:1.1.1'
-  runtime commonDependencies.kork
-  compile commonDependencies.springBootActuator
-  compile commonDependencies.springBootDataRest
-
-  testCompile commonDependencies.springBootTest
+  runtime spinnaker.dependency('kork')
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootDataRest')
 }
 
 tasks.bootRepackage.enabled = false
