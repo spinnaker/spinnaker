@@ -152,20 +152,56 @@ class AutoScalingWorkerUnitSpec extends Specification {
     }
   }
 
+  void "should fail for invalid characters in the asg name"() {
+    given:
+    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east!")
+
+    when:
+    worker.getAutoScalingGroupName(1)
+
+    then:
+    IllegalArgumentException e = thrown()
+    e.message == "(Use alphanumeric characters only)"
+  }
+
   void "application, stack, and freeform details make up the asg name"() {
     given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "us-east-1c")
+    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east")
 
     expect:
-    worker.getAutoScalingGroupName(1) == "foo-bar-v001--us-east-1c"
+    worker.getAutoScalingGroupName(1) == "foo-bar-east-v001"
   }
 
   void "push sequence should be ignored when specified so"() {
     given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "us-east-1c", ignoreSequence: true)
+    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east", ignoreSequence: true)
 
     expect:
-    worker.getAutoScalingGroupName(0) == "foo-bar--us-east-1c"
+    worker.getAutoScalingGroupName(0) == "foo-bar-east"
+  }
+
+  void "application, and stack make up the asg name"() {
+    given:
+    def worker = new AutoScalingWorker(application: "foo", stack: "bar")
+
+    expect:
+    worker.getAutoScalingGroupName(1) == "foo-bar-v001"
+  }
+
+  void "application and version make up the asg name"() {
+    given:
+    def worker = new AutoScalingWorker(application: "foo")
+
+    expect:
+    worker.getAutoScalingGroupName(1) == "foo-v001"
+  }
+
+  void "application, and freeform details make up the asg name"() {
+    given:
+    def worker = new AutoScalingWorker(application: "foo", freeFormDetails: "east")
+
+    expect:
+    worker.getAutoScalingGroupName(1) == "foo--east-v001"
   }
 
   void "should lookup security groups when appropriate"() {

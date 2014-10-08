@@ -24,6 +24,7 @@ import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kato.config.AmazonBlockDevice
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -280,17 +281,12 @@ class AutoScalingWorker {
    * @return
    */
   String getAutoScalingGroupName(Integer sequence) {
-    def pushVersion = ignoreSequence ? null : String.format("v%03d", sequence)
-    "${clusterName}${pushVersion ? '-' + pushVersion : ''}${freeFormDetails ? '--' + freeFormDetails : ''}"
-  }
-
-  /**
-   * Asgard's convention for naming a Cluster. A cluster doesn't really exist, but is derived from the application name and the stack.
-   *
-   * @return the name of the cluster to be deployed to
-   */
-  String getClusterName() {
-    "${application}${stack ? '-' + stack?.replaceAll("$application-", "") : ''}"
+    def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: freeFormDetails)
+    def groupName = builder.buildGroupName(true)
+    if (ignoreSequence) {
+      return groupName
+    }
+    String.format("%s-v%03d", groupName, sequence)
   }
 
   /**
