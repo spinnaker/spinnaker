@@ -23,7 +23,8 @@ class Keys {
     SECURITY_GROUPS,
     SUBNETS,
     VPCS,
-    KEY_PAIRS
+    KEY_PAIRS,
+    INSTANCE_TYPES
 
     final String ns
 
@@ -55,6 +56,9 @@ class Keys {
     case Namespace.KEY_PAIRS.ns:
         result = [id: parts[1], account: parts[2], region: parts[3]]
         break
+    case Namespace.INSTANCE_TYPES.ns:
+        result = [id: parts[1], account: parts[2], region: parts[3]]
+        break
     }
     result.type = parts[0]
     result
@@ -74,5 +78,9 @@ class Keys {
 
   static String getKeyPairKey(String keyName, String region, String account) {
       "${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
+  }
+
+  static String getInstanceTypeKey(String keyName, String region, String account) {
+      "${Namespace.INSTANCE_TYPES}:${keyName}:${account}:${region}"
   }
 }
