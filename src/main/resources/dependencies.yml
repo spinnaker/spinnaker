@@ -43,6 +43,7 @@ groups:
 dependencies:
   amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
   bootActuator: "org.springframework.boot:spring-boot-starter-actuator:${versions.springBoot}"
+  bootAutoConfigure: "org.springframework.boot:spring-boot-autoconfigure:${versions.springBoot}"
   bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
   bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
   bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
