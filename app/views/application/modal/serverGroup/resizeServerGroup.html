@@ -27,16 +27,19 @@
           <div class="col-md-2"><input type="number"
                                        class="form-control input-sm"
                                        ng-model="command.min"
+                                       min="0"
                                        validate-max="command.max"/></div>
           <div class="col-md-2"><input type="number"
                                        class="form-control input-sm"
                                        ng-model="command.max"
+                                       min="0"
                                        validate-min="command.min"/></div>
           <div class="col-md-2"><input type="number"
                                        class="form-control input-sm"
+                                       ng-model="command.desired"
+                                       min="0"
                                        validate-min="command.min"
-                                       validate-max="command.max"
-                                       ng-model="command.desired"/></div>
+                                       validate-max="command.max"/></div>
         </div>
       </div>
       <div ng-if="!command.advancedMode">
@@ -74,6 +77,7 @@
               <input type="number"
                      class="form-control input-sm"
                      ng-model="command.newSize"
+                     min="0"
                      style="width: 50px"/>
               instances
             </label>
