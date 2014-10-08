@@ -9,7 +9,7 @@ describe('Service: taskTracker', function() {
     this.initialTasks = [
       {
         id: 1,
-        status: 'RUNNING',
+        status: 'STARTED',
         variables: [
           {
             key: 'description',
@@ -90,10 +90,4 @@ describe('Service: taskTracker', function() {
     });
   });
 
-  describe('generateNotifications(tasks)', function() {
-    it('generates one notification for each task passed in', function() {
-      this.taskTracker.generateNotifications(this.newTasks);
-      expect(this.notifications.create.callCount).toEqual(this.newTasks.length);
-    });
-  });
 });
