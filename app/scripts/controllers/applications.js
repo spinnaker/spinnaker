@@ -27,6 +27,7 @@ angular.module('deckApp')
             scope: $scope,
             templateUrl: 'views/newapplication.html'
           }).result.then(function(app) {
+            app.name = app.name.toLowerCase();
             orcaService.createApplication(app).then(function(resp) {
               $log.debug(resp);
               notifications.create({
