@@ -82,7 +82,7 @@ class OortAwsConfig {
         if (account.front50Enabled) {
           autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
         }
-        for (region in account.regions) {
+        for (region in (account?.regions ?: [])) {
           autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(account, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(account, region.name)
           autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(account, region.name)
