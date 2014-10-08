@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("/keyPair")
+@RequestMapping("/keyPairs")
 @RestController
 class KeyPairController {
 
