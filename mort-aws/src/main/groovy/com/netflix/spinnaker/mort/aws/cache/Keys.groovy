@@ -22,7 +22,8 @@ class Keys {
   static enum Namespace {
     SECURITY_GROUPS,
     SUBNETS,
-    VPCS
+    VPCS,
+    KEY_PAIRS
 
     final String ns
 
@@ -51,6 +52,9 @@ class Keys {
       case Namespace.SUBNETS.ns:
         result = [id: parts[1], account: parts[2], region: parts[3]]
         break
+    case Namespace.KEY_PAIRS.ns:
+        result = [id: parts[1], account: parts[2], region: parts[3]]
+        break
     }
     result.type = parts[0]
     result
@@ -66,5 +70,9 @@ class Keys {
 
   static String getVpcKey(String vpcId, String region, String account) {
     "${Namespace.VPCS}:${vpcId}:${account}:${region}"
+  }
+
+  static String getKeyPairKey(String keyName, String region, String account) {
+      "${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
   }
 }

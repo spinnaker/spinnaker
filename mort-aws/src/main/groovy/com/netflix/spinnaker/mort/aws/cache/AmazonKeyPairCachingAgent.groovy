@@ -16,6 +16,8 @@
 
 
 
+
+
 package com.netflix.spinnaker.mort.aws.cache
 
 import com.amazonaws.services.ec2.AmazonEC2
@@ -25,7 +27,7 @@ import groovy.transform.Immutable
 import rx.Observable
 
 @Immutable(knownImmutables = ["ec2", "cacheService"])
-class AmazonSubnetCachingAgent implements CachingAgent {
+class AmazonKeyPairCachingAgent implements CachingAgent {
   final String account
   final String region
   final AmazonEC2 ec2
@@ -33,10 +35,10 @@ class AmazonSubnetCachingAgent implements CachingAgent {
 
   @Override
   void call() {
-    println "[$account:$region:snt] - Caching..."
-    def result = ec2.describeSubnets()
-    Observable.from(result.subnets).subscribe {
-      cacheService.put(Keys.getSubnetKey(it.subnetId, region, account), it)
+    println "[$account:$region:kpr] - Caching..."
+    def result = ec2.describeKeyPairs()
+    Observable.from(result.keyPairs).subscribe {
+      cacheService.put(Keys.getKeyPairKey(it.keyName, region, account), it)
     }
   }
 }
