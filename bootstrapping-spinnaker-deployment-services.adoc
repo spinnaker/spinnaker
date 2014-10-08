@@ -162,7 +162,7 @@ Since Deck generates down to a collection of static assets, it can be released t
 
 === Configuring Deck
 
-As of the time of this writing, Deck has hardcoded URLs for Spinnaker's deployment orchestration engine, its cluster service, and its infrastructure service. These need to be manually adapted to the target environment by editing the +app/scripts/services/settings.js+ script.
+As of the time of this writing, Deck has hardcoded URLs for Spinnaker's deployment orchestration engine, its cluster service, and its infrastructure service. These need to be manually adapted to the target environment by editing the +app/scripts/settings/settings.js+ script.
 
 [[CONF]]
 == Additional Configuration of Spinnaker Services
