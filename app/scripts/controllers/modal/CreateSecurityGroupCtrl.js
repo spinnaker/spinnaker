@@ -4,8 +4,9 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler,
+  .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                   accountService, orcaService, securityGroupService, mortService,
+                                                  taskMonitorService,
                                                   _, application, securityGroup) {
 
     var ctrl = this;
@@ -18,13 +19,13 @@ angular.module('deckApp')
       submitting: false
     };
 
-    $scope.taskStatus = {
-      errorMessage: null,
-      lastStage: null,
-      hideProgressMessage: false,
-      taskId: null,
-      applicationName: application.name
-    };
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      applicationName: application.name,
+      title: 'Creating your security group',
+      forceRefreshMessage: 'Getting your new security group from Amazon...',
+      modalInstance: $modalInstance,
+      forceRefreshEnabled: true
+    });
 
     $scope.securityGroup = securityGroup;
 
@@ -115,40 +116,24 @@ angular.module('deckApp')
       ruleset.splice(index, 1);
     };
 
-    this.upsert = function () {
-      $scope.state.submitting = true;
-      $scope.taskStatus.errorMessage = null;
+    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
+      $modalInstance.close();
+      var newStateParams = {
+        name: $scope.securityGroup.name,
+        accountId: $scope.securityGroup.credentials,
+        region: $scope.securityGroup.region
+      };
+      if (!$state.includes('**.securityGroupDetails')) {
+        $state.go('.securityGroupDetails', newStateParams);
+      } else {
+        $state.go('^.securityGroupDetails', newStateParams);
+      }
+    };
 
-      orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Create')
-        .then(function (task) {
-          $scope.taskStatus.taskId = task.id;
-          task.watchForKatoCompletion().then(
-            function() { // kato succeeded
-              $modalInstance.close();
-              task.watchForForceRefresh().then(
-                function() { // cache has been refreshed; object should be available
-                  application.refreshImmediately();
-                },
-                function(task) { // cache refresh never happened?
-                  $exceptionHandler('task failed to force cache refresh:', task);
-                }
-              );
-            },
-            function(updatedTask) { // kato failed
-              $scope.state.submitting = false;
-              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
-              $scope.taskStatus.lastStage = null;
-            },
-            function(notification) {
-              $scope.taskStatus.lastStage = notification;
-            }
-          );
-        },
-        function(error) {
-          $scope.state.submitting = false;
-          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
-          $scope.taskStatus.lastStage = null;
-          $exceptionHandler('Post to pond failed:', error);
+    this.upsert = function () {
+      $scope.taskMonitor.submit(
+        function() {
+          orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Create');
         }
       );
     };

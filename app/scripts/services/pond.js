@@ -50,31 +50,35 @@ angular.module('deckApp')
         return matching.length > 0 ? matching[0].value : null;
       };
 
-      task.watchForKatoCompletion = function() {
+      task.getCompletedKatoTask = function() {
         var deferred = $q.defer();
-
+        $timeout(function() {
+          deferred.notify(task);
+        });
         var katoTasks = getKatoTasks(task);
         var katoStatus = katoTasks ? katoTasks[katoTasks.length-1].status : null;
-        var failed = katoStatus && katoStatus.failed,
-          succeeded = katoStatus && katoStatus.completed && !katoStatus.failed,
-          running = !failed && !succeeded;
+        var failed = task.isFailed || (katoStatus && katoStatus.failed),
+            succeeded = katoStatus && katoStatus.completed && !katoStatus.failed,
+            running = !failed && !succeeded,
+            katoTaskId = task.getValueFor('kato.last.task.id');
 
         if (failed) {
-          deferred.reject(task);
+          kato.getTask(katoTaskId.id).get().then(deferred.reject);
         }
         if (succeeded) {
-          deferred.resolve(task);
+          kato.getTask(katoTaskId.id).get().then(deferred.resolve);
         }
         if (running) {
-          var katoTaskId = task.getValueFor('kato.last.task.id');
           if (katoTaskId) {
-            kato.getTask(katoTaskId.id).get().then(function(katoTask) {
-              katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, deferred.notify);
-            });
+            kato.getTask(katoTaskId.id).get().then(
+              function(katoTask) {
+                katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, deferred.notify);
+              }
+            );
           } else {
             $timeout(function() {
               task.get().then(function(updatedTask) {
-                updatedTask.watchForKatoCompletion().then(deferred.resolve, deferred.reject, deferred.notify);
+                updatedTask.getCompletedKatoTask().then(deferred.resolve, deferred.reject, deferred.notify);
               });
             }, 250);
           }
@@ -83,23 +87,52 @@ angular.module('deckApp')
         return deferred.promise;
       };
 
-      task.watchForForceRefresh = function() {
+      task.watchForTaskComplete = function() {
+        var deferred = $q.defer();
+        $timeout(function() {
+          deferred.notify(task);
+        });
         if (task.isFailed) {
-          return $q.reject(task);
+          deferred.reject(task);
         }
-        var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
-        if (forceRefreshStep.length && forceRefreshStep[0].status === 'COMPLETED') {
-          return $q.when(task);
-        } else {
-          if (task.isCompleted) {
-            return $q.reject(task);
+        if (task.isCompleted) {
+          deferred.resolve(task);
+        }
+        if (task.isRunning) {
+          $timeout(function() {
+            task.get().then(function(updatedTask) {
+              updatedTask.watchForTaskComplete().then(deferred.resolve, deferred.reject, deferred.notify);
+            });
+          }, 500);
+        }
+        return deferred.promise;
+      };
+
+      task.watchForForceRefresh = function() {
+        var deferred = $q.defer();
+        $timeout(function() {
+          deferred.notify(task);
+        });
+        if (task.isFailed) {
+          deferred.reject(task);
+        }
+        if (task.isCompleted || task.isRunning) {
+          var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
+          if (forceRefreshStep.length && forceRefreshStep[0].status === 'COMPLETED') {
+            deferred.resolve(task);
+          } else {
+            if (task.isCompleted) {
+              deferred.reject(task);
+            } else {
+              $timeout(function() {
+                task.get().then(function(updatedTask) {
+                  updatedTask.watchForForceRefresh().then(deferred.resolve, deferred.reject, deferred.notify);
+                });
+              }, 500);
+            }
           }
         }
-        return $timeout(function() {
-          return task.get().then(function(updatedTask) {
-            return updatedTask.watchForForceRefresh();
-          });
-        }, 500);
+        return deferred.promise;
       };
 
       Object.defineProperties(task, {
@@ -134,6 +167,15 @@ angular.module('deckApp')
             if (katoTasks) {
               var steps = katoTasks[katoTasks.length-1].history;
               return steps[steps.length-1].status;
+            }
+            return null;
+          }
+        },
+        history: {
+          get: function() {
+            var katoTasks = getKatoTasks(task);
+            if (katoTasks) {
+              return katoTasks[katoTasks.length-1].history;
             }
             return null;
           }

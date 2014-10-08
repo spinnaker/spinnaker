@@ -4,11 +4,20 @@ require('../../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler,
+  .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                 accountService, orcaService, securityGroupService, mortService,
+                                                taskMonitorService,
                                                 _, application, securityGroup) {
 
     $scope.securityGroup = securityGroup;
+
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      applicationName: application.name,
+      title: 'Updating your security group',
+      forceRefreshMessage: 'Getting your updated security group from Amazon...',
+      modalInstance: $modalInstance,
+      forceRefreshEnabled: true
+    });
 
     securityGroup.securityGroupIngress = _(securityGroup.inboundRules)
       .filter(function(rule) {
@@ -41,37 +50,13 @@ angular.module('deckApp')
       ruleset.splice(index, 1);
     };
 
+    $scope.taskMonitor.onApplicationRefresh = $modalInstance.dismiss;
+
     this.upsert = function () {
-      orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Update')
-        .then(function (task) {
-          $scope.taskStatus.taskId = task.id;
-          task.watchForKatoCompletion().then(
-            function() { // kato succeeded
-              $modalInstance.close();
-              task.watchForForceRefresh().then(
-                function() { // cache has been refreshed; object should be available
-                  application.refreshImmediately();
-                },
-                function(task) { // cache refresh never happened?
-                  $exceptionHandler('task failed to force cache refresh:', task);
-                }
-              );
-            },
-            function(updatedTask) { // kato failed
-              $scope.state.submitting = false;
-              $scope.taskStatus.errorMessage = updatedTask.statusMessage || 'There was an unknown server error.';
-              $scope.taskStatus.lastStage = null;
-            },
-            function(notification) {
-              $scope.taskStatus.lastStage = notification;
-            }
-          );
-        },
-        function(error) {
-          $scope.state.submitting = false;
-          $scope.taskStatus.errorMessage = error.message || 'There was an unknown server error.';
-          $scope.taskStatus.lastStage = null;
-          $exceptionHandler('Post to pond failed:', error);
+
+      $scope.taskMonitor.submit(
+        function() {
+          orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Update');
         }
       );
     };

@@ -46,16 +46,30 @@ angular.module('deckApp')
 
     this.terminateInstance = function terminateInstance() {
       var instance = $scope.instance;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Terminating ' + instance.instanceId,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true,
+        onApplicationRefresh: function() {
+          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+            $state.go('^');
+          }
+        }
+      };
+
+      var submitMethod = function () {
+        return orcaService.terminateInstance(instance, $scope.application.name);
+      };
+
       confirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
-        destructive: true,
-        account: instance.account
-      }).then(function () {
-        orcaService.terminateInstance(instance, $scope.application.name)
-          .then(function (task) {
-            console.warn('task id: ', task.id);
-          });
+        destructive: false,
+        account: instance.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
       });
     };
 

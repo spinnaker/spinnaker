@@ -12,14 +12,17 @@
       <div class="col-md-2"><input type="number"
                                    class="form-control input-sm"
                                    ng-model="command.capacity.min"
+                                   min="0"
                                    validate-max="command.capacity.max"/></div>
       <div class="col-md-2"><input type="number"
                                    class="form-control input-sm"
                                    ng-model="command.capacity.max"
+                                   min="0"
                                    validate-min="command.capacity.min"/></div>
       <div class="col-md-2"><input type="number"
                                    class="form-control input-sm"
                                    ng-model="command.capacity.desired"
+                                   min="0"
                                    validate-min="command.capacity.min"
                                    validate-max="command.capacity.max"/></div>
     </div>
@@ -32,8 +35,8 @@
             ng-click="wizard.previousPage(form.$valid)">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
-    <button ng-disabled="state.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || state.submitting"
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
                    state="state" on-click="ctrl.clone()" is-new="true"></submit-button>
     <button class="btn btn-default"
             ng-disabled="form.$invalid"

@@ -47,47 +47,108 @@ angular.module('deckApp')
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Destroying ' + serverGroup.name,
+//        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: false
+      };
+
+      var submitMethod = function () {
+        return orcaService.destroyServerGroup(serverGroup, application.name);
+      };
+
+      var stateParams = {
+        name: serverGroup.name,
+        accountId: serverGroup.account,
+        region: serverGroup.region
+      };
+
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         destructive: true,
-        account: serverGroup.account
-      }).then(function () {
-        orcaService.destroyServerGroup(serverGroup, application.name)
-          .then(function (task) {
-            console.warn('task id: ', task.id);
-          });
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod,
+        onTaskComplete: function() {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        },
+        onApplicationRefresh: function() {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        }
       });
     };
 
     this.disableServerGroup = function disableServerGroup() {
       var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Disabling ' + serverGroup.name,
+//        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: false
+      };
+
+      var submitMethod = function () {
+        return orcaService.disableServerGroup(serverGroup, application.name);
+      };
+
+      var stateParams = {
+        name: serverGroup.name,
+        accountId: serverGroup.account,
+        region: serverGroup.region
+      };
+
       confirmationModalService.confirm({
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         destructive: true,
-        account: serverGroup.account
-      }).then(function () {
-        orcaService.disableServerGroup(serverGroup, application.name)
-          .then(function (task) {
-            console.warn('task id: ', task.id);
-          });
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod,
+        onTaskComplete: function() {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        },
+        onApplicationRefresh: function() {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        }
       });
+
     };
 
     this.enableServerGroup = function enableServerGroup() {
       var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Disabling ' + serverGroup.name,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true
+      };
+
+      var submitMethod = function () {
+        return orcaService.enableServerGroup(serverGroup, application.name);
+      };
+
       confirmationModalService.confirm({
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
         destructive: false,
-        account: serverGroup.account
-      }).then(function () {
-        orcaService.enableServerGroup(serverGroup, application.name)
-          .then(function (task) {
-            console.warn('task id: ', task.id);
-          });
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
       });
+
     };
 
     this.resizeServerGroup = function resizeServerGroup() {

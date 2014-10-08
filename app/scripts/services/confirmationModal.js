@@ -32,8 +32,16 @@ angular.module('deckApp')
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, accountService, $modalInstance, params) {
+  .controller('ConfirmationModalCtrl', function($scope, $state, accountService, $modalInstance, params, taskMonitorService) {
     $scope.params = params;
+
+    $scope.state = {
+      submitting: false
+    };
+
+    params.taskMonitorConfig.modalInstance = $modalInstance;
+
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
 
     $scope.verification = {
       requireAccountEntry: accountService.challengeDestructiveActions(params.account),
@@ -41,7 +49,7 @@ angular.module('deckApp')
     };
 
     this.confirm = function () {
-      $modalInstance.close(true);
+      $scope.taskMonitor.submit(params.submitMethod);
     };
 
     this.cancel = function () {
