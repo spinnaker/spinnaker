@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.mort
 
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.mort.model.CachingAgentScheduler
 import com.netflix.spinnaker.mort.rx.RxCachingAgentScheduler
 import org.springframework.boot.SpringApplication
@@ -57,11 +56,6 @@ class Main extends SpringBootServletInitializer {
   @ConditionalOnMissingBean(CachingAgentScheduler)
   CachingAgentScheduler cachingAgentScheduler() {
     new RxCachingAgentScheduler()
-  }
-
-  @Bean
-  InstanceInfo.InstanceStatus instanceStatus() {
-    InstanceInfo.InstanceStatus.UNKNOWN
   }
 
   @Bean
