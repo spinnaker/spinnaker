@@ -1,0 +1,21 @@
+<div modal-page>
+  <form role="form" class="container-fluid">
+    <div class="modal-header">
+      <h3>Pick your provider:</h3>
+    </div>
+    <div class="modal-body">
+      <select
+        class="form-control input"
+        ng-model="command.provider"
+        ng-options="provider as provider for provider in providerOptions">
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button class="btn btn-primary" ng-click="ctrl.selectProvider()">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+        Next
+      </button>
+    </div>
+  </form>
+</div>

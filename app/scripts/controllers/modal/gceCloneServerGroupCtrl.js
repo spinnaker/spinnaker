@@ -3,12 +3,12 @@
 require('../../app');
 var angular = require('angular');
 
-angular.module('deckApp')
-  .controller('CloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
-                                               accountService, orcaService, mortService, oortService, searchService,
-                                               instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
-                                               serverGroup, application, title) {
-    $scope.title = title;
+angular.module('deckApp.gce')
+  .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
+                                                  accountService, orcaService, mortService, oortService, searchService,
+                                                  instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
+                                                  serverGroup, application, title) {
+    $scope.title = title + '(GCE)';
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
