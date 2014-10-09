@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.handlers
 
+import com.google.api.services.compute.Compute
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.Pool
 import com.google.api.services.replicapool.model.Template
@@ -66,26 +67,32 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
    */
   @Override
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
-    // TODO(duftler): Implement proper sequential naming and tests for same. Best done when this class is reconciled
-    // with logic in BasicGoogleDeployHandler.
-    def replicaPoolName = "${description.application}-${description.stack}-v000"
-
-    task.updateStatus BASE_PHASE, "Initializing creation of replica pool $replicaPoolName..."
+    task.updateStatus BASE_PHASE, "Initializing creation of server group: application=$description.application stack=$description.stack..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
+    def zone = description.zone
+
+    def clusterName = "${description.application}-${description.stack}"
+    task.updateStatus BASE_PHASE, "Looking up next sequence..."
+
+    def nextSequence = getNextSequence(clusterName, project, zone, compute)
+    task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
+
+    def serverGroupName = "${clusterName}-v${nextSequence}".toString()
+    task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
-    task.updateStatus BASE_PHASE, "Composing replica pool $replicaPoolName..."
+    task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
     def newDisk = GCEUtil.buildNewDisk(sourceImage, diskSizeGb)
 
     def networkInterface = GCEUtil.buildNetworkInterface(networkName, accessConfigName, accessConfigType)
 
     def vmParams = new VmParams(machineType: description.type,
-            disksToCreate: [newDisk],
-            networkInterfaces: [networkInterface])
+                                disksToCreate: [newDisk],
+                                networkInterfaces: [networkInterface])
 
     def template = new Template(vmParams: vmParams)
 
@@ -95,11 +102,26 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     replicapool.pools().insert(project,
             description.zone,
-            new Pool(name: replicaPoolName,
-                    initialNumReplicas: description.initialNumReplicas,
-                    template: template)).execute()
+            new Pool(name: serverGroupName,
+                     initialNumReplicas: description.initialNumReplicas,
+                     template: template)).execute()
 
-    task.updateStatus BASE_PHASE, "Done creating replica pool $replicaPoolName."
-    new DeploymentResult(serverGroupNames: [replicaPoolName.toString()])
+    task.updateStatus BASE_PHASE, "Done creating replica pool $serverGroupName."
+    new DeploymentResult(serverGroupNames: [serverGroupName.toString()])
+  }
+
+  static def getNextSequence(String clusterName, String project, String zone, Compute compute) {
+    def maxSeqNumber = -1
+
+    for (def instance : GCEUtil.queryInstances(project, zone, compute)) {
+      def parts = instance.getName().split('-')
+      def cluster = "${parts[0]}-${parts[1]}"
+      if (cluster == clusterName) {
+        def instanceSeq = Integer.valueOf(parts[2].replaceAll("v", ""))
+        maxSeqNumber = Math.max(maxSeqNumber, instanceSeq)
+      }
+    }
+
+    String.format("%03d", ++maxSeqNumber)
   }
 }

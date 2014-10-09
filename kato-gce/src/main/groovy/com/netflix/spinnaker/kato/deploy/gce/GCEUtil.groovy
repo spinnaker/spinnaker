@@ -20,6 +20,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Image
+import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.Network
 import com.google.api.services.replicapool.model.NewDisk
@@ -74,6 +75,10 @@ class GCEUtil {
     } else {
       updateStatusAndThrowException("Network $networkName not found.", task, phase)
     }
+  }
+
+  static List<Instance> queryInstances(String projectName, String zone, Compute compute) {
+    return compute.instances().list(projectName, zone).execute().getItems()
   }
 
   static AttachedDisk buildAttachedDisk(Image sourceImage, String diskType) {
