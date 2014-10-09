@@ -13,5 +13,6 @@ angular.module('deckApp')
         challengeDestructiveActions: true
       }
     },
-    pollSchedule: 30000
+    pollSchedule: 30000,
+    providers: ['aws']
   });
