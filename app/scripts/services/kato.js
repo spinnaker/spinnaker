@@ -4,7 +4,7 @@ require('../app');
 var angular = require('angular');
 
 angular.module('deckApp')
-  .factory('kato', function(settings, Restangular, $timeout, $q) {
+  .factory('kato', function(settings, Restangular, $timeout, $q, _) {
 
     function setTaskProperties(task) {
       task.waitUntilComplete = function waitUntilComplete() {
@@ -26,6 +26,20 @@ angular.module('deckApp')
           deferred.reject(task);
         }
         return deferred.promise;
+      };
+
+      task.asPondKatoTask = function asPondKatoTask() {
+        var pondTask = {
+          history: task.history,
+          status: task.status,
+          resultObjects: task.resultObjects
+        };
+
+        var exception = _.find(task.resultObjects, {type: 'EXCEPTION'});
+        if (exception) {
+          pondTask.exception = exception;
+        }
+        return pondTask;
       };
 
       Object.defineProperties(task, {
