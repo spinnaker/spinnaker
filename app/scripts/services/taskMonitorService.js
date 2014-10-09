@@ -42,11 +42,13 @@ angular.module('deckApp')
       };
 
       monitor.setError = function(task) {
-        monitor.task = task;
+        if (task) {
+          monitor.task = task;
+        }
         monitor.submitting = false;
         monitor.error = true;
-        monitor.errorMessage = task.failureMessage || 'There was an unknown server error.';
-        $exceptionHandler('Error with task:', task);
+        monitor.errorMessage = monitor.task.failureMessage || monitor.task.lastKatoMessage || 'There was an unknown server error.';
+        $exceptionHandler('Error with task:', monitor.task);
       };
 
       monitor.startForceRefresh = function() {
@@ -59,34 +61,27 @@ angular.module('deckApp')
           function() {
             handleKatoRefreshSuccess(task);
           },
-          handleKatoFailure,
-          handleTaskNotification
+          handleKatoFailure
         );
-      };
-
-      monitor.handleTaskError = function(task) {
-        monitor.setError(task);
       };
 
       monitor.submit = function(method) {
         monitor.startSubmit();
-        method.call().then(monitor.handleTaskSuccess, monitor.handleTaskError);
+        method.call().then(monitor.handleTaskSuccess, monitor.setError);
       };
 
       function handleKatoRefreshSuccess(task) {
-        task.get().then(function(updatedTask) {
-          monitor.task = updatedTask;
+        task.get().then(function() {
           if (monitor.forceRefreshEnabled) {
-            updatedTask.watchForForceRefresh().then(handleForceRefreshComplete, handleApplicationRefreshComplete);
+            task.watchForForceRefresh().then(handleForceRefreshComplete, handleApplicationRefreshComplete);
           } else {
             monitor.forceRefreshComplete = true;
-            updatedTask.watchForTaskComplete().then(monitor.onTaskComplete, monitor.handleTaskError);
+            task.watchForTaskComplete().then(monitor.onTaskComplete, monitor.setError);
           }
         });
       }
 
-      function handleForceRefreshComplete(task) {
-        monitor.task = task;
+      function handleForceRefreshComplete() {
         monitor.startForceRefresh();
         monitor.application.refreshImmediately().then(handleApplicationRefreshComplete);
       }
@@ -96,12 +91,9 @@ angular.module('deckApp')
         monitor.onApplicationRefresh.call();
       }
 
-      function handleKatoFailure(task) {
-        monitor.setError(task);
-      }
-
-      function handleTaskNotification(task) {
-        monitor.task = task;
+      function handleKatoFailure(katoTask) {
+        monitor.task.updateKatoTask(katoTask);
+        monitor.setError();
       }
 
       return monitor;

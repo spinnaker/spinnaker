@@ -41,7 +41,27 @@ angular.module('deckApp')
       return task.getValueFor('kato.tasks');
     }
 
+    function updateTask(original, updated) {
+      original.status = updated.status;
+      original.endTime = updated.endTime;
+      original.variables = updated.variables;
+      if (updated.katoTasks.length) {
+        var katoTasks = getKatoTasks(original);
+        katoTasks[katoTasks.length - 1].history = updated.katoTasks;
+      }
+    }
+
     function setTaskProperties(task) {
+
+      task.updateKatoTask = function(katoTask) {
+        var katoTasks = getKatoTasks(task);
+        if (katoTasks && katoTasks.length) {
+          var lastTask = katoTasks[katoTasks.length - 1];
+          angular.copy(katoTask.asPondKatoTask(), lastTask);
+        } else {
+          task.variables.push({key: 'kato.tasks', value: [katoTask.asPondKatoTask()]});
+        }
+      };
 
       task.getValueFor = function(key) {
         var matching = task.variables.filter(function(item) {
@@ -52,9 +72,6 @@ angular.module('deckApp')
 
       task.getCompletedKatoTask = function() {
         var deferred = $q.defer();
-        $timeout(function() {
-          deferred.notify(task);
-        });
         var katoTasks = getKatoTasks(task);
         var katoStatus = katoTasks ? katoTasks[katoTasks.length-1].status : null;
         var failed = task.isFailed || (katoStatus && katoStatus.failed),
@@ -63,22 +80,24 @@ angular.module('deckApp')
             katoTaskId = task.getValueFor('kato.last.task.id');
 
         if (failed) {
-          kato.getTask(katoTaskId.id).get().then(deferred.reject);
+          deferred.reject(task);
         }
         if (succeeded) {
-          kato.getTask(katoTaskId.id).get().then(deferred.resolve);
+          deferred.resolve(task);
         }
         if (running) {
           if (katoTaskId) {
             kato.getTask(katoTaskId.id).get().then(
               function(katoTask) {
-                katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, deferred.notify);
+                task.updateKatoTask(katoTask);
+                katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, task.updateKatoTask);
               }
             );
           } else {
             $timeout(function() {
               task.get().then(function(updatedTask) {
-                updatedTask.getCompletedKatoTask().then(deferred.resolve, deferred.reject, deferred.notify);
+                updateTask(task, updatedTask);
+                task.getCompletedKatoTask().then(deferred.resolve, deferred.reject);
               });
             }, 250);
           }
@@ -89,9 +108,6 @@ angular.module('deckApp')
 
       task.watchForTaskComplete = function() {
         var deferred = $q.defer();
-        $timeout(function() {
-          deferred.notify(task);
-        });
         if (task.isFailed) {
           deferred.reject(task);
         }
@@ -101,7 +117,7 @@ angular.module('deckApp')
         if (task.isRunning) {
           $timeout(function() {
             task.get().then(function(updatedTask) {
-              updatedTask.watchForTaskComplete().then(deferred.resolve, deferred.reject, deferred.notify);
+              updatedTask.watchForTaskComplete().then(deferred.resolve, deferred.reject);
             });
           }, 500);
         }
@@ -110,9 +126,6 @@ angular.module('deckApp')
 
       task.watchForForceRefresh = function() {
         var deferred = $q.defer();
-        $timeout(function() {
-          deferred.notify(task);
-        });
         if (task.isFailed) {
           deferred.reject(task);
         }
@@ -126,7 +139,7 @@ angular.module('deckApp')
             } else {
               $timeout(function() {
                 task.get().then(function(updatedTask) {
-                  updatedTask.watchForForceRefresh().then(deferred.resolve, deferred.reject, deferred.notify);
+                  updatedTask.watchForForceRefresh().then(deferred.resolve, deferred.reject);
                 });
               }, 500);
             }
@@ -166,6 +179,10 @@ angular.module('deckApp')
             var katoTasks = getKatoTasks(task);
             if (katoTasks) {
               var steps = katoTasks[katoTasks.length-1].history;
+              var exception = katoTasks[katoTasks.length -1].exception;
+              if (exception) {
+                return exception.message || 'No reason provided';
+              }
               return steps[steps.length-1].status;
             }
             return null;
