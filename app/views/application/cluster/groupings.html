@@ -3,7 +3,7 @@
     <div ng-repeat="subsubGroup in subgroup.subgroups">
       <h4>{{group.heading}}: {{subgroup.heading}}: {{subsubGroup.heading}}</h4>
       <server-group
-        ng-repeat="serverGroup in subsubGroup.serverGroups | orderBy:'name'"
+        ng-repeat="serverGroup in subsubGroup.serverGroups | orderBy:'-name'"
         server-group="serverGroup"
         cluster="serverGroup.cluster"
         display-options="displayOptions"></server-group>

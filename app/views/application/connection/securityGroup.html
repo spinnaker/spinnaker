@@ -15,8 +15,8 @@
         <div ng-if="!securityGroup.usages.serverGroups.length" class="small">
           No server groups
         </div>
-        <div ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'name'"
-             class="rollup-row">
+        <div ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'-name'"
+             class="rollup-row" ng-class="{disabled: serverGroup.isDisabled}">
           <a
             ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})"
             ui-sref-active="active">
@@ -28,7 +28,7 @@
         <div ng-if="!securityGroup.usages.loadBalancers.length" class="small">
           No load balancers
         </div>
-        <div ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'name'"
+        <div ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'-name'"
              class="rollup-row">
           <a
             ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})"
