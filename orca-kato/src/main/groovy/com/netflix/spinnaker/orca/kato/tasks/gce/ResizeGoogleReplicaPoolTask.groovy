@@ -45,7 +45,6 @@ class ResizeGoogleReplicaPoolTask implements Task {
 
   ResizeGoogleReplicaPoolOperation convert(TaskContext context) {
     def inputs = context.getInputs("resizeAsg_gce")
-    println "*** ResizeGoogleReplicaPoolOperation.convert(): inputs=$inputs"
     new ResizeGoogleReplicaPoolOperation(replicaPoolName: inputs.asgName,
                                          zone: inputs.zones ? inputs.zones[0] : null,
                                          credentials: inputs.credentials,
