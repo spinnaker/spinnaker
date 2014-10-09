@@ -74,7 +74,7 @@ angular.module('deckApp')
           return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
         });
         loadBalancer.serverGroups = serverGroups;
-        loadBalancer.instances =  _.flatten(_.collect(serverGroups, 'instances'));
+        loadBalancer.instances = _(serverGroups).filter({isDisabled: false}).collect('instances').flatten().valueOf();
         updateHealthCounts(loadBalancer);
       });
     }
