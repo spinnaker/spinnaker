@@ -6,7 +6,7 @@ var angular = require('angular');
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, mortService,
                                           securityGroupService, accountService, oortService,
-                                          _, $stateParams, $location) {
+                                          _, $stateParams, $location, settings, $q) {
     var defPrimary = 'account', defSecondary = 'region';
     $scope.sortFilter.allowSorting = true;
     $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
@@ -143,14 +143,26 @@ angular.module('deckApp')
     }
 
     this.createServerGroup = function createServerGroup() {
-      $modal.open({
-        templateUrl: 'views/modal/asgWizard.html',
-        controller: 'CloneServerGroupCtrl as ctrl',
-        resolve: {
-          title: function() { return 'Create New Server Group'; },
-          application: function() { return application; },
-          serverGroup: function() { return null; }
-        }
+      var provider = $q.when('aws');
+
+      if (settings.providers && settings.providers.length && settings.providers.length > 1) {
+        provider = $modal.open({
+          templateUrl: 'views/modal/providerSelection.html',
+          controller: 'ProviderSelectCtrl as ctrl'
+        }).result;
+      }
+
+      provider.then(function(selectedProvider) {
+        $modal.open({
+          templateUrl: 'views/application/modal//serverGroup/' + selectedProvider + '/serverGroupWizard.html',
+          controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
+          resolve: {
+            title: function() { return 'Create New Server Group'; },
+            application: function() { return application; },
+            serverGroup: function() { return null; },
+            provider: function() { return selectedProvider; }
+          }
+        });
       });
     };
 

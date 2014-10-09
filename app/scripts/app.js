@@ -18,6 +18,8 @@ require('angular-spinner');
 require('angular-ui-router');
 require('angular-ui-select2');
 require('restangular');
+require('./modules/aws');
+require('./modules/gce');
 
 angular.module('deckApp', [
     'ngAnimate',
@@ -26,7 +28,9 @@ angular.module('deckApp', [
     'ui.select2',
     'restangular',
     'angularSpinner',
-    'deckApp.templates'
+    'deckApp.templates',
+    'deckApp.aws',
+    'deckApp.gce'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack) {
     // This can go away when the next version of ui-router is available (0.2.11+)
