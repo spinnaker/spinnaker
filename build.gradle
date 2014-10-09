@@ -52,5 +52,5 @@ grunt_clean.dependsOn 'installGrunt'
 installGrunt.dependsOn 'npmInstall'
 clean.dependsOn 'grunt_clean'
 
-grunt_build.dependsOn 'installGrunt'
+grunt_default.dependsOn 'installGrunt'
 build.dependsOn 'grunt_default'
