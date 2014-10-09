@@ -57,7 +57,7 @@ class AmazonHealthIndicator implements HealthIndicator {
     new Health.Builder().up().build()
   }
 
-  @Scheduled(fixedDelay = 10000L)
+  @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
     try {
         Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
