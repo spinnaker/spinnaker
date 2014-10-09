@@ -90,11 +90,20 @@ class MonitorKatoTask implements RetryableTask {
         it.serverGroupNames.each {
           def parts = it.split(':')
           def region = parts[0]
-          def serverGroup = parts[1]
-          if (!result.containsKey(region)) {
-            result[region] = []
+          if (parts.size() > 1) {
+            def serverGroup = parts[1]
+            if (!result.containsKey(region)) {
+              result[region] = []
+            }
+            result[region] << serverGroup
+          } else {
+            region = "region_missing"
+            def serverGroup = parts[0]
+            if (!result.containsKey(region)) {
+              result[region] = []
+            }
+            result[region] << serverGroup
           }
-          result[region] << serverGroup
         }
       }
     }
