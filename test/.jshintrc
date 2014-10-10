@@ -30,7 +30,8 @@
     "inject": false,
     "it": false,
     "jasmine": false,
-    "spyOn": false
+    "spyOn": false,
+    "TasksFixture": false
   }
 }
 
