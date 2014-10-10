@@ -20,11 +20,17 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Image
+import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.Network
+import com.google.api.services.replicapool.Replicapool
+import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.NewDisk
 import com.google.api.services.replicapool.model.NewDiskInitializeParams
+import com.google.api.services.replicapool.model.Pool
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
+import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class GCEUtil {
   // TODO(duftler): This list should not be static, but should also not be built on each call.
@@ -74,6 +80,17 @@ class GCEUtil {
     } else {
       updateStatusAndThrowException("Network $networkName not found.", task, phase)
     }
+  }
+
+  static List<Pool> queryReplicaPools(String projectName,
+                                      String zone,
+                                      GoogleCredentials credentials,
+                                      ReplicaPoolBuilder replicaPoolBuilder,
+                                      String applicationName) {
+    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
+
+    replicapool.pools().list(projectName, zone).execute().getResources()
   }
 
   static AttachedDisk buildAttachedDisk(Image sourceImage, String diskType) {

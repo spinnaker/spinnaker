@@ -29,6 +29,7 @@ import spock.lang.Specification
 class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
+  private static final FREE_FORM_DETAILS = "detail"
   private static final INITIAL_NUM_REPLICAS = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final TYPE = "f1-micro"
@@ -65,6 +66,25 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
     then:
       0 * errors._
+  }
+
+  void "pass validation with proper description inputs and free-form details"() {
+    setup:
+    def description = new BasicGoogleDeployDescription(application: APPLICATION,
+                                                       stack: STACK,
+                                                       freeFormDetails: FREE_FORM_DETAILS,
+                                                       initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                       image: IMAGE,
+                                                       type: TYPE,
+                                                       zone: ZONE,
+                                                       accountName: ACCOUNT_NAME)
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors._
   }
 
   void "invalid initialNumReplicas fails validation"() {
