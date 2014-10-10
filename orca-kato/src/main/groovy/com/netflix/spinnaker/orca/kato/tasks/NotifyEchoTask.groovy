@@ -25,24 +25,25 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class NotifyEchoTask implements Task {
 
-  @Autowired
+  @Autowired(required=false)
   EchoService echo
 
   @Override
   TaskResult execute(TaskContext context) {
 
-    def inputs = context.getInputs()
-
-    echo.recordEvent(
-      [
-        "details": [
-          "source": "kato",
-          "type"  : inputs."notification.type",
-          "application" : inputs.application
-        ],
-        "content": inputs
-      ]
-    )
+    if (echo) {
+      def inputs = context.getInputs()
+      echo.recordEvent(
+        [
+          "details": [
+            "source"     : "kato",
+            "type"       : inputs."notification.type",
+            "application": inputs.application
+          ],
+          "content": inputs
+        ]
+      )
+    }
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
 
