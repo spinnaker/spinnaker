@@ -26,6 +26,7 @@ import spock.lang.Specification
 class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
+  private static final FREE_FORM_DETAILS = "detail"
   private static final INITIAL_NUM_REPLICAS = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final MACHINE_TYPE = "f1-micro"
@@ -64,5 +65,29 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
 
     then:
       operation instanceof DeployAtomicOperation
+  }
+
+  void "basicGoogleDeployDescription type with free-form details returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
+    setup:
+    def input = [application: APPLICATION,
+                 stack: STACK,
+                 freeFormDetails: FREE_FORM_DETAILS,
+                 initialNumReplicas: INITIAL_NUM_REPLICAS,
+                 image: IMAGE,
+                 type: MACHINE_TYPE,
+                 zone: ZONE,
+                 credentials: ACCOUNT_NAME]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description instanceof BasicGoogleDeployDescription
+
+    when:
+    def operation = converter.convertOperation(input)
+
+    then:
+    operation instanceof DeployAtomicOperation
   }
 }
