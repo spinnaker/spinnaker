@@ -11,32 +11,31 @@ angular.module('deckApp')
         that.schedules[k].dispose();
       });
     }
-    
-    that.schedules = {}; 
+
+    that.schedules = {};
 
     that.cycles =  10;
 
     that.cache = $cacheFactory('scheduledHttp');
 
-    that.info = that.cache.info;
+    that.info = function() {
+      return that.cache.info();
+    };
 
     that.put = function(k, v) {
       if (that.schedules[k]) {
         that.schedules[k].dispose();
       }
-      that.schedules[k] = scheduler.get()
-        .skip(that.cycles)
-        .subscribe(function() {
-          $http({
-            url: k,
-            method: 'GET',
-            cache: that.cache,
-          }).success(angular.noop);
-        });
+      that.schedules[k] = scheduler.subscribeEveryN(that.cycles, function() {
+        $http.get(k, { cache: that.cache })
+          .success(angular.noop);
+      });
       return that.cache.put(k,v);
     };
 
-    that.get = that.cache.get;
+    that.get = function(k) {
+      return that.cache.get(k);
+    };
 
     that.remove = function(k) {
       that.cache.remove(k);

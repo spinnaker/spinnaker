@@ -17,6 +17,11 @@ angular.module('deckApp')
       get: function() { return scheduler; },
       subscribe: scheduler.subscribe.bind(scheduler),
       scheduleImmediate: scheduler.onNext.bind(scheduler),
+      subscribeEveryN: function(n, fn) {
+        return scheduler
+          .skip(n)
+          .subscribe(fn);
+      },
       scheduleOnCompletion: function(promise) {
         var deferred = $q.defer();
         promise.then(
