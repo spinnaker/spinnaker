@@ -29,6 +29,8 @@
     "expect": false,
     "inject": false,
     "it": false,
+    "xit": false,
+    "xdescribe": false,
     "jasmine": false,
     "spyOn": false,
     "TasksFixture": false
