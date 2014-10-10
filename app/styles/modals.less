@@ -152,7 +152,11 @@
   }
 }
 
-
+/* Fixes an unfortunate Chrome bug where a single selection on a multi-select select2 field
+   causes the backwards navigation animation to hang. */
+select.select2 {
+  option { display: none !important }
+}
 
 .select2-container-multi {
   &.select2-container-active {
