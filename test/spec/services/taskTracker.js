@@ -1,3 +1,4 @@
+/* globals TasksFixture */
 'use strict';
 
 describe('Service: taskTracker', function() {

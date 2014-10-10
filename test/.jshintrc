@@ -32,8 +32,7 @@
     "xit": false,
     "xdescribe": false,
     "jasmine": false,
-    "spyOn": false,
-    "TasksFixture": false
+    "spyOn": false
   }
 }
 

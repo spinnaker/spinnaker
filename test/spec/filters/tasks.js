@@ -1,4 +1,6 @@
+/* globals TasksFixture */
 'use strict';
+
 
 describe('Filter: taskFilter', function() {
   beforeEach(function() {
