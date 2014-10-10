@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.TaskResult
+import spock.lang.Specification
 
-class Pipeline {
+class PipelineSpec extends Specification {
 
-  final String id
-  final ImmutableList<Stage> stages
+  def "a pipeline's status is #expectedStatus if it has not started yet"() {
+    given:
+    def pipeline = new Pipeline(id, [])
 
-  Pipeline(String id, List<Stage> stages) {
-    this.id = id
-    this.stages = ImmutableList.copyOf(stages)
+    expect:
+    pipeline.status == expectedStatus
+
+    where:
+    id = "foo"
+    expectedStatus = TaskResult.Status.NOT_STARTED
   }
 
-  TaskResult.Status getStatus() {
-    TaskResult.Status.NOT_STARTED
-  }
 }

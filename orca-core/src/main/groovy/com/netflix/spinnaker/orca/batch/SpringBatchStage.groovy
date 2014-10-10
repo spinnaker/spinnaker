@@ -28,7 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 /**
- * Base class for a component that constructs a _stage_ to be run as (part of) a _pipeline_.
+ * Base class for a component that represents a _stage_ to be run as (part of) a _pipeline_ and is backed by an
+ * underlying Spring Batch model.
+ *
+ * Note a _stage_ does not directly correspond to anything in Batch – perhaps a {@link org.springframework.batch.core.job.flow.Flow}
  */
 @CompileStatic
 abstract class SpringBatchStage implements AutowiredComponentBuilder, Stage {

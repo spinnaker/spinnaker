@@ -28,6 +28,12 @@ interface TaskResult {
    * Indicates the state at the end of a call to {@link Task#execute}.
    */
   static enum Status {
+
+    /**
+     * The task has yet to start.
+     */
+    NOT_STARTED(false),
+
     /**
      * The task is still running and the {@code Task} may be re-executed in order to continue.
      */

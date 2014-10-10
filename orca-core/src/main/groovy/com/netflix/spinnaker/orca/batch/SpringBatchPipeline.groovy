@@ -17,31 +17,19 @@
 package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
-import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.Stage
-import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 
 @CompileStatic
-class SpringBatchPipeline implements Pipeline {
+class SpringBatchPipeline extends Pipeline {
 
-  final ImmutableList<Stage> stages
   private final JobExecution jobExecution
 
   SpringBatchPipeline(JobExecution jobExecution, List<Stage> stages) {
+    super(jobExecution.id.toString(), stages)
     this.jobExecution = jobExecution
-    this.stages = ImmutableList.copyOf(stages)
-  }
-
-  @Override
-  String getId() {
-    jobExecution.id
-  }
-
-  BatchStatus getStatus() {
-    jobExecution.status
   }
 
   ExitStatus getExitStatus() {
