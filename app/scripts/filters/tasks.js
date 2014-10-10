@@ -19,7 +19,7 @@ angular.module('deckApp')
           });
         case 'Errored':
           return tasks.filter(function(task) {
-            return task.status === 'FAILED';
+            return task.status === 'FAILED' || task.status === 'STOPPED';
           });
         default:
           return tasks;

@@ -4,17 +4,16 @@ var angular = require('angular');
 
 angular.module('deckApp')
   .factory('taskTracker', function(notifications, scheduler) {
-    var getValueForKey = function(task, k) {
+    var that = {};
+    that.getValueForKey = function getValueForKey(task, k) {
       return task.variables.filter(function(v) {
         return v.key === k;
       })[0].value; // assume only one
     };
 
-    return {
-      getCompleted: function(oldTasks, newTasks) {
-        return newTasks.filter(function(task) {
-          return task.status === 'COMPLETED';
-        }).filter(function(task) {
+    that.getTasksMatchingPred = function getTasksMatchingPred(oldTasks, newTasks, pred) {
+      return newTasks.filter(pred)
+        .filter(function(task) {
           var hasNotBeenSeen = oldTasks.every(function(oldTask) {
             return oldTask.id !== task.id;
           });
@@ -23,23 +22,56 @@ angular.module('deckApp')
           });
           return hasNotBeenSeen || hasBeenSeenIncomplete;
         });
-      },
-      handleCompletedTasks: function(tasks) {
-        if (tasks.some(function(task) {
-          return task.steps.some(function(step) {
-            return step.name === 'ForceCacheRefreshStep';
-          });
-        })) {
-          scheduler.scheduleImmediate();
-        }
-        tasks.forEach(function(task) {
-          // generate notifications
-          notifications.create({
-            title: getValueForKey(task, 'application'),
-            message: getValueForKey(task, 'description') + ' Completed successfully',
-            href: '/',
-          });
-        });
-      },
     };
+
+    that.getCompleted = function getCompleted(oldTasks, newTasks) {
+      return that.getTasksMatchingPred(oldTasks, newTasks, function(task) {
+        return task.status === 'COMPLETED';
+      });
+    };
+
+    that.getFailed = function getFailed(oldTasks, newTasks) {
+      return that.getTasksMatchingPred(oldTasks, newTasks, function(task) {
+        return task.status === 'FAILED' || task.status === 'STOPPED';
+      });
+    };
+
+    that.forceRefreshFromTasks = function forceRefreshFromTasks(tasks) {
+      if (tasks.some(function(task) {
+        return task.steps.some(function(step) {
+          return step.name === 'ForceCacheRefreshStep';
+        });
+      })) {
+        scheduler.scheduleImmediate();
+        return true;
+      }
+      return false;
+    };
+
+    that.generateNotifications = function generateNotifications(tasks, appendedMessage) {
+      tasks.forEach(function(task) {
+        // generate notifications
+        notifications.create({
+          title: that.getValueForKey(task, 'application'),
+          message: that.getValueForKey(task, 'description') + ' ' + appendedMessage,
+          href: '/',
+        });
+      });
+    };
+
+    that.handleTaskUpdates = function handleTaskUpdates(oldTasks, newTasks) {
+      var completed = that.getCompleted(oldTasks, newTasks);
+      if (completed.length > 0) {
+        that.forceRefreshFromTasks(completed);
+        that.generateNotifications(completed, 'Completed Successfully');
+      }
+
+      var failed = that.getFailed(oldTasks, newTasks);
+      if (failed.length > 0) {
+        that.generateNotifications(failed, 'Failed');
+      }
+    };
+
+    return that;
+
   });
