@@ -19,7 +19,7 @@ angular.module('deckApp')
         },
         isFailed: {
           get: function() {
-            return item.status === 'FAILED';
+            return item.status === 'FAILED' || item.status === 'STOPPED';
           },
         },
         isStopped: {
