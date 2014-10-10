@@ -23,7 +23,8 @@ module.exports = function(config) {
       'node_modules/rx/dist/rx.all.js',
       'test/poly/**/*.js',
       'test/mock/**/*.js',
-      'test/spec/**/*.js'
+      'test/spec/**/*.js',
+      'test/fixture/**/*.js',
     ],
 
     // list of files / patterns to exclude

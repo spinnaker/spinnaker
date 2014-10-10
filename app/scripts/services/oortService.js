@@ -17,11 +17,10 @@ angular.module('deckApp')
 
         function refreshApplication() {
           return getApplication(application.name).then(function (newApplication) {
-            // compute task diff and generate notifications for a completed task
-            taskTracker.handleCompletedTasks(taskTracker.getCompleted(
+            taskTracker.handleTaskUpdates(
               application.tasks,
               newApplication.tasks
-            ));
+            );
 
             deepCopyApplication(application, newApplication);
             application.autoRefreshHandlers.forEach(function(handler) {
