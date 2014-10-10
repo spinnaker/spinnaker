@@ -14,13 +14,13 @@
         <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.forceRefreshing">
           <li ng-if="taskMonitor.forceRefreshing">
             <span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> {{taskMonitor.forceRefreshMessage}}
-            <p>You can <a href ng-click="taskMonitor.closeModal()">close this modal</a> and continue working while we clean up.</p>
+            <p>You can <a href ng-click="taskMonitor.closeModal()">close this dialog</a> and continue working while we clean up.</p>
           </li>
         </ul>
         <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.forceRefreshComplete">
           <li>
             <span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span>Operation succeeded. Waiting for task to finish up...
-            <p>You can <a href ng-click="taskMonitor.closeModal()">close this modal</a> and continue working.</p>
+            <p>You can <a href ng-click="taskMonitor.closeModal()">close this dialog</a> and continue working.</p>
           </li>
         </ul>
         <ul class="task task-progress task-progress-running" ng-if="!taskMonitor.forceRefreshComplete && !taskMonitor.forceRefreshing && !taskMonitor.error">
