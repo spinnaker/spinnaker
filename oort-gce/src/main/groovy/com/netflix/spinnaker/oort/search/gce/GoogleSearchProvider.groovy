@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.search.gce
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.model.gce.GoogleResourceRetriever
 import com.netflix.spinnaker.oort.search.SearchProvider
@@ -100,8 +101,8 @@ class GoogleSearchProvider implements SearchProvider {
           for (def serverGroup : cluster.serverGroups) {
             if (serverGroup.name.indexOf(normalizedSearchTerm) >= 0) {
               if (types.contains("serverGroups")) {
-                // TODO(duftler): What about stack/detail/sequence?
-                matches << [type: "serverGroups", application: applicationName, account: cluster.accountName, cluster: clusterName, region: serverGroup.region, serverGroup: serverGroup.name]
+                def names = Names.parseName(serverGroup.name)
+                matches << [type: "serverGroups", application: applicationName, account: cluster.accountName, cluster: clusterName, region: serverGroup.region, serverGroup: serverGroup.name, stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
               }
 
               if (types.contains("serverGroupInstances")) {
