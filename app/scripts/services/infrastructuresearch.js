@@ -6,20 +6,28 @@ angular.module('deckApp')
     return function() {
       var deferred;
 
-      var displayNameLookup = {
-        serverGroups: 'serverGroup',
-        serverGroupInstances: 'instanceId',
-        clusters: 'cluster',
-        applications: 'application',
-        loadBalancerServerGroups: 'loadBalancer'
-      };
-
       var categoryNameLookup = {
         serverGroups: 'Server Groups',
         serverGroupInstances: 'Instances',
         clusters: 'Clusters',
         applications: 'Applications',
         loadBalancerServerGroups: 'Load Balancers'
+      };
+
+      function simpleField(field) {
+        return function(entry) {
+          return entry[field];
+        };
+      }
+
+      var displayNameFormatter = {
+        serverGroups: simpleField('serverGroup'),
+        serverGroupInstances: function(entry) {
+          return entry.instanceId + ' (' + entry.serverGroup + ')';
+        },
+        clusters: simpleField('cluster'),
+        applications: simpleField('application'),
+        loadBalancerServerGroups: simpleField('loadBalancer')
       };
 
       var querySubject = new RxService.Subject();
@@ -38,7 +46,7 @@ angular.module('deckApp')
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
             var cat = entry.type;
-            entry.name = entry[displayNameLookup[entry.type]];
+            entry.name = displayNameFormatter[entry.type](entry);
             entry.href = urlBuilder.buildFromMetadata(entry);
             if (angular.isDefined(categories[cat])) {
               categories[cat].push(entry);
