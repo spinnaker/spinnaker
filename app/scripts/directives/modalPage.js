@@ -10,7 +10,8 @@ angular.module('deckApp')
       link: function (scope, elem) {
         var $elem = $(elem);
         function getTabbableElements() {
-          return $elem.find('a[href],input,select,button,textarea').filter(':visible').not(':disabled');
+          var tagSelector = 'a[href],input,select,button,textarea';
+          return $elem.find(tagSelector).filter(':visible').not(':disabled').not($elem.find('.ng-animate *'));
         }
 
         var ts = Math.floor(Math.random() * 4294967295);
@@ -27,7 +28,7 @@ angular.module('deckApp')
               $firstElem.focus();
               return false;
             }
-            if (!$.contains($elem.get(0), event.target)) {
+            if ($tabbableElements.index(event.target) === -1) {
               if (event.shiftKey) {
                 $lastElem.focus();
               } else {
