@@ -17,6 +17,8 @@ apply plugin: 'spring-boot'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
+group = "com.netflix.spinnaker.gate"
+
 repositories {
   jcenter()
   maven { url "http://repo.spring.io/snapshot" }
