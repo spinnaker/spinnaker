@@ -164,8 +164,8 @@ angular.module('deckApp')
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'views/modal/asgWizard.html',
-        controller: 'CloneServerGroupCtrl as ctrl',
+        templateUrl: 'views/application/modal/serverGroup/aws/serverGroupWizard.html',
+        controller: 'awsCloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
