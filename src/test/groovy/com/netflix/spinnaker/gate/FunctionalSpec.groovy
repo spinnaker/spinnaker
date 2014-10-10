@@ -18,8 +18,10 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.FlapJackService
 import com.netflix.spinnaker.gate.services.OortService
 import com.netflix.spinnaker.gate.services.PondService
+import com.netflix.spinnaker.gate.services.TagService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
@@ -36,15 +38,21 @@ class FunctionalSpec extends Specification {
   Api api
 
   static ApplicationService applicationService
+  static FlapJackService flapJackService
   static OortService oortService
   static PondService pondService
+  static TagService tagService
 
   void setup() {
     applicationService = Mock(ApplicationService)
+    flapJackService = Mock(FlapJackService)
     oortService = Mock(OortService)
     pondService = Mock(PondService)
+    tagService = Mock(TagService)
 
-    def localPort = new ServerSocket(0).localPort
+    def sock = new ServerSocket(0)
+    def localPort = sock.localPort
+    sock.close()
     System.setProperty("server.port", localPort.toString())
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration] as Set)
@@ -120,6 +128,16 @@ class FunctionalSpec extends Specification {
     @Bean
     ApplicationService applicationService() {
       applicationService
+    }
+
+    @Bean
+    TagService tagService() {
+      tagService
+    }
+
+    @Bean
+    FlapJackService flapJackService() {
+      flapJackService
     }
 
     @Bean
