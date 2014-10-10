@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.TagService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
@@ -27,6 +28,9 @@ class ApplicationController {
 
   @Autowired
   ApplicationService applicationService
+
+  @Autowired
+  TagService tagService
 
   @RequestMapping(method = RequestMethod.GET)
   def get() {
@@ -67,6 +71,18 @@ class ApplicationController {
   def create(@RequestBody Map map) {
     DeferredResult<Map> q = new DeferredResult<>()
     applicationService.create(map).subscribe({
+      q.setResult(it)
+    }, { Throwable t ->
+      q.setErrorResult(t)
+    })
+    q
+  }
+
+  // TODO get flapjack properly implemented
+  @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
+  def getTags(@PathVariable("name") String name) {
+    DeferredResult<List> q = new DeferredResult<>()
+    tagService.getTags(name).subscribe({
       q.setResult(it)
     }, { Throwable t ->
       q.setErrorResult(t)
