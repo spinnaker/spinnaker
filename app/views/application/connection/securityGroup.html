@@ -3,7 +3,7 @@
        ng-class="{active: $state.includes('**.connections.**', {region: securityGroup.region, account: securityGroup.account, securityGroup: securityGroup.name})}">
     <div class="row">
       <div class="rollup-summary col-sm-12">
-      <a class="title-link"
+      <a class="rollup-title-cell"
          ui-sref=".securityGroupDetails({region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name})">
         <span class="glyphicon glyphicon-transfer"></span> {{securityGroup.name}}
         <account-tag account="securityGroup.account" pad="left"></account-tag>
