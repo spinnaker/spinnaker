@@ -1,7 +1,5 @@
 <form ng-controller="InstanceTypeCtrl as instanceTypeCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
-    <kato-error task-status="taskStatus" title="We could not create your server group."></kato-error>
-    <kato-progress task-status="taskStatus" title="Creating your server group."></kato-progress>
     <div class="row" ng-repeat="family in selectedInstanceProfile.families">
       <div class="col-md-12">
         <h4>{{selectedInstanceProfile.label}}: {{family.type}}</h4>
