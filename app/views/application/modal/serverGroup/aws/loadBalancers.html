@@ -1,11 +1,9 @@
 <form ng-controller="ServerGroupLoadBalancersCtrl as serverGroupLoadBalancersCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
-    <kato-error task-status="taskStatus" title="We could not create your server group."></kato-error>
-    <kato-progress task-status="taskStatus" title="Creating your server group."></kato-progress>
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Load Balancers</b></div>
       <div class="col-md-9">
-        <select ui-select2 class="form-control input-sm"
+        <select ui-select2 class="form-control input-sm select2"
                 ng-model="command.loadBalancers"
                 multiple>
           <option ng-repeat="regionalBalancer in regionalLoadBalancers" value="{{regionalBalancer}}">{{regionalBalancer}}</option>
