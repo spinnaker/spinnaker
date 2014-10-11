@@ -44,17 +44,15 @@ class DeployGoogleServerGroupStage extends LinearStage {
     def step3 = steps.get("ForceCacheRefreshStep")
                      .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
                      .build()
-    // TODO(duftler): Figure out why this task continues to poll and isn't satisfied.
-//    def step4 = steps.get("WaitForUpInstancesStep")
-//                     .tasklet(buildTask(WaitForUpInstancesTask))
-//                     .build()
+    def step4 = steps.get("WaitForUpInstancesStep")
+                     .tasklet(buildTask(WaitForUpInstancesTask))
+                     .build()
     def step5 = steps.get("ForceCacheRefreshStep")
                      .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
                      .build()
     def step6 = steps.get("SendNotificationStep")
                      .tasklet(buildTask(NotifyEchoTask))
                      .build()
-//    [step1, step2, step3, step4, step5, step6]
-    [step1, step2, step3, step5, step6]
+    [step1, step2, step3, step4, step5, step6]
   }
 }
