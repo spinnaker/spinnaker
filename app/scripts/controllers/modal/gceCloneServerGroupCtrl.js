@@ -8,7 +8,7 @@ angular.module('deckApp.gce')
                                                   accountService, orcaService, mortService, oortService, searchService,
                                                   instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
                                                   serverGroup, application, title) {
-    $scope.title = title + '(GCE)';
+    $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
@@ -22,7 +22,7 @@ angular.module('deckApp.gce')
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from Amazon...',
+      forceRefreshMessage: 'Getting your new server group from Google...',
       modalInstance: $modalInstance,
       forceRefreshEnabled: true
     });
@@ -98,6 +98,8 @@ angular.module('deckApp.gce')
     }
 
     function credentialsChanged() {
+      if (true) { return; }
+
       if ($scope.command.credentials) {
         $scope.regions = $scope.regionsKeyedByAccount[$scope.command.credentials].regions;
         if (!_($scope.regions).some({name: $scope.command.region})) {
@@ -111,6 +113,8 @@ angular.module('deckApp.gce')
     }
 
     function regionChanged() {
+      if (true) { return; }
+
       configureSubnetPurposes();
       var currentZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
       if ($scope.command.region) {
@@ -132,6 +136,8 @@ angular.module('deckApp.gce')
     }
 
     function subnetChanged() {
+      if (true) { return; }
+
       var subnet = _($scope.subnets)
         .find({'purpose': $scope.command.subnetType, 'account': $scope.command.credentials, 'region': $scope.command.region});
       $scope.command.vpcId = subnet ? subnet.vpcId : null;
@@ -145,6 +151,8 @@ angular.module('deckApp.gce')
     }
 
     function configureSubnetPurposes() {
+      if (true) { return; }
+
       if ($scope.command.region === null) {
         $scope.regionSubnetPurposes = null;
       }
@@ -157,6 +165,8 @@ angular.module('deckApp.gce')
     }
 
     function configureSecurityGroupOptions() {
+      if (true) { return; }
+
       var newRegionalSecurityGroups = _($scope.securityGroups[$scope.command.credentials].aws[$scope.command.region])
         .filter({'vpcId': $scope.command.vpcId || null})
         .valueOf();
@@ -378,6 +388,9 @@ angular.module('deckApp.gce')
         };
       } else {
         command.type = 'deploy';
+        command.zones = [command.zone];
+        command.machineType = 'f1-micro';
+        command.providerType = 'gce';
         var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;

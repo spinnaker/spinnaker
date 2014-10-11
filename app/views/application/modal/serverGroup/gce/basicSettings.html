@@ -3,8 +3,11 @@
     <kato-error task-status="taskStatus" title="We could not create your server group."></kato-error>
     <kato-progress task-status="taskStatus" title="Creating your server group."></kato-progress>
     <account-select-field component="command" field="credentials" accounts="accounts" loading="false"></account-select-field>
+<!--
     <region-select-field component="command" field="region" account="command.credentials" regions="regions"></region-select-field>
     <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
+-->
+    <zone-select-field component="command" field="zone" account="command.credentials" zones="zones"></zone-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Stack</b></div>
       <div class="col-md-3"><input type="text"
@@ -18,6 +21,16 @@
     </div>
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Image</b></div>
+  <div class="col-md-7">
+    <!-- TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project. -->
+    <select class="form-control input-sm"
+            ng-model="command.image"
+            ng-options="option as option for option in ['debian-7-wheezy-v20140926', 'centos-7-v20140926']"
+            ng-change="onChange()"
+            required>
+    </select>
+  </div>
+<!--
       <div class="col-md-9" ng-if="state.queryAllImages || regionalImages.length === 0">
         <input type="hidden" class="form-control input-sm" required
                ng-model="command.allImageSelection"
@@ -31,6 +44,7 @@
         </select>
         <a href ng-click="state.queryAllImages = true">Search All Images</a>
       </div>
+-->
     </div>
   </div>
 
