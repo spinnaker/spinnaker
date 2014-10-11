@@ -110,8 +110,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                         initialNumReplicas: description.initialNumReplicas,
                                         template: template)).execute()
 
+    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
-    new DeploymentResult(serverGroupNames: [serverGroupName.toString()])
+    new DeploymentResult(serverGroupNames: ["$region:$serverGroupName".toString()])
   }
 
   static def getNextSequence(String clusterName,

@@ -20,10 +20,8 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Image
-import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.Network
-import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.NewDisk
 import com.google.api.services.replicapool.model.NewDiskInitializeParams
@@ -91,6 +89,14 @@ class GCEUtil {
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
 
     replicapool.pools().list(projectName, zone).execute().getResources()
+  }
+
+  static String getRegionFromZone(String projectName, String zone, Compute compute) {
+    // Zone.getRegion() returns a full URL reference.
+    def fullRegion = compute.zones().get(projectName, zone).execute().getRegion()
+    // Even if getRegion() is changed to return just the unqualified region name, this will still work.
+    def regionParts = fullRegion.split("/")
+    regionParts[regionParts.length - 1]
   }
 
   static AttachedDisk buildAttachedDisk(Image sourceImage, String diskType) {
