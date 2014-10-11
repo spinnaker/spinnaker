@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.async.DeferredResult
@@ -32,24 +33,8 @@ class LoadBalancerController {
   @Autowired
   LoadBalancerService loadBalancerService
 
+  @RequestMapping(method = RequestMethod.GET)
   def getAll(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
-             @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
-    DeferredResult<HttpEntity<List>> q = new DeferredResult<>()
-    loadBalancerService.getAll(offset, size).map({
-      def headers = new HttpHeaders()
-      headers.add("X-Result-Total", Integer.valueOf(it.totalMatches as String).toString())
-      headers.add("X-Result-Offset", offset.toString())
-      headers.add("X-Result-Size", Integer.valueOf(it.pageSize as String).toString())
-      new HttpEntity(it.results, headers)
-    }).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
-  }
-
-  def get(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
              @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
     DeferredResult<HttpEntity<List>> q = new DeferredResult<>()
     loadBalancerService.getAll(offset, size).map({
