@@ -34,9 +34,13 @@ class CacheInvalidationService {
   @PostConstruct
   void init() {
     Executors.newScheduledThreadPool(1).scheduleAtFixedRate({
-      for (service in cacheEnabledServices) {
-        service.evict()
-      }
-    }, 0, 60, TimeUnit.SECONDS)
+      invalidateAll()
+    }, 0, 10, TimeUnit.SECONDS)
+  }
+
+  void invalidateAll() {
+    for (service in cacheEnabledServices) {
+      service.evict()
+    }
   }
 }

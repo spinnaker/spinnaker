@@ -52,6 +52,17 @@ class ClusterController {
     q
   }
 
+  @RequestMapping(value = "/{account}/{clusterName}/tags", method = RequestMethod.GET)
+  def getClusterTags(@PathVariable("clusterName") String clusterName) {
+    DeferredResult<List> q = new DeferredResult<>()
+    clusterService.getClusterTags(clusterName).subscribe({
+      q.setResult(it)
+    }, { Throwable t ->
+      q.setErrorResult(t)
+    })
+    q
+  }
+
   @RequestMapping(value = "/{account}/{clusterName}/{type}", method = RequestMethod.GET)
   def getClustersByType(@PathVariable("application") String app,
                         @PathVariable("account") String account,

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.frigga.Names
 import com.netflix.hystrix.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -28,6 +29,9 @@ class ClusterService {
 
   @Autowired
   OortService oortService
+
+  @Autowired
+  FlapJackService flapJackService
 
   Observable<Map> getClusters(String app, String account) {
     new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
@@ -90,5 +94,34 @@ class ClusterService {
         "clusters-${app}-${account}-${clusterName}-${type}"
       }
     }.toObservable()
+  }
+
+  Observable<Map> getClusterTags(String clusterName) {
+    def names = Names.parseName(clusterName)
+    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+        .andCommandKey(HystrixCommandKey.Factory.asKey("getClusterTags"))) {
+
+      @Override
+      protected Observable<Map> run() {
+        Observable.from(flapJackService.getTags(names.app))
+      }
+
+      @Override
+      protected Observable<Map> getFallback() {
+        Observable.from([])
+      }
+
+      @Override
+      protected String getCacheKey() {
+        "cluster-tags-${clusterName}"
+      }
+    }.toObservable().filter({
+      it.item == "cluster" && it.name.toLowerCase() == clusterName.toLowerCase()
+    }).flatMap({
+      Observable.just(it.tags)
+    }).reduce(new HashSet(), { Set objs, obj ->
+      objs.addAll(obj)
+      objs
+    })
   }
 }
