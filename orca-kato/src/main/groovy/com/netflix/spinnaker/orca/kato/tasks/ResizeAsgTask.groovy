@@ -41,7 +41,8 @@ class ResizeAsgTask implements Task {
                      .toBlocking()
                      .first()
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        ["deploy.account.name" : resizeAsgOperation.credentials,
+        ["notification.type"   : "resizeasg",
+         "deploy.account.name" : resizeAsgOperation.credentials,
          "kato.last.task.id"   : taskId,
          "kato.task.id"        : taskId, // TODO retire this.
          "deploy.server.groups": [(resizeAsgOperation.regions): [resizeAsgOperation.asgName]]])

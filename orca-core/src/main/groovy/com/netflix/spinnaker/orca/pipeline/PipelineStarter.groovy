@@ -82,6 +82,10 @@ class PipelineStarter {
 
   private List<Stage> constructStagesFrom(List<Map<String, ?>> config) {
     config.collect {
+      if (it.providerType == "gce") {
+        it.type = "${it.type}_gce"
+      }
+
       if (stages.containsKey(it.type)) {
         stages.get(it.type)
       } else {

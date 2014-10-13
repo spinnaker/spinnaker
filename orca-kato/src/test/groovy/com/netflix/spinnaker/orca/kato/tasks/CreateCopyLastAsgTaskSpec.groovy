@@ -19,7 +19,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.google.common.base.Optional
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -62,13 +61,11 @@ class CreateCopyLastAsgTaskSpec extends Specification {
         task.execute(context)
 
         then:
-        operations.size() == 1
-        operations[0].copyLastAsgDescription == [
-            amiName: Optional.absent(),
-            application: "hodor",
-            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
-            credentials: "fzlem"
-        ]
+        operations.size() == 3
+        operations[2].copyLastAsgDescription.amiName == null
+        operations[2].copyLastAsgDescription.application == "hodor"
+        operations[2].copyLastAsgDescription.availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+        operations[2].copyLastAsgDescription.credentials == "fzlem"
     }
 
     def "can include optional parameters"() {
@@ -88,15 +85,15 @@ class CreateCopyLastAsgTaskSpec extends Specification {
         task.execute(context)
 
         then:
-        operations.size() == 1
-        operations[0].copyLastAsgDescription == [
-            amiName: Optional.absent(),
-            application: "hodor",
-            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
-            credentials: "fzlem",
-            instanceType: "t1.megaBig",
-            stack: "hodork"
-        ]
+        operations.size() == 3
+        with(operations[2].copyLastAsgDescription) {
+          amiName == null
+          application == "hodor"
+          availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+          credentials == "fzlem"
+          instanceType == "t1.megaBig"
+          stack == "hodork"
+        }
     }
 
     def "amiName prefers value from context over bake input"() {
@@ -117,13 +114,13 @@ class CreateCopyLastAsgTaskSpec extends Specification {
         task.execute(context)
 
         then:
-        operations.size() == 1
-        operations[0].copyLastAsgDescription == [
-            amiName: "ami-696969",
-            application: "hodor",
-            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
-            credentials: "fzlem"
-        ]
+        operations.size() == 3
+        with(operations[2].copyLastAsgDescription) {
+          amiName == "ami-696969"
+          application == "hodor"
+          availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+          credentials == "fzlem"
+        }
     }
 
     def "amiName uses value from bake"() {
@@ -143,12 +140,40 @@ class CreateCopyLastAsgTaskSpec extends Specification {
         task.execute(context)
 
         then:
-        operations.size() == 1
-        operations[0].copyLastAsgDescription == [
-            amiName: Optional.of("ami-soixante-neuf"),
-            application: "hodor",
-            availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
-            credentials: "fzlem"
-        ]
+        operations.size() == 3
+        with(operations[2].copyLastAsgDescription) {
+          amiName == "ami-soixante-neuf"
+          application == "hodor"
+          availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+          credentials == "fzlem"
+        }
+    }
+
+    def "calls allowlaunch prior to copyLast"() {
+      given:
+      context."bake.ami" = amiName
+
+
+      def operations
+      task.kato = Mock(KatoService) {
+        1 * requestOperations(*_) >> {
+          operations = it[0]
+          Observable.from(taskId)
+        }
+      }
+
+      when:
+      task.execute(context)
+
+      then:
+      operations.size() == 3
+      operations[0].allowLaunchDescription.amiName == amiName
+      operations[0].allowLaunchDescription.region == "us-east-1"
+      operations[1].allowLaunchDescription.amiName == amiName
+      operations[1].allowLaunchDescription.region == "us-west-1"
+      operations[2].copyLastAsgDescription.amiName == amiName
+
+      where:
+      amiName = "ami-soixante-neuf"
     }
 }

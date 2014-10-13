@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.api
 
+import spock.lang.Specification
+import spock.lang.Subject
 import com.google.gson.Gson
-import com.netflix.spinnaker.orca.kato.api.ops.DeployOperation
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
 import retrofit.client.OkClient
-import spock.lang.Specification
-import spock.lang.Subject
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 import static retrofit.Endpoints.newFixedEndpoint
@@ -52,7 +51,7 @@ class KatoServiceSpec extends Specification {
     }
 
     and: "we request a deployment"
-    def operation = new DeployOperation()
+    def operation = [:]
 
     expect: "kato should return the details of the task it created"
     with(service.requestOperations([operation]).toBlocking().first()) {

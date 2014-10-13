@@ -42,7 +42,7 @@ class MonitorKatoTask implements RetryableTask {
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     TaskResult.Status status = katoStatusToTaskStatus(katoTask.status)
 
-    if (status != TaskResult.Status.FAILED && status != TaskResult.Status.SUCCEEDED) {
+    if (status != TaskResult.Status.TERMINAL && status != TaskResult.Status.SUCCEEDED) {
       status = TaskResult.Status.RUNNING
     }
 
@@ -50,14 +50,19 @@ class MonitorKatoTask implements RetryableTask {
     if (status == TaskResult.Status.SUCCEEDED) {
       outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
     }
-    if (status == TaskResult.Status.SUCCEEDED || status == TaskResult.Status.FAILED) {
+    if (status == TaskResult.Status.SUCCEEDED || status == TaskResult.Status.TERMINAL) {
       List<Map<String, Object>> katoTasks = []
       if (context.inputs.containsKey("kato.tasks")) {
         katoTasks = context.inputs."kato.tasks" as List<Map<String, Object>>
       }
       Map<String, Object> m = [id: katoTask.id, status: katoTask.status, history: katoTask.history]
+      if (katoTask.resultObjects.find { it.type == "EXCEPTION" }) {
+        def exception = katoTask.resultObjects.find { it.type == "EXCEPTION" }
+        m.exception = exception
+      }
       katoTasks << m
       outputs["kato.tasks"] = katoTasks
+
     }
 
     new DefaultTaskResult(status, outputs)
@@ -65,7 +70,7 @@ class MonitorKatoTask implements RetryableTask {
 
   private static TaskResult.Status katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
-      return TaskResult.Status.FAILED
+      return TaskResult.Status.TERMINAL
     } else if (katoStatus.completed) {
       return TaskResult.Status.SUCCEEDED
     } else {
@@ -85,11 +90,20 @@ class MonitorKatoTask implements RetryableTask {
         it.serverGroupNames.each {
           def parts = it.split(':')
           def region = parts[0]
-          def serverGroup = parts[1]
-          if (!result.containsKey(region)) {
-            result[region] = []
+          if (parts.size() > 1) {
+            def serverGroup = parts[1]
+            if (!result.containsKey(region)) {
+              result[region] = []
+            }
+            result[region] << serverGroup
+          } else {
+            region = "region_missing"
+            def serverGroup = parts[0]
+            if (!result.containsKey(region)) {
+              result[region] = []
+            }
+            result[region] << serverGroup
           }
-          result[region] << serverGroup
         }
       }
     }

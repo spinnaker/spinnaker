@@ -13,32 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
 package com.netflix.spinnaker.orca.kato.api.ops
 
 import groovy.transform.CompileStatic
-import com.google.common.base.Optional
-import com.netflix.spinnaker.orca.kato.api.ASGCapacity
+import groovy.transform.EqualsAndHashCode
 import com.netflix.spinnaker.orca.kato.api.Operation
-import static com.google.common.base.Optional.absent
 
+/**
+ * Created by aglover on 9/26/14.
+ */
 @CompileStatic
-class DeployOperation extends Operation {
-  String application
-  String amiName
-  Optional<String> stack = absent()
-  String instanceType
-  List<String> securityGroups
-  Optional<String> subnetType = absent()
-  Map<String, List<String>> availabilityZones
-  List<String> loadBalancers
-  String iamRole
-  ASGCapacity capacity
+@EqualsAndHashCode
+class DeleteAmazonLoadBalancerOperation extends Operation {
+  String loadBalancerName
+  List<String> regions
   String credentials
-  String keyPair
 }
-

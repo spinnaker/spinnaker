@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
@@ -25,6 +21,7 @@ dependencies {
   compile project(":orca-retrofit")
   compile project(":orca-oort")
   compile project(":orca-mort")
+  compile project(":orca-echo")
   testCompile project(":orca-test")
   testCompile commonDependencies.objenesis
 }

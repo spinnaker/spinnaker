@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.orca.mort
 
 import retrofit.client.Response
+import retrofit.http.Body
 import retrofit.http.GET
+import retrofit.http.POST
 import retrofit.http.Path
 import retrofit.http.Query
 
@@ -29,4 +31,6 @@ interface MortService {
     @Path("account") String account,
     @Path("type") String type, @Path("securityGroupName") String securityGroupName, @Query("region") String region)
 
+  @POST("/cache/{type}")
+  Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)
 }

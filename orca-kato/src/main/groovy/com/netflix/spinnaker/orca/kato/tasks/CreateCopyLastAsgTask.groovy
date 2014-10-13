@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.base.Optional
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.CopyLastAsgOperation
+import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
-@CompileStatic
 class CreateCopyLastAsgTask implements Task {
 
   @Autowired
@@ -37,15 +35,24 @@ class CreateCopyLastAsgTask implements Task {
   @Autowired
   ObjectMapper mapper
 
+  @Value('${default.bake.account:test}')
+  String defaultBakeAccount
+
   @Override
   TaskResult execute(TaskContext context) {
-    Map operation = deployOperationFromContext(context)
-    def taskId = kato.requestOperations([[copyLastAsgDescription: operation]])
+    def operation = mapper.copy()
+      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(context.getInputs("copyLastAsg"), Map)
+    operation.amiName = operation.amiName ?: context.getInputs().'bake.ami' as String
+    operation.remove('type')
+    operation.remove('user')
+    def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
 
     new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
         [
+            "notification.type"  : "createcopylastasg",
             "kato.last.task.id"  : taskId,
             "kato.task.id"       : taskId, // TODO retire this.
             "deploy.account.name": operation.credentials,
@@ -53,11 +60,22 @@ class CreateCopyLastAsgTask implements Task {
     )
   }
 
-  private Map deployOperationFromContext(TaskContext context) {
-    def operation = mapper.copy()
-                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(context.getInputs("copyLastAsg"), Map)
-    operation.amiName = operation.amiName ?: Optional.fromNullable(context.inputs.'bake.ami' as String)
-    return operation
+  private List<Map<String, Object>> getDescriptions(Map operation) {
+    List<Map<String, Object>> descriptions = []
+    if (operation.credentials != defaultBakeAccount) {
+      def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
+        [
+            allowLaunchDescription: new AllowLaunchOperation(
+                account: operation.credentials,
+                credentials: defaultBakeAccount,
+                region: region,
+                amiName: operation.amiName
+            )
+        ]
+      }
+      descriptions.addAll(allowLaunchDescriptions)
+    }
+    descriptions.add([copyLastAsgDescription: operation])
+    descriptions
   }
 }
