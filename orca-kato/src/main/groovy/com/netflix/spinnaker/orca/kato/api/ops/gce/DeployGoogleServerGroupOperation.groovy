@@ -23,7 +23,6 @@ import groovy.transform.CompileStatic
 class DeployGoogleServerGroupOperation extends Operation {
   String application
   String stack
-  String freeFormDetails
   int initialNumReplicas
   String image
   String type
