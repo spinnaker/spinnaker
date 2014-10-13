@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, application, serverGroup) {

@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 /*
  Adapted from Stack Overflow response:

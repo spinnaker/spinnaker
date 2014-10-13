@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .controller('InstanceDetailsCtrl', function ($scope, $state, notifications, instance, application, orcaService, confirmationModalService) {

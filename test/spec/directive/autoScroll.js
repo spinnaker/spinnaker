@@ -18,7 +18,7 @@
 
 describe('Directives: auto-scroll', function () {
 
-  beforeEach(module('deckApp'));
+  beforeEach(loadDeckWithoutCacheInitializer);
 
   function buildContainer(height) {
     return '<div style="overflow:auto; height: ' + height + 'px"></div>';

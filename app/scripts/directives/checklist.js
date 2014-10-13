@@ -16,7 +16,6 @@
 
 'use strict';
 
-require('../app');
 
 angular.module('deckApp')
   .directive('checklist', function() {

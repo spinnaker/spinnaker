@@ -23,7 +23,7 @@ buildscript {
   dependencies {
     classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.8'
     classpath 'com.moowork.gradle:gradle-node-plugin:0.5'
-    classpath 'com.moowork.gradle:gradle-grunt-plugin:0.5'
+    classpath 'be.filipblondeel.gradle:gradle-gulp-plugin:0.1'
   }
 }
 
@@ -31,7 +31,7 @@ group = "com.netflix.spinnaker.deck"
 
 apply plugin: 'spinnaker-gradle-project'
 apply plugin: 'node'
-apply plugin: 'grunt'
+apply plugin: 'gulp'
 
 jar {
   from(fileTree("dist")) {
@@ -47,10 +47,10 @@ node {
     download = true
 }
 
-grunt_clean.dependsOn 'npmInstall'
-grunt_clean.dependsOn 'installGrunt'
-installGrunt.dependsOn 'npmInstall'
-clean.dependsOn 'grunt_clean'
+gulp_clean.dependsOn 'npmInstall'
+gulp_clean.dependsOn 'installGulp'
+installGulp.dependsOn 'npmInstall'
+clean.dependsOn 'gulp_clean'
 
-grunt_default.dependsOn 'installGrunt'
-build.dependsOn 'grunt_default'
+gulp_build.dependsOn 'installGulp'
+build.dependsOn 'gulp_build'

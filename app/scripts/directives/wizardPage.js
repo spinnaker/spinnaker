@@ -16,8 +16,6 @@
 
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 /**
  * Wizard page directive

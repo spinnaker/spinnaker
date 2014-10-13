@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .factory('instanceTypeService', function ($http, $q, settings, _, scheduledCache, $window) {

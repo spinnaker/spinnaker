@@ -1,6 +1,5 @@
 'use strict';
 
-var angular = require('angular');
 angular.module('deckApp')
   .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder) {
     return function() {

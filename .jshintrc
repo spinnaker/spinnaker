@@ -20,6 +20,10 @@
   "smarttabs": true,
   "debug": true,
   "globals": {
-    "angular": true
+    "angular": true,
+    "$": true,
+    "_": true,
+    "Rx": true,
+    "moment": true
   }
 }

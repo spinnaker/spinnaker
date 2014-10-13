@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../app');
-var angular = require('angular');
 
 angular.module('deckApp.gce')
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,

@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {

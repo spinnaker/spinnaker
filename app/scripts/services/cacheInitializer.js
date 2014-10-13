@@ -1,13 +1,11 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('cacheInitializer', function(accountService, instanceTypeService, settings) {
+  .factory('cacheInitializer', function(accountService, instanceTypeService) {
     return {
       initialize: function() {
-        if (!settings.cacheInitializerDisabled) {
-          accountService.getRegionsKeyedByAccount();
-          instanceTypeService.getAllTypesByRegion();
-        }
+        accountService.getRegionsKeyedByAccount();
+        instanceTypeService.getAllTypesByRegion();
       }
     };
   });

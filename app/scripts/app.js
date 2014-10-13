@@ -9,17 +9,6 @@
  * Main module of the application.
  */
 
-require('jquery');
-var angular = require('angular');
-
-require('angular-animate');
-require('angular-bootstrap');
-require('angular-spinner');
-require('angular-ui-router');
-require('angular-ui-select2');
-require('restangular');
-require('./modules/aws');
-require('./modules/gce');
 
 angular.module('deckApp', [
     'ngAnimate',

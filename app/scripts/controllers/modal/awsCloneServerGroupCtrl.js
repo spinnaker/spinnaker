@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../app');
-var angular = require('angular');
 
 angular.module('deckApp.aws')
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,

@@ -1,7 +1,5 @@
 'use strict';
 
-require('../app');
-var angular = require('angular');
 
 angular.module('deckApp')
   .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler) {
