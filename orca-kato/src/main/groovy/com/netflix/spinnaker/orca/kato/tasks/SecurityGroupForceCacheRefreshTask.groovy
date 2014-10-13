@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.mort.MortService
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -40,6 +37,6 @@ public class SecurityGroupForceCacheRefreshTask implements Task {
 
     mort.forceCacheUpdate(REFRESH_TYPE, [account: account, securityGroupName: name, region: region])
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+    new DefaultTaskResult(Status.SUCCEEDED)
   }
 }

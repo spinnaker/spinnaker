@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.oort.OortService
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -35,9 +32,9 @@ class ApplicationForceCacheRefreshTask implements Task {
 
     if (account) {
       oort.forceCacheUpdate(REFRESH_TYPE, [account: account])
-      new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+      new DefaultTaskResult(Status.SUCCEEDED)
     } else {
-      new DefaultTaskResult(TaskResult.Status.FAILED, ["application.refresh.failure.reason": "no credentials found"])
+      new DefaultTaskResult(Status.FAILED, ["application.refresh.failure.reason": "no credentials found"])
     }
   }
 }

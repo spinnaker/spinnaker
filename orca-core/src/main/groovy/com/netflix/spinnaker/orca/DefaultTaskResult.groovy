@@ -25,16 +25,17 @@ final class DefaultTaskResult implements TaskResult {
   /**
    * A useful constant for a success result with no outputs.
    */
-  public static final DefaultTaskResult SUCCEEDED = new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+  public static
+  final DefaultTaskResult SUCCEEDED = new DefaultTaskResult(Status.SUCCEEDED)
 
-  final TaskResult.Status status
+  final Status status
   final ImmutableMap<String, Object> outputs
 
-  DefaultTaskResult(TaskResult.Status status) {
+  DefaultTaskResult(Status status) {
     this(status, [:])
   }
 
-  DefaultTaskResult(TaskResult.Status status, Map<String, ? extends Object> outputs) {
+  DefaultTaskResult(Status status, Map<String, ? extends Object> outputs) {
     this.status = status
     this.outputs = ImmutableMap.copyOf(outputs)
   }

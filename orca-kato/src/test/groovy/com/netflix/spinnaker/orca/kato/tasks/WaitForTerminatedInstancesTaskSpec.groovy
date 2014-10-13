@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.oort.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedInput
@@ -62,8 +62,8 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     where:
     matches || taskStatus
-    0       || TaskResult.Status.SUCCEEDED
-    1       || TaskResult.Status.RUNNING
+    0 || Status.SUCCEEDED
+    1 || Status.RUNNING
   }
 
   void "should return RUNNING status when search returns error"() {
@@ -82,7 +82,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     context."terminate.instance.ids" = [instanceId]
 
     expect:
-    task.execute(context).status == TaskResult.Status.RUNNING
+    task.execute(context).status == Status.RUNNING
   }
 
   void "should return RUNNING status when search returns multiple result sets"() {
@@ -108,7 +108,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     context."terminate.instance.ids" = [instanceId]
 
     expect:
-    task.execute(context).status == TaskResult.Status.RUNNING
+    task.execute(context).status == Status.RUNNING
   }
 
   void "should search all instanceIds"() {
@@ -140,7 +140,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     context."terminate.instance.ids" = instanceIds
 
     expect:
-    task.execute(context).status == TaskResult.Status.SUCCEEDED
+    task.execute(context).status == Status.SUCCEEDED
   }
 
   void "should return running if any instance found via search"() {
@@ -168,6 +168,6 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     context."terminate.instance.ids" = instanceIds
 
     expect:
-    task.execute(context).status == TaskResult.Status.RUNNING
+    task.execute(context).status == Status.RUNNING
   }
 }

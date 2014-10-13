@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,8 +38,8 @@ class CreateCopyLastAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def operation = mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(context.getInputs("copyLastAsg"), Map)
+                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+                          .convertValue(context.getInputs("copyLastAsg"), Map)
     operation.amiName = operation.amiName ?: context.getInputs().'bake.ami' as String
     operation.remove('type')
     operation.remove('user')
@@ -50,14 +47,12 @@ class CreateCopyLastAsgTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        [
-            "notification.type"  : "createcopylastasg",
-            "kato.last.task.id"  : taskId,
-            "kato.task.id"       : taskId, // TODO retire this.
-            "deploy.account.name": operation.credentials,
-        ]
-    )
+    new DefaultTaskResult(Status.SUCCEEDED, [
+      "notification.type"  : "createcopylastasg",
+      "kato.last.task.id"  : taskId,
+      "kato.task.id"       : taskId, // TODO retire this.
+      "deploy.account.name": operation.credentials,
+    ])
   }
 
   private List<Map<String, Object>> getDescriptions(Map operation) {
@@ -65,12 +60,12 @@ class CreateCopyLastAsgTask implements Task {
     if (operation.credentials != defaultBakeAccount) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
-            allowLaunchDescription: new AllowLaunchOperation(
-                account: operation.credentials,
-                credentials: defaultBakeAccount,
-                region: region,
-                amiName: operation.amiName
-            )
+          allowLaunchDescription: new AllowLaunchOperation(
+            account: operation.credentials,
+            credentials: defaultBakeAccount,
+            region: region,
+            amiName: operation.amiName
+          )
         ]
       }
       descriptions.addAll(allowLaunchDescriptions)

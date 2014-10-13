@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.TaskResult
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.repeat.RepeatStatus
@@ -31,15 +32,15 @@ class BatchStepStatus {
 
   static BatchStepStatus mapResult(TaskResult result) {
     switch (result.status) {
-      case TaskResult.Status.SUCCEEDED:
+      case Status.SUCCEEDED:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.COMPLETED)
-      case TaskResult.Status.SUSPENDED:
+      case Status.SUSPENDED:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED)
-      case TaskResult.Status.FAILED:
+      case Status.FAILED:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.FAILED)
-      case TaskResult.Status.TERMINAL:
+      case Status.TERMINAL:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.FAILED)
-      case TaskResult.Status.RUNNING:
+      case Status.RUNNING:
         return new BatchStepStatus(RepeatStatus.CONTINUABLE, ExitStatus.EXECUTING)
     }
   }

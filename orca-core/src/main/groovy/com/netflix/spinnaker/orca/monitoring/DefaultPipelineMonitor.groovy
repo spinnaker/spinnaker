@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.monitoring
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.TaskResult.Status
+import com.netflix.spinnaker.orca.Status
 
 @CompileStatic
 class DefaultPipelineMonitor implements PipelineMonitor {

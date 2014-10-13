@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
+import static com.netflix.spinnaker.orca.Status.RUNNING
+import static com.netflix.spinnaker.orca.Status.SUCCEEDED
 
 class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
 

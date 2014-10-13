@@ -18,17 +18,17 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import retrofit.RetrofitError
 import retrofit.client.Response
 import rx.Observable
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class CompletedBakeTaskSpec extends Specification {
@@ -57,7 +57,7 @@ class CompletedBakeTaskSpec extends Specification {
     def result = task.execute(this.context)
 
     then:
-    result.status == TaskResult.Status.SUCCEEDED
+    result.status == Status.SUCCEEDED
     result.outputs."bake.ami" == ami
 
     where:
@@ -80,7 +80,7 @@ class CompletedBakeTaskSpec extends Specification {
     def result = task.execute(context)
 
     then:
-    result.status == TaskResult.Status.FAILED
+    result.status == Status.FAILED
 
     where:
     region = "us-west-1"

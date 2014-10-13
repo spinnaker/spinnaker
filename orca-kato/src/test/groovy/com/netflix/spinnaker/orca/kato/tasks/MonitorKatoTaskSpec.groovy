@@ -18,15 +18,15 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import rx.Observable
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 
 class MonitorKatoTaskSpec extends Specification {
 
@@ -48,9 +48,9 @@ class MonitorKatoTaskSpec extends Specification {
 
     where:
     completed | failed | expectedResult
-    true      | false  | TaskResult.Status.SUCCEEDED
-    false     | false  | TaskResult.Status.RUNNING
-    true      | true   | TaskResult.Status.TERMINAL
+    true  | false | Status.SUCCEEDED
+    false | false | Status.RUNNING
+    true  | true  | Status.TERMINAL
 
     taskId = "kato-task-id"
     katoStatus = completed ? "completed" : "incomplete"

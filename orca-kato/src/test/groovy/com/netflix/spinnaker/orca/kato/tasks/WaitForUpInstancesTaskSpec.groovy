@@ -18,14 +18,14 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.oort.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import spock.lang.Specification
+import spock.lang.Subject
 
 class WaitForUpInstancesTaskSpec extends Specification {
 
@@ -72,7 +72,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     context."deploy.server.groups" = ["us-west-1": ["front50-v000"]]
 
     expect:
-    task.execute(context).status == TaskResult.Status.SUCCEEDED
+    task.execute(context).status == Status.SUCCEEDED
 
   }
 }

@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
 import com.google.common.collect.ImmutableList
-import com.netflix.spinnaker.orca.TaskResult
-import static com.netflix.spinnaker.orca.TaskResult.Status.*
+import com.netflix.spinnaker.orca.Status
+import static com.netflix.spinnaker.orca.Status.*
 
 @CompileStatic
 class Pipeline {
@@ -36,7 +36,7 @@ class Pipeline {
     this(id, stages.toList())
   }
 
-  TaskResult.Status getStatus() {
+  Status getStatus() {
     def status = stages.status.reverse().find {
       it != NOT_STARTED
     }

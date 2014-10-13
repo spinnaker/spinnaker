@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.monitoring.PipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.ExitStatus
@@ -76,7 +76,7 @@ class TestStage extends LinearStage {
 
       @Override
       ExitStatus afterStep(StepExecution stepExecution) {
-        pipelineMonitor.endTask(TaskResult.Status.valueOf(stepExecution.exitStatus.exitDescription))
+        pipelineMonitor.endTask(Status.valueOf(stepExecution.exitStatus.exitDescription))
         if (last || stepExecution.isTerminateOnly()) {
           pipelineMonitor.endStage(name)
         }

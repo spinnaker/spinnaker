@@ -18,10 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -40,17 +37,17 @@ class MonitorKatoTask implements RetryableTask {
   TaskResult execute(TaskContext context) {
     TaskId taskId = context.inputs."kato.last.task.id" as TaskId
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
-    TaskResult.Status status = katoStatusToTaskStatus(katoTask.status)
+    Status status = katoStatusToTaskStatus(katoTask.status)
 
-    if (status != TaskResult.Status.TERMINAL && status != TaskResult.Status.SUCCEEDED) {
-      status = TaskResult.Status.RUNNING
+    if (status != Status.TERMINAL && status != Status.SUCCEEDED) {
+      status = Status.RUNNING
     }
 
     Map<String, ? extends Object> outputs = [:]
-    if (status == TaskResult.Status.SUCCEEDED) {
+    if (status == Status.SUCCEEDED) {
       outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
     }
-    if (status == TaskResult.Status.SUCCEEDED || status == TaskResult.Status.TERMINAL) {
+    if (status == Status.SUCCEEDED || status == Status.TERMINAL) {
       List<Map<String, Object>> katoTasks = []
       if (context.inputs.containsKey("kato.tasks")) {
         katoTasks = context.inputs."kato.tasks" as List<Map<String, Object>>
@@ -68,13 +65,13 @@ class MonitorKatoTask implements RetryableTask {
     new DefaultTaskResult(status, outputs)
   }
 
-  private static TaskResult.Status katoStatusToTaskStatus(Task.Status katoStatus) {
+  private static Status katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
-      return TaskResult.Status.TERMINAL
+      return Status.TERMINAL
     } else if (katoStatus.completed) {
-      return TaskResult.Status.SUCCEEDED
+      return Status.SUCCEEDED
     } else {
-      return TaskResult.Status.RUNNING
+      return Status.RUNNING
     }
   }
 

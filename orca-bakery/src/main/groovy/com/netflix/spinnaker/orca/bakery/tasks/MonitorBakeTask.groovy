@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,14 +42,14 @@ class MonitorBakeTask implements RetryableTask {
     new DefaultTaskResult(mapStatus(newStatus), ["bake.status": newStatus])
   }
 
-  private TaskResult.Status mapStatus(BakeStatus newStatus) {
+  private Status mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
-        return TaskResult.Status.SUCCEEDED
+        return Status.SUCCEEDED
       case BakeStatus.State.CANCELLED:
-        return TaskResult.Status.FAILED
+        return Status.FAILED
       default:
-        return TaskResult.Status.RUNNING
+        return Status.RUNNING
     }
   }
 }

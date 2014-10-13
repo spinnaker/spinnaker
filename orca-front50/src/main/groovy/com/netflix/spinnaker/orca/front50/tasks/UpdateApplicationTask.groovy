@@ -42,9 +42,9 @@ class UpdateApplicationTask implements Task {
 
     def resp = front50Service.update(context.getInputs()."createApplication.account" as String, application)
     if (resp.status != 200) {
-      new DefaultTaskResult(TaskResult.Status.TERMINAL)
+      new DefaultTaskResult(Status.TERMINAL)
     } else {
-      new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["application.name": application.name,
+      new DefaultTaskResult(Status.SUCCEEDED, ["application.name": application.name,
                                                           "account": context.getInputs()."createApplication.account"])
     }
   }

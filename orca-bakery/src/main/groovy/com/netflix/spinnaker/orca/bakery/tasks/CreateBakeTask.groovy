@@ -18,10 +18,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +37,7 @@ class CreateBakeTask implements Task {
 
     def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.status": bakeStatus])
+    new DefaultTaskResult(Status.SUCCEEDED, ["bake.status": bakeStatus])
   }
 
   private BakeRequest bakeFromContext(TaskContext context) {

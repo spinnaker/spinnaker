@@ -18,10 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.oort.OortService
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -46,16 +43,16 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
     Map<String, List<String>> serverGroups = getServerGroups(context)
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
-      return new DefaultTaskResult(TaskResult.Status.FAILED)
+      return new DefaultTaskResult(Status.FAILED)
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
     def response = oortService.getCluster(names.app, account, names.cluster)
     if (response.status != 200) {
-      return new DefaultTaskResult(TaskResult.Status.RUNNING)
+      return new DefaultTaskResult(Status.RUNNING)
     }
     def cluster = objectMapper.readValue(response.body.in().text, Map)
     if (!cluster || !cluster.serverGroups) {
-      return new DefaultTaskResult(TaskResult.Status.RUNNING)
+      return new DefaultTaskResult(Status.RUNNING)
     }
     Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
     for (Map serverGroup in cluster.serverGroups) {
@@ -73,13 +70,13 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       seenServerGroup[name] = true
       def isComplete = hasSucceeded(instances)
       if (!isComplete) {
-        return new DefaultTaskResult(TaskResult.Status.RUNNING)
+        return new DefaultTaskResult(Status.RUNNING)
       }
     }
     if (seenServerGroup.values().contains(false)) {
-      new DefaultTaskResult(TaskResult.Status.RUNNING)
+      new DefaultTaskResult(Status.RUNNING)
     } else {
-      new DefaultTaskResult(TaskResult.Status.SUCCEEDED)
+      new DefaultTaskResult(Status.SUCCEEDED)
     }
   }
 

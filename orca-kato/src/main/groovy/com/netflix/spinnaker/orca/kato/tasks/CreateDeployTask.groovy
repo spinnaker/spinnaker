@@ -19,10 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
@@ -46,7 +43,7 @@ class CreateDeployTask implements Task {
   TaskResult execute(TaskContext context) {
     def deployOperations = deployOperationFromContext(context)
     def taskId = deploy(deployOperations)
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
+    new DefaultTaskResult(Status.SUCCEEDED,
         [
             "notification.type"  : "createdeploy",
             "kato.last.task.id"  : taskId,

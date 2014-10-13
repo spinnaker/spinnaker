@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -99,7 +98,7 @@ class PipelineStatusSpec extends Specification {
     with(pipelineStarter.start(configJson)) {
       // Pipeline has a getStatus as well as stage – here we want the stage
       // status. Really should remove the duplication
-      stages*.status == [TaskResult.Status.SUCCEEDED] * 3
+      stages*.status == [Status.SUCCEEDED] * 3
     }
 
     where:

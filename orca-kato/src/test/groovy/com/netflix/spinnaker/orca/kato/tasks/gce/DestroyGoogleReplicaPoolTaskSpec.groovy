@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.tasks.gce.DestroyGoogleReplicaPoolTask
+import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -75,7 +74,7 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
       def result = task.execute(context)
 
     then:
-      result.status == TaskResult.Status.SUCCEEDED
+    result.status == Status.SUCCEEDED
       result.outputs."kato.task.id" == taskId
       result.outputs."deploy.account.name" == destroyASGConfig.credentials
   }

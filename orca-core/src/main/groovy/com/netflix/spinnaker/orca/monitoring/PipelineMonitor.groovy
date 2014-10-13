@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.monitoring
 
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.Status
 
 interface PipelineMonitor {
   void beginStage(String stageName)
@@ -25,5 +25,5 @@ interface PipelineMonitor {
 
   void beginTask()
 
-  void endTask(TaskResult.Status status)
+  void endTask(Status status)
 }

@@ -16,16 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
@@ -44,15 +40,14 @@ class TerminateGoogleInstancesTask implements Task {
                      .first()
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-                          [
-                           "notification.type"      : "terminategoogleinstances",
-                           "terminate.account.name" : operation.credentials,
-                           "terminate.region"       : operation.zone,
-                           "kato.last.task.id"      : taskId,
-                           "kato.task.id"           : taskId, // TODO retire this.
-                           "terminate.instance.ids" : operation.instanceIds,
-                          ])
+    new DefaultTaskResult(Status.SUCCEEDED, [
+      "notification.type"     : "terminategoogleinstances",
+      "terminate.account.name": operation.credentials,
+      "terminate.region"      : operation.zone,
+      "kato.last.task.id"     : taskId,
+      "kato.task.id"          : taskId, // TODO retire this.
+      "terminate.instance.ids": operation.instanceIds,
+    ])
   }
 
   TerminateGoogleInstancesOperation convert(TaskContext context) {
