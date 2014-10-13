@@ -48,7 +48,12 @@ class RxCachingAgentScheduler implements CachingAgentScheduler {
     CachingAgent cachingAgent
 
     void call() {
-      cachingAgent.call()
+        try {
+            cachingAgent.call()
+        } catch (e) {
+            e.printStackTrace() // Give some indication that the cache is failing
+            throw e
+        }
     }
   }
 }
