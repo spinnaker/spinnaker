@@ -72,6 +72,8 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
     clusterProviders.collect {
       it.getCluster(names.app.toLowerCase(), account, clusterName)
+    }.findAll {
+      it
     }.findAll { Cluster cluster ->
       cluster.type == type
     }.collectMany {
