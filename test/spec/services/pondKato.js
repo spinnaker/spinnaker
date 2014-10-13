@@ -22,7 +22,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
   var service, $http, config, scope, timeout, task;
 
-  beforeEach(module('deckApp'));
+  beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(inject(function(settings, pond, $httpBackend, $rootScope, $timeout) {
 
