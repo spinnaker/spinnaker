@@ -80,11 +80,14 @@ angular.module('deckApp')
             katoTaskId = task.getValueFor('kato.last.task.id');
 
         if (failed) {
-          deferred.reject(task);
+          var rejectWith = katoTasks ? katoTasks[katoTasks.length-1] : null;
+          deferred.reject(rejectWith);
         }
+        
         if (succeeded) {
-          deferred.resolve(task);
+          deferred.resolve(katoTasks[katoTasks.length-1]);
         }
+
         if (running) {
           if (katoTaskId) {
             kato.getTask(katoTaskId.id).get().then(

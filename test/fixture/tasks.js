@@ -128,3 +128,38 @@ TasksFixture.secondSnapshot = [
     ],
   }
 ];
+
+TasksFixture.failedKatoTask = {
+  id: 3,
+  status: {
+    completed: true,
+    failed: true
+  },
+  history: [{
+    phase: "ORCHESTRATION",
+    status: "Orchestration failed."
+  }]
+};
+
+TasksFixture.successfulKatoTask = {
+  id: 3,
+  status: {
+    completed: true
+  },
+  history: [{
+    phase: "ORCHESTRATION",
+    status: "Orchestration completed."
+  }]
+};
+
+TasksFixture.runningKatoTask = {
+  id: 3,
+  status: {
+    completed: false,
+    failed: false
+  },
+  history: [{
+    phase: "ORCHESTRATION",
+    status: "Initializing Orchestration Task..."
+  }]
+};

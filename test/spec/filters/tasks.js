@@ -12,6 +12,7 @@ describe('Filter: taskFilter', function() {
     this.taskFilter = taskFilterFilter;
   }));
 
+
   describe('the filtering logic', function() {
     it('treats STOPPED tests like FAILED ones', function() {
       expect(this.tasks.some(function(task) {
