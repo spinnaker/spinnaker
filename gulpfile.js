@@ -158,7 +158,8 @@ gulp.task('css', ['css:application', 'css:vendor']);
 gulp.task('jshint', function() {
   return gulp.src([app, scripts, '**/*.js'].join('/'))
     .pipe($.if(!development, $.jshint()))
-    .pipe($.if(!development, $.jshint.reporter('jshint-stylish')));
+    .pipe($.if(!development, $.jshint.reporter('jshint-stylish')))
+    .pipe($.if(!development, $.jshint.reporter('fail')));
 });
 
 var prepareJs = function(src, out) {

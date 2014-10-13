@@ -21,3 +21,7 @@ The app will start up on localhost:9000.
 
 As you make changes locally, Gulp's livereload plugin watches your target directories and automatically updates
 the running application, refreshing the page as changes are detected.
+
+Silencing jshint
+----------------
+To prevent jshint from running, run gulp with ```NODE_ENV=dev gulp```.
