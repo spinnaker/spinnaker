@@ -34,10 +34,10 @@ class CompletedBakeTask implements Task {
     def bakeStatus = context.inputs."bake.status" as BakeStatus
     try {
       def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
-      new DefaultTaskResult(Status.SUCCEEDED, ["bake.ami": bake.ami])
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["bake.ami": bake.ami])
     } catch (RetrofitError e) {
       // TODO: attach some reporting info here
-      new DefaultTaskResult(Status.FAILED)
+      new DefaultTaskResult(PipelineStatus.FAILED)
     }
   }
 }

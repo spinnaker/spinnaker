@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.oort.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedInput
@@ -73,7 +73,7 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     context."deploy.account.name" = "test"
 
     expect:
-    task.execute(context).status == Status.SUCCEEDED
+    task.execute(context).status == PipelineStatus.SUCCEEDED
 
   }
 }

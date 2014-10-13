@@ -36,6 +36,6 @@ class ServerGroupCacheForceRefreshTask implements Task {
         oort.forceCacheUpdate(REFRESH_TYPE, model)
       }
     }
-    new DefaultTaskResult(Status.SUCCEEDED)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
   }
 }

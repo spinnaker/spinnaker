@@ -42,14 +42,14 @@ class MonitorBakeTask implements RetryableTask {
     new DefaultTaskResult(mapStatus(newStatus), ["bake.status": newStatus])
   }
 
-  private Status mapStatus(BakeStatus newStatus) {
+  private PipelineStatus mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
-        return Status.SUCCEEDED
+        return PipelineStatus.SUCCEEDED
       case BakeStatus.State.CANCELLED:
-        return Status.FAILED
+        return PipelineStatus.FAILED
       default:
-        return Status.RUNNING
+        return PipelineStatus.RUNNING
     }
   }
 }

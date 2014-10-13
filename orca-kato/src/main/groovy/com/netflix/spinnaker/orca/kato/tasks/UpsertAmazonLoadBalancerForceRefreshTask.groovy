@@ -41,6 +41,6 @@ public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
       def model = [loadBalancerName: name, region: region, account: account]
       oort.forceCacheUpdate(REFRESH_TYPE, model)
     }
-    new DefaultTaskResult(Status.SUCCEEDED)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
   }
 }

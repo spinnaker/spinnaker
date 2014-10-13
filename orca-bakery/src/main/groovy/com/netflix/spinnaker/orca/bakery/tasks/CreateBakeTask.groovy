@@ -37,7 +37,7 @@ class CreateBakeTask implements Task {
 
     def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
-    new DefaultTaskResult(Status.SUCCEEDED, ["bake.status": bakeStatus])
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["bake.status": bakeStatus])
   }
 
   private BakeRequest bakeFromContext(TaskContext context) {

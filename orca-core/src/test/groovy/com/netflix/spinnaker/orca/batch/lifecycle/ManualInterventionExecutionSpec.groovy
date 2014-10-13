@@ -22,7 +22,7 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
-import static com.netflix.spinnaker.orca.Status.*
+import static com.netflix.spinnaker.orca.PipelineStatus.*
 
 class ManualInterventionExecutionSpec extends BatchExecutionSpec {
 

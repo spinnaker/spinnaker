@@ -47,7 +47,7 @@ class CreateCopyLastAsgTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"  : "createcopylastasg",
       "kato.last.task.id"  : taskId,
       "kato.task.id"       : taskId, // TODO retire this.

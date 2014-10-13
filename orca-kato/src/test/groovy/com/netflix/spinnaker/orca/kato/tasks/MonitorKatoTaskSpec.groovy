@@ -18,8 +18,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -48,9 +48,9 @@ class MonitorKatoTaskSpec extends Specification {
 
     where:
     completed | failed | expectedResult
-    true  | false | Status.SUCCEEDED
-    false | false | Status.RUNNING
-    true  | true  | Status.TERMINAL
+    true  | false | PipelineStatus.SUCCEEDED
+    false | false | PipelineStatus.RUNNING
+    true  | true  | PipelineStatus.TERMINAL
 
     taskId = "kato-task-id"
     katoStatus = completed ? "completed" : "incomplete"

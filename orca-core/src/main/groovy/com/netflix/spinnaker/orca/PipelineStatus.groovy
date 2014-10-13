@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca
 
-enum Status {
+enum PipelineStatus {
 
   /**
    * The task has yet to start.
@@ -55,7 +55,7 @@ enum Status {
 
   final boolean complete
 
-  Status(boolean complete) {
+  PipelineStatus(boolean complete) {
     this.complete = complete
   }
 }

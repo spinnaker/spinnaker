@@ -26,7 +26,7 @@ class PreconfigureDestroyGoogleReplicaPoolTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def op = convert(context)
-    new DefaultTaskResult(Status.SUCCEEDED, ["resizeAsg_gce.credentials": op.credentials,
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["resizeAsg_gce.credentials": op.credentials,
                                                         "resizeAsg_gce.zones": [op.zone],
                                                         "resizeAsg_gce.asgName": op.replicaPoolName,
                                                         "resizeAsg_gce.capacity": [desired: op.numReplicas]])

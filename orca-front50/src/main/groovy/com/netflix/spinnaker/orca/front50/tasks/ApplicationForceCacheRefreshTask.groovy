@@ -32,9 +32,9 @@ class ApplicationForceCacheRefreshTask implements Task {
 
     if (account) {
       oort.forceCacheUpdate(REFRESH_TYPE, [account: account])
-      new DefaultTaskResult(Status.SUCCEEDED)
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED)
     } else {
-      new DefaultTaskResult(Status.FAILED, ["application.refresh.failure.reason": "no credentials found"])
+      new DefaultTaskResult(PipelineStatus.FAILED, ["application.refresh.failure.reason": "no credentials found"])
     }
   }
 }

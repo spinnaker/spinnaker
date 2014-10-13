@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Status
+import com.netflix.spinnaker.orca.PipelineStatus
 
 /**
  * A _stage_ of an Orca _pipeline_.
@@ -34,7 +34,7 @@ class Stage {
    * @return the status of the stage. Effectively this will mean the status of
    * the last {@link com.netflix.spinnaker.orca.Task} to be executed.
    */
-  Status getStatus() {
+  PipelineStatus getStatus() {
     status
   }
 

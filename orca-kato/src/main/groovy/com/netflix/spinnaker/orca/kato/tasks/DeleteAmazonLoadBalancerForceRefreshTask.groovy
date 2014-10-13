@@ -36,6 +36,6 @@ class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
       def model = [loadBalancerName: name, region: region, account: account, evict: true]
       oort.forceCacheUpdate(REFRESH_TYPE, model)
     }
-    new DefaultTaskResult(Status.SUCCEEDED)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
   }
 }

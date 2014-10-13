@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.monitoring
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Status
+import com.netflix.spinnaker.orca.PipelineStatus
 
 @CompileStatic
 class DefaultPipelineMonitor implements PipelineMonitor {
@@ -37,7 +37,7 @@ class DefaultPipelineMonitor implements PipelineMonitor {
   }
 
   @Override
-  void endTask(Status status) {
+  void endTask(PipelineStatus status) {
 
   }
 }

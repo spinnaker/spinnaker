@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.batch.monitoring
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Status
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
@@ -81,7 +81,7 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
 
     then: "we get an event at the start and end of each task"
     2 * pipelineMonitor.beginTask()
-    2 * pipelineMonitor.endTask(Status.SUCCEEDED)
+    2 * pipelineMonitor.endTask(PipelineStatus.SUCCEEDED)
 
     then: "we get an event at the end of the stage"
     1 * pipelineMonitor.endStage(stageName)
@@ -92,7 +92,7 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
 
   def "if a task fails an event is raised indicating the stage has failed"() {
     given: "a stage with a single task"
-    task1.execute(*_) >> new DefaultTaskResult(Status.FAILED)
+    task1.execute(*_) >> new DefaultTaskResult(PipelineStatus.FAILED)
 
     when: "the pipeline runs"
     launchJob()
@@ -105,7 +105,7 @@ class PipelineMonitoringSpec extends BatchExecutionSpec {
 
     and: "we get an event at the start and end of the first task"
     1 * pipelineMonitor.beginTask()
-    1 * pipelineMonitor.endTask(Status.FAILED)
+    1 * pipelineMonitor.endTask(PipelineStatus.FAILED)
 
     then: "we don't get an event at the end of the stage"
     0 * pipelineMonitor.endStage(stageName)

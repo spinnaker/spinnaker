@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap
 
 interface TaskResult {
 
-  Status getStatus()
+  PipelineStatus getStatus()
 
   ImmutableMap<String, Object> getOutputs()
 

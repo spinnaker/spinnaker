@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.Status.*
+import static com.netflix.spinnaker.orca.PipelineStatus.*
 
 class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 

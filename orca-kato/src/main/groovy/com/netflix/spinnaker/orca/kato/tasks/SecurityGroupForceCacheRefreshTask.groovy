@@ -37,6 +37,6 @@ public class SecurityGroupForceCacheRefreshTask implements Task {
 
     mort.forceCacheUpdate(REFRESH_TYPE, [account: account, securityGroupName: name, region: region])
 
-    new DefaultTaskResult(Status.SUCCEEDED)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
   }
 }

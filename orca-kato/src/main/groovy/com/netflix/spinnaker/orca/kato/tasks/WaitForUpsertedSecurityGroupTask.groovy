@@ -46,7 +46,7 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
     String oldValue = context.getInputs()."upsert.pre.response" ?: null
 
     if (!account || !region || !name) {
-      return new DefaultTaskResult(Status.FAILED)
+      return new DefaultTaskResult(PipelineStatus.FAILED)
     }
 
     def mortResponse = mortService.getSecurityGroup(account, 'aws', name, region)
@@ -55,7 +55,7 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
 
     def changeDetected = currentValue != oldValue
 
-    def status = changeDetected ? Status.SUCCEEDED : Status.RUNNING
+    def status = changeDetected ? PipelineStatus.SUCCEEDED : PipelineStatus.RUNNING
 
     new DefaultTaskResult(status)
   }

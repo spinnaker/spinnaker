@@ -40,7 +40,7 @@ class DeleteAsgTask implements Task {
       .toBlocking()
       .first()
 
-    new DefaultTaskResult(Status.SUCCEEDED,
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED,
       ["deploy.account.name" : operation.credentials,
        "kato.last.task.id"   : taskId,
        "kato.task.id"        : taskId, // TODO retire this.

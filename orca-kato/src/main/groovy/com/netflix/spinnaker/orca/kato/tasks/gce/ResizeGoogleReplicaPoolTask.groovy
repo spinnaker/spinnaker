@@ -31,7 +31,7 @@ class ResizeGoogleReplicaPoolTask implements Task {
     def taskId = kato.requestOperations([[resizeGoogleReplicaPoolDescription: resizeGoogleReplicaPoolOperation]])
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type": "resizegooglereplicapool",
                            "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
                            "kato.last.task.id"   : taskId,

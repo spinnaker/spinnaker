@@ -39,7 +39,7 @@ abstract class AbstractAsgTask implements Task {
   TaskResult execute(TaskContext context) {
     EnableOrDisableAsgOperation operation = operationFromContext(context)
     def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]]).toBlocking().first()
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
         "notification.type"                             : getAsgAction().toLowerCase(),
         "kato.last.task.id"                             : taskId,
         "kato.task.id"                                  : taskId, // TODO retire this.

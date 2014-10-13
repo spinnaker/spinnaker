@@ -40,7 +40,7 @@ class TerminateGoogleInstancesTask implements Task {
                      .first()
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"     : "terminategoogleinstances",
       "terminate.account.name": operation.credentials,
       "terminate.region"      : operation.zone,

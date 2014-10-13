@@ -34,7 +34,7 @@ class CreateGoogleServerGroupTask implements Task {
   TaskResult execute(TaskContext context) {
     def operation = convert(context)
     def taskId = deploy(operation)
-    new DefaultTaskResult(Status.SUCCEEDED,
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED,
         [
             "notification.type"  : "createdeploy",
             "kato.last.task.id"  : taskId,

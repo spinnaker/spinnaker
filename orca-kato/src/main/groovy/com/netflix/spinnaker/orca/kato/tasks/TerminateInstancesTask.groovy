@@ -39,7 +39,7 @@ class TerminateInstancesTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"     : "terminateinstances",
       "terminate.account.name": operation.credentials,
       "terminate.region"      : operation.region,

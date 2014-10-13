@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Status
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import org.springframework.batch.core.ExitStatus
@@ -28,7 +28,7 @@ import org.springframework.batch.repeat.RepeatStatus
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.Status.SUCCEEDED
+import static PipelineStatus.SUCCEEDED
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskTaskletAdapterSpec extends Specification {
@@ -82,9 +82,9 @@ class TaskTaskletAdapterSpec extends Specification {
     where:
     taskResultStatus            | repeatStatus             | exitStatus
     SUCCEEDED                   | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-    Status.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
-    Status.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
-    Status.SUSPENDED | RepeatStatus.FINISHED    | ExitStatus.STOPPED
+    PipelineStatus.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
+    PipelineStatus.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+    PipelineStatus.SUSPENDED | RepeatStatus.FINISHED    | ExitStatus.STOPPED
   }
 
   // TODO: this feels a bit stringly-typed but I think it's better than just throwing it into the execution context under some arbitrary key
@@ -102,9 +102,9 @@ class TaskTaskletAdapterSpec extends Specification {
     where:
     taskResultStatus            | _
     SUCCEEDED                   | _
-    Status.FAILED    | _
-    Status.RUNNING   | _
-    Status.SUSPENDED | _
+    PipelineStatus.FAILED    | _
+    PipelineStatus.RUNNING   | _
+    PipelineStatus.SUSPENDED | _
   }
 
   @Unroll
@@ -120,7 +120,7 @@ class TaskTaskletAdapterSpec extends Specification {
     stepContext.jobExecutionContext.isEmpty()
 
     where:
-    taskStatus << [Status.RUNNING]
+    taskStatus << [PipelineStatus.RUNNING]
     outputs = [foo: "bar", baz: "qux"]
   }
 
@@ -137,7 +137,7 @@ class TaskTaskletAdapterSpec extends Specification {
     stepContext.jobExecutionContext == outputs
 
     where:
-    taskStatus << [Status.FAILED, SUCCEEDED]
+    taskStatus << [PipelineStatus.FAILED, SUCCEEDED]
     outputs = [foo: "bar", baz: "qux"]
   }
 

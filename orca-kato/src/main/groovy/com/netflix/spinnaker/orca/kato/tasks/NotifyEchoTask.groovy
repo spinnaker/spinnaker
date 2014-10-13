@@ -42,7 +42,7 @@ class NotifyEchoTask implements Task {
       )
     }
 
-    new DefaultTaskResult(Status.SUCCEEDED)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
 
   }
 

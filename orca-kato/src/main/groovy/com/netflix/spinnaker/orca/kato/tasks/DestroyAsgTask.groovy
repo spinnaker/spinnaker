@@ -40,7 +40,7 @@ class DestroyAsgTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"   : "destroyasg",
       "deploy.account.name" : operation.credentials,
       "kato.last.task.id"   : taskId,

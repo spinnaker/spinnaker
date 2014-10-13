@@ -32,7 +32,7 @@ class PreconfigureDestroyAsgTask implements Task {
   @Override
   TaskResult execute(TaskContext context) {
     def op = convert(context)
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "resizeAsg.credentials"     : op.credentials,
       "resizeAsg.regions"         : op.regions,
       "resizeAsg.asgName"         : op.asgName,

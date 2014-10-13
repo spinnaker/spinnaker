@@ -23,8 +23,8 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.util.StopWatch
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.Status.RUNNING
-import static com.netflix.spinnaker.orca.Status.SUCCEEDED
+import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
+import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class RetryableTaskTaskletAdapterSpec extends Specification {

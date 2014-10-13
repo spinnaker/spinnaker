@@ -37,17 +37,17 @@ class MonitorKatoTask implements RetryableTask {
   TaskResult execute(TaskContext context) {
     TaskId taskId = context.inputs."kato.last.task.id" as TaskId
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
-    Status status = katoStatusToTaskStatus(katoTask.status)
+    PipelineStatus status = katoStatusToTaskStatus(katoTask.status)
 
-    if (status != Status.TERMINAL && status != Status.SUCCEEDED) {
-      status = Status.RUNNING
+    if (status != PipelineStatus.TERMINAL && status != PipelineStatus.SUCCEEDED) {
+      status = PipelineStatus.RUNNING
     }
 
     Map<String, ? extends Object> outputs = [:]
-    if (status == Status.SUCCEEDED) {
+    if (status == PipelineStatus.SUCCEEDED) {
       outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
     }
-    if (status == Status.SUCCEEDED || status == Status.TERMINAL) {
+    if (status == PipelineStatus.SUCCEEDED || status == PipelineStatus.TERMINAL) {
       List<Map<String, Object>> katoTasks = []
       if (context.inputs.containsKey("kato.tasks")) {
         katoTasks = context.inputs."kato.tasks" as List<Map<String, Object>>
@@ -65,13 +65,13 @@ class MonitorKatoTask implements RetryableTask {
     new DefaultTaskResult(status, outputs)
   }
 
-  private static Status katoStatusToTaskStatus(Task.Status katoStatus) {
+  private static PipelineStatus katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
-      return Status.TERMINAL
+      return PipelineStatus.TERMINAL
     } else if (katoStatus.completed) {
-      return Status.SUCCEEDED
+      return PipelineStatus.SUCCEEDED
     } else {
-      return Status.RUNNING
+      return PipelineStatus.RUNNING
     }
   }
 

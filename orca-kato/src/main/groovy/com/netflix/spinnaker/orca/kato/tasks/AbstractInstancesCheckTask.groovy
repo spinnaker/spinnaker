@@ -43,16 +43,16 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
     Map<String, List<String>> serverGroups = getServerGroups(context)
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
-      return new DefaultTaskResult(Status.FAILED)
+      return new DefaultTaskResult(PipelineStatus.FAILED)
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
     def response = oortService.getCluster(names.app, account, names.cluster)
     if (response.status != 200) {
-      return new DefaultTaskResult(Status.RUNNING)
+      return new DefaultTaskResult(PipelineStatus.RUNNING)
     }
     def cluster = objectMapper.readValue(response.body.in().text, Map)
     if (!cluster || !cluster.serverGroups) {
-      return new DefaultTaskResult(Status.RUNNING)
+      return new DefaultTaskResult(PipelineStatus.RUNNING)
     }
     Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
     for (Map serverGroup in cluster.serverGroups) {
@@ -70,13 +70,13 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       seenServerGroup[name] = true
       def isComplete = hasSucceeded(instances)
       if (!isComplete) {
-        return new DefaultTaskResult(Status.RUNNING)
+        return new DefaultTaskResult(PipelineStatus.RUNNING)
       }
     }
     if (seenServerGroup.values().contains(false)) {
-      new DefaultTaskResult(Status.RUNNING)
+      new DefaultTaskResult(PipelineStatus.RUNNING)
     } else {
-      new DefaultTaskResult(Status.SUCCEEDED)
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED)
     }
   }
 

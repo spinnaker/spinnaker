@@ -61,7 +61,7 @@ class UpsertSecurityGroupTask implements Task {
       outputs.put("upsert.pre.response", currentValue)
     }
 
-    new DefaultTaskResult(Status.SUCCEEDED, outputs)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
   UpsertSecurityGroupOperation convert(TaskContext context) {

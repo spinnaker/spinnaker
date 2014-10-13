@@ -18,8 +18,8 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -57,7 +57,7 @@ class CompletedBakeTaskSpec extends Specification {
     def result = task.execute(this.context)
 
     then:
-    result.status == Status.SUCCEEDED
+    result.status == PipelineStatus.SUCCEEDED
     result.outputs."bake.ami" == ami
 
     where:
@@ -80,7 +80,7 @@ class CompletedBakeTaskSpec extends Specification {
     def result = task.execute(context)
 
     then:
-    result.status == Status.FAILED
+    result.status == PipelineStatus.FAILED
 
     where:
     region = "us-west-1"

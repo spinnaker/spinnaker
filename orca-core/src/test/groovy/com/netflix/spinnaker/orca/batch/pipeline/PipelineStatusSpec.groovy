@@ -98,7 +98,7 @@ class PipelineStatusSpec extends Specification {
     with(pipelineStarter.start(configJson)) {
       // Pipeline has a getStatus as well as stage – here we want the stage
       // status. Really should remove the duplication
-      stages*.status == [Status.SUCCEEDED] * 3
+      stages*.status == [PipelineStatus.SUCCEEDED] * 3
     }
 
     where:

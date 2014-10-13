@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
@@ -93,7 +93,7 @@ class ResizeAsgTaskSpec extends Specification {
     def result = task.execute(context)
 
     then:
-    result.status == Status.SUCCEEDED
+    result.status == PipelineStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
     result.outputs."deploy.account.name" == resizeASGConfig.credentials
   }

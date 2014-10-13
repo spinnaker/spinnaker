@@ -49,7 +49,7 @@ class DeleteAmazonLoadBalancerTask implements Task {
       "delete.regions"     : deleteAmazonLoadBalancerOperation.regions.join(','),
       "delete.account.name": deleteAmazonLoadBalancerOperation.credentials
     ]
-    new DefaultTaskResult(Status.SUCCEEDED, outputs)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
   DeleteAmazonLoadBalancerOperation convert(TaskContext context) {

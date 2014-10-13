@@ -32,7 +32,7 @@ class DestroyGoogleReplicaPoolTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type": "destroygooglereplicapool",
          "deploy.account.name" : operation.credentials,
          "kato.last.task.id"   : taskId,

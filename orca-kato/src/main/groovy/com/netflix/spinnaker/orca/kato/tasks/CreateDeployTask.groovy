@@ -43,7 +43,7 @@ class CreateDeployTask implements Task {
   TaskResult execute(TaskContext context) {
     def deployOperations = deployOperationFromContext(context)
     def taskId = deploy(deployOperations)
-    new DefaultTaskResult(Status.SUCCEEDED,
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED,
         [
             "notification.type"  : "createdeploy",
             "kato.last.task.id"  : taskId,

@@ -57,7 +57,7 @@ class UpsertAmazonLoadBalancerTask implements Task {
       outputs."upsert.name" = upsertAmazonLoadBalancerOperation.name
     }
 
-    new DefaultTaskResult(Status.SUCCEEDED, outputs)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
   UpsertAmazonLoadBalancerOperation convert(TaskContext context) {

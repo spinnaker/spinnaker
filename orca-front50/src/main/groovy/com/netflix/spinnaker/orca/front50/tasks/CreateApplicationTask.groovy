@@ -43,9 +43,9 @@ class CreateApplicationTask implements Task {
     def resp = front50Service.create(context.getInputs()."createApplication.account" as String,
                                      application.name, application)
     if (resp.status != 200) {
-      new DefaultTaskResult(Status.TERMINAL)
+      new DefaultTaskResult(PipelineStatus.TERMINAL)
     } else {
-      new DefaultTaskResult(Status.SUCCEEDED, ["application.name": application.name,
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["application.name": application.name,
                                                           "account": context.getInputs()."createApplication.account"])
     }
   }

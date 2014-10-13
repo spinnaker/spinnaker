@@ -36,7 +36,7 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
     List<String> instanceIds = context.getInputs()."terminate.instance.ids"
 
     if (!instanceIds || !instanceIds.size()) {
-      return new DefaultTaskResult(Status.FAILED)
+      return new DefaultTaskResult(PipelineStatus.FAILED)
     }
     def notAllTerminated = instanceIds.find { String instanceId ->
       def response = oortService.getSearchResults(instanceId, "serverGroupInstances", "aws")
@@ -54,7 +54,7 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
       return false
     }
 
-    def status = notAllTerminated ? Status.RUNNING : Status.SUCCEEDED
+    def status = notAllTerminated ? PipelineStatus.RUNNING : PipelineStatus.SUCCEEDED
 
     new DefaultTaskResult(status)
   }

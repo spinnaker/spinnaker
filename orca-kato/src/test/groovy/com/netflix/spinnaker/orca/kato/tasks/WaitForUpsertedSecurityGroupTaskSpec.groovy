@@ -18,8 +18,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.Status
 import com.netflix.spinnaker.orca.mort.MortService
 import retrofit.client.Response
 import retrofit.mime.TypedInput
@@ -62,10 +62,10 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
 
     where:
     old         | current     || taskStatus
-    null       | ''         || Status.RUNNING
-    null       | 'changed'  || Status.SUCCEEDED
-    'original' | 'original' || Status.RUNNING
-    'original' | 'changed'  || Status.SUCCEEDED
+    null       | ''         || PipelineStatus.RUNNING
+    null       | 'changed'  || PipelineStatus.SUCCEEDED
+    'original' | 'original' || PipelineStatus.RUNNING
+    'original' | 'changed'  || PipelineStatus.SUCCEEDED
   }
 
 }
