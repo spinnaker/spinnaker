@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.TaskResult
+import static com.netflix.spinnaker.orca.TaskResult.Status.*
 
+@CompileStatic
 class Pipeline {
 
   final String id
@@ -29,7 +32,21 @@ class Pipeline {
     this.stages = ImmutableList.copyOf(stages)
   }
 
+  Pipeline(String id, Stage... stages) {
+    this(id, stages.toList())
+  }
+
   TaskResult.Status getStatus() {
-    TaskResult.Status.NOT_STARTED
+    def status = stages.status.reverse().find {
+      it != NOT_STARTED
+    }
+
+    if (!status) {
+      NOT_STARTED
+    } else if (status == SUCCEEDED && stages.last().status != SUCCEEDED) {
+      RUNNING
+    } else {
+      status
+    }
   }
 }

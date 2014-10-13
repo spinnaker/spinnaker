@@ -16,21 +16,37 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.TaskResult
 import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.TaskResult.Status.*
 
+@Unroll
 class PipelineSpec extends Specification {
 
-  def "a pipeline's status is #expectedStatus if it has not started yet"() {
+  def stage1 = Stub(Stage)
+  def stage2 = Stub(Stage)
+  @Subject pipeline = new Pipeline("foo", stage1, stage2)
+
+  def "a pipeline's status is #expectedStatus if one of its stages is #expectedStatus"() {
     given:
-    def pipeline = new Pipeline(id, [])
+    stage1.getStatus() >> stage1Status
+    stage2.getStatus() >> stage2Status
 
     expect:
     pipeline.status == expectedStatus
 
     where:
-    id = "foo"
-    expectedStatus = TaskResult.Status.NOT_STARTED
+    stage1Status | stage2Status | expectedStatus
+    NOT_STARTED  | NOT_STARTED  | NOT_STARTED
+    RUNNING      | NOT_STARTED  | RUNNING
+    SUCCEEDED    | NOT_STARTED  | RUNNING
+    SUCCEEDED    | RUNNING      | RUNNING
+    SUCCEEDED    | SUCCEEDED    | SUCCEEDED
+    FAILED       | NOT_STARTED  | FAILED
+    SUCCEEDED    | FAILED       | FAILED
+    SUSPENDED    | NOT_STARTED  | SUSPENDED
+    SUCCEEDED    | SUSPENDED    | SUSPENDED
   }
 
 }

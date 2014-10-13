@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.Stage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -37,6 +38,7 @@ import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 abstract class SpringBatchStage implements AutowiredComponentBuilder, Stage {
 
   final String name
+  TaskResult.Status status
 
   protected StepBuilderFactory steps
 
