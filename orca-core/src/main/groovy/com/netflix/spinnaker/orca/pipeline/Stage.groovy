@@ -16,25 +16,29 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.TaskResult
 
 /**
  * A _stage_ of an Orca _pipeline_.
  */
-interface Stage {
+@CompileStatic
+class Stage {
 
   /**
    * @return the name that corresponds to Mayo config.
    */
-  String getName()
+  final String name
 
   /**
    * @return the status of the stage. Effectively this will mean the status of
    * the last {@link com.netflix.spinnaker.orca.Task} to be executed.
-   *
-   * TODO: need to ensure this never returns SUCCEEDED if an interim task has
-   * completed and the next one has yet to start – in that case it should return
-   * RUNNING
    */
-  TaskResult.Status getStatus()
+  TaskResult.Status getStatus() {
+    status
+  }
+
+  Stage(String name) {
+    this.name = name
+  }
 }

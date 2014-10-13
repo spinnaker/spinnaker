@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.batch.SpringBatchStage
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
@@ -26,7 +26,7 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
 @CompileStatic
-abstract class LinearStage extends SpringBatchStage {
+abstract class LinearStage extends StageBuilder {
 
   LinearStage(String name) {
     super(name)

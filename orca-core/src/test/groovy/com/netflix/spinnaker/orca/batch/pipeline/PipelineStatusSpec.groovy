@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -92,6 +93,7 @@ class PipelineStatusSpec extends Specification {
     configJson = mapper.writeValueAsString(config)
   }
 
+  @Ignore
   def "can get the status of each stage"() {
     expect:
     with(pipelineStarter.start(configJson)) {

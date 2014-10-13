@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.Stage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -29,20 +28,21 @@ import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 /**
- * Base class for a component that represents a _stage_ to be run as (part of) a _pipeline_ and is backed by an
- * underlying Spring Batch model.
+ * Base class for a component that builds a _stage_ to be run as (part of) a
+ * _pipeline_ and is backed by an underlying Spring Batch model.
  *
- * Note a _stage_ does not directly correspond to anything in Batch – perhaps a {@link org.springframework.batch.core.job.flow.Flow}
+ * Note a _stage_ does not directly correspond to anything in Batch – perhaps a
+ * {@link org.springframework.batch.core.job.flow.Flow}
  */
 @CompileStatic
-abstract class SpringBatchStage implements AutowiredComponentBuilder, Stage {
+abstract class StageBuilder implements AutowiredComponentBuilder {
 
   final String name
   TaskResult.Status status
 
   protected StepBuilderFactory steps
 
-  SpringBatchStage(String name) {
+  StageBuilder(String name) {
     this.name = name
   }
 

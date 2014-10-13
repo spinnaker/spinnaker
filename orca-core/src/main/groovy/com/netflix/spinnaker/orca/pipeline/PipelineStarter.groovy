@@ -21,7 +21,7 @@ import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.SpringBatchPipeline
-import com.netflix.spinnaker.orca.batch.SpringBatchStage
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepContribution
@@ -47,7 +47,7 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
-  private final Map<String, Stage> stages = [:]
+  private final Map<String, StageBuilder> stages = [:]
 
   /**
    * Builds and launches a _pipeline_ based on config from _Mayo_.
@@ -65,7 +65,7 @@ class PipelineStarter {
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(Stage).values().each {
+    applicationContext.getBeansOfType(StageBuilder).values().each {
       stages[it.name] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
@@ -120,7 +120,7 @@ class PipelineStarter {
   }
 
   // TODO: the type of the 2nd parameter here is annoying. I don't want to expose the build method on the Stage interface for SoC reasons
-  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, SpringBatchStage stage) {
+  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, StageBuilder stage) {
     stage.build(jobBuilder)
   }
 }
