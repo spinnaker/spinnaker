@@ -341,6 +341,11 @@ module.exports = function (grunt) {
       unit: {
         configFile: 'karma.conf.js',
         singleRun: true
+      },
+      ci: {
+        configFile: 'karma.conf.js',
+        singleRun: false,
+        browsers: ['Chrome']
       }
     }
   });
@@ -378,7 +383,17 @@ module.exports = function (grunt) {
     'html2js',
     'concurrent:test',
     'connect:test',
-    'karma'
+    'karma:unit'
+  ]);
+
+  grunt.registerTask('ci', [
+    'clean:server',
+    'browserify:dist',
+    'copy:dist',
+    'html2js',
+    'concurrent:test',
+    'connect:test',
+    'karma:ci'
   ]);
 
   grunt.registerTask('build', [
