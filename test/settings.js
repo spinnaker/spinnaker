@@ -7,7 +7,6 @@ angular.module('deckApp')
     mortUrl: 'http://mort-prestaging.prod.netflix.net',
     pondUrl: 'http://pond-prestaging.prod.netflix.net',
     katoUrl: 'http://kato-prestaging.prod.netflix.net',
-    awsMetadataUrl: 'http://spinnaker.test.netflix.net/aws',
     credentialsUrl: 'http://kato-prestaging.prod.netflix.net/',
     accounts: {
       prod: {

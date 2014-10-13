@@ -131,8 +131,13 @@ angular.module('deckApp')
         }
         if (task.isCompleted || task.isRunning) {
           var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
-          if (forceRefreshStep.length && forceRefreshStep[0].status === 'COMPLETED') {
-            deferred.resolve(task);
+          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'STARTED') {
+            if (forceRefreshStep[0].status === 'COMPLETED') {
+              deferred.resolve(task);
+            }
+            if (forceRefreshStep[0].status === 'FAILED') {
+              deferred.reject(task);
+            }
           } else {
             if (task.isCompleted) {
               deferred.reject(task);

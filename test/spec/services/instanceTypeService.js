@@ -18,15 +18,14 @@
 
 describe('Service: InstanceType', function() {
 
-  var service, scope, $http, config, instanceTypes;
+  var service, $http, config, instanceTypes;
 
   beforeEach(module('deckApp'));
 
-  beforeEach(inject(function(settings, instanceTypeService, $rootScope, $httpBackend) {
+  beforeEach(inject(function(settings, instanceTypeService, $httpBackend) {
     instanceTypes = [];
 
     service = instanceTypeService;
-    scope = $rootScope.$new();
     config = settings;
     $http = $httpBackend;
 
