@@ -102,8 +102,7 @@ gulp.task('fonts', ['clean:fonts'], function() {
   return gulp.src([
     [app, fonts, '*/**'].join('/'),
     'bower_components/boostrap/dist/fonts/*.*',
-  ]).pipe($.rev())
-    .pipe(gulp.dest([dist, fonts].join('/')));
+  ]).pipe(gulp.dest([dist, fonts].join('/')));
 });
 
 gulp.task('static:bower', ['clean:static:bower'], function() {
