@@ -96,9 +96,14 @@ class OortAwsConfig {
           }
         }
       }
-      discoveryAccounts.each { disco, actMap ->
-        actMap.each { region, accounts ->
-          autowireAndInitialize InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory)
+      for (discMap in discoveryAccounts) {
+        def actMap = discMap.value
+
+        for (regionEntry in actMap) {
+          def region = regionEntry.key
+          def accounts = regionEntry.value
+
+          autowireAndInitialize(InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory))
         }
       }
     }
