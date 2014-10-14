@@ -6,14 +6,15 @@ Prerequisites
 Make sure the following are installed:
 
   * NodeJS and Node Package Manager, which is part of the NodeJS installation ([download](http://nodejs.org/download/))
-  * the Gulp build system (installed via NPM: ```npm install gulp```)
+  * the Gulp build system (installed via NPM: ```npm install gulp -g```)
 
 
 Quick Start
 -----------
 Run the following commands to get everything installed.
   
-  * ```sudo npm install```
+  * ```npm install bower -g```
+  * ```npm install```
   * ```bower install```
   * ```gulp```
 
