@@ -1,7 +1,7 @@
 node_modules
-dist
 .tmp
 .sass-cache
+/dist
 test-results.xml
 
 deck.iml
