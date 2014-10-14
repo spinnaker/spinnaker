@@ -16,7 +16,7 @@
       </span>
       <span class="navbar-right">
         <span>{{ notification.timestamp | date: 'HH:mm:ss' }}</span>
-        <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss()"></span>
+        <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss($event)"></span>
       </span>
     </li>
   </ul>
@@ -34,7 +34,7 @@
       </span>
       <span class="navbar-right">
         <span ng-if="notification.timestamp">{{ notification.timestamp | date: 'HH:mm:ss' }}</span>
-        <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss()"></span>
+        <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss($event)"></span>
       </span>
     </li>
   </ul>
