@@ -27,19 +27,20 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.model.LoadBalancer
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LOAD_BALANCERS
 
 class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
-    AUTHORITATIVE.forType(LoadBalancer.DATA_TYPE),
-    INFORMATIVE.forType(Instance.DATA_TYPE)
+    AUTHORITATIVE.forType(LOAD_BALANCERS.ns),
+    INFORMATIVE.forType(INSTANCES.ns)
   ])
 
   @Override
@@ -61,14 +62,12 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final AwsProvider.Identifiers identifiers
 
   LoadBalancerCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    this.identifiers = new AwsProvider.Identifiers(account.name, region)
   }
 
   static class MutableCacheData implements CacheData {
@@ -106,10 +105,10 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     }
 
     if (data.evict as boolean) {
-      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), evictions: [(LoadBalancer.DATA_TYPE): [identifiers.loadBalancerId(data.loadBalancerName as String)]])
+      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), evictions: [(LOAD_BALANCERS.ns): [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region)]])
     } else {
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
-      def lb = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName)).loadBalancerDescriptions
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
+      def lb = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)).loadBalancerDescriptions
 
       new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), buildCacheResult(lb))
     }
@@ -148,17 +147,17 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
       String loadBalancerId = identifiers.loadBalancerId(loadBalancer.loadBalancerName)
       loadBalancers[loadBalancerId].with {
         attributes.putAll(attributes)
-        relationships[Instance.DATA_TYPE].addAll(instanceIds)
+        relationships[INSTANCES.ns].addAll(instanceIds)
       }
       for (String instanceId : instanceIds) {
         instances[instanceId].with {
-          relationships[LoadBalancer.DATA_TYPE].add(loadBalancerId)
+          relationships[LOAD_BALANCERS.ns].add(loadBalancerId)
         }
       }
     }
 
     new DefaultCacheResult(
-      (Instance.DATA_TYPE): instances.values(),
-      (LoadBalancer.DATA_TYPE):  loadBalancers.values())
+      (INSTANCES.ns): instances.values(),
+      (LOAD_BALANCERS.ns):  loadBalancers.values())
   }
 }

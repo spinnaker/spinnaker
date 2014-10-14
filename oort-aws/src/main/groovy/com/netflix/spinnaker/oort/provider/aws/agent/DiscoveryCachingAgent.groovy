@@ -26,7 +26,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApi
-import com.netflix.spinnaker.oort.model.Instance
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryApplications
 import com.netflix.spinnaker.oort.model.discovery.DiscoveryInstance
@@ -34,14 +34,17 @@ import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.INSTANCES
 
 class DiscoveryCachingAgent implements CachingAgent {
+  public static final String PROVIDER_NAME = "discovery"
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
-    AUTHORITATIVE.forType(AwsProvider.DISCOVERY_HEALTH_TYPE),
-    INFORMATIVE.forType(Instance.DATA_TYPE)
+    AUTHORITATIVE.forType(HEALTH.ns),
+    INFORMATIVE.forType(INSTANCES.ns)
   ])
 
   @Override
@@ -73,10 +76,6 @@ class DiscoveryCachingAgent implements CachingAgent {
     this.discoveryHost = accounts[0].discovery.toURL().host
   }
 
-  AwsProvider.Identifiers getIdentifiers(String accountName, String region) {
-    new AwsProvider.Identifiers(accountName, region)
-  }
-
   @Override
   CacheResult loadData() {
 
@@ -89,18 +88,19 @@ class DiscoveryCachingAgent implements CachingAgent {
       for (DiscoveryInstance instance : application.instances) {
         if (instance.instanceId) {
           for (NetflixAmazonCredentials account : accounts) {
-            AwsProvider.Identifiers id = getIdentifiers(account.name, region)
+            String instanceKey = Keys.getInstanceKey(instance.instanceId, region)
+            String instanceHealthKey = Keys.getInstanceHealthKey(instance.instanceId, account.name, region, PROVIDER_NAME)
             Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
-            Map<String, Collection<String>> relationships = [(Instance.DATA_TYPE):[id.instanceId(instance.instanceId)]]
-            discoveryCacheData.add(new DefaultCacheData(id.instanceId(instance.instanceId), attributes, relationships))
-            instanceCacheData.add(new DefaultCacheData(id.instanceId(instance.instanceId), [:], [(AwsProvider.DISCOVERY_HEALTH_TYPE):[id.instanceId(instance.instanceId)]]))
+            Map<String, Collection<String>> relationships = [(INSTANCES.ns):[instanceKey]]
+            discoveryCacheData.add(new DefaultCacheData(instanceHealthKey, attributes, relationships))
+            instanceCacheData.add(new DefaultCacheData(instanceKey, [:], [(HEALTH.ns):[instanceHealthKey]]))
           }
         }
       }
     }
 
     new DefaultCacheResult(
-      (Instance.DATA_TYPE): instanceCacheData,
-      (AwsProvider.DISCOVERY_HEALTH_TYPE): discoveryCacheData)
+      (INSTANCES.ns): instanceCacheData,
+      (HEALTH.ns): discoveryCacheData)
   }
 }

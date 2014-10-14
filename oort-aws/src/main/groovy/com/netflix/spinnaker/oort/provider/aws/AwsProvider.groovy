@@ -18,59 +18,19 @@ package com.netflix.spinnaker.oort.provider.aws
 
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
+import com.netflix.spinnaker.oort.provider.aws.agent.DiscoveryCachingAgent
+import com.netflix.spinnaker.oort.provider.aws.agent.EddaLoadBalancerCachingAgent
 
 class AwsProvider implements Provider {
 
-  public static final Set<String> HEALTH_PROVIDERS = [DISCOVERY_HEALTH_TYPE, LOAD_BALANCER_HEALTH_TYPE]
+  public static final Set<String> HEALTH_PROVIDERS = [DiscoveryCachingAgent.PROVIDER_NAME, EddaLoadBalancerCachingAgent.PROVIDER_NAME]
 
   public static final String PROVIDER_NAME = AwsProvider.name
-
-  public static final String LAUNCH_CONFIG_TYPE = "LaunchConfig"
-
-  public static final String IMAGE_TYPE = "Image"
-
-  public static final String DISCOVERY_HEALTH_TYPE = "DiscoveryHealth"
-
-  public static final String LOAD_BALANCER_HEALTH_TYPE = "LoadBalancerHealth"
 
   private final Collection<CachingAgent> agents
 
   AwsProvider(Collection<CachingAgent> agents) {
     this.agents = Collections.unmodifiableCollection(agents)
-  }
-
-  public static class Identifiers {
-    private final String account
-    private final String region
-
-    Identifiers(String account, String region) {
-      this.account = account
-      this.region = region
-    }
-
-    String clusterId(String clusterName) {
-      "${account}/${clusterName}".toString()
-    }
-
-    String serverGroupId(String serverGroupName) {
-      "${account}/${region}/${serverGroupName}".toString()
-    }
-
-    String loadBalancerId(String loadBalancerName) {
-      "${account}/${region}/${loadBalancerName}".toString()
-    }
-
-    String launchConfigId(String launchConfigurationName) {
-      "${account}/${region}/${launchConfigurationName}".toString()
-    }
-
-    String instanceId(String instanceId) {
-      "${account}/${region}/${instanceId}".toString()
-    }
-
-    String imageId(String imageId) {
-      "${region}/${imageId}"
-    }
   }
 
   @Override

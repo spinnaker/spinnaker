@@ -58,7 +58,6 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
         if (result.cacheResult) {
           providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
         }
-
       }
     }
   }

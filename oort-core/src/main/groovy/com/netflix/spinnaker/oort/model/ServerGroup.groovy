@@ -24,7 +24,6 @@ import com.netflix.spinnaker.oort.documentation.Empty
  * @author Dan Woods
  */
 interface ServerGroup {
-  static final String DATA_TYPE = ServerGroup.simpleName
   /**
    * The name of the server group
    *

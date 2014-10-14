@@ -24,7 +24,6 @@ import com.netflix.spinnaker.oort.documentation.Empty
  * @author Dan Woods
  */
 interface Application {
-  static final String DATA_TYPE = Application.simpleName
   /**
    * The name of the application
    *

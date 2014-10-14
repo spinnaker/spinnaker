@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.provider.aws.agent
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
+import com.amazonaws.services.ec2.model.Instance
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -26,14 +27,16 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.model.ServerGroup
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
 
 class InstanceCachingAgent implements CachingAgent {
 
@@ -42,23 +45,21 @@ class InstanceCachingAgent implements CachingAgent {
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(Instance.DATA_TYPE),
-    INFORMATIVE.forType(ServerGroup.DATA_TYPE),
-    INFORMATIVE.forType(AwsProvider.IMAGE_TYPE)
+    AUTHORITATIVE.forType(INSTANCES.ns),
+    INFORMATIVE.forType(SERVER_GROUPS.ns),
+    INFORMATIVE.forType(IMAGES.ns)
   ] as Set)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final AwsProvider.Identifiers identifiers
 
   InstanceCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    identifiers = new AwsProvider.Identifiers(account.name, region)
   }
 
   @Override
@@ -90,7 +91,7 @@ class InstanceCachingAgent implements CachingAgent {
 
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
     def request = new DescribeInstancesRequest()
-    List<com.amazonaws.services.ec2.model.Instance> awsInstances = []
+    List<Instance> awsInstances = []
     while (true) {
       def resp = amazonEC2.describeInstances(request)
       awsInstances.addAll(resp.reservations.collectMany { it.instances })
@@ -110,8 +111,8 @@ class InstanceCachingAgent implements CachingAgent {
     Map<String, CacheData> instances = cache()
     Map<String, CacheData> images = cache()
 
-    for (com.amazonaws.services.ec2.model.Instance instance : awsInstances) {
-      def data = new InstanceData(instance, identifiers)
+    for (Instance instance : awsInstances) {
+      def data = new InstanceData(instance, account.name, region)
 
       cacheImage(data, images)
       cacheServerGroup(data, serverGroups)
@@ -119,21 +120,21 @@ class InstanceCachingAgent implements CachingAgent {
     }
 
     new DefaultCacheResult(
-      (ServerGroup.DATA_TYPE): serverGroups.values(),
-      (Instance.DATA_TYPE): instances.values(),
-      (AwsProvider.IMAGE_TYPE): images.values())
+      (SERVER_GROUPS.ns): serverGroups.values(),
+      (INSTANCES.ns): instances.values(),
+      (IMAGES.ns): images.values())
   }
 
   private void cacheImage(InstanceData data, Map<String, CacheData> images) {
     images[data.imageId].with {
-      relationships[Instance.DATA_TYPE].add(data.instanceId)
+      relationships[INSTANCES.ns].add(data.instanceId)
     }
   }
 
   private void cacheServerGroup(InstanceData data, Map<String, CacheData> serverGroups) {
     if (data.serverGroup) {
       serverGroups[data.serverGroup].with {
-        relationships[Instance.DATA_TYPE].add(data.instanceId)
+        relationships[INSTANCES.ns].add(data.instanceId)
       }
     }
   }
@@ -141,11 +142,11 @@ class InstanceCachingAgent implements CachingAgent {
   private void cacheInstance(InstanceData data, Map<String, CacheData> instances) {
     instances[data.instanceId].with {
       attributes.putAll(objectMapper.convertValue(data.instance, ATTRIBUTES))
-      relationships[AwsProvider.IMAGE_TYPE].add(data.imageId)
+      relationships[IMAGES.ns].add(data.imageId)
       if (data.serverGroup) {
-        relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       } else {
-        relationships[ServerGroup.DATA_TYPE].clear()
+        relationships[SERVER_GROUPS.ns].clear()
       }
     }
 
@@ -154,17 +155,17 @@ class InstanceCachingAgent implements CachingAgent {
   private static class InstanceData {
     static final String ASG_TAG_NAME = "aws:autoscaling:groupName"
 
-    final com.amazonaws.services.ec2.model.Instance instance
+    final Instance instance
     final String instanceId
     final String serverGroup
     final String imageId
 
-    public InstanceData(com.amazonaws.services.ec2.model.Instance instance, AwsProvider.Identifiers identifiers) {
+    public InstanceData(Instance instance, String account, String region) {
       this.instance = instance
-      this.instanceId = identifiers.instanceId(instance.instanceId)
+      this.instanceId = Keys.getInstanceKey(instance.instanceId, region)
       String sgTag = instance.tags?.find { it.key == ASG_TAG_NAME }?.value
-      this.serverGroup = sgTag ? identifiers.serverGroupId(sgTag) : null
-      this.imageId = identifiers.imageId(instance.imageId)
+      this.serverGroup = sgTag ? Keys.getServerGroupKey(sgTag, account, region) : null
+      this.imageId = Keys.getImageKey(instance.imageId, region)
     }
 
   }

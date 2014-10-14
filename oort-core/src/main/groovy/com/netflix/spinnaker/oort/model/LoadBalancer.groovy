@@ -25,7 +25,6 @@ import com.netflix.spinnaker.oort.documentation.Empty
  * @author Dan Woods
  */
 interface LoadBalancer {
-  final String DATA_TYPE = LoadBalancer.simpleName
   /**
    * Name of the load balancer
    *

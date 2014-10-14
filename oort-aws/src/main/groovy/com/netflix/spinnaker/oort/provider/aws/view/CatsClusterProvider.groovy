@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.provider.aws.view
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
@@ -33,6 +34,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import java.util.regex.Pattern
+
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LAUNCH_CONFIGS
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
 
 @Component
 class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
@@ -49,19 +59,19 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
-    Collection<CacheData> clusterData = cacheView.getAll(Cluster.DATA_TYPE)
+    Collection<CacheData> clusterData = cacheView.getAll(CLUSTERS.ns)
     Collection<AmazonCluster> clusters = clusterData.findResults this.&translate
     mapResponse(clusters)
   }
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters(String applicationName) {
-    CacheData application = cacheView.get(Application.DATA_TYPE, applicationName)
+    CacheData application = cacheView.get(APPLICATIONS.ns, applicationName)
     if (application == null) {
       return [:]
     }
 
-    Collection<AmazonCluster> clusters = resolveRelationshipData(application, Cluster.DATA_TYPE).findResults this.&translate
+    Collection<AmazonCluster> clusters = resolveRelationshipData(application, CLUSTERS.ns).findResults this.&translate
     mapResponse(clusters)
   }
 
@@ -79,10 +89,10 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     cluster.accountName = matcher.group(1)
     cluster.name = matcher.group(2)
 
-    Collection<AmazonLoadBalancer> loadBalancers = resolveRelationshipData(clusterData, LoadBalancer.DATA_TYPE).findResults this.&translateLoadBalancer
+    Collection<AmazonLoadBalancer> loadBalancers = resolveRelationshipData(clusterData, LOAD_BALANCERS.ns).findResults this.&translateLoadBalancer
     cluster.loadBalancers.addAll(loadBalancers)
 
-    Collection<AmazonServerGroup> serverGroups = resolveRelationshipData(clusterData, ServerGroup.DATA_TYPE).findResults this.&translateServerGroup
+    Collection<AmazonServerGroup> serverGroups = resolveRelationshipData(clusterData, SERVER_GROUPS.ns).findResults this.&translateServerGroup
     cluster.serverGroups.addAll(serverGroups)
 
     cluster
@@ -106,10 +116,10 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     def sg = new AmazonServerGroup(matcher.group(3), 'aws', matcher.group(2))
     sg.putAll(serverGroupData.attributes)
 
-    sg.instances = resolveRelationshipData(serverGroupData, Instance.DATA_TYPE).collect { CacheData instance ->
+    sg.instances = resolveRelationshipData(serverGroupData, INSTANCES.ns).collect { CacheData instance ->
       Collection<Map<String, Object>> healths = []
       for (String healthProvider : AwsProvider.HEALTH_PROVIDERS) {
-        def health = cacheView.get(healthProvider, instance.id)
+        def health = cacheView.get(HEALTH.ns, Keys.getInstanceHealthKey(instance.id, matcher.group(1), matcher.group(2), healthProvider))
         if (health) {
           healths.add(health.attributes)
         }
@@ -124,14 +134,14 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       ]
     }
 
-    if (serverGroupData.relationships[AwsProvider.LAUNCH_CONFIG_TYPE]) {
-      CacheData lc = serverGroupData.relationships[AwsProvider.LAUNCH_CONFIG_TYPE].findResult { String lcId ->
-        cacheView.get(AwsProvider.LAUNCH_CONFIG_TYPE, lcId)
+    if (serverGroupData.relationships[LAUNCH_CONFIGS.ns]) {
+      CacheData lc = serverGroupData.relationships[LAUNCH_CONFIGS.ns].findResult { String lcId ->
+        cacheView.get(LAUNCH_CONFIGS.ns, lcId)
       }
       if (lc) {
         sg.launchConfig = lc.attributes
-        CacheData image = lc.relationships[AwsProvider.IMAGE_TYPE].findResult { String imageId ->
-          cacheView.get(AwsProvider.IMAGE_TYPE, imageId)
+        CacheData image = lc.relationships[IMAGES.ns].findResult { String imageId ->
+          cacheView.get(IMAGES.ns, imageId)
         }
         if (image) {
           sg.image = image.attributes
@@ -162,16 +172,16 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   @Override
   Set<AmazonCluster> getClusters(String applicationName, String account) {
-    CacheData application = cacheView.get(Application.DATA_TYPE, applicationName)
+    CacheData application = cacheView.get(APPLICATIONS.ns, applicationName)
     if (application == null) {
       return [] as Set
     }
-    resolveRelationshipData(application, Cluster.DATA_TYPE).findResults(this.&translate) as Set<AmazonCluster>
+    resolveRelationshipData(application, CLUSTERS.ns).findResults(this.&translate) as Set<AmazonCluster>
   }
 
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
-    CacheData cluster = cacheView.get(Cluster.DATA_TYPE, "$account/$name")
+    CacheData cluster = cacheView.get(CLUSTERS.ns, "$account/$name")
     if (cluster == null) {
       null
     } else {

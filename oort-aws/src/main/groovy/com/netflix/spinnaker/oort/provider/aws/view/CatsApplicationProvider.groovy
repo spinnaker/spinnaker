@@ -28,6 +28,9 @@ import org.springframework.stereotype.Component
 
 import java.util.regex.Pattern
 
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.CLUSTERS
+
 @Component
 class CatsApplicationProvider implements ApplicationProvider {
 
@@ -44,18 +47,18 @@ class CatsApplicationProvider implements ApplicationProvider {
 
   @Override
   Set<Application> getApplications() {
-    cacheView.getAll(Application.DATA_TYPE).collect this.&translate
+    cacheView.getAll(APPLICATIONS.ns).collect this.&translate
   }
 
   @Override
   Application getApplication(String name) {
-    translate(cacheView.get(Application.DATA_TYPE, name.toLowerCase()))
+    translate(cacheView.get(APPLICATIONS.ns, name.toLowerCase()))
   }
 
   Application translate(CacheData cacheData) {
     String name = cacheData.id
     Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, CatsApplication.ATTRIBUTES)
-    Map<String, String> clusterNames = cacheData.relationships[Cluster.DATA_TYPE]?.findResults {
+    Map<String, String> clusterNames = cacheData.relationships[CLUSTERS.ns]?.findResults {
       def matcher = CLUSTER_REGEX.matcher(it)
       if (matcher.matches()) {
         [(matcher.group(1)): matcher.group(2)]

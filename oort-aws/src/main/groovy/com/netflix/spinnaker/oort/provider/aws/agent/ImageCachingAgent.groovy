@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.oort.provider.aws.agent
 
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.Image
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -28,11 +27,13 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.IMAGES
 
 
 class ImageCachingAgent implements CachingAgent {
@@ -41,21 +42,19 @@ class ImageCachingAgent implements CachingAgent {
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(AwsProvider.IMAGE_TYPE)
+    AUTHORITATIVE.forType(IMAGES.ns)
   ] as Set)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final AwsProvider.Identifiers identifiers
 
   ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    identifiers = new AwsProvider.Identifiers(account.name, region)
   }
 
   @Override
@@ -81,10 +80,10 @@ class ImageCachingAgent implements CachingAgent {
 
     Collection<CacheData> imageCacheData = images.collect { Image image ->
       Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
-      new DefaultCacheData(identifiers.imageId(image.imageId), attributes, [:])
+      new DefaultCacheData(Keys.getImageKey(image.imageId, region), attributes, [:])
     }
 
-    new DefaultCacheResult((AwsProvider.IMAGE_TYPE): imageCacheData)
+    new DefaultCacheResult((IMAGES.ns): imageCacheData)
   }
 
 }

@@ -28,21 +28,14 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.oort.model.Application
-import com.netflix.spinnaker.oort.model.Cluster
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.model.LoadBalancer
-import com.netflix.spinnaker.oort.model.ServerGroup
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LAUNCH_CONFIGS
 
 class LaunchConfigCachingAgent implements CachingAgent {
 
@@ -51,21 +44,19 @@ class LaunchConfigCachingAgent implements CachingAgent {
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(AwsProvider.LAUNCH_CONFIG_TYPE)
+    AUTHORITATIVE.forType(LAUNCH_CONFIGS.ns)
   ] as Set)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final AwsProvider.Identifiers identifiers
 
   LaunchConfigCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    identifiers = new AwsProvider.Identifiers(account.name, region)
   }
 
   @Override
@@ -100,10 +91,10 @@ class LaunchConfigCachingAgent implements CachingAgent {
 
     Collection<CacheData> launchConfigData = launchConfigs.collect { LaunchConfiguration lc ->
       Map<String, Object> attributes = objectMapper.convertValue(lc, ATTRIBUTES);
-      Map<String, Collection<String>> relationships = [(AwsProvider.IMAGE_TYPE):[identifiers.imageId(lc.imageId)]]
-      new DefaultCacheData(identifiers.launchConfigId(lc.launchConfigurationName), attributes, relationships)
+      Map<String, Collection<String>> relationships = [(IMAGES.ns):[Keys.getImageKey(lc.imageId, region)]]
+      new DefaultCacheData(Keys.getLaunchConfigKey(lc.launchConfigurationName, region), attributes, relationships)
     }
 
-    new DefaultCacheResult((AwsProvider.LAUNCH_CONFIG_TYPE): launchConfigData)
+    new DefaultCacheResult((LAUNCH_CONFIGS.ns): launchConfigData)
   }
 }

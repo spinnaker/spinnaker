@@ -18,24 +18,21 @@ package com.netflix.spinnaker.oort.provider.aws.agent
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.Instance
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.provider.aws.AwsProvider.Identifiers
+import com.netflix.spinnaker.oort.data.aws.Keys
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.*
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.oort.model.Application
-import com.netflix.spinnaker.oort.model.Cluster
-import com.netflix.spinnaker.oort.model.LoadBalancer
-import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -46,26 +43,24 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(ServerGroup.DATA_TYPE),
-    INFORMATIVE.forType(Application.DATA_TYPE),
-    INFORMATIVE.forType(Cluster.DATA_TYPE),
-    INFORMATIVE.forType(LoadBalancer.DATA_TYPE),
-    INFORMATIVE.forType(AwsProvider.LAUNCH_CONFIG_TYPE),
-    INFORMATIVE.forType(Instance.DATA_TYPE)
+    AUTHORITATIVE.forType(SERVER_GROUPS.ns),
+    INFORMATIVE.forType(APPLICATIONS.ns),
+    INFORMATIVE.forType(CLUSTERS.ns),
+    INFORMATIVE.forType(LOAD_BALANCERS.ns),
+    INFORMATIVE.forType(LAUNCH_CONFIGS.ns),
+    INFORMATIVE.forType(INSTANCES.ns)
   ] as Set)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final Identifiers identifiers
 
   ClusterCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    identifiers = new Identifiers(account.name, region)
   }
 
   @Override
@@ -117,7 +112,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       return
     }
 
-    def autoScaling = amazonClientProvider.getAutoScaling(account, region)
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
     List<AutoScalingGroup> asg = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName)).autoScalingGroups
     CacheResult result = buildCacheResult(asg)
     new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: result)
@@ -154,7 +149,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     Map<String, CacheData> instances = cache()
 
     for (AutoScalingGroup asg : asgs) {
-      AsgData data = new AsgData(asg, identifiers)
+      AsgData data = new AsgData(asg, account.name, region)
 
       cacheApplication(data, applications)
       cacheCluster(data, clusters)
@@ -165,28 +160,28 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
 
     new DefaultCacheResult(
-      (Application.DATA_TYPE): applications.values(),
-      (Cluster.DATA_TYPE): clusters.values(),
-      (ServerGroup.DATA_TYPE): serverGroups.values(),
-      (LoadBalancer.DATA_TYPE): loadBalancers.values(),
-      (AwsProvider.LAUNCH_CONFIG_TYPE): launchConfigs.values(),
-      (Instance.DATA_TYPE): instances.values())
+      (APPLICATIONS.ns): applications.values(),
+      (CLUSTERS.ns): clusters.values(),
+      (SERVER_GROUPS.ns): serverGroups.values(),
+      (LOAD_BALANCERS.ns): loadBalancers.values(),
+      (LAUNCH_CONFIGS.ns): launchConfigs.values(),
+      (INSTANCES.ns): instances.values())
 
   }
 
   private void cacheApplication(AsgData data, Map<String, CacheData> applications) {
     applications[data.appName].with {
-      relationships[Cluster.DATA_TYPE].add(data.cluster)
-      relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
-      relationships[LoadBalancer.DATA_TYPE].addAll(data.loadBalancerNames)
+      relationships[CLUSTERS.ns].add(data.cluster)
+      relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
     }
   }
 
   private void cacheCluster(AsgData data, Map<String, CacheData> clusters) {
     clusters[data.cluster].with {
-      relationships[Application.DATA_TYPE].add(data.appName)
-      relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
-      relationships[LoadBalancer.DATA_TYPE].addAll(data.loadBalancerNames)
+      relationships[APPLICATIONS.ns].add(data.appName)
+      relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
     }
   }
 
@@ -199,25 +194,26 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       attributes.zones = data.asg.availabilityZones
       attributes.instances = data.asg.instances
 
-      relationships[Application.DATA_TYPE].add(data.appName)
-      relationships[Cluster.DATA_TYPE].add(data.cluster)
-      relationships[LoadBalancer.DATA_TYPE].addAll(data.loadBalancerNames)
-      relationships[AwsProvider.LAUNCH_CONFIG_TYPE].add(data.launchConfig)
-      relationships[Instance.DATA_TYPE].addAll(data.instanceIds)
+      relationships[APPLICATIONS.ns].add(data.appName)
+      relationships[CLUSTERS.ns].add(data.cluster)
+      relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
+      relationships[LAUNCH_CONFIGS.ns].add(data.launchConfig)
+      relationships[INSTANCES.ns].addAll(data.instanceIds)
     }
   }
 
   private void cacheLaunchConfig(AsgData data, Map<String, CacheData> launchConfigs) {
     launchConfigs[data.launchConfig].with {
-      relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
+      relationships[SERVER_GROUPS.ns].add(data.serverGroup)
     }
   }
 
   private void cacheInstances(AsgData data, Map<String, CacheData> instances) {
-    for (com.amazonaws.services.autoscaling.model.Instance instance : data.asg.instances) {
-      instances[identifiers.instanceId(instance.instanceId)].with {
-        attributes.putAll(objectMapper.convertValue(instance, ATTRIBUTES))
-        relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
+    for (Instance instance : data.asg.instances) {
+      instances[Keys.getInstanceKey(instance.instanceId, region)].with {
+        Map<String, Object> instanceAttributes = objectMapper.convertValue(instance, ATTRIBUTES)
+        attributes.putAll(instanceAttributes)
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
   }
@@ -225,8 +221,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private void cacheLoadBalancers(AsgData data, Map<String, CacheData> loadBalancers) {
     for (String loadBalancerName : data.loadBalancerNames) {
       loadBalancers[loadBalancerName].with {
-        relationships[Application.DATA_TYPE].add(data.appName)
-        relationships[ServerGroup.DATA_TYPE].add(data.serverGroup)
+        relationships[APPLICATIONS.ns].add(data.appName)
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
   }
@@ -240,17 +236,17 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     final Set<String> loadBalancerNames
     final Set<String> instanceIds
 
-    public AsgData(AutoScalingGroup asg, Identifiers identifiers) {
+    public AsgData(AutoScalingGroup asg, String account, String region) {
       this.asg = asg
 
       Names name = Names.parseName(asg.autoScalingGroupName)
 
-      appName = name.app.toLowerCase()
-      cluster = identifiers.clusterId(name.cluster)
-      serverGroup = identifiers.serverGroupId(asg.autoScalingGroupName)
-      launchConfig = identifiers.launchConfigId(asg.launchConfigurationName)
-      loadBalancerNames = (asg.loadBalancerNames.collect(identifiers.&loadBalancerId) as Set).asImmutable()
-      instanceIds = (asg.instances.instanceId.collect(identifiers.&instanceId) as Set).asImmutable()
+      appName = Keys.getApplicationKey(name.app)
+      cluster = Keys.getClusterKey(name.cluster, appName, account)
+      serverGroup = Keys.getServerGroupKey(asg.autoScalingGroupName, account, region)
+      launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, region)
+      loadBalancerNames = (asg.loadBalancerNames.collect { Keys.getLoadBalancerKey(it, account, region) } as Set).asImmutable()
+      instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, region) } as Set).asImmutable()
     }
   }
 }

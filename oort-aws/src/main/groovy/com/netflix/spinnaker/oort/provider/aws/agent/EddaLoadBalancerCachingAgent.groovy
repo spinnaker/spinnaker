@@ -26,21 +26,24 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.oort.config.edda.EddaApi
-import com.netflix.spinnaker.oort.model.Instance
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.edda.LoadBalancerInstance
 import com.netflix.spinnaker.oort.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
-import com.netflix.spinnaker.oort.provider.aws.AwsProvider.Identifiers
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.INSTANCES
 
 class EddaLoadBalancerCachingAgent implements CachingAgent {
+  public static final String PROVIDER_NAME = "edda-load-balancers"
+
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
-    AUTHORITATIVE.forType(AwsProvider.LOAD_BALANCER_HEALTH_TYPE),
-    INFORMATIVE.forType(Instance.DATA_TYPE)
+    AUTHORITATIVE.forType(HEALTH.ns),
+    INFORMATIVE.forType(INSTANCES.ns)
   ])
 
   @Override
@@ -62,14 +65,12 @@ class EddaLoadBalancerCachingAgent implements CachingAgent {
   private final NetflixAmazonCredentials account
   private final String region
   private final ObjectMapper objectMapper
-  private final Identifiers identifiers
 
   EddaLoadBalancerCachingAgent(EddaApi eddaApi, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.eddaApi = eddaApi
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    this.identifiers = new Identifiers(account.name, region)
   }
 
   @Override
@@ -80,15 +81,15 @@ class EddaLoadBalancerCachingAgent implements CachingAgent {
 
     for (LoadBalancerInstanceState balancerInstance : balancerInstances) {
       for (LoadBalancerInstance instance : balancerInstance.instances) {
-        String instanceId = identifiers.instanceId(instance.instanceId)
+        String instanceId = Keys.getInstanceKey(instance.instanceId, region)
         Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
-        Map<String, Collection<String>> relationships = [(Instance.DATA_TYPE): [instanceId]]
+        Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
         lbHealths.add(new DefaultCacheData(instanceId, attributes, relationships))
-        instances.add(new DefaultCacheData(instanceId, [:], [(AwsProvider.LOAD_BALANCER_HEALTH_TYPE): [instanceId]]))
+        instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [instanceId]]))
       }
     }
     new DefaultCacheResult(
-      (AwsProvider.LOAD_BALANCER_HEALTH_TYPE): lbHealths,
-      (Instance.DATA_TYPE): instances)
+      (HEALTH.ns): lbHealths,
+      (INSTANCES.ns): instances)
   }
 }

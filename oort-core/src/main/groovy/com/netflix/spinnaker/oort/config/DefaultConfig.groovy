@@ -28,8 +28,6 @@ import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.oort.model.CacheService
-import com.netflix.spinnaker.oort.model.InMemoryCacheService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -49,12 +47,6 @@ class DefaultConfig {
   @ConditionalOnMissingBean(AccountCredentialsProvider)
   AccountCredentialsProvider accountCredentialsProvider(AccountCredentialsRepository accountCredentialsRepository) {
     new DefaultAccountCredentialsProvider(accountCredentialsRepository)
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(CacheService)
-  InMemoryCacheService cacheService() {
-    new InMemoryCacheService()
   }
 
   @Bean
