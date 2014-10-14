@@ -42,7 +42,7 @@ var gulp = require('gulp'),
       removeOptionalTags: true
     });
 
-gulp.task('test:karma', ['build'], function(done) {
+gulp.task('test:karma', function(done) {
   karma.server.start({
     configFile: __dirname+'/karma.conf.js',
     singleRun: true,
@@ -213,7 +213,7 @@ gulp.task('connect', function() {
 
 gulp.task('build:prepare', ['scripts', 'css', 'fonts', 'static']);
 gulp.task('build', ['clean'], function(done) {
-  run('build:prepare', 'html', done);
+  run('build:prepare', 'test:karma', 'html', done);
 });
 
 gulp.task('serve:prepare', ['build']);
@@ -229,7 +229,7 @@ gulp.task('watch', function() {
     run('css:application', 'html');
   });
   gulp.watch('./app/scripts/**/*.js', function() {
-    run('scripts:application', 'html');
+    run('scripts:application', 'html', 'test:karma');
   });
   gulp.watch('./bower_components/**/*.js', function() {
     run('scripts:vendor', 'html');
