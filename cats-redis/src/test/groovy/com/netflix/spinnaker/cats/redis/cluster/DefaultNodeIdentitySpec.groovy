@@ -22,11 +22,15 @@ class DefaultNodeIdentitySpec extends Specification {
 
     def 'should resolve to valid network interface'() {
         when:
-        def id = new DefaultNodeIdentity('www.google.com', 80)
+        def serverSocket = new ServerSocket(0)
+        def id = new DefaultNodeIdentity('127.0.0.1', serverSocket.getLocalPort())
 
         then:
         id.nodeIdentity != null
         !id.nodeIdentity.contains(DefaultNodeIdentity.UNKNOWN_HOST)
+
+        cleanup:
+        serverSocket.close()
     }
 
     def 'should refresh when unknown host'() {
