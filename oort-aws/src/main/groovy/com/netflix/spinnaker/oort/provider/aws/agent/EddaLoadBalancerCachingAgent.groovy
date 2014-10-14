@@ -82,10 +82,11 @@ class EddaLoadBalancerCachingAgent implements CachingAgent {
     for (LoadBalancerInstanceState balancerInstance : balancerInstances) {
       for (LoadBalancerInstance instance : balancerInstance.instances) {
         String instanceId = Keys.getInstanceKey(instance.instanceId, region)
+        String healthId = Keys.getInstanceHealthKey(instance.instanceId, account.name, region, PROVIDER_NAME)
         Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
         Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
-        lbHealths.add(new DefaultCacheData(instanceId, attributes, relationships))
-        instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [instanceId]]))
+        lbHealths.add(new DefaultCacheData(healthId, attributes, relationships))
+        instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
       }
     }
     new DefaultCacheResult(

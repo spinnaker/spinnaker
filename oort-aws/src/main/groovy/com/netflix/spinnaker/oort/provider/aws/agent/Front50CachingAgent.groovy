@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.springframework.web.client.RestTemplate
 
@@ -63,7 +64,7 @@ class Front50CachingAgent implements CachingAgent, OnDemandAgent {
     def list = (List<Map<String, String>>) restTemplate.getForObject("${account.front50}/applications", List)
 
     Collection<CacheData> results = list.collect { Map<String, String> attributes ->
-      new DefaultCacheData(attributes.name.toLowerCase(), attributes, [:])
+      new DefaultCacheData(Keys.getApplicationKey(attributes.name.toLowerCase()), attributes, [:])
     }
 
     new DefaultCacheResult((APPLICATIONS.ns): results)

@@ -110,9 +110,8 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
       def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
       def lb = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)).loadBalancerDescriptions
 
-      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), buildCacheResult(lb))
+      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: buildCacheResult(lb))
     }
-
   }
 
   private Map<String, CacheData> cache() {
@@ -142,9 +141,9 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     Map<String, CacheData> loadBalancers = cache()
 
     for (LoadBalancerDescription loadBalancer : allLoadBalancers) {
-      Collection<String> instanceIds = loadBalancer.instances.collect { identifiers.instanceId(it.instanceId) }
+      Collection<String> instanceIds = loadBalancer.instances.collect { Keys.getInstanceKey(it.instanceId, region) }
       Map<String, Object> attributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
-      String loadBalancerId = identifiers.loadBalancerId(loadBalancer.loadBalancerName)
+      String loadBalancerId = Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, account.name, region)
       loadBalancers[loadBalancerId].with {
         attributes.putAll(attributes)
         relationships[INSTANCES.ns].addAll(instanceIds)

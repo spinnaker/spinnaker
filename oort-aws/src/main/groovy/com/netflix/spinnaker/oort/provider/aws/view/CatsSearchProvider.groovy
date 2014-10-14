@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.oort.provider.aws.view
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
+import groovy.text.SimpleTemplateEngine
+import groovy.text.Template
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,7 +36,7 @@ import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
 @Component
 class CatsSearchProvider implements SearchProvider {
 
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
+  private static final Logger log = LoggerFactory.getLogger(CatsSearchProvider)
 
   static final List<String> defaultCaches = [
     APPLICATIONS.ns,
@@ -44,15 +46,29 @@ class CatsSearchProvider implements SearchProvider {
     INSTANCES.ns
   ]
 
+  static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
+
+  static Map<String, Template> urlMappings = [
+    (SERVER_GROUPS.ns):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster/aws/serverGroups/$serverGroup?region=$region'),
+    (LOAD_BALANCERS.ns):
+      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
+//    (Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns):
+//      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
+//    (Keys.Namespace.APPLICATION_LOAD_BALANCERS.ns):
+//      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
+    (CLUSTERS.ns):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster'),
+    (APPLICATIONS.ns):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}')
+  ]
+
   private final Cache cacheView
-  private final ObjectMapper objectMapper
 
   @Autowired
-  public CatsSearchProvider(Cache cacheView, ObjectMapper objectMapper) {
+  public CatsSearchProvider(Cache cacheView) {
     this.cacheView = cacheView
-    this.objectMapper = objectMapper
   }
-
 
   @Override
   String getPlatform() {
@@ -76,42 +92,68 @@ class CatsSearchProvider implements SearchProvider {
 
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
-    query = query?.toLowerCase() ?: ''
-    int skipResults = (pageNumber - 1) * pageSize
-    int needResults = pageSize
-    List<CacheData> results = []
-    for (String type : types) {
-      if (needResults) {
-        def thisType = cacheView.getAll(type).findAll { matchesQuery(query, it) && matchesFilters(filters, it) }.sort { it.id }
+    List<String> matches = findMatches(query, types, filters)
+    generateResultSet(query, matches, pageNumber, pageSize)
+  }
 
-        def toAdd = thisType.drop(skipResults).take(needResults)
-        if (skipResults > 0) {
-          skipResults = Math.max(0, skipResults - thisType.size())
-        }
-        needResults -= toAdd
-        results.addAll(toAdd)
+  private static SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize) {
+    List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).collect {
+      Keys.parse(it)
+    }
+    SearchResultSet resultSet = new SearchResultSet(
+      totalMatches: matches.size(),
+      platform: 'aws',
+      query: query,
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      results: results
+    )
+    resultSet.results.each { Map<String, String> result ->
+      if (urlMappings.containsKey(result.type)) {
+        def binding = [:]
+        binding.putAll(result)
+        result.url = urlMappings[result.type].make(binding).toString()
       }
     }
-    List<Map<String, String>> searchResults = results.collect { objectMapper.convertValue(it.attributes, ATTRIBUTES) }
-    new SearchResultSet(totalMatches: 69696969, pageNumber: pageNumber, pageSize: pageSize, platform: 'aws', query: query, results: searchResults)
+    resultSet
   }
 
-  boolean matchesQuery(String query, CacheData candidate) {
-    if (!query) {
-      return true
+  private List<String> findMatches(String q, List<String> toQuery, Map<String, String> filters) {
+    log.info("Querying ${toQuery} for term: ${q}")
+    String normalizedWord = q.toLowerCase()
+    List<String> matches = new ArrayList<String>()
+    toQuery.each { String cache ->
+      matches.addAll(cacheView.getIdentifiers(cache).findAll { String key ->
+        try {
+          if (key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0) {
+            if (!filters) {
+              return true
+            }
+            def parts = Keys.parse(key)
+            filters.entrySet().every { entry ->
+              parts[entry.key] && parts[entry.key] == entry.value
+            }
+          }
+        } catch (Exception e) {
+          log.warn("Failed on $cache:$key", e)
+        }
+      })
     }
-
-    candidate.attributes.values().any { it.toString().toLowerCase().indexOf(query) != -1 }
+    matches.sort { String a, String b ->
+      def aKey = a.toLowerCase().substring(a.indexOf(':'))
+      def bKey = b.toLowerCase().substring(b.indexOf(':'))
+      def indexA = aKey.indexOf(q)
+      def indexB = bKey.indexOf(q)
+      return indexA == indexB ? aKey <=> bKey : indexA - indexB
+    }
   }
 
-  boolean matchesFilters(Map<String, String> filters, CacheData candidate) {
-    if (!filters) {
-      return true
-    }
-
-    filters.every { String attribute, String expectedValue ->
-      (candidate.attributes.containsKey(attribute) && candidate.attributes.get(attribute).toString() == expectedValue) ||
-        (candidate.relationships.containsKey(attribute) && candidate.relationships.get(attribute).find { it.indexOf(expectedValue) != -1 })
-    }
+  private static List<String> paginateResults(List<String> matches, Integer pageSize, Integer pageNumber) {
+    log.info("Paginating ${matches.size()} results; page number: ${pageNumber}, items per page: ${pageSize}")
+    Integer startingIndex = pageSize * (pageNumber - 1)
+    Integer endIndex = Math.min(pageSize * pageNumber, matches.size())
+    boolean hasResults = startingIndex < endIndex
+    List<String> toReturn = hasResults ? matches[startingIndex..endIndex - 1] : new ArrayList<String>()
+    toReturn
   }
 }

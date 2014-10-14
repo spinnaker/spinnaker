@@ -25,6 +25,8 @@ import com.netflix.spinnaker.oort.model.LoadBalancerProvider
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 import java.util.regex.Pattern
 
@@ -32,11 +34,17 @@ import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
 
+@Component
 class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
 
   private static final Pattern ACCOUNT_REGION_NAME = Pattern.compile(/([^\/]+)\/([^\/]+)\/(.*)/)
 
-  Cache cacheView
+  private final Cache cacheView
+
+  @Autowired
+  public CatsLoadBalancerProvider(Cache cacheView) {
+    this.cacheView = cacheView
+  }
 
   @Override
   Map<String, Set<AmazonLoadBalancer>> getLoadBalancers() {
