@@ -53,10 +53,13 @@ angular.module('deckApp')
 
       task.updateKatoTask = function(katoTask) {
         var katoTasks = getKatoTasks(task);
-        if (katoTasks && katoTasks.length) {
+        if (katoTasks && katoTasks.length && katoTasks[katoTasks.length - 1].id === katoTask.id) {
           var lastTask = katoTasks[katoTasks.length - 1];
           angular.copy(katoTask.asPondKatoTask(), lastTask);
         } else {
+          if (katoTasks) {
+            katoTasks.push(katoTask.asPondKatoTask());
+          }
           task.variables.push({key: 'kato.tasks', value: [katoTask.asPondKatoTask()]});
         }
       };
@@ -68,10 +71,32 @@ angular.module('deckApp')
         return matching.length > 0 ? matching[0].value : null;
       };
 
-      task.getCompletedKatoTask = function() {
+      function filterToPhase(katoTasks, phase) {
+        if (katoTasks && phase) {
+          return katoTasks.filter(function(task) {
+            return task.history.some(function(step) {
+              return step.phase === phase;
+            });
+          });
+        }
+        return katoTasks;
+      }
+
+      function refreshPondTaskForKato(task, phase, deferred) {
+        return function() {
+          task.get().then(function(updatedTask) {
+            updateTask(task, updatedTask);
+            task.getCompletedKatoTask(phase).then(deferred.resolve, deferred.reject);
+          });
+        };
+      }
+
+      task.getCompletedKatoTask = function(phaseFilter) {
         var deferred = $q.defer();
-        var katoTasks = getKatoTasks(task);
-        var katoStatus = katoTasks ? katoTasks[katoTasks.length-1].status : null;
+
+        var katoTasks = filterToPhase(getKatoTasks(task), phaseFilter);
+        var katoStatus = katoTasks && katoTasks.length ? katoTasks[katoTasks.length-1].status : null;
+
         var failed = task.isFailed || (katoStatus && katoStatus.failed),
             succeeded = katoStatus && katoStatus.completed && !katoStatus.failed,
             running = !failed && !succeeded,
@@ -81,26 +106,33 @@ angular.module('deckApp')
           var rejectWith = katoTasks ? katoTasks[katoTasks.length-1] : null;
           deferred.reject(rejectWith);
         }
-        
+
         if (succeeded) {
           deferred.resolve(katoTasks[katoTasks.length-1]);
         }
 
         if (running) {
           if (katoTaskId) {
+            // check for new task id
             kato.getTask(katoTaskId.id).get().then(
               function(katoTask) {
                 task.updateKatoTask(katoTask);
-                katoTask.waitUntilComplete().then(deferred.resolve, deferred.reject, task.updateKatoTask);
-              }
+                katoTask.waitUntilComplete().then(
+                  function(updatedKatoTask) {
+                    if (filterToPhase([updatedKatoTask], phaseFilter).length && updatedKatoTask.isCompleted) {
+                      deferred.resolve(updatedKatoTask);
+                    } else {
+                      $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 500);
+                    }
+                  },
+                  deferred.reject,
+                  task.updateKatoTask);
+              },
+              deferred.reject,
+              task.updateKatoTask
             );
           } else {
-            $timeout(function() {
-              task.get().then(function(updatedTask) {
-                updateTask(task, updatedTask);
-                task.getCompletedKatoTask().then(deferred.resolve, deferred.reject);
-              });
-            }, 250);
+            $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 500);
           }
         }
 
@@ -132,7 +164,7 @@ angular.module('deckApp')
         }
         if (task.isCompleted || task.isRunning) {
           var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
-          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'STARTED') {
+          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'STARTED' && forceRefreshStep[0].status !== 'EXECUTING') {
             if (forceRefreshStep[0].status === 'COMPLETED') {
               deferred.resolve(task);
             }

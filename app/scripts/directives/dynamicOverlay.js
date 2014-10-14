@@ -11,8 +11,8 @@ angular.module('deckApp')
               $modal = $elem.closest('.modal-content'),
               modalHeight = $modal.height();
 
-          if (modalHeight < 350) {
-            modalHeight = 350;
+          if (modalHeight < 450) {
+            modalHeight = 450;
           }
 
           $modal.height(modalHeight);

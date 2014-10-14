@@ -144,7 +144,8 @@ TasksFixture.failedKatoTask = {
 TasksFixture.successfulKatoTask = {
   id: 3,
   status: {
-    completed: true
+    completed: true,
+    failed: false
   },
   history: [{
     phase: "ORCHESTRATION",

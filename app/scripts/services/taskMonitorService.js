@@ -21,7 +21,8 @@ angular.module('deckApp')
         application: params.application,
         onApplicationRefresh: params.onApplicationRefresh || params.modalInstance.dismiss,
         onTaskComplete: params.onTaskComplete || params.modalInstance.dismiss,
-        modalInstance: params.modalInstance
+        modalInstance: params.modalInstance,
+        katoPhaseToMonitor: params.katoPhaseToMonitor || null
       };
 
       monitor.closeModal = function () {
@@ -56,7 +57,7 @@ angular.module('deckApp')
 
       monitor.handleTaskSuccess = function(task) {
         monitor.task = task;
-        task.getCompletedKatoTask().then(
+        task.getCompletedKatoTask(monitor.katoPhaseToMonitor).then(
           function() {
             handleKatoRefreshSuccess(task);
           },

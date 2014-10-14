@@ -345,19 +345,17 @@ angular.module('deckApp.aws')
             accountId: $scope.command.credentials,
             region: $scope.command.region
           };
-          if (!$state.includes('**.clusters.**')) {
-            $state.go('^.^.^.clusters.serverGroup', newStateParams);
-          } else {
-            if ($state.includes('**.serverGroup')) {
-              $state.go('^.^.serverGroup', newStateParams);
-            } else {
-              if ($state.includes('**.clusters.*')) {
-                $state.go('^.serverGroup', newStateParams);
-              } else {
-                $state.go('.serverGroup', newStateParams);
-              }
-            }
+          var transitionTo = '^.^.^.clusters.serverGroup';
+          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+            transitionTo = '^.serverGroup';
           }
+          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+            transitionTo = '^.^.serverGroup';
+          }
+          if ($state.includes('**.clusters')) { // create new, no details open
+            transitionTo = '.serverGroup';
+          }
+          $state.go(transitionTo, newStateParams);
         }
       });
     };
