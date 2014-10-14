@@ -18,7 +18,7 @@ angular.module('deckApp')
       scheduleImmediate: scheduler.onNext.bind(scheduler),
       subscribeEveryN: function(n, fn) {
         return scheduler
-          .skip(n)
+          .bufferWithCount(n)
           .subscribe(fn);
       },
       scheduleOnCompletion: function(promise) {
