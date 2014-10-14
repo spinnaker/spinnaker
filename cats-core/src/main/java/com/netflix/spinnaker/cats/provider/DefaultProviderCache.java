@@ -70,7 +70,9 @@ public class DefaultProviderCache implements ProviderCache {
     @Override
     public Collection<String> getIdentifiers(String type) {
         validateTypes(type);
-        return backingStore.getIdentifiers(type);
+        Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type));
+        identifiers.remove(ALL_ID);
+        return identifiers;
     }
 
     @Override

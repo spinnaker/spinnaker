@@ -18,23 +18,31 @@ package com.netflix.spinnaker.cats.provider
 
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheSpec
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DefaultProviderCacheSpec extends Specification {
+class DefaultProviderCacheSpec extends CacheSpec {
 
     WriteableCache backingStore
 
-    @Subject
-    DefaultProviderCache defaultProviderCache
-
-    def setup() {
+    @Override
+    Cache getSubject() {
         backingStore = new InMemoryCache()
-        defaultProviderCache = new DefaultProviderCache(backingStore)
+        new DefaultProviderCache(backingStore)
+    }
+
+    void populateOne(String type, String id) {
+        defaultProviderCache.putCacheResult('testAgent', [], new DefaultCacheResult((type): [createData(id)]))
+    }
+
+    DefaultProviderCache getDefaultProviderCache() {
+        getCache() as DefaultProviderCache
     }
 
     def 'multiple agents can cache the same data type'() {
