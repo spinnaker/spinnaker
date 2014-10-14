@@ -66,6 +66,7 @@ configurations.all {
 }
 
 dependencies {
+    compile 'redis.clients:jedis:2.6.0'
     compile "org.slf4j:slf4j-api:1.7.7"
     runtime 'org.springframework:springloaded:1.2.0.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-web:1.1.5.RELEASE'
@@ -85,9 +86,6 @@ dependencies {
     runtime "org.slf4j:slf4j-log4j12:1.7.7"
     runtime "org.slf4j:jcl-over-slf4j:1.7.7"
     runtime "org.slf4j:jul-to-slf4j:1.7.7"
-    compile("com.netflix.spinnaker.kork:kork-jedis:1.13"){
-        exclude module: 'guava-io'
-    }
     compile 'com.squareup.retrofit:retrofit:1.5.1'
     compile 'com.squareup.retrofit:converter-simplexml:1.5.1'
     compile 'com.squareup.okhttp:okhttp:1.5.4'

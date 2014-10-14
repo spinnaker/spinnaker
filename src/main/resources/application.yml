@@ -15,4 +15,4 @@ spinnaker:
   build:
     pollInterval: 30
   echo:
-    host: 'http://localhost:8080/'
+    host: 'none'

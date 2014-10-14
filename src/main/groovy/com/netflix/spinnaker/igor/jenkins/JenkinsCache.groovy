@@ -20,7 +20,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
 
 /**
  * Shared cache of Jenkins details
@@ -31,39 +32,54 @@ import redis.clients.jedis.JedisCommands
 class JenkinsCache {
 
     @Autowired
-    JedisCommands jedis
+    JedisPool jedisPool
 
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.jedis.prefix:igor}')
     String prefix
 
     List<String> getJobNames(String master) {
-        jedis.keys("${prefix}:${master}:*").collect { extractJobName(it) }.sort()
+        Jedis resource = jedisPool.resource
+        List<String> jobs = resource.keys("${prefix}:${master}:*").collect { extractJobName(it) }.sort()
+        jedisPool.returnResource(resource)
+        jobs
     }
 
     List<String> getTypeaheadResults(String search) {
-        jedis.keys("${prefix}:*:*${search.toUpperCase()}*:*").collect { extractTypeaheadResult(it) }.sort()
+        Jedis resource = jedisPool.resource
+        List<String> results = resource.keys("${prefix}:*:*${search.toUpperCase()}*:*").collect {
+            extractTypeaheadResult(it)
+        }.sort()
+        jedisPool.returnResource(resource)
+        results
     }
 
     Map getLastBuild(String master, String job) {
-        if (!jedis.exists(makeKey(master, job))) {
+        Jedis resource = jedisPool.resource
+        if (!resource.exists(makeKey(master, job))) {
             return [:]
         }
-        Map result = jedis.hgetAll(makeKey(master, job))
-        [
-            lastBuildLabel : result.lastBuildLabel as Integer,
+        Map result = resource.hgetAll(makeKey(master, job))
+        Map convertedResult = [
+            lastBuildLabel: Integer.parseInt(result.lastBuildLabel),
             lastBuildStatus: result.lastBuildStatus
         ]
+        jedisPool.returnResource(resource)
+        convertedResult
     }
 
     void setLastBuild(String master, String job, int lastBuild, String status) {
+        Jedis resource = jedisPool.resource
         String key = makeKey(master, job)
-        jedis.hset(key, 'lastBuildLabel', lastBuild as String)
-        jedis.hset(key, 'lastBuildStatus', status)
+        resource.hset(key, 'lastBuildLabel', lastBuild as String)
+        resource.hset(key, 'lastBuildStatus', status)
+        jedisPool.returnResource(resource)
     }
 
     void remove(String master, String job) {
-        jedis.del(makeKey(master, job))
+        Jedis resource = jedisPool.resource
+        resource.del(makeKey(master, job))
+        jedisPool.returnResource(resource)
     }
 
     private String makeKey(String master, String job) {

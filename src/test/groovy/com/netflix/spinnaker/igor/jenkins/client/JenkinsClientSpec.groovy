@@ -21,14 +21,12 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 /**
  * Tests that Jenkins client correctly binds to underlying XML model as expected
  */
-@Ignore
 @SuppressWarnings(['LineLength', 'DuplicateNumberLiteral'])
 class JenkinsClientSpec extends Specification {
 

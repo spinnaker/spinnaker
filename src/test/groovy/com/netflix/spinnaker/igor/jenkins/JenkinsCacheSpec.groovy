@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import static com.netflix.spinnaker.igor.jenkins.network.Network.isReachable
+
 import com.netflix.spinnaker.igor.Application
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
-import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,13 +33,14 @@ import spock.lang.Unroll
 @ContextConfiguration(classes = [Application])
 @SuppressWarnings(['DuplicateNumberLiteral', 'UnnecessaryBooleanExpression', 'DuplicateListLiteral'])
 @Slf4j
+@IgnoreIf( {!isReachable('redis://localhost:6379')} )
 class JenkinsCacheSpec extends Specification {
 
     @Autowired
     JenkinsCache cache
 
     @Autowired
-    JedisCommands jedis
+    JedisPool jedisPool
 
     final master = 'master'
     final test = 'test'
@@ -46,7 +51,9 @@ class JenkinsCacheSpec extends Specification {
     }
 
     void cleanup() {
-        jedis.flushDB()
+        Jedis resource = jedisPool.resource
+        resource.flushDB()
+        jedisPool.returnResource(resource)
     }
 
     void 'new build numbers get overridden'() {
@@ -61,7 +68,6 @@ class JenkinsCacheSpec extends Specification {
 
         then:
         cache.getLastBuild(master, 'job1').lastBuildLabel == 80
-
     }
 
     void 'statuses get overridden'() {
@@ -136,7 +142,7 @@ class JenkinsCacheSpec extends Specification {
 
     void 'a cache with another prefix does not pollute the current cache'() {
         when:
-        JenkinsCache secondInstance = new JenkinsCache(jedis: jedis)
+        JenkinsCache secondInstance = new JenkinsCache(jedisPool: jedisPool)
         secondInstance.prefix = 'newPrefix'
         secondInstance.setLastBuild(master, 'job1', 1, 'success')
 
