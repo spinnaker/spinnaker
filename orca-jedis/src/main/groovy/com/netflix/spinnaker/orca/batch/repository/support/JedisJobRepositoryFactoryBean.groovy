@@ -47,7 +47,7 @@ class JedisJobRepositoryFactoryBean extends AbstractJobRepositoryFactoryBean {
   }
 
   @Override
-  void afterPropertiesSet() throws Exception {
+  void afterPropertiesSet() {
     jobInstanceDao = new JedisJobInstanceDao(jedis)
     jobExecutionDao = new JedisJobExecutionDao(jedis, jobInstanceDao)
     stepExecutionDao = new JedisStepExecutionDao(jedis)

@@ -38,7 +38,7 @@ class RetryableTaskTaskletAdapter extends TaskTaskletAdapter {
   }
 
   @Override
-  RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+  RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     retryTemplate.execute {
       def status = super.execute(contribution, chunkContext)
       if (status.continuable) {
