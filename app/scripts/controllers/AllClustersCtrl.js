@@ -152,7 +152,7 @@ angular.module('deckApp')
 
       provider.then(function(selectedProvider) {
         $modal.open({
-          templateUrl: 'views/application/modal//serverGroup/' + selectedProvider + '/serverGroupWizard.html',
+          templateUrl: 'views/application/modal/serverGroup/' + selectedProvider + '/serverGroupWizard.html',
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function() { return 'Create New Server Group'; },

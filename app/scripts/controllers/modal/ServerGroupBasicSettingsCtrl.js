@@ -26,11 +26,14 @@ angular.module('deckApp')
         }
       },
       initSelection: function(elem, callback) {
+        var selection = {id: '', text: ''};
         if ($scope.command) {
-          callback($scope.command.amiName);
-        } else {
-          callback('');
+          var name = $scope.command.amiName || $scope.command.allImageSelection;
+          if (name) {
+            selection = {id: name, text: name};
+          }
         }
+        callback(selection);
       },
       minimumInputLength: 2
     };
