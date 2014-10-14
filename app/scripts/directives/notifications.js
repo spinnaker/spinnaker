@@ -86,7 +86,10 @@ angular.module('deckApp')
               writable: true,
             },
             dismiss: {
-              value: function () {
+              value: function ($event) {
+                if ($event && $event.stopPropagation) {
+                  $event.stopPropagation();
+                }
                 this.$dismissed = true;
               },
             },
