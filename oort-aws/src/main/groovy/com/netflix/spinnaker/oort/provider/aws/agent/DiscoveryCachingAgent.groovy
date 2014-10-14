@@ -88,7 +88,7 @@ class DiscoveryCachingAgent implements CachingAgent {
       for (DiscoveryInstance instance : application.instances) {
         if (instance.instanceId) {
           for (NetflixAmazonCredentials account : accounts) {
-            String instanceKey = Keys.getInstanceKey(instance.instanceId, region)
+            String instanceKey = Keys.getInstanceKey(instance.instanceId, account.name, region)
             String instanceHealthKey = Keys.getInstanceHealthKey(instance.instanceId, account.name, region, PROVIDER_NAME)
             Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
             Map<String, Collection<String>> relationships = [(INSTANCES.ns):[instanceKey]]

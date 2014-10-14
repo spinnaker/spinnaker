@@ -210,7 +210,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   private void cacheInstances(AsgData data, Map<String, CacheData> instances) {
     for (Instance instance : data.asg.instances) {
-      instances[Keys.getInstanceKey(instance.instanceId, region)].with {
+      instances[Keys.getInstanceKey(instance.instanceId, account.name, region)].with {
         Map<String, Object> instanceAttributes = objectMapper.convertValue(instance, ATTRIBUTES)
         attributes.putAll(instanceAttributes)
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
@@ -242,11 +242,11 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       Names name = Names.parseName(asg.autoScalingGroupName)
 
       appName = Keys.getApplicationKey(name.app)
-      cluster = Keys.getClusterKey(name.cluster, appName, account)
+      cluster = Keys.getClusterKey(name.cluster, name.app, account)
       serverGroup = Keys.getServerGroupKey(asg.autoScalingGroupName, account, region)
-      launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, region)
+      launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, account, region)
       loadBalancerNames = (asg.loadBalancerNames.collect { Keys.getLoadBalancerKey(it, account, region) } as Set).asImmutable()
-      instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, region) } as Set).asImmutable()
+      instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
     }
   }
 }

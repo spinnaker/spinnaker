@@ -47,9 +47,6 @@ import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
 @Component
 class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
-  private static final Pattern ACCOUNT_NAME = Pattern.compile(/([^\/]+)\/(.*)/)
-  private static final Pattern ACCOUNT_REGION_NAME = Pattern.compile(/([^\/]+)\/([^\/]+)\/(.*)/)
-
   private final Cache cacheView
 
   @Autowired
@@ -66,7 +63,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   @Override
   Map<String, Set<AmazonCluster>> getClusters(String applicationName) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, applicationName)
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) {
       return [:]
     }
@@ -80,14 +77,11 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   AmazonCluster translate(CacheData clusterData) {
-    def matcher = ACCOUNT_NAME.matcher(clusterData.id)
-    if (!matcher.matches()) {
-      return null
-    }
+    Map<String, String> clusterKey = Keys.parse(clusterData.id)
 
     def cluster = new AmazonCluster()
-    cluster.accountName = matcher.group(1)
-    cluster.name = matcher.group(2)
+    cluster.accountName = clusterKey.account
+    cluster.name = clusterKey.cluster
 
     Collection<AmazonLoadBalancer> loadBalancers = resolveRelationshipData(clusterData, LOAD_BALANCERS.ns).findResults this.&translateLoadBalancer
     cluster.loadBalancers.addAll(loadBalancers)
@@ -99,27 +93,23 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   AmazonLoadBalancer translateLoadBalancer(CacheData loadBalancerData) {
-    def matcher = ACCOUNT_REGION_NAME.matcher(loadBalancerData.id)
-    if (!matcher.matches()) {
-      return null
-    }
+    Map<String, String> lbKey = Keys.parse(loadBalancerData.id)
 
-    new AmazonLoadBalancer(matcher.group(3), matcher.group(2))
+
+    new AmazonLoadBalancer(lbKey.loadBalancer, lbKey.region)
   }
 
   AmazonServerGroup translateServerGroup(CacheData serverGroupData) {
-    def matcher = ACCOUNT_REGION_NAME.matcher(serverGroupData.id)
-    if (!matcher.matches()) {
-      return null
-    }
-
-    def sg = new AmazonServerGroup(matcher.group(3), 'aws', matcher.group(2))
+    Map<String, String> serverGroupKey = Keys.parse(serverGroupData.id)
+    
+    def sg = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
     sg.putAll(serverGroupData.attributes)
 
     sg.instances = resolveRelationshipData(serverGroupData, INSTANCES.ns).collect { CacheData instance ->
+      Map<String, String> instanceKey = Keys.parse(instance.id)
       Collection<Map<String, Object>> healths = []
       for (String healthProvider : AwsProvider.HEALTH_PROVIDERS) {
-        def health = cacheView.get(HEALTH.ns, Keys.getInstanceHealthKey(instance.id, matcher.group(1), matcher.group(2), healthProvider))
+        def health = cacheView.get(HEALTH.ns, Keys.getInstanceHealthKey(instance.id, instanceKey.account, instanceKey.region, healthProvider))
         if (health) {
           healths.add(health.attributes)
         }
@@ -167,21 +157,25 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
-    source.relationships[relationship]?.findResults { cacheView.get(relationship, it) } ?: [] as Collection
+    resolveRelationshipData(source, relationship) { true }
+  }
+
+  Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter) {
+    source.relationships[relationship]?.findResults { if (relFilter(it)) { cacheView.get(relationship, it) } else null } ?: [] as Collection
   }
 
   @Override
   Set<AmazonCluster> getClusters(String applicationName, String account) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, applicationName)
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) {
       return [] as Set
     }
-    resolveRelationshipData(application, CLUSTERS.ns).findResults(this.&translate) as Set<AmazonCluster>
+    resolveRelationshipData(application, CLUSTERS.ns) { Keys.parse(it).account == account }.findResults(this.&translate).findAll { } as Set<AmazonCluster>
   }
 
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
-    CacheData cluster = cacheView.get(CLUSTERS.ns, "$account/$name")
+    CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(name, application, account))
     if (cluster == null) {
       null
     } else {

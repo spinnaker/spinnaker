@@ -162,10 +162,10 @@ class InstanceCachingAgent implements CachingAgent {
 
     public InstanceData(Instance instance, String account, String region) {
       this.instance = instance
-      this.instanceId = Keys.getInstanceKey(instance.instanceId, region)
+      this.instanceId = Keys.getInstanceKey(instance.instanceId, account, region)
       String sgTag = instance.tags?.find { it.key == ASG_TAG_NAME }?.value
       this.serverGroup = sgTag ? Keys.getServerGroupKey(sgTag, account, region) : null
-      this.imageId = Keys.getImageKey(instance.imageId, region)
+      this.imageId = Keys.getImageKey(instance.imageId, account, region)
     }
 
   }

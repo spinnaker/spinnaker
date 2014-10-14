@@ -91,8 +91,8 @@ class LaunchConfigCachingAgent implements CachingAgent {
 
     Collection<CacheData> launchConfigData = launchConfigs.collect { LaunchConfiguration lc ->
       Map<String, Object> attributes = objectMapper.convertValue(lc, ATTRIBUTES);
-      Map<String, Collection<String>> relationships = [(IMAGES.ns):[Keys.getImageKey(lc.imageId, region)]]
-      new DefaultCacheData(Keys.getLaunchConfigKey(lc.launchConfigurationName, region), attributes, relationships)
+      Map<String, Collection<String>> relationships = [(IMAGES.ns):[Keys.getImageKey(lc.imageId, account.name, region)]]
+      new DefaultCacheData(Keys.getLaunchConfigKey(lc.launchConfigurationName, account.name, region), attributes, relationships)
     }
 
     new DefaultCacheResult((LAUNCH_CONFIGS.ns): launchConfigData)

@@ -80,7 +80,7 @@ class ImageCachingAgent implements CachingAgent {
 
     Collection<CacheData> imageCacheData = images.collect { Image image ->
       Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
-      new DefaultCacheData(Keys.getImageKey(image.imageId, region), attributes, [:])
+      new DefaultCacheData(Keys.getImageKey(image.imageId, account.name, region), attributes, [:])
     }
 
     new DefaultCacheResult((IMAGES.ns): imageCacheData)

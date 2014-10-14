@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.provider.aws.view
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.data.aws.Keys
@@ -78,7 +79,8 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account, String cluster) {
-    CacheData clusterData = cacheView.get(CLUSTERS.ns, cluster)
+    Names names = Names.parseName(cluster)
+    CacheData clusterData = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(cluster, names.app, account))
 
     resolveRelationshipData(clusterData, LOAD_BALANCERS.ns).findResults(this.&translate)
   }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.model.Cluster
@@ -33,8 +34,6 @@ import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.CLUSTERS
 
 @Component
 class CatsApplicationProvider implements ApplicationProvider {
-
-  private static final Pattern CLUSTER_REGEX = Pattern.compile(/([^\/]+)\/(.*)/)
 
   private final Cache cacheView
   private final ObjectMapper objectMapper
@@ -52,21 +51,23 @@ class CatsApplicationProvider implements ApplicationProvider {
 
   @Override
   Application getApplication(String name) {
-    translate(cacheView.get(APPLICATIONS.ns, name.toLowerCase()))
+    translate(cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(name)))
   }
 
   Application translate(CacheData cacheData) {
-    String name = cacheData.id
+    if (cacheData == null) {
+      return null
+    }
+
+    String name = Keys.parse(cacheData.id).application
     Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, CatsApplication.ATTRIBUTES)
-    Map<String, String> clusterNames = cacheData.relationships[CLUSTERS.ns]?.findResults {
-      def matcher = CLUSTER_REGEX.matcher(it)
-      if (matcher.matches()) {
-        [(matcher.group(1)): matcher.group(2)]
-      } else {
-        println "no match for $it"
-        null
+    Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
+    for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
+      Map<String, String> cluster = Keys.parse(clusterId)
+      if (cluster.account && cluster.cluster) {
+        clusterNames[cluster.account].add(cluster.cluster)
       }
-    }?.collectEntries() ?: [:]
+    }
     new CatsApplication(name, attributes, clusterNames)
   }
 
@@ -74,9 +75,9 @@ class CatsApplicationProvider implements ApplicationProvider {
     public static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
     final String name
     final Map<String, String> attributes
-    final Map<String, String> clusterNames
+    final Map<String, Set<String>> clusterNames
 
-    CatsApplication(String name, Map<String, String> attributes, Map<String, String> clusterNames) {
+    CatsApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
       this.name = name
       this.attributes = attributes
       this.clusterNames = clusterNames

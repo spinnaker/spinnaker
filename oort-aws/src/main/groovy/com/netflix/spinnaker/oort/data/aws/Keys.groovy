@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.oort.data.aws
 
 import com.netflix.frigga.Names
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class Keys {
 
   static enum Namespace {
-    APPLICATION_LOAD_BALANCERS,
     IMAGES,
-    NAMED_IMAGES,
     SERVER_GROUPS,
     SERVER_GROUP_INSTANCES,
     INSTANCES,
@@ -52,39 +52,29 @@ class Keys {
     def result = [:]
     switch (parts[0]) {
       case Namespace.IMAGES.ns:
-        result = [region: parts[1], imageId: parts[2]]
-        break
-      case Namespace.NAMED_IMAGES.ns:
-        result = [region: parts[1], imageName: parts[2], imageId: parts[3]]
+        result = [account: parts[1], region: parts[2], imageId: parts[3]]
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
         result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
         break
-      case Namespace.SERVER_GROUP_INSTANCES.ns:
-        def names = Names.parseName(parts[4])
-        result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], instanceId: parts[5]]
-        break
       case Namespace.INSTANCES.ns:
-        result = [region: parts[1], instanceId: parts[2]]
+        result = [account: parts[1], region: parts[2], instanceId: parts[3]]
         break
       case Namespace.LAUNCH_CONFIGS.ns:
-        result = [region: parts[1], launchConfig: parts[2]]
+        def names = Names.parseName(parts[3])
+        result = [account: parts[1], region: parts[2], launchConfig: parts[3], application: names.app?.toLowerCase(), stack: names.stack]
         break
       case Namespace.LOAD_BALANCERS.ns:
-        result = [account: parts[1], region: parts[2], loadBalancer: parts[3]]
-        break
-      case Namespace.LOAD_BALANCER_SERVER_GROUPS.ns:
-        result = [loadBalancer: parts[1], application: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5]]
-        break
-      case Namespace.APPLICATION_LOAD_BALANCERS.ns:
-        result = [application: parts[1], loadBalancer: parts[2], account: parts[3], region: parts[4]]
+        def names = Names.parseName(parts[3])
+        result = [account: parts[1], region: parts[2], loadBalancer: parts[3], application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
         break
       case Namespace.CLUSTERS.ns:
-        result = [application: parts[1], account: parts[2], cluster: parts[3]]
+        def names = Names.parseName(parts[3])
+        result = [application: parts[1].toLowerCase(), account: parts[2], cluster: parts[3], stack: names.stack, detail: names.detail]
         break
       case Namespace.APPLICATIONS.ns:
-        result = [application: parts[1]]
+        result = [application: parts[1].toLowerCase()]
         break
       case Namespace.HEALTH.ns:
         result = [instanceId: parts[1], account: parts[2], region: parts[3], provider: parts[4]]
@@ -94,12 +84,8 @@ class Keys {
     result
   }
 
-  static String getNamedImageKey(String imageId, String imageName, String region) {
-    "${Namespace.NAMED_IMAGES}:${region}:${imageName}:${imageId}"
-  }
-
-  static String getImageKey(String imageId, String region) {
-    "${Namespace.IMAGES}:${region}:${imageId}"
+  static String getImageKey(String imageId, String account, String region) {
+    "${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
@@ -107,38 +93,24 @@ class Keys {
     "${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
-  static String getServerGroupInstanceKey(String autoScalingGroupName, String instanceId, String account, String region) {
-    Names names = Names.parseName(autoScalingGroupName)
-    "${Namespace.SERVER_GROUP_INSTANCES}:${names.cluster}:${account}:${region}:${names.group}:${instanceId}"
+  static String getInstanceKey(String instanceId, String account, String region) {
+    "${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
   }
 
-  static String getInstanceKey(String instanceId, String region) {
-    "${Namespace.INSTANCES}:${region}:${instanceId}"
-  }
-
-  static String getLaunchConfigKey(String launchConfigName, String region) {
-    "${Namespace.LAUNCH_CONFIGS}:${region}:${launchConfigName}"
+  static String getLaunchConfigKey(String launchConfigName, String account, String region) {
+    "${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
   }
 
   static String getLoadBalancerKey(String loadBalancerName, String account, String region) {
     "${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
   }
 
-  static String getLoadBalancerServerGroupKey(String loadBalancerName, String account, String serverGroupName, String region) {
-    Names names = Names.parseName(serverGroupName)
-    "${Namespace.LOAD_BALANCER_SERVER_GROUPS}:${loadBalancerName}:${names.app.toLowerCase()}:${account}:${region}:${serverGroupName}"
-  }
-
-  static String getApplicationLoadBalancerKey(String applicationName, String loadBalancerName, String account, String region) {
-    "${Namespace.APPLICATION_LOAD_BALANCERS}:${applicationName}:${loadBalancerName}:${account}:${region}"
-  }
-
   static String getClusterKey(String clusterName, String application, String account) {
-    "${Namespace.CLUSTERS}:${application}:${account}:${clusterName}"
+    "${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "${Namespace.APPLICATIONS}:${application}"
+    "${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
