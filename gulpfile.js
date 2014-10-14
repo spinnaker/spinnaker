@@ -237,6 +237,9 @@ gulp.task('watch', function() {
   gulp.watch('./bower_components/**/*.css', function() {
     run('css:vendor', 'html');
   });
+  gulp.watch('./test/**/*', function() {
+    run('test:karma');
+  });
   $.watch([
     dist+'/scripts/**/*',
     dist+'/styles/**/*',
