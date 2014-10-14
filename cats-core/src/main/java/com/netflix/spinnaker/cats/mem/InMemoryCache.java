@@ -74,6 +74,10 @@ public class InMemoryCache implements WriteableCache {
         return values;
     }
 
+    public Collection<String> getIdentifiers(String type) {
+        return new HashSet<>(getTypeMap(type).keySet());
+    }
+
     private CacheData getOrCreate(String type, String id) {
         return getCacheData(getTypeMap(type), id);
     }

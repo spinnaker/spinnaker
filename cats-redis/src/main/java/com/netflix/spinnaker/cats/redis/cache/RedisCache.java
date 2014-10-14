@@ -160,6 +160,13 @@ public class RedisCache implements WriteableCache {
         return results;
     }
 
+    @Override
+    public Collection<String> getIdentifiers(String type) {
+        try (Jedis jedis = source.getJedis()) {
+            return jedis.smembers(allOfTypeId(type));
+        }
+    }
+
     private String attributesId(String type, String id) {
         return String.format("%s:%s:attributes:%s", prefix, type, id);
     }

@@ -53,4 +53,13 @@ abstract class CacheSpec extends Specification {
         cache.getAll('foo').size() == 1
         cache.getAll('foo').first().id == 'bar'
     }
+
+    def 'identifiers behaviour'() {
+        setup:
+        populateOne('foo', 'bar')
+        populateOne('foo', 'baz')
+
+        expect:
+        cache.getIdentifiers('foo').sort() == ['bar', 'baz']
+    }
 }
