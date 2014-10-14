@@ -22,7 +22,9 @@ import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
+import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
@@ -38,16 +40,20 @@ class OrcaSmokeSpec extends Specification {
 
   @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
+  @Autowired JobExplorer jobExplorer
 
   def "can bake and deploy"() {
     given:
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def execution = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
 
     then:
-    execution.exitStatus == ExitStatus.COMPLETED
+    with(jobExplorer.getJobExecution(pipeline.id.toLong())) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
+    }
 
     where:
     app = "mimirdemo"
@@ -78,10 +84,13 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def execution = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
 
     then:
-    execution.exitStatus == ExitStatus.COMPLETED
+    with(jobExplorer.getJobExecution(pipeline.id.toLong())) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
+    }
 
     where:
     config = [

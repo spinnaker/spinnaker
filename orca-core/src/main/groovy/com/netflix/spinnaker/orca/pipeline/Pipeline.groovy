@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 
 @CompileStatic
-class Pipeline {
+class Pipeline implements Serializable {
 
   final String id
   final ImmutableList<Stage> stages

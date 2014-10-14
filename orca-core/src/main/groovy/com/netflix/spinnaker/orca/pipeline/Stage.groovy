@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
  * A _stage_ of an Orca _pipeline_.
  */
 @CompileStatic
-class Stage {
+class Stage implements Serializable {
 
   /**
    * @return the name that corresponds to Mayo config.

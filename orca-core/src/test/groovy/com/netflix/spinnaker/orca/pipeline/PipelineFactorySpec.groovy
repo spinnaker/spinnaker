@@ -36,11 +36,11 @@ class PipelineFactorySpec extends Specification {
     jobExplorer.getJobExecution(id) >> jobExecution
 
     when: "we retrieve a pipeline by id"
-    def pipeline = pipelineFactory.retrieve(id as String)
+    def pipeline = pipelineFactory.retrieve(id.toString())
 
     then: "we get something back"
     pipeline != null
-    pipeline.id == id as String
+    pipeline.id == id.toString()
 
     and: "it has details of all the stages"
     pipeline.stages.name == stageNames

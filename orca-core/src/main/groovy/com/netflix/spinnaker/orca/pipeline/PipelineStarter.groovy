@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.batch.SpringBatchPipeline
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
@@ -60,7 +59,7 @@ class PipelineStarter {
     def stages = constructStagesFrom(config)
     def job = createJobFrom(stages, config)
     def jobExecution = launcher.run(job, new JobParameters())
-    new SpringBatchPipeline(jobExecution, stages)
+    new Pipeline(jobExecution.id.toString(), stages)
   }
 
   @PostConstruct
