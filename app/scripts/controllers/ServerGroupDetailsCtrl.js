@@ -49,8 +49,9 @@ angular.module('deckApp')
       var taskMonitor = {
         application: application,
         title: 'Destroying ' + serverGroup.name,
-//        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: false
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true,
+        katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
       var submitMethod = function () {
@@ -89,18 +90,12 @@ angular.module('deckApp')
       var taskMonitor = {
         application: application,
         title: 'Disabling ' + serverGroup.name,
-//        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: false
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {
         return orcaService.disableServerGroup(serverGroup, application.name);
-      };
-
-      var stateParams = {
-        name: serverGroup.name,
-        accountId: serverGroup.account,
-        region: serverGroup.region
       };
 
       confirmationModalService.confirm({
@@ -109,17 +104,7 @@ angular.module('deckApp')
         destructive: true,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod,
-        onTaskComplete: function() {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        },
-        onApplicationRefresh: function() {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        }
+        submitMethod: submitMethod
       });
 
     };

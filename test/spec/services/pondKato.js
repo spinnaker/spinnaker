@@ -20,17 +20,18 @@
 
 describe('Service: Pond - task complete, task force refresh', function() {
 
-  var service, $http, config, scope, timeout, task;
+  var service, $http, config, scope, timeout, task, lodash;
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function(settings, pond, $httpBackend, $rootScope, $timeout) {
+  beforeEach(inject(function(settings, pond, $httpBackend, $rootScope, $timeout, _) {
 
     service = pond;
     config = settings;
     $http = $httpBackend;
     timeout = $timeout;
     scope = $rootScope.$new();
+    lodash = _;
 
     task = service.one('tasks', 1).get().$object;
 
@@ -136,6 +137,58 @@ describe('Service: Pond - task complete, task force refresh', function() {
     scope.$digest();
 
     expect(result).toBe(null);
+
+  });
+
+  it('waits until matching kato phase found before resolving', function() {
+
+    var result = null,
+      pondRequestHandler = $http.whenGET(config.pondUrl + '/tasks/1'),
+      katoRequestHandler = $http.whenGET(config.katoUrl + '/task/3');
+
+    pondRequestHandler.respond(200, {
+      id: 1,
+      variables: [ { key: 'kato.last.task.id', value: { id: 3 } }],
+      status: 'STARTED'
+    });
+
+    $http.flush();
+
+    katoRequestHandler.respond(200, TasksFixture.runningKatoTask);
+
+    task.getCompletedKatoTask('DESIRED_PHASE').then(function(completedTask) {
+      result = completedTask;
+    });
+    cycle();
+    expect(result).toBe(null);
+
+    // Kato task is running, will fetch again
+    katoRequestHandler.respond(200, TasksFixture.successfulKatoTask);
+
+    // When refetching pond task, a new task is the most recent
+    pondRequestHandler.respond(200, {
+      id: 1,
+      variables: [ { key: 'kato.last.task.id', value: { id: 4 } }],
+      status: 'STARTED'
+    });
+
+    cycle();
+    expect(result).toBe(null);
+
+    var desiredKatoTask = lodash.cloneDeep(TasksFixture.runningKatoTask);
+    desiredKatoTask.id = 4;
+    desiredKatoTask.history.push({phase: 'DESIRED_PHASE'});
+    katoRequestHandler = $http.whenGET(config.katoUrl + '/task/4');
+
+    katoRequestHandler.respond(200, desiredKatoTask);
+
+    // Kato task complete, does not match desired phase
+    desiredKatoTask.status.completed = true;
+    katoRequestHandler.respond(200, desiredKatoTask);
+
+    cycle();
+    expect(result.id).toBe(4);
+    expect(result.history).toEqual(desiredKatoTask.history);
 
   });
 

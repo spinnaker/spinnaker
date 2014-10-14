@@ -26,6 +26,9 @@
         <ul class="task task-progress task-progress-running" ng-if="!taskMonitor.forceRefreshComplete && !taskMonitor.forceRefreshing && !taskMonitor.error">
           <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
         </ul>
+        <p>
+            You can monitor this task from the Tasks view. You'll also receive updates on its progress through the Notifications.
+        </p>
       </div>
       <div class="col-md-12 overlay-modal-error" ng-if="taskMonitor.error">
         <alert type="danger">
@@ -42,7 +45,10 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer">
+  <div class="modal-footer" ng-if="!taskMonitor.error">
+    <button class="btn btn-primary" ng-click="taskMonitor.closeModal()">Close</button>
+  </div>
+  <div class="modal-footer" ng-if="taskMonitor.error">
     <button class="btn btn-primary" ng-if="taskMonitor.error" ng-click="taskMonitor.error = null">Go back and try to fix
       this
     </button>
