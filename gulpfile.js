@@ -52,7 +52,7 @@ gulp.task('test:karma', ['build'], function(done) {
 gulp.task('test:ci', function(done) {
   karma.server.start({
     configFile: __dirname+'/karma.conf.js',
-    browser: ['Chrome'],
+    browsers: ['Chrome'],
     singleRun: false,
   }, done);
 });
