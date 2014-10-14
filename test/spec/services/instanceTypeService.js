@@ -20,7 +20,7 @@ describe('Service: InstanceType', function() {
 
   var service, $http, config, instanceTypes;
 
-  beforeEach(module('deckApp'));
+  beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(inject(function(settings, instanceTypeService, $httpBackend) {
     instanceTypes = [];
