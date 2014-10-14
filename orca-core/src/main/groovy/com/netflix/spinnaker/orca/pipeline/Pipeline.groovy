@@ -36,6 +36,12 @@ class Pipeline implements Serializable {
     this(id, stages.toList())
   }
 
+  Stage namedStage(String name) {
+    stages.find {
+      it.name == name
+    }
+  }
+
   PipelineStatus getStatus() {
     def status = stages.status.reverse().find {
       it != NOT_STARTED

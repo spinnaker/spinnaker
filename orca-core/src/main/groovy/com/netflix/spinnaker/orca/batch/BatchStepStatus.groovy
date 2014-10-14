@@ -37,7 +37,6 @@ class BatchStepStatus {
       case PipelineStatus.SUSPENDED:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED)
       case PipelineStatus.FAILED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.FAILED)
       case PipelineStatus.TERMINAL:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.FAILED)
       case PipelineStatus.RUNNING:

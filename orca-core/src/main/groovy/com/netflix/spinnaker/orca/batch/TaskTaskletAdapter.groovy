@@ -57,7 +57,7 @@ class TaskTaskletAdapter implements Tasklet {
     def result = task.execute(new ChunkContextAdapter(chunkContext))
     if (result.status == PipelineStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.setTerminateOnly()
-      chunkContext.stepContext.stepExecution.setExitStatus(ExitStatus.FAILED)
+      chunkContext.stepContext.stepExecution.exitStatus = ExitStatus.FAILED
     }
 
     // TODO: could consider extending ExecutionContextPromotionListener in order to do this but then we need to know exactly which keys to promote
@@ -68,9 +68,6 @@ class TaskTaskletAdapter implements Tasklet {
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
     contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
-//    if (contribution.exitStatus == ExitStatus.FAILED) {
-//      chunkContext.stepContext.stepExecution.setTerminateOnly()
-//    }
     return batchStepStatus.repeatStatus
   }
 }

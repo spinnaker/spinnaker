@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.PipelineStatus
+import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
 
 /**
  * A _stage_ of an Orca _pipeline_.
@@ -34,9 +35,7 @@ class Stage implements Serializable {
    * @return the status of the stage. Effectively this will mean the status of
    * the last {@link com.netflix.spinnaker.orca.Task} to be executed.
    */
-  PipelineStatus getStatus() {
-    status
-  }
+  PipelineStatus status = NOT_STARTED
 
   Stage(String name) {
     this.name = name

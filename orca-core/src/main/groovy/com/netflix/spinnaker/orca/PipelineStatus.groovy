@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 enum PipelineStatus {
 
   /**
