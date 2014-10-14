@@ -2,7 +2,9 @@
 
 
 angular.module('deckApp')
-  .factory('instanceTypeService', function ($http, $q, settings, _, scheduledCache, $window) {
+  .factory('instanceTypeService', function ($http, $q, settings, _, $window) {
+
+    var cachedResult = null;
 
     var m3 = {
       type: 'M3',
@@ -179,6 +181,12 @@ angular.module('deckApp')
     }
 
     function getAllTypesByRegion() {
+
+      // TODO: This mostly goes away when we serve up instance types via mort
+      if (cachedResult) {
+        return $q.when(cachedResult);
+      }
+
       var deferred = $q.defer();
 
       $window.callback = function(data) {
@@ -197,10 +205,11 @@ angular.module('deckApp')
           }
           typesByRegion.push({region: regionName, sizes: sizes});
         });
+        cachedResult = typesByRegion;
         deferred.resolve(typesByRegion);
       };
 
-      $http.jsonp('http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js', { cache: scheduledCache } );
+      $http.jsonp('http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js');
 
       return deferred.promise;
 
