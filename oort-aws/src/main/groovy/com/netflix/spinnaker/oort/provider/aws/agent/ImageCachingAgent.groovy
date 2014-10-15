@@ -33,7 +33,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.NAMED_IMAGES
 
 
 class ImageCachingAgent implements CachingAgent {
@@ -42,7 +44,8 @@ class ImageCachingAgent implements CachingAgent {
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(IMAGES.ns)
+    AUTHORITATIVE.forType(IMAGES.ns),
+    INFORMATIVE.forType(NAMED_IMAGES.ns)
   ] as Set)
 
   final AmazonClientProvider amazonClientProvider
@@ -78,12 +81,18 @@ class ImageCachingAgent implements CachingAgent {
 
     List<Image> images = amazonEC2.describeImages().images
 
-    Collection<CacheData> imageCacheData = images.collect { Image image ->
+    Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
+    Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
+
+    for (Image image : images) {
       Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
-      new DefaultCacheData(Keys.getImageKey(image.imageId, account.name, region), attributes, [:])
+      def imageId = Keys.getImageKey(image.imageId, account.name, region)
+      def namedImageId = Keys.getNamedImageKey(account.name, image.name)
+      imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns):[namedImageId]]))
+      namedImageCacheData.add(new DefaultCacheData(namedImageId, [:], [(IMAGES.ns):[imageId]]))
     }
 
-    new DefaultCacheResult((IMAGES.ns): imageCacheData)
+    new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
   }
 
 }

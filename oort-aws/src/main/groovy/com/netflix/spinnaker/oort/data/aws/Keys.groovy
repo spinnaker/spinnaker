@@ -24,6 +24,7 @@ class Keys {
 
   static enum Namespace {
     IMAGES,
+    NAMED_IMAGES,
     SERVER_GROUPS,
     SERVER_GROUP_INSTANCES,
     INSTANCES,
@@ -53,6 +54,9 @@ class Keys {
     switch (parts[0]) {
       case Namespace.IMAGES.ns:
         result = [account: parts[1], region: parts[2], imageId: parts[3]]
+        break
+      case Namespace.NAMED_IMAGES.ns:
+        result = [account: parts[1], imageName: parts[2]]
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
@@ -86,6 +90,10 @@ class Keys {
 
   static String getImageKey(String imageId, String account, String region) {
     "${Namespace.IMAGES}:${account}:${region}:${imageId}"
+  }
+
+  static String getNamedImageKey(String account, String imageName) {
+    "${Namespace.NAMED_IMAGES}:${account}:${imageName}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {

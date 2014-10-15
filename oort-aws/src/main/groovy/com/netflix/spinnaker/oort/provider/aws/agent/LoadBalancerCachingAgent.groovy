@@ -142,10 +142,10 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
     for (LoadBalancerDescription loadBalancer : allLoadBalancers) {
       Collection<String> instanceIds = loadBalancer.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
-      Map<String, Object> attributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
+      Map<String, Object> lbAttributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
       String loadBalancerId = Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, account.name, region)
       loadBalancers[loadBalancerId].with {
-        attributes.putAll(attributes)
+        attributes.putAll(lbAttributes)
         relationships[INSTANCES.ns].addAll(instanceIds)
       }
       for (String instanceId : instanceIds) {

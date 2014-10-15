@@ -23,12 +23,14 @@ import com.netflix.spinnaker.oort.data.aws.Keys
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.LoadBalancer
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
+import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -107,9 +109,10 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
     sg.instances = resolveRelationshipData(serverGroupData, INSTANCES.ns).collect { CacheData instance ->
       Map<String, String> instanceKey = Keys.parse(instance.id)
-      Collection<Map<String, Object>> healths = []
+      HealthState amazonState = instance.attributes.state?.code == 16 ? HealthState.Unknown : HealthState.Down
+      Collection<Map<String, Object>> healths = [new AwsInstanceHealth(type: 'Amazon', instanceId: instanceKey.instanceId, state: amazonState)]
       for (String healthProvider : AwsProvider.HEALTH_PROVIDERS) {
-        def health = cacheView.get(HEALTH.ns, Keys.getInstanceHealthKey(instance.id, instanceKey.account, instanceKey.region, healthProvider))
+        def health = cacheView.get(HEALTH.ns, Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, healthProvider))
         if (health) {
           healths.add(health.attributes)
         }
@@ -119,7 +122,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       [
         name: instance.attributes.instanceId,
         instance: instance.attributes,
-        healths: healths,
+        health: healths,
         isHealthy: healthy
       ]
     }
@@ -143,10 +146,11 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
               if (appVersion.buildJobName) {
                 buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
               }
-              def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value
+              def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value ?: "http://builds.netflix.com/"
               if (buildHost) {
                 ((Map) buildInfo.jenkins).host = buildHost
               }
+              sg.buildInfo = buildInfo
             }
           }
 
