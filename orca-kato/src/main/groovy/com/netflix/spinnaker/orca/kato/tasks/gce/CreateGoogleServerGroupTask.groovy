@@ -48,6 +48,7 @@ class CreateGoogleServerGroupTask implements Task {
     def inputs = context.getInputs("deploy_gce")
     new DeployGoogleServerGroupOperation(application: inputs.application,
                                          stack: inputs.stack,
+                                         freeFormDetails: inputs.freeFormDetails,
                                          image: inputs.image,
                                          type: inputs.machineType,
                                          zone: inputs.zones ? inputs.zones[0] : null,

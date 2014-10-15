@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.CreateGoogleServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
@@ -40,11 +41,9 @@ class DeployGoogleServerGroupStage extends LinearStage {
     def step1 = buildStep("createDeploy", CreateGoogleServerGroupTask)
     def step2 = buildStep("monitorDeploy", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    // TODO(duftler): Figure out why this task continues to poll and isn't satisfied.
-//    def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
+    def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
     def step5 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     def step6 = buildStep("sendNotification", NotifyEchoTask)
-//    [step1, step2, step3, step4, step5, step6]
-    [step1, step2, step3, step5, step6]
+    [step1, step2, step3, step4, step5, step6]
   }
 }
