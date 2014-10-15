@@ -3,7 +3,7 @@ Starting it up
 
 Prerequisites
 -------------
-Make sure the following are installed:
+Make sure the following are installed on your system:
 
   * NodeJS and Node Package Manager, which is part of the NodeJS installation ([download](http://nodejs.org/download/))
   * the Gulp build system (installed via NPM: ```npm install gulp -g```)
@@ -11,7 +11,7 @@ Make sure the following are installed:
 
 Quick Start
 -----------
-Run the following commands to get everything installed.
+Run the following commands (in the deck directory) to get all dependencies installed in deck and to start the server:
   
   * ```npm install```
   * ```gulp```
