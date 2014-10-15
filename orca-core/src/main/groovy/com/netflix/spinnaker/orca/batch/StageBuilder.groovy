@@ -39,7 +39,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
 
   final String name
 
-  protected StepBuilderFactory steps
+  private StepBuilderFactory steps
 
   StageBuilder(String name) {
     this.name = name
@@ -75,6 +75,20 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   protected Step buildStep(String taskName, Class<? extends Task> taskType) {
     steps.get(stepName(taskName))
          .tasklet(buildTask(taskType))
+         .build()
+  }
+
+  /**
+   * Builds a Spring Batch +Step+ from an Orca +Task+ using required naming
+   * convention.
+   *
+   * @param taskName The simple name for the task within the context of the stage.
+   * @param task The +Task+ implementation.
+   * @return a +Step+ that will execute the specified +Task+.
+   */
+  protected Step buildStep(String taskName, Task task) {
+    steps.get(stepName(taskName))
+         .tasklet(decorate(task))
          .build()
   }
 

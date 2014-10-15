@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
-import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @CompileStatic
 class FailureRecoveryStage extends StageBuilder {
@@ -35,18 +34,12 @@ class FailureRecoveryStage extends StageBuilder {
 
   @Override
   JobFlowBuilder build(JobBuilder jobBuilder) {
-    def step1 = steps.get("StartStep")
-                     .tasklet(decorate(startTask))
-                     .build()
-    def step2 = steps.get("RecoveryStep")
-                     .tasklet(decorate(recoveryTask))
-                     .build()
-    def step3 = steps.get("EndStep")
-                     .tasklet(decorate(endTask))
-                     .build()
+    def step1 = buildStep("startStep", startTask)
+    def step2 = buildStep("recovery", recoveryTask)
+    def step3 = buildStep("end", endTask)
     (JobFlowBuilder) jobBuilder.flow(step1)
-              .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-              .from(step1).next(step3)
+                               .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
+                               .from(step1).next(step3)
   }
 
   @Override

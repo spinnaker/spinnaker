@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.monitoring.DefaultPipelineMonitor
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -61,9 +60,9 @@ class PipelineConfigurationSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
-      registerSingleton "fooStage", new TestStage("foo", steps, new DefaultPipelineMonitor(), fooTask)
-      registerSingleton "barStage", new TestStage("bar", steps, new DefaultPipelineMonitor(), barTask)
-      registerSingleton "bazStage", new TestStage("baz", steps, new DefaultPipelineMonitor(), bazTask)
+      registerSingleton "fooStage", new TestStage("foo", steps, fooTask)
+      registerSingleton "barStage", new TestStage("bar", steps, barTask)
+      registerSingleton "bazStage", new TestStage("baz", steps, bazTask)
 
       autowireBean jobStarter
     }
