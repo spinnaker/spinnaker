@@ -3,6 +3,7 @@ node_modules
 .sass-cache
 /dist
 test-results.xml
+npm-debug.log
 
 deck.iml
 .idea
