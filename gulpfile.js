@@ -50,11 +50,17 @@ gulp.task('test:karma', function(done) {
 });
 
 gulp.task('test:ci', function(done) {
-  karma.server.start({
-    configFile: __dirname+'/karma.conf.js',
-    browsers: ['Chrome'],
-    singleRun: false,
-  }, done);
+  run(
+    'clean',
+    'build:prepare',
+    function() {
+      karma.server.start({
+        configFile: __dirname+'/karma.conf.js',
+        browsers: ['Chrome'],
+        singleRun: false,
+      }, done)
+    }
+  );
 });
 
 gulp.task('test', ['test:karma']);
