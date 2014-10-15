@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-
-
 buildscript {
+  ext {
+    springBootVersion = "1.1.7.RELEASE"
+  }
   repositories {
     jcenter()
   }
   dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
   }
 }
 
+apply plugin: 'os-package'
 apply plugin: 'spring-boot'
 
 configurations.all {
@@ -45,4 +48,17 @@ dependencies {
   compile spinnaker.dependency('bootDataRest')
 }
 
-tasks.bootRepackage.enabled = false
+tasks.bootRepackage.enabled = project.hasProperty("repack") ? Boolean.parseBoolean(project.getProperty("repack")) : false
+
+ospackage {
+  packageName = 'kato'
+  version = project.version.replaceAll('-SNAPSHOT', '')
+  release '3'
+  into '/opt/kato'
+  from ("${project.buildDir}/install/${project.name}")
+}
+
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
+}
