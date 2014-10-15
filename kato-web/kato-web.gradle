@@ -48,7 +48,7 @@ dependencies {
   compile spinnaker.dependency('bootDataRest')
 }
 
-tasks.bootRepackage.enabled = project.hasProperty("repack") ? Boolean.parseBoolean(project.getProperty("repack")) : false
+tasks.bootRepackage.enabled = false
 
 ospackage {
   packageName = 'kato'
