@@ -2,7 +2,7 @@
 
 describe('scheduler', function() {
   beforeEach(function() {
-    var pollSchedule = 10;
+    var pollSchedule = 25;
     module('deckApp', function($provide) {
       return $provide.constant('settings', {
         pollSchedule: pollSchedule,
@@ -35,7 +35,7 @@ describe('scheduler', function() {
 
   describe('subscription methods', function() {
     beforeEach(function() {
-      this.numIterations = 20;
+      this.numIterations = 10;
       this.cycles = 2;
     });
 
@@ -78,7 +78,6 @@ describe('scheduler', function() {
       });
     });
   });
-
 
   describe('#scheduleImmediate', function() {
     it('invokes all subscribed callbacks immediately', function() {
