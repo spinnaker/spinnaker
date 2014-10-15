@@ -108,12 +108,11 @@ describe('Service: Pond - task complete, task force refresh', function() {
     // Scenario 2: STOPPED
     // Step 1: running
     requestHandler.respond(200, { id: 1, status: 'STARTED' });
-    task.get().then(function() {
-      task.watchForTaskComplete().then(angular.noop, function(failedTask) { result = failedTask; });
+    task.get().then(function(newTask) {
+      newTask.watchForTaskComplete().then(angular.noop, function(failedTask) { result = failedTask; });
     });
 
-    $http.flush();
-    scope.$digest();
+    cycle();
 
     // Step 2: STOPPED
     requestHandler.respond(200, { id: 1, status: 'STOPPED' });
@@ -214,6 +213,38 @@ describe('Service: Pond - task complete, task force refresh', function() {
     // Step 1: No step found (retry)
     scope.$digest();
     expect(result.status).toBe('COMPLETED');
+  });
+
+  it('cancels pending requests', function() {
+    var result = null,
+      requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+
+    requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
+    $http.flush();
+
+    task.watchForForceRefresh().then(angular.noop, function(updatedTask) { result = updatedTask; });
+
+    // Step 1: No step found (retry)
+    scope.$digest();
+    expect(result).toBe(null);
+
+    // Step 2: Step found, running (retry)
+    requestHandler.respond(200, {
+      id: 1,
+      status: 'STARTED',
+      steps: [{
+        name: 'ForceCacheRefreshStep',
+        status: 'STARTED'
+      }]
+    });
+    cycle();
+    expect(result).toBe(null);
+
+    task.cancelPolls();
+
+    cycle();
+
+    $http.verifyNoOutstandingRequest();
   });
 
 

@@ -41,6 +41,7 @@ angular.module('deckApp')
 
     function updateTask(original, updated) {
       original.status = updated.status;
+      original.steps = updated.steps;
       original.endTime = updated.endTime;
       original.variables = updated.variables;
       if (updated.katoTasks.length) {
@@ -50,6 +51,8 @@ angular.module('deckApp')
     }
 
     function setTaskProperties(task) {
+
+      task.pendingPolls = [];
 
       task.updateKatoTask = function(katoTask) {
         var katoTasks = getKatoTasks(task);
@@ -65,6 +68,9 @@ angular.module('deckApp')
       };
 
       task.getValueFor = function(key) {
+        if (!task.variables) {
+          return null;
+        }
         var matching = task.variables.filter(function(item) {
           return item.key === key;
         });
@@ -84,15 +90,17 @@ angular.module('deckApp')
 
       function refreshPondTaskForKato(task, phase, deferred) {
         return function() {
-          task.get().then(function(updatedTask) {
-            updateTask(task, updatedTask);
-            task.getCompletedKatoTask(phase).then(deferred.resolve, deferred.reject);
-          });
+          if (!deferred.promise.cancelled) {
+            task.get().then(function (updatedTask) {
+              updateTask(task, updatedTask);
+              task.getCompletedKatoTask(phase, deferred).then(deferred.resolve, deferred.reject);
+            });
+          }
         };
       }
 
-      task.getCompletedKatoTask = function(phaseFilter) {
-        var deferred = $q.defer();
+      task.getCompletedKatoTask = function(phaseFilter, chainedDeferred) {
+        var deferred = chainedDeferred || $q.defer();
 
         var katoTasks = filterToPhase(getKatoTasks(task), phaseFilter);
         var katoStatus = katoTasks && katoTasks.length ? katoTasks[katoTasks.length-1].status : null;
@@ -111,13 +119,15 @@ angular.module('deckApp')
           deferred.resolve(katoTasks[katoTasks.length-1]);
         }
 
-        if (running) {
+        if (running && !deferred.promise.cancelled) {
           if (katoTaskId) {
             // check for new task id
             kato.getTask(katoTaskId.id).get().then(
               function(katoTask) {
                 task.updateKatoTask(katoTask);
-                katoTask.waitUntilComplete().then(
+                var katoWait = katoTask.waitUntilComplete();
+                task.pendingPolls.push(katoWait);
+                katoWait.then(
                   function(updatedKatoTask) {
                     if (filterToPhase([updatedKatoTask], phaseFilter).length && updatedKatoTask.isCompleted) {
                       deferred.resolve(updatedKatoTask);
@@ -135,55 +145,68 @@ angular.module('deckApp')
             $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 500);
           }
         }
-
+        task.pendingPolls.push(deferred.promise);
         return deferred.promise;
       };
 
-      task.watchForTaskComplete = function() {
-        var deferred = $q.defer();
+      task.watchForTaskComplete = function(chainedDeferred) {
+        var deferred = chainedDeferred || $q.defer();
         if (task.isFailed) {
           deferred.reject(task);
         }
         if (task.isCompleted) {
           deferred.resolve(task);
         }
-        if (task.isRunning) {
-          $timeout(function() {
-            task.get().then(function(updatedTask) {
-              updatedTask.watchForTaskComplete().then(deferred.resolve, deferred.reject);
+        if (task.isRunning && !deferred.promise.cancelled) {
+          $timeout(function () {
+            task.get().then(function (updatedTask) {
+              updateTask(task, updatedTask);
+              task.watchForTaskComplete(deferred).then(deferred.resolve, deferred.reject);
             });
           }, 500);
         }
+        task.pendingPolls.push(deferred.promise);
         return deferred.promise;
       };
 
-      task.watchForForceRefresh = function() {
-        var deferred = $q.defer();
+      task.watchForForceRefresh = function(chainedDeferred) {
+        var deferred = chainedDeferred || $q.defer();
         if (task.isFailed) {
           deferred.reject(task);
         }
         if (task.isCompleted || task.isRunning) {
           var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
           if (forceRefreshStep.length && forceRefreshStep[0].status !== 'STARTED' && forceRefreshStep[0].status !== 'EXECUTING') {
-            if (forceRefreshStep[0].status === 'COMPLETED') {
+            var forceRefreshStatus = forceRefreshStep[0].status;
+            if (forceRefreshStatus === 'COMPLETED') {
               deferred.resolve(task);
             }
-            if (forceRefreshStep[0].status === 'FAILED') {
+            if (forceRefreshStatus === 'FAILED' || forceRefreshStatus === 'STOPPED') {
               deferred.reject(task);
             }
           } else {
             if (task.isCompleted) {
               deferred.reject(task);
             } else {
-              $timeout(function() {
-                task.get().then(function(updatedTask) {
-                  updatedTask.watchForForceRefresh().then(deferred.resolve, deferred.reject);
-                });
-              }, 500);
+              if (!deferred.promise.cancelled) {
+                $timeout(function () {
+                  task.get().then(function (updatedTask) {
+                    updateTask(task, updatedTask);
+                    task.watchForForceRefresh(deferred).then(deferred.resolve, deferred.reject);
+                  });
+                }, 500);
+              }
             }
           }
         }
+        task.pendingPolls.push(deferred.promise);
         return deferred.promise;
+      };
+
+      task.cancelPolls = function cancelPolls() {
+        task.pendingPolls.forEach(function(pendingPromise) {
+          pendingPromise.cancelled = true;
+        });
       };
 
       Object.defineProperties(task, {
@@ -191,8 +214,7 @@ angular.module('deckApp')
           get: function() {
             if (getKatoTasks(task)) {
               var katoTasks = getKatoTasks(task);
-              var katoSteps = katoTasks[katoTasks.length -1].history;
-              return katoSteps;
+              return katoTasks[katoTasks.length -1].history;
             }
             return [];
           }

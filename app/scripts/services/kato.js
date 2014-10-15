@@ -4,18 +4,25 @@
 angular.module('deckApp')
   .factory('kato', function(settings, Restangular, $timeout, $q, _) {
 
+    function updateTask(original, updated) {
+      original.status = updated.status;
+      original.history = updated.history;
+      original.resultObjects = updated.resultObjects;
+    }
+
     function setTaskProperties(task) {
-      task.waitUntilComplete = function waitUntilComplete() {
-        var deferred = $q.defer();
+      task.waitUntilComplete = function waitUntilComplete(chainedDeferred) {
+        var deferred = chainedDeferred || $q.defer();
         $timeout(function() {
           deferred.notify(task);
         });
-        if (task.isRunning) {
+        if (task.isRunning && !deferred.promise.cancelled) {
           $timeout(function() {
             task.get().then(function(updatedTask) {
-              updatedTask.waitUntilComplete().then(deferred.resolve, deferred.reject, deferred.notify);
+              updateTask(task, updatedTask);
+              task.waitUntilComplete(deferred).then(deferred.resolve, deferred.reject);
             });
-          }, 300);
+          }, 500);
         }
         if (task.isCompleted && !task.isFailed) {
           deferred.resolve(task);
