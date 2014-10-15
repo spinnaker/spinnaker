@@ -56,9 +56,12 @@ class PipelineStarter {
    */
   Pipeline start(String configJson) {
     def config = parseConfig(configJson)
-    def stages = constructStagesFrom(config)
-    def job = createJobFrom(stages, config)
+    def stageBuilders = stageBuildersFor(config)
+    def job = createJobFrom(stageBuilders, config)
     def jobExecution = launcher.run(job, new JobParameters())
+    def stages = stageBuilders.collect {
+      new Stage(it.name)
+    }
     new Pipeline(jobExecution.id.toString(), stages)
   }
 
@@ -79,7 +82,7 @@ class PipelineStarter {
     mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
   }
 
-  private List<Stage> constructStagesFrom(List<Map<String, ?>> config) {
+  private List<StageBuilder> stageBuildersFor(List<Map<String, ?>> config) {
     config.collect {
       if (it.providerType == "gce") {
         it.type = "${it.type}_gce"
@@ -93,11 +96,11 @@ class PipelineStarter {
     }
   }
 
-  private Job createJobFrom(List<Stage> stages, List<Map<String, ?>> config) {
+  private Job createJobFrom(List<StageBuilder> stageBuilders, List<Map<String, ?>> config) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
                          .flow(configStep(config))
-    def flow = (JobFlowBuilder) stages.inject(jobBuilder, this.&stageFromConfig)
+    def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&stageFromConfig)
     flow.build().build()
   }
 
@@ -119,7 +122,7 @@ class PipelineStarter {
   }
 
   // TODO: the type of the 2nd parameter here is annoying. I don't want to expose the build method on the Stage interface for SoC reasons
-  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, StageBuilder stage) {
-    stage.build(jobBuilder)
+  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, StageBuilder stageBuilder) {
+    stageBuilder.build(jobBuilder)
   }
 }
