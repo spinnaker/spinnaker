@@ -25,6 +25,14 @@ angular.module('deckApp')
         katoPhaseToMonitor: params.katoPhaseToMonitor || null
       };
 
+      monitor.onModalClose = function() {
+        if (monitor.task) {
+          monitor.task.cancelPolls();
+        }
+      };
+
+      monitor.modalInstance.result.then(monitor.onModalClose, monitor.onModalClose);
+
       monitor.closeModal = function () {
         try {
           monitor.modalInstance.dismiss();
