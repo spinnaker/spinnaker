@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
+import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
@@ -64,16 +65,34 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   abstract JobFlowBuilder build(JobFlowBuilder jobBuilder)
 
   /**
+   * Builds a Spring Batch +Step+ from an Orca +Task+ using required naming
+   * convention.
+   *
+   * @param taskName The simple name for the task within the context of the stage.
+   * @param taskType The +Task+ implementation class.
+   * @return a +Step+ that will execute an instance of the required +Task+.
+   */
+  protected Step buildStep(String taskName, Class<? extends Task> taskType) {
+    steps.get(stepName(taskName))
+         .tasklet(buildTask(taskType))
+         .build()
+  }
+
+  /**
    * Builds and autowires a task.
    *
    * @param taskType The +Task+ implementation class.
    * @return a +Tasklet+ that wraps the task implementation. This can be appended to the job as a tasklet step.
    * @see org.springframework.batch.core.step.builder.StepBuilder#tasklet(org.springframework.batch.core.step.tasklet.Tasklet)
    */
-  protected Tasklet buildTask(Class<? extends Task> taskType) {
+  private Tasklet buildTask(Class<? extends Task> taskType) {
     def task = taskType.newInstance()
     autowire task
     decorate task
+  }
+
+  private String stepName(String taskName) {
+    "${name}.${taskName}"
   }
 
   @Autowired

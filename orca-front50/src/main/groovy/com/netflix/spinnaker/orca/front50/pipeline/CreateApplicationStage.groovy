@@ -32,14 +32,8 @@ class CreateApplicationStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("CreateApplicationStep")
-      .tasklet(buildTask(CreateApplicationTask))
-      .build()
-
-    def step2 = steps.get("ForceCacheRefreshStep")
-      .tasklet(buildTask(ApplicationForceCacheRefreshTask))
-      .build()
-
+    def step1 = buildStep("createApplication", CreateApplicationTask)
+    def step2 = buildStep("forceCacheRefresh", ApplicationForceCacheRefreshTask)
     [step1, step2]
   }
 }

@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.ResizeGoogleReplicaPoolTask
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.ResizeGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -38,21 +38,11 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("ResizeAsgStep")
-                     .tasklet(buildTask(ResizeGoogleReplicaPoolTask))
-                     .build()
-    def step2 = steps.get("MonitorAsgStep")
-                     .tasklet(buildTask(MonitorKatoTask))
-                     .build()
-    def step3 = steps.get("ForceCacheRefreshStep")
-                     .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
-                     .build()
-    def step4 = steps.get("WaitForCapacityMatchStep")
-                     .tasklet(buildTask(WaitForCapacityMatchTask))
-                     .build()
-    def step5 = steps.get("SendNotificationStep")
-                     .tasklet(buildTask(NotifyEchoTask))
-                     .build()
+    def step1 = buildStep("resizeAsg", ResizeGoogleReplicaPoolTask)
+    def step2 = buildStep("monitorAsg", MonitorKatoTask)
+    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep("waitForCapacityMatch", WaitForCapacityMatchTask)
+    def step5 = buildStep("sendNotification", NotifyEchoTask)
 
     [step1, step2, step3, step4, step5]
   }

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.TerminateGoogleInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.TerminateGoogleInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -37,22 +37,10 @@ class TerminateGoogleInstancesStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("TerminateInstancesStep")
-      .tasklet(buildTask(TerminateGoogleInstancesTask))
-      .build()
-
-    def step2 = steps.get("MonitorTerminationStep")
-      .tasklet(buildTask(MonitorKatoTask))
-      .build()
-
-    def step3 = steps.get("WaitForTerminatedInstancesStep")
-      .tasklet(buildTask(WaitForTerminatedInstancesTask))
-      .build()
-
-    def step4 = steps.get("SendNotificationStep")
-      .tasklet(buildTask(NotifyEchoTask))
-      .build()
-
+    def step1 = buildStep("terminateInstances", TerminateGoogleInstancesTask)
+    def step2 = buildStep("monitorTermination", MonitorKatoTask)
+    def step3 = buildStep("waitForTerminatedInstances", WaitForTerminatedInstancesTask)
+    def step4 = buildStep("sendNotification", NotifyEchoTask)
     [step1, step2, step3, step4]
   }
 }
