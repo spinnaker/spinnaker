@@ -33,6 +33,9 @@
     "xdescribe": false,
     "jasmine": false,
     "spyOn": false,
+    "runs": false,
+    "waits": false,
+    "waitsFor": false,
     "loadDeckWithoutCacheInitializer": false
   }
 }
