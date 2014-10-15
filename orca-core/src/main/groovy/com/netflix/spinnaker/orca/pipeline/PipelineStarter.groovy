@@ -57,12 +57,12 @@ class PipelineStarter {
   Pipeline start(String configJson) {
     def config = parseConfig(configJson)
     def stageBuilders = stageBuildersFor(config)
-    def job = createJobFrom(stageBuilders, config)
-    def jobExecution = launcher.run(job, new JobParameters())
-    def stages = stageBuilders.collect {
+    def pipeline = new Pipeline("orca-job-${UUID.randomUUID()}", stageBuilders.collect {
       new Stage(it.name)
-    }
-    new Pipeline(jobExecution.id.toString(), stages)
+    })
+    def job = createJobFrom(stageBuilders, config, pipeline)
+    launcher.run(job, new JobParameters())
+    return pipeline
   }
 
   @PostConstruct
@@ -96,22 +96,23 @@ class PipelineStarter {
     }
   }
 
-  private Job createJobFrom(List<StageBuilder> stageBuilders, List<Map<String, ?>> config) {
+  private Job createJobFrom(List<StageBuilder> stageBuilders, List<Map<String, ?>> config, Pipeline pipeline) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
-                         .flow(configStep(config))
+    def jobBuilder = jobs.get(pipeline.id)
+                         .flow(configStep(config, pipeline))
     def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&stageFromConfig)
     flow.build().build()
   }
 
-  private TaskletStep configStep(configMap) {
+  private TaskletStep configStep(configMap, Pipeline pipeline) {
     steps.get("orca-config-step")
-         .tasklet(configTasklet(configMap))
+         .tasklet(configTasklet(configMap, pipeline))
          .build()
   }
 
-  private Tasklet configTasklet(configMap) {
+  private Tasklet configTasklet(configMap, Pipeline pipeline) {
     { StepContribution contribution, ChunkContext chunkContext ->
+      chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("pipeline", pipeline)
       configMap.each { Map<String, ?> entry ->
         entry.each {
           chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("$entry.type.$it.key", it.value)

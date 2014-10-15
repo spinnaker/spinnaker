@@ -28,7 +28,7 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class PipelineStatusPropagationListenerSpec extends Specification {
 
-  @Subject listener = new PipelineStatusPropagationListener()
+  @Subject listener = PipelineStatusPropagationListener.instance
 
   def "updates the stage status when a task execution completes"() {
     given: "a batch execution context"

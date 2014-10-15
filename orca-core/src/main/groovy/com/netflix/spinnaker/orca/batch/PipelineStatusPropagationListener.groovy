@@ -23,12 +23,13 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.StepExecutionListenerSupport
 
+@Singleton
 @CompileStatic
 class PipelineStatusPropagationListener extends StepExecutionListenerSupport {
 
   @Override
   ExitStatus afterStep(StepExecution stepExecution) {
-    Pipeline pipeline = stepExecution.jobExecution.executionContext.get("pipeline") as Pipeline
+    def pipeline = stepExecution.jobExecution.executionContext.get("pipeline") as Pipeline
     def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
     pipeline.namedStage(stageName).status = PipelineStatus.valueOf(stepExecution.exitStatus.exitDescription)
 
