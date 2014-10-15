@@ -13,9 +13,7 @@ Quick Start
 -----------
 Run the following commands to get everything installed.
   
-  * ```npm install bower -g```
   * ```npm install```
-  * ```bower install```
   * ```gulp```
 
 The app will start up on localhost:9000.
