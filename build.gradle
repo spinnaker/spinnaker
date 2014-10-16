@@ -37,7 +37,7 @@ ext {
         kork    : "1.18",
         okhttp  : "2.0.0",
         retrofit: "1.6.1",
-        rx      : "0.19.6",
+        rx      : "0.20.2",
         slf4j   : "1.7.5",
         spock   : "1.0-groovy-2.3-SNAPSHOT",
         spring  : "4.0.6.RELEASE"
