@@ -14,54 +14,15 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca
 
 import com.google.common.collect.ImmutableMap
 
 interface TaskResult {
 
-  Status getStatus()
+  PipelineStatus getStatus()
 
   ImmutableMap<String, Object> getOutputs()
 
-  /**
-   * Indicates the state at the end of a call to {@link Task#execute}.
-   */
-  static enum Status {
-    /**
-     * The task is still running and the {@code Task} may be re-executed in order to continue.
-     */
-    RUNNING(false),
-
-    /**
-     * The task is complete but the pipeline should now be stopped pending a trigger of some kind.
-     */
-    SUSPENDED(false),
-
-    /**
-     * The task executed successfully and the pipeline may now proceed to the next task.
-     */
-    SUCCEEDED(true),
-
-    /**
-     * The task failed and the pipeline should be able to recover through subsequent steps.
-     */
-    FAILED(true),
-
-    /**
-     * The task failed and the failure was terminal. The pipeline will not progress any further.
-     */
-    TERMINAL(true)
-
-    final boolean complete
-
-    Status(boolean complete) {
-      this.complete = complete
-    }
-  }
 }
 

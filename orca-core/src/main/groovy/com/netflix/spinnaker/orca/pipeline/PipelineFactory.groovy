@@ -17,19 +17,18 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.explore.JobExplorer
 
 @CompileStatic
-class DefaultPipeline implements Pipeline {
+class PipelineFactory {
 
-  private final JobExecution jobExecution
+  private final JobExplorer jobExplorer
 
-  DefaultPipeline(JobExecution jobExecution) {
-    this.jobExecution = jobExecution
+  PipelineFactory(JobExplorer jobExplorer) {
+    this.jobExplorer = jobExplorer
   }
 
-  @Override
-  String getId() {
-    jobExecution.id
+  Pipeline retrieve(String id) {
+    jobExplorer.getJobExecution(id.toLong()).executionContext.get("pipeline") as Pipeline
   }
 }

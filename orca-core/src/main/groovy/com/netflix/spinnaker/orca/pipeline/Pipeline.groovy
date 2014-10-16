@@ -16,8 +16,43 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-interface Pipeline {
+import groovy.transform.CompileStatic
+import com.google.common.collect.ImmutableList
+import com.netflix.spinnaker.orca.PipelineStatus
+import static com.netflix.spinnaker.orca.PipelineStatus.*
 
-  String getId()
+@CompileStatic
+class Pipeline implements Serializable {
 
+  final String id
+  final ImmutableList<Stage> stages
+
+  Pipeline(String id, List<Stage> stages) {
+    this.id = id
+    this.stages = ImmutableList.copyOf(stages)
+  }
+
+  Pipeline(String id, Stage... stages) {
+    this(id, stages.toList())
+  }
+
+  Stage namedStage(String name) {
+    stages.find {
+      it.name == name
+    }
+  }
+
+  PipelineStatus getStatus() {
+    def status = stages.status.reverse().find {
+      it != NOT_STARTED
+    }
+
+    if (!status) {
+      NOT_STARTED
+    } else if (status == SUCCEEDED && stages.last().status != SUCCEEDED) {
+      RUNNING
+    } else {
+      status
+    }
+  }
 }

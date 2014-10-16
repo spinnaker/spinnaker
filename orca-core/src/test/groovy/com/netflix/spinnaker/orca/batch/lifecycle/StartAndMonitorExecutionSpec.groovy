@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -25,8 +21,8 @@ import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.TaskResult.Status.RUNNING
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
+import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
+import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
 
 class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
 
@@ -80,7 +76,8 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
-        .build(jobBuilder)
-        .build()
+      .build(jobBuilder)
+      .build()
+      .build()
   }
 }

@@ -18,10 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,13 +40,15 @@ class DestroyAsgTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        ["notification.type"   : "destroyasg",
-         "deploy.account.name" : operation.credentials,
-         "kato.last.task.id"   : taskId,
-         "kato.task.id"        : taskId, // TODO retire this.
-         "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }
-        ])
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+      "notification.type"   : "destroyasg",
+      "deploy.account.name" : operation.credentials,
+      "kato.last.task.id"   : taskId,
+      "kato.task.id"        : taskId, // TODO retire this.
+      "deploy.server.groups": operation.regions.collectEntries {
+        [(it): operation.asgName]
+      }
+    ])
   }
 
   DestroyAsgOperation convert(TaskContext context) {

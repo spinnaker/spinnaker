@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.AsgActionWaitForDownInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.DisableAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
@@ -37,18 +37,10 @@ class DisableAsgStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("DisableAsgStep")
-                     .tasklet(buildTask(DisableAsgTask))
-                     .build()
-    def step2 = steps.get("MonitorAsgStep")
-                     .tasklet(buildTask(MonitorKatoTask))
-                     .build()
-    def step3 = steps.get("WaitForDownInstancesStep")
-                     .tasklet(buildTask(AsgActionWaitForDownInstancesTask))
-                     .build()
-    def step4 = steps.get("SendNotificationStep")
-                     .tasklet(buildTask(NotifyEchoTask))
-                     .build()
+    def step1 = buildStep("disableAsg", DisableAsgTask)
+    def step2 = buildStep("monitorAsg", MonitorKatoTask)
+    def step3 = buildStep("waitForDownInstances", AsgActionWaitForDownInstancesTask)
+    def step4 = buildStep("sendNotification", NotifyEchoTask)
     [step1, step2, step3, step4]
   }
 

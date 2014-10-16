@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.smoke
 
-import spock.lang.Requires
-import spock.lang.Specification
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
@@ -26,9 +24,12 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
+import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Requires
+import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
@@ -39,40 +40,43 @@ class OrcaSmokeSpec extends Specification {
 
   @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
+  @Autowired JobExplorer jobExplorer
 
   def "can bake and deploy"() {
     given:
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def execution = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
 
     then:
-    execution.status == BatchStatus.COMPLETED
-    execution.exitStatus == ExitStatus.COMPLETED
+    with(jobExplorer.getJobExecution(pipeline.id.toLong())) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
+    }
 
     where:
     app = "mimirdemo"
     region = "us-west-1"
     config = [
-        [
-            type     : "bake",
-            region   : region,
-            user     : "danw",
-            package  : app,
-            baseOs   : "ubuntu",
-            baseLabel: "release"
-        ], [
-            type             : "deploy",
-            application      : app,
-            stack            : "test",
-            instanceType     : "m3.large",
-            securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
-            subnetType       : "internal",
-            availabilityZones: [(region): []],
-            capacity         : [min: 1, max: 1, desired: 1],
-            credentials      : "test"
-        ]
+      [
+        type     : "bake",
+        region   : region,
+        user     : "danw",
+        package  : app,
+        baseOs   : "ubuntu",
+        baseLabel: "release"
+      ], [
+        type             : "deploy",
+        application      : app,
+        stack            : "test",
+        instanceType     : "m3.large",
+        securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
+        subnetType       : "internal",
+        availabilityZones: [(region): []],
+        capacity         : [min: 1, max: 1, desired: 1],
+        credentials      : "test"
+      ]
     ]
   }
 
@@ -80,21 +84,23 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def execution = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
 
     then:
-    execution.status == BatchStatus.COMPLETED
-    execution.exitStatus == ExitStatus.COMPLETED
+    with(jobExplorer.getJobExecution(pipeline.id.toLong())) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
+    }
 
     where:
     config = [
-        [
-            type             : 'copyLastAsg',
-            application      : "mimirdemo",
-            stack            : "test",
-            availabilityZones: ['us-east-1': []],
-            credentials      : 'test'
-        ]
+      [
+        type             : "copyLastAsg",
+        application      : "mimirdemo",
+        stack            : "test",
+        availabilityZones: ["us-east-1": []],
+        credentials      : "test"
+      ]
     ]
   }
 }

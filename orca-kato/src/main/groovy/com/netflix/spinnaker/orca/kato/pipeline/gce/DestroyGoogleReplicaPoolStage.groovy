@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import com.netflix.spinnaker.orca.kato.tasks.*
-import com.netflix.spinnaker.orca.kato.tasks.gce.*
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
+import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.DestroyGoogleReplicaPoolTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.PreconfigureDestroyGoogleReplicaPoolTask
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -40,24 +44,12 @@ class DestroyGoogleReplicaPoolStage extends LinearStage {
   protected List<Step> buildSteps() {
     def resizeSteps = resizeGoogleReplicaPoolStage.buildSteps()
 
-    def step1 = steps.get("PreconfigureResizeStep")
-                     .tasklet(buildTask(PreconfigureDestroyGoogleReplicaPoolTask))
-                     .build()
-    def step2 = steps.get("DestroyAsgStep")
-                     .tasklet(buildTask(DestroyGoogleReplicaPoolTask))
-                     .build()
-    def step3 = steps.get("MonitorAsgStep")
-                     .tasklet(buildTask(MonitorKatoTask))
-                     .build()
-    def step4 = steps.get("ForceCacheRefreshStep")
-                     .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
-                     .build()
-    def step5 = steps.get("WaitForCapacityMatchStep")
-                     .tasklet(buildTask(WaitForCapacityMatchTask))
-                     .build()
-    def step6 = steps.get("SendNotificationStep")
-                     .tasklet(buildTask(NotifyEchoTask))
-                     .build()
+    def step1 = buildStep("preconfigureResize", PreconfigureDestroyGoogleReplicaPoolTask)
+    def step2 = buildStep("destroyAsg", DestroyGoogleReplicaPoolTask)
+    def step3 = buildStep("monitorAsg", MonitorKatoTask)
+    def step4 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step5 = buildStep("waitForCapacityMatch", WaitForCapacityMatchTask)
+    def step6 = buildStep("sendNotification", NotifyEchoTask)
 
     [step1, resizeSteps, step2, step3, step4, step5, step6].flatten().toList()
   }

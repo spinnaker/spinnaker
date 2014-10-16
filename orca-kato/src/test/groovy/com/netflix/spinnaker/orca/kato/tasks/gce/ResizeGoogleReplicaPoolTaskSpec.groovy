@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.tasks.gce.ResizeGoogleReplicaPoolTaskSpec
+import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -31,14 +30,14 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
-      asgName    : "test-replica-pool",
-      zones      : "us-central1-b",
-      credentials: "fzlem",
-      capacity   : [
-          min: 1,
-          max: 10,
-          desired: 6
-      ]
+    asgName    : "test-replica-pool",
+    zones      : "us-central1-b",
+    credentials: "fzlem",
+    capacity   : [
+      min    : 1,
+      max    : 10,
+      desired: 6
+    ]
   ]
 
   def setup() {
@@ -49,40 +48,40 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
 
   def "creates a resize google replica pool task based on job parameters"() {
     given:
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[0]
-          rx.Observable.from(taskId)
-        }
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        rx.Observable.from(taskId)
       }
+    }
 
     when:
-      task.execute(context)
+    task.execute(context)
 
     then:
-      operations.size() == 1
-      with(operations[0].resizeGoogleReplicaPoolDescription) {
-        it instanceof ResizeGoogleReplicaPoolOperation
-        replicaPoolName == resizeASGConfig.asgName
-        zone == resizeASGConfig.zones[0]
-        credentials == resizeASGConfig.credentials
-        numReplicas == resizeASGConfig.capacity.desired
-      }
+    operations.size() == 1
+    with(operations[0].resizeGoogleReplicaPoolDescription) {
+      it instanceof ResizeGoogleReplicaPoolOperation
+      replicaPoolName == resizeASGConfig.asgName
+      zone == resizeASGConfig.zones[0]
+      credentials == resizeASGConfig.credentials
+      numReplicas == resizeASGConfig.capacity.desired
+    }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-      task.kato = Stub(KatoService) {
-        requestOperations(*_) >> rx.Observable.from(taskId)
-      }
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> rx.Observable.from(taskId)
+    }
 
     when:
-      def result = task.execute(context)
+    def result = task.execute(context)
 
     then:
-      result.status == TaskResult.Status.SUCCEEDED
-      result.outputs."kato.task.id" == taskId
-      result.outputs."deploy.account.name" == resizeASGConfig.credentials
+    result.status == PipelineStatus.SUCCEEDED
+    result.outputs."kato.task.id" == taskId
+    result.outputs."deploy.account.name" == resizeASGConfig.credentials
   }
 }

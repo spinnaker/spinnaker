@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.Step
-import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 
 @CompileStatic
 class SimpleStage extends LinearStage {
@@ -33,6 +32,6 @@ class SimpleStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    [steps.get("${name}Step").tasklet(decorate(task)).build()]
+    [buildStep("task", task)]
   }
 }

@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -40,22 +40,10 @@ class DeleteAmazonLoadBalancerStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("DeleteAmazonLoadBalancerStep")
-      .tasklet(buildTask(DeleteAmazonLoadBalancerTask))
-      .build()
-
-    def step2 = steps.get("ForceCacheRefreshStep")
-      .tasklet(buildTask(DeleteAmazonLoadBalancerForceRefreshTask))
-      .build()
-
-    def step3 = steps.get("MonitorDeleteStep")
-      .tasklet(buildTask(MonitorKatoTask))
-      .build()
-
-    def step4 = steps.get("SendNotificationStep")
-      .tasklet(buildTask(NotifyEchoTask))
-      .build()
-
+    def step1 = buildStep("deleteAmazonLoadBalancer", DeleteAmazonLoadBalancerTask)
+    def step2 = buildStep("forceCacheRefresh", DeleteAmazonLoadBalancerForceRefreshTask)
+    def step3 = buildStep("monitorDelete", MonitorKatoTask)
+    def step4 = buildStep("sendNotification", NotifyEchoTask)
     [step1, step2, step3, step4]
   }
 }

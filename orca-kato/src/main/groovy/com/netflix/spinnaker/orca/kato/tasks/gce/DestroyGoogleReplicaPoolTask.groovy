@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,9 +32,8 @@ class DestroyGoogleReplicaPoolTask implements Task {
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        [
-         "notification.type"   : "destroygooglereplicapool",
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+      "notification.type": "destroygooglereplicapool",
          "deploy.account.name" : operation.credentials,
          "kato.last.task.id"   : taskId,
          "kato.task.id"        : taskId, // TODO retire this.

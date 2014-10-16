@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.ops.EnableOrDisableAsgOperation
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.api.ops.EnableOrDisableAsgOperation
+import spock.lang.Specification
+import spock.lang.Subject
 
 /**
  * Created by aglover on 7/10/14.
@@ -85,7 +85,7 @@ class EnableAsgTaskSpec extends Specification {
     def result = task.execute(context)
 
     then:
-    result.status == TaskResult.Status.SUCCEEDED
+    result.status == PipelineStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
     result.outputs."deploy.account.name" == disableASGConfig.credentials
   }

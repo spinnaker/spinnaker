@@ -17,13 +17,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
-import com.netflix.spinnaker.orca.kato.tasks.SecurityGroupForceCacheRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.UpsertSecurityGroupTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForUpsertedSecurityGroupTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -39,26 +35,11 @@ class UpsertSecurityGroupStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def step1 = steps.get("UpsertSecurityGroupStep")
-      .tasklet(buildTask(UpsertSecurityGroupTask))
-      .build()
-
-    def step2 = steps.get("MonitorUpsertStep")
-      .tasklet(buildTask(MonitorKatoTask))
-      .build()
-
-    def step3 = steps.get("ForceCacheRefreshStep")
-      .tasklet(buildTask(SecurityGroupForceCacheRefreshTask))
-      .build()
-
-    def step4 = steps.get("WaitForUpsertedSecurityGroupStep")
-      .tasklet(buildTask(WaitForUpsertedSecurityGroupTask))
-      .build()
-
-    def step5 = steps.get("SendNotificationStep")
-      .tasklet(buildTask(NotifyEchoTask))
-      .build()
-
+    def step1 = buildStep("upsertSecurityGroup", UpsertSecurityGroupTask)
+    def step2 = buildStep("monitorUpsert", MonitorKatoTask)
+    def step3 = buildStep("forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
+    def step4 = buildStep("waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
+    def step5 = buildStep("sendNotification", NotifyEchoTask)
     [step1, step2, step3, step4, step5]
   }
 }

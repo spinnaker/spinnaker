@@ -21,7 +21,4 @@ dependencies {
   compile commonDependencies.jacksonDatabind
   compile commonDependencies.jacksonGuava
   testCompile project(":orca-test")
-  testCompile commonDependencies.springBatchTest
-  testRuntime commonDependencies.spockSpring
-  testRuntime commonDependencies.springTest
 }

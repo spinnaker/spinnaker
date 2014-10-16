@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import rx.Observable
+import spock.lang.Specification
+import spock.lang.Subject
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
 import static java.util.UUID.randomUUID
 
@@ -39,11 +35,11 @@ class CreateBakeTaskSpec extends Specification {
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
   def bakeConfig = [
-      region   : "us-west-1",
-      package  : "hodor",
-      user     : "bran",
-      baseOs   : BakeRequest.OperatingSystem.ubuntu.name(),
-      baseLabel: BakeRequest.Label.release.name()
+    region   : "us-west-1",
+    package  : "hodor",
+    user     : "bran",
+    baseOs   : BakeRequest.OperatingSystem.ubuntu.name(),
+    baseLabel: BakeRequest.Label.release.name()
   ]
 
   def setup() {

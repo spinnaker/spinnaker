@@ -18,14 +18,13 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.StageSupport
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 @CompileStatic
-class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
+class ManualInterventionStage extends StageBuilder {
 
   Task preInterventionTask, postInterventionTask, finalTask
 
@@ -34,26 +33,19 @@ class ManualInterventionStage extends StageSupport<FlowJobBuilder> {
   }
 
   @Override
-  FlowJobBuilder build(JobBuilder jobBuilder) {
-    def step1 = steps.get("PreInterventionStep")
-                     .tasklet(TaskTaskletAdapter.decorate(preInterventionTask))
-                     .build()
-    def step2 = steps.get("PostInterventionStep")
-                     .tasklet(TaskTaskletAdapter.decorate(postInterventionTask))
-                     .build()
-    def step3 = steps.get("FinalStep")
-                     .tasklet(TaskTaskletAdapter.decorate(finalTask))
-                     .build()
-    jobBuilder.start(step1)
-              .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
-              .from(step1)
-              .on(ExitStatus.COMPLETED.exitCode).to(step2)
-              .next(step3)
-              .build()
+  JobFlowBuilder build(JobBuilder jobBuilder) {
+    def step1 = buildStep("preIntervention", preInterventionTask)
+    def step2 = buildStep("postIntervention", postInterventionTask)
+    def step3 = buildStep("final", finalTask)
+    (JobFlowBuilder) jobBuilder.start(step1)
+                               .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
+                               .from(step1)
+                               .on(ExitStatus.COMPLETED.exitCode).to(step2)
+                               .next(step3)
   }
 
   @Override
-  FlowJobBuilder build(FlowJobBuilder jobBuilder) {
+  JobFlowBuilder build(JobFlowBuilder jobBuilder) {
     throw new UnsupportedOperationException()
   }
 }

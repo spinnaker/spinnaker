@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.test.httpserver.internal
 
 import groovy.transform.CompileStatic
@@ -27,7 +23,7 @@ import com.sun.net.httpserver.HttpExchange
 class CompletingHttpHandler extends HttpHandlerChain {
 
   @Override
-  void handle(HttpExchange exchange) throws IOException {
+  void handle(HttpExchange exchange) {
     try {
       next exchange
     } finally {

@@ -18,6 +18,8 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
   compile commonDependencies.spock
-  compile commonDependencies.springBatch
+  compile commonDependencies.springTest
+  compile commonDependencies.springBatchTest
+  runtime commonDependencies.spockSpring
   compile project(":orca-jedis")
 }

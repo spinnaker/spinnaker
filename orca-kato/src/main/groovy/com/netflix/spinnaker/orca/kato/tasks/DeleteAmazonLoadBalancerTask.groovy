@@ -16,10 +16,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAmazonLoadBalancerOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,7 +49,7 @@ class DeleteAmazonLoadBalancerTask implements Task {
       "delete.regions"     : deleteAmazonLoadBalancerOperation.regions.join(','),
       "delete.account.name": deleteAmazonLoadBalancerOperation.credentials
     ]
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, outputs)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
   DeleteAmazonLoadBalancerOperation convert(TaskContext context) {

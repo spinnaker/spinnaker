@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import rx.Observable
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 import static java.util.UUID.randomUUID
 
 class MonitorBakeTaskSpec extends Specification {
@@ -55,11 +51,11 @@ class MonitorBakeTaskSpec extends Specification {
 
     where:
     bakeState                  | taskStatus
-    BakeStatus.State.PENDING   | TaskResult.Status.RUNNING
-    BakeStatus.State.RUNNING   | TaskResult.Status.RUNNING
-    BakeStatus.State.COMPLETED | TaskResult.Status.SUCCEEDED
-    BakeStatus.State.CANCELLED | TaskResult.Status.FAILED
-    BakeStatus.State.SUSPENDED | TaskResult.Status.RUNNING
+    BakeStatus.State.PENDING   | PipelineStatus.RUNNING
+    BakeStatus.State.RUNNING   | PipelineStatus.RUNNING
+    BakeStatus.State.COMPLETED | PipelineStatus.SUCCEEDED
+    BakeStatus.State.CANCELLED | PipelineStatus.FAILED
+    BakeStatus.State.SUSPENDED | PipelineStatus.RUNNING
 
     id = randomUUID().toString()
   }

@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class CreateGoogleServerGroupTask implements Task {
@@ -34,7 +34,7 @@ class CreateGoogleServerGroupTask implements Task {
   TaskResult execute(TaskContext context) {
     def operation = convert(context)
     def taskId = deploy(operation)
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED,
         [
             "notification.type"  : "createdeploy",
             "kato.last.task.id"  : taskId,
@@ -48,6 +48,7 @@ class CreateGoogleServerGroupTask implements Task {
     def inputs = context.getInputs("deploy_gce")
     new DeployGoogleServerGroupOperation(application: inputs.application,
                                          stack: inputs.stack,
+                                         freeFormDetails: inputs.freeFormDetails,
                                          image: inputs.image,
                                          type: inputs.machineType,
                                          zone: inputs.zones ? inputs.zones[0] : null,

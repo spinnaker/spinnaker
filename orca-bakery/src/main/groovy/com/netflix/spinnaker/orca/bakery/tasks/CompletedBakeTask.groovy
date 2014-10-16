@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,10 +34,10 @@ class CompletedBakeTask implements Task {
     def bakeStatus = context.inputs."bake.status" as BakeStatus
     try {
       def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
-      new DefaultTaskResult(TaskResult.Status.SUCCEEDED, ["bake.ami": bake.ami])
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["bake.ami": bake.ami])
     } catch (RetrofitError e) {
       // TODO: attach some reporting info here
-      new DefaultTaskResult(TaskResult.Status.FAILED)
+      new DefaultTaskResult(PipelineStatus.FAILED)
     }
   }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,36 +16,28 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.batch.core.job.builder.JobBuilderHelper
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.PipelineStatus
+import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
 
 /**
- * An object that constructs steps for a Spring Batch +Job+ relating to a specific Orca _stage_.
+ * A _stage_ of an Orca _pipeline_.
  */
-interface Stage<B extends JobBuilderHelper<B>> {
+@CompileStatic
+class Stage implements Serializable {
 
   /**
    * @return the name that corresponds to Mayo config.
    */
-  String getName()
-
-  // TODO: may not need this method if we always have a config handling step first
-  /**
-   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
-   * is typically called when the stage is the first in the pipeline.
-   *
-   * @param jobBuilder the builder for the job. Implementations should append steps to this.
-   * @return the resulting builder after any steps are appended.
-   */
-  abstract B build(JobBuilder jobBuilder)
+  final String name
 
   /**
-   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
-   * is typically called when the stage is not the first in the pipeline.
-   *
-   * @param jobBuilder the builder for the job. Implementations should append steps to this.
-   * @return the resulting builder after any steps are appended.
+   * @return the status of the stage. Effectively this will mean the status of
+   * the last {@link com.netflix.spinnaker.orca.Task} to be executed.
    */
-  abstract B build(B jobBuilder)
+  PipelineStatus status = NOT_STARTED
 
+  Stage(String name) {
+    this.name = name
+  }
 }

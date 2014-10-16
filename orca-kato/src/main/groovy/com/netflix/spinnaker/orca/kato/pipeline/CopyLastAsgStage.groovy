@@ -16,12 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
@@ -38,24 +34,12 @@ class CopyLastAsgStage extends LinearStage {
 
   @Override
     protected List<Step> buildSteps() {
-        def step1 = steps.get("CreateCopyLastAsgStep")
-                .tasklet(buildTask(CreateCopyLastAsgTask))
-                .build()
-        def step2 = steps.get("MonitorDeployStep")
-                .tasklet(buildTask(MonitorKatoTask))
-                .build()
-        def step3 = steps.get("ForceCacheRefreshStep")
-                .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
-                .build()
-        def step4 = steps.get("WaitForUpInstancesStep")
-                .tasklet(buildTask(WaitForUpInstancesTask))
-                .build()
-        def step5 = steps.get("ForceCacheRefreshStep")
-                .tasklet(buildTask(ServerGroupCacheForceRefreshTask))
-                .build()
-        def step6 = steps.get("SendNotificationStep")
-                .tasklet(buildTask(NotifyEchoTask))
-                .build()
+    def step1 = buildStep("createCopyLastAsg", CreateCopyLastAsgTask)
+    def step2 = buildStep("monitorDeploy", MonitorKatoTask)
+    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
+    def step5 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step6 = buildStep("sendNotification", NotifyEchoTask)
         [step1, step2, step3, step4, step5, step6]
     }
 

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
@@ -26,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.UpsertAmazonLoadBalancerOperation
 import org.springframework.beans.factory.annotation.Autowired
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class UpsertAmazonLoadBalancerTask implements Task {
 
@@ -58,7 +57,7 @@ class UpsertAmazonLoadBalancerTask implements Task {
       outputs."upsert.name" = upsertAmazonLoadBalancerOperation.name
     }
 
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, outputs)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
   UpsertAmazonLoadBalancerOperation convert(TaskContext context) {

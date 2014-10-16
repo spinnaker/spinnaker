@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,12 +37,13 @@ class ResizeAsgTask implements Task {
     def taskId = kato.requestOperations([[resizeAsgDescription: resizeAsgOperation]])
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-        ["notification.type"   : "resizeasg",
-         "deploy.account.name" : resizeAsgOperation.credentials,
-         "kato.last.task.id"   : taskId,
-         "kato.task.id"        : taskId, // TODO retire this.
-         "deploy.server.groups": [(resizeAsgOperation.regions): [resizeAsgOperation.asgName]]])
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+      "notification.type"   : "resizeasg",
+      "deploy.account.name" : resizeAsgOperation.credentials,
+      "kato.last.task.id"   : taskId,
+      "kato.task.id"        : taskId, // TODO retire this.
+      "deploy.server.groups": [(resizeAsgOperation.regions): [resizeAsgOperation.asgName]]
+    ])
   }
 
   ResizeAsgOperation convert(TaskContext context) {

@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,8 +31,8 @@ class ResizeGoogleReplicaPoolTask implements Task {
     def taskId = kato.requestOperations([[resizeGoogleReplicaPoolDescription: resizeGoogleReplicaPoolOperation]])
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED,
-                          ["notification.type"   : "resizegooglereplicapool",
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+      "notification.type": "resizegooglereplicapool",
                            "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
                            "kato.last.task.id"   : taskId,
                            "kato.task.id"        : taskId, // TODO retire this.

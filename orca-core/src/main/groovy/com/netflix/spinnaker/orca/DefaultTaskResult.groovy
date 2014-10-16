@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca
 
 import groovy.transform.CompileStatic
@@ -26,14 +22,20 @@ import com.google.common.collect.ImmutableMap
 @CompileStatic
 final class DefaultTaskResult implements TaskResult {
 
-  final TaskResult.Status status
+  /**
+   * A useful constant for a success result with no outputs.
+   */
+  public static
+  final DefaultTaskResult SUCCEEDED = new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+
+  final PipelineStatus status
   final ImmutableMap<String, Object> outputs
 
-  DefaultTaskResult(TaskResult.Status status) {
+  DefaultTaskResult(PipelineStatus status) {
     this(status, [:])
   }
 
-  DefaultTaskResult(TaskResult.Status status, Map<String, ? extends Object> outputs) {
+  DefaultTaskResult(PipelineStatus status, Map<String, ? extends Object> outputs) {
     this.status = status
     this.outputs = ImmutableMap.copyOf(outputs)
   }

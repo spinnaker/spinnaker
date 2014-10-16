@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.kato.api
 
 import groovy.transform.CompileStatic
@@ -33,13 +29,13 @@ class Task {
   List<StatusLine> history
 
   @Immutable
-  static class Status {
+  static class Status implements Serializable {
     boolean completed
     boolean failed
   }
 
   @Immutable
-  static class StatusLine {
+  static class StatusLine implements Serializable {
     String phase
     String status
   }

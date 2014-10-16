@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
-import com.netflix.spinnaker.orca.TaskResult
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
+import static PipelineStatus.SUCCEEDED
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskTaskletAdapterSpec extends Specification {
@@ -69,7 +69,7 @@ class TaskTaskletAdapterSpec extends Specification {
   }
 
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
-  def "should convert step return status to equivalent batch status"() {
+  def "should convert task result status to equivalent batch status"() {
     given:
     step.execute(*_) >> new DefaultTaskResult(taskResultStatus)
 
@@ -82,9 +82,29 @@ class TaskTaskletAdapterSpec extends Specification {
     where:
     taskResultStatus            | repeatStatus             | exitStatus
     SUCCEEDED                   | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-    TaskResult.Status.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
-    TaskResult.Status.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
-    TaskResult.Status.SUSPENDED | RepeatStatus.FINISHED    | ExitStatus.STOPPED
+    PipelineStatus.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
+    PipelineStatus.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+    PipelineStatus.SUSPENDED | RepeatStatus.FINISHED    | ExitStatus.STOPPED
+  }
+
+  // TODO: this feels a bit stringly-typed but I think it's better than just throwing it into the execution context under some arbitrary key
+  @Unroll("should attach the task result status of #taskResultStatus as an exit description")
+  def "should attach the task result status as an exit description"() {
+    given:
+    step.execute(*_) >> new DefaultTaskResult(taskResultStatus)
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    stepContribution.exitStatus.exitDescription == taskResultStatus.name()
+
+    where:
+    taskResultStatus            | _
+    SUCCEEDED                   | _
+    PipelineStatus.FAILED    | _
+    PipelineStatus.RUNNING   | _
+    PipelineStatus.SUSPENDED | _
   }
 
   @Unroll
@@ -100,7 +120,7 @@ class TaskTaskletAdapterSpec extends Specification {
     stepContext.jobExecutionContext.isEmpty()
 
     where:
-    taskStatus << [TaskResult.Status.RUNNING]
+    taskStatus << [PipelineStatus.RUNNING]
     outputs = [foo: "bar", baz: "qux"]
   }
 
@@ -117,7 +137,7 @@ class TaskTaskletAdapterSpec extends Specification {
     stepContext.jobExecutionContext == outputs
 
     where:
-    taskStatus << [TaskResult.Status.FAILED, SUCCEEDED]
+    taskStatus << [PipelineStatus.FAILED, SUCCEEDED]
     outputs = [foo: "bar", baz: "qux"]
   }
 

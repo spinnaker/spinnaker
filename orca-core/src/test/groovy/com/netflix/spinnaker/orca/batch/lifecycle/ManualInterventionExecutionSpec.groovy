@@ -22,8 +22,7 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUSPENDED
+import static com.netflix.spinnaker.orca.PipelineStatus.*
 
 class ManualInterventionExecutionSpec extends BatchExecutionSpec {
 
@@ -34,6 +33,18 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
   def "pipeline will stop if the first task suspends the job"() {
     given:
     preInterventionTask.execute(_) >> new DefaultTaskResult(SUSPENDED)
+
+    when:
+    launchJob()
+
+    then:
+    0 * postInterventionTask._
+    0 * finalTask._
+  }
+
+  def "pipeline will stop if the first task fails"() {
+    given:
+    preInterventionTask.execute(_) >> new DefaultTaskResult(FAILED)
 
     when:
     launchJob()
@@ -93,7 +104,8 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     new ManualInterventionStage(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
-        .build(jobBuilder)
-        .build()
+      .build(jobBuilder)
+      .build()
+      .build()
   }
 }

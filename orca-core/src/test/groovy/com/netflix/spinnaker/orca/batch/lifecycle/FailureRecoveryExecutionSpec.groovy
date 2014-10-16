@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -25,9 +21,7 @@ import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.TaskResult.Status.FAILED
-import static com.netflix.spinnaker.orca.TaskResult.Status.SUCCEEDED
-import static com.netflix.spinnaker.orca.TaskResult.Status.TERMINAL
+import static com.netflix.spinnaker.orca.PipelineStatus.*
 
 class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
@@ -84,8 +78,13 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    new FailureRecoveryStage(steps: steps, startTask: startTask, recoveryTask: recoveryTask, endTask: endTask)
-        .build(jobBuilder)
-        .build()
+    new FailureRecoveryStage(
+      steps: steps,
+      startTask: startTask,
+      recoveryTask: recoveryTask,
+      endTask: endTask
+    ).build(jobBuilder)
+     .build()
+     .build()
   }
 }

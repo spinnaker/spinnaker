@@ -20,15 +20,13 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.FlowJobBuilder
-import org.springframework.batch.core.job.builder.JobBuilderHelper
-import org.springframework.batch.core.job.builder.SimpleJobBuilder
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -48,7 +46,7 @@ class PipelineStarter {
   @Autowired private StepBuilderFactory steps
   @Autowired private ObjectMapper mapper
 
-  private final Map<String, Stage> stages = [:]
+  private final Map<String, StageBuilder> stages = [:]
 
   /**
    * Builds and launches a _pipeline_ based on config from _Mayo_.
@@ -56,13 +54,20 @@ class PipelineStarter {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  JobExecution start(String configJson) {
-    launcher.run(pipelineFrom(parseConfig(configJson)), new JobParameters())
+  Pipeline start(String configJson) {
+    def config = parseConfig(configJson)
+    def stageBuilders = stageBuildersFor(config)
+    def pipeline = new Pipeline("orca-job-${UUID.randomUUID()}", stageBuilders.collect {
+      new Stage(it.name)
+    })
+    def job = createJobFrom(stageBuilders, config, pipeline)
+    launcher.run(job, new JobParameters())
+    return pipeline
   }
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(Stage).values().each {
+    applicationContext.getBeansOfType(StageBuilder).values().each {
       stages[it.name] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
@@ -77,22 +82,37 @@ class PipelineStarter {
     mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
   }
 
-  private Job pipelineFrom(List<Map<String, ?>> config) {
-    // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def jobBuilder = jobs.get("orca-job-${UUID.randomUUID()}")
-                         .start(configStep(config))
-    jobBuilder = (JobBuilderHelper) config.inject(jobBuilder, this.&stageFromConfig)
-    job(jobBuilder)
+  private List<StageBuilder> stageBuildersFor(List<Map<String, ?>> config) {
+    config.collect {
+      if (it.providerType == "gce") {
+        it.type = "${it.type}_gce"
+      }
+
+      if (stages.containsKey(it.type)) {
+        stages.get(it.type)
+      } else {
+        throw new NoSuchStageException(it.type as String)
+      }
+    }
   }
 
-  private TaskletStep configStep(configMap) {
+  private Job createJobFrom(List<StageBuilder> stageBuilders, List<Map<String, ?>> config, Pipeline pipeline) {
+    // TODO: can we get any kind of meaningful identifier from the mayo config?
+    def jobBuilder = jobs.get(pipeline.id)
+                         .flow(configStep(config, pipeline))
+    def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&stageFromConfig)
+    flow.build().build()
+  }
+
+  private TaskletStep configStep(configMap, Pipeline pipeline) {
     steps.get("orca-config-step")
-         .tasklet(configTasklet(configMap))
+         .tasklet(configTasklet(configMap, pipeline))
          .build()
   }
 
-  private Tasklet configTasklet(configMap) {
+  private Tasklet configTasklet(configMap, Pipeline pipeline) {
     { StepContribution contribution, ChunkContext chunkContext ->
+      chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("pipeline", pipeline)
       configMap.each { Map<String, ?> entry ->
         entry.each {
           chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("$entry.type.$it.key", it.value)
@@ -102,30 +122,8 @@ class PipelineStarter {
     } as Tasklet
   }
 
-  private JobBuilderHelper stageFromConfig(SimpleJobBuilder jobBuilder, Map stepConfig) {
-    if (stepConfig.providerType == "gce") {
-      stepConfig["type"] = stepConfig["type"].toString() + "_gce"
-    }
-
-    if (stages.containsKey(stepConfig.type)) {
-      stages.get(stepConfig.type).build(jobBuilder)
-    } else {
-      throw new NoSuchStageException(stepConfig.type as String)
-    }
-  }
-
-  private Job job(JobBuilderHelper jobBuilder) {
-    // Have to do some horror here as we don't know what type of builder we'll end up with.
-    // Two of them have a build method that returns a Job but it's not on a common superclass.
-    // If we end up with a plain JobBuilder it implies no steps or flows got added above which I guess is an error.
-    switch (jobBuilder) {
-      case SimpleJobBuilder:
-        return (jobBuilder as SimpleJobBuilder).build()
-      case FlowJobBuilder:
-        return (jobBuilder as FlowJobBuilder).build()
-      default:
-        // (╯°□°)╯︵ ┻━┻
-        throw new IllegalStateException("Cannot build a Job using a ${jobBuilder.getClass()} - did you add any steps to it?")
-    }
+  // TODO: the type of the 2nd parameter here is annoying. I don't want to expose the build method on the Stage interface for SoC reasons
+  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, StageBuilder stageBuilder) {
+    stageBuilder.build(jobBuilder)
   }
 }

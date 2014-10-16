@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -55,9 +55,9 @@ class TaskTaskletAdapter implements Tasklet {
     def stepExecutionContext = chunkContext.stepContext.stepExecution.executionContext
 
     def result = task.execute(new ChunkContextAdapter(chunkContext))
-    if (result.status == TaskResult.Status.TERMINAL) {
+    if (result.status == PipelineStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.setTerminateOnly()
-      chunkContext.stepContext.stepExecution.setExitStatus(ExitStatus.FAILED)
+      chunkContext.stepContext.stepExecution.exitStatus = ExitStatus.FAILED
     }
 
     // TODO: could consider extending ExecutionContextPromotionListener in order to do this but then we need to know exactly which keys to promote
@@ -67,7 +67,7 @@ class TaskTaskletAdapter implements Tasklet {
     }
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
-    contribution.exitStatus = batchStepStatus.exitStatus
+    contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
     return batchStepStatus.repeatStatus
   }
 }

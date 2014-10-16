@@ -18,14 +18,13 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.StageSupport
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 @CompileStatic
-class FailureRecoveryStage extends StageSupport<FlowJobBuilder> {
+class FailureRecoveryStage extends StageBuilder {
 
   Task startTask, recoveryTask, endTask
 
@@ -34,24 +33,17 @@ class FailureRecoveryStage extends StageSupport<FlowJobBuilder> {
   }
 
   @Override
-  FlowJobBuilder build(JobBuilder jobBuilder) {
-    def step1 = steps.get("StartStep")
-                     .tasklet(TaskTaskletAdapter.decorate(startTask))
-                     .build()
-    def step2 = steps.get("RecoveryStep")
-                     .tasklet(TaskTaskletAdapter.decorate(recoveryTask))
-                     .build()
-    def step3 = steps.get("EndStep")
-                     .tasklet(TaskTaskletAdapter.decorate(endTask))
-                     .build()
-    jobBuilder.start(step1)
-              .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-              .from(step1).next(step3)
-              .build()
+  JobFlowBuilder build(JobBuilder jobBuilder) {
+    def step1 = buildStep("startStep", startTask)
+    def step2 = buildStep("recovery", recoveryTask)
+    def step3 = buildStep("end", endTask)
+    (JobFlowBuilder) jobBuilder.flow(step1)
+                               .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
+                               .from(step1).next(step3)
   }
 
   @Override
-  FlowJobBuilder build(FlowJobBuilder jobBuilder) {
+  JobFlowBuilder build(JobFlowBuilder jobBuilder) {
     throw new UnsupportedOperationException()
   }
 }
