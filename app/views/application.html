@@ -28,7 +28,7 @@
     <li>
       <a ui-sref=".tasks" ng-class="{active: $state.includes('**.tasks.**')}">
         <!--<span class="glyphicon glyphicon-align-justify"></span>-->
-        Tasks <span class="badge" ng-if="application.tasks.hasActive">
+        Tasks <span class="badge" ng-if="application.tasks.runningCount">
           {{ application.tasks.runningCount }}
         </span>
       </a>

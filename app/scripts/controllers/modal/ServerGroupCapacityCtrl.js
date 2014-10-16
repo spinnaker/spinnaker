@@ -15,4 +15,9 @@ angular.module('deckApp')
       }
     });
 
+    $scope.autoBalancingOptions = [
+      { label: 'Enabled', value: true},
+      { label: 'Manual', value: false}
+    ];
+
   });

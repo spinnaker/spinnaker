@@ -63,4 +63,7 @@ ospackage {
   release '3'
   into "/var/www"
   from "dist"
+  from("osfiles") {
+    into "/"
+  }
 }

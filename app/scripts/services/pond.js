@@ -55,7 +55,7 @@ angular.module('deckApp')
       task.pendingPolls = [];
 
       task.updateKatoTask = function(katoTask) {
-        var katoTasks = getKatoTasks(task);
+        var katoTasks = task.getValueFor('kato.tasks');
         if (katoTasks && katoTasks.length && katoTasks[katoTasks.length - 1].id === katoTask.id) {
           var lastTask = katoTasks[katoTasks.length - 1];
           angular.copy(katoTask.asPondKatoTask(), lastTask);

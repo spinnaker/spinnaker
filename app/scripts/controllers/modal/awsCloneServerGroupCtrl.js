@@ -42,6 +42,10 @@ angular.module('deckApp.aws')
       $scope.subnets = subnets;
     });
 
+    var preferredZonesLoader = accountService.getPreferredZonesByAccount().then(function(preferredZones) {
+      $scope.preferredZones = preferredZones;
+    });
+
     var imageLoader = searchService.search('oort', {q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
       $scope.packageImages = searchResults.results;
       if ($scope.packageImages.length === 0) {
@@ -63,7 +67,7 @@ angular.module('deckApp.aws')
       }
     });
 
-    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
+    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader, preferredZonesLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
       initializeWizardState();
@@ -86,6 +90,7 @@ angular.module('deckApp.aws')
       $scope.$watch('command.credentials', credentialsChanged);
       $scope.$watch('command.region', regionChanged);
       $scope.$watch('command.subnetType', subnetChanged);
+      $scope.$watch('command.usePreferredZones', usePreferredZonesToggled);
     }
 
     function initializeSelectOptions() {
@@ -109,11 +114,12 @@ angular.module('deckApp.aws')
     }
 
     function regionChanged() {
+      var command = $scope.command;
       configureSubnetPurposes();
-      var currentZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
-      if ($scope.command.region) {
-        if (!_($scope.regionSubnetPurposes).some({purpose: $scope.command.subnetType})) {
-          $scope.command.subnetType = null;
+      var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
+      if (command.region) {
+        if (!_($scope.regionSubnetPurposes).some({purpose: command.subnetType})) {
+          command.subnetType = null;
         }
         subnetChanged();
         configureInstanceTypes();
@@ -122,10 +128,21 @@ angular.module('deckApp.aws')
       } else {
         $scope.regionalAvailabilityZones = null;
       }
-      $scope.command.availabilityZones = _.intersection($scope.command.availabilityZones, $scope.regionalAvailabilityZones);
-      var newZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
-      if (currentZoneCount !== newZoneCount) {
-        modalWizardService.getWizard().markDirty('capacity');
+
+      usePreferredZonesToggled();
+      if (!command.usePreferredZones) {
+        command.availabilityZones = _.intersection(command.availabilityZones, $scope.regionalAvailabilityZones);
+        var newZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
+        if (currentZoneCount !== newZoneCount) {
+          modalWizardService.getWizard().markDirty('capacity');
+        }
+      }
+    }
+
+    function usePreferredZonesToggled() {
+      var command = $scope.command;
+      if (command.usePreferredZones) {
+        command.availabilityZones = $scope.preferredZones[command.credentials][command.region].sort();
       }
     }
 
@@ -233,6 +250,9 @@ angular.module('deckApp.aws')
 
     function buildCommandFromExisting(serverGroup) {
       var serverGroupName = serverGroupService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+      var zones = serverGroup.asg.availabilityZones.sort();
+      var preferredZones = $scope.preferredZones[serverGroup.account][serverGroup.region].sort();
+      var usePreferredZones = zones.join(',') === preferredZones.join(',');
       var command = {
         'application': serverGroupName.application,
         'stack': serverGroupName.stack,
@@ -244,7 +264,8 @@ angular.module('deckApp.aws')
         'terminationPolicies': serverGroup.asg.terminationPolicies,
         'loadBalancers': serverGroup.asg.loadBalancerNames,
         'region': serverGroup.region,
-        'availabilityZones': serverGroup.asg.availabilityZones,
+        'availabilityZones': zones,
+        'usePreferredZones': usePreferredZones,
         'capacity': {
           'min': serverGroup.asg.minSize,
           'max': serverGroup.asg.maxSize,
@@ -289,11 +310,14 @@ angular.module('deckApp.aws')
     }
 
     function createCommandTemplate() {
+      var defaultCredentials = 'test';
+      var defaultRegion = 'us-east-1';
       return {
         'application': application.name,
-        'credentials': 'test',
-        'region': 'us-east-1',
-        'availabilityZones': [],
+        'credentials': defaultCredentials,
+        'region': defaultRegion,
+        'usePreferredZones': true,
+        'availabilityZones': $scope.preferredZones[defaultCredentials][defaultRegion],
         'capacity': {
           'min': 0,
           'max': 0,

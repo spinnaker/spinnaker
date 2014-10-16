@@ -247,6 +247,47 @@ describe('Service: Pond - task complete, task force refresh', function() {
     $http.verifyNoOutstandingRequest();
   });
 
+  it('appends kato task if not found, updates when found', function() {
+
+    var katoTask = {
+      id: 3,
+      asPondKatoTask: function() {
+        return { id: 3, updateable: 'a'};
+      }
+    };
+
+    $http.whenGET(config.pondUrl + '/tasks/1').respond(200, {
+      id: 1,
+      status: 'STARTED',
+      steps: [],
+      variables: []
+    });
+    $http.flush();
+
+    task.updateKatoTask(katoTask);
+
+    expect(task.getValueFor('kato.tasks').length).toBe(1);
+    expect(task.getValueFor('kato.tasks')[0].id).toBe(3);
+    expect(task.getValueFor('kato.tasks')[0].updateable).toBe('a');
+
+    task.getValueFor('kato.tasks')[0].updateable = 'b';
+    task.updateKatoTask(katoTask);
+    expect(task.getValueFor('kato.tasks').length).toBe(1);
+    expect(task.getValueFor('kato.tasks')[0].updateable).toBe('a');
+
+    var katoTask2 = {
+      id: 4,
+      asPondKatoTask: function() {
+        return {id: 4, history: []}
+      }
+    };
+
+    task.updateKatoTask(katoTask2);
+    expect(task.getValueFor('kato.tasks').length).toBe(2);
+    expect(task.getValueFor('kato.tasks')[1].id).toBe(4);
+
+  });
+
 
   function cycle() {
     timeout.flush();

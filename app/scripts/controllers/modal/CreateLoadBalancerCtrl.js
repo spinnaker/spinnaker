@@ -129,6 +129,7 @@ angular.module('deckApp')
         $scope.regions.filter(function(region) { return region.name === $scope.loadBalancer.region; }) :
         [];
       if (selected.length) {
+        $scope.loadBalancer.regionZones = angular.copy(selected[0].availabilityZones);
         $scope.availabilityZones = selected[0].availabilityZones;
       } else {
         $scope.availabilityZones = [];
@@ -163,6 +164,10 @@ angular.module('deckApp')
     initializeController();
 
     // Controller API
+
+    this.requiresHealthCheckPath = function () {
+      return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
+    };
 
     this.updateName = function() {
       var elb = $scope.loadBalancer,
