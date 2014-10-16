@@ -35,6 +35,7 @@ import java.util.List;
 public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private String name;
     private Long accountId;
+    public String defaultKeyPair;
     protected AWSCredentialsProvider credentialsProvider;
     private List<AWSRegion> regions;
 
@@ -54,6 +55,14 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
+    }
+
+    public String getDefaultKeyPair() {
+        return defaultKeyPair;
+    }
+
+    public void setDefaultKeyPair(String defaultKeyPair) {
+        this.defaultKeyPair = defaultKeyPair;
     }
 
     public List<AWSRegion> getRegions() {
@@ -84,14 +93,25 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             this.availabilityZones = availabilityZones;
         }
 
-        public boolean equals(Object other) {
-            if (!(other instanceof AWSRegion)) {
-                return false;
-            }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof AWSRegion)) return false;
 
-            AWSRegion o = (AWSRegion)other;
-            return this.name.equals(o.getName()) &&
-                    this.availabilityZones.containsAll(o.getAvailabilityZones());
+            AWSRegion awsRegion = (AWSRegion) o;
+
+            if (availabilityZones != null ? !availabilityZones.equals(awsRegion.availabilityZones) : awsRegion.availabilityZones != null)
+                return false;
+            if (name != null ? !name.equals(awsRegion.name) : awsRegion.name != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (availabilityZones != null ? availabilityZones.hashCode() : 0);
+            return result;
         }
     }
 
