@@ -40,4 +40,7 @@ class Stage implements Serializable {
   Stage(String name) {
     this.name = name
   }
+
+  // TODO: ImmutableMap?
+  final Map<String, ? extends Serializable> context = [:]
 }

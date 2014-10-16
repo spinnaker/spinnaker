@@ -55,12 +55,8 @@ class PipelineStarter {
    * @return the pipeline that was created.
    */
   Pipeline start(String configJson) {
-    def config = parseConfig(configJson)
-    def stageBuilders = stageBuildersFor(config)
-    def pipeline = new Pipeline("orca-job-${UUID.randomUUID()}", stageBuilders.collect {
-      new Stage(it.name)
-    })
-    def job = createJobFrom(stageBuilders, config, pipeline)
+    def pipeline = parseConfig(configJson)
+    def job = createJobFrom(pipeline)
     launcher.run(job, new JobParameters())
     return pipeline
   }
@@ -78,52 +74,56 @@ class PipelineStarter {
     }
   }
 
-  private List<Map<String, ?>> parseConfig(String configJson) {
-    mapper.readValue(configJson, new TypeReference<List<Map>>() {}) as List
+  private Pipeline parseConfig(String configJson) {
+    // TODO: map directly to the Pipeline class
+    List<Map<String, ? extends Serializable>> configMap = mapper.readValue(configJson, new TypeReference<List<Map>>() {
+    }) as List
+    // TODO: this needs to change as we can't locate the pipeline using this id
+    new Pipeline("meh-i-dont-know", configMap.collect {
+      def stage = new Stage(it.remove("type").toString())
+      stage.context.putAll(it)
+      return stage
+    })
   }
 
-  private List<StageBuilder> stageBuildersFor(List<Map<String, ?>> config) {
-    config.collect {
-      if (it.providerType == "gce") {
-        it.type = "${it.type}_gce"
+  private Job createJobFrom(Pipeline pipeline) {
+    // TODO: can we get any kind of meaningful identifier from the mayo config?
+    def jobBuilder = jobs.get(pipeline.id)
+                         .flow(initializationStep(pipeline))
+    def stageBuilders = stageBuildersFor(pipeline)
+    def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&createStage)
+    flow.build().build()
+  }
+
+  private List<StageBuilder> stageBuildersFor(Pipeline pipeline) {
+    pipeline.stages.collect {
+      String beanName = it.name
+      if (it.context.providerType) {
+        beanName = "${it.name}_$it.context.providerType"
       }
 
-      if (stages.containsKey(it.type)) {
-        stages.get(it.type)
+      if (stages.containsKey(beanName)) {
+        stages.get(beanName)
       } else {
-        throw new NoSuchStageException(it.type as String)
+        throw new NoSuchStageException(beanName)
       }
     }
   }
 
-  private Job createJobFrom(List<StageBuilder> stageBuilders, List<Map<String, ?>> config, Pipeline pipeline) {
-    // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def jobBuilder = jobs.get(pipeline.id)
-                         .flow(configStep(config, pipeline))
-    def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&stageFromConfig)
-    flow.build().build()
-  }
-
-  private TaskletStep configStep(configMap, Pipeline pipeline) {
+  private TaskletStep initializationStep(Pipeline pipeline) {
     steps.get("orca-config-step")
-         .tasklet(configTasklet(configMap, pipeline))
+         .tasklet(pipelineInitializerTasklet(pipeline))
          .build()
   }
 
-  private Tasklet configTasklet(configMap, Pipeline pipeline) {
+  private Tasklet pipelineInitializerTasklet(Pipeline pipeline) {
     { StepContribution contribution, ChunkContext chunkContext ->
       chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("pipeline", pipeline)
-      configMap.each { Map<String, ?> entry ->
-        entry.each {
-          chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("$entry.type.$it.key", it.value)
-        }
-      }
       return RepeatStatus.FINISHED
     } as Tasklet
   }
 
-  // TODO: the type of the 2nd parameter here is annoying. I don't want to expose the build method on the Stage interface for SoC reasons
-  private JobFlowBuilder stageFromConfig(JobFlowBuilder jobBuilder, StageBuilder stageBuilder) {
+  private JobFlowBuilder createStage(JobFlowBuilder jobBuilder, StageBuilder stageBuilder) {
     stageBuilder.build(jobBuilder)
   }
 }
