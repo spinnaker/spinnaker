@@ -7,8 +7,8 @@
           <thead>
           <tr>
             <th width="35%">Protocol</th>
-            <th>Port</th>
-            <th>Path</th>
+            <th width="30%">Port</th>
+            <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
           </tr>
           </thead>
           <tbody>
@@ -17,7 +17,7 @@
                         ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
             <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
                        required min="0"/></td>
-            <td><input class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
+            <td><input ng-if="ctrl.requiresHealthCheckPath()" class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
                        required/></td>
           </tr>
           </tbody>

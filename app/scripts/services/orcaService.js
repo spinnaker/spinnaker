@@ -150,9 +150,13 @@ angular.module('deckApp')
 
     function upsertLoadBalancer(loadBalancer, applicationName, descriptor) {
       var name = loadBalancer.clusterName || loadBalancer.name;
+      if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {
+        loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
+      } else {
+        loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort;
+      }
       loadBalancer.type = 'upsertAmazonLoadBalancer';
       loadBalancer.user = 'deckUser';
-      loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
       loadBalancer.availabilityZones = {};
       loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones || [];
       if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
