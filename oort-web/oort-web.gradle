@@ -4,9 +4,11 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
   }
 }
 
+apply plugin: 'os-package'
 apply plugin: 'spring-boot'
 
 configurations.all {
@@ -22,9 +24,22 @@ dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
   compile project(":oort-gce")
-  compile 'com.netflix.eureka:eureka-client:1.1.141'
   spinnaker.group("bootWeb")
+
+  compile 'com.netflix.eureka:eureka-client:1.1.141'
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
   compile 'com.codahale.metrics:metrics-core:3.0.2'
 }
 
+ospackage {
+  packageName = rootProject.name
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/opt/${rootProject.name}"
+  from "${project.buildDir}/install/${project.name}"
+}
+
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
+}

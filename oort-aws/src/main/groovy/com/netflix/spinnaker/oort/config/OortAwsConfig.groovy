@@ -103,7 +103,7 @@ class OortAwsConfig {
           def region = regionEntry.key
           def accounts = regionEntry.value
 
-          autowireAndInitialize(InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory))
+            autowireAndInitialize(InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory))
         }
       }
     }
