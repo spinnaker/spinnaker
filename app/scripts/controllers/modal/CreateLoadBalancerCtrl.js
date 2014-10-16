@@ -129,6 +129,7 @@ angular.module('deckApp')
         $scope.regions.filter(function(region) { return region.name === $scope.loadBalancer.region; }) :
         [];
       if (selected.length) {
+        $scope.loadBalancer.regionZones = angular.copy(selected[0].availabilityZones);
         $scope.availabilityZones = selected[0].availabilityZones;
       } else {
         $scope.availabilityZones = [];
