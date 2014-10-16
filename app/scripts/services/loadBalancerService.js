@@ -9,7 +9,7 @@ angular.module('deckApp')
     });
 
     function loadLoadBalancersByApplicationName(applicationName) {
-      return searchService.search('oort', {q: applicationName, type: 'applicationLoadBalancers', pageSize: 10000}).then(function(searchResults) {
+      return searchService.search('oort', {q: applicationName, type: 'loadBalancers', pageSize: 10000}).then(function(searchResults) {
         return _.filter(searchResults.results, { application: applicationName });
       });
     }
