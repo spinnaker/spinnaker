@@ -13,7 +13,7 @@
   <div ng-repeat="serverGroupRegion in serverGroupsByRegion | orderBy:'region'" class="server-group-rollup">
     <h4>{{serverGroupRegion.region}}</h4>
     <server-group
-      ng-repeat="serverGroup in serverGroupRegion.serverGroups | orderBy:'name'"
+      ng-repeat="serverGroup in serverGroupRegion.serverGroups | orderBy:'-name'"
       server-group="serverGroup"
       cluster="cluster.name"
       display-options="displayOptions"></server-group>
