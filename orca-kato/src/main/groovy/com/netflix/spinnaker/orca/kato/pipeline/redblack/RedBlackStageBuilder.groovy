@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class RedBlackStageBuilder extends LinearStage {
-  private static final String MAYO_NAME = "redblack"
+  private static final String MAYO_NAME = "redBlack"
 
   @Autowired
   CopyLastAsgStage copyLastAsgStage
