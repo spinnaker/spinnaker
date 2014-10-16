@@ -43,7 +43,8 @@ class PipelineListenerSpec extends Specification {
         listener.orca = orcaService
         listener.mayo = mayoService
         listener.jobsList = [master1: ['job1']]
-        event = new Event(details: [source: 'igor'], content: [master: MASTER, jobName: JOB])
+        event = new Event(details: [source: 'igor'],
+            content: [master: MASTER, project:[name: JOB, lastBuildStatus: 'Success']])
     }
 
     @Unroll
@@ -92,6 +93,18 @@ class PipelineListenerSpec extends Specification {
     void 'does not trigger a build when the event is not found'() {
         given:
         listener.jobsList = [master1: []]
+
+        when:
+        listener.processEvent(event)
+
+        then:
+        0 * _
+
+    }
+
+    void 'ignore failed builds'() {
+        given:
+        event.content.project.lastBuildStatus = 'Failed'
 
         when:
         listener.processEvent(event)

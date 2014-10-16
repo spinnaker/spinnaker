@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.echo.config
 
 import static retrofit.Endpoints.newFixedEndpoint
-import static retrofit.Endpoints.newFixedEndpoint
 
-import com.google.gson.Gson
 import com.netflix.spinnaker.echo.events.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,10 +26,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
-import retrofit.converter.GsonConverter
 
 /**
  * Orca Config
