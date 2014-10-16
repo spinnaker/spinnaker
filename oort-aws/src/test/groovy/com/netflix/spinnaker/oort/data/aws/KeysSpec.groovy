@@ -30,7 +30,6 @@ class KeysSpec extends Specification {
     ns                                    | expected
     Keys.Namespace.APPLICATIONS           | "applications"
     Keys.Namespace.LAUNCH_CONFIGS         | "launchConfigs"
-    Keys.Namespace.SERVER_GROUP_INSTANCES | "serverGroupInstances"
   }
 
   def 'key parsing'() {
