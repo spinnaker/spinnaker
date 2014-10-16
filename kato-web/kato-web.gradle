@@ -62,3 +62,5 @@ buildDeb {
   dependsOn installApp
   requires("openjdk-7-jre")
 }
+
+applicationDefaultJvmArgs = ["-Dserver.port=8501"]
