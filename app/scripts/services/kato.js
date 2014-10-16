@@ -37,7 +37,8 @@ angular.module('deckApp')
         var pondTask = {
           history: task.history,
           status: task.status,
-          resultObjects: task.resultObjects
+          resultObjects: task.resultObjects,
+          id: task.id
         };
 
         var exception = _.find(task.resultObjects, {type: 'EXCEPTION'});

@@ -140,7 +140,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
   });
 
-  it('waits until matching kato phase found before resolving', function() {
+  it('waits until matching kato phase found before resolving, appending pending task to kato.tasks', function() {
 
     var result = null,
       pondRequestHandler = $http.whenGET(config.pondUrl + '/tasks/1'),
@@ -168,7 +168,10 @@ describe('Service: Pond - task complete, task force refresh', function() {
     // When refetching pond task, a new task is the most recent
     pondRequestHandler.respond(200, {
       id: 1,
-      variables: [ { key: 'kato.last.task.id', value: { id: 4 } }],
+      variables: [
+        { key: 'kato.last.task.id', value: { id: 4 } },
+        { key: 'kato.tasks', value: [ {id: 3, history: []}]}
+      ],
       status: 'STARTED'
     });
 
@@ -187,6 +190,8 @@ describe('Service: Pond - task complete, task force refresh', function() {
     katoRequestHandler.respond(200, desiredKatoTask);
 
     cycle();
+
+    expect(task.getValueFor('kato.tasks').length).toBe(2);
     expect(result.id).toBe(4);
     expect(result.history).toEqual(desiredKatoTask.history);
 
