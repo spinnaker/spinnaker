@@ -16,21 +16,35 @@
 
 package com.netflix.spinnaker.orca.rest
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@Slf4j
 class OrcaApi {
 
-    @RequestMapping(value = "/orchestrate.aspx", method = RequestMethod.POST)
-    String orchestrate() {
-        UUID.randomUUID().toString()
-    }
+  @Autowired
+  PipelineStarter pipelineStarter
 
-    @RequestMapping(value = "/status/{id}", method = RequestMethod.GET)
-    String status(@PathVariable String id) {
-        '{"status":"Not even implemented at all"}'
-    }
+  ObjectMapper mapper = new ObjectMapper()
+
+  @RequestMapping(value = '/orchestrate', method = RequestMethod.POST)
+  String orchestrate(@RequestBody Map pipeline) {
+    log.info("starting pipeline {} for application {}", pipeline.name, pipeline.application)
+    String stageJson = mapper.writeValueAsString(pipeline.stages.findAll{it.type!='jenkins'})
+    def pipelineResult = pipelineStarter.start(stageJson)
+    pipelineResult
+  }
+
+  @RequestMapping(value = '/status/{id}', method = RequestMethod.GET)
+  String status(@PathVariable String id) {
+    '{"status":"Not even implemented at all"}'
+  }
 }

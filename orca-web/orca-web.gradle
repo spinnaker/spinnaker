@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE"
     }
 }
 apply from: "$rootDir/gradle/groovy-module.gradle"
@@ -36,16 +36,17 @@ springBoot {
 }
 
 dependencies {
-  compile project(":orca-test")
+  testCompile project(":orca-test")
   compile project(":orca-bakery")
   compile project(":orca-kato")
   compile project(":orca-oort")
   compile project(":orca-mort")
+  compile project(":orca-front50")
+  compile project(":orca-echo")
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile commonDependencies.springWeb
   compile commonDependencies.springBatchTest
   runtime commonDependencies.spockSpring
   runtime commonDependencies.springTest
-
 }
