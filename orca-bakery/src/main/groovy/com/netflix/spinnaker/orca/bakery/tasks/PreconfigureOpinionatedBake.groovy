@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
@@ -24,7 +25,7 @@ import com.netflix.spinnaker.orca.TaskResult
 class PreconfigureOpinionatedBake implements Task {
   @Override
   TaskResult execute(TaskContext context) {
-    new DefaultTaskResult(TaskResult.Status.SUCCEEDED, [
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "bake.user"     : "orca",
       "bake.baseOs"   : "ubuntu",
       "bake.baseLabel": "release",

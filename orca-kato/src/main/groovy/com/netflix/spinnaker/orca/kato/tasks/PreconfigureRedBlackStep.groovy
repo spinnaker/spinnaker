@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
@@ -53,12 +54,12 @@ class PreconfigureRedBlackStep implements Task {
       if (names.stack) {
         outputs."copyLastAsg.stack" = names.stack
       }
-      new DefaultTaskResult(TaskResult.Status.SUCCEEDED, outputs)
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
     }
   }
 
   private Map convert(TaskContext context) {
-    mapper.copy().convertValue(context.getInputs("redblack"), Map)
+    mapper.copy().convertValue(context.getInputs("redBlack"), Map)
   }
 
   Map getLastAsgName(String app, String account, String cluster) {

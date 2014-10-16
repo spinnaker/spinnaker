@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.PreconfigureOpinionatedBake
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
@@ -34,10 +35,11 @@ class OpinionatedBakeStage extends LinearStage {
   }
 
   List<Step> buildSteps() {
-    def step1 = steps.get("PreconfigureOpinionatedBake")
-                    .tasklet(buildTask(PreconfigureOpinionatedBake))
-                    .build()
+    def step1 = buildStep("preconfigureOpinionatedBake", PreconfigureOpinionatedBake)
     def restOfSteps = bakeStage.buildSteps()
-    [step1, restOfSteps].flatten()
+    [step1, restOfSteps].flatten().collect{
+       it.name = it.name.replace(bakeStage.MAYO_CONFIG_TYPE, MAYO_NAME)
+       it
+    }
   }
 }

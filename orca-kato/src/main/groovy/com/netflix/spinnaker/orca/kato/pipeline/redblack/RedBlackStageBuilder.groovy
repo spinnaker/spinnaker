@@ -39,12 +39,14 @@ class RedBlackStageBuilder extends LinearStage {
   }
 
   List<Step> buildSteps() {
-    def step1 = steps.get("PreconfigureRedBlackStage")
-      .tasklet(buildTask(PreconfigureRedBlackStep))
-      .build()
+    def step1 = buildStep("preconfigureRedBlackStage",PreconfigureRedBlackStep)
     def middleSteps = copyLastAsgStage.buildSteps()
     def closingSteps = disableAsgStage.buildSteps()
-    [step1, middleSteps, closingSteps].flatten()
+    [step1, middleSteps, closingSteps].flatten().collect{
+      it.name = it.name.replace(copyLastAsgStage.MAYO_CONFIG_TYPE, MAYO_NAME)
+        .replace(disableAsgStage.MAYO_CONFIG_TYPE, MAYO_NAME)
+      it
+    }
   }
 
 }

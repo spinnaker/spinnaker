@@ -16,25 +16,42 @@
 
 package com.netflix.spinnaker.orca
 
+import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
+import com.netflix.spinnaker.orca.front50.config.Front50Configuration
+import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
+import com.netflix.spinnaker.orca.mort.config.MortConfiguration
+import com.netflix.spinnaker.orca.oort.config.OortConfiguration
+import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 
 @Configuration
 @EnableAutoConfiguration
 @EnableBatchProcessing(modular = true)
+@Import([
+  BakeryConfiguration,
+  EchoConfiguration,
+  Front50Configuration,
+  KatoConfiguration,
+  MortConfiguration,
+  OortConfiguration,
+  WebConfiguration
+])
 class Main extends SpringBootServletInitializer {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        builder.sources(Main)
-    }
+  @Override
+  protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+    builder.sources(Main)
+  }
 
-    static void main(String... args) {
-        System.setProperty('netflix.environment', 'test')
-        SpringApplication.run(Main, args)
-    }
+  static void main(String... args) {
+    System.setProperty('netflix.environment', 'test')
+    SpringApplication.run(Main, args)
+  }
 }

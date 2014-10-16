@@ -57,7 +57,7 @@ class TaskTaskletAdapter implements Tasklet {
     def result = task.execute(new ChunkContextAdapter(chunkContext))
     if (result.status == PipelineStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.setTerminateOnly()
-      chunkContext.stepContext.stepExecution.exitStatus = ExitStatus.FAILED
+      chunkContext.stepContext.stepExecution.exitStatus = ExitStatus.FAILED.addExitDescription(result.status.name())
     }
 
     // TODO: could consider extending ExecutionContextPromotionListener in order to do this but then we need to know exactly which keys to promote
