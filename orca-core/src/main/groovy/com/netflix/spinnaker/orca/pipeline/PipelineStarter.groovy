@@ -20,18 +20,14 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
-import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.launch.JobLauncher
-import org.springframework.batch.core.scope.context.ChunkContext
-import org.springframework.batch.core.step.tasklet.Tasklet
-import org.springframework.batch.core.step.tasklet.TaskletStep
-import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
@@ -58,6 +54,7 @@ class PipelineStarter {
     def pipeline = parseConfig(configJson)
     def job = createJobFrom(pipeline)
     launcher.run(job, new JobParameters())
+    // TODO: update the id
     return pipeline
   }
 
@@ -89,7 +86,7 @@ class PipelineStarter {
   private Job createJobFrom(Pipeline pipeline) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get(pipeline.id)
-                         .flow(initializationStep(pipeline))
+                         .flow(PipelineInitializerTasklet.initializationStep(steps, pipeline))
     def stageBuilders = stageBuildersFor(pipeline)
     def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&createStage)
     flow.build().build()
@@ -108,19 +105,6 @@ class PipelineStarter {
         throw new NoSuchStageException(beanName)
       }
     }
-  }
-
-  private TaskletStep initializationStep(Pipeline pipeline) {
-    steps.get("orca-config-step")
-         .tasklet(pipelineInitializerTasklet(pipeline))
-         .build()
-  }
-
-  private Tasklet pipelineInitializerTasklet(Pipeline pipeline) {
-    { StepContribution contribution, ChunkContext chunkContext ->
-      chunkContext.stepContext.stepExecution.jobExecution.executionContext.put("pipeline", pipeline)
-      return RepeatStatus.FINISHED
-    } as Tasklet
   }
 
   private JobFlowBuilder createStage(JobFlowBuilder jobBuilder, StageBuilder stageBuilder) {
