@@ -19,22 +19,22 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">Detail (optional)</div>
-        <div class="col-md-3">
+        <div class="col-md-4 sm-label-left">Detail (optional)</div>
+        <div class="col-md-4">
           <input type="text" class="form-control input-sm"
                  ng-model="securityGroup.detail"
                  ng-change="ctrl.updateName()"/>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">Description</div>
-        <div class="col-md-9">
-          <input type="text" class="form-control input-sm" ng-model="securityGroup.description" required/>
+        <div class="col-md-4 sm-label-left">Description (optional)</div>
+        <div class="col-md-8">
+          <input type="text" class="form-control input-sm" ng-model="securityGroup.description" />
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">Account</div>
-        <div class="col-md-9">
+        <div class="col-md-4 sm-label-left">Account</div>
+        <div class="col-md-8">
           <select class="form-control input-sm"
                   ng-model="securityGroup.credentials"
                   ng-options="account for account in accounts"
@@ -44,8 +44,8 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">Region</div>
-        <div class="col-md-9">
+        <div class="col-md-4 sm-label-left">Region</div>
+        <div class="col-md-8">
           <select class="form-control input-sm" ng-model="securityGroup.region"
                   ng-change="ctrl.regionUpdated()"
                   ng-options="region.name as region.name for region in regions"
@@ -54,8 +54,8 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">VPC</div>
-        <div class="col-md-9">
+        <div class="col-md-4 sm-label-left">VPC</div>
+        <div class="col-md-8">
           <select class="form-control input-sm" ng-model="securityGroup.vpcId"
                   ng-change="ctrl.vpcUpdated()"
                   ng-options="vpc.id as vpc.label for vpc in vpcs">
