@@ -37,6 +37,9 @@ class ApplicationService implements CacheEnabledService {
   @Autowired
   PondService pondService
 
+  @Autowired
+  CacheInvalidationService cacheInvalidationService
+
   @CacheEvict(value = "applications", allEntries = true)
   void evict() {
   }
@@ -86,7 +89,10 @@ class ApplicationService implements CacheEnabledService {
   }
 
   Observable<Map> create(Map body) {
-    pondService.doOperation(body)
+    pondService.doOperation(body).map({
+      cacheInvalidationService.invalidateAll()
+      it
+    })
   }
 
   // TODO Hystrix fallback?

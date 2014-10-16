@@ -48,7 +48,7 @@ interface OortService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/loadBalancers")
-  Map getClusterLoadBalancers(@Path("name") String name,
+  List getClusterLoadBalancers(@Path("name") String appName,
                               @Path("account") String account,
                               @Path("cluster") String cluster,
                               @Path("type") String type)

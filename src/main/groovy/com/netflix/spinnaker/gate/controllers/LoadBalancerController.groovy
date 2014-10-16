@@ -20,20 +20,29 @@ import com.netflix.spinnaker.gate.services.LoadBalancerService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
 
-@RequestMapping("/loadBalancers")
 @RestController
 class LoadBalancerController {
 
   @Autowired
   LoadBalancerService loadBalancerService
 
-  @RequestMapping(method = RequestMethod.GET)
+  @RequestMapping(value = "/applications/{applicationName}/clusters/{account}/{clusterName}/{type}/loadBalancers", method = RequestMethod.GET)
+  def getAllForCluster(
+      @PathVariable String applicationName,
+      @PathVariable String account, @PathVariable String clusterName, @PathVariable String type) {
+    DeferredResult<List> q = new DeferredResult<>()
+    loadBalancerService.getClusterLoadBalancers(applicationName, account, type, clusterName).subscribe({
+      q.setResult(it)
+    }, { Throwable t ->
+      q.setErrorResult(t)
+    })
+    q
+  }
+
+  @RequestMapping(value = "/loadBalancers", method = RequestMethod.GET)
   def getAll(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
              @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
     DeferredResult<HttpEntity<List>> q = new DeferredResult<>()
@@ -50,4 +59,6 @@ class LoadBalancerController {
     })
     q
   }
+
+
 }

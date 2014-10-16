@@ -96,7 +96,7 @@ class ClusterService {
     }.toObservable()
   }
 
-  Observable<Map> getClusterTags(String clusterName) {
+  Observable<List<String>> getClusterTags(String clusterName) {
     def names = Names.parseName(clusterName)
     new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
         .andCommandKey(HystrixCommandKey.Factory.asKey("getClusterTags"))) {
@@ -108,7 +108,7 @@ class ClusterService {
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([])
+        Observable.just([:])
       }
 
       @Override

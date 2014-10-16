@@ -66,7 +66,28 @@ class LoadBalancerService {
 
       @Override
       protected String getCacheKey() {
-        "loadBalancers-all"
+        "loadBalancers-${provider}-${name}"
+      }
+    }.toObservable()
+  }
+
+  Observable<List> getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
+    new HystrixObservableCommand<List>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+        .andCommandKey(HystrixCommandKey.Factory.asKey("getLoadBalancersForCluster"))) {
+
+      @Override
+      protected Observable<List> run() {
+        Observable.just(oortService.getClusterLoadBalancers(appName, account, clusterName, provider))
+      }
+
+      @Override
+      protected Observable<List> getFallback() {
+        Observable.just([])
+      }
+
+      @Override
+      protected String getCacheKey() {
+        "clusterloadBalancers-${provider}-${appName}-${account}-${clusterName}"
       }
     }.toObservable()
   }
