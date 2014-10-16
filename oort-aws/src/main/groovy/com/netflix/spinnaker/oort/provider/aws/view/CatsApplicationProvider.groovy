@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.provider.aws.view
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.data.aws.Keys
@@ -41,7 +42,7 @@ class CatsApplicationProvider implements ApplicationProvider {
   @Autowired
   CatsApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
 
   @Override

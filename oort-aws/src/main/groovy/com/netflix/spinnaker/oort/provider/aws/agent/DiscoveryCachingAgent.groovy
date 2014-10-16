@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.provider.aws.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -72,7 +73,7 @@ class DiscoveryCachingAgent implements CachingAgent {
     this.accounts = accounts
     this.region = region
     this.discoveryApi = discoveryApi
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.discoveryHost = accounts[0].discovery.toURL().host
   }
 

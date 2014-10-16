@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.Instance
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -60,7 +61,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
 
   @Override

@@ -55,8 +55,6 @@ class CatsSearchProvider implements SearchProvider {
       urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
 //    (Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS.ns):
 //      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
-//    (Keys.Namespace.APPLICATION_LOAD_BALANCERS.ns):
-//      urlMappingTemplateEngine.createTemplate('/aws/loadBalancers/$loadBalancer'),
     (CLUSTERS.ns):
       urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster'),
     (APPLICATIONS.ns):
@@ -129,9 +127,13 @@ class CatsSearchProvider implements SearchProvider {
             if (!filters) {
               return true
             }
-            def parts = Keys.parse(key)
-            filters.entrySet().every { entry ->
-              parts[entry.key] && parts[entry.key] == entry.value
+            def item = cacheView.get(cache, key)
+            filters.entrySet().every { filter ->
+              if (item.relationships[filter.key]) {
+                item.relationships[filter.key].find { it.indexOf(filter.value) != -1 }
+              } else {
+                item.attributes[filter.key] == filter.value
+              }
             }
           }
         } catch (Exception e) {

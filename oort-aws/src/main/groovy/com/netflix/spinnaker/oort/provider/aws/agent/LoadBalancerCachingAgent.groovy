@@ -20,6 +20,7 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -67,7 +68,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
 
   static class MutableCacheData implements CacheData {

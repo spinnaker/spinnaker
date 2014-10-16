@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.provider.aws.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -71,7 +72,7 @@ class EddaLoadBalancerCachingAgent implements CachingAgent {
     this.eddaApi = eddaApi
     this.account = account
     this.region = region
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
 
   @Override
