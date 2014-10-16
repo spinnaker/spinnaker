@@ -24,12 +24,14 @@ buildscript {
     classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.8'
     classpath 'com.moowork.gradle:gradle-node-plugin:0.5'
     classpath 'be.filipblondeel.gradle:gradle-gulp-plugin:0.1'
+    classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
   }
 }
 
 group = "com.netflix.spinnaker.deck"
 
 apply plugin: 'spinnaker-gradle-project'
+apply plugin: 'os-package'
 apply plugin: 'node'
 apply plugin: 'gulp'
 
@@ -54,3 +56,11 @@ clean.dependsOn 'gulp_clean'
 
 gulp_build.dependsOn 'installGulp'
 build.dependsOn 'gulp_build'
+
+ospackage {
+  packageName = "deck"
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/var/www/html"
+  from "dist"
+}
