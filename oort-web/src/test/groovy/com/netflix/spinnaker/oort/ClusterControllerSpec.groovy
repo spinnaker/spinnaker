@@ -34,22 +34,29 @@ class ClusterControllerSpec extends Specification {
 
   Should "call all application providers to get and merge the cluster names"() {
     setup:
-    def appProvider1 = Mock(ApplicationProvider)
-    def appProvider2 = Mock(ApplicationProvider)
-    def app1 = Mock(Application)
-    app1.getName() >> "app"
-    def app2 = Mock(Application)
-    app2.getName() >> "app"
+    def app1 = Stub(Application) {
+      getName() >> "app"
+      getClusterNames() >> ["test": ["foo", "bar"] as Set]
+    }
+    def appProvider1 = Stub(ApplicationProvider) {
+      getApplication("app") >> app1
+    }
+
+
+    def app2 = Stub(Application) {
+      getName() >> "app"
+      getClusterNames() >> ["prod": ["baz"] as Set]
+    }
+    def appProvider2 = Stub(ApplicationProvider) {
+      getApplication("app") >> app2
+    }
+
     clusterController.applicationProviders = [appProvider1, appProvider2]
 
     when:
     def result = clusterController.list("app")
 
     then:
-    _ * app1.getClusterNames() >> ["test": ["foo", "bar"] as Set]
-    _ * app2.getClusterNames() >> ["prod": ["baz"] as Set]
-    1 * appProvider1.getApplication("app") >> app1
-    1 * appProvider2.getApplication("app") >> app2
     result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set]
   }
 

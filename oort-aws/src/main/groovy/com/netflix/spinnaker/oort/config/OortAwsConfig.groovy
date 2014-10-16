@@ -23,8 +23,6 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
-import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgent
-import com.netflix.spinnaker.oort.data.aws.cachers.InfrastructureCachingAgentFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
@@ -51,66 +49,5 @@ class OortAwsConfig {
   @Bean
   ObjectMapper amazonObjectMapper() {
     new AmazonObjectMapper()
-  }
-
-  @Configuration
-  static class AmazonInitializer {
-    @Autowired
-    AccountCredentialsRepository accountCredentialsRepository
-
-    @Autowired
-    ApplicationContext applicationContext
-
-    @Autowired
-    DiscoveryApiFactory discoveryApiFactory
-
-    @Autowired
-    EddaApiFactory eddaApiFactory
-
-    // This is just so Spring gets the dependency graph right
-    @Autowired
-    CredentialsInitializer credentialsInitializer
-
-    @PostConstruct
-    void init() {
-      Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
-      for (a in accountCredentialsRepository.all) {
-        if (!NetflixAmazonCredentials.isAssignableFrom(a.class)) {
-          continue
-        }
-        NetflixAmazonCredentials account = (NetflixAmazonCredentials) a
-        if (account.front50Enabled) {
-          autowireAndInitialize InfrastructureCachingAgentFactory.getFront50CachingAgent(account)
-        }
-        for (region in (account?.regions ?: [])) {
-          autowireAndInitialize InfrastructureCachingAgentFactory.getImageCachingAgent(account, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getClusterCachingAgent(account, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getInstanceCachingAgent(account, region.name)
-          if (account.eddaEnabled) {
-            autowireAndInitialize InfrastructureCachingAgentFactory.getEddaLoadBalancerCachingAgent(account, region.name, eddaApiFactory)
-          }
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLaunchConfigCachingAgent(account, region.name)
-          autowireAndInitialize InfrastructureCachingAgentFactory.getLoadBalancerCachingAgent(account, region.name)
-          if (account.discoveryEnabled) {
-            discoveryAccounts[account.discovery][region.name].add(account)
-          }
-        }
-      }
-      for (discMap in discoveryAccounts) {
-        def actMap = discMap.value
-
-        for (regionEntry in actMap) {
-          def region = regionEntry.key
-          def accounts = regionEntry.value
-
-            autowireAndInitialize(InfrastructureCachingAgentFactory.getDiscoveryCachingAgent(accounts, region, discoveryApiFactory))
-        }
-      }
-    }
-
-    private void autowireAndInitialize(InfrastructureCachingAgent agent) {
-      applicationContext.autowireCapableBeanFactory.autowireBean(agent)
-      agent.init()
-    }
   }
 }

@@ -73,11 +73,6 @@ class Main extends SpringBootServletInitializer {
     }
   }
 
-  @Bean
-  InstanceInfo.InstanceStatus instanceStatus() {
-    InstanceInfo.InstanceStatus.UNKNOWN
-  }
-
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))

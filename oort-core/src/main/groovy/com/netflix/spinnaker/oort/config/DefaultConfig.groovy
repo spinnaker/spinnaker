@@ -20,11 +20,19 @@ import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.oort.model.CacheService
-import com.netflix.spinnaker.oort.model.InMemoryCacheService
+import com.netflix.spinnaker.cats.agent.AgentScheduler
+import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler
+import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.NamedCacheFactory
+import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
+import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.cats.provider.Provider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+
+import java.util.concurrent.TimeUnit
 
 @Configuration
 class DefaultConfig {
@@ -42,8 +50,25 @@ class DefaultConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(CacheService)
-  InMemoryCacheService cacheService() {
-    new InMemoryCacheService()
+  @ConditionalOnMissingBean(NamedCacheFactory)
+  NamedCacheFactory namedCacheFactory() {
+    new InMemoryNamedCacheFactory()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AgentScheduler)
+  AgentScheduler agentScheduler() {
+    new DefaultAgentScheduler(60, TimeUnit.SECONDS)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(CatsModule)
+  CatsModule catsModule(List<Provider> providers, List<ExecutionInstrumentation> executionInstrumentation, NamedCacheFactory cacheFactory, AgentScheduler agentScheduler) {
+    new CatsModule.Builder().cacheFactory(cacheFactory).scheduler(agentScheduler).instrumentation(executionInstrumentation).build(providers)
+  }
+
+  @Bean
+  Cache cacheView(CatsModule catsModule) {
+    catsModule.view
   }
 }

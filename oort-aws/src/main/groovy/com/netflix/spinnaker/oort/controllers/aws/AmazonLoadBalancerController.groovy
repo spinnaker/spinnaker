@@ -16,61 +16,58 @@
 
 package com.netflix.spinnaker.oort.controllers.aws
 
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.model.CacheService
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-@CompileStatic
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
+
 @RestController
 @RequestMapping("/aws/loadBalancers")
 class AmazonLoadBalancerController {
 
+  private final Cache cacheView
+  private final AwsConfigurationProperties awsConfigurationProperties
+
   @Autowired
-  CacheService cacheService
+  AmazonLoadBalancerController(Cache cacheView, AwsConfigurationProperties awsConfigurationProperties) {
+    this.cacheView = cacheView
+    this.awsConfigurationProperties = awsConfigurationProperties
+  }
 
   @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
-    def loadBalancerKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS)
-    def serverGroupKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS)
-    getSummaryForKeys(loadBalancerKeys, groupKeysByLoadBalancer(serverGroupKeys)).values() as List
+    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns)
+    getSummaryForLoadBalancers(loadBalancers).values() as List
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
-    def loadBalancerKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCERS).findAll { key ->
-      def parts = Keys.parse(key)
-      parts.loadBalancer == name
-    }
-    def serverGroupKeys = cacheService.keysByType(Keys.Namespace.LOAD_BALANCER_SERVER_GROUPS).findAll { key ->
-      def parts = Keys.parse(key)
-      parts.loadBalancer == name
-    }
+    Collection<CacheData> loadBalancers = awsConfigurationProperties.accounts.findResults { NetflixAssumeRoleAmazonCredentials account ->
+      Collection<CacheData> regionLbs = account.regions.findResults { AmazonCredentials.AWSRegion region ->
+        cacheView.get(LOAD_BALANCERS.ns, Keys.getLoadBalancerKey(name, account.name, region.name))
+      }
+      regionLbs
+    }.flatten()
 
-    getSummaryForKeys(loadBalancerKeys, groupKeysByLoadBalancer(serverGroupKeys))?.get(name)
+    getSummaryForLoadBalancers(loadBalancers).get(name)
   }
 
-  private Map<String, List<String>> groupKeysByLoadBalancer(Collection<String> keys) {
-    def entries = keys.groupBy { String key ->
-      key.substring(0, key.lastIndexOf(':'))
-    }
-    entries.each {
-      it.value = it.value.collect { String key ->
-        key.substring(key.lastIndexOf(':') + 1).toString() }
-    }
-  }
-
-  private Map<String, AmazonLoadBalancerSummary> getSummaryForKeys(Collection<String> loadBalancerKeys, Map<String, List<String>> summaries) {
+  private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<CacheData> loadBalancers) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    for (entry in loadBalancerKeys) {
-      def parts = Keys.parse(entry)
+    for (lb in loadBalancers) {
+      def parts = Keys.parse(lb.id)
       String name = parts.loadBalancer
       String region = parts.region
       String account = parts.account
@@ -80,23 +77,10 @@ class AmazonLoadBalancerController {
         map.put name, summary
       }
       def loadBalancer = new AmazonLoadBalancer(name, region)
-      loadBalancer.elb = cacheService.retrieve(entry, LoadBalancerDescription)
+      loadBalancer.elb = lb.attributes
+      loadBalancer.getServerGroups().addAll(lb.relationships[SERVER_GROUPS.ns]?.findResults { Keys.parse(it).serverGroup } ?: [])
+
       summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
-    }
-    for (entry in summaries.entrySet()) {
-      def parts = entry.key.split(':')
-      def name = parts[1]
-      def account = parts[3]
-      def region = parts[4]
-      def summary = map.get(name)
-      if (summary) {
-        def loadBalancer = summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers.find { loadBalancer ->
-          loadBalancer.getName() == name
-        }
-        if (loadBalancer) {
-          loadBalancer.serverGroups.addAll(entry.value)
-        }
-      }
     }
     map
   }

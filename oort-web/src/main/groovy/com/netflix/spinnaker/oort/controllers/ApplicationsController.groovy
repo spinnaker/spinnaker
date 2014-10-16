@@ -20,8 +20,6 @@ import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
-import com.netflix.spinnaker.oort.model.LoadBalancer
-import com.netflix.spinnaker.oort.model.LoadBalancerProvider
 import com.netflix.spinnaker.oort.model.view.ApplicationClusterViewModel
 import com.netflix.spinnaker.oort.model.view.ApplicationViewModel
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,9 +34,6 @@ class ApplicationsController {
 
   @Autowired
   List<ApplicationProvider> applicationProviders
-
-  @Autowired
-  List<LoadBalancerProvider> loadBalancerProviders
 
   @Autowired
   List<ClusterProvider> clusterProviders
