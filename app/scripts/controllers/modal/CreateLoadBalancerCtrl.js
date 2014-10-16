@@ -164,6 +164,10 @@ angular.module('deckApp')
 
     // Controller API
 
+    this.requiresHealthCheckPath = function () {
+      return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
+    };
+
     this.updateName = function() {
       var elb = $scope.loadBalancer,
           name = application.name + '-' + (elb.stack || '');
