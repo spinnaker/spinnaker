@@ -11,8 +11,8 @@ angular.module('deckApp')
     $scope.sortFilter.sortSecondary = $stateParams.secondary || defSecondary;
     $scope.sortFilter.filter = $stateParams.q || '';
     $scope.sortFilter.showAllInstances = ($stateParams.hideInstances ? false : true);
-    $scope.sortFilter.hideHealthy = ($stateParams.hideHealthy === 'true');
-    $scope.sortFilter.hideDisabled = ($stateParams.hideDisabled === 'true');
+    $scope.sortFilter.hideHealthy = ($stateParams.hideHealthy === 'true' || $stateParams.hideHealthy === true);
+    $scope.sortFilter.hideDisabled = ($stateParams.hideDisabled === 'true' || $stateParams.hideDisabled === true);
 
     var sortOptions = [
       { label: 'Account', key: 'account' },
