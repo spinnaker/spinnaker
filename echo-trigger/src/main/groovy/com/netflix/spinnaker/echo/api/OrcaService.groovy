@@ -24,7 +24,7 @@ import retrofit.http.POST
  */
 interface OrcaService {
 
-    @POST('/ops')
+    @POST('/orchestrate')
     String triggerBuild(@Body Map pipelineConfig)
 
 }
