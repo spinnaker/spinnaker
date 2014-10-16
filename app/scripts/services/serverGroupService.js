@@ -22,8 +22,34 @@ angular.module('deckApp')
       });
     }
 
+    function parseServerGroupName(serverGroupName) {
+      var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
+      var match = asgNameRegex.exec(serverGroupName);
+      return {
+        application: match[1],
+        stack: match[4] || '',
+        freeFormDetails: match[7] || ''
+      };
+    }
+
+    function getClusterName(app, cluster, detail) {
+      var clusterName = app;
+      if (cluster) {
+        clusterName += '-' + cluster;
+      }
+      if (!cluster && detail) {
+        clusterName += '-';
+      }
+      if (detail) {
+        clusterName += '-' + detail;
+      }
+      return clusterName;
+    }
+
     return {
-      getScalingActivities: getScalingActivities
+      getScalingActivities: getScalingActivities,
+      parseServerGroupName: parseServerGroupName,
+      getClusterName: getClusterName
     };
 });
 
