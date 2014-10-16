@@ -20,18 +20,35 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE"
+    classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
   }
 }
 
+apply plugin: 'os-package'
 apply plugin: 'spring-boot'
 
 ideaConfig {
   mainClassName = 'com.netflix.spinnaker.front50.Main'
 }
 
+applicationDefaultJvmArgs = ["-Dserver.port=8080"]
+
 dependencies {
   compile project(":front50-core")
   compile project(":front50-aws")
   spinnaker.group "bootWeb"
   compile spinnaker.dependency("kork")
+}
+
+ospackage {
+  packageName = rootProject.name
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/opt/${rootProject.name}"
+  from "${project.buildDir}/install/${project.name}"
+}
+
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
 }
