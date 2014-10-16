@@ -3,7 +3,7 @@
 
 angular.module('deckApp.aws')
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
-                                               accountService, orcaService, mortService, oortService, searchService,
+                                               accountService, orcaService, mortService, oortService, searchService, serverGroupService,
                                                instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
                                                serverGroup, application, title) {
     $scope.title = title;
@@ -232,12 +232,11 @@ angular.module('deckApp.aws')
     }
 
     function buildCommandFromExisting(serverGroup) {
-      var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
-      var match = asgNameRegex.exec(serverGroup.asg.autoScalingGroupName);
+      var serverGroupName = serverGroupService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
       var command = {
-        'application': application.name,
-        'stack': match[4],
-        'freeFormDetails': match[7],
+        'application': serverGroupName.application,
+        'stack': serverGroupName.stack,
+        'freeFormDetails': serverGroupName.freeFormDetails,
         'credentials': serverGroup.account,
         'cooldown': serverGroup.asg.defaultCooldown,
         'healthCheckGracePeriod': serverGroup.asg.healthCheckGracePeriod,

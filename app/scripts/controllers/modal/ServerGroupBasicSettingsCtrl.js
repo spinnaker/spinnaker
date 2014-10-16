@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings) {
+  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService) {
 
     $scope.select2Params = {
       ajax: {
@@ -45,5 +45,13 @@ angular.module('deckApp')
         modalWizardService.getWizard().markDirty('location');
       }
     });
+
+    this.getNamePreview = function() {
+      var command = $scope.command;
+      if (!command) {
+        return '';
+      }
+      return serverGroupService.getClusterName($scope.applicationName, command.stack, command.freeFormDetails);
+    };
 
   });
