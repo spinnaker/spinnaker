@@ -48,11 +48,11 @@ class PipelineListener implements EchoEventListener, ApplicationListener<Context
     @Override
     void onApplicationEvent(ContextRefreshedEvent event) {
         if (mayo && orca) {
-            jobsList = mayo.allJobs
+            jobsList = mayo.allJobs()
             worker = Schedulers.io().createWorker()
             worker.schedulePeriodically(
                 {
-                    jobsList = mayo.allJobs
+                    jobsList = mayo.allJobs()
                     log.info('Refreshing list of jobs')
                 } as Action0, 0, 10, TimeUnit.SECONDS
             )
@@ -64,11 +64,14 @@ class PipelineListener implements EchoEventListener, ApplicationListener<Context
         if (mayo && orca) {
             if (event.details.source == 'igor') {
                 String master = event.content.master
-                String jobName = event.content.jobName
-                if (jobsList[master]?.contains(jobName)) {
+                String jobName = event.content.project.name
+                boolean isSuccessful = event.content.project.lastBuildStatus == 'Success'
+                if (isSuccessful && jobsList[master]?.contains(jobName)) {
                     mayo.getPipelines(master, jobName).each { pipeline ->
-                        orca.triggerBuild(pipeline)
-                        log.info('triggering pipeline {} for {}/{}', pipeline.name, master, jobName)
+                        if (pipeline) {
+                            orca.triggerBuild(pipeline)
+                            log.info('triggering pipeline {} for {}/{}', pipeline.name, master, jobName)
+                        }
                     }
                 }
             }

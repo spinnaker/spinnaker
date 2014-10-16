@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.config
 
 import static retrofit.Endpoints.newFixedEndpoint
+import static retrofit.Endpoints.newFixedEndpoint
 
 import com.google.gson.Gson
 import com.netflix.spinnaker.echo.events.OrcaService
@@ -49,17 +50,11 @@ class OrcaConfiguration {
     RestAdapter.LogLevel retrofitLogLevel
 
     @Bean
-    Endpoint echoEndpoint(@Value('${orca.baseUrl:http://mayo.prod.netflix.net}') String orcaBaseUrl) {
-        newFixedEndpoint(orcaBaseUrl)
-    }
-
-    @Bean
-    OrcaService notificationService(Endpoint echoEndpoint, Gson gson) {
+    OrcaService orcaService(@Value('${orca.baseUrl:http://orca.prod.netflix.net}') String orcaBaseUrl) {
         new RestAdapter.Builder()
-            .setEndpoint(echoEndpoint)
+            .setEndpoint(newFixedEndpoint(orcaBaseUrl))
             .setClient(retrofitClient)
             .setLogLevel(retrofitLogLevel)
-            .setConverter(new GsonConverter(gson))
             .build()
             .create(OrcaService)
     }
