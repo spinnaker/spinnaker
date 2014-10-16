@@ -28,14 +28,18 @@ angular.module('deckApp')
         onChange: '&'
       },
       link: function(scope) {
-        var initialValues = scope.model || [];
-        scope.modelHolder = {};
-        initialValues.forEach(function(val) {
-          scope.modelHolder[val] = val;
-        });
-        scope.updateModel = function() {
+
+        function initializeModelHolder() {
+          var initialValues = scope.model || [];
+          scope.modelHolder = {};
+          initialValues.forEach(function (val) {
+            scope.modelHolder[val] = val;
+          });
+        }
+
+        function updateModel() {
           var updatedModel = [];
-          scope.items.forEach(function(testKey) {
+          scope.items.forEach(function (testKey) {
             if (scope.modelHolder[testKey]) {
               updatedModel.push(testKey);
             }
@@ -44,15 +48,20 @@ angular.module('deckApp')
           if (scope.onChange) {
             scope.$evalAsync(scope.onChange);
           }
-        };
+        }
+
+        scope.updateModel = updateModel;
+
+        scope.$watch('model', initializeModelHolder);
 
         scope.$watch('items', function(newOptions, oldOptions) {
-          if (oldOptions) {
+          if (oldOptions && oldOptions !== newOptions) {
             oldOptions.forEach(function(oldOption) {
               if (newOptions.indexOf(oldOption) === -1) {
                 delete scope.modelHolder[oldOption];
               }
             });
+            updateModel();
           }
         });
       }
