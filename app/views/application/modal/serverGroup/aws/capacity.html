@@ -26,7 +26,34 @@
     </div>
     <hr/>
     <input type="hidden" ng-model="command.availabilityZones[0]" required/>
-    <availability-zone-select-field component="command" field="availabilityZones" region="command.region" availability-zones="regionalAvailabilityZones"></availability-zone-select-field>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left">Availability Zones</div>
+      <div class="col-md-7" ng-if="!command.usePreferredZones && !command.region">(Select a region)</div>
+      <div class="col-md-7" ng-if="command.region">
+        <p>Automatic Availability Zone Balancing:</p>
+        <select class="form-control input-sm"
+                ng-model="command.usePreferredZones"
+                ng-options="option.value as option.label for option in autoBalancingOptions">
+
+        </select>
+        <br/>
+        <div ng-if="command.usePreferredZones">
+          <p>
+            Server group will be available in:
+            <ul>
+              <li ng-repeat="zone in preferredZones[command.credentials][command.region]">
+                {{zone}}
+              </li>
+            </ul>
+          </p>
+        </div>
+        <div ng-if="command.region && !command.usePreferredZones">
+          Restrict server group instances to:
+          <checklist items="regionalAvailabilityZones"
+                     model="command.availabilityZones"></checklist>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"

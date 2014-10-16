@@ -29,7 +29,12 @@
                ng-pattern="/^[#a-zA-Z0-9\-]*$/"/>
       </div>
     </div>
-    <availability-zone-select-field component="loadBalancer" field="regionZones" region="loadBalancer.region" availability-zones="availabilityZones"></availability-zone-select-field>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Availability Zones</div>
+      <div class="col-md-7" ng-if="!loadBalancer.region">(Select a region)</div>
+      <checklist class="col-md-9" ng-if="loadBalancer.region" items="availabilityZones"
+                 model="loadBalancer.regionZones"></checklist>
+    </div>
     <subnet-select-field component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
   </div>
   <div class="modal-footer">
