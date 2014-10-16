@@ -61,6 +61,6 @@ ospackage {
   packageName = "deck"
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/var/www/html"
+  into "/var/www"
   from "dist"
 }
