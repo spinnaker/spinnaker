@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.FixedIntervalRunnableScheduler
+import com.netflix.spinnaker.cats.agent.RunnableScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.JedisSource
@@ -26,12 +27,17 @@ import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.JedisPool
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 
@@ -41,7 +47,11 @@ class RedisConfig {
 
   @Bean
   JedisPool jedisPool(@Value('${redis.host:localhost}') String redisHost, @Value('${redis.port:6379}') int redisPort) {
-    new JedisPool(redisHost, redisPort)
+    GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig()
+    poolConfig.setMaxTotal(100)
+    poolConfig.setMinIdle(25)
+    poolConfig.setMaxIdle(100)
+    new JedisPool(poolConfig, redisHost, redisPort)
   }
 
   @Bean
@@ -56,6 +66,18 @@ class RedisConfig {
 
   @Bean
   AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.host:localhost}') String redisHost, @Value('${redis.port:6379}') int redisPort) {
-    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), new DefaultAgentIntervalProvider(TimeUnit.SECONDS.toMillis(60)), new FixedIntervalRunnableScheduler(ClusteredAgentScheduler.class.getSimpleName(), 5, TimeUnit.SECONDS))
+    def rs = new RunnableScheduler() {
+      ScheduledExecutorService ses = Executors.newScheduledThreadPool(100, new NamedThreadFactory(ClusteredAgentScheduler.class.simpleName))
+      @Override
+      void schedule(Runnable r) {
+        ses.scheduleAtFixedRate(r, 0, 5, TimeUnit.SECONDS)
+      }
+
+      @Override
+      void shutdown() {
+        ses.shutdown()
+      }
+    }
+    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), new DefaultAgentIntervalProvider(TimeUnit.SECONDS.toMillis(60)), rs)
   }
 }
