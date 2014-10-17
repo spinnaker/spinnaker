@@ -58,7 +58,7 @@ class TaskTaskletAdapter implements Tasklet {
     if (result.status == PipelineStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.with {
         setTerminateOnly()
-        exitStatus = ExitStatus.FAILED
+        exitStatus = ExitStatus.FAILED.addExitDescription(result.status.name())
       }
     }
 
