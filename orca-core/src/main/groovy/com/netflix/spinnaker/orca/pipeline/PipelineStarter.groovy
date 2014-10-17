@@ -94,9 +94,9 @@ class PipelineStarter {
 
   private List<StageBuilder> stageBuildersFor(Pipeline pipeline) {
     pipeline.stages.collect {
-      String beanName = it.name
+      String beanName = it.type
       if (it.context.providerType) {
-        beanName = "${it.name}_$it.context.providerType"
+        beanName = "${it.type}_$it.context.providerType"
       }
 
       if (stages.containsKey(beanName)) {

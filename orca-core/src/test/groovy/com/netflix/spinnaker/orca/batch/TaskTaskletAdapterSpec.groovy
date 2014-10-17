@@ -43,7 +43,7 @@ class TaskTaskletAdapterSpec extends Specification {
 
   @Subject tasklet = new TaskTaskletAdapter(task)
 
-  def stepExecution = createStepExecution("${stage.name}.task1", nextLong())
+  def stepExecution = createStepExecution("${stage.type}.task1", nextLong())
   def stepContext = new StepContext(stepExecution)
   def stepContribution = new StepContribution(stepExecution)
   def chunkContext = new ChunkContext(stepContext)

@@ -39,9 +39,9 @@ class Pipeline implements Serializable {
     this(id, stages.toList())
   }
 
-  Stage namedStage(String name) {
+  Stage namedStage(String type) {
     stages.find {
-      it.name == name
+      it.type == type
     }
   }
 

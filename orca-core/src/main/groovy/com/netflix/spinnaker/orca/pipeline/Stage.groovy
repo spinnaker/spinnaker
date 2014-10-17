@@ -29,7 +29,7 @@ class Stage implements Serializable {
   /**
    * @return the name that corresponds to Mayo config.
    */
-  final String name
+  final String type
 
   /**
    * @return the status of the stage. Effectively this will mean the status of
@@ -37,8 +37,8 @@ class Stage implements Serializable {
    */
   PipelineStatus status = NOT_STARTED
 
-  Stage(String name) {
-    this.name = name
+  Stage(String type) {
+    this.type = type
   }
 
   // TODO: ImmutableMap?

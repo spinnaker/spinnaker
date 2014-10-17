@@ -44,12 +44,14 @@ class PreconfigureRedBlackStep implements Task {
     if (!lastAsg) {
       new DefaultTaskResult(PipelineStatus.TERMINAL)
     } else {
-      def outputs = ["disableAsg.asgName"     : lastAsg.name,
-                     "disableAsg.regions"     : [lastAsg.region],
-                     "disableAsg.credentials" : account,
-                     "copyLastAsg.credentials": account,
-                     "copyLastAsg.availabilityZones": availabilityZones,
-                     "copyLastAsg.application": names.app]
+      def outputs = [
+        "disableAsg.asgName"           : lastAsg.name,
+        "disableAsg.regions"           : [lastAsg.region],
+        "disableAsg.credentials"       : account,
+        "copyLastAsg.credentials"      : account,
+        "copyLastAsg.availabilityZones": availabilityZones,
+        "copyLastAsg.application"      : names.app
+      ]
       if (names.stack) {
         outputs."copyLastAsg.stack" = names.stack
       }

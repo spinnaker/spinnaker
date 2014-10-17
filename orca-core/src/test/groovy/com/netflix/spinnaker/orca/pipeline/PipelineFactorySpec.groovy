@@ -31,7 +31,7 @@ class PipelineFactorySpec extends Specification {
     given: "a pipeline was started"
     def jobExecution = new JobExecution(id)
     jobExecution.executionContext.put("pipeline",
-      new Pipeline(id.toString(), stageNames.collect { new Stage(it) })
+      new Pipeline(id.toString(), stageTypes.collect { new Stage(it) })
     )
     jobExplorer.getJobExecution(id) >> jobExecution
 
@@ -43,11 +43,11 @@ class PipelineFactorySpec extends Specification {
     pipeline.id == id.toString()
 
     and: "it has details of all the stages"
-    pipeline.stages.name == stageNames
+    pipeline.stages.type == stageTypes
 
     where:
     id = RandomUtils.nextLong()
-    stageNames = ["first", "second"]
+    stageTypes = ["first", "second"]
   }
 
 }
