@@ -47,7 +47,17 @@ class CatsApplicationProvider implements ApplicationProvider {
 
   @Override
   Set<Application> getApplications() {
-    cacheView.getAll(APPLICATIONS.ns).collect this.&translate
+    List<Map<String, String>> clusterKeys = cacheView.getIdentifiers(CLUSTERS.ns).collect {
+      Keys.parse(it)
+    }
+    Map<String, List<Map<String, String>>> byApp = clusterKeys.groupBy { it.application }
+
+    byApp.collect { String appName, List<Map<String, String>> clusters ->
+      Map<String, Set<String>> byAccount = clusters.groupBy { it.account }.collectEntries { k, v ->
+        [k, v.collect { it.cluster } as Set]
+      }
+      new CatsApplication(appName, [:], byAccount)
+    } as Set
   }
 
   @Override
