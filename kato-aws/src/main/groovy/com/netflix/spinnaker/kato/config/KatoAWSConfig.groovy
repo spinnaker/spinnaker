@@ -20,7 +20,6 @@ package com.netflix.spinnaker.kato.config
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
@@ -120,7 +119,6 @@ class KatoAWSConfig {
 
   static class DeployDefaults {
     String iamRole
-    String keyPair
     List<AmazonInstanceClassBlockDevice> instanceClassBlockDevices = []
   }
 
