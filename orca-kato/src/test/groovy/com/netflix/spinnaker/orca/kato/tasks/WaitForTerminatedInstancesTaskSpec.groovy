@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -43,7 +43,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
       def input = Mock(TypedInput)
       input.in() >> {
         def jsonObj = [
-          [ totalMatches: matches ]
+          [totalMatches: matches]
         ]
         new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
       }
@@ -54,11 +54,11 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."terminate.instance.ids" = [instanceId]
+    def stage = new Stage("whatever")
+    stage.context."instance.ids" = [instanceId]
 
     expect:
-    task.execute(context).status == taskStatus
+    task.execute(stage).status == taskStatus
 
     where:
     matches || taskStatus
@@ -78,11 +78,11 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."terminate.instance.ids" = [instanceId]
+    def stage = new Stage("whatever")
+    stage.context."instance.ids" = [instanceId]
 
     expect:
-    task.execute(context).status == PipelineStatus.RUNNING
+    task.execute(stage).status == PipelineStatus.RUNNING
   }
 
   void "should return RUNNING status when search returns multiple result sets"() {
@@ -94,7 +94,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     response.getBody() >> {
       def input = Mock(TypedInput)
       input.in() >> {
-        def jsonObj = [ [:], [:] ]
+        def jsonObj = [[:], [:]]
         new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
       }
       input
@@ -104,11 +104,11 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."terminate.instance.ids" = [instanceId]
+    def stage = new Stage("whatever")
+    stage.context."instance.ids" = [instanceId]
 
     expect:
-    task.execute(context).status == PipelineStatus.RUNNING
+    task.execute(stage).status == PipelineStatus.RUNNING
   }
 
   void "should search all instanceIds"() {
@@ -122,7 +122,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
         def input = Mock(TypedInput)
         input.in() >> {
           def jsonObj = [
-            [ totalMatches: 0 ]
+            [totalMatches: 0]
           ]
           new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
         }
@@ -136,11 +136,11 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."terminate.instance.ids" = instanceIds
+    def stage = new Stage("whatever")
+    stage.context."instance.ids" = instanceIds
 
     expect:
-    task.execute(context).status == PipelineStatus.SUCCEEDED
+    task.execute(stage).status == PipelineStatus.SUCCEEDED
   }
 
   void "should return running if any instance found via search"() {
@@ -153,7 +153,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
       def input = Mock(TypedInput)
       input.in() >> {
         def jsonObj = [
-          [ totalMatches: 1 ]
+          [totalMatches: 1]
         ]
         new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
       }
@@ -164,10 +164,10 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."terminate.instance.ids" = instanceIds
+    def stage = new Stage("whatever")
+    stage.context."instance.ids" = instanceIds
 
     expect:
-    task.execute(context).status == PipelineStatus.RUNNING
+    task.execute(stage).status == PipelineStatus.RUNNING
   }
 }

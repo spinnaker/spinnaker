@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.UpsertSecurityGroupOperation
 import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.client.Response
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
@@ -39,23 +41,23 @@ class UpsertSecurityGroupTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def upsertSecurityGroupOperation = convert(context)
+  TaskResult execute(Stage stage) {
+    def upsertSecurityGroupOperation = convert(stage)
     def currentSecurityGroupResponse = mortService.getSecurityGroup(upsertSecurityGroupOperation.credentials, 'aws', upsertSecurityGroupOperation.name, upsertSecurityGroupOperation.region)
 
     String currentValue = parseCurrentValue(currentSecurityGroupResponse)
 
     def taskId = kato.requestOperations([[upsertSecurityGroupDescription: upsertSecurityGroupOperation]])
-      .toBlocking()
-      .first()
+                     .toBlocking()
+                     .first()
 
     Map outputs = [
-      "notification.type"   : "upsertsecuritygroup",
-      "kato.last.task.id"   : taskId,
-      "kato.task.id"        : taskId, // TODO retire this.
-      "upsert.account"      : upsertSecurityGroupOperation.credentials,
-      "upsert.name"         : upsertSecurityGroupOperation.name,
-      "upsert.region"       : upsertSecurityGroupOperation.region
+      "notification.type": "upsertsecuritygroup",
+      "kato.last.task.id": taskId,
+      "kato.task.id"     : taskId, // TODO retire this.
+      "upsert.account"   : upsertSecurityGroupOperation.credentials,
+      "upsert.name"      : upsertSecurityGroupOperation.name,
+      "upsert.region"    : upsertSecurityGroupOperation.region
     ]
     if (currentValue) {
       outputs.put("upsert.pre.response", currentValue)
@@ -64,10 +66,10 @@ class UpsertSecurityGroupTask implements Task {
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
-  UpsertSecurityGroupOperation convert(TaskContext context) {
+  UpsertSecurityGroupOperation convert(Stage stage) {
     mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(context.getInputs("upsertSecurityGroup"), UpsertSecurityGroupOperation)
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(stage.context, UpsertSecurityGroupOperation)
   }
 
   static String parseCurrentValue(Response response) {

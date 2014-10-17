@@ -16,9 +16,13 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAmazonLoadBalancerOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -34,12 +38,12 @@ class DeleteAmazonLoadBalancerTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def deleteAmazonLoadBalancerOperation = convert(context)
+  TaskResult execute(Stage stage) {
+    def deleteAmazonLoadBalancerOperation = convert(stage)
 
     def taskId = kato.requestOperations([[deleteAmazonLoadBalancerDescription: deleteAmazonLoadBalancerOperation]])
-      .toBlocking()
-      .first()
+                     .toBlocking()
+                     .first()
 
     Map outputs = [
       "notification.type"  : "deleteamazonloadbalancer",
@@ -52,9 +56,9 @@ class DeleteAmazonLoadBalancerTask implements Task {
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
-  DeleteAmazonLoadBalancerOperation convert(TaskContext context) {
+  DeleteAmazonLoadBalancerOperation convert(Stage stage) {
     mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(context.getInputs("deleteAmazonLoadBalancer"), DeleteAmazonLoadBalancerOperation)
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(stage.context, DeleteAmazonLoadBalancerOperation)
   }
 }

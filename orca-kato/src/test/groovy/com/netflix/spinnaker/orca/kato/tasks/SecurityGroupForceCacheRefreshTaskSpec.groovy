@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
-import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.mort.MortService
 
 class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new SecurityGroupForceCacheRefreshTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("whatever")
 
   def config = [
     name   : "sg-12345a",
@@ -33,7 +33,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
 
   def setup() {
     config.each {
-      context."upsert.${it.key}" = it.value
+      stage.context."upsert.${it.key}" = it.value
     }
   }
 
@@ -42,7 +42,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
     task.mort = Mock(MortService)
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.mort.forceCacheUpdate(SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

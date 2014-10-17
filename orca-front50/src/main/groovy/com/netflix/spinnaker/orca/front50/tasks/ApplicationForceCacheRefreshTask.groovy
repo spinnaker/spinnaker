@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class ApplicationForceCacheRefreshTask implements Task {
@@ -27,8 +31,8 @@ class ApplicationForceCacheRefreshTask implements Task {
   OortService oort
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def account = context.getInputs()."account"
+  TaskResult execute(Stage stage) {
+    def account = stage.context."account"
 
     if (account) {
       oort.forceCacheUpdate(REFRESH_TYPE, [account: account])

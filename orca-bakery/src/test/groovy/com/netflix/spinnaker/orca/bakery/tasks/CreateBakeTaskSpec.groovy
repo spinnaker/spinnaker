@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,7 +30,7 @@ import static java.util.UUID.randomUUID
 class CreateBakeTaskSpec extends Specification {
 
   @Subject task = new CreateBakeTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("bake")
   def mapper = new ObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
@@ -45,9 +45,7 @@ class CreateBakeTaskSpec extends Specification {
   def setup() {
     task.mapper = mapper
 
-    bakeConfig.each {
-      context."bake.$it.key" = it.value
-    }
+    stage.context.putAll(bakeConfig)
   }
 
   def "creates a bake for the correct region"() {
@@ -55,7 +53,7 @@ class CreateBakeTaskSpec extends Specification {
     task.bakery = Mock(BakeryService)
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest) >> Observable.from(runningStatus)
@@ -72,7 +70,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     bake.user == bakeConfig.user
@@ -88,7 +86,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     with(result.outputs["bake.status"]) {

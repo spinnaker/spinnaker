@@ -15,8 +15,12 @@
  */
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -29,13 +33,12 @@ public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
   OortService oort
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def inputs = context.getInputs()
-    String account = inputs."upsertAmazonLoadBalancer.credentials"
-    String name = inputs."upsertAmazonLoadBalancer.clusterName" ?
-      "${inputs."upsertAmazonLoadBalancer.clusterName"}-frontend" :
-      inputs."upsertAmazonLoadBalancer.name"
-    List<String> regions = [inputs."upsertAmazonLoadBalancer.region"].flatten()
+  TaskResult execute(Stage stage) {
+    String account = stage.context.credentials
+    String name = stage.context.clusterName ?
+      "${stage.context.clusterName}-frontend" :
+      stage.context.name
+    List<String> regions = [stage.context.region].flatten()
 
     regions.each { region ->
       def model = [loadBalancerName: name, region: region, account: account]

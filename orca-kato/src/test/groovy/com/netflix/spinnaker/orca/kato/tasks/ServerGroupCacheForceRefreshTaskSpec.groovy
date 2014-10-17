@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
-import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.oort.OortService
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
   @Subject task = new ServerGroupCacheForceRefreshTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("whatever")
 
   def deployConfig = [
     "account.name"  : "fzlem",
@@ -32,9 +32,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   ]
 
   def setup() {
-    deployConfig.each {
-      context."deploy.${it.key}" = it.value
-    }
+    stage.context.putAll(deployConfig)
   }
 
   void "should force cache refresh server groups via oort"() {
@@ -42,7 +40,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate(ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

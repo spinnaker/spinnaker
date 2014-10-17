@@ -18,9 +18,13 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.EnableOrDisableAsgOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -36,22 +40,24 @@ abstract class AbstractAsgTask implements Task {
   abstract String getAsgAction()
 
   @Override
-  TaskResult execute(TaskContext context) {
-    EnableOrDisableAsgOperation operation = operationFromContext(context)
-    def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]]).toBlocking().first()
+  TaskResult execute(Stage stage) {
+    EnableOrDisableAsgOperation operation = operationFromContext(stage)
+    def taskId = kato.requestOperations([
+      [("${asgAction}Description".toString()): operation]
+    ]).toBlocking().first()
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
-        "notification.type"                             : getAsgAction().toLowerCase(),
-        "kato.last.task.id"                             : taskId,
-        "kato.task.id"                                  : taskId, // TODO retire this.
-        "deploy.account.name"                           : operation.credentials,
-        ("targetop.asg.${asgAction}.name".toString())   : operation.asgName,
-        ("targetop.asg.${asgAction}.regions".toString()): operation.regions
+      "notification.type"                             : getAsgAction().toLowerCase(),
+      "kato.last.task.id"                             : taskId,
+      "kato.task.id"                                  : taskId, // TODO retire this.
+      "deploy.account.name"                           : operation.credentials,
+      ("targetop.asg.${asgAction}.name".toString())   : operation.asgName,
+      ("targetop.asg.${asgAction}.regions".toString()): operation.regions
     ])
   }
 
-  private EnableOrDisableAsgOperation operationFromContext(TaskContext context) {
+  private EnableOrDisableAsgOperation operationFromContext(Stage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(context.getInputs(asgAction), EnableOrDisableAsgOperation)
+          .convertValue(stage.context, EnableOrDisableAsgOperation)
   }
 }

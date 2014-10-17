@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class NotifyEchoTask implements Task {
@@ -26,10 +30,10 @@ class NotifyEchoTask implements Task {
   EchoService echo
 
   @Override
-  TaskResult execute(TaskContext context) {
+  TaskResult execute(Stage stage) {
 
     if (echo) {
-      def inputs = context.getInputs()
+      def inputs = stage.context
       echo.recordEvent(
         [
           "details": [

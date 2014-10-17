@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.TaskContext
+import com.netflix.spinnaker.orca.pipeline.Stage
 
 class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   @Override
-  protected Map<String, List<String>> getServerGroups(TaskContext context) {
-    (Map<String, List<String>>) context.getInputs()."deploy.server.groups"
+  protected Map<String, List<String>> getServerGroups(Stage stage) {
+    (Map<String, List<String>>) stage.context."server.groups"
   }
 
   @Override

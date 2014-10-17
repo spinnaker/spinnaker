@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class DestroyGoogleReplicaPoolTask implements Task {
@@ -26,25 +30,26 @@ class DestroyGoogleReplicaPoolTask implements Task {
   KatoService kato
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def operation = convert(context)
+  TaskResult execute(Stage stage) {
+    def operation = convert(stage)
     def taskId = kato.requestOperations([[deleteGoogleReplicaPoolDescription: operation]])
                      .toBlocking()
                      .first()
 
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
-      "notification.type": "destroygooglereplicapool",
-         "deploy.account.name" : operation.credentials,
-         "kato.last.task.id"   : taskId,
-         "kato.task.id"        : taskId, // TODO retire this.
-         "deploy.server.groups": [(operation.zone): [operation.replicaPoolName]],
-        ])
+      "notification.type"   : "destroygooglereplicapool",
+      "deploy.account.name" : operation.credentials,
+      "kato.last.task.id"   : taskId,
+      "kato.task.id"        : taskId, // TODO retire this.
+      "deploy.server.groups": [(operation.zone): [operation.replicaPoolName]],
+    ])
   }
 
-  DestroyGoogleReplicaPoolOperation convert(TaskContext context) {
-    def inputs = context.getInputs("destroyAsg_gce")
-    new DestroyGoogleReplicaPoolOperation(replicaPoolName: inputs.asgName,
-                                          zone: inputs.zones ? inputs.zones[0] : null,
-                                          credentials: inputs.credentials)
+  DestroyGoogleReplicaPoolOperation convert(Stage stage) {
+    new DestroyGoogleReplicaPoolOperation(
+      replicaPoolName: stage.context.asgName,
+      zone: stage.context.zones ? stage.context.zones[0] : null,
+      credentials: stage.context.credentials
+    )
   }
 }

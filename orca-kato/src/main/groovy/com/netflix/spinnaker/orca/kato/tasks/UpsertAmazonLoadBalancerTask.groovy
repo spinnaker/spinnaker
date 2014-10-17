@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.UpsertAmazonLoadBalancerOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -35,7 +36,7 @@ class UpsertAmazonLoadBalancerTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(TaskContext context) {
+  TaskResult execute(Stage stage) {
     def upsertAmazonLoadBalancerOperation = convert(context)
 
     def taskId = kato.requestOperations([[upsertAmazonLoadBalancerDescription: upsertAmazonLoadBalancerOperation]])

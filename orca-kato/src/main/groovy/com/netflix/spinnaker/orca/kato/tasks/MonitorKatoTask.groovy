@@ -18,10 +18,14 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -34,8 +38,8 @@ class MonitorKatoTask implements RetryableTask {
   KatoService kato
 
   @Override
-  TaskResult execute(TaskContext context) {
-    TaskId taskId = context.inputs."kato.last.task.id" as TaskId
+  TaskResult execute(Stage stage) {
+    TaskId taskId = stage.context."kato.last.task.id" as TaskId
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     PipelineStatus status = katoStatusToTaskStatus(katoTask.status)
 
@@ -49,8 +53,8 @@ class MonitorKatoTask implements RetryableTask {
     }
     if (status == PipelineStatus.SUCCEEDED || status == PipelineStatus.TERMINAL) {
       List<Map<String, Object>> katoTasks = []
-      if (context.inputs.containsKey("kato.tasks")) {
-        katoTasks = context.inputs."kato.tasks" as List<Map<String, Object>>
+      if (stage.context.containsKey("kato.tasks")) {
+        katoTasks = stage.context."kato.tasks" as List<Map<String, Object>>
       }
       Map<String, Object> m = [id: katoTask.id, status: katoTask.status, history: katoTask.history]
       if (katoTask.resultObjects.find { it.type == "EXCEPTION" }) {

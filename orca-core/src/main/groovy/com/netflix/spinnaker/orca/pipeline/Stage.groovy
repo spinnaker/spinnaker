@@ -42,5 +42,5 @@ class Stage implements Serializable {
   }
 
   // TODO: ImmutableMap?
-  final Map<String, ? extends Serializable> context = [:]
+  final Map<String, Serializable> context = [:]
 }

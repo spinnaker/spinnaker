@@ -18,8 +18,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractInstancesCheckTask implements RetryableTask {
@@ -32,15 +36,15 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
   @Autowired
   ObjectMapper objectMapper
 
-  abstract protected Map<String, List<String>> getServerGroups(TaskContext context)
+  abstract protected Map<String, List<String>> getServerGroups(Stage stage)
 
   abstract protected boolean hasSucceeded(List instances)
 
   @Override
-  TaskResult execute(TaskContext context) {
-    String account = context.getInputs()."deploy.account.name"
+  TaskResult execute(Stage stage) {
+    String account = stage.context."account.name"
 
-    Map<String, List<String>> serverGroups = getServerGroups(context)
+    Map<String, List<String>> serverGroups = getServerGroups(stage)
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
       return new DefaultTaskResult(PipelineStatus.FAILED)

@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
@@ -27,10 +31,10 @@ class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
   OortService oort
 
   @Override
-  TaskResult execute(TaskContext context) {
-    String account = context.getInputs()."deleteAmazonLoadBalancer.credentials"
-    String name = context.getInputs()."deleteAmazonLoadBalancer.loadBalancerName"
-    List<String> regions = context.getInputs()."deleteAmazonLoadBalancer.regions"
+  TaskResult execute(Stage stage) {
+    String account = stage.context.credentials
+    String name = stage.context.loadBalancerName
+    List<String> regions = stage.context.regions
 
     regions.each { region ->
       def model = [loadBalancerName: name, region: region, account: account, evict: true]

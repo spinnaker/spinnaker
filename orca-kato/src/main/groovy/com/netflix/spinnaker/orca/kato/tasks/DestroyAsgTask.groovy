@@ -18,9 +18,13 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -34,8 +38,8 @@ class DestroyAsgTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def operation = convert(context)
+  TaskResult execute(Stage stage) {
+    def operation = convert(stage)
     def taskId = kato.requestOperations([[destroyAsgDescription: operation]])
                      .toBlocking()
                      .first()
@@ -51,9 +55,9 @@ class DestroyAsgTask implements Task {
     ])
   }
 
-  DestroyAsgOperation convert(TaskContext context) {
+  DestroyAsgOperation convert(Stage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(context.getInputs("destroyAsg"), DestroyAsgOperation)
+          .convertValue(stage.context, DestroyAsgOperation)
   }
 }

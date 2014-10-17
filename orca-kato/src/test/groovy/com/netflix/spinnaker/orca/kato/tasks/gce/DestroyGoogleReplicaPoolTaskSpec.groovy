@@ -17,65 +17,63 @@
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DestroyGoogleReplicaPoolTaskSpec extends Specification {
   @Subject task = new DestroyGoogleReplicaPoolTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
-      asgName    : "test-asg",
-      zones      : ["us-central1-b"],
-      credentials: "fzlem"
+    asgName    : "test-asg",
+    zones      : ["us-central1-b"],
+    credentials: "fzlem"
   ]
 
   def setup() {
-    destroyASGConfig.each {
-      context."destroyAsg_gce.$it.key" = it.value
-    }
+    stage.context.putAll(destroyASGConfig)
   }
 
   def "creates a destroy google replica pool task based on job parameters"() {
     given:
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[0]
-          rx.Observable.from(taskId)
-        }
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        rx.Observable.from(taskId)
       }
+    }
 
     when:
-      task.execute(context)
+    task.execute(stage)
 
     then:
-      operations.size() == 1
-      with(operations[0].deleteGoogleReplicaPoolDescription) {
-        it instanceof DestroyGoogleReplicaPoolOperation
-        replicaPoolName == destroyASGConfig.asgName
-        zone == destroyASGConfig.zones[0]
-        credentials == destroyASGConfig.credentials
-      }
+    operations.size() == 1
+    with(operations[0].deleteGoogleReplicaPoolDescription) {
+      it instanceof DestroyGoogleReplicaPoolOperation
+      replicaPoolName == destroyASGConfig.asgName
+      zone == destroyASGConfig.zones[0]
+      credentials == destroyASGConfig.credentials
+    }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-      task.kato = Stub(KatoService) {
-        requestOperations(*_) >> rx.Observable.from(taskId)
-      }
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> rx.Observable.from(taskId)
+    }
 
     when:
-      def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.SUCCEEDED
-      result.outputs."kato.task.id" == taskId
-      result.outputs."deploy.account.name" == destroyASGConfig.credentials
+    result.outputs."kato.task.id" == taskId
+    result.outputs."deploy.account.name" == destroyASGConfig.credentials
   }
 }

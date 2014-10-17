@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.orca
 
+import com.netflix.spinnaker.orca.pipeline.Stage
+
 interface Task {
 
-  TaskResult execute(TaskContext context)
+  TaskResult execute(Stage stage)
 
 }

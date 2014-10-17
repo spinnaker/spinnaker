@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,11 +38,11 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."kato.last.task.id" = new TaskId(taskId)
+    def stage = new Stage("whatever")
+    stage.context."kato.last.task.id" = new TaskId(taskId)
 
     expect:
-    task.execute(context).status == expectedResult
+    task.execute(stage).status == expectedResult
 
     where:
     completed | failed | expectedResult

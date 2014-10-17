@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class CreateGoogleServerGroupTask implements Task {
@@ -31,7 +32,7 @@ class CreateGoogleServerGroupTask implements Task {
   KatoService kato
 
   @Override
-  TaskResult execute(TaskContext context) {
+  TaskResult execute(Stage stage) {
     def operation = convert(context)
     def taskId = deploy(operation)
     new DefaultTaskResult(PipelineStatus.SUCCEEDED,

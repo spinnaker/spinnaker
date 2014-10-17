@@ -75,7 +75,7 @@ class AdHocStageSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    1 * fooTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
+    1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     then:
     1 * barTask.execute(_) >> DefaultTaskResult.SUCCEEDED
@@ -85,6 +85,7 @@ class AdHocStageSpec extends Specification {
     configJson = mapper.writeValueAsString(config)
   }
 
+  @Timeout(1)
   def "an ad-hoc stage can be retryable"() {
     given:
     def fooTask = Mock(RetryableStandaloneTask) {

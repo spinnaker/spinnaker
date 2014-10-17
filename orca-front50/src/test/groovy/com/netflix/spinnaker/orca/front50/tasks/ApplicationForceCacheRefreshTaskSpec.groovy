@@ -16,23 +16,21 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
+import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
-import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.oort.OortService
 
 class ApplicationForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new ApplicationForceCacheRefreshTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("forceRefresh")
 
   def config = [
     account: "fzlem"
   ]
 
   def setup() {
-    config.each {
-      context."${it.key}" = it.value
-    }
+    stage.context.putAll(config)
   }
 
   void "should force cache refresh applications via oort"() {
@@ -40,7 +38,7 @@ class ApplicationForceCacheRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate(ApplicationForceCacheRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

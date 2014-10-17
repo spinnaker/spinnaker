@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -39,11 +41,11 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
   ObjectMapper objectMapper
 
   @Override
-  TaskResult execute(TaskContext context) {
-    String account = context.getInputs()."upsert.account"
-    String region = context.getInputs()."upsert.region"
-    String name = context.getInputs()."upsert.name"
-    String oldValue = context.getInputs()."upsert.pre.response" ?: null
+  TaskResult execute(Stage stage) {
+    String account = stage.context.account
+    String region = stage.context.region
+    String name = stage.context.name
+    String oldValue = stage.context."pre.response" ?: null
 
     if (!account || !region || !name) {
       return new DefaultTaskResult(PipelineStatus.FAILED)

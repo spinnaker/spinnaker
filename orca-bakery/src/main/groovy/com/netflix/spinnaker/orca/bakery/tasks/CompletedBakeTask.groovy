@@ -17,9 +17,13 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
@@ -29,9 +33,9 @@ class CompletedBakeTask implements Task {
   @Autowired BakeryService bakery
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def region = context.inputs."bake.region" as String
-    def bakeStatus = context.inputs."bake.status" as BakeStatus
+  TaskResult execute(Stage stage) {
+    def region = stage.context.region as String
+    def bakeStatus = stage.context.status as BakeStatus
     try {
       def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
       new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["bake.ami": bake.ami])

@@ -17,9 +17,13 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -31,9 +35,9 @@ class MonitorBakeTask implements RetryableTask {
   @Autowired BakeryService bakery
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def region = context.inputs."bake.region" as String
-    def previousStatus = context.inputs."bake.status" as BakeStatus
+  TaskResult execute(Stage stage) {
+    def region = stage.context.region as String
+    def previousStatus = stage.context.status as BakeStatus
 
     // TODO: could skip the lookup if it's already complete as it will be for a previously requested bake
 

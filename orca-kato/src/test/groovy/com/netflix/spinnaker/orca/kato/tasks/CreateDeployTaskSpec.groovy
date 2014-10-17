@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,7 +31,7 @@ import spock.lang.Subject
 class CreateDeployTaskSpec extends Specification {
 
   @Subject task = new CreateDeployTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("deploy")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -55,9 +55,7 @@ class CreateDeployTaskSpec extends Specification {
     task.mapper = mapper
     task.defaultBakeAccount = "test"
 
-    deployConfig.each {
-      context."deploy.${it.key}" = it.value
-    }
+    stage.context.putAll(deployConfig)
   }
 
   def "creates a deployment based on job parameters"() {
@@ -76,7 +74,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription == expected
@@ -96,7 +94,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     with(operations.findAll { it.containsKey("allowLaunchDescription") }.allowLaunchDescription) { ops ->
@@ -122,7 +120,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     operations.findAll { it.containsKey("allowLaunchDescription") }.empty
@@ -130,8 +128,8 @@ class CreateDeployTaskSpec extends Specification {
 
   def "can include optional parameters"() {
     given:
-    context."deploy.stack" = stackValue
-    context."deploy.subnetType" = subnetTypeValue
+    stage.context.stack = stackValue
+    stage.context.subnetType = subnetTypeValue
 
     def operations = []
     task.kato = Mock(KatoService) {
@@ -143,7 +141,7 @@ class CreateDeployTaskSpec extends Specification {
     def expected = [:]
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     operations.size() == 2
@@ -176,10 +174,10 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     and:
-    context."bake.ami" = amiName
+    stage.context."bake.ami" = amiName
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription.amiName == amiName
@@ -195,7 +193,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.SUCCEEDED

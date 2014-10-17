@@ -1,16 +1,16 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
-import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.oort.OortService
 
 /**
  * Created by aglover on 9/29/14.
  */
 class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   @Subject task = new UpsertAmazonLoadBalancerForceRefreshTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("whatever")
 
   def config = [
     "account.name"  : "fzlem",
@@ -19,19 +19,17 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   ]
 
   def setup() {
-    config.each {
-      context."upsertAmazonLoadBalancer.${it.key}" = it.value
-    }
+    stage.context.putAll(config)
   }
 
   void "should force cache refresh server groups via oort when clusterName provided"() {
     setup:
     def name = "flapjack"
-    context."upsertAmazonLoadBalancer.clusterName" = name
+    stage.context.clusterName = name
     task.oort = Mock(OortService)
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate(UpsertAmazonLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
@@ -44,11 +42,11 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   void "should force cache refresh server groups via oort when name provided"() {
     setup:
     def name = "flapjack-frontend"
-    context."upsertAmazonLoadBalancer.name" = name
+    stage.context.name = name
     task.oort = Mock(OortService)
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate(UpsertAmazonLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

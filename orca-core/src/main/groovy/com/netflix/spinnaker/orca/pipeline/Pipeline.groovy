@@ -28,7 +28,7 @@ class Pipeline implements Serializable {
   final ImmutableList<Stage> stages
 
   // TODO: ImmutableMap?
-  final Map<String, ? extends Serializable> context = [:]
+  final Map<String, Serializable> context = [:]
 
   Pipeline(String id, List<Stage> stages) {
     this.id = id

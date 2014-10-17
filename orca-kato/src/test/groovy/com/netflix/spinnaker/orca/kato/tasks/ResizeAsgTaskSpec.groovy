@@ -20,16 +20,16 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ResizeAsgTaskSpec extends Specification {
   @Subject task = new ResizeAsgTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("pipeline")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -49,9 +49,7 @@ class ResizeAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    resizeASGConfig.each {
-      context."resizeAsg.$it.key" = it.value
-    }
+    stage.context.putAll(resizeASGConfig)
   }
 
   def "creates a disable ASG task based on job parameters"() {
@@ -65,7 +63,7 @@ class ResizeAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     operations.size() == 1
@@ -90,7 +88,7 @@ class ResizeAsgTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.SUCCEEDED

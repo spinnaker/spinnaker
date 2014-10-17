@@ -20,12 +20,15 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.retry.annotation.Retryable
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 
 @CompileStatic
 @Retryable
@@ -51,24 +54,36 @@ class TaskTaskletAdapter implements Tasklet {
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    def jobExecutionContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
-    def stepExecutionContext = chunkContext.stepContext.stepExecution.executionContext
-
-    def result = task.execute(new ChunkContextAdapter(chunkContext))
+    def result = task.execute(currentStage(chunkContext))
     if (result.status == PipelineStatus.TERMINAL) {
-      chunkContext.stepContext.stepExecution.setTerminateOnly()
-      chunkContext.stepContext.stepExecution.exitStatus = ExitStatus.FAILED
+      chunkContext.stepContext.stepExecution.with {
+        setTerminateOnly()
+        exitStatus = ExitStatus.FAILED
+      }
     }
 
     // TODO: could consider extending ExecutionContextPromotionListener in order to do this but then we need to know exactly which keys to promote
-    def executionContext = result.status.complete ? jobExecutionContext : stepExecutionContext
+    def context = result.status.complete ? currentPipeline(chunkContext).context : currentStage(chunkContext).context
     result.outputs.each { k, v ->
-      executionContext.put(k, v)
+      context.put(k, v)
     }
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
     contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
     return batchStepStatus.repeatStatus
+  }
+
+  private Stage currentStage(ChunkContext chunkContext) {
+    currentPipeline(chunkContext).namedStage(stageName(chunkContext))
+  }
+
+  private Pipeline currentPipeline(ChunkContext chunkContext) {
+    (Pipeline) chunkContext.stepContext.stepExecution.jobExecution
+                           .executionContext.get(PIPELINE_CONTEXT_KEY)
+  }
+
+  private String stageName(ChunkContext chunkContext) {
+    chunkContext.stepContext.stepName.tokenize(".").first()
   }
 }
 

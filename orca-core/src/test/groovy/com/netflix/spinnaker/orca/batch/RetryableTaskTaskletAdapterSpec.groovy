@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
@@ -25,14 +27,22 @@ import org.springframework.util.StopWatch
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
 import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
+import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class RetryableTaskTaskletAdapterSpec extends Specification {
 
-  def stepExecution = createStepExecution()
+  def stepExecution = createStepExecution("stage.retryableTask", nextLong())
   def stepContext = new StepContext(stepExecution)
   def stepContribution = new StepContribution(stepExecution)
   def chunkContext = new ChunkContext(stepContext)
+
+  def setup() {
+    stepExecution.jobExecution.with {
+      executionContext.put(PIPELINE_CONTEXT_KEY, new Pipeline("whatever", new Stage("stage")))
+    }
+  }
 
   void "should backoff when the task returns continuable"() {
     setup:

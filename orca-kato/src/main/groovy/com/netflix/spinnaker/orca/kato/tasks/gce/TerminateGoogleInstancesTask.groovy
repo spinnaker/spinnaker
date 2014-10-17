@@ -18,9 +18,13 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -33,8 +37,8 @@ class TerminateGoogleInstancesTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def operation = convert(context)
+  TaskResult execute(Stage stage) {
+    def operation = convert(stage)
     def taskId = kato.requestOperations([[terminateGoogleInstancesDescription: operation]])
                      .toBlocking()
                      .first()
@@ -50,9 +54,9 @@ class TerminateGoogleInstancesTask implements Task {
     ])
   }
 
-  TerminateGoogleInstancesOperation convert(TaskContext context) {
+  TerminateGoogleInstancesOperation convert(Stage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(context.getInputs("terminateInstances_gce"), TerminateGoogleInstancesOperation)
+          .convertValue(stage.context, TerminateGoogleInstancesOperation)
   }
 }

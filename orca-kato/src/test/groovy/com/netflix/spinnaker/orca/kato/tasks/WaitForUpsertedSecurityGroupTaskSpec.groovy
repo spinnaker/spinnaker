@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -49,19 +47,19 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."upsert.account" = account
-    context."upsert.region" = region
-    context."upsert.name" = groupName
+    def stage = new Stage("whatever")
+    stage.context.account = account
+    stage.context.region = region
+    stage.context.name = groupName
     if (old) {
-      context."upsert.pre.response" = old
+      stage.context."pre.response" = old
     }
 
     expect:
-    task.execute(context).status == taskStatus
+    task.execute(stage).status == taskStatus
 
     where:
-    old         | current     || taskStatus
+    old | current || taskStatus
     null       | ''         || PipelineStatus.RUNNING
     null       | 'changed'  || PipelineStatus.SUCCEEDED
     'original' | 'original' || PipelineStatus.RUNNING

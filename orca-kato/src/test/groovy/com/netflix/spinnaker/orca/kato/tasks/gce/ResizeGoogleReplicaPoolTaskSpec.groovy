@@ -17,16 +17,16 @@
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   @Subject task = new ResizeGoogleReplicaPoolTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
@@ -41,9 +41,7 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   ]
 
   def setup() {
-    resizeASGConfig.each {
-      context."resizeAsg_gce.$it.key" = it.value
-    }
+    stage.context.putAll(resizeASGConfig)
   }
 
   def "creates a resize google replica pool task based on job parameters"() {
@@ -57,7 +55,7 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
     }
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     operations.size() == 1
@@ -77,7 +75,7 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.SUCCEEDED

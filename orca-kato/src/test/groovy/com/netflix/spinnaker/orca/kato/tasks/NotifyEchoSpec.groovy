@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -15,13 +15,13 @@ class NotifyEchoSpec extends Specification {
     setup:
     task.echo = Mock(EchoService)
 
-    SimpleTaskContext context = new SimpleTaskContext()
-    context.application = "myapp"
-    context."notification.type" = "testtype"
-    context."randomAttr" = 'random'
+    def stage = new Stage("whatever")
+    stage.context.application = "myapp"
+    stage.context."notification.type" = "testtype"
+    stage.context."randomAttr" = 'random'
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     1 * task.echo.recordEvent(
@@ -38,10 +38,10 @@ class NotifyEchoSpec extends Specification {
     setup:
     task.echo = null
 
-    SimpleTaskContext context = new SimpleTaskContext()
+    def stage = new Stage("whatever")
 
     when:
-    task.execute(context)
+    task.execute(stage)
 
     then:
     0 * task.echo._

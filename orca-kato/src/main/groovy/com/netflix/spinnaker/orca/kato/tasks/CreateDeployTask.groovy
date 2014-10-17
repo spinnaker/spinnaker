@@ -19,10 +19,14 @@ package com.netflix.spinnaker.orca.kato.tasks
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
@@ -40,8 +44,8 @@ class CreateDeployTask implements Task {
   String defaultBakeAccount
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def deployOperations = deployOperationFromContext(context)
+  TaskResult execute(Stage stage) {
+    def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
     new DefaultTaskResult(PipelineStatus.SUCCEEDED,
         [
@@ -53,12 +57,13 @@ class CreateDeployTask implements Task {
     )
   }
 
-  private Map deployOperationFromContext(TaskContext context) {
+  private Map deployOperationFromContext(Stage stage) {
     def operation = mapper.copy()
                           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(context.getInputs("deploy"), Map)
-    if (context.inputs."bake.ami") {
-      operation.amiName = context.inputs."bake.ami"
+                          .convertValue(stage.context, Map)
+    // TODO: need to get this from the pipeline
+    if (stage.context."bake.ami") {
+      operation.amiName = stage.context."bake.ami"
     }
     operation.remove('type')
     operation.remove('user')

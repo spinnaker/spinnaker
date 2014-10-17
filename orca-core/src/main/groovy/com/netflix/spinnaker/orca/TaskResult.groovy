@@ -22,7 +22,7 @@ interface TaskResult {
 
   PipelineStatus getStatus()
 
-  ImmutableMap<String, Object> getOutputs()
+  ImmutableMap<String, Serializable> getOutputs()
 
 }
 

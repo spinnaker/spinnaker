@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -42,21 +40,21 @@ class WaitForUpInstancesTaskSpec extends Specification {
       def input = Mock(TypedInput)
       input.in() >> {
         def jsonObj = [
-                name: "front50",
-                serverGroups: [
-                    [
-                        region: "us-west-1",
-                        name: "front50-v000",
-                        asg: [
-                            minSize: 1
-                        ],
-                        instances: [
-                            [
-                                isHealthy: true
-                            ]
-                        ]
-                    ]
+          name        : "front50",
+          serverGroups: [
+            [
+              region   : "us-west-1",
+              name     : "front50-v000",
+              asg      : [
+                minSize: 1
+              ],
+              instances: [
+                [
+                  isHealthy: true
                 ]
+              ]
+            ]
+          ]
         ]
         new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
       }
@@ -67,12 +65,12 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."deploy.account.name" = "test"
-    context."deploy.server.groups" = ["us-west-1": ["front50-v000"]]
+    def stage = new Stage("whatever")
+    stage.context."account.name" = "test"
+    stage.context."server.groups" = ["us-west-1": ["front50-v000"]]
 
     expect:
-    task.execute(context).status == PipelineStatus.SUCCEEDED
+    task.execute(stage).status == PipelineStatus.SUCCEEDED
 
   }
 }

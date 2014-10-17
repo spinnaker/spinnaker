@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.Stage
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -35,7 +36,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.hamcrest.ContainsAllOf.containsAllOf
-import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 import static spock.util.matcher.HamcrestSupport.expect
 
@@ -86,7 +86,7 @@ class PipelineConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    1 * fooTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
+    1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     where:
     config = [[type: "foo"]]
@@ -98,40 +98,40 @@ class PipelineConfigurationSpec extends Specification {
     jobStarter.start configJson
 
     then:
-    1 * fooTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
+    1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     then:
-    1 * barTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
+    1 * barTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     then:
-    1 * bazTask.execute(*_) >> DefaultTaskResult.SUCCEEDED
+    1 * bazTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     where:
     config = [
-        [type: "foo"],
-        [type: "bar"],
-        [type: "baz"]
+      [type: "foo"],
+      [type: "bar"],
+      [type: "baz"]
     ]
     configJson = mapper.writeValueAsString(config)
   }
 
-  def "config is serialized to job execution context"() {
+  def "config is serialized to stage context"() {
     given:
-    Map inputs
-    1 * fooTask.execute(*_) >> { TaskContext taskContext ->
-      inputs = taskContext.inputs
-      FINISHED
+    Map context
+    1 * fooTask.execute(_) >> { Stage stage ->
+      context = stage.context
+      DefaultTaskResult.SUCCEEDED
     }
 
     when:
     jobStarter.start configJson
 
     then:
-    expect inputs, containsAllOf(expectedInputs)
+    expect context, containsAllOf(expectedInputs)
 
     where:
     config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     configJson = mapper.writeValueAsString(config)
-    expectedInputs = ["foo.region": config[0].region, "foo.os": config[0].os, "foo.type": "foo"]
+    expectedInputs = Maps.filterKeys(config.first()) { it != "type" }
   }
 }

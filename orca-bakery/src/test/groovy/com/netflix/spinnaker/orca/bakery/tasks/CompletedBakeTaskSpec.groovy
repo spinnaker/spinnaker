@@ -19,10 +19,10 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import rx.Observable
@@ -34,8 +34,8 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 class CompletedBakeTaskSpec extends Specification {
 
   @Subject task = new CompletedBakeTask()
+  def stage = new Stage("bake")
 
-  def context = new SimpleTaskContext()
   @Shared notFoundError = RetrofitError.httpError(
       null,
       new Response("http://bakery", HTTP_NOT_FOUND, "Not Found", [], null),
@@ -50,11 +50,11 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    context."bake.region" = region
-    context."bake.status" = new BakeStatus(resourceId: bakeId)
+    stage.context.region = region
+    stage.context.status = new BakeStatus(resourceId: bakeId)
 
     when:
-    def result = task.execute(this.context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.SUCCEEDED
@@ -73,11 +73,11 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    context."bake.region" = region
-    context."bake.status" = new BakeStatus(resourceId: bakeId)
+    stage.context.region = region
+    stage.context.status = new BakeStatus(resourceId: bakeId)
 
     when:
-    def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.FAILED

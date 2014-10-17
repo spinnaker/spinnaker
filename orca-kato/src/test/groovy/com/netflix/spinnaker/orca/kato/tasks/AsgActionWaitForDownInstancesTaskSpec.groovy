@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -67,13 +67,13 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."targetop.asg.enableAsg.name" = "front50-v000"
-    context."targetop.asg.enableAsg.regions" = ['us-west-1']
-    context."deploy.account.name" = "test"
+    def stage = new Stage("asgActionWaitForDownInstances")
+    stage.context."targetop.asg.enableAsg.name" = "front50-v000"
+    stage.context."targetop.asg.enableAsg.regions" = ['us-west-1']
+    stage.context."account.name" = "test"
 
     expect:
-    task.execute(context).status == PipelineStatus.SUCCEEDED
+    task.execute(stage).status == PipelineStatus.SUCCEEDED
 
   }
 }

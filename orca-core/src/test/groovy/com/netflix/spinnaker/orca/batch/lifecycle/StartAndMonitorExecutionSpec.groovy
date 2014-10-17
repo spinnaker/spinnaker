@@ -18,11 +18,14 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
 import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
 
@@ -75,8 +78,10 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
+    def pipeline = new Pipeline("whatever", new Stage("startAndMonitor"))
+    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
-      .build(jobBuilder)
+      .build(builder)
       .build()
       .build()
   }

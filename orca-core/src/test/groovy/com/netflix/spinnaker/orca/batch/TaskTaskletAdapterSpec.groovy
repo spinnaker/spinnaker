@@ -19,7 +19,8 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
+import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -29,49 +30,48 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.PipelineStatus.*
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
+import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskTaskletAdapterSpec extends Specification {
 
-  def step = Mock(Task)
+  def stage = new Stage("stage")
+  def pipeline = new Pipeline("whatever", stage)
+  def task = Mock(Task)
 
-  @Subject tasklet = new TaskTaskletAdapter(step)
+  @Subject tasklet = new TaskTaskletAdapter(task)
 
-  def stepExecution = createStepExecution()
+  def stepExecution = createStepExecution("${stage.name}.task1", nextLong())
   def stepContext = new StepContext(stepExecution)
   def stepContribution = new StepContribution(stepExecution)
   def chunkContext = new ChunkContext(stepContext)
+
+  def setup() {
+    stepExecution.jobExecution.executionContext.put(PIPELINE_CONTEXT_KEY, pipeline)
+  }
 
   def "should invoke the step when executed"() {
     when:
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    1 * step.execute(*_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * task.execute(*_) >> new DefaultTaskResult(SUCCEEDED)
   }
 
-  def "should wrap job and step context in task context passed to execute method"() {
-    given:
-    stepExecution.executionContext.put(key, value)
-
+  def "should pass the correct stage to the task"() {
     when:
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    1 * step.execute(*_) >> { TaskContext context ->
-      assert context.inputs[key] == value
-      new DefaultTaskResult(SUCCEEDED)
-    }
-
-    where:
-    key = "foo"
-    value = "bar"
+    1 * task.execute(stage) >> new DefaultTaskResult(SUCCEEDED)
   }
 
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
   def "should convert task result status to equivalent batch status"() {
     given:
-    step.execute(*_) >> new DefaultTaskResult(taskResultStatus)
+    task.execute(*_) >> new DefaultTaskResult(taskResultStatus)
 
     expect:
     tasklet.execute(stepContribution, chunkContext) == repeatStatus
@@ -80,18 +80,18 @@ class TaskTaskletAdapterSpec extends Specification {
     stepContribution.exitStatus == exitStatus
 
     where:
-    taskResultStatus            | repeatStatus             | exitStatus
-    SUCCEEDED                   | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-    PipelineStatus.FAILED    | RepeatStatus.FINISHED    | ExitStatus.FAILED
-    PipelineStatus.RUNNING   | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
-    PipelineStatus.SUSPENDED | RepeatStatus.FINISHED    | ExitStatus.STOPPED
+    taskResultStatus | repeatStatus             | exitStatus
+    SUCCEEDED        | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
+    FAILED           | RepeatStatus.FINISHED    | ExitStatus.FAILED
+    RUNNING          | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
+    SUSPENDED        | RepeatStatus.FINISHED    | ExitStatus.STOPPED
   }
 
   // TODO: this feels a bit stringly-typed but I think it's better than just throwing it into the execution context under some arbitrary key
   @Unroll("should attach the task result status of #taskResultStatus as an exit description")
   def "should attach the task result status as an exit description"() {
     given:
-    step.execute(*_) >> new DefaultTaskResult(taskResultStatus)
+    task.execute(*_) >> new DefaultTaskResult(taskResultStatus)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -100,59 +100,77 @@ class TaskTaskletAdapterSpec extends Specification {
     stepContribution.exitStatus.exitDescription == taskResultStatus.name()
 
     where:
-    taskResultStatus            | _
-    SUCCEEDED                   | _
-    PipelineStatus.FAILED    | _
-    PipelineStatus.RUNNING   | _
-    PipelineStatus.SUSPENDED | _
+    taskResultStatus | _
+    SUCCEEDED        | _
+    FAILED           | _
+    RUNNING          | _
+    SUSPENDED        | _
   }
 
   @Unroll
-  def "should write any task outputs to the step context if the task status is #taskStatus"() {
+  def "should write any task outputs to the stage context if the task status is #taskStatus"() {
     given:
-    step.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
+    task.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stepContext.stepExecutionContext == outputs
-    stepContext.jobExecutionContext.isEmpty()
+    stage.context == outputs
+    pipeline.context.isEmpty()
 
     where:
-    taskStatus << [PipelineStatus.RUNNING]
+    taskStatus << [RUNNING]
     outputs = [foo: "bar", baz: "qux"]
   }
 
   @Unroll
-  def "should write any task outputs to the job context if the task status is #taskStatus"() {
+  def "should write any task outputs to the pipeline context if the task status is #taskStatus"() {
     given:
-    step.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
+    task.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stepContext.stepExecutionContext.isEmpty()
-    stepContext.jobExecutionContext == outputs
+    stage.context.isEmpty()
+    pipeline.context == outputs
 
     where:
-    taskStatus << [PipelineStatus.FAILED, SUCCEEDED]
+    taskStatus << [FAILED, SUCCEEDED]
     outputs = [foo: "bar", baz: "qux"]
   }
 
-  def "should overwrite values in the context inputs if a task sets them as outputs"() {
+  def "should overwrite values in the stage if a task sets them as outputs"() {
     given:
-    stepExecution.jobExecution.executionContext.put(key, value)
+    stage.context[key] = value
 
     and:
-    step.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])
+    task.execute(*_) >> new DefaultTaskResult(RUNNING, [(key): value.reverse()])
 
     when:
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stepExecution.jobExecution.executionContext.get(key) == value.reverse()
+    stage.context[key] == value.reverse()
+
+    where:
+    key = "foo"
+    value = "bar"
+  }
+
+  def "should overwrite values in the pipeline if a task sets them as outputs"() {
+    given:
+    pipeline.context[key] = value
+
+    and:
+    task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    pipeline.context[key] == value.reverse()
 
     where:
     key = "foo"

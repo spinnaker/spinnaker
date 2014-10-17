@@ -19,17 +19,17 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class TerminateGoogleInstancesTaskSpec extends Specification {
 
   @Subject task = new TerminateGoogleInstancesTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("whatever")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -44,46 +44,44 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    terminateInstancesConfig.each {
-      context."terminateInstances_gce.$it.key" = it.value
-    }
+    stage.context.putAll(terminateInstancesConfig)
   }
 
   def "creates a terminate google Instance task based on job parameters"() {
     given:
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[0]
-          rx.Observable.from(taskId)
-        }
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        rx.Observable.from(taskId)
       }
+    }
 
     when:
-      task.execute(context)
+    task.execute(stage)
 
     then:
-      operations.size() == 1
-      with(operations[0].terminateGoogleInstancesDescription) {
-        it instanceof TerminateGoogleInstancesOperation
-        zone == terminateInstancesConfig.zone
-        credentials == terminateInstancesConfig.credentials
-        instanceIds == terminateInstancesConfig.instanceIds
-      }
+    operations.size() == 1
+    with(operations[0].terminateGoogleInstancesDescription) {
+      it instanceof TerminateGoogleInstancesOperation
+      zone == terminateInstancesConfig.zone
+      credentials == terminateInstancesConfig.credentials
+      instanceIds == terminateInstancesConfig.instanceIds
+    }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-      task.kato = Stub(KatoService) {
-        requestOperations(*_) >> rx.Observable.from(taskId)
-      }
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> rx.Observable.from(taskId)
+    }
 
     when:
-      def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     result.status == PipelineStatus.SUCCEEDED
-      result.outputs."kato.task.id" == taskId
-      result.outputs."terminate.account.name" == terminateInstancesConfig.credentials
+    result.outputs."kato.task.id" == taskId
+    result.outputs."terminate.account.name" == terminateInstancesConfig.credentials
   }
 }

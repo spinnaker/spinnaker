@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeGoogleReplicaPoolTask implements Task {
@@ -26,25 +30,24 @@ class ResizeGoogleReplicaPoolTask implements Task {
   KatoService kato
 
   @Override
-  TaskResult execute(TaskContext context) {
-    def resizeGoogleReplicaPoolOperation = convert(context)
+  TaskResult execute(Stage stage) {
+    def resizeGoogleReplicaPoolOperation = convert(stage)
     def taskId = kato.requestOperations([[resizeGoogleReplicaPoolDescription: resizeGoogleReplicaPoolOperation]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
-      "notification.type": "resizegooglereplicapool",
-                           "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
-                           "kato.last.task.id"   : taskId,
-                           "kato.task.id"        : taskId, // TODO retire this.
-                           "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.zone): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
-                          ])
+      "notification.type"   : "resizegooglereplicapool",
+      "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
+      "kato.last.task.id"   : taskId,
+      "kato.task.id"        : taskId, // TODO retire this.
+      "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.zone): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
+    ])
   }
 
-  ResizeGoogleReplicaPoolOperation convert(TaskContext context) {
-    def inputs = context.getInputs("resizeAsg_gce")
-    new ResizeGoogleReplicaPoolOperation(replicaPoolName: inputs.asgName,
-                                         zone: inputs.zones ? inputs.zones[0] : null,
-                                         credentials: inputs.credentials,
-                                         numReplicas: inputs.capacity.desired)
+  ResizeGoogleReplicaPoolOperation convert(Stage stage) {
+    new ResizeGoogleReplicaPoolOperation(replicaPoolName: stage.context.asgName,
+      zone: stage.context.zones ? stage.context.zones[0] : null,
+      credentials: stage.context.credentials,
+      numReplicas: stage.context.capacity.desired)
   }
 }

@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.SimpleTaskContext
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
-import rx.observables.BlockingObservable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -63,13 +59,13 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def context = new SimpleTaskContext()
-    context."upsertSecurityGroup.credentials" = account
-    context."upsertSecurityGroup.region" = region
-    context."upsertSecurityGroup.name" = groupName
+    def stage = new Stage("whatever")
+    stage.context.credentials = account
+    stage.context.region = region
+    stage.context.name = groupName
 
     when:
-    def executionContext = task.execute(context)
+    def executionContext = task.execute(stage)
 
     then:
     executionContext.outputs.containsKey("upsert.pre.response") == expected
@@ -78,9 +74,9 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     }
 
     where:
-    current     || expected
-    ''          || false
-    'exists'    || true
+    current  || expected
+    ''       || false
+    'exists' || true
 
     includeLabel = expected ? 'include' : 'exclude'
   }

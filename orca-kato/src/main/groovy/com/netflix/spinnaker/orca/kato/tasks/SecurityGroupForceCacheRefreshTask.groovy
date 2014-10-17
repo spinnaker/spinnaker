@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -30,10 +34,10 @@ public class SecurityGroupForceCacheRefreshTask implements Task {
   MortService mort
 
   @Override
-  TaskResult execute(TaskContext context) {
-    String account = context.getInputs()."upsert.account"
-    String name = context.getInputs()."upsert.name"
-    String region = context.getInputs()."upsert.region"
+  TaskResult execute(Stage stage) {
+    String account = stage.context."upsert.account"
+    String name = stage.context."upsert.name"
+    String region = stage.context."upsert.region"
 
     mort.forceCacheUpdate(REFRESH_TYPE, [account: account, securityGroupName: name, region: region])
 

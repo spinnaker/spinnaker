@@ -34,18 +34,18 @@ class ManualInterventionStage extends StageBuilder {
 
   @Override
   JobFlowBuilder build(JobBuilder jobBuilder) {
-    def step1 = buildStep("preIntervention", preInterventionTask)
-    def step2 = buildStep("postIntervention", postInterventionTask)
-    def step3 = buildStep("final", finalTask)
-    (JobFlowBuilder) jobBuilder.start(step1)
-                               .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
-                               .from(step1)
-                               .on(ExitStatus.COMPLETED.exitCode).to(step2)
-                               .next(step3)
+    throw new UnsupportedOperationException()
   }
 
   @Override
   JobFlowBuilder build(JobFlowBuilder jobBuilder) {
-    throw new UnsupportedOperationException()
+    def step1 = buildStep("preIntervention", preInterventionTask)
+    def step2 = buildStep("postIntervention", postInterventionTask)
+    def step3 = buildStep("final", finalTask)
+    (JobFlowBuilder) jobBuilder.next(step1)
+                               .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
+                               .from(step1)
+                               .on(ExitStatus.COMPLETED.exitCode).to(step2)
+                               .next(step3)
   }
 }

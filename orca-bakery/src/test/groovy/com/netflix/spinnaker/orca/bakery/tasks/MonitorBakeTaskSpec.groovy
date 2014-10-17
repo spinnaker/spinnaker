@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.SimpleTaskContext
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,25 +29,25 @@ import static java.util.UUID.randomUUID
 class MonitorBakeTaskSpec extends Specification {
 
   @Subject task = new MonitorBakeTask()
-  def context = new SimpleTaskContext()
+  def stage = new Stage("bake")
 
   def setup() {
-    context."bake.region" = "us-west-1"
+    stage.context.region = "us-west-1"
   }
 
   @Unroll
   def "should return #taskStatus if bake is #bakeState"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    context."bake.status" = previousStatus
+    stage.context.status = previousStatus
 
     and:
     task.bakery = Stub(BakeryService) {
-      lookupStatus(context."bake.region", id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
+      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
     }
 
     expect:
-    task.execute(context).status == taskStatus
+    task.execute(stage).status == taskStatus
 
     where:
     bakeState                  | taskStatus
@@ -63,15 +63,15 @@ class MonitorBakeTaskSpec extends Specification {
   def "outputs the updated bake status"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    context."bake.status" = previousStatus
+    stage.context.status = previousStatus
 
     and:
     task.bakery = Stub(BakeryService) {
-      lookupStatus(context."bake.region", id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
+      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
     }
 
     when:
-    def result = task.execute(context)
+    def result = task.execute(stage)
 
     then:
     with(result.outputs."bake.status") {
