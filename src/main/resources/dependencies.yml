@@ -9,7 +9,7 @@ versions:
   frigga: "0.13"
   cglib: "3.1"
   amos: "0.14"
-  amazoncomponents: "0.9.20"
+  amazoncomponents: "0.9.21"
   aws: "1.8.11"
   httpclient: "4.3.5"
   retrofit: "1.6.1"
