@@ -33,7 +33,8 @@ class ClusteredAgentSchedulerSpec extends Specification {
 
     Jedis jedis
     CachingAgent agent
-    ManualRunnableScheduler runnableScheduler
+    ManualRunnableScheduler lockPollingScheduler
+    ManualRunnableScheduler agentExecutionScheduler
     AgentExecution exec = Mock(AgentExecution)
     ExecutionInstrumentation inst = Mock(ExecutionInstrumentation)
 
@@ -45,15 +46,18 @@ class ClusteredAgentSchedulerSpec extends Specification {
         def source = Stub(JedisSource) {
             getJedis() >> jedis
         }
-        runnableScheduler = new ManualRunnableScheduler()
-        scheduler = new ClusteredAgentScheduler(source, new DefaultNodeIdentity(), interval, runnableScheduler)
+        lockPollingScheduler = new ManualRunnableScheduler()
+        agentExecutionScheduler = new ManualRunnableScheduler()
+        scheduler = new ClusteredAgentScheduler(source, new DefaultNodeIdentity(), interval, lockPollingScheduler, agentExecutionScheduler)
     }
 
     def 'cache run aborted if agent doesnt acquire execution token'() {
 
         when:
         scheduler.schedule(agent, exec, inst)
-        runnableScheduler.runAll()
+        lockPollingScheduler.runAll()
+        agentExecutionScheduler.runAll()
+
 
         then:
         1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'definitely not ok'
@@ -64,7 +68,8 @@ class ClusteredAgentSchedulerSpec extends Specification {
     def 'cache run proceeds if agent acquires execution token'() {
         when:
         scheduler.schedule(agent, exec, inst)
-        runnableScheduler.runAll()
+        lockPollingScheduler.runAll()
+        agentExecutionScheduler.runAll()
 
         then:
         1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'OK'
@@ -82,7 +87,8 @@ class ClusteredAgentSchedulerSpec extends Specification {
 
         when:
         scheduler.schedule(agent, exec, inst)
-        runnableScheduler.runAll()
+        lockPollingScheduler.runAll()
+        agentExecutionScheduler.runAll()
 
         then:
         1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'OK'

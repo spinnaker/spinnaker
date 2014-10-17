@@ -18,110 +18,162 @@ package com.netflix.spinnaker.cats.redis.cluster;
 
 import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.redis.JedisSource;
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import redis.clients.jedis.Jedis;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 
-public class ClusteredAgentScheduler implements AgentScheduler {
-    final JedisSource jedisSource;
-    final NodeIdentity nodeIdentity;
-    final AgentIntervalProvider intervalProvider;
-    final RunnableScheduler runnableScheduler;
+public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
+    private final JedisSource jedisSource;
+    private final NodeIdentity nodeIdentity;
+    private final AgentIntervalProvider intervalProvider;
+    private final ExecutorService agentExecutionPool;
+    private final Map<String, AgentExecutionAction> agents = new ConcurrentHashMap<>();
+    private final Map<String, Long> activeAgents = new ConcurrentHashMap<>();
+
 
     public ClusteredAgentScheduler(JedisSource jedisSource, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider) {
-        this(jedisSource, nodeIdentity, intervalProvider, new FixedIntervalRunnableScheduler(ClusteredAgentScheduler.class.getSimpleName(), 1, TimeUnit.SECONDS));
+        this(jedisSource, nodeIdentity, intervalProvider, Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(ClusteredAgentScheduler.class.getSimpleName())), Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())));
     }
 
-    public ClusteredAgentScheduler(JedisSource jedisSource, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider, RunnableScheduler runnableScheduler) {
+    public ClusteredAgentScheduler(JedisSource jedisSource, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider, ScheduledExecutorService lockPollingScheduler, ExecutorService agentExecutionPool) {
         this.jedisSource = jedisSource;
         this.nodeIdentity = nodeIdentity;
         this.intervalProvider = intervalProvider;
-        this.runnableScheduler = runnableScheduler;
+        this.agentExecutionPool = agentExecutionPool;
+        lockPollingScheduler.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
+    }
+
+
+    private Map<String, Long> acquire() {
+        Map<String, Long> acquired = new HashMap<>(agents.size());
+        Set<String> skip = new HashSet<>(activeAgents.keySet());
+        for (Map.Entry<String, AgentExecutionAction> agent : agents.entrySet()) {
+            if (!skip.contains(agent.getKey())) {
+                final String agentType = agent.getKey();
+                AgentIntervalProvider.Interval interval = intervalProvider.getInterval(agent.getValue().getAgent());
+                if (acquireRunKey(agentType, interval.getTimeout())) {
+                    acquired.put(agentType, System.currentTimeMillis() + interval.getInterval());
+                }
+            }
+        }
+        return acquired;
+    }
+
+    @Override
+    public void run() {
+        try {
+            runAgents();
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
+        }
+    }
+
+    private void runAgents() {
+        Map<String, Long> thisRun = acquire();
+        activeAgents.putAll(thisRun);
+        for (final Map.Entry<String, Long> toRun : thisRun.entrySet()) {
+            final AgentExecutionAction exec = agents.get(toRun.getKey());
+            agentExecutionPool.submit(new AgentJob(toRun.getValue(), exec, this));
+        }
+    }
+
+    private static final long MIN_TTL_THRESHOLD = 500L;
+    private static final String SET_IF_NOT_EXIST = "NX";
+    private static final String SET_EXPIRE_TIME_MILLIS = "PX";
+    private static final String SUCCESS_RESPONSE = "OK";
+    private static final Integer DEL_SUCCESS = 1;
+
+    private static final String DELETE_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+    private static final String TTL_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2], 'XX') else return nil end";
+
+    private boolean acquireRunKey(String agentType, long timeout) {
+        try (Jedis jedis = jedisSource.getJedis()) {
+            String response = jedis.set(agentType, nodeIdentity.getNodeIdentity(), SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, timeout);
+            return SUCCESS_RESPONSE.equals(response);
+        }
+    }
+
+    private boolean deleteLock(Jedis jedis, String agentType) {
+        Object response = jedis.eval(DELETE_LOCK_KEY, Arrays.asList(agentType), Arrays.asList(nodeIdentity.getNodeIdentity()));
+        return DEL_SUCCESS.equals(response);
+    }
+
+    private boolean ttlLock(Jedis jedis, String agentType, long newTtl) {
+        Object response = jedis.eval(TTL_LOCK_KEY, Arrays.asList(agentType), Arrays.asList(nodeIdentity.getNodeIdentity(), Long.toString(newTtl)));
+        return SUCCESS_RESPONSE.equals(response);
+    }
+
+    private void releaseRunKey(String agentType, long when) {
+        final long newTtl = when - System.currentTimeMillis();
+        final boolean delete = newTtl < MIN_TTL_THRESHOLD;
+        try (Jedis jedis = jedisSource.getJedis()) {
+            if (delete) {
+                deleteLock(jedis, agentType);
+            } else {
+                ttlLock(jedis, agentType, newTtl);
+            }
+        }
+    }
+
+    private void agentCompleted(String agentType, long nextExecutionTime) {
+        releaseRunKey(agentType, nextExecutionTime);
+        activeAgents.remove(agentType);
     }
 
     @Override
     public void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-        final Runnable runnable = new AgentExecutionRunnable(jedisSource, agent, agentExecution, executionInstrumentation, nodeIdentity, intervalProvider);
-        runnableScheduler.schedule(runnable);
+        final AgentExecutionAction agentExecutionAction = new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
+        agents.put(agent.getAgentType(), agentExecutionAction);
     }
 
-    private static class AgentExecutionRunnable implements Runnable {
-        private final JedisSource jedisSource;
-        private final CachingAgent agent;
-        private final AgentExecution agentExecution;
-        private final ExecutionInstrumentation executionInstrumentation;
-        private final NodeIdentity nodeIdentity;
-        private final AgentIntervalProvider intervalProvider;
+    private static class AgentJob implements Runnable {
+        private final long lockReleaseTime;
+        private final AgentExecutionAction action;
+        private final ClusteredAgentScheduler scheduler;
 
-
-        public AgentExecutionRunnable(JedisSource jedisSource, CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider) {
-            this.jedisSource = jedisSource;
-            this.agent = agent;
-            this.agentExecution = agentExecution;
-            this.executionInstrumentation = executionInstrumentation;
-            this.nodeIdentity = nodeIdentity;
-            this.intervalProvider = intervalProvider;
+        public AgentJob(long lockReleaseTime, AgentExecutionAction action, ClusteredAgentScheduler scheduler) {
+            this.lockReleaseTime = lockReleaseTime;
+            this.action = action;
+            this.scheduler = scheduler;
         }
 
         @Override
         public void run() {
             try {
-                AgentIntervalProvider.Interval interval = intervalProvider.getInterval(agent);
-                long nextExec = System.currentTimeMillis() + interval.getInterval();
-                if (!acquireRunKey(interval.getTimeout())) {
-                    return;
-                }
-                try {
-                    executionInstrumentation.executionStarted(agent);
-                    agentExecution.executeAgent(agent);
-                    executionInstrumentation.executionCompleted(agent);
-                } catch (Throwable cause) {
-                    executionInstrumentation.executionFailed(agent, cause);
-                } finally {
-                    releaseRunKey(nextExec);
-                }
+                action.execute();
+            } finally {
+                scheduler.agentCompleted(action.getAgent().getAgentType(), lockReleaseTime);
+            }
+        }
+    }
+
+    private static class AgentExecutionAction {
+        private final CachingAgent agent;
+        private final AgentExecution agentExecution;
+        private final ExecutionInstrumentation executionInstrumentation;
+
+
+        public AgentExecutionAction(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+            this.agent = agent;
+            this.agentExecution = agentExecution;
+            this.executionInstrumentation = executionInstrumentation;
+        }
+
+        public CachingAgent getAgent() {
+            return agent;
+        }
+
+        public void execute() {
+            try {
+                executionInstrumentation.executionStarted(agent);
+                agentExecution.executeAgent(agent);
+                executionInstrumentation.executionCompleted(agent);
             } catch (Throwable cause) {
                 executionInstrumentation.executionFailed(agent, cause);
             }
         }
 
-        private static final long MIN_TTL_THRESHOLD = 500L;
-        private static final String SET_IF_NOT_EXIST = "NX";
-        private static final String SET_EXPIRE_TIME_MILLIS = "PX";
-        private static final String SUCCESS_RESPONSE = "OK";
-        private static final Integer DEL_SUCCESS = 1;
-
-        private static final String DELETE_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-        private static final String TTL_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2], 'XX') else return nil end";
-
-        private boolean acquireRunKey(long timeout) {
-            try (Jedis jedis = jedisSource.getJedis()) {
-                String response = jedis.set(agent.getAgentType(), nodeIdentity.getNodeIdentity(), SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, timeout);
-                return SUCCESS_RESPONSE.equals(response);
-            }
-        }
-
-        private boolean deleteLock(Jedis jedis) {
-            Object response = jedis.eval(DELETE_LOCK_KEY, Arrays.asList(agent.getAgentType()), Arrays.asList(nodeIdentity.getNodeIdentity()));
-            return DEL_SUCCESS.equals(response);
-        }
-
-        private boolean ttlLock(Jedis jedis, long newTtl) {
-            Object response = jedis.eval(TTL_LOCK_KEY, Arrays.asList(agent.getAgentType()), Arrays.asList(nodeIdentity.getNodeIdentity(), Long.toString(newTtl)));
-            return SUCCESS_RESPONSE.equals(response);
-        }
-
-        private void releaseRunKey(long when) {
-            final long newTtl = when - System.currentTimeMillis();
-            final boolean delete = newTtl < MIN_TTL_THRESHOLD;
-            try (Jedis jedis = jedisSource.getJedis()) {
-                if (delete) {
-                    deleteLock(jedis);
-                } else {
-                    ttlLock(jedis, newTtl);
-                }
-            }
-        }
     }
 }

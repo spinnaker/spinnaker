@@ -20,6 +20,8 @@ import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.concurrent.TimeUnit
+
 class DefaultAgentSchedulerSpec extends Specification {
 
     @Subject DefaultAgentScheduler scheduler
@@ -31,7 +33,7 @@ class DefaultAgentSchedulerSpec extends Specification {
         def instr = Mock(ExecutionInstrumentation)
         def exec = Mock(AgentExecution)
         runnableScheduler = new ManualRunnableScheduler()
-        scheduler = new DefaultAgentScheduler(runnableScheduler)
+        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS)
 
         when:
         scheduler.schedule(agent, exec, instr)
@@ -50,7 +52,7 @@ class DefaultAgentSchedulerSpec extends Specification {
         def instr = Mock(ExecutionInstrumentation)
         def exec = Mock(AgentExecution)
         runnableScheduler = new ManualRunnableScheduler()
-        scheduler = new DefaultAgentScheduler(runnableScheduler)
+        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS)
         def cause = new RuntimeException('failboat')
 
         when:

@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +34,9 @@ import java.util.concurrent.TimeUnit;
 public class DefaultAgentScheduler implements AgentScheduler {
     private static final long DEFAULT_INTERVAL = 60000;
 
-    private final RunnableScheduler rs;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final long interval;
+    private final TimeUnit timeUnit;
 
     public DefaultAgentScheduler() {
         this(DEFAULT_INTERVAL);
@@ -41,16 +47,18 @@ public class DefaultAgentScheduler implements AgentScheduler {
     }
 
     public DefaultAgentScheduler(long interval, TimeUnit unit) {
-        this(new FixedIntervalRunnableScheduler(DefaultAgentScheduler.class.getSimpleName(), interval, unit));
+        this(Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), new NamedThreadFactory(DefaultAgentScheduler.class.getSimpleName())), interval, unit);
     }
 
-    public DefaultAgentScheduler(RunnableScheduler rs) {
-        this.rs = rs;
+    public DefaultAgentScheduler(ScheduledExecutorService scheduledExecutorService, long interval, TimeUnit timeUnit) {
+        this.scheduledExecutorService = scheduledExecutorService;
+        this.interval = interval;
+        this.timeUnit = timeUnit;
     }
 
     @Override
     public void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-        rs.schedule(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation));
+        scheduledExecutorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, interval, timeUnit);
     }
 
     private static class AgentExecutionRunnable implements Runnable {
