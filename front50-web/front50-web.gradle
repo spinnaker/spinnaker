@@ -36,6 +36,7 @@ applicationDefaultJvmArgs = ["-Dserver.port=8080"]
 dependencies {
   compile project(":front50-core")
   compile project(":front50-aws")
+  compile project(":front50-gce")
   spinnaker.group "bootWeb"
   compile spinnaker.dependency("kork")
 }
