@@ -38,7 +38,7 @@ import static org.springframework.batch.test.MetaDataInstanceFactory.createStepE
 class TaskTaskletAdapterSpec extends Specification {
 
   def stage = new Stage("stage")
-  def pipeline = new Pipeline("whatever", stage)
+  def pipeline = new Pipeline(stage)
   def task = Mock(Task)
 
   @Subject tasklet = new TaskTaskletAdapter(task)

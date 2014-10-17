@@ -20,10 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +37,7 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @ContextConfiguration(classes = [BatchTestConfiguration])
@@ -44,6 +49,7 @@ class PipelineStatusSpec extends Specification {
   @Autowired StepBuilderFactory steps
   @Autowired JobLauncher jobLauncher
   @Autowired JobRepository jobRepository
+  @Autowired JobExplorer jobExplorer
 
   @Subject pipelineStarter = new PipelineStarter()
 
@@ -62,17 +68,6 @@ class PipelineStatusSpec extends Specification {
       autowireBean pipelineStarter
     }
     pipelineStarter.initialize()
-  }
-
-  def "creates a pipeline id"() {
-    expect:
-    with(pipelineStarter.start(configJson)) {
-      id ==~ /.+/
-    }
-
-    where:
-    config = [[type: "foo"]]
-    configJson = mapper.writeValueAsString(config)
   }
 
   def "can get a list of stages from the pipeline"() {

@@ -26,7 +26,7 @@ class PipelineSpec extends Specification {
 
   def stage1 = Stub(Stage)
   def stage2 = Stub(Stage)
-  @Subject pipeline = new Pipeline("foo", stage1, stage2)
+  @Subject pipeline = new Pipeline(stage1, stage2)
 
   def "a pipeline's status is #expectedStatus if one of its stages is #expectedStatus"() {
     given:

@@ -37,7 +37,7 @@ class PipelineStatusPropagationListenerSpec extends Specification {
 
     and: "a pipeline model"
     def stage = new Stage(stageName)
-    def pipeline = new Pipeline(id.toString(), stage)
+    def pipeline = new Pipeline(stage)
     jobExecution.executionContext.put("pipeline", pipeline)
 
     and: "a task has run"

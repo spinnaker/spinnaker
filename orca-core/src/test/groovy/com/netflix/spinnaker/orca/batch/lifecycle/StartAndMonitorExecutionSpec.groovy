@@ -78,7 +78,7 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def pipeline = new Pipeline("whatever", new Stage("startAndMonitor"))
+    def pipeline = new Pipeline(new Stage("startAndMonitor"))
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
       .build(builder)

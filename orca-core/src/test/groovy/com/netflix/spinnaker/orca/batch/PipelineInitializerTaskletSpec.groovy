@@ -35,7 +35,7 @@ class PipelineInitializerTaskletSpec extends Specification {
   def stepContribution = new StepContribution(stepExecution)
   def chunkContext = new ChunkContext(stepContext)
 
-  def pipeline = new Pipeline("whatever")
+  def pipeline = new Pipeline()
   @Subject tasklet = new PipelineInitializerTasklet(pipeline)
 
   def "places pipeline into the execution context"() {

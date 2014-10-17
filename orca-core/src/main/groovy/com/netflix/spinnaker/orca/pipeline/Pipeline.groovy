@@ -24,19 +24,17 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 @CompileStatic
 class Pipeline implements Serializable {
 
-  final String id
   final ImmutableList<Stage> stages
 
   // TODO: ImmutableMap?
   final Map<String, Serializable> context = [:]
 
-  Pipeline(String id, List<Stage> stages) {
-    this.id = id
+  Pipeline(List<Stage> stages) {
     this.stages = ImmutableList.copyOf(stages)
   }
 
-  Pipeline(String id, Stage... stages) {
-    this(id, stages.toList())
+  Pipeline(Stage... stages) {
+    this(stages.toList())
   }
 
   Stage namedStage(String type) {

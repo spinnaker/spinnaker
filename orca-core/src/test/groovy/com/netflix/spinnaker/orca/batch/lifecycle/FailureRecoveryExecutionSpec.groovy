@@ -81,7 +81,7 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def pipeline = new Pipeline("whatever", new Stage("failureRecovery"))
+    def pipeline = new Pipeline(new Stage("failureRecovery"))
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new FailureRecoveryStage(
       steps: steps,

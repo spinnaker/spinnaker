@@ -32,7 +32,7 @@ import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 class PipelineInitializerTasklet implements Tasklet {
 
   static TaskletStep initializationStep(StepBuilderFactory steps, Pipeline pipeline) {
-    steps.get("orca-config-step")
+    steps.get("orca-init-step")
          .tasklet(new PipelineInitializerTasklet(pipeline))
          .build()
   }

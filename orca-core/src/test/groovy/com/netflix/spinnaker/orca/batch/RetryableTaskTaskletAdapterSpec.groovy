@@ -40,7 +40,7 @@ class RetryableTaskTaskletAdapterSpec extends Specification {
 
   def setup() {
     stepExecution.jobExecution.with {
-      executionContext.put(PIPELINE_CONTEXT_KEY, new Pipeline("whatever", new Stage("stage")))
+      executionContext.put(PIPELINE_CONTEXT_KEY, new Pipeline(new Stage("stage")))
     }
   }
 

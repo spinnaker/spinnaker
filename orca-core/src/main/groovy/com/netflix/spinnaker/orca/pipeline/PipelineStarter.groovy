@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
@@ -31,6 +30,8 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
+import static java.util.UUID.randomUUID
 
 @Component
 @CompileStatic
@@ -54,7 +55,6 @@ class PipelineStarter {
     def pipeline = parseConfig(configJson)
     def job = createJobFrom(pipeline)
     launcher.run(job, new JobParameters())
-    // TODO: update the id
     return pipeline
   }
 
@@ -76,7 +76,7 @@ class PipelineStarter {
     List<Map<String, ? extends Serializable>> configMap = mapper.readValue(configJson, new TypeReference<List<Map>>() {
     }) as List
     // TODO: this needs to change as we can't locate the pipeline using this id
-    new Pipeline("meh-i-dont-know", configMap.collect {
+    new Pipeline(configMap.collect {
       def stage = new Stage(it.remove("type").toString())
       stage.context.putAll(it)
       return stage
@@ -85,8 +85,8 @@ class PipelineStarter {
 
   private Job createJobFrom(Pipeline pipeline) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def jobBuilder = jobs.get(pipeline.id)
-                         .flow(PipelineInitializerTasklet.initializationStep(steps, pipeline))
+    def jobBuilder = jobs.get("orca-job-${randomUUID()}")
+                         .flow(initializationStep(steps, pipeline))
     def stageBuilders = stageBuildersFor(pipeline)
     def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&createStage)
     flow.build().build()
