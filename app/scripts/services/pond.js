@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato) {
+  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato, $exceptionHandler) {
     function setStatusProperties(item) {
       Object.defineProperties(item, {
         isCompleted: {
@@ -55,6 +55,10 @@ angular.module('deckApp')
       task.pendingPolls = [];
 
       task.updateKatoTask = function(katoTask) {
+        if (!katoTask) {
+          $exceptionHandler('Error - no kato task found:', task.plain());
+          return;
+        }
         var katoTasks = task.getValueFor('kato.tasks');
         if (katoTasks && katoTasks.length && katoTasks[katoTasks.length - 1].id === katoTask.id) {
           var lastTask = katoTasks[katoTasks.length - 1];
