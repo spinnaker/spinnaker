@@ -53,7 +53,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     }
     KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(defaults: new KatoAWSConfig.DeployDefaults())
     awsConfigurationProperties.defaults.iamRole = "IamRole"
-    awsConfigurationProperties.defaults.keyPair = "keypair"
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
     awsConfigurationProperties.defaults.instanceClassBlockDevices = [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)]
     this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties,

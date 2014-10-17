@@ -96,6 +96,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
       }
 
+      def account = awsConfigurationProperties.accounts.find { it.name == description.credentials.name }
+
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,
@@ -108,7 +110,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         desiredInstances: description.capacity.desired,
         securityGroups: description.securityGroups,
         iamRole: description.iamRole ?: awsConfigurationProperties.defaults.iamRole,
-        keyPair: description.keyPair ?: awsConfigurationProperties.defaults.keyPair,
+        keyPair: description.keyPair ?: account?.defaultKeyPair,
         ignoreSequence: description.ignoreSequence,
         startDisabled: description.startDisabled,
         associatePublicIpAddress: description.associatePublicIpAddress,
