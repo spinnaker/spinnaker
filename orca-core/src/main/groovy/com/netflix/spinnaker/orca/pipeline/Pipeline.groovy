@@ -24,18 +24,14 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 @CompileStatic
 class Pipeline implements Serializable {
 
-  final ImmutableList<Stage> stages
+  private final List<Stage> stages = []
+
+  ImmutableList<Stage> getStages() {
+    ImmutableList.copyOf(stages)
+  }
 
   // TODO: ImmutableMap?
   final Map<String, Serializable> context = [:]
-
-  Pipeline(List<Stage> stages) {
-    this.stages = ImmutableList.copyOf(stages)
-  }
-
-  Pipeline(Stage... stages) {
-    this(stages.toList())
-  }
 
   Stage namedStage(String type) {
     stages.find {
@@ -54,6 +50,38 @@ class Pipeline implements Serializable {
       RUNNING
     } else {
       status
+    }
+  }
+
+  static Builder builder() {
+    new Builder()
+  }
+
+  static class Builder {
+
+    private final Pipeline pipeline = new Pipeline()
+
+    Builder withStage(String type, Map<String, Serializable> context = [:]) {
+      pipeline.@stages << new Stage(pipeline, type, context)
+      return this
+    }
+
+    Builder withStages(List<Map<String, Serializable>> stages) {
+      stages.each {
+        withStage(it.remove("type").toString(), it)
+      }
+      return this
+    }
+
+    Builder withStages(String... stageTypes) {
+      stageTypes.each { String it ->
+        withStage(it)
+      }
+      return this
+    }
+
+    Pipeline build() {
+      pipeline
     }
   }
 }

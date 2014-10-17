@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
@@ -40,7 +39,7 @@ class RetryableTaskTaskletAdapterSpec extends Specification {
 
   def setup() {
     stepExecution.jobExecution.with {
-      executionContext.put(PIPELINE_CONTEXT_KEY, new Pipeline(new Stage("stage")))
+      executionContext.put(PIPELINE_CONTEXT_KEY, Pipeline.builder().withStage("stage").build())
     }
   }
 

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import spock.lang.Specification
@@ -33,11 +32,10 @@ class PipelineStatusPropagationListenerSpec extends Specification {
   def "updates the stage status when a task execution completes"() {
     given: "a batch execution context"
     def jobExecution = new JobExecution(id)
-    def stepExecution = new StepExecution("${stageName}.task1", jobExecution)
+    def stepExecution = new StepExecution("${stageType}.task1", jobExecution)
 
     and: "a pipeline model"
-    def stage = new Stage(stageName)
-    def pipeline = new Pipeline(stage)
+    def pipeline = Pipeline.builder().withStage(stageType).build()
     jobExecution.executionContext.put("pipeline", pipeline)
 
     and: "a task has run"
@@ -47,7 +45,7 @@ class PipelineStatusPropagationListenerSpec extends Specification {
     def exitStatus = listener.afterStep stepExecution
 
     then: "it updates the status of the stage"
-    stage.status == taskStatus
+    pipeline.stages.first().status == taskStatus
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
@@ -57,7 +55,7 @@ class PipelineStatusPropagationListenerSpec extends Specification {
     PipelineStatus.SUCCEEDED | _
 
     id = nextLong()
-    stageName = "foo"
+    stageType = "foo"
   }
 
   /**

@@ -30,9 +30,7 @@ class PipelineFactorySpec extends Specification {
   def "can retrieve a pipeline representation"() {
     given: "a pipeline was started"
     def jobExecution = new JobExecution(id)
-    jobExecution.executionContext.put("pipeline",
-      new Pipeline(stageTypes.collect { new Stage(it) })
-    )
+    jobExecution.executionContext.put("pipeline", Pipeline.builder().withStages(*stageTypes).build())
     jobExplorer.getJobExecution(id) >> jobExecution
 
     when: "we retrieve a pipeline by id"

@@ -75,12 +75,7 @@ class PipelineStarter {
     // TODO: map directly to the Pipeline class
     List<Map<String, ? extends Serializable>> configMap = mapper.readValue(configJson, new TypeReference<List<Map>>() {
     }) as List
-    // TODO: this needs to change as we can't locate the pipeline using this id
-    new Pipeline(configMap.collect {
-      def stage = new Stage(it.remove("type").toString())
-      stage.context.putAll(it)
-      return stage
-    })
+    Pipeline.builder().withStages(configMap).build()
   }
 
   private Job createJobFrom(Pipeline pipeline) {

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.PipelineStatus
@@ -37,10 +35,10 @@ class CompletedBakeTaskSpec extends Specification {
   def stage = new Stage("bake")
 
   @Shared notFoundError = RetrofitError.httpError(
-      null,
-      new Response("http://bakery", HTTP_NOT_FOUND, "Not Found", [], null),
-      null,
-      null
+    null,
+    new Response("http://bakery", HTTP_NOT_FOUND, "Not Found", [], null),
+    null,
+    null
   )
 
   def "finds the AMI created by a bake"() {

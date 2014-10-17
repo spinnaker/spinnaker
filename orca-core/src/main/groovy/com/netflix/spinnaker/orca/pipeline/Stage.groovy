@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
 
@@ -32,15 +33,37 @@ class Stage implements Serializable {
   final String type
 
   /**
+   * @return the pipeline that contains this stage.
+   */
+  final Pipeline pipeline
+
+  /**
    * @return the status of the stage. Effectively this will mean the status of
    * the last {@link com.netflix.spinnaker.orca.Task} to be executed.
    */
   PipelineStatus status = NOT_STARTED
 
-  Stage(String type) {
+  Stage(Pipeline pipeline, String type, Map<String, Serializable> context) {
+    this.pipeline = pipeline
     this.type = type
+    this.context.putAll(context)
+  }
+
+  @VisibleForTesting
+  Stage(String type, Map<String, Serializable> context = [:]) {
+    this(null, type, context)
   }
 
   // TODO: ImmutableMap?
   final Map<String, Serializable> context = [:]
+
+  /**
+   * Gets the last stage preceding this stage that has the specified type.
+   */
+  Stage preceding(String type) {
+    def i = pipeline.stages.indexOf(this)
+    pipeline.stages[i..0].find {
+      it.type == type
+    }
+  }
 }

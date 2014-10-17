@@ -24,14 +24,15 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 @Unroll
 class PipelineSpec extends Specification {
 
-  def stage1 = Stub(Stage)
-  def stage2 = Stub(Stage)
-  @Subject pipeline = new Pipeline(stage1, stage2)
+  @Subject pipeline = Pipeline.builder()
+                              .withStage("stage1")
+                              .withStage("stage2")
+                              .build()
 
   def "a pipeline's status is #expectedStatus if one of its stages is #expectedStatus"() {
     given:
-    stage1.getStatus() >> stage1Status
-    stage2.getStatus() >> stage2Status
+    pipeline.stages[0].status = stage1Status
+    pipeline.stages[1].status = stage2Status
 
     expect:
     pipeline.status == expectedStatus
@@ -47,6 +48,11 @@ class PipelineSpec extends Specification {
     SUCCEEDED    | FAILED       | FAILED
     SUSPENDED    | NOT_STARTED  | SUSPENDED
     SUCCEEDED    | SUSPENDED    | SUSPENDED
+  }
+
+  def "can get a previous stage from a stage by type"() {
+    expect:
+    pipeline.namedStage("stage2").preceding("stage1") is pipeline.stages[0]
   }
 
 }
