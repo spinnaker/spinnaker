@@ -55,7 +55,7 @@ class CatsSpec extends Specification {
         module.view.getAll(APP).isEmpty()
     }
 
-    def 'app created by sg agent'() {
+    def 'app not created by sg agent'() {
         setup:
         sgAgent.results[SG] << new DefaultCacheData('sg1', [name: 'sg1'], [(APP): ['app1']])
         sgAgent.results[APP] << new DefaultCacheData('app1', [:], [:])
@@ -71,23 +71,21 @@ class CatsSpec extends Specification {
         sg1.relationships[APP].first() == 'app1'
 
         def app1 = module.view.get(APP, 'app1')
-        app1.id == 'app1'
-        app1.attributes.isEmpty()
-        app1.relationships.isEmpty()
+        app1 == null
     }
 
     def 'app referenced by sg agent removed by app agent'() {
         setup:
         sgAgent.results[SG] << new DefaultCacheData('sg1', [name: 'sg1'], [(APP): ['app1', 'app2']])
-        sgAgent.results[APP] << new DefaultCacheData('app1', [:], [:])
-        sgAgent.results[APP] << new DefaultCacheData('app2', [:], [:])
+        sgAgent.results[APP] << new DefaultCacheData('app1', [:], [(SG): ['sg1']])
+        sgAgent.results[APP] << new DefaultCacheData('app2', [:], [(SG): ['sg1']])
 
         appAgent.results[APP] << new DefaultCacheData('app1', [name: 'app1', pdKey: 'pageme'], [:])
 
         when:
         scheduler.runAll()
 
-        then: 'initial state of both agents reflected on first scheduler run'
+        then: 'initial state of both agents reflected on first scheduler run : sg1 and app1 exist, app2 has no attributes so it doesnt show up'
         def sg1 = module.view.get(SG, 'sg1')
         sg1.id == 'sg1'
         sg1.attributes.name == 'sg1'
@@ -98,20 +96,19 @@ class CatsSpec extends Specification {
         app1.id == 'app1'
         app1.attributes.name == 'app1'
         app1.attributes.pdKey == 'pageme'
-        app1.relationships.isEmpty()
+        !app1.relationships.isEmpty()
+        app1.relationships[SG]?.size() == 1
+        app1.relationships[SG]?.first() == 'sg1'
 
         def app2 = module.view.get(APP, 'app2')
-        app2.id == 'app2'
-        app2.attributes.isEmpty()
-        app2.relationships.isEmpty()
+        app2 == null
 
         when: 'second agent run, authoritative app source will not remove app2 since it didnt create it'
         scheduler.runAll()
         app2 = module.view.get(APP, 'app2')
 
         then:
-        app2 != null
-        app2.id == 'app2'
+        app2 == null
 
         when: 'third agent run, authoritative app source will remove app1 and enhance app2'
         sgAgent.results[APP].clear()
@@ -125,6 +122,9 @@ class CatsSpec extends Specification {
         app1 == null
         app2.attributes.name == 'app2'
         app2.attributes.pdKey == 'pageme2'
+        !app2.relationships.isEmpty()
+        app2.relationships[SG]?.size() == 1
+        app2.relationships[SG]?.first() == 'sg1'
 
 
     }

@@ -69,7 +69,10 @@ public class InMemoryCache implements WriteableCache {
         ConcurrentMap<String, CacheData> map = getTypeMap(type);
         Collection<CacheData> values = new LinkedList<>();
         for (CacheData data : map.values()) {
-            values.add(wrap(data));
+            CacheData toReturn = wrap(data);
+            if (toReturn != null) {
+                values.add(wrap(data));
+            }
         }
         return values;
     }
@@ -93,6 +96,9 @@ public class InMemoryCache implements WriteableCache {
     }
 
     private CacheData wrap(CacheData data) {
+        if (data.getAttributes().isEmpty()) {
+            return null;
+        }
         return new DefaultCacheData(data.getId(), data.getAttributes(), data.getRelationships());
     }
 
@@ -110,7 +116,10 @@ public class InMemoryCache implements WriteableCache {
         MapMutation<String, Object> attributes = new MapMutation<>(update.getAttributes());
         MapMutation<String, Collection<String>> relationships = new MapMutation<>(update.getRelationships());
 
+        Set<String> missingAttributes = new HashSet<>(existing.getAttributes().keySet());
+        missingAttributes.removeAll(update.getAttributes().keySet());
         attributes.apply(existing.getAttributes());
+        existing.getAttributes().keySet().removeAll(missingAttributes);
         relationships.apply(existing.getRelationships());
     }
 

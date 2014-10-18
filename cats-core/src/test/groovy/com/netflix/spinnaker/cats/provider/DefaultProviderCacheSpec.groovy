@@ -37,8 +37,8 @@ class DefaultProviderCacheSpec extends CacheSpec {
         new DefaultProviderCache(backingStore)
     }
 
-    void populateOne(String type, String id) {
-        defaultProviderCache.putCacheResult('testAgent', [], new DefaultCacheResult((type): [createData(id)]))
+    void populateOne(String type, String id, CacheData cacheData = createData(id)) {
+        defaultProviderCache.putCacheResult('testAgent', [], new DefaultCacheResult((type): [cacheData]))
     }
 
     DefaultProviderCache getDefaultProviderCache() {

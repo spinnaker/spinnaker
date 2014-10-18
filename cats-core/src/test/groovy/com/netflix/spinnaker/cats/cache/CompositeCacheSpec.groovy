@@ -31,8 +31,8 @@ class CompositeCacheSpec extends CacheSpec {
     }
 
     @Override
-    void populateOne(String type, String id) {
-        c1.merge(type, new DefaultCacheData(id, [:], [:]))
+    void populateOne(String type, String id, CacheData cacheData = new DefaultCacheData(id, [id: id], [:])) {
+        c1.merge(type, cacheData)
     }
 
     def "attributes are merged from both caches"() {

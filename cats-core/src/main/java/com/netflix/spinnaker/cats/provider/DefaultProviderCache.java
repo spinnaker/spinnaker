@@ -33,6 +33,9 @@ import java.util.*;
 public class DefaultProviderCache implements ProviderCache {
 
     private static final String ALL_ID = "_ALL_"; //dirty = true
+    private static final Map<String, Object> ALL_ATTRIBUTE = Collections.unmodifiableMap(new HashMap<String, Object>(1) {{
+        put("id", ALL_ID);
+    }});
 
     private final WriteableCache backingStore;
 
@@ -140,7 +143,7 @@ public class DefaultProviderCache implements ProviderCache {
         }
         Map<String, Collection<String>> allRelationship = new HashMap<>();
         allRelationship.put(sourceAgentType, idSet);
-        toStore.add(new DefaultCacheData(ALL_ID, Collections.<String, Object>emptyMap(), allRelationship));
+        toStore.add(new DefaultCacheData(ALL_ID, ALL_ATTRIBUTE, allRelationship));
 
         backingStore.mergeAll(type, toStore);
     }

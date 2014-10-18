@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.cats.redis.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
@@ -32,6 +34,8 @@ import java.util.*;
 // single method
 public class RedisCache implements WriteableCache {
 
+    private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {};
+
     private final String prefix;
     private final JedisSource source;
     private final ObjectMapper objectMapper;
@@ -40,33 +44,27 @@ public class RedisCache implements WriteableCache {
     public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper) {
         this.prefix = prefix;
         this.source = source;
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     }
 
     @Override
     public void merge(String type, CacheData cacheData) {
-        final Map<String, String> hash = new HashMap<>(cacheData.getAttributes().size());
-        final Collection<String> hashDeletions = new ArrayList<>();
-
-        for (Map.Entry<String, Object> attribute : cacheData.getAttributes().entrySet()) {
-            if (attribute.getValue() == null) {
-                hashDeletions.add(attribute.getKey());
+        final String serializedAttributes;
+        try {
+            if (cacheData.getAttributes().isEmpty()) {
+                serializedAttributes = null;
             } else {
-                try {
-                    hash.put(attribute.getKey(), objectMapper.writeValueAsString(attribute.getValue()));
-                } catch (JsonProcessingException jpe) {
-                    throw new RuntimeException("Attribute serialization failed", jpe);
-                }
+                serializedAttributes = objectMapper.writeValueAsString(cacheData.getAttributes());
             }
+        } catch (JsonProcessingException serializationException) {
+            throw new RuntimeException("Attribute serialization failed", serializationException);
         }
-        hash.put(ID_ATTRIBUTE, cacheData.getId());
 
         try (Jedis jedis = source.getJedis()) {
             jedis.sadd(allOfTypeId(type), cacheData.getId());
-            if (!hashDeletions.isEmpty()) {
-                jedis.hdel(attributesId(type, cacheData.getId()), hashDeletions.toArray(new String[hashDeletions.size()]));
+            if (serializedAttributes != null) {
+                jedis.set(attributesId(type, cacheData.getId()), serializedAttributes);
             }
-            jedis.hmset(attributesId(type, cacheData.getId()), hash);
             if (!cacheData.getRelationships().isEmpty()) {
                 jedis.sadd(allRelationshipsId(type, cacheData.getId()), cacheData.getRelationships().keySet().toArray(new String[cacheData.getRelationships().size()]));
                 for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
@@ -112,11 +110,11 @@ public class RedisCache implements WriteableCache {
 
     @Override
     public CacheData get(String type, String id) {
-        final Map<String, String> hash;
+        final String serializedAttributes;
         final Map<String, Collection<String>> relationships;
         try (Jedis jedis = source.getJedis()) {
-            hash = jedis.hgetAll(attributesId(type, id));
-            if (hash.isEmpty()) {
+            serializedAttributes = jedis.get(attributesId(type, id));
+            if (serializedAttributes == null) {
                 relationships = Collections.emptyMap();
             } else {
                 Collection<String> rels = jedis.smembers(allRelationshipsId(type, id));
@@ -127,20 +125,17 @@ public class RedisCache implements WriteableCache {
                 }
             }
         }
-        if (hash.isEmpty()) {
+        if (serializedAttributes == null) {
             return null;
         }
 
-        Map<String, Object> attributes = new HashMap<>(hash.size());
-        for (Map.Entry<String, String> serialized : hash.entrySet()) {
-            if (!ID_ATTRIBUTE.equals(serialized.getKey())) {
-                try {
-                    attributes.put(serialized.getKey(), objectMapper.readValue(serialized.getValue(), Object.class));
-                } catch (IOException ex) {
-                    throw new RuntimeException("Attribute deserialization failed", ex);
-                }
-            }
+        final Map<String, Object> attributes;
+        try {
+            attributes = objectMapper.readValue(serializedAttributes, ATTRIBUTES);
+        } catch (IOException deserializationException) {
+            throw new RuntimeException("Attribute deserialization failed", deserializationException);
         }
+
         return new DefaultCacheData(id, attributes, relationships);
     }
 
