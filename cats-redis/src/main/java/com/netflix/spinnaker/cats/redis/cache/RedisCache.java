@@ -30,8 +30,6 @@ import redis.clients.jedis.Transaction;
 import java.io.IOException;
 import java.util.*;
 
-//TODO-CF there is an opportunity to optimize the *All methods for now they just iterate and delegate to the
-// single method
 public class RedisCache implements WriteableCache {
 
     private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {};
@@ -49,7 +47,155 @@ public class RedisCache implements WriteableCache {
     }
 
     @Override
-    public void merge(String type, CacheData cacheData) {
+    public void mergeAll(String type, Collection<CacheData> items) {
+        if (items.isEmpty()) {
+            return;
+        }
+        final Set<String> relationshipNames = new HashSet<>();
+        final List<String> keysToSet = new LinkedList<>();
+        final Set<String> idSet = new HashSet<>();
+        for (CacheData item : items) {
+            MergeOp op = buildMergeOp(type, item);
+            relationshipNames.addAll(op.relNames);
+            keysToSet.addAll(op.keysToSet);
+            idSet.add(item.getId());
+        }
+
+        final String[] relationships = relationshipNames.toArray(new String[relationshipNames.size()]);
+        final String[] ids = idSet.toArray(new String[idSet.size()]);
+        final String[] mset = keysToSet.toArray(new String[keysToSet.size()]);
+
+        if (mset.length > 0) {
+            try (Jedis jedis = source.getJedis()) {
+                jedis.sadd(allOfTypeId(type), ids);
+                jedis.mset(mset);
+                if (relationships.length > 0) {
+                    jedis.sadd(allRelationshipsId(type), relationships);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void merge(String type, CacheData item) {
+        mergeAll(type, Arrays.asList(item));
+    }
+
+    @Override
+    public void evictAll(String type, Collection<String> identifiers) {
+        if (identifiers.isEmpty()) {
+            return;
+        }
+        Collection<String> ids = new HashSet<>(identifiers);
+        final Collection<String> allRelationships;
+        try (Jedis jedis = source.getJedis()) {
+            allRelationships = jedis.smembers(allRelationshipsId(type));
+        }
+
+        Collection<String> delKeys = new ArrayList<>((allRelationships.size() + 1) * ids.size());
+        for (String id : ids) {
+            for (String relationship : allRelationships) {
+                delKeys.add(relationshipId(type, id, relationship));
+            }
+            delKeys.add(attributesId(type, id));
+        }
+
+        try (Jedis jedis = source.getJedis()) {
+            jedis.del(delKeys.toArray(new String[delKeys.size()]));
+            jedis.srem(allOfTypeId(type), ids.toArray(new String[ids.size()]));
+        }
+    }
+
+    @Override
+    public void evict(String type, String id) {
+        evictAll(type, Arrays.asList(id));
+    }
+
+    @Override
+    public CacheData get(String type, String id) {
+        Collection<CacheData> result = getAll(type, Arrays.asList(id));
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result.iterator().next();
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        if (identifiers.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Collection<String> ids = new LinkedHashSet<>(identifiers);
+        final List<String> knownRels;
+        try (Jedis jedis = source.getJedis()) {
+            knownRels = new ArrayList<>(jedis.smembers(allRelationshipsId(type)));
+        }
+
+        final int singleResultSize = knownRels.size() + 1;
+
+        final List<String> keysToGet = new ArrayList<>(singleResultSize * ids.size());
+        for (String id : ids) {
+            keysToGet.add(attributesId(type, id));
+            for (String rel : knownRels) {
+                keysToGet.add(relationshipId(type, id, rel));
+            }
+        }
+
+        final String[] mget = keysToGet.toArray(new String[keysToGet.size()]);
+
+        final List<String> keyResult;
+
+        try (Jedis jedis = source.getJedis()) {
+            keyResult = jedis.mget(mget);
+        }
+
+        if (keyResult.size() != mget.length) {
+            throw new RuntimeException("Exepected same size result as request");
+        }
+
+        Collection<CacheData> results = new ArrayList<>(ids.size());
+        Iterator<String> idIterator = identifiers.iterator();
+        for (int ofs = 0; ofs < keyResult.size(); ofs += singleResultSize) {
+            CacheData item = extractItem(idIterator.next(), keyResult.subList(ofs, ofs+singleResultSize), knownRels);
+            if (item != null) {
+                results.add(item);
+            }
+        }
+        return results;
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type) {
+        final Set<String> allIds;
+        try (Jedis jedis = source.getJedis()) {
+            allIds = jedis.smembers(allOfTypeId(type));
+        }
+        return getAll(type, allIds);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, String... identifiers) {
+        return getAll(type, Arrays.asList(identifiers));
+    }
+
+    @Override
+    public Collection<String> getIdentifiers(String type) {
+        try (Jedis jedis = source.getJedis()) {
+            return jedis.smembers(allOfTypeId(type));
+        }
+    }
+
+    private static class MergeOp {
+        final Set<String> relNames;
+        final List<String> keysToSet;
+
+        public MergeOp(Set<String> relNames, List<String> keysToSet) {
+            this.relNames = relNames;
+            this.keysToSet = keysToSet;
+        }
+    }
+
+    private MergeOp buildMergeOp(String type, CacheData cacheData) {
         final String serializedAttributes;
         try {
             if (cacheData.getAttributes().isEmpty()) {
@@ -67,11 +213,7 @@ public class RedisCache implements WriteableCache {
             keysToSet.add(serializedAttributes);
         }
 
-        final String[] relationships;
-        if (cacheData.getRelationships().isEmpty()) {
-            relationships = new String[0];
-        } else {
-            relationships = cacheData.getRelationships().keySet().toArray(new String[cacheData.getRelationships().size()]);
+        if (!cacheData.getRelationships().isEmpty()) {
             for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
                 keysToSet.add(relationshipId(type, cacheData.getId(), relationship.getKey()));
                 try {
@@ -82,71 +224,10 @@ public class RedisCache implements WriteableCache {
             }
         }
 
-        final String[] mset = keysToSet.toArray(new String[keysToSet.size()]);
-        if (mset.length > 0) {
-            try (Jedis jedis = source.getJedis()) {
-                jedis.sadd(allOfTypeId(type), cacheData.getId());
-                jedis.mset(mset);
-                if (relationships.length > 0) {
-                    jedis.sadd(allRelationshipsId(type), relationships);
-                }
-            }
-        }
+        return new MergeOp(cacheData.getRelationships().keySet(), keysToSet);
     }
 
-    @Override
-    public void mergeAll(String type, Collection<CacheData> items) {
-        for (CacheData item : items) {
-            merge(type, item);
-        }
-    }
-
-    @Override
-    public void evict(String type, String id) {
-        try (Jedis jedis = source.getJedis()) {
-            Collection<String> allRelationships = jedis.smembers(allRelationshipsId(type));
-            Collection<String> delKeys = new ArrayList<>(allRelationships.size() + 1);
-            for (String relationship : allRelationships) {
-                delKeys.add(relationshipId(type, id, relationship));
-            }
-            delKeys.add(attributesId(type, id));
-            jedis.del(delKeys.toArray(new String[delKeys.size()]));
-            jedis.srem(allOfTypeId(type), id);
-        }
-    }
-
-    @Override
-    public void evictAll(String type, Collection<String> ids) {
-        for (String id : ids) {
-            evict(type, id);
-        }
-    }
-
-    @Override
-    public CacheData get(String type, String id) {
-        final List<String> knownRels;
-        try (Jedis jedis = source.getJedis()) {
-            knownRels = new ArrayList<>(jedis.smembers(allRelationshipsId(type)));
-        }
-
-        final List<String> keysToGet = new ArrayList<>(knownRels.size() + 1);
-        keysToGet.add(attributesId(type, id));
-        for (String rel : knownRels) {
-            keysToGet.add(relationshipId(type, id, rel));
-        }
-
-        final String[] mget = keysToGet.toArray(new String[keysToGet.size()]);
-
-        final List<String> keyResult;
-
-        try (Jedis jedis = source.getJedis()) {
-            keyResult = jedis.mget(mget);
-        }
-
-        if (keyResult.size() != mget.length) {
-            throw new RuntimeException("Exepected same size result as request");
-        }
-
+    private CacheData extractItem(String id, List<String> keyResult, List<String> knownRels) {
         if (keyResult.get(0) == null) {
             return null;
         }
@@ -167,39 +248,6 @@ public class RedisCache implements WriteableCache {
 
         } catch (IOException deserializationException) {
             throw new RuntimeException("Deserialization failed", deserializationException);
-        }
-    }
-
-    @Override
-    public Collection<CacheData> getAll(String type) {
-        final Set<String> allIds;
-        try (Jedis jedis = source.getJedis()) {
-            allIds = jedis.smembers(allOfTypeId(type));
-        }
-        return getAll(type, allIds);
-    }
-
-    @Override
-    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
-        Collection<CacheData> results = new ArrayList<>(identifiers.size());
-        for (String id : identifiers) {
-            CacheData result = get(type, id);
-            if (result != null) {
-                results.add(result);
-            }
-        }
-        return results;
-    }
-
-    @Override
-    public Collection<CacheData> getAll(String type, String... identifiers) {
-        return getAll(type, Arrays.asList(identifiers));
-    }
-
-    @Override
-    public Collection<String> getIdentifiers(String type) {
-        try (Jedis jedis = source.getJedis()) {
-            return jedis.smembers(allOfTypeId(type));
         }
     }
 

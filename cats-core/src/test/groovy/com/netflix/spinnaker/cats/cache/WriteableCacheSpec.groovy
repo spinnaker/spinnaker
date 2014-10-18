@@ -69,6 +69,22 @@ abstract class WriteableCacheSpec extends CacheSpec {
         bar.attributes.merge2 == 'merge2'
     }
 
+    def 'can evictAll empty collection'() {
+        when:
+        cache.evictAll('foo', [])
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'can mergeAll empty collection'() {
+        when:
+        cache.mergeAll('foo', [])
+
+        then:
+        noExceptionThrown()
+    }
+
     def 'merging null attributes removes the value'() {
         setup:
         cache.merge('foo', createData('bar', [merge1: 'merge1']))

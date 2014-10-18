@@ -71,6 +71,15 @@ abstract class CacheSpec extends Specification {
         cache.get('foo', 'bar') == null
     }
 
+    def 'can getAll empty id collection'() {
+        when:
+        def results = cache.getAll('foo', [])
+
+        then:
+        results != null
+        results.isEmpty()
+    }
+
     def 'get by id behaviour'() {
         setup:
         populateOne('foo', 'bar')
