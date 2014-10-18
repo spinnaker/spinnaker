@@ -30,9 +30,6 @@ class Pipeline implements Serializable {
     ImmutableList.copyOf(stages)
   }
 
-  // TODO: ImmutableMap?
-  final Map<String, Serializable> context = [:]
-
   Stage namedStage(String type) {
     stages.find {
       it.type == type
