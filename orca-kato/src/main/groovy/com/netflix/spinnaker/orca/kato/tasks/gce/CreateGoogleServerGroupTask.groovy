@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -33,32 +33,32 @@ class CreateGoogleServerGroupTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(context)
+    def operation = convert(stage)
     def taskId = deploy(operation)
     new DefaultTaskResult(PipelineStatus.SUCCEEDED,
-        [
-            "notification.type"  : "createdeploy",
-            "kato.last.task.id"  : taskId,
-            "kato.task.id"       : taskId, // TODO retire this.
-            "deploy.account.name": operation.credentials,
-        ]
+      [
+        "notification.type"  : "createdeploy",
+        "kato.last.task.id"  : taskId,
+        "kato.task.id"       : taskId, // TODO retire this.
+        "deploy.account.name": operation.credentials,
+      ]
     )
   }
 
-  DeployGoogleServerGroupOperation convert(TaskContext context) {
-    def inputs = context.getInputs("deploy_gce")
-    new DeployGoogleServerGroupOperation(application: inputs.application,
-                                         stack: inputs.stack,
-                                         freeFormDetails: inputs.freeFormDetails,
-                                         image: inputs.image,
-                                         type: inputs.machineType,
-                                         zone: inputs.zones ? inputs.zones[0] : null,
-                                         initialNumReplicas: inputs.capacity.desired,
-                                         credentials: inputs.credentials)
+  DeployGoogleServerGroupOperation convert(Stage stage) {
+    new DeployGoogleServerGroupOperation(
+      application: stage.context.application,
+      stack: stage.context.stack,
+      freeFormDetails: stage.context.freeFormDetails,
+      image: stage.context.image,
+      type: stage.context.machineType,
+      zone: stage.context.zones ? stage.context.zones[0] : null,
+      initialNumReplicas: stage.context.capacity.desired,
+      credentials: stage.context.credentials
+    )
   }
 
   private TaskId deploy(DeployGoogleServerGroupOperation deployOperation) {
-    def result = kato.requestOperations([[basicGoogleDeployDescription: deployOperation]]).toBlocking().first()
-    result
+    kato.requestOperations([[basicGoogleDeployDescription: deployOperation]]).toBlocking().first()
   }
 }

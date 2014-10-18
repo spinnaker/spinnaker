@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.UpsertAmazonLoadBalancerOperation
@@ -37,18 +37,18 @@ class UpsertAmazonLoadBalancerTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def upsertAmazonLoadBalancerOperation = convert(context)
+    def upsertAmazonLoadBalancerOperation = convert(stage)
 
     def taskId = kato.requestOperations([[upsertAmazonLoadBalancerDescription: upsertAmazonLoadBalancerOperation]])
-      .toBlocking()
-      .first()
+                     .toBlocking()
+                     .first()
 
     Map outputs = [
-      "notification.type" : "upsertamazonloadbalancer",
-      "kato.last.task.id" : taskId,
-      "kato.task.id"      : taskId, // TODO retire this.
-      "upsert.account"    : upsertAmazonLoadBalancerOperation.credentials,
-      "upsert.regions"    : upsertAmazonLoadBalancerOperation.availabilityZones.keySet().join(',')
+      "notification.type": "upsertamazonloadbalancer",
+      "kato.last.task.id": taskId,
+      "kato.task.id"     : taskId, // TODO retire this.
+      "upsert.account"   : upsertAmazonLoadBalancerOperation.credentials,
+      "upsert.regions"   : upsertAmazonLoadBalancerOperation.availabilityZones.keySet().join(',')
     ]
 
     if (upsertAmazonLoadBalancerOperation.clusterName) {
@@ -61,9 +61,9 @@ class UpsertAmazonLoadBalancerTask implements Task {
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
-  UpsertAmazonLoadBalancerOperation convert(TaskContext context) {
+  UpsertAmazonLoadBalancerOperation convert(Stage stage) {
     mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(context.getInputs("upsertAmazonLoadBalancer"), UpsertAmazonLoadBalancerOperation)
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(stage.context, UpsertAmazonLoadBalancerOperation)
   }
 }

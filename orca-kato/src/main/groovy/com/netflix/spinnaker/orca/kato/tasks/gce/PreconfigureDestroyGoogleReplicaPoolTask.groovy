@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskContext
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
@@ -26,18 +25,21 @@ import com.netflix.spinnaker.orca.pipeline.Stage
 class PreconfigureDestroyGoogleReplicaPoolTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
-    def op = convert(context)
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["resizeAsg_gce.credentials": op.credentials,
-                                                        "resizeAsg_gce.zones": [op.zone],
-                                                        "resizeAsg_gce.asgName": op.replicaPoolName,
-                                                        "resizeAsg_gce.capacity": [desired: op.numReplicas]])
+    def op = convert(stage)
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+      "resizeAsg_gce.credentials": op.credentials,
+      "resizeAsg_gce.zones"      : [op.zone],
+      "resizeAsg_gce.asgName"    : op.replicaPoolName,
+      "resizeAsg_gce.capacity"   : [desired: op.numReplicas]
+    ])
   }
 
-  ResizeGoogleReplicaPoolOperation convert(TaskContext context) {
-    def inputs = context.getInputs("destroyAsg_gce")
-    new ResizeGoogleReplicaPoolOperation(replicaPoolName: inputs.asgName,
-                                         zone: inputs.zones ? inputs.zones[0] : null,
-                                         credentials: inputs.credentials,
-                                         numReplicas: 0)
+  ResizeGoogleReplicaPoolOperation convert(Stage stage) {
+    new ResizeGoogleReplicaPoolOperation(
+      replicaPoolName: stage.context.asgName,
+      zone: stage.context.zones ? stage.context.zones[0] : null,
+      credentials: stage.context.credentials,
+      numReplicas: 0
+    )
   }
 }

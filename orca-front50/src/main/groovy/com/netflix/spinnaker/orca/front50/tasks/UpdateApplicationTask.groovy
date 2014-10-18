@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -37,15 +38,17 @@ class UpdateApplicationTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def application = mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(context.getInputs("createApplication").application, Application)
+                            .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+                            .convertValue(stage.context.application, Application)
 
-    def resp = front50Service.update(stage.context."createApplication.account" as String, application)
+    def resp = front50Service.update(stage.context.account as String, application)
     if (resp.status != 200) {
       new DefaultTaskResult(PipelineStatus.TERMINAL)
     } else {
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["application.name": application.name,
-                                                       "account": stage.context."createApplication.account"])
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+        "application.name": application.name,
+        "account"         : stage.context.account
+      ])
     }
   }
 }
