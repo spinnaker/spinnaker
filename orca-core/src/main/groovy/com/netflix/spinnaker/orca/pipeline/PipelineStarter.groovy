@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
@@ -78,6 +79,7 @@ class PipelineStarter {
     Pipeline.builder().withStages(configMap).build()
   }
 
+  @CompileDynamic
   private Job createJobFrom(Pipeline pipeline) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${randomUUID()}")
