@@ -69,12 +69,16 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   }
 
   Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
-    source.relationships[relationship]?.findResults { cacheView.get(relationship, it) } ?: [] as Collection
+    source.relationships[relationship] ? cacheView.getAll(relationship, source.relationships[relationship]) : []
   }
 
   @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account) {
-    cacheView.getAll(LOAD_BALANCERS.ns).findResults(this.&translate).findAll { it.account == account } as Set<AmazonLoadBalancer>
+    def filteredIds = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+      def parts = Keys.parse(it)
+      parts.account == account
+    }
+    cacheView.getAll(LOAD_BALANCERS.ns, filteredIds).findResults(this.&translate) as Set<AmazonLoadBalancer>
   }
 
   @Override

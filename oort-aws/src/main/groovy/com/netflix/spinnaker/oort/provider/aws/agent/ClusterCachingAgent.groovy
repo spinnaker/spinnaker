@@ -180,6 +180,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   private void cacheCluster(AsgData data, Map<String, CacheData> clusters) {
     clusters[data.cluster].with {
+      attributes.name = data.name.cluster
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
@@ -212,8 +213,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private void cacheInstances(AsgData data, Map<String, CacheData> instances) {
     for (Instance instance : data.asg.instances) {
       instances[Keys.getInstanceKey(instance.instanceId, account.name, region)].with {
-        Map<String, Object> instanceAttributes = objectMapper.convertValue(instance, ATTRIBUTES)
-        attributes.putAll(instanceAttributes)
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
@@ -230,6 +229,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   private static class AsgData {
     final AutoScalingGroup asg
+    final Names name
     final String appName
     final String cluster
     final String serverGroup
@@ -240,7 +240,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     public AsgData(AutoScalingGroup asg, String account, String region) {
       this.asg = asg
 
-      Names name = Names.parseName(asg.autoScalingGroupName)
+      name = Names.parseName(asg.autoScalingGroupName)
 
       appName = Keys.getApplicationKey(name.app)
       cluster = Keys.getClusterKey(name.cluster, name.app, account)

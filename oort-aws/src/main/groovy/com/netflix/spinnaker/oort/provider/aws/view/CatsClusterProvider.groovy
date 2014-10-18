@@ -110,13 +110,10 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     sg.instances = resolveRelationshipData(serverGroupData, INSTANCES.ns).collect { CacheData instance ->
       Map<String, String> instanceKey = Keys.parse(instance.id)
       HealthState amazonState = instance.attributes.state?.code == 16 ? HealthState.Unknown : HealthState.Down
-      Collection<Map<String, Object>> healths = [new AwsInstanceHealth(type: 'Amazon', instanceId: instanceKey.instanceId, state: amazonState)]
-      for (String healthProvider : AwsProvider.HEALTH_PROVIDERS) {
-        def health = cacheView.get(HEALTH.ns, Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, healthProvider))
-        if (health) {
-          healths.add(health.attributes)
-        }
-      }
+      Collection<Map<String, Object>> healths = [new AwsInstanceHealth(type: 'Amazon', instanceId: instanceKey.instanceId, state: amazonState.toString())]
+
+      Collection<String> healthKeys = AwsProvider.HEALTH_PROVIDERS.collect { Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it) }
+      healths.addAll(cacheView.getAll(HEALTH.ns, healthKeys)*.attributes)
 
       boolean healthy = healths.any { it.state == 'Up' } && !healths.any { it.state == 'Down' }
       [
@@ -165,7 +162,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter) {
-    source.relationships[relationship]?.findResults { if (relFilter(it)) { cacheView.get(relationship, it) } else null } ?: [] as Collection
+    Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
+    filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
   }
 
   @Override

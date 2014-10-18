@@ -90,7 +90,7 @@ class ImageCachingAgent implements CachingAgent {
       def imageId = Keys.getImageKey(image.imageId, account.name, region)
       def namedImageId = Keys.getNamedImageKey(account.name, image.name)
       imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns):[namedImageId]]))
-      namedImageCacheData.add(new DefaultCacheData(namedImageId, [:], [(IMAGES.ns):[imageId]]))
+      namedImageCacheData.add(new DefaultCacheData(namedImageId, [name: image.name], [(IMAGES.ns):[imageId]]))
     }
 
     new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)

@@ -54,12 +54,14 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
-    Collection<CacheData> loadBalancers = awsConfigurationProperties.accounts.findResults { NetflixAssumeRoleAmazonCredentials account ->
-      Collection<CacheData> regionLbs = account.regions.findResults { AmazonCredentials.AWSRegion region ->
-        cacheView.get(LOAD_BALANCERS.ns, Keys.getLoadBalancerKey(name, account.name, region.name))
+    Collection<String> lbIds = awsConfigurationProperties.accounts.collectMany { NetflixAssumeRoleAmazonCredentials account ->
+      Collection<CacheData> regionLbs = account.regions.collect { AmazonCredentials.AWSRegion region ->
+        Keys.getLoadBalancerKey(name, account.name, region.name)
       }
       regionLbs
-    }.flatten()
+    }
+
+    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, lbIds)
 
     getSummaryForLoadBalancers(loadBalancers).get(name)
   }
@@ -70,9 +72,7 @@ class AmazonLoadBalancerController {
       def key = Keys.parse(it)
       key.account == account && key.region == region
     }
-    Collection<CacheData> loadBalancers = identifiers.collect {
-      cacheView.get(LOAD_BALANCERS.ns, it)
-    }
+    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, identifiers)
 
     getSummaryForLoadBalancers(loadBalancers).values() as List
   }
