@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipeline.Stage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,17 +44,6 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   StageBuilder(String type) {
     this.type = type
   }
-
-  // TODO: may not need this method if we always have a config handling step first
-  /**
-   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
-   * is typically called when the stage is the first in the pipeline.
-   *
-   * @param jobBuilder the builder for the job. Implementations should append steps to this.
-   * @param stage the stage configuration.
-   * @return the resulting builder after any steps are appended.
-   */
-  abstract JobFlowBuilder build(JobBuilder jobBuilder, Stage stage)
 
   /**
    * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method

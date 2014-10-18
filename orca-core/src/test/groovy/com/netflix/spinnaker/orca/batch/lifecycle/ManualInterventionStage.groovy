@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 
 @CompileStatic
@@ -31,11 +30,6 @@ class ManualInterventionStage extends StageBuilder {
 
   ManualInterventionStage() {
     super("manualIntervention")
-  }
-
-  @Override
-  JobFlowBuilder build(JobBuilder jobBuilder, Stage stage) {
-    throw new UnsupportedOperationException()
   }
 
   @Override
