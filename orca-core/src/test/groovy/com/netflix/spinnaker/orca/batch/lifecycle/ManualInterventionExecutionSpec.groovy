@@ -108,7 +108,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
     def pipeline = Pipeline.builder().withStage("manualIntervention").build()
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new ManualInterventionStage(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
-      .build(builder)
+      .build(builder, pipeline.namedStage("manualIntervention"))
       .build()
       .build()
   }

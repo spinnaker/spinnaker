@@ -82,27 +82,24 @@ class PipelineStarter {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${randomUUID()}")
                          .flow(initializationStep(steps, pipeline))
-    def stageBuilders = stageBuildersFor(pipeline)
-    def flow = (JobFlowBuilder) stageBuilders.inject(jobBuilder, this.&createStage)
+    def flow = (JobFlowBuilder) pipeline.stages.inject(jobBuilder, this.&createStage)
     flow.build().build()
   }
 
-  private List<StageBuilder> stageBuildersFor(Pipeline pipeline) {
-    pipeline.stages.collect {
-      String beanName = it.type
-      if (it.context.providerType) {
-        beanName = "${it.type}_$it.context.providerType"
-      }
-
-      if (stages.containsKey(beanName)) {
-        stages.get(beanName)
-      } else {
-        throw new NoSuchStageException(beanName)
-      }
-    }
+  private JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage stage) {
+    builderFor(stage).build(jobBuilder, stage)
   }
 
-  private JobFlowBuilder createStage(JobFlowBuilder jobBuilder, StageBuilder stageBuilder) {
-    stageBuilder.build(jobBuilder)
+  private StageBuilder builderFor(Stage stage) {
+    String beanName = stage.type
+    if (stage.context.providerType) {
+      beanName = "${stage.type}_$stage.context.providerType"
+    }
+
+    if (stages.containsKey(beanName)) {
+      stages.get(beanName)
+    } else {
+      throw new NoSuchStageException(beanName)
+    }
   }
 }

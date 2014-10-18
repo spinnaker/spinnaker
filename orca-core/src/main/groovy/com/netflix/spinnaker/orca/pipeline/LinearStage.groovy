@@ -35,13 +35,13 @@ abstract class LinearStage extends StageBuilder {
   protected abstract List<Step> buildSteps()
 
   @Override
-  JobFlowBuilder build(JobBuilder jobBuilder) {
+  JobFlowBuilder build(JobBuilder jobBuilder, Stage stage) {
     def steps = buildSteps()
     wireSteps jobBuilder.flow(steps.first()), steps.tail()
   }
 
   @Override
-  JobFlowBuilder build(JobFlowBuilder jobBuilder) {
+  JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
     wireSteps jobBuilder, buildSteps()
   }
 

@@ -87,7 +87,7 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
       startTask: startTask,
       recoveryTask: recoveryTask,
       endTask: endTask
-    ).build(builder)
+    ).build(builder, pipeline.namedStage("failureRecovery"))
      .build()
      .build()
   }

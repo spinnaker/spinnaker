@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -47,7 +48,7 @@ class BakeStageSpec extends BatchExecutionSpec {
       registerSingleton "bakery", bakery
       registerSingleton "objectMapper", new ObjectMapper()
     }
-    stage.build(jobBuilder).build().build()
+    stage.build(jobBuilder, new Stage("bake")).build().build()
   }
 
   def "builds a bake stage and its tasks"() {

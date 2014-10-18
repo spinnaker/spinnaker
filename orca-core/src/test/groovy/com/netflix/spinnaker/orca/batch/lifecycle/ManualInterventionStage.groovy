@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
@@ -33,12 +34,12 @@ class ManualInterventionStage extends StageBuilder {
   }
 
   @Override
-  JobFlowBuilder build(JobBuilder jobBuilder) {
+  JobFlowBuilder build(JobBuilder jobBuilder, Stage stage) {
     throw new UnsupportedOperationException()
   }
 
   @Override
-  JobFlowBuilder build(JobFlowBuilder jobBuilder) {
+  JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
     def step1 = buildStep("preIntervention", preInterventionTask)
     def step2 = buildStep("postIntervention", postInterventionTask)
     def step3 = buildStep("final", finalTask)
