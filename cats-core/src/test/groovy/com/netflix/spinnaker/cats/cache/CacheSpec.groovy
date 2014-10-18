@@ -29,11 +29,11 @@ abstract class CacheSpec extends Specification {
 
     abstract Cache getSubject()
 
-    void populateOne(String type, String id) {
-        ((WriteableCache) cache).merge(type, createData(id))
+    void populateOne(String type, String id, CacheData data = createData(id)) {
+        ((WriteableCache) cache).merge(type, data)
     }
 
-    CacheData createData(String id, Map attributes = [:], Map relationships = [:]) {
+    CacheData createData(String id, Map attributes = [id: id], Map relationships = [:]) {
         new DefaultCacheData(id, attributes, relationships)
     }
 
@@ -61,5 +61,38 @@ abstract class CacheSpec extends Specification {
 
         expect:
         cache.getIdentifiers('foo').sort() == ['bar', 'baz']
+    }
+
+    def 'a cached value does not exist until it has attributes'() {
+        setup:
+        populateOne('foo', 'bar', createData('bar', [:]))
+
+        expect:
+        cache.get('foo', 'bar') == null
+    }
+
+    def 'can getAll empty id collection'() {
+        when:
+        def results = cache.getAll('foo', [])
+
+        then:
+        results != null
+        results.isEmpty()
+    }
+
+    def 'get by id behaviour'() {
+        setup:
+        populateOne('foo', 'bar')
+        populateOne('foo', 'baz')
+
+        when:
+        def results = cache.getAll('foo', 'bar', 'baz', 'doesntexist')
+
+        then:
+        results != null
+        results.size() == 2
+        results.find { it.id == 'bar' }
+        results.find { it.id == 'baz' }
+
     }
 }

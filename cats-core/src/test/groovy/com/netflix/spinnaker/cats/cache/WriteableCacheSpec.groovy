@@ -46,7 +46,7 @@ abstract class WriteableCacheSpec extends CacheSpec {
         retrieved.relationships.rel2.containsAll(['ghi', 'jkl'])
     }
 
-    def 'merge updates an existing value'() {
+    def 'merge replaces all attributes'() {
         setup:
         cache.merge('foo', createData('bar', [merge1: 'merge1']))
 
@@ -64,9 +64,25 @@ abstract class WriteableCacheSpec extends CacheSpec {
 
         then:
         bar != null
-        bar.attributes.size() == 2
-        bar.attributes.merge1 == 'merge1'
+        bar.attributes.size() == 1
+        bar.attributes.merge1 == null
         bar.attributes.merge2 == 'merge2'
+    }
+
+    def 'can evictAll empty collection'() {
+        when:
+        cache.evictAll('foo', [])
+
+        then:
+        noExceptionThrown()
+    }
+
+    def 'can mergeAll empty collection'() {
+        when:
+        cache.mergeAll('foo', [])
+
+        then:
+        noExceptionThrown()
     }
 
     def 'merging null attributes removes the value'() {
@@ -102,23 +118,26 @@ abstract class WriteableCacheSpec extends CacheSpec {
 
     def 'mergeAll merges all items'() {
         when:
-        cache.mergeAll('foo', [createData('bar', [att1: 'val1']), createData('bar', [att2: 'val2']), createData('bar2', [bar2: 'bar2'])])
+        cache.mergeAll('foo', [createData('bar', [att1: 'val1']), createData('baz', [att2: 'val2']), createData('bar2', [bar2: 'bar2'])])
         def bar = cache.get('foo', 'bar')
+        def baz = cache.get('foo', 'baz')
         def bar2 = cache.get('foo', 'bar2')
         def allFoo = cache.getAll('foo')
 
         then:
         bar != null
         bar.id == 'bar'
-        bar.attributes.size() == 2
+        bar.attributes.size() == 1
         bar.attributes.att1 == 'val1'
-        bar.attributes.att2 == 'val2'
+        baz != null
+        baz.id == 'baz'
+        baz.attributes.att2 == 'val2'
         bar2 != null
         bar2.id == 'bar2'
         bar2.attributes.size() == 1
         bar2.attributes.bar2 == 'bar2'
         allFoo != null
-        allFoo.size() == 2
+        allFoo.size() == 3
     }
 
     def 'evict removes the item'() {

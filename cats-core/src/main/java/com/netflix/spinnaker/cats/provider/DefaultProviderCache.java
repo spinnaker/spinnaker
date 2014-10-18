@@ -33,6 +33,9 @@ import java.util.*;
 public class DefaultProviderCache implements ProviderCache {
 
     private static final String ALL_ID = "_ALL_"; //dirty = true
+    private static final Map<String, Object> ALL_ATTRIBUTE = Collections.unmodifiableMap(new HashMap<String, Object>(1) {{
+        put("id", ALL_ID);
+    }});
 
     private final WriteableCache backingStore;
 
@@ -58,13 +61,19 @@ public class DefaultProviderCache implements ProviderCache {
     public Collection<CacheData> getAll(String type) {
         validateTypes(type);
         Collection<CacheData> all = backingStore.getAll(type);
-        Collection<CacheData> response = new ArrayList<>(all.size());
-        for (CacheData item : all) {
-            if (!ALL_ID.equals(item.getId())) {
-                response.add(mergeRelationships(item));
-            }
-        }
-        return Collections.unmodifiableCollection(response);
+        return buildResponse(all);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        validateTypes(type);
+        Collection<CacheData> byId = backingStore.getAll(type, identifiers);
+        return buildResponse(byId);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, String... identifiers) {
+        return getAll(type, Arrays.asList(identifiers));
     }
 
     @Override
@@ -118,6 +127,16 @@ public class DefaultProviderCache implements ProviderCache {
         return type.indexOf(':') == -1;
     }
 
+    private Collection<CacheData> buildResponse(Collection<CacheData> source) {
+        Collection<CacheData> response = new ArrayList<>(source.size());
+        for (CacheData item : source) {
+            if (!ALL_ID.equals(item.getId())) {
+                response.add(mergeRelationships(item));
+            }
+        }
+        return Collections.unmodifiableCollection(response);
+    }
+
     private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
         CacheData all = backingStore.get(type, ALL_ID);
         if (all == null) {
@@ -140,7 +159,7 @@ public class DefaultProviderCache implements ProviderCache {
         }
         Map<String, Collection<String>> allRelationship = new HashMap<>();
         allRelationship.put(sourceAgentType, idSet);
-        toStore.add(new DefaultCacheData(ALL_ID, Collections.<String, Object>emptyMap(), allRelationship));
+        toStore.add(new DefaultCacheData(ALL_ID, ALL_ATTRIBUTE, allRelationship));
 
         backingStore.mergeAll(type, toStore);
     }

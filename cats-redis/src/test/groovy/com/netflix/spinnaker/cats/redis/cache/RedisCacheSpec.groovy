@@ -69,7 +69,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         ['one', 'two']             | ['one', 'two']             | "Primitive list"
         [key: 'value', key2: 10]   | [key: 'value', key2: 10]   | "Map"
         new Bean('value', 10)      | [key: 'value', key2: 10]   | "Java object"
-        [key: 'value', key2: null] | [key: 'value', key2: null] | "Map with null"
+        [key: 'value', key2: null] | [key: 'value']             | "Map with null"
         new Bean('value', null)    | [key: 'value', key2: null] | "Java object with null"
     }
 

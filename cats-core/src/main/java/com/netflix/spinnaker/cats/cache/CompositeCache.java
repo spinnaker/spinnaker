@@ -49,15 +49,7 @@ public class CompositeCache implements Cache {
     public Collection<CacheData> getAll(String type) {
         Map<String, CacheData> allItems = new HashMap<>();
         for (Cache cache : caches) {
-            Collection<CacheData> all = cache.getAll(type);
-            for (CacheData item : all) {
-                CacheData existing = allItems.get(item.getId());
-                if (existing == null) {
-                    allItems.put(item.getId(), item);
-                } else {
-                    allItems.put(item.getId(), merge(item.getId(), existing, item));
-                }
-            }
+            allItems = merge(allItems, cache.getAll(type));
         }
         return allItems.values();
     }
@@ -69,6 +61,34 @@ public class CompositeCache implements Cache {
             identifiers.addAll(cache.getIdentifiers(type));
         }
         return identifiers;
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        Map<String, CacheData> allItems = new HashMap<>();
+        for (Cache cache : caches) {
+            allItems = merge(allItems, cache.getAll(type, identifiers));
+        }
+        return allItems.values();
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, String... identifiers) {
+        return getAll(type, Arrays.asList(identifiers));
+    }
+
+    Map<String, CacheData> merge(Map<String, CacheData> existingItems, Collection<CacheData> results) {
+        final Map<String, CacheData> allItems = existingItems == null ? new HashMap<String, CacheData>() : existingItems;
+        for (CacheData item : results) {
+            CacheData existing = allItems.get(item.getId());
+            if (existing == null) {
+                allItems.put(item.getId(), item);
+            } else {
+                allItems.put(item.getId(), merge(item.getId(), existing, item));
+            }
+        }
+
+        return allItems;
     }
 
     CacheData merge(String id, CacheData... elements) {
