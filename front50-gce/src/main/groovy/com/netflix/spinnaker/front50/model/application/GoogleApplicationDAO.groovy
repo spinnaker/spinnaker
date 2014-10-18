@@ -46,12 +46,16 @@ class GoogleApplicationDAO implements ApplicationDAO {
   protected DatastoreOptions.Builder datastoreOptionsBuilder
   protected GoogleNamedAccountCredentials credentials
 
-  /**
-   * TODO(duftler): Improve this logic (copied the logic, might as well copy the TODO's).
-   */
   @Override
   boolean isHealthly() {
-    credentials?.credentials != null
+    try {
+      credentials?.credentials != null && createDatastoreConnection(credentials.projectName,
+                                                                    datastoreFactory,
+                                                                    datastoreOptionsBuilder,
+                                                                    credentials)
+    } catch (NotFoundException e) {
+      false
+    }
   }
 
   @Override
