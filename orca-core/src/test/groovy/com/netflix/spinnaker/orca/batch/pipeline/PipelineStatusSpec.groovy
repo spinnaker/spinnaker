@@ -20,11 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
-import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.explore.JobExplorer
@@ -37,7 +34,6 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @ContextConfiguration(classes = [BatchTestConfiguration])
@@ -94,8 +90,8 @@ class PipelineStatusSpec extends Specification {
     }
 
     where:
-    stageNames = ["foo", "bar", "baz"]
-    config = stageNames.collect {
+    stageTypes = ["foo", "bar", "baz"]
+    config = stageTypes.collect {
       [type: it]
     }
     configJson = mapper.writeValueAsString(config)

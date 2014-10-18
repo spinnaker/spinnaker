@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class NoSuchStageException extends RuntimeException {
-  NoSuchStageException(String stageName) {
-    super("Unknown stage '$stageName' requested.")
+  NoSuchStageException(String stageType) {
+    super("Unknown stage '$stageType' requested.")
   }
 }
