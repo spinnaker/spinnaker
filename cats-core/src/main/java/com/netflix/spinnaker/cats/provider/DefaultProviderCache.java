@@ -61,13 +61,19 @@ public class DefaultProviderCache implements ProviderCache {
     public Collection<CacheData> getAll(String type) {
         validateTypes(type);
         Collection<CacheData> all = backingStore.getAll(type);
-        Collection<CacheData> response = new ArrayList<>(all.size());
-        for (CacheData item : all) {
-            if (!ALL_ID.equals(item.getId())) {
-                response.add(mergeRelationships(item));
-            }
-        }
-        return Collections.unmodifiableCollection(response);
+        return buildResponse(all);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        validateTypes(type);
+        Collection<CacheData> byId = backingStore.getAll(type, identifiers);
+        return buildResponse(byId);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, String... identifiers) {
+        return getAll(type, Arrays.asList(identifiers));
     }
 
     @Override
@@ -119,6 +125,16 @@ public class DefaultProviderCache implements ProviderCache {
 
     private boolean validType(String type) {
         return type.indexOf(':') == -1;
+    }
+
+    private Collection<CacheData> buildResponse(Collection<CacheData> source) {
+        Collection<CacheData> response = new ArrayList<>(source.size());
+        for (CacheData item : source) {
+            if (!ALL_ID.equals(item.getId())) {
+                response.add(mergeRelationships(item));
+            }
+        }
+        return Collections.unmodifiableCollection(response);
     }
 
     private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {

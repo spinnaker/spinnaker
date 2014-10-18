@@ -35,6 +35,7 @@ import java.util.*;
 public class RedisCache implements WriteableCache {
 
     private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {};
+    private static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {};
 
     private final String prefix;
     private final JedisSource source;
@@ -60,20 +61,34 @@ public class RedisCache implements WriteableCache {
             throw new RuntimeException("Attribute serialization failed", serializationException);
         }
 
-        try (Jedis jedis = source.getJedis()) {
-            jedis.sadd(allOfTypeId(type), cacheData.getId());
-            if (serializedAttributes != null) {
-                jedis.set(attributesId(type, cacheData.getId()), serializedAttributes);
+        final List<String> keysToSet = new ArrayList<>((cacheData.getRelationships().size() + 1) * 2);
+        if (serializedAttributes != null) {
+            keysToSet.add(attributesId(type, cacheData.getId()));
+            keysToSet.add(serializedAttributes);
+        }
+
+        final String[] relationships;
+        if (cacheData.getRelationships().isEmpty()) {
+            relationships = new String[0];
+        } else {
+            relationships = cacheData.getRelationships().keySet().toArray(new String[cacheData.getRelationships().size()]);
+            for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
+                keysToSet.add(relationshipId(type, cacheData.getId(), relationship.getKey()));
+                try {
+                    keysToSet.add(objectMapper.writeValueAsString(new LinkedHashSet<>(relationship.getValue())));
+                } catch (JsonProcessingException serializationException) {
+                    throw new RuntimeException("Relationship serialization failed", serializationException);
+                }
             }
-            if (!cacheData.getRelationships().isEmpty()) {
-                jedis.sadd(allRelationshipsId(type, cacheData.getId()), cacheData.getRelationships().keySet().toArray(new String[cacheData.getRelationships().size()]));
-                for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
-                    Transaction xa = jedis.multi();
-                    xa.del(relationshipId(type, cacheData.getId(), relationship.getKey()));
-                    if (!relationship.getValue().isEmpty()) {
-                        xa.sadd(relationshipId(type, cacheData.getId(), relationship.getKey()), relationship.getValue().toArray(new String[relationship.getValue().size()]));
-                    }
-                    xa.exec();
+        }
+
+        final String[] mset = keysToSet.toArray(new String[keysToSet.size()]);
+        if (mset.length > 0) {
+            try (Jedis jedis = source.getJedis()) {
+                jedis.sadd(allOfTypeId(type), cacheData.getId());
+                jedis.mset(mset);
+                if (relationships.length > 0) {
+                    jedis.sadd(allRelationshipsId(type), relationships);
                 }
             }
         }
@@ -89,13 +104,12 @@ public class RedisCache implements WriteableCache {
     @Override
     public void evict(String type, String id) {
         try (Jedis jedis = source.getJedis()) {
-            Collection<String> allRelationships = jedis.smembers(allRelationshipsId(type, id));
-            Collection<String> delKeys = new ArrayList<>(allRelationships.size() + 2);
+            Collection<String> allRelationships = jedis.smembers(allRelationshipsId(type));
+            Collection<String> delKeys = new ArrayList<>(allRelationships.size() + 1);
             for (String relationship : allRelationships) {
                 delKeys.add(relationshipId(type, id, relationship));
             }
             delKeys.add(attributesId(type, id));
-            delKeys.add(allRelationshipsId(type, id));
             jedis.del(delKeys.toArray(new String[delKeys.size()]));
             jedis.srem(allOfTypeId(type), id);
         }
@@ -110,33 +124,50 @@ public class RedisCache implements WriteableCache {
 
     @Override
     public CacheData get(String type, String id) {
-        final String serializedAttributes;
-        final Map<String, Collection<String>> relationships;
+        final List<String> knownRels;
         try (Jedis jedis = source.getJedis()) {
-            serializedAttributes = jedis.get(attributesId(type, id));
-            if (serializedAttributes == null) {
-                relationships = Collections.emptyMap();
-            } else {
-                Collection<String> rels = jedis.smembers(allRelationshipsId(type, id));
-                relationships = new HashMap<>(rels.size());
-                for (String relationshipName : rels) {
-                    Collection<String> relationship = jedis.smembers(relationshipId(type, id, relationshipName));
-                    relationships.put(relationshipName, relationship);
-                }
-            }
+            knownRels = new ArrayList<>(jedis.smembers(allRelationshipsId(type)));
         }
-        if (serializedAttributes == null) {
+
+        final List<String> keysToGet = new ArrayList<>(knownRels.size() + 1);
+        keysToGet.add(attributesId(type, id));
+        for (String rel : knownRels) {
+            keysToGet.add(relationshipId(type, id, rel));
+        }
+
+        final String[] mget = keysToGet.toArray(new String[keysToGet.size()]);
+
+        final List<String> keyResult;
+
+        try (Jedis jedis = source.getJedis()) {
+            keyResult = jedis.mget(mget);
+        }
+
+        if (keyResult.size() != mget.length) {
+            throw new RuntimeException("Exepected same size result as request");
+        }
+
+        if (keyResult.get(0) == null) {
             return null;
         }
 
-        final Map<String, Object> attributes;
         try {
-            attributes = objectMapper.readValue(serializedAttributes, ATTRIBUTES);
-        } catch (IOException deserializationException) {
-            throw new RuntimeException("Attribute deserialization failed", deserializationException);
-        }
+            final Map<String, Object> attributes = objectMapper.readValue(keyResult.get(0), ATTRIBUTES);
+            final Map<String, Collection<String>> relationships = new HashMap<>(keyResult.size() - 1);
+            for (int relIdx = 1; relIdx < keyResult.size(); relIdx++) {
+                String rel = keyResult.get(relIdx);
+                if (rel != null) {
+                    String relType = knownRels.get(relIdx - 1);
+                    Collection<String> deserializedRel = objectMapper.readValue(rel, RELATIONSHIPS);
+                    relationships.put(relType, deserializedRel);
+                }
+            }
 
-        return new DefaultCacheData(id, attributes, relationships);
+            return new DefaultCacheData(id, attributes, relationships);
+
+        } catch (IOException deserializationException) {
+            throw new RuntimeException("Deserialization failed", deserializationException);
+        }
     }
 
     @Override
@@ -145,14 +176,24 @@ public class RedisCache implements WriteableCache {
         try (Jedis jedis = source.getJedis()) {
             allIds = jedis.smembers(allOfTypeId(type));
         }
-        Collection<CacheData> results = new ArrayList<>(allIds.size());
-        for (String id : allIds) {
+        return getAll(type, allIds);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        Collection<CacheData> results = new ArrayList<>(identifiers.size());
+        for (String id : identifiers) {
             CacheData result = get(type, id);
             if (result != null) {
                 results.add(result);
             }
         }
         return results;
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, String... identifiers) {
+        return getAll(type, Arrays.asList(identifiers));
     }
 
     @Override
@@ -170,13 +211,11 @@ public class RedisCache implements WriteableCache {
         return String.format("%s:%s:relationships:%s:%s", prefix, type, id, relationship);
     }
 
-    private String allRelationshipsId(String type, String id) {
-        return String.format("%s:%s:relationships:%s", prefix, type, id);
+    private String allRelationshipsId(String type) {
+        return String.format("%s:%s:relationships", prefix, type);
     }
 
     private String allOfTypeId(String type) {
         return String.format("%s:%s:members", prefix, type);
     }
-
-    private static final String ID_ATTRIBUTE = "__ID__";
 }

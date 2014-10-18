@@ -77,6 +77,24 @@ public class InMemoryCache implements WriteableCache {
         return values;
     }
 
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        ConcurrentMap<String, CacheData> map = getTypeMap(type);
+        Collection<CacheData> values = new ArrayList<>(identifiers.size());
+        for (String id : identifiers) {
+            CacheData toReturn = wrap(map.get(id));
+            if (toReturn != null) {
+                values.add(toReturn);
+            }
+        }
+        return values;
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, String... identifiers) {
+        return getAll(type, Arrays.asList(identifiers));
+    }
+
     public Collection<String> getIdentifiers(String type) {
         return new HashSet<>(getTypeMap(type).keySet());
     }
@@ -96,7 +114,7 @@ public class InMemoryCache implements WriteableCache {
     }
 
     private CacheData wrap(CacheData data) {
-        if (data.getAttributes().isEmpty()) {
+        if (data == null || data.getAttributes().isEmpty()) {
             return null;
         }
         return new DefaultCacheData(data.getId(), data.getAttributes(), data.getRelationships());

@@ -70,4 +70,20 @@ abstract class CacheSpec extends Specification {
         expect:
         cache.get('foo', 'bar') == null
     }
+
+    def 'get by id behaviour'() {
+        setup:
+        populateOne('foo', 'bar')
+        populateOne('foo', 'baz')
+
+        when:
+        def results = cache.getAll('foo', 'bar', 'baz', 'doesntexist')
+
+        then:
+        results != null
+        results.size() == 2
+        results.find { it.id == 'bar' }
+        results.find { it.id == 'baz' }
+
+    }
 }
