@@ -54,8 +54,9 @@ class Stage implements Serializable {
     this(null, type, context)
   }
 
-  // TODO: ImmutableMap?
+  // TODO: ImmutableMaps?
   final Map<String, Serializable> context = [:]
+  final Map<String, Serializable> outputs = [:]
 
   /**
    * Gets the last stage preceding this stage that has the specified type.

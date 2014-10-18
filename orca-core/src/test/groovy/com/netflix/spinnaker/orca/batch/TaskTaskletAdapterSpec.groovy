@@ -107,7 +107,7 @@ class TaskTaskletAdapterSpec extends Specification {
   }
 
   @Unroll
-  def "should write any task outputs to the stage context if the task status is #taskStatus"() {
+  def "should write any task outputs to the stage outputs if the task status is #taskStatus"() {
     given:
     task.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
 
@@ -115,52 +115,16 @@ class TaskTaskletAdapterSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stage.context == outputs
-    pipeline.context.isEmpty()
+    stage.outputs == outputs
 
     where:
-    taskStatus << [RUNNING]
-    outputs = [foo: "bar", baz: "qux"]
-  }
-
-  @Unroll
-  def "should write any task outputs to the pipeline context if the task status is #taskStatus"() {
-    given:
-    task.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
-
-    when:
-    tasklet.execute(stepContribution, chunkContext)
-
-    then:
-    stage.context.isEmpty()
-    pipeline.context == outputs
-
-    where:
-    taskStatus << [FAILED, SUCCEEDED]
+    taskStatus << [RUNNING, FAILED, SUCCEEDED]
     outputs = [foo: "bar", baz: "qux"]
   }
 
   def "should overwrite values in the stage if a task sets them as outputs"() {
     given:
-    stage.context[key] = value
-
-    and:
-    task.execute(*_) >> new DefaultTaskResult(RUNNING, [(key): value.reverse()])
-
-    when:
-    tasklet.execute(stepContribution, chunkContext)
-
-    then:
-    stage.context[key] == value.reverse()
-
-    where:
-    key = "foo"
-    value = "bar"
-  }
-
-  def "should overwrite values in the pipeline if a task sets them as outputs"() {
-    given:
-    pipeline.context[key] = value
+    stage.outputs[key] = value
 
     and:
     task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])
@@ -169,11 +133,10 @@ class TaskTaskletAdapterSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    pipeline.context[key] == value.reverse()
+    stage.outputs[key] == value.reverse()
 
     where:
     key = "foo"
     value = "bar"
   }
-
 }
