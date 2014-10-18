@@ -61,7 +61,7 @@ class PipelineStarter {
   @PostConstruct
   void initialize() {
     applicationContext.getBeansOfType(StageBuilder).values().each {
-      stages[it.name] = it
+      stages[it.type] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
       def stage = new SimpleStage(it.name, it)

@@ -37,12 +37,12 @@ import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 @CompileStatic
 abstract class StageBuilder implements AutowiredComponentBuilder {
 
-  final String name
+  final String type
 
   private StepBuilderFactory steps
 
-  StageBuilder(String name) {
-    this.name = name
+  StageBuilder(String type) {
+    this.type = type
   }
 
   // TODO: may not need this method if we always have a config handling step first
@@ -108,7 +108,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   }
 
   private String stepName(String taskName) {
-    "${name}.${taskName}"
+    "${type}.${taskName}"
   }
 
   @Autowired
