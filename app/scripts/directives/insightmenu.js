@@ -17,6 +17,7 @@ angular.module('deckApp')
         actions: '=',
         title: '@',
         icon: '@',
+        rightAlign: '&',
       },
     };
   }
