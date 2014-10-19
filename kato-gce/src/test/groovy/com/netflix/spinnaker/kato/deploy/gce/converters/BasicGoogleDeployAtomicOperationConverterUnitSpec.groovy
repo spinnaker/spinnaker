@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.security.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
@@ -34,10 +35,13 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
+  @Shared
   BasicGoogleDeployAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new BasicGoogleDeployAtomicOperationConverter()
+    this.converter = new BasicGoogleDeployAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -69,25 +73,54 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
 
   void "basicGoogleDeployDescription type with free-form details returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
     setup:
-    def input = [application: APPLICATION,
-                 stack: STACK,
-                 freeFormDetails: FREE_FORM_DETAILS,
-                 initialNumReplicas: INITIAL_NUM_REPLICAS,
-                 image: IMAGE,
-                 type: MACHINE_TYPE,
-                 zone: ZONE,
-                 credentials: ACCOUNT_NAME]
+      def input = [application: APPLICATION,
+                   stack: STACK,
+                   freeFormDetails: FREE_FORM_DETAILS,
+                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   image: IMAGE,
+                   type: MACHINE_TYPE,
+                   zone: ZONE,
+                   credentials: ACCOUNT_NAME]
 
     when:
-    def description = converter.convertDescription(input)
+      def description = converter.convertDescription(input)
 
     then:
-    description instanceof BasicGoogleDeployDescription
+      description instanceof BasicGoogleDeployDescription
+    println "** description.credentials=$description.credentials"
 
     when:
-    def operation = converter.convertOperation(input)
+      def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof DeployAtomicOperation
+      operation instanceof DeployAtomicOperation
+  }
+
+  void "should not fail to serialize unknown properties"() {
+    setup:
+      def input = [application: application, unknownProp: "this"]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description.application == application
+
+    where:
+      application = "kato"
+  }
+
+  void "should convert num replicas to ints"() {
+    setup:
+      def input = [application: "app", initialNumReplicas: desired]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description.initialNumReplicas == desired as int
+
+    where:
+      desired = "8"
   }
 }

@@ -19,6 +19,7 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.gce.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.deploy.gce.ops.TerminateGoogleInstancesAtomicOperation
@@ -31,10 +32,13 @@ class TerminateGoogleInstancesAtomicOperationConverterUnitSpec extends Specifica
   private static final ZONE = "us-central1-b"
 
   @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
+  @Shared
   TerminateGoogleInstancesAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new TerminateGoogleInstancesAtomicOperationConverter()
+    this.converter = new TerminateGoogleInstancesAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
