@@ -30,7 +30,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final FREE_FORM_DETAILS = "detail"
   private static final INITIAL_NUM_REPLICAS = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
-  private static final MACHINE_TYPE = "f1-micro"
+  private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -54,7 +54,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
                    stack: STACK,
                    initialNumReplicas: INITIAL_NUM_REPLICAS,
                    image: IMAGE,
-                   type: MACHINE_TYPE,
+                   instanceType: INSTANCE_TYPE,
                    zone: ZONE,
                    credentials: ACCOUNT_NAME]
 
@@ -78,7 +78,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
                    freeFormDetails: FREE_FORM_DETAILS,
                    initialNumReplicas: INITIAL_NUM_REPLICAS,
                    image: IMAGE,
-                   type: MACHINE_TYPE,
+                   instanceType: INSTANCE_TYPE,
                    zone: ZONE,
                    credentials: ACCOUNT_NAME]
 
@@ -87,7 +87,6 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
 
     then:
       description instanceof BasicGoogleDeployDescription
-    println "** description.credentials=$description.credentials"
 
     when:
       def operation = converter.convertOperation(input)

@@ -41,7 +41,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
   private static final STACK = "spinnaker-test"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final NETWORK_NAME = "default"
-  private static final MACHINE_TYPE = "f1-micro"
+  private static final INSTANCE_TYPE = "f1-micro"
   private static final MACHINE_TYPE_LINK = "http://..."
   private static final ZONE = "us-central1-b"
 
@@ -65,7 +65,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def description = new CreateGoogleInstanceDescription(application: APPLICATION,
                                                             stack: STACK,
                                                             image: IMAGE,
-                                                            type: MACHINE_TYPE,
+                                                            instanceType: INSTANCE_TYPE,
                                                             zone: ZONE,
                                                             accountName: ACCOUNT_NAME,
                                                             credentials: credentials)
@@ -77,7 +77,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     then:
       1 * computeMock.machineTypes() >> machineTypesMock
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
-      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: MACHINE_TYPE,
+      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
                                                                                         selfLink: MACHINE_TYPE_LINK)])
       1 * computeMock.images() >> imagesMock
       1 * imagesMock.list(PROJECT_NAME) >> imagesListMock
@@ -103,7 +103,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     def description = new CreateGoogleInstanceDescription(application: APPLICATION,
             stack: STACK,
             image: IMAGE,
-            type: MACHINE_TYPE,
+            instanceType: INSTANCE_TYPE,
             zone: ZONE,
             accountName: ACCOUNT_NAME,
             credentials: credentials)
@@ -130,7 +130,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def description = new CreateGoogleInstanceDescription(application: APPLICATION,
                                                             stack: STACK,
                                                             image: IMAGE,
-                                                            type: MACHINE_TYPE,
+                                                            instanceType: INSTANCE_TYPE,
                                                             zone: ZONE,
                                                             accountName: ACCOUNT_NAME,
                                                             credentials: credentials)
@@ -142,7 +142,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     then:
       1 * computeMock.machineTypes() >> machineTypesMock
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
-      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: MACHINE_TYPE,
+      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
                                                                                         selfLink: MACHINE_TYPE_LINK)])
       ([PROJECT_NAME] + GCEUtil.baseImageProjects).each {
         1 * computeMock.images() >> imagesMock

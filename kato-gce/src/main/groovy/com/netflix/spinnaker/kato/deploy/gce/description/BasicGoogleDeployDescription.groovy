@@ -25,7 +25,7 @@ class BasicGoogleDeployDescription implements DeployDescription {
   String freeFormDetails
   int initialNumReplicas
   String image
-  String type
+  String instanceType
   String zone
   String accountName
   GoogleCredentials credentials

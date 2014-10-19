@@ -63,8 +63,8 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     }
 
     // TODO(duftler): Also validate against set of supported GCE types.
-    if (!description.type) {
-      errors.rejectValue "type", "basicGoogleDeployDescription.type.empty"
+    if (!description.instanceType) {
+      errors.rejectValue "instanceType", "basicGoogleDeployDescription.instanceType.empty"
     }
 
     // TODO(duftler): Also validate against set of supported GCE zones.

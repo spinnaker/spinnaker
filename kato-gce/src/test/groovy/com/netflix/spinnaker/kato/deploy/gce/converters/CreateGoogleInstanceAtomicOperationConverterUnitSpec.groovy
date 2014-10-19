@@ -28,7 +28,7 @@ class CreateGoogleInstanceAtomicOperationConverterUnitSpec extends Specification
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
   private static final IMAGE = "debian-7-wheezy-v20140415"
-  private static final TYPE = "f1-micro"
+  private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -51,7 +51,7 @@ class CreateGoogleInstanceAtomicOperationConverterUnitSpec extends Specification
       def input = [application: APPLICATION,
                    stack: STACK,
                    image: IMAGE,
-                   type: TYPE,
+                   instanceType: INSTANCE_TYPE,
                    zone: ZONE,
                    accountName: ACCOUNT_NAME]
 

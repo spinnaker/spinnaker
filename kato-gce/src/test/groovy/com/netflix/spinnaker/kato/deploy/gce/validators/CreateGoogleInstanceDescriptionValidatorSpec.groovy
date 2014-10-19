@@ -29,7 +29,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
   private static final IMAGE = "debian-7-wheezy-v20140415"
-  private static final TYPE = "f1-micro"
+  private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -52,7 +52,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
     def description = new CreateGoogleInstanceDescription(application: APPLICATION,
                                                           stack: STACK,
                                                           image: IMAGE,
-                                                          type: TYPE,
+                                                          instanceType: INSTANCE_TYPE,
                                                           zone: ZONE,
                                                           accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -77,7 +77,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue('application', _)
       1 * errors.rejectValue('stack', _)
       1 * errors.rejectValue('image', _)
-      1 * errors.rejectValue('type', _)
+      1 * errors.rejectValue('instanceType', _)
       1 * errors.rejectValue('zone', _)
   }
 }
