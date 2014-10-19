@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.deploy.aws.ops
+
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.aws.description.SuspendAsgProcessesDescription

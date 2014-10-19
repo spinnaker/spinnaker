@@ -27,7 +27,7 @@ class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescr
   List<Listener> listeners
   String healthCheck
   Integer healthInterval = 10
-  Integer healthTimeout  = 5
+  Integer healthTimeout = 5
   Integer unhealthyThreshold = 2
   Integer healthyThreshold = 10
   Boolean crossZoneBalancing = Boolean.TRUE

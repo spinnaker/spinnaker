@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.deploy.aws.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.CopyLastAsgAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -37,7 +38,10 @@ class CopyLastAsgAtomicOperationConverter extends AbstractAtomicOperationsCreden
   }
 
   BasicAmazonDeployDescription convertDescription(Map input) {
-    input.credentials = getCredentialsObject(input.credentials as String)
-    new BasicAmazonDeployDescription(input)
+    def converted = objectMapper.copy()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(input, BasicAmazonDeployDescription)
+    converted.credentials = getCredentialsObject(input.credentials as String)
+    converted
   }
 }

@@ -68,7 +68,7 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, 
     [policyName: policyName.toString()]
   }
 
-  private PutMetricAlarmRequest createAlarmRequest(String policyArn, boolean scaleDown=Boolean.FALSE) {
+  private PutMetricAlarmRequest createAlarmRequest(String policyArn, boolean scaleDown = Boolean.FALSE) {
     def req = new PutMetricAlarmRequest()
       .withAlarmName("${description.name}-${scaleDown ? 'scaleDown' : 'scaleUp'}--${description.asgName}-${description.threshold}")
       .withComparisonOperator(scaleDown ? ComparisonOperator.LessThanOrEqualToThreshold : ComparisonOperator.GreaterThanOrEqualToThreshold)
@@ -100,7 +100,9 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, 
   }
 
   private Topic getTopic(String name) {
-    if (!name.startsWith('arn:aws:sns:')) name = "arn:aws:sns:${name}"
+    if (!name.startsWith('arn:aws:sns:')) {
+      name = "arn:aws:sns:${name}"
+    }
     def sns = amazonClientProvider.getAmazonSNS(description.credentials, description.region)
     def request = new ListTopicsRequest()
     def result = sns.listTopics(request)

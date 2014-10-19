@@ -60,24 +60,24 @@ class AmazonHealthIndicator implements HealthIndicator {
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
     try {
-        Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
-            it instanceof NetflixAmazonCredentials
-        } as Set<NetflixAmazonCredentials>
-        if (!amazonCredentials) {
-            throw new AmazonCredentialsNotFoundException()
+      Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
+        it instanceof NetflixAmazonCredentials
+      } as Set<NetflixAmazonCredentials>
+      if (!amazonCredentials) {
+        throw new AmazonCredentialsNotFoundException()
+      }
+      for (NetflixAmazonCredentials credentials in amazonCredentials) {
+        try {
+          def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
+          ec2.describeAccountAttributes()
+        } catch (AmazonServiceException e) {
+          throw new AmazonUnreachableException(e)
         }
-        for (NetflixAmazonCredentials credentials in amazonCredentials) {
-            try {
-                def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
-                ec2.describeAccountAttributes()
-            } catch (AmazonServiceException e) {
-                throw new AmazonUnreachableException(e)
-            }
-        }
-        lastException.set(null)
+      }
+      lastException.set(null)
     } catch (Exception ex) {
-        LOG.warn "Unhealthy", ex
-        lastException.set(ex)
+      LOG.warn "Unhealthy", ex
+      lastException.set(ex)
     }
   }
 

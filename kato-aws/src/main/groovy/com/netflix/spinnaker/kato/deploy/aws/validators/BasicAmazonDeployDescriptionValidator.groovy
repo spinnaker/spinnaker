@@ -63,7 +63,7 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.or.subnetType.not.supplied"
     }
     for (String region : description.availabilityZones.keySet()) {
-      if (awsConfigurationProperties.regions && (!awsConfigurationProperties.regions?.contains(region) || !((AmazonCredentials)credentials).regions*.name?.contains(region))) {
+      if (awsConfigurationProperties.regions && (!awsConfigurationProperties.regions?.contains(region) || !((AmazonCredentials) credentials).regions*.name?.contains(region))) {
         errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
       }
     }
@@ -95,9 +95,9 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     private final Closure<Void> validationRule
 
     BlockDeviceRules(
-        @ClosureParams(value = SimpleType, options = [
-            'com.netflix.spinnaker.kato.config.AmazonBlockDevice',
-            'org.springframework.validation.Errors']) Closure<Void> validationRule) {
+      @ClosureParams(value = SimpleType, options = [
+        'com.netflix.spinnaker.kato.config.AmazonBlockDevice',
+        'org.springframework.validation.Errors']) Closure<Void> validationRule) {
       this.validationRule = validationRule
     }
 

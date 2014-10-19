@@ -21,18 +21,7 @@ import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
-import com.amazonaws.services.elasticloadbalancing.model.Listener
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
@@ -109,7 +98,8 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       try {
         loadBalancer = getLoadBalancer()
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
-      } catch (AmazonServiceException ignore) {}
+      } catch (AmazonServiceException ignore) {
+      }
 
       if (!loadBalancer) {
         task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.name} in ${region}..."
@@ -146,9 +136,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       loadBalancing.modifyLoadBalancerAttributes(
         new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancer.loadBalancerName)
           .withLoadBalancerAttributes(
-            new LoadBalancerAttributes(
-              crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: description.crossZoneBalancing)
-            )
+          new LoadBalancerAttributes(
+            crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: description.crossZoneBalancing)
+          )
         )
       )
 

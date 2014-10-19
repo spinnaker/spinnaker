@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.deploy.aws.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.AllowLaunchAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
@@ -31,7 +32,10 @@ class AllowLaunchAtomicOperationConverter extends AbstractAtomicOperationsCreden
 
   @Override
   AllowLaunchDescription convertDescription(Map input) {
-    input.credentials = getCredentialsObject(input.credentials as String)
-    new AllowLaunchDescription(input)
+    def converted = objectMapper.copy()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(input, AllowLaunchDescription)
+    converted.credentials = getCredentialsObject(input.credentials as String)
+    converted
   }
 }

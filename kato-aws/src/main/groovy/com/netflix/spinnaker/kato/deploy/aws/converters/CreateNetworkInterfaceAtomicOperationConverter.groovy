@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.deploy.aws.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.CreateNetworkInterfaceAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -30,7 +31,10 @@ class CreateNetworkInterfaceAtomicOperationConverter extends AbstractAtomicOpera
 
   @Override
   CreateNetworkInterfaceDescription convertDescription(Map input) {
-    input.credentials = getCredentialsObject(input.credentials as String)
-    new CreateNetworkInterfaceDescription(input)
+    def converted = objectMapper.copy()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(input, CreateNetworkInterfaceDescription)
+    converted.credentials = getCredentialsObject(input.credentials as String)
+    converted
   }
 }

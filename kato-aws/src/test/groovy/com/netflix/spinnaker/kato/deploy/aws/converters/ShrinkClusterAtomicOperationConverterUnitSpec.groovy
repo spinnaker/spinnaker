@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -30,8 +31,11 @@ class ShrinkClusterAtomicOperationConverterUnitSpec extends Specification {
   @Shared
   ShrinkClusterAtomicOperationConverter converter
 
+  @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
   def setupSpec() {
-    this.converter = new ShrinkClusterAtomicOperationConverter()
+    this.converter = new ShrinkClusterAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(NetflixAmazonCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials

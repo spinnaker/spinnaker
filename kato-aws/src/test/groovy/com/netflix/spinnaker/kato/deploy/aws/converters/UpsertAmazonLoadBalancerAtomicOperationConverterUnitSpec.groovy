@@ -57,4 +57,18 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
     then:
     operation instanceof UpsertAmazonLoadBalancerAtomicOperation
   }
+
+  void "should coerce types properly in nested structures"() {
+    setup:
+    def input = [listeners: [[externalPort: "7001", internalPort: "7001"], [externalPort: 80, internalPort: "25"]]]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.listeners[0].internalPort == 7001
+    description.listeners[0].externalPort == 7001
+    description.listeners[1].internalPort == 25
+    description.listeners[1].externalPort == 80
+  }
 }

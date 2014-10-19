@@ -19,9 +19,9 @@ package com.netflix.spinnaker.kato.model.aws
  * potentially using multiple requests and tokens. There are protected methods that should be implemented
  * depending on the way that you need to make your request and get results.
  *
- * @param < T > Type of AWS object to retrieve
- * @param < Q > Request used to retrieve T from AWS
- * @param < S > Result returned by AWS for retrieval of T
+ * @param < T >  Type of AWS object to retrieve
+ * @param < Q >  Request used to retrieve T from AWS
+ * @param < S >  Result returned by AWS for retrieval of T
  */
 abstract class AwsResultsRetriever<T, Q, S> {
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.services
+
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
 import com.google.common.collect.Iterables
@@ -46,6 +47,7 @@ class AsgService {
       protected DescribeAutoScalingGroupsResult makeRequest(DescribeAutoScalingGroupsRequest request) {
         amazonAutoScaling.describeAutoScalingGroups(request)
       }
+
       @Override
       protected List<AutoScalingGroup> accessResult(DescribeAutoScalingGroupsResult result) {
         result.autoScalingGroups

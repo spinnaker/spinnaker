@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.services
+
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult

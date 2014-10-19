@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.deploy.aws.ops
+
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task

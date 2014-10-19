@@ -44,7 +44,8 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
     try {
       securityGroup = getSecurityGroup()
-    } catch (AmazonServiceException ignore) {}
+    } catch (AmazonServiceException ignore) {
+    }
 
     if (!securityGroup) {
       def request = new CreateSecurityGroupRequest(description.name, description.description)
@@ -62,7 +63,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     }
 
     if (securityGroup.ipPermissions) {
-      def request = new RevokeSecurityGroupIngressRequest(description.name, securityGroup.ipPermissions.collect { it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupId = null; it }; it})
+      def request = new RevokeSecurityGroupIngressRequest(description.name, securityGroup.ipPermissions.collect { it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupId = null; it }; it })
       ec2.revokeSecurityGroupIngress(request)
     }
     if (ipPermissions) {

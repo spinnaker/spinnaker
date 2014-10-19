@@ -25,7 +25,8 @@ import groovy.transform.Immutable
  * Metadata in tags becomes proper attributes here.
  * {@link com.amazonaws.services.ec2.model.Subnet}
  */
-@Immutable class SubnetData {
+@Immutable
+class SubnetData {
 
   private static final String METADATA_TAG_KEY = 'immutable_metadata'
 
@@ -56,7 +57,7 @@ import groovy.transform.Immutable
   /**
    * Construct SubnetData from the original AWS Subnet
    *
-   * @param  subnet the mutable AWS Subnet
+   * @param subnet the mutable AWS Subnet
    * @return a new immutable SubnetData based off values from subnet
    */
   static SubnetData from(Subnet subnet) {

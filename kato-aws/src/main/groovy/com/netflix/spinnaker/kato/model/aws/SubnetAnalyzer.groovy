@@ -28,7 +28,8 @@ import groovy.transform.Canonical
 /**
  * These are nontrivial queries we like to perform on subnets.
  */
-@Canonical class SubnetAnalyzer {
+@Canonical
+class SubnetAnalyzer {
   /** All of the subnets contained in this object. */
   final Collection<SubnetData> allSubnets
 
@@ -86,7 +87,7 @@ import groovy.transform.Canonical
    * Finds the subnet associated with the first Subnet ID. This is useful in cases where the attribute you care about
    * is guaranteed to be the same for all subnets.
    *
-   * @param  subnetIds Subnet IDs
+   * @param subnetIds Subnet IDs
    * @return the Subnet or null
    */
   SubnetData coerceLoneOrNoneFromIds(Collection<String> subnetIds) {
@@ -108,9 +109,9 @@ import groovy.transform.Canonical
   /**
    * Finds the subnet IDs that map to specific zones
    *
-   * @param  zones the zones in AWS that you want Subnet IDs for
-   * @param  purpose only subnets with the specified purpose will be returned
-   * @param  target is the type of AWS object the subnet applies to (null means any object type)
+   * @param zones the zones in AWS that you want Subnet IDs for
+   * @param purpose only subnets with the specified purpose will be returned
+   * @param target is the type of AWS object the subnet applies to (null means any object type)
    * @return the subnet IDs returned in the same order as the zones sent in or an empty List
    * @throws IllegalArgumentException if there are multiple subnets with the same purpose and zone
    */
@@ -133,8 +134,8 @@ import groovy.transform.Canonical
   /**
    * Groups zones by subnet purposes they contain.
    *
-   * @param  allAvailabilityZones complete list of zones to group
-   * @param  target is the type of AWS object the subnet applies to (null means any object type)
+   * @param allAvailabilityZones complete list of zones to group
+   * @param target is the type of AWS object the subnet applies to (null means any object type)
    * @return zone name to subnet purposes, a null key indicates zones allowed for use outside of VPC
    */
   Map<String, Collection<String>> groupZonesByPurpose(Collection<String> allAvailabilityZones,
@@ -155,8 +156,8 @@ import groovy.transform.Canonical
   /**
    * Finds all purposes across all specified zones for the specified target.
    *
-   * @param  zones the zones in AWS that you want purposes for
-   * @param  target is the type of AWS object the subnet applies to (null means any object type)
+   * @param zones the zones in AWS that you want purposes for
+   * @param target is the type of AWS object the subnet applies to (null means any object type)
    * @return the set of distinct purposes or an empty Set
    */
   Set<String> getPurposesForZones(Collection<String> zones, SubnetTarget target = null) {
@@ -222,8 +223,8 @@ import groovy.transform.Canonical
    * I'm not happy that this method has to exist. It's just a wrapper around other methods that operate on a cleaner
    * abstraction without knowledge of the unfortunate structure of VPC Zone Identifier.
    *
-   * @param  vpcZoneIdentifier is used to derive a subnet purpose from
-   * @param  zones which the new VPC Zone Identifier will contain
+   * @param vpcZoneIdentifier is used to derive a subnet purpose from
+   * @param zones which the new VPC Zone Identifier will contain
    * @return a new VPC Zone Identifier or null if no purpose was derived
    */
   String constructNewVpcZoneIdentifierForZones(String vpcZoneIdentifier, List<String> zones) {
@@ -260,7 +261,7 @@ import groovy.transform.Canonical
   /**
    * Figures out the subnet purpose given a VPC zone identifier.
    *
-   * @param  vpcZoneIdentifier is used to derive a subnet purpose from
+   * @param vpcZoneIdentifier is used to derive a subnet purpose from
    * @return the subnet purpose indicated by the vpcZoneIdentifier
    */
   String getPurposeFromVpcZoneIdentifier(String vpcZoneIdentifier) {
@@ -272,8 +273,8 @@ import groovy.transform.Canonical
   /**
    * Constructs a new VPC Zone Identifier based on a subnet purpose and a list of zones.
    *
-   * @param  purpose is used to derive a subnet purpose from
-   * @param  zones which the new VPC Zone Identifier will contain
+   * @param purpose is used to derive a subnet purpose from
+   * @param zones which the new VPC Zone Identifier will contain
    * @return a new VPC Zone Identifier or null if no purpose was specified
    */
   String constructNewVpcZoneIdentifierForPurposeAndZones(String purpose, Collection<String> zones) {

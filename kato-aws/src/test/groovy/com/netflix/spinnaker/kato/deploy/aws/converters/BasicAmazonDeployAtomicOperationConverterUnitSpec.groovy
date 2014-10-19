@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -28,10 +29,13 @@ import spock.lang.Specification
 class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
   @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
+  @Shared
   BasicAmazonDeployAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new BasicAmazonDeployAtomicOperationConverter()
+    this.converter = new BasicAmazonDeployAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(NetflixAmazonCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -55,5 +59,37 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
     then:
     operation instanceof DeployAtomicOperation
+  }
+
+  void "should not fail to serialize unknown properties"() {
+    setup:
+    def input = [application: application, unknownProp: "this"]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.application == application
+
+    where:
+    application = "kato"
+  }
+
+  void "should probably convert capacity to ints"() {
+    setup:
+    def input = [application: "app", capacity: [min: min, max: max, desired: desired]]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.capacity.min == min as int
+    description.capacity.max == max as int
+    description.capacity.desired == desired as int
+
+    where:
+    min = "5"
+    max = "10"
+    desired = "8"
   }
 }

@@ -18,27 +18,13 @@
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.loadbalancer.UpsertAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import javax.annotation.PostConstruct
 
 @Component("upsertAmazonLoadBalancerDescription")
 class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
-  @Autowired
-  ObjectMapper objectMapper
-
-  @PostConstruct
-  void init() {
-    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-  }
 
   @Override
   UpsertAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
@@ -47,9 +33,10 @@ class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
 
   @Override
   UpsertAmazonLoadBalancerDescription convertDescription(Map input) {
-    def json = objectMapper.writeValueAsString(input)
-    def description = objectMapper.readValue(json, UpsertAmazonLoadBalancerDescription)
-    description.credentials = getCredentialsObject(input.credentials as String)
-    description
+    def converted = objectMapper.copy()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(input, UpsertAmazonLoadBalancerDescription)
+    converted.credentials = getCredentialsObject(input.credentials as String)
+    converted
   }
 }

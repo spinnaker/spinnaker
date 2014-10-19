@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.kato.security
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
@@ -25,9 +28,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
+import javax.annotation.PostConstruct
+
 abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  ObjectMapper objectMapper
+
+  @PostConstruct
+  void init() {
+    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  }
 
   def <T extends AccountCredentials> T getCredentialsObject(String name) {
     try {

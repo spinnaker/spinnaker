@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kato.model.aws.AutoScalingProcessType
 import com.netflix.spinnaker.kato.services.SecurityGroupService
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
+
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
  *
@@ -252,17 +253,25 @@ class AutoScalingWorker {
       for (blockDevice in blockDevices) {
         def mapping = new BlockDeviceMapping(deviceName: blockDevice.deviceName)
         if (blockDevice.virtualName) {
-            mapping.withVirtualName(blockDevice.virtualName)
+          mapping.withVirtualName(blockDevice.virtualName)
         } else {
-            def ebs = new Ebs()
-            blockDevice.with {
-                ebs.withVolumeSize(size)
-                if (deleteOnTermination != null) ebs.withDeleteOnTermination(deleteOnTermination)
-                if (volumeType) ebs.withVolumeType(volumeType)
-                if (iops) ebs.withIops(iops)
-                if (snapshotId) ebs.withSnapshotId(snapshotId)
+          def ebs = new Ebs()
+          blockDevice.with {
+            ebs.withVolumeSize(size)
+            if (deleteOnTermination != null) {
+              ebs.withDeleteOnTermination(deleteOnTermination)
             }
-            mapping.withEbs(ebs)
+            if (volumeType) {
+              ebs.withVolumeType(volumeType)
+            }
+            if (iops) {
+              ebs.withIops(iops)
+            }
+            if (snapshotId) {
+              ebs.withSnapshotId(snapshotId)
+            }
+          }
+          mapping.withEbs(ebs)
         }
         mappings << mapping
       }

@@ -36,6 +36,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   private static final long THROTTLE_MS = 150
 
   abstract boolean isDisable()
+
   abstract String getPhaseName()
 
   @Value('${discovery.host.format:#{null}}')
@@ -75,9 +76,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         }
         task.updateStatus phaseName, "${presentParticipling} ASG '$description.asgName' in $region..."
         if (disable) {
-            asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
+          asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
         } else {
-            asgService.resumeProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
+          asgService.resumeProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
         }
 
         if (disable) {
@@ -93,9 +94,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         }
 
         if (description.credentials.discoveryEnabled) {
-            def status = disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable
-            task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
-            doDiscoveryStatusCall region, description.credentials.name, status, asg.autoScalingGroupName, asg.instances*.instanceId
+          def status = disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable
+          task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
+          doDiscoveryStatusCall region, description.credentials.name, status, asg.autoScalingGroupName, asg.instances*.instanceId
         }
         task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
       } catch (e) {
@@ -104,7 +105,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
     }
     if (failures) {
-        task.fail()
+      task.fail()
     }
     null
   }
@@ -113,25 +114,25 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     if (!discoveryHostFormat) {
       throw new DiscoveryNotConfiguredException()
     }
-      def names = Names.parseName(asgName)
-      if (!names.app) {
-        task.updateStatus phaseName, "Could not derive application name from ASG name and unable to ${discoveryStatus.name().toLowerCase()} in Eureka!"
-      } else {
-        instanceIds.eachWithIndex{ instanceId, index ->
-          if (index > 0) {
-            sleep THROTTLE_MS
-          }
-          task.updateStatus phaseName, "Attempting to ${discoveryStatus.name().toLowerCase()} instance '$instanceId'."
-          def discovery = String.format(discoveryHostFormat, region, environment)
-          restTemplate.put("$discovery/v2/apps/$names.app/$instanceId/status?value=$discoveryStatus.value", [:])
+    def names = Names.parseName(asgName)
+    if (!names.app) {
+      task.updateStatus phaseName, "Could not derive application name from ASG name and unable to ${discoveryStatus.name().toLowerCase()} in Eureka!"
+    } else {
+      instanceIds.eachWithIndex { instanceId, index ->
+        if (index > 0) {
+          sleep THROTTLE_MS
         }
+        task.updateStatus phaseName, "Attempting to ${discoveryStatus.name().toLowerCase()} instance '$instanceId'."
+        def discovery = String.format(discoveryHostFormat, region, environment)
+        restTemplate.put("$discovery/v2/apps/$names.app/$instanceId/status?value=$discoveryStatus.value", [:])
       }
+    }
   }
 
   private static void changeRegistrationOfInstancesWithLoadBalancer(Collection<String> loadBalancerNames, Collection<String> instanceIds, Closure actOnInstancesAndLoadBalancer) {
     if (instanceIds && loadBalancerNames) {
       def instances = instanceIds.collect { new Instance(instanceId: it) }
-      loadBalancerNames.eachWithIndex{ String loadBalancerName, int index ->
+      loadBalancerNames.eachWithIndex { String loadBalancerName, int index ->
         if (index > 0) {
           sleep THROTTLE_MS
         }

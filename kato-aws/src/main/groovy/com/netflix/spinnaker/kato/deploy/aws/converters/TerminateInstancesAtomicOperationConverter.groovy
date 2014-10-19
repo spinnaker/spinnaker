@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.deploy.aws.description.TerminateInstancesDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.TerminateInstancesAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -30,7 +31,10 @@ class TerminateInstancesAtomicOperationConverter extends AbstractAtomicOperation
 
   @Override
   TerminateInstancesDescription convertDescription(Map input) {
-    input.credentials = getCredentialsObject(input.credentials as String)
-    new TerminateInstancesDescription(input)
+    def converted = objectMapper.copy()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(input, TerminateInstancesDescription)
+    converted.credentials = getCredentialsObject(input.credentials as String)
+    converted
   }
 }

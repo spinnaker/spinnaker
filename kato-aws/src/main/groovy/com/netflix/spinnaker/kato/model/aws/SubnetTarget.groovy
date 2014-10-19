@@ -20,7 +20,7 @@ enum SubnetTarget {
   /** The subnet can be applied only to AWS machine instances. */
   EC2('ec2'),
   /** The subnet can be applied only to AWS Elastic Load Balancers. */
-  ELB('elb')
+    ELB('elb')
 
   private final String text
 

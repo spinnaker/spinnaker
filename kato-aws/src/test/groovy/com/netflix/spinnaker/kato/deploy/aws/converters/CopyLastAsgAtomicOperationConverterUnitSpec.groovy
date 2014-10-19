@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -28,10 +29,13 @@ import spock.lang.Specification
 class CopyLastAsgAtomicOperationConverterUnitSpec extends Specification {
 
   @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
+  @Shared
   CopyLastAsgAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new CopyLastAsgAtomicOperationConverter()
+    this.converter = new CopyLastAsgAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(NetflixAmazonCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials

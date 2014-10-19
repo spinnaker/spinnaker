@@ -53,7 +53,7 @@ class CreateNetworkInterfaceAtomicOperation implements AtomicOperation<ResultByZ
         try {
           def networkInterface = networkInterfaceService.createNetworkInterface(availabilityZone, description.subnetType, description.networkInterface)
           resultByZone.addSuccessfulResult(availabilityZone, networkInterface)
-        } catch(Exception exception) {
+        } catch (Exception exception) {
           if (exception instanceof TagsNotCreatedException) {
             TagsNotCreatedException<NetworkInterface> tagsNotCreatedException = (TagsNotCreatedException) exception
             task.updateStatus BASE_PHASE, "${tagsNotCreatedException.message}"

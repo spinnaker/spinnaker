@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.services
+
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
 import com.google.common.collect.Iterables
@@ -50,7 +51,7 @@ class NetworkInterfaceService {
         tags: networkInterface.tags.collect { new Tag(key: it.key, value: it.value) }
       )
       amazonEC2.createTags(tagRequest)
-    } catch(Exception createTagsException) {
+    } catch (Exception createTagsException) {
       throw TagsNotCreatedException.of(createTagsException, result.networkInterface)
     }
     result.networkInterface

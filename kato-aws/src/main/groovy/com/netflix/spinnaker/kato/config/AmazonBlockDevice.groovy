@@ -31,42 +31,42 @@ import groovy.transform.Canonical
 @Canonical
 class AmazonBlockDevice {
 
-    // Required for all:
-    /**
-     * The name of the virtual device (ie. /dev/sdb, /dev/sdc)
-     */
-    String deviceName
+  // Required for all:
+  /**
+   * The name of the virtual device (ie. /dev/sdb, /dev/sdc)
+   */
+  String deviceName
 
-    // Ephemeral device support:
-    /**
-     * The virtual name as it corresponds to the infrastructure. Only relevant for ephemeral devices.
-     * Valid value examples: (ephemeral0, ephemeral1, etc...)
-     */
-    String virtualName
+  // Ephemeral device support:
+  /**
+   * The virtual name as it corresponds to the infrastructure. Only relevant for ephemeral devices.
+   * Valid value examples: (ephemeral0, ephemeral1, etc...)
+   */
+  String virtualName
 
-    // EBS support:
-    /**
-     * The size of the virtual device in Gigabytes (ie. 125)
-     */
-    Integer size
+  // EBS support:
+  /**
+   * The size of the virtual device in Gigabytes (ie. 125)
+   */
+  Integer size
 
-    /**
-     * The EBS volume type (gp2, io1, standard)
-     */
-    String volumeType
+  /**
+   * The EBS volume type (gp2, io1, standard)
+   */
+  String volumeType
 
-    /**
-     * Whether the EBS volume should be deleted on termination
-     */
-    Boolean deleteOnTermination
+  /**
+   * Whether the EBS volume should be deleted on termination
+   */
+  Boolean deleteOnTermination
 
-    /**
-     * The IOPS for the volume
-     */
-    Integer iops
+  /**
+   * The IOPS for the volume
+   */
+  Integer iops
 
-    /**
-     * The snapshot id to mount as the EBS volume
-     */
-    String snapshotId
+  /**
+   * The snapshot id to mount as the EBS volume
+   */
+  String snapshotId
 }

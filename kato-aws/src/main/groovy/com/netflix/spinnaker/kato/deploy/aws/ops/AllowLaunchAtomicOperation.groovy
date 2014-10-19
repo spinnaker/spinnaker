@@ -18,16 +18,7 @@
 package com.netflix.spinnaker.kato.deploy.aws.ops
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.DeleteTagsRequest
-import com.amazonaws.services.ec2.model.DescribeTagsRequest
-import com.amazonaws.services.ec2.model.DescribeTagsResult
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.LaunchPermission
-import com.amazonaws.services.ec2.model.LaunchPermissionModifications
-import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
-import com.amazonaws.services.ec2.model.Tag
-import com.amazonaws.services.ec2.model.TagDescription
+import com.amazonaws.services.ec2.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials

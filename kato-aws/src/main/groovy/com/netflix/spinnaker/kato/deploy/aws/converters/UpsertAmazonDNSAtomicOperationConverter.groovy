@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.deploy.aws.converters
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.deploy.aws.description.UpsertAmazonDNSDescription
 import com.netflix.spinnaker.kato.deploy.aws.ops.dns.UpsertAmazonDNSAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -32,7 +33,10 @@ class UpsertAmazonDNSAtomicOperationConverter extends AbstractAtomicOperationsCr
 
   @Override
   UpsertAmazonDNSDescription convertDescription(Map input) {
-    input.credentials = getCredentialsObject(input.credentials as String)
-    new UpsertAmazonDNSDescription(input)
+    def converted = objectMapper.copy()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      .convertValue(input, UpsertAmazonDNSDescription)
+    converted.credentials = getCredentialsObject(input.credentials as String)
+    converted
   }
 }

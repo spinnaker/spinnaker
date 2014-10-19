@@ -16,20 +16,9 @@
 package com.netflix.spinnaker.kato.deploy.aws
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
-import com.amazonaws.services.autoscaling.model.DescribePoliciesResult
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
-import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsResult
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
-import com.amazonaws.services.autoscaling.model.ScalingPolicy
-import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
+import com.amazonaws.services.cloudwatch.model.*
 import com.google.common.collect.Lists
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -143,10 +132,12 @@ class AsgReferenceCopier {
   @Canonical
   static class ScalingPolicyRetriever extends AwsResultsRetriever<ScalingPolicy, DescribePoliciesRequest, DescribePoliciesResult> {
     final AmazonAutoScaling autoScaling
+
     @Override
     protected DescribePoliciesResult makeRequest(DescribePoliciesRequest request) {
       autoScaling.describePolicies(request)
     }
+
     @Override
     protected List<ScalingPolicy> accessResult(DescribePoliciesResult result) {
       result.scalingPolicies
@@ -156,10 +147,12 @@ class AsgReferenceCopier {
   @Canonical
   static class AlarmRetriever extends AwsResultsRetriever<MetricAlarm, DescribeAlarmsRequest, DescribeAlarmsResult> {
     final AmazonCloudWatch cloudWatch
+
     @Override
     protected DescribeAlarmsResult makeRequest(DescribeAlarmsRequest request) {
       cloudWatch.describeAlarms(request)
     }
+
     @Override
     protected List<MetricAlarm> accessResult(DescribeAlarmsResult result) {
       result.metricAlarms
@@ -169,10 +162,12 @@ class AsgReferenceCopier {
   @Canonical
   static class ScheduledActionsRetriever extends AwsResultsRetriever<ScheduledUpdateGroupAction, DescribeScheduledActionsRequest, DescribeScheduledActionsResult> {
     final AmazonAutoScaling autoScaling
+
     @Override
     protected DescribeScheduledActionsResult makeRequest(DescribeScheduledActionsRequest request) {
       autoScaling.describeScheduledActions(request)
     }
+
     @Override
     protected List<ScheduledUpdateGroupAction> accessResult(DescribeScheduledActionsResult result) {
       result.scheduledUpdateGroupActions
