@@ -41,6 +41,7 @@ class ResizeAsgTask implements Task {
     def taskId = kato.requestOperations([[resizeAsgDescription: resizeAsgOperation]])
                      .toBlocking()
                      .first()
+    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"   : "resizeasg",
       "deploy.account.name" : resizeAsgOperation.credentials,
@@ -51,8 +52,12 @@ class ResizeAsgTask implements Task {
   }
 
   ResizeAsgOperation convert(Stage stage) {
+    def input = stage.context
+    if (stage.context.containsKey("resizeAsg")) {
+      input = stage.context.resizeAsg
+    }
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, ResizeAsgOperation)
+          .convertValue(input, ResizeAsgOperation)
   }
 }

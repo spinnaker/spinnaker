@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import spock.lang.Specification
+import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
-import spock.lang.Specification
-import spock.lang.Subject
 
 class WaitForUpInstancesTaskSpec extends Specification {
 
@@ -43,7 +43,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
           name        : "front50",
           serverGroups: [
             [
-              region   : "us-west-1",
+              region   : "us-east-1",
               name     : "front50-v000",
               asg      : [
                 minSize: 1
@@ -53,6 +53,18 @@ class WaitForUpInstancesTaskSpec extends Specification {
                   isHealthy: true
                 ]
               ]
+            ],
+            [
+              region   : "us-west-1",
+              name     : "front50-v001",
+              asg      : [
+                minSize: 1
+              ],
+              instances: [
+                [
+                  isHealthy: false
+                ]
+              ]
             ]
           ]
         ]
@@ -60,16 +72,44 @@ class WaitForUpInstancesTaskSpec extends Specification {
       }
       input
     }
+    def response2 = GroovyMock(Response)
+    response2.getStatus() >> 200
+    response2.getBody() >>
+      {
+        def input = Mock(TypedInput)
+        input.in() >> {
+          def jsonObj = [
+            name        : "front50",
+            serverGroups: [
+              [
+                region   : "us-west-1",
+                name     : "front50-v001",
+                asg      : [
+                  minSize: 1
+                ],
+                instances: [
+                  [
+                    isHealthy: true
+                  ]
+                ]
+              ]
+            ]
+          ]
+          new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
+        }
+        input
+      }
     task.oortService = Stub(OortService) {
-      getCluster(*_) >> response
+      getCluster(*_) >>> [response, response2]
     }
 
     and:
     def stage = new Stage("whatever")
     stage.context."account.name" = "test"
-    stage.context."server.groups" = ["us-west-1": ["front50-v000"]]
+    stage.context."deploy.server.groups" = ["us-west-1": ["front50-v001"]]
 
     expect:
+    task.execute(stage).status == PipelineStatus.RUNNING
     task.execute(stage).status == PipelineStatus.SUCCEEDED
 
   }

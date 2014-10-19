@@ -49,7 +49,8 @@ class MonitorKatoTask implements RetryableTask {
 
     Map<String, ? extends Object> outputs = [:]
     if (status == PipelineStatus.SUCCEEDED) {
-      outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
+      stage.context."deploy.server.groups" = getServerGroupNames(katoTask) as LinkedHashMap
+      outputs["deploy.server.groups"] = stage.context."deploy.server.groups"
     }
     if (status == PipelineStatus.SUCCEEDED || status == PipelineStatus.TERMINAL) {
       List<Map<String, Object>> katoTasks = []

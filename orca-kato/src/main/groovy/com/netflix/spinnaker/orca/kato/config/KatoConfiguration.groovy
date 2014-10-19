@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.orca.kato.config
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -41,6 +43,10 @@ class KatoConfiguration {
 
   @Autowired Client retrofitClient
   @Autowired LogLevel retrofitLogLevel
+
+  @ConditionalOnMissingBean(ObjectMapper) @Bean ObjectMapper mapper() {
+    new ObjectMapper()
+  }
 
   @Bean Endpoint katoEndpoint(@Value('${kato.baseUrl:http://kato.prod.netflix.net}') String katoBaseUrl) {
     newFixedEndpoint(katoBaseUrl)

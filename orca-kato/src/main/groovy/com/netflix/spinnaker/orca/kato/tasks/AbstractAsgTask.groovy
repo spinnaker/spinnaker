@@ -58,6 +58,6 @@ abstract class AbstractAsgTask implements Task {
   private EnableOrDisableAsgOperation operationFromContext(Stage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, EnableOrDisableAsgOperation)
+          .convertValue(stage.context.containsKey(asgAction) ? stage.context[asgAction] : stage.context, EnableOrDisableAsgOperation)
   }
 }

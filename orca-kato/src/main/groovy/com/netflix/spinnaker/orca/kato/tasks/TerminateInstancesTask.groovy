@@ -42,7 +42,7 @@ class TerminateInstancesTask implements Task {
     def taskId = kato.requestOperations([[terminateInstancesDescription: operation]])
                      .toBlocking()
                      .first()
-
+    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"     : "terminateinstances",
       "terminate.account.name": operation.credentials,

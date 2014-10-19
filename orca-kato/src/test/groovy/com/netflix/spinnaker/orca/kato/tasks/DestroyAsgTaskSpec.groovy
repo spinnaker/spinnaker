@@ -83,4 +83,23 @@ class DestroyAsgTaskSpec extends Specification {
     result.outputs."kato.task.id" == taskId
     result.outputs."deploy.account.name" == destroyASGConfig.credentials
   }
+
+  void "should pop inputs off destroyAsgDescriptions context field when present"() {
+    setup:
+    stage.context.destroyAsgDescriptions = [[asgName: "foo", regions:["us"], credentials: account],
+                                            [asgName: "bar", regions:["us"], credentials: account]]
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> rx.Observable.from(taskId)
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 == stage.context.destroyAsgDescriptions.size()
+    result.outputs."deploy.account.name" == account
+
+    where:
+    account = "account"
+  }
 }

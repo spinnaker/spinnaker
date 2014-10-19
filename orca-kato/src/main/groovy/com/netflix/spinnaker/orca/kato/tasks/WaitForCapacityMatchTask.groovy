@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.pipeline.Stage
 class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(Stage stage) {
-    (Map<String, List<String>>) stage.context."server.groups"
+    (Map<String, List<String>>) stage.context."deploy.server.groups"
   }
 
   @Override
