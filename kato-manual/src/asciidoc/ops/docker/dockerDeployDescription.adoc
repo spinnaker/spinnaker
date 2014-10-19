@@ -12,7 +12,7 @@ This description supplies the +DockerDeployHandler+ with the inputs necessary to
 [source,javascript]
 ----
 [{
-    "deployDockerDescription": {
+    "dockerDeployDescription": {
         "application": "kato",
         "stack": "main",
         "version": "latest",

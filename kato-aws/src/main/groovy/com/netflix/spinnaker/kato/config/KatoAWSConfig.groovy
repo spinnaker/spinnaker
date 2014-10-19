@@ -119,7 +119,6 @@ class KatoAWSConfig {
 
   static class DeployDefaults {
     String iamRole
-    String keyPair
     List<AmazonInstanceClassBlockDevice> instanceClassBlockDevices = []
   }
 
