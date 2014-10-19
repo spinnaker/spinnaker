@@ -32,17 +32,6 @@ class ResizeGoogleReplicaPoolAtomicOperationConverter extends AbstractAtomicOper
 
   @Override
   ResizeGoogleReplicaPoolDescription convertDescription(Map input) {
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    input.accountName = input.credentials
-
-    if (input.accountName) {
-      // The value returned by getCredentialsObject() is of type GoogleNamedAccountCredentials. The credentials property
-      // of BasicGoogleDeployDescription, one of which we are about to construct below, is of type GoogleCredentials.
-      // Since GoogleNamedAccountCredentials exposes a property named 'credentials', of the desired type
-      // GoogleCredentials, we just need to dereference it. If we don't, GroovyCastExceptions ensue.
-      input.credentials = getCredentialsObject(input.accountName as String)?.getCredentials()
-    }
-
-    new ResizeGoogleReplicaPoolDescription(input)
+    GoogleAtomicOperationConverterHelper.convertDescription(input, this, ResizeGoogleReplicaPoolDescription)
   }
 }

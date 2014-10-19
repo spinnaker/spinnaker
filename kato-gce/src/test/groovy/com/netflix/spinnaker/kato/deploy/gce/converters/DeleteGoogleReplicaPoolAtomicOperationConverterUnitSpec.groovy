@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.gce.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.deploy.gce.ops.DeleteGoogleReplicaPoolAtomicOperation
@@ -29,10 +30,13 @@ class DeleteGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specificat
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
+  @Shared
   DeleteGoogleReplicaPoolAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new DeleteGoogleReplicaPoolAtomicOperationConverter()
+    this.converter = new DeleteGoogleReplicaPoolAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.gce.description.ResizeGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.deploy.gce.ops.ResizeGoogleReplicaPoolAtomicOperation
@@ -30,10 +31,13 @@ class ResizeGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specificat
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
+  ObjectMapper mapper = new ObjectMapper()
+
+  @Shared
   ResizeGoogleReplicaPoolAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new ResizeGoogleReplicaPoolAtomicOperationConverter()
+    this.converter = new ResizeGoogleReplicaPoolAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -58,5 +62,19 @@ class ResizeGoogleReplicaPoolAtomicOperationConverterUnitSpec extends Specificat
 
     then:
       operation instanceof ResizeGoogleReplicaPoolAtomicOperation
+  }
+
+  void "should convert num replicas to ints"() {
+    setup:
+      def input = [application: "app", numReplicas: desired]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description.numReplicas == desired as int
+
+    where:
+      desired = "4"
   }
 }
