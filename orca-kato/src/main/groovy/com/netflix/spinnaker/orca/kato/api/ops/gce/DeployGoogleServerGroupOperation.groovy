@@ -26,7 +26,7 @@ class DeployGoogleServerGroupOperation extends Operation {
   String freeFormDetails
   int initialNumReplicas
   String image
-  String type
+  String instanceType
   String zone
   String credentials
 }

@@ -16,14 +16,20 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
+import org.springframework.beans.factory.annotation.Autowired
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class PreconfigureDestroyGoogleReplicaPoolTask implements Task {
+  @Autowired
+  ObjectMapper mapper
+
   @Override
   TaskResult execute(Stage stage) {
     def op = convert(stage)
@@ -36,11 +42,12 @@ class PreconfigureDestroyGoogleReplicaPoolTask implements Task {
   }
 
   ResizeGoogleReplicaPoolOperation convert(Stage stage) {
-    new ResizeGoogleReplicaPoolOperation(
-      replicaPoolName: stage.context.asgName,
-      zone: stage.context.zones ? stage.context.zones[0] : null,
-      credentials: stage.context.credentials,
-      numReplicas: 0
-    )
+    stage.context.replicaPoolName = stage.context.asgName
+    stage.context.numReplicas = 0
+    stage.context.zone = stage.context.zones ? stage.context.zones[0] : null
+
+    mapper.copy()
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(stage.context, ResizeGoogleReplicaPoolOperation)
   }
 }

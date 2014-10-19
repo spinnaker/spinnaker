@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -27,6 +29,7 @@ import spock.lang.Subject
 class DestroyGoogleReplicaPoolTaskSpec extends Specification {
   @Subject task = new DestroyGoogleReplicaPoolTask()
   def stage = new Stage("whatever")
+  def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
@@ -36,6 +39,10 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
   ]
 
   def setup() {
+    mapper.registerModule(new GuavaModule())
+
+    task.mapper = mapper
+
     stage.context.putAll(destroyASGConfig)
   }
 
