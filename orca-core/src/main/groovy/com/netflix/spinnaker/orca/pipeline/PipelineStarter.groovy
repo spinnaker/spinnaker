@@ -94,15 +94,10 @@ class PipelineStarter {
   }
 
   private StageBuilder builderFor(Stage stage) {
-    String beanName = stage.type
-    if (stage.context.providerType) {
-      beanName = "${stage.type}_$stage.context.providerType"
-    }
-
-    if (stages.containsKey(beanName)) {
-      stages.get(beanName)
+    if (stages.containsKey(stage.type)) {
+      stages.get(stage.type)
     } else {
-      throw new NoSuchStageException(beanName)
+      throw new NoSuchStageException(stage.type)
     }
   }
 }
