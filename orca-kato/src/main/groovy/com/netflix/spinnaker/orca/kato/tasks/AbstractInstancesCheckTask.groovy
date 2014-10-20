@@ -43,6 +43,11 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     String account = stage.context."account.name"
+    if (stage.context.account && !account) {
+      account = stage.context.account
+    } else if (stage.context.credentials && !account) {
+      account = stage.context.credentials
+    }
 
     Map<String, List<String>> serverGroups = getServerGroups(stage)
 

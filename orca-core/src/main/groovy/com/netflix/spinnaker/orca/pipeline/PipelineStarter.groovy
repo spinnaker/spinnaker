@@ -20,8 +20,10 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -54,7 +56,8 @@ class PipelineStarter {
   Pipeline start(String configJson) {
     def pipeline = parseConfig(configJson)
     def job = createJobFrom(pipeline)
-    launcher.run(job, new JobParameters())
+    JobExecution jobExecution = launcher.run(job, new JobParameters())
+    pipeline.id = jobExecution.jobId
     return pipeline
   }
 
@@ -71,6 +74,7 @@ class PipelineStarter {
     }
   }
 
+  @VisibleForTesting
   private Pipeline parseConfig(String configJson) {
     // TODO: map directly to the Pipeline class
     List<Map<String, ? extends Serializable>> configMap = mapper.readValue(configJson, new TypeReference<List<Map>>() {

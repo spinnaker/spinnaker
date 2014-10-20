@@ -47,6 +47,7 @@ class CreateDeployTask implements Task {
   TaskResult execute(Stage stage) {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
+    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED,
         [
             "notification.type"  : "createdeploy",
@@ -60,13 +61,16 @@ class CreateDeployTask implements Task {
   private Map deployOperationFromContext(Stage stage) {
     def operation = mapper.copy()
                           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(stage.context, Map)
-    // TODO: need to get this from the pipeline
-    if (stage.context."bake.ami") {
-      operation.amiName = stage.context."bake.ami"
+                          .convertValue(stage.context.containsKey("cluster") ? stage.context.cluster : stage.context, Map)
+    // TODO This logic is not great... we should have a mechanism to discriminate on stage type, versus how it was built from config.
+    if (stage.preceding("bake")?.outputs?."bake.ami") {
+      operation.amiName = stage.preceding("bake").outputs."bake.ami"
+    } else if (stage.preceding("opinionatedBake")?.outputs?."bake.ami") {
+      operation.amiName = stage.preceding("opinionatedBake").outputs."bake.ami"
     }
-    operation.remove('type')
-    operation.remove('user')
+    if (stage.context.account && !operation.credentials) {
+      operation.credentials = stage.context.account
+    }
     operation.keyPair = (operation.keyPair ?: "nf-${operation.credentials}-keypair-a").toString()
     return operation
   }

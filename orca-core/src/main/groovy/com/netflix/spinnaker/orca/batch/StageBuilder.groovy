@@ -26,6 +26,7 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
+import static java.util.UUID.randomUUID
 
 /**
  * Base class for a component that builds a _stage_ to be run as (part of) a
@@ -99,7 +100,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   }
 
   private String stepName(String taskName) {
-    "${type}.${taskName}"
+    "${type}.${taskName}.${randomUUID().toString()}"
   }
 
   @Autowired

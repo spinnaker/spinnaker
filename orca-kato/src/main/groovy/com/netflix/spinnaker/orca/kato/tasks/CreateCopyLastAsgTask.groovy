@@ -44,13 +44,11 @@ class CreateCopyLastAsgTask implements Task {
     def operation = mapper.copy()
                           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
                           .convertValue(stage.context, Map)
-    operation.amiName = operation.amiName ?: stage.context.'bake.ami' as String
-    operation.remove('type')
-    operation.remove('user')
+    operation.amiName = operation.amiName ?: stage.preceding("bake")?.outputs?.amiName as String
     def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
-
+    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"  : "createcopylastasg",
       "kato.last.task.id"  : taskId,

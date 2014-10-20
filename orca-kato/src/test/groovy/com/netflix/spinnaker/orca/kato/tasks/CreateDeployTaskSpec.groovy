@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
@@ -31,7 +32,7 @@ import spock.lang.Subject
 class CreateDeployTaskSpec extends Specification {
 
   @Subject task = new CreateDeployTask()
-  def stage = new Stage("deploy")
+  def stage = new Stage(new Pipeline(), "deploy", [:])
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -55,7 +56,13 @@ class CreateDeployTaskSpec extends Specification {
     task.mapper = mapper
     task.defaultBakeAccount = "test"
 
+    stage.pipeline.@stages.add(stage)
     stage.context.putAll(deployConfig)
+  }
+
+  def cleanup() {
+    stage.pipeline.@stages.clear()
+    stage.pipeline.@stages.add(stage)
   }
 
   def "creates a deployment based on job parameters"() {
@@ -172,9 +179,10 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
-
-    and:
-    stage.context."bake.ami" = amiName
+    def bakeStage = new Stage(stage.pipeline, "bake", [:])
+    bakeStage.outputs."bake.ami" = amiName
+    stage.pipeline.@stages.clear()
+    stage.pipeline.@stages.addAll([bakeStage, stage])
 
     when:
     task.execute(stage)

@@ -43,7 +43,7 @@ class DestroyAsgTask implements Task {
     def taskId = kato.requestOperations([[destroyAsgDescription: operation]])
                      .toBlocking()
                      .first()
-
+    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"   : "destroyasg",
       "deploy.account.name" : operation.credentials,
@@ -56,8 +56,13 @@ class DestroyAsgTask implements Task {
   }
 
   DestroyAsgOperation convert(Stage stage) {
+    def input = stage.context
+    if (stage.context.containsKey("destroyAsgDescriptions") && stage.context.destroyAsgDescriptions) {
+      input = ((List)stage.context.destroyAsgDescriptions).pop()
+    }
+
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, DestroyAsgOperation)
+          .convertValue(input, DestroyAsgOperation)
   }
 }

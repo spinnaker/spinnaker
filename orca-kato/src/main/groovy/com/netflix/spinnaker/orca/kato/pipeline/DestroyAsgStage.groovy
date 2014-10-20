@@ -37,15 +37,11 @@ class DestroyAsgStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps() {
-    def resizeSteps = resizeAsgStage.buildSteps()
+    def step1 = buildStep("destroyAsg", DestroyAsgTask)
+    def step2 = buildStep("monitorAsg", MonitorKatoTask)
+    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep("sendNotification", NotifyEchoTask)
 
-    def step1 = buildStep("preconfigureResize", PreconfigureDestroyAsgTask)
-    def step2 = buildStep("destroyAsg", DestroyAsgTask)
-    def step3 = buildStep("monitorAsg", MonitorKatoTask)
-    def step4 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step5 = buildStep("waitForCapacityMatch", WaitForCapacityMatchTask)
-    def step6 = buildStep("sendNotification", NotifyEchoTask)
-
-    [step1, resizeSteps, step2, step3, step4, step5, step6].flatten().toList()
+    [step1, step2, step3, step4].flatten().toList()
   }
 }

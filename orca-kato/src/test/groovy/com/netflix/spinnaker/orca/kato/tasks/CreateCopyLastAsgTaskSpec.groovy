@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
@@ -27,7 +28,7 @@ import spock.lang.Subject
 
 class CreateCopyLastAsgTaskSpec extends Specification {
   @Subject task = new CreateCopyLastAsgTask()
-  def stage = new Stage("copyLastAsg")
+  def stage = new Stage(new Pipeline(), "copyLastAsg", [:])
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -43,6 +44,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
+    stage.pipeline.@stages.add(stage)
     stage.context.putAll(copyLastAsgConfig)
   }
 
@@ -124,7 +126,10 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    stage.context."bake.ami" = "ami-soixante-neuf"
+    def bakeStage = new Stage(stage.pipeline, "bake", [:])
+    bakeStage.outputs."bake.ami" = amiName
+    stage.pipeline.@stages.removeAll()
+    stage.pipeline.@stages.addAll([bakeStage, stage])
 
 
     def operations
@@ -141,16 +146,19 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     then:
     operations.size() == 3
     with(operations[2].copyLastAsgDescription) {
-      amiName == "ami-soixante-neuf"
+      amiName == amiName
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
       credentials == "fzlem"
     }
+
+    where:
+    amiName = "ami-soixante-neuf"
   }
 
   def "calls allowlaunch prior to copyLast"() {
     given:
-    stage.context."bake.ami" = amiName
+    stage.context.amiName = amiName
 
 
     def operations
