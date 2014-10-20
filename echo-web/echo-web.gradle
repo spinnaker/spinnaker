@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.5.RELEASE'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE'
     }
 }
 apply from: "$rootDir/gradle/groovy-module.gradle"
@@ -49,6 +49,7 @@ dependencies {
     compile project(':echo-model')
     compile project(':echo-cassandra')
     compile project(':echo-elasticsearch')
+    compile project(':echo-stomp')
     compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('bootWeb')
     compile commonDependencies.springWeb

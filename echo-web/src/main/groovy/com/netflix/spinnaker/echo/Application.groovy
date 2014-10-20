@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.websocket.WebSocketAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
@@ -28,7 +27,7 @@ import org.springframework.context.annotation.Configuration
  * Application entry point.
  */
 @Configuration
-@EnableAutoConfiguration(exclude = WebSocketAutoConfiguration)
+@EnableAutoConfiguration
 @ComponentScan('com.netflix.spinnaker.echo.config')
 class Application extends SpringBootServletInitializer {
 
