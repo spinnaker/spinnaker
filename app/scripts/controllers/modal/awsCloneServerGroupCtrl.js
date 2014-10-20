@@ -415,6 +415,7 @@ angular.module('deckApp.aws')
       delete command.allImageSelection;
       delete command.instanceProfile;
       delete command.vpcId;
+      delete command.usePreferredZones;
 
       $scope.taskMonitor.submit(
         function() {

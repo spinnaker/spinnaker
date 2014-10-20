@@ -158,6 +158,64 @@ select.select2 {
   option { display: none !important }
 }
 
+/* These can all go away when angular-ui-select 0.9 is released and we can append the options to the body.
+   Until then, we need to explicitly declare a width on the container so it can be inherited by the options */
+.modal-body {
+  .col-md-9 {
+    .select2-container {
+      width: 398px;
+    }
+  }
+  .col-md-6 {
+    .select2-container {
+      width: 255px;
+    }
+  }
+}
+
+.modal-body {
+  .select2-container {
+    .select2-chosen {
+      padding-left: 0;
+    }
+    .select2-drop {
+      position: fixed;
+      top: auto;
+      width: inherit;
+      background: #ffffff;
+      .select2-results {
+        margin: -1px 0 0 0;
+        border-top: none;
+        padding-right: 4px;
+      }
+    }
+    &.select2-container-multi {
+      .select2-drop {
+        padding-right: 30px;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+      .select2-results {
+        background-color: #ffffff;
+        border: 1px solid #66afe9;
+        border-top: none;
+      }
+    }
+    .select2-result-single {
+      padding-left: 0;
+    }
+  }
+}
+
+.ui-select-highlight {
+  font-weight: bold;
+}
+
+.ui-select-choices-content {
+  background: #ffffff;
+}
+
 .select2-container-multi {
   &.select2-container-active {
     .select2-choices {
@@ -176,6 +234,7 @@ select.select2 {
     border: 0;
     border-radius: 0;
     box-shadow: none;
+    background-image: none;
     .select2-search-field {
       width: calc(~"100% - 30px");
       float: none;
@@ -187,17 +246,21 @@ select.select2 {
       background-color: transparent;
 
       &:before {
-        content: 'Add...';
+        content: 'Select...';
         padding-left: 8px;
         opacity: 0.5;
       }
     }
+
     .select2-search-choice {
       float: none;
       margin: 0 0 5px 0;
       border: 0;
       padding: 0;
-      div {
+      background-image: none;
+      background-color: transparent;
+      box-shadow: none;
+      div, span span {
         padding: 5px;
         width: calc(~"100% - 30px");
         display: inline-block;

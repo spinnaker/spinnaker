@@ -1,4 +1,3 @@
-
   <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
     <div class="modal-body">
       <kato-error task-status="taskStatus" title="We could not {{isNew ? 'create': 'update'}} your security group."></kato-error>
@@ -25,12 +24,13 @@
             <tbody>
             <tr ng-repeat="rule in securityGroup.securityGroupIngress">
               <td>
-                <select ui-select2 class="form-control input-sm" ng-model="rule.name"
-                        data-placeholder="Select...">
-                  <option ng-repeat="securityGroup in availableSecurityGroups" value="{{securityGroup.name}}">
-                    {{securityGroup.name}} ({{securityGroup.id}})
-                  </option>
-                </select>
+                <ui-select ng-model="rule.name" class="form-control input-sm" style="width: 244px">
+                  <ui-select-match>{{$select.selected.name}} ({{$select.selected.id}})</ui-select-match>
+                  <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+                    <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
+                    (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
+                  </ui-select-choices>
+                </ui-select>
               </td>
               <td><select class="form-control input-sm" ng-model="rule.type"
                           ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']"></select></td>

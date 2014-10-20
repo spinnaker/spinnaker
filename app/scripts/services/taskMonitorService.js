@@ -95,6 +95,7 @@ angular.module('deckApp')
       }
 
       function handleApplicationRefreshComplete() {
+        monitor.forceRefreshing = false;
         monitor.forceRefreshComplete = true;
         monitor.onApplicationRefresh.call();
       }

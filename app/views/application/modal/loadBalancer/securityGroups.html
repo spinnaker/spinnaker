@@ -6,14 +6,13 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Security Groups</div>
       <div class="col-md-9">
-        <select ui-select2 class="form-control input-sm select2"
-                ng-model="loadBalancer.securityGroups"
-                multiple
-                required>
-          <option ng-repeat="securityGroup in availableSecurityGroups" value="{{securityGroup.name}}">
-            {{securityGroup.name}} ({{securityGroup.id}})
-          </option>
-        </select>
+        <ui-select multiple ng-model="loadBalancer.securityGroups" class="form-control input-sm">
+          <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
+          <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+            <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
+            (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
+          </ui-select-choices>
+        </ui-select>
       </div>
     </div>
   </div>
