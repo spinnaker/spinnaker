@@ -36,6 +36,8 @@
     "runs": false,
     "waits": false,
     "waitsFor": false,
+    "element": false,
+    "by": false,
     "loadDeckWithoutCacheInitializer": false
   }
 }

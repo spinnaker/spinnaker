@@ -58,9 +58,19 @@ gulp.task('test:ci', function(done) {
         configFile: __dirname+'/karma.conf.js',
         browsers: ['Chrome'],
         singleRun: false,
-      }, done)
+      }, done);
     }
   );
+});
+
+gulp.task('test:e2e', function() {
+  return gulp.src(['test/e2e/**/*.js'])
+    .pipe($.protractor.protractor({
+      configFile: 'protractor.conf.js',
+    }))
+    .on('error', function(e) {
+      throw e;
+    });
 });
 
 gulp.task('test', ['test:karma']);
@@ -191,7 +201,7 @@ gulp.task('scripts:application', ['jshint', 'clean:scripts:application'], functi
   ]), 'application.js');
 });
 gulp.task('scripts:vendor', ['clean:scripts:vendor'], function() {
-  return prepareJs(gulp.src(['bower_components/jquery/dist/jquery.js'].concat(bowerFiles({filter: /.*\.js/i}))), 'vendor.js');
+  return prepareJs(gulp.src(['bower_components/jquery/dist/jquery.js'].concat(bowerFiles({filter: /.*\.js/i, debugging: true}))), 'vendor.js');
 });
 
 gulp.task('scripts:templates', ['clean:scripts:templates'], function() {

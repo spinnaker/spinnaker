@@ -1,6 +1,6 @@
 <div class="row applications global-search-header">
   <div class="col-md-2">
-    <h3>Applications</h3>
+    <h3 data-purpose="view-header">Applications</h3>
   </div>
   <div class="col-md-4">
     <form class="form form-horizontal">
@@ -17,7 +17,10 @@
     </form>
   </div>
   <div class="col-md-offset-4 col-md-2 pull-right">
-    <insight-menu actions="menuActions" right-align="true"></insight-menu>
+    <insight-menu data-purpose="applications-menu"
+                  actions="menuActions"
+                  right-align="true">
+    </insight-menu>
   </div>
 </div>
 <div class="row">
