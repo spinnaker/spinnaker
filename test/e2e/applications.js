@@ -18,6 +18,7 @@ describe('applications view', function() {
       page.menu.click().then(function() {
         expect(page.createApplicationMenuItem.isDisplayed()).toBe(true);
         page.createApplicationMenuItem.click().then(function() {
+          browser.sleep(200);
           expect(page.newApplicationHeader.isDisplayed()).toBe(true);
         });
       });
