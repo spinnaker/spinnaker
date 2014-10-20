@@ -62,6 +62,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.accountService, 'getPreferredZonesByAccount').andCallFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').andCallFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.mortService, 'listSubnets').andCallFake(resolve([]));
+      spyOn(this.mortService, 'listKeyPairs').andCallFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').andCallFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
       spyOn(this.oortService, 'listLoadBalancers').andCallFake(resolve([]));
       spyOn(this.searchService, 'search').andCallFake(resolve({results: []}));
