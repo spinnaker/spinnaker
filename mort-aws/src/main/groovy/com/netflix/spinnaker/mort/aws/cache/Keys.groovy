@@ -57,7 +57,7 @@ class Keys {
         result = [id: parts[1], account: parts[2], region: parts[3]]
         break
     case Namespace.INSTANCE_TYPES.ns:
-        result = [id: parts[1], account: parts[2], region: parts[3]]
+        result = [name: parts[1], account: parts[2], region: parts[3]]
         break
     }
     result.type = parts[0]

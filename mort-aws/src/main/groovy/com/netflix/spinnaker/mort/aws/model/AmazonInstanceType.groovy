@@ -25,8 +25,6 @@ import groovy.transform.Canonical
 class AmazonInstanceType implements InstanceType {
     String account
     String region
-    String id
     String name
     String availabilityZone
-    String description
 }

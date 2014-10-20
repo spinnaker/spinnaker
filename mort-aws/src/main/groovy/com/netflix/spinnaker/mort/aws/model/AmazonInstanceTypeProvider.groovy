@@ -40,10 +40,8 @@ class AmazonInstanceTypeProvider implements InstanceTypeProvider<AmazonInstanceT
           new AmazonInstanceType(
                   account: parts.account,
                   region: parts.region,
-                  id: reservedInstancesOffering.reservedInstancesOfferingId,
                   name: reservedInstancesOffering.instanceType,
-                  availabilityZone: reservedInstancesOffering.availabilityZone,
-                  description: reservedInstancesOffering.productDescription
+                  availabilityZone: reservedInstancesOffering.availabilityZone
           )
       }
     }

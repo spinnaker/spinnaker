@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.mort.aws.cache.updaters
 
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -59,7 +58,7 @@ class AmazonSecurityGroupOnDemandCacheUpdaterSpec extends Specification {
 
     then:
       1 * accountCredentialsProvider.getCredentials(_) >> credentials
-      1 * amazonClientProvider.getAmazonEC2(credentials, region, true) >> ec2
+      1 * amazonClientProvider.getAmazonEC2(credentials, region) >> ec2
       1 * ec2.describeSecurityGroups() >> {
         new DescribeSecurityGroupsResult(securityGroups: [securityGroup])
       }
