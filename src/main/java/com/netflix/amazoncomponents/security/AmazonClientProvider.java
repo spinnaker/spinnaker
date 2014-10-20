@@ -52,12 +52,10 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -222,7 +220,7 @@ public class AmazonClientProvider {
 
   protected GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
     return new GeneralAmazonClientInvocationHandler(client, serviceName, String.format(amazonCredentials.getEdda(), region),
-      this.httpClient == null ? new DefaultHttpClient() : this.httpClient, objectMapper);
+      this.httpClient == null ? HttpClients.createDefault() : this.httpClient, objectMapper);
   }
 
   private static void checkCredentials(NetflixAmazonCredentials amazonCredentials) {
@@ -388,7 +386,7 @@ public class AmazonClientProvider {
           }
         } else {
           try {
-            String json = getJson(object, null);
+            byte[] json = getJson(object, null);
             if (json == null) {
               throw new RuntimeException(String.format("Could not retrieve JSON Data from Edda host (%s) for object (%s).", edda, object));
             }
@@ -407,30 +405,33 @@ public class AmazonClientProvider {
 
     }
 
-    private String getJson(String objectName, String key) throws IOException {
+    private byte[] getJson(String objectName, String key) throws IOException {
       String url = key != null ? edda + "/REST/v2/aws/" + objectName + "/" +
         key : edda + "/REST/v2/aws/" + objectName + ";_expand";
       HttpGet get = new HttpGet(url);
       HttpResponse response = httpClient.execute(get);
       HttpEntity entity = response.getEntity();
-      if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-        return null;
-      } else {
-        String result = getStringFromInputStream(entity.getContent());
+      try {
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+          return null;
+        } else {
+          return getBytesFromInputStream(entity.getContent(), entity.getContentLength());
+        }
+      } finally {
         EntityUtils.consume(entity);
-        return result;
       }
     }
 
-    private static String getStringFromInputStream(InputStream is) throws IOException {
-      StringBuilder sb = new StringBuilder();
-      String line;
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-        while ((line = br.readLine()) != null) {
-          sb.append(line);
-        }
+    private static byte[] getBytesFromInputStream(InputStream is, long contentLength) throws IOException {
+      final int bufLen = contentLength < 0 || contentLength > Integer.MAX_VALUE ? 128 * 1024 : (int) contentLength;
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream(bufLen);
+      final byte[] buf = new byte[16 * 1024];
+      int bytesRead;
+      while ((bytesRead = is.read(buf)) != -1) {
+        baos.write(buf, 0, bytesRead);
       }
-      return sb.toString();
+      is.close();
+      return baos.toByteArray();
     }
 
   }
