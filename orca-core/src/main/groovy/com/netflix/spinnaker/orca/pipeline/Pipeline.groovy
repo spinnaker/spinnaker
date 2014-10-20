@@ -24,6 +24,8 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 @CompileStatic
 class Pipeline implements Serializable {
 
+  String id
+
   private final List<Stage> stages = []
 
   ImmutableList<Stage> getStages() {
