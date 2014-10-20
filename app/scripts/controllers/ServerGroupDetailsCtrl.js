@@ -20,7 +20,6 @@ angular.module('deckApp')
                 return _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'id': id });
               });
               delete launchConfig.createdTime;
-              delete launchConfig.userData;
               delete launchConfig.securityGroups;
               $scope.launchConfig = launchConfig;
             }
@@ -160,6 +159,19 @@ angular.module('deckApp')
       var modal = $modal.open({
         templateUrl: 'views/application/modal/serverGroup/scalingActivities.html',
         controller: 'ScalingActivitiesCtrl as ctrl',
+        scope: $scope
+      });
+      modal.opened.then(function() {
+        serverGroupService.getScalingActivities(application, $scope.account, $scope.cluster.name, $scope.serverGroup.name, $scope.serverGroup.region).then(function(response) {
+          $scope.activities = response;
+        });
+      });
+    };
+
+    this.showUserData = function showScalingActivities() {
+      $scope.userData = window.atob($scope.launchConfig.userData);
+      var modal = $modal.open({
+        templateUrl: 'views/application/modal/serverGroup/userData.html',
         scope: $scope
       });
       modal.opened.then(function() {
