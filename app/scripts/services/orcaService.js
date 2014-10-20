@@ -67,6 +67,7 @@ angular.module('deckApp')
     }
 
     function destroyServerGroup(serverGroup, applicationName) {
+      var providerType = serverGroup.type === 'aws' ? null : serverGroup.type;
       return executeTask({
         job: [
           {
@@ -76,7 +77,7 @@ angular.module('deckApp')
             zones: serverGroup.zones,
             credentials: serverGroup.account,
             user: 'deckUser',
-            providerType: serverGroup.type
+            providerType: providerType
           }
         ],
         application: applicationName,
