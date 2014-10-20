@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.orca.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import groovy.util.logging.Slf4j
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.context.request.async.DeferredResult
 
 @RestController
 @Slf4j
@@ -36,11 +34,13 @@ class OrcaApi {
   ObjectMapper mapper = new ObjectMapper()
 
   @RequestMapping(value = '/orchestrate', method = RequestMethod.POST)
-  String orchestrate(@RequestBody Map pipeline) {
+  DeferredResult<Pipeline> orchestrate(@RequestBody Map pipeline) {
     log.info("starting pipeline {} for application {}", pipeline.name, pipeline.application)
-    String stageJson = mapper.writeValueAsString(pipeline.stages.findAll{it.type!='jenkins'})
-    def pipelineResult = pipelineStarter.start(stageJson)
-    pipelineResult
+    String stageJson = mapper.writeValueAsString(pipeline.stages.findAll { it.type != 'jenkins' })
+    def q = new DeferredResult<Pipeline>()
+    pipelineStarter.start(stageJson).subscribe {
+      q.setResult(it)
+    }
   }
 
   @RequestMapping(value = '/status/{id}', method = RequestMethod.GET)

@@ -25,26 +25,31 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
 import org.springframework.batch.repeat.RepeatStatus
+import rx.subjects.ReplaySubject
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
 @CompileStatic
 @TupleConstructor(includeFields = true)
 class PipelineInitializerTasklet implements Tasklet {
 
-  static TaskletStep initializationStep(StepBuilderFactory steps, Pipeline pipeline) {
+  static TaskletStep initializationStep(StepBuilderFactory steps, Pipeline pipeline, ReplaySubject subject) {
     steps.get("orca-init-step")
-         .tasklet(new PipelineInitializerTasklet(pipeline))
+         .tasklet(new PipelineInitializerTasklet(pipeline, subject))
          .build()
   }
 
   public static final String PIPELINE_CONTEXT_KEY = "pipeline"
 
   private final Pipeline pipeline
+  private final ReplaySubject subject
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     chunkContext.stepContext.stepExecution.jobExecution.with {
+      pipeline.id = id.toString()
       executionContext.put(PIPELINE_CONTEXT_KEY, pipeline)
+      subject.onNext(pipeline)
+      subject.onCompleted()
     }
     return FINISHED
   }

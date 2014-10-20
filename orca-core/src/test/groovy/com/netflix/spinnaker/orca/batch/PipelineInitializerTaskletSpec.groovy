@@ -24,6 +24,7 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import spock.lang.Specification
 import spock.lang.Subject
+import rx.subjects.ReplaySubject
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
@@ -36,7 +37,8 @@ class PipelineInitializerTaskletSpec extends Specification {
   def chunkContext = new ChunkContext(stepContext)
 
   def pipeline = new Pipeline()
-  @Subject tasklet = new PipelineInitializerTasklet(pipeline)
+  def subject  = ReplaySubject.create(1)
+  @Subject tasklet = new PipelineInitializerTasklet(pipeline, subject)
 
   def "places pipeline into the execution context"() {
     when:

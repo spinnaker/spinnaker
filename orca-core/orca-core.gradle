@@ -20,5 +20,6 @@ dependencies {
   compile commonDependencies.springBatch
   compile commonDependencies.jacksonDatabind
   compile commonDependencies.jacksonGuava
+  compile commonDependencies.rxJava
   testCompile project(":orca-test")
 }

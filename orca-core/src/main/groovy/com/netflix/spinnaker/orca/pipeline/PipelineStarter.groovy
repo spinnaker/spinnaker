@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -32,6 +31,8 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import rx.Observable
+import rx.subjects.ReplaySubject
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static java.util.UUID.randomUUID
 
@@ -53,12 +54,12 @@ class PipelineStarter {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  Pipeline start(String configJson) {
+  Observable<Pipeline> start(String configJson) {
     def pipeline = parseConfig(configJson)
-    def job = createJobFrom(pipeline)
-    JobExecution jobExecution = launcher.run(job, new JobParameters())
-    pipeline.id = jobExecution.jobId
-    return pipeline
+    def subject = ReplaySubject.createWithSize(1)
+    def job = createJobFrom(pipeline, subject)
+    launcher.run(job, new JobParameters())
+    subject
   }
 
   @PostConstruct
@@ -82,10 +83,10 @@ class PipelineStarter {
     Pipeline.builder().withStages(configMap).build()
   }
 
-  private Job createJobFrom(Pipeline pipeline) {
+  private Job createJobFrom(Pipeline pipeline, ReplaySubject subject) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${randomUUID()}")
-                         .flow(initializationStep(steps, pipeline))
+      .flow(initializationStep(steps, pipeline, subject))
     buildFlow(jobBuilder, pipeline).build().build()
   }
 

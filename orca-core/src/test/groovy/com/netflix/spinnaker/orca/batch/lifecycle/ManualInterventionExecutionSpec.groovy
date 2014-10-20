@@ -24,6 +24,7 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
+import rx.subjects.ReplaySubject
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
@@ -109,7 +110,8 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     def pipeline = Pipeline.builder().withStage("manualIntervention").build()
-    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
+    def subject = ReplaySubject.create(1)
+    def builder = jobBuilder.flow(initializationStep(steps, pipeline, subject))
     new ManualInterventionStage(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
       .build(builder, pipeline.namedStage("manualIntervention"))
       .build()

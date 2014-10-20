@@ -30,8 +30,10 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
+@EnableAsync
 @EnableAutoConfiguration
 @EnableBatchProcessing(modular = true)
 @Import([
