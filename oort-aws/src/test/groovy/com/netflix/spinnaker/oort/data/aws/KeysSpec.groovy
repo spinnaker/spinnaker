@@ -45,8 +45,8 @@ class KeysSpec extends Specification {
     Keys.parse(Keys.getImageKey('image', 'account', 'region')) == [type: Keys.Namespace.IMAGES.ns, imageId: 'image', region: 'region', account: 'account']
     Keys.parse(Keys.getInstanceHealthKey('instanceId', 'account', 'region', 'provider')) == [type: Keys.Namespace.HEALTH.ns, instanceId: 'instanceId', account: 'account', region: 'region', provider: 'provider']
     Keys.parse(Keys.getLaunchConfigKey('kato-main-v056-10062014221307', 'account', 'region')) == [type: Keys.Namespace.LAUNCH_CONFIGS.ns, launchConfig: 'kato-main-v056-10062014221307', region: 'region', account: 'account', application: 'kato', stack:'main']
-    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region')) == [type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', application: 'loadbalancer', stack: null, detail: null]
-    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region')) == [type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', stack: 'main', detail: 'frontend', application: 'kato']
+    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345')) == [type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', application: 'loadbalancer', stack: null, detail: null]
+    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null)) == [type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, stack: 'main', detail: 'frontend', application: 'kato']
   }
 
 }

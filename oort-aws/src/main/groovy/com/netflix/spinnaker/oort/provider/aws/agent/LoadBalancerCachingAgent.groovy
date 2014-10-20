@@ -106,7 +106,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     }
 
     if (data.evict as boolean) {
-      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), evictions: [(LOAD_BALANCERS.ns): [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region)]])
+      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), evictions: [(LOAD_BALANCERS.ns): [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId)]])
     } else {
       def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
       def lb = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)).loadBalancerDescriptions
@@ -144,7 +144,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     for (LoadBalancerDescription loadBalancer : allLoadBalancers) {
       Collection<String> instanceIds = loadBalancer.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
       Map<String, Object> lbAttributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
-      String loadBalancerId = Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, account.name, region)
+      String loadBalancerId = Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, account.name, region, loadBalancer.getVPCId())
       loadBalancers[loadBalancerId].with {
         attributes.putAll(lbAttributes)
         relationships[INSTANCES.ns].addAll(instanceIds)

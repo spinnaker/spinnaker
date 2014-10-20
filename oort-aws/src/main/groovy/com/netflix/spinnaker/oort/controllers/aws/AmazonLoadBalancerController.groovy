@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.SERVER_GROUPS
 
 @RestController
 @RequestMapping("/aws/loadBalancers")
@@ -48,7 +46,7 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
-    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns)
+    Collection<String> loadBalancers = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
     getSummaryForLoadBalancers(loadBalancers).values() as List
   }
 
@@ -56,14 +54,12 @@ class AmazonLoadBalancerController {
   AmazonLoadBalancerSummary get(@PathVariable String name) {
     Collection<String> lbIds = awsConfigurationProperties.accounts.collectMany { NetflixAssumeRoleAmazonCredentials account ->
       Collection<CacheData> regionLbs = account.regions.collect { AmazonCredentials.AWSRegion region ->
-        Keys.getLoadBalancerKey(name, account.name, region.name)
+        Keys.getLoadBalancerKey(name, account.name, region.name, null)
       }
       regionLbs
     }
 
-    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, lbIds)
-
-    getSummaryForLoadBalancers(loadBalancers).get(name)
+    getSummaryForLoadBalancers(lbIds).get(name)
   }
 
   @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
@@ -72,16 +68,14 @@ class AmazonLoadBalancerController {
       def key = Keys.parse(it)
       key.account == account && key.region == region
     }
-    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, identifiers)
-
-    getSummaryForLoadBalancers(loadBalancers).values() as List
+    getSummaryForLoadBalancers(identifiers).values() as List
   }
 
 
-  private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<CacheData> loadBalancers) {
+  private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    for (lb in loadBalancers) {
-      def parts = Keys.parse(lb.id)
+    for (lb in loadBalancerKeys) {
+      def parts = Keys.parse(lb)
       String name = parts.loadBalancer
       String region = parts.region
       String account = parts.account
@@ -90,9 +84,12 @@ class AmazonLoadBalancerController {
         summary = new AmazonLoadBalancerSummary(name: name)
         map.put name, summary
       }
-      def loadBalancer = new AmazonLoadBalancer(name, region)
-      loadBalancer.elb = lb.attributes
-      loadBalancer.getServerGroups().addAll(lb.relationships[SERVER_GROUPS.ns]?.findResults { Keys.parse(it).serverGroup } ?: [])
+      def loadBalancer = new AmazonLoadBalancerDetail()
+      loadBalancer.account = parts.account
+      loadBalancer.region = parts.region
+      loadBalancer.name = parts.loadBalancer
+      loadBalancer.vpcId = parts.vpcId
+
 
       summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
     }
@@ -137,6 +134,14 @@ class AmazonLoadBalancerController {
 
   static class AmazonLoadBalancerAccountRegion {
     String name
-    List<AmazonLoadBalancer> loadBalancers
+    List<AmazonLoadBalancerSummary> loadBalancers
+  }
+
+  static class AmazonLoadBalancerDetail {
+    String account
+    String region
+    String name
+    String vpcId
+    String type = 'aws'
   }
 }

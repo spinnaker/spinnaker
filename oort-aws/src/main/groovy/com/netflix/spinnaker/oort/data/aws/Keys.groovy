@@ -69,7 +69,7 @@ class Keys {
         break
       case Namespace.LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[3])
-        result = [account: parts[1], region: parts[2], loadBalancer: parts[3], application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
+        result = [account: parts[1], region: parts[2], loadBalancer: parts[3], vpcId: parts.length > 4 ? parts[4] : null, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[3])
@@ -107,8 +107,8 @@ class Keys {
     "${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
   }
 
-  static String getLoadBalancerKey(String loadBalancerName, String account, String region) {
-    "${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
+  static String getLoadBalancerKey(String loadBalancerName, String account, String region, String vpcId) {
+    "${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {

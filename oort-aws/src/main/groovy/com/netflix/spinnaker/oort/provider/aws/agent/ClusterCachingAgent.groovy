@@ -19,6 +19,8 @@ package com.netflix.spinnaker.oort.provider.aws.agent
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
+import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -115,7 +117,11 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
     def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
     List<AutoScalingGroup> asg = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName)).autoScalingGroups
-    CacheResult result = buildCacheResult(asg)
+    Map<String, String> subnetMap = [:]
+    if (asg.loadBalancerNames.collectMany() && asg.vPCZoneIdentifier.findResults()) {
+      subnetMap = getSubnetToVpcIdMap(asg.vPCZoneIdentifier.findResults().collectMany { it.split(',') })
+    }
+    CacheResult result = buildCacheResult(asg, subnetMap)
     new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: result)
   }
 
@@ -123,10 +129,28 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     [:].withDefault { String id -> new MutableCacheData(id) }
   }
 
+  Map<String, String> getSubnetToVpcIdMap(String... subnetIds) {
+    boolean bypassEdda = subnetIds.length > 0
+    def ec2 = amazonClientProvider.getAmazonEC2(account, region, bypassEdda)
+    Map<String, String> subnetMap = [:]
+    def request = new DescribeSubnetsRequest()
+    if (subnetIds.length > 0) {
+      request.withSubnetIds(subnetIds)
+    }
+    for (Subnet subnet : ec2.describeSubnets(request).subnets) {
+      String existing = subnetMap.put(subnet.subnetId, subnet.vpcId)
+      if (existing != null && existing != subnet.vpcId) {
+        throw new RuntimeException("Unexpected non unique subnetId to vpcId mapping")
+      }
+    }
+    subnetMap
+  }
+
   @Override
   CacheResult loadData() {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
     def request = new DescribeAutoScalingGroupsRequest()
+
     List<AutoScalingGroup> asgs = []
     while (true) {
       def resp = autoScaling.describeAutoScalingGroups(request)
@@ -137,10 +161,10 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         break
       }
     }
-    buildCacheResult(asgs)
+    buildCacheResult(asgs, getSubnetToVpcIdMap())
   }
 
-  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs) {
+  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs, Map<String, String> subnetMap) {
 
     Map<String, CacheData> applications = cache()
     Map<String, CacheData> clusters = cache()
@@ -150,7 +174,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     Map<String, CacheData> instances = cache()
 
     for (AutoScalingGroup asg : asgs) {
-      AsgData data = new AsgData(asg, account.name, region)
+      AsgData data = new AsgData(asg, account.name, region, subnetMap)
 
       cacheApplication(data, applications)
       cacheCluster(data, clusters)
@@ -237,16 +261,27 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     final Set<String> loadBalancerNames
     final Set<String> instanceIds
 
-    public AsgData(AutoScalingGroup asg, String account, String region) {
+    public AsgData(AutoScalingGroup asg, String account, String region, Map<String, String> subnetMap) {
       this.asg = asg
 
       name = Names.parseName(asg.autoScalingGroupName)
 
+
       appName = Keys.getApplicationKey(name.app)
       cluster = Keys.getClusterKey(name.cluster, name.app, account)
       serverGroup = Keys.getServerGroupKey(asg.autoScalingGroupName, account, region)
+      String vpcId = null
+      if (asg.getVPCZoneIdentifier()) {
+        String[] subnets = asg.getVPCZoneIdentifier().split(',')
+        Set<String> vpcIds = subnets.collect { subnetMap[it] }
+        if (vpcIds.size() != 1) {
+          throw new RuntimeException("failed to resolve one vpc (found ${vpcIds}) for subnets ${subnets}")
+        }
+        vpcId = vpcIds.first()
+      }
       launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, account, region)
-      loadBalancerNames = (asg.loadBalancerNames.collect { Keys.getLoadBalancerKey(it, account, region) } as Set).asImmutable()
+
+      loadBalancerNames = (asg.loadBalancerNames.collect { Keys.getLoadBalancerKey(it, account, region, vpcId) } as Set).asImmutable()
       instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
     }
   }

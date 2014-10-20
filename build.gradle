@@ -19,6 +19,10 @@ allprojects {
   group = "com.netflix.spinnaker.oort"
 
   configurations.all {
+    resolutionStrategy {
+      force 'org.apache.httpcomponents:httpclient:4.3.5'
+      force 'org.apache.httpcomponents:httpcore:4.3.2'
+    }
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: "org.slf4j", module: "slf4j-log4j12"
     exclude group: "org.mortbay.jetty", module: "servlet-api"

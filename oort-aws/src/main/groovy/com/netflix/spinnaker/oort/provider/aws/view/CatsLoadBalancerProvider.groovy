@@ -57,15 +57,14 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   }
 
   AmazonLoadBalancer translate(CacheData cacheData) {
-    def matcher = ACCOUNT_REGION_NAME.matcher(cacheData.id)
-    if (matcher.matches()) {
-      def lb = new AmazonLoadBalancer(matcher.group(3), matcher.group(2))
-      lb.account = matcher.group(1)
-      lb.elb = cacheData.attributes
-      lb.serverGroups = cacheData.relationships[SERVER_GROUPS.ns] ?: []
-    } else {
-      null
-    }
+    Map<String, String> keyParts = Keys.parse(cacheData.id)
+    def lb = new AmazonLoadBalancer(keyParts.loadBalancer, keyParts.region)
+    lb.account = keyParts.account
+    lb.elb = cacheData.attributes
+    lb.serverGroups = cacheData.relationships[SERVER_GROUPS.ns]?.collect {
+      Map<String, String> sgParts = Keys.parse(it)
+      sgParts.cluster
+    } ?: []
   }
 
   Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
@@ -101,7 +100,17 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   @Override
   AmazonLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    def lbId = Keys.getLoadBalancerKey(loadBalancerName, account, region)
-    translate(cacheView.get(LOAD_BALANCERS.ns, lbId))
+    def lbs = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
+    def keys = lbs.findAll {
+      def keyParts = Keys.parse(it)
+      (keyParts.account == account && keyParts.region == region && keyParts.loadBalancer == loadBalancerName)
+    }
+
+    def candidates = cacheView.getAll(LOAD_BALANCERS.ns, keys).findResults(this.&translate)
+    if (candidates.isEmpty()) {
+      null
+    } else {
+      candidates.first()
+    }
   }
 }
