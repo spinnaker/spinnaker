@@ -5,7 +5,8 @@ angular.module('deckApp')
   .factory('mortService', function (settings, $q, Restangular) {
 
     var subnetsCache = [],
-        vpcsCache = [];
+        vpcsCache = [],
+        keyPairsCache = [];
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.mortUrl);
@@ -37,8 +38,22 @@ angular.module('deckApp')
       }
     }
 
+    function listKeyPairs() {
+      if (keyPairsCache.length) {
+        return $q.when(keyPairsCache);
+      } else {
+        var deferred = $q.defer();
+        endpoint.all('keyPairs').getList().then(function(list) {
+          keyPairsCache = list;
+          deferred.resolve(list);
+        });
+        return deferred.promise;
+      }
+    }
+
     return {
       listSubnets: listSubnets,
-      listVpcs: listVpcs
+      listVpcs: listVpcs,
+      listKeyPairs: listKeyPairs
     };
   });

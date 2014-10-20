@@ -46,6 +46,10 @@ angular.module('deckApp.aws')
       $scope.preferredZones = preferredZones;
     });
 
+    var keyPairLoader = mortService.listKeyPairs().then(function(keyPairs) {
+      $scope.keyPairs = keyPairs;
+    });
+
     var imageLoader = searchService.search('oort', {q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
       $scope.packageImages = searchResults.results;
       if ($scope.packageImages.length === 0) {
@@ -67,7 +71,7 @@ angular.module('deckApp.aws')
       }
     });
 
-    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader, preferredZonesLoader]).then(function() {
+    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader, preferredZonesLoader, keyPairLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
       initializeWizardState();
@@ -103,6 +107,7 @@ angular.module('deckApp.aws')
     function credentialsChanged() {
       if ($scope.command.credentials) {
         $scope.regions = $scope.regionsKeyedByAccount[$scope.command.credentials].regions;
+        $scope.command.keyPair = $scope.regionsKeyedByAccount[$scope.command.credentials].defaultKeyPair;
         if (!_($scope.regions).some({name: $scope.command.region})) {
           $scope.command.region = null;
         } else {
@@ -125,6 +130,7 @@ angular.module('deckApp.aws')
         configureInstanceTypes();
         configureAvailabilityZones();
         configureImages();
+        configureKeyPairs();
       } else {
         $scope.regionalAvailabilityZones = null;
       }
@@ -248,6 +254,13 @@ angular.module('deckApp.aws')
       }
     }
 
+    function configureKeyPairs() {
+      $scope.regionalKeyPairs = _($scope.keyPairs)
+        .filter({'account': $scope.command.credentials, 'region': $scope.command.region})
+        .pluck('keyName')
+        .valueOf();
+    }
+
     function buildCommandFromExisting(serverGroup) {
       var serverGroupName = serverGroupService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
       var zones = serverGroup.asg.availabilityZones.sort();
@@ -329,9 +342,9 @@ angular.module('deckApp.aws')
         'instanceMonitoring': false,
         'ebsOptimized': false,
 
-        //These two should not be hard coded here, and keyPair options should be loaded from AWS
-        'iamRole': 'BaseIAMRole',
-        'keyPair': 'nf-test-keypair-a',
+        'keyPair': $scope.regionsKeyedByAccount[defaultCredentials].defaultKeyPair,
+
+        'iamRole': 'BaseIAMRole', // should not be hard coded here
 
         'terminationPolicies': ['Default'],
         'vpcId': null,
