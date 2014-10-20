@@ -39,7 +39,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20140415", "type": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20140415", "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
    *
    * @param description
    * @param priorOutputs
@@ -57,7 +57,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def project = description.credentials.project
     def zone = description.zone
 
-    def machineType = GCEUtil.queryMachineType(project, zone, description.type, compute, task, BASE_PHASE)
+    def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 

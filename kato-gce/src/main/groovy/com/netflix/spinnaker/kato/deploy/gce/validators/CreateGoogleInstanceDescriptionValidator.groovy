@@ -57,8 +57,8 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
     }
 
     // TODO(duftler): Also validate against set of supported GCE types.
-    if (!description.type) {
-      errors.rejectValue "type", "createGoogleInstanceDescription.type.empty"
+    if (!description.instanceType) {
+      errors.rejectValue "instanceType", "createGoogleInstanceDescription.instanceType.empty"
     }
 
     // TODO(duftler): Also validate against set of supported GCE zones.

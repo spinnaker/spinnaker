@@ -55,13 +55,13 @@ class BasicGoogleDeployHandlerSpec extends Specification {
     def compute = Mock(Compute)
     def instanceMock = getComputeMock(Compute.Instances, Compute.Instances.List, InstanceList, Instance, null)
     def credentials = new GoogleCredentials("project", compute)
-    def description = new BasicGoogleDeployDescription(application: "app", stack: "stack", image: "image", type: "f1-micro", zone: "us-central1-b", credentials: credentials)
+    def description = new BasicGoogleDeployDescription(application: "app", stack: "stack", image: "image", instanceType: "f1-micro", zone: "us-central1-b", credentials: credentials)
 
     when:
     handler.handle(description, [])
 
     then:
-    10 * compute.machineTypes() >> getComputeMock(Compute.MachineTypes, Compute.MachineTypes.List, MachineTypeList, MachineType, description.type)
+    10 * compute.machineTypes() >> getComputeMock(Compute.MachineTypes, Compute.MachineTypes.List, MachineTypeList, MachineType, description.instanceType)
     10 * compute.images() >> getComputeMock(Compute.Images, Compute.Images.List, ImageList, Image, description.image)
     10 * compute.networks() >> getComputeMock(Compute.Networks, Compute.Networks.List, NetworkList, Network, "default")
     20 * compute.instances() >> instanceMock

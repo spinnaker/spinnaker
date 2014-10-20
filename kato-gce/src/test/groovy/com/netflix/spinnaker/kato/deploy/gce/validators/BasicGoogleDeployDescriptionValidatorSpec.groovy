@@ -32,7 +32,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   private static final FREE_FORM_DETAILS = "detail"
   private static final INITIAL_NUM_REPLICAS = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
-  private static final TYPE = "f1-micro"
+  private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -56,7 +56,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                        stack: STACK,
                                                        initialNumReplicas: INITIAL_NUM_REPLICAS,
                                                        image: IMAGE,
-                                                       type: TYPE,
+                                                       instanceType: INSTANCE_TYPE,
                                                        zone: ZONE,
                                                        accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -75,7 +75,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                        freeFormDetails: FREE_FORM_DETAILS,
                                                        initialNumReplicas: INITIAL_NUM_REPLICAS,
                                                        image: IMAGE,
-                                                       type: TYPE,
+                                                       instanceType: INSTANCE_TYPE,
                                                        zone: ZONE,
                                                        accountName: ACCOUNT_NAME)
     def errors = Mock(Errors)
@@ -112,7 +112,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue('application', _)
       1 * errors.rejectValue('stack', _)
       1 * errors.rejectValue('image', _)
-      1 * errors.rejectValue('type', _)
+      1 * errors.rejectValue('instanceType', _)
       1 * errors.rejectValue('zone', _)
   }
 }
