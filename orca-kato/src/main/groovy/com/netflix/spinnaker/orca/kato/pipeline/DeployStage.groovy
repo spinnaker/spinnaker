@@ -84,7 +84,7 @@ class DeployStage extends LinearStage {
     if (lastAsg) {
       def disableInputs = [asgName: lastAsg.name, regions: [lastAsg.region], credentials: clusterConfig.account]
       stage.context.disableAsg = disableInputs
-      steps.addAll(disableAsgStage.buildSteps())
+      steps.addAll(disableAsgStage.buildSteps(stage))
     }
 
     steps
@@ -100,7 +100,7 @@ class DeployStage extends LinearStage {
       def destroyAsgDescriptions = []
       for (asg in existingAsgs) {
         destroyAsgDescriptions << [asgName: asg.name, credentials: clusterConfig.account, regions: [asg.region]]
-        steps.addAll(destroyAsgStage.buildSteps())
+        steps.addAll(destroyAsgStage.buildSteps(stage))
       }
       stage.context.destroyAsgDescriptions = destroyAsgDescriptions
     }

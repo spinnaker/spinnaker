@@ -17,8 +17,12 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
+import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -36,7 +40,7 @@ class DestroyAsgStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps() {
+  protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("destroyAsg", DestroyAsgTask)
     def step2 = buildStep("monitorAsg", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)

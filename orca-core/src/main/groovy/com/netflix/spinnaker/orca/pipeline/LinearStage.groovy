@@ -31,13 +31,7 @@ abstract class LinearStage extends StageBuilder {
     super(name)
   }
 
-  protected List<Step> buildSteps() {
-
-  }
-
-  protected List<Step> buildSteps(Stage stage) {
-    buildSteps()
-  }
+  protected abstract List<Step> buildSteps(Stage stage)
 
   @Override
   JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {

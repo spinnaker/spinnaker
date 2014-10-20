@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.DestroyGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.PreconfigureDestroyGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -41,8 +42,8 @@ class DestroyGoogleReplicaPoolStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps() {
-    def resizeSteps = resizeGoogleReplicaPoolStage.buildSteps()
+  protected List<Step> buildSteps(Stage stage) {
+    def resizeSteps = resizeGoogleReplicaPoolStage.buildSteps(stage)
 
     def step1 = buildStep("preconfigureResize", PreconfigureDestroyGoogleReplicaPoolTask)
     def step2 = buildStep("destroyAsg", DestroyGoogleReplicaPoolTask)

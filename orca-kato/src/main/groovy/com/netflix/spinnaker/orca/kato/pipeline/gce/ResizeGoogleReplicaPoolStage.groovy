@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.ResizeGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -37,7 +38,7 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps() {
+  protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("resizeAsg", ResizeGoogleReplicaPoolTask)
     def step2 = buildStep("monitorAsg", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)

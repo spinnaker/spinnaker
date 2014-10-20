@@ -16,21 +16,20 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.Stage
-import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
 
 class DeployStageSpec extends Specification {
 
@@ -106,7 +105,7 @@ class DeployStageSpec extends Specification {
       def response = new Response("foo", 200, "ok", [], typedInput)
       response
     }
-    1 * disableAsgStage.buildSteps() >> [disableAsgTask]
+    1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
     steps[-1] == disableAsgTask
   }
 
@@ -134,7 +133,7 @@ class DeployStageSpec extends Specification {
       def response = new Response("foo", 200, "ok", [], typedInput)
       response
     }
-    1 * destroyAsgStage.buildSteps() >> [destroyAsgTask]
+    1 * destroyAsgStage.buildSteps(stage) >> [destroyAsgTask]
     steps[-1] == destroyAsgTask
   }
 

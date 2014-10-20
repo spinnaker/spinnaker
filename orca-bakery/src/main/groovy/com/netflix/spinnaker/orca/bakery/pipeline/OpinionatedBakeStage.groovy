@@ -45,7 +45,7 @@ class OpinionatedBakeStage extends LinearStage {
     stage.context.user = stage.context.user ?: defaultBakeUser
 
     def step1 = buildStep("preconfigureOpinionatedBake", PreconfigureOpinionatedBake)
-    def restOfSteps = bakeStage.buildSteps()
+    def restOfSteps = bakeStage.buildSteps(stage)
     [step1, restOfSteps].flatten().collect {
       it.name = it.name.replace(bakeStage.MAYO_CONFIG_TYPE, MAYO_NAME)
       it
