@@ -386,9 +386,8 @@ angular.module('deckApp.gce')
         };
       } else {
         command.type = 'deploy';
-        command.zones = [command.zone];
         // TODO(duftler): This value should come from the choice made on the Instance Profile page (and that page should first be made Google-specific).
-        command.machineType = 'f1-micro';
+        command.instanceType = 'f1-micro';
         command.providerType = 'gce';
         var asgName = application.name;
         if (command.stack) {
