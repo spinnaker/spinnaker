@@ -12,9 +12,10 @@
 
 angular.module('deckApp', [
     'ngAnimate',
+    'ngSanitize',
     'ui.router',
     'ui.bootstrap',
-    'ui.select2',
+    'ui.select',
     'restangular',
     'angularSpinner',
     'deckApp.templates',

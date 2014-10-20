@@ -9,9 +9,17 @@
     <div class="form-group">
       <div class="col-md-5 sm-label-left"><b>Health Check Type</b></div>
       <div class="col-md-6">
-        <select ui-select2 required class="form-control input-sm" ng-model="command.healthCheckType">
-          <option ng-repeat="healthCheckType in healthCheckTypes" value="{{healthCheckType}}">{{healthCheckType}}</option>
-        </select>
+
+        <ui-select ng-model="command.healthCheckType" class="form-control input-sm">
+          <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="healthCheckType in healthCheckTypes | filter: $select.search">
+            <span ng-bind-html="healthCheckType | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+
+        <!--<select ui-select2 required class="form-control input-sm" ng-model="command.healthCheckType">-->
+          <!--<option ng-repeat="healthCheckType in healthCheckTypes" value="{{healthCheckType}}">{{healthCheckType}}</option>-->
+        <!--</select>-->
       </div>
     </div>
     <div class="form-group">
@@ -23,9 +31,17 @@
     <div class="form-group">
       <div class="col-md-5 sm-label-left"><b>Termination Policies</b></div>
       <div class="col-md-6">
-        <select ui-select2 class="form-control input-sm" ng-model="command.terminationPolicies">
-          <option ng-repeat="terminationPolicy in terminationPolicies" value="{{terminationPolicy}}">{{terminationPolicy}}</option>
-        </select>
+
+        <ui-select ng-model="command.terminationPolicies" class="form-control input-sm">
+          <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="terminationPolicy in terminationPolicies | filter: $select.search">
+            <span ng-bind-html="terminationPolicy | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+
+        <!--<select ui-select2 class="form-control input-sm" ng-model="command.terminationPolicies">-->
+          <!--<option ng-repeat="terminationPolicy in terminationPolicies" value="{{terminationPolicy}}">{{terminationPolicy}}</option>-->
+        <!--</select>-->
       </div>
     </div>
 

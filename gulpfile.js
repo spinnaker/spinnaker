@@ -154,7 +154,8 @@ gulp.task('css:vendor', ['clean:styles:vendor'], function() {
     './bower_components/bootstrap/dist/css/bootstrap.css',
     './bower_components/select2-bootstrap-css/select2-bootstrap.css',
     './bower_components/select2/select2.css',
-    './bower_components/angular-wizard/dist/angular-wizard.css'
+    './bower_components/angular-wizard/dist/angular-wizard.css',
+    './bower_components/angular-ui-select/dist/select.css'
   ], {base: 'styles/'}), 'vendor.css');
 });
 gulp.task('css:application', ['clean:styles:application'], function() {

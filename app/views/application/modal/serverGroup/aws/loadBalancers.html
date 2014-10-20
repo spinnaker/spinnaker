@@ -3,11 +3,12 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Load Balancers</b></div>
       <div class="col-md-9">
-        <select ui-select2 class="form-control input-sm select2"
-                ng-model="command.loadBalancers"
-                multiple>
-          <option ng-repeat="regionalBalancer in regionalLoadBalancers" value="{{regionalBalancer}}">{{regionalBalancer}}</option>
-        </select>
+        <ui-select multiple ng-model="command.loadBalancers" class="form-control input-sm">
+          <ui-select-match>{{$item}}</ui-select-match>
+          <ui-select-choices repeat="regionalBalancer in regionalLoadBalancers | filter: $select.search">
+            <span ng-bind-html="regionalBalancer | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
       </div>
     </div>
   </div>
