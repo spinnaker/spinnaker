@@ -24,6 +24,9 @@
   "overrides": {
     "rxjs": {
       "main": "dist/rx.all.js"
+    },
+    "bootstrap": {
+      "ignore": true
     }
   }
 }
