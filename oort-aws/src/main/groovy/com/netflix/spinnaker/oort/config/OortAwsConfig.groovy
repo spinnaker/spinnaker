@@ -19,18 +19,10 @@ package com.netflix.spinnaker.oort.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
-import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestTemplate
-
-import javax.annotation.PostConstruct
 
 @Configuration
 class OortAwsConfig {
