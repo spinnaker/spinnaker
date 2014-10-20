@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
@@ -25,11 +26,15 @@ import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class CreateGoogleServerGroupTask implements Task {
 
   @Autowired
   KatoService kato
+
+  @Autowired
+  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
@@ -46,16 +51,11 @@ class CreateGoogleServerGroupTask implements Task {
   }
 
   DeployGoogleServerGroupOperation convert(Stage stage) {
-    new DeployGoogleServerGroupOperation(
-      application: stage.context.application,
-      stack: stage.context.stack,
-      freeFormDetails: stage.context.freeFormDetails,
-      image: stage.context.image,
-      type: stage.context.machineType,
-      zone: stage.context.zones ? stage.context.zones[0] : null,
-      initialNumReplicas: stage.context.capacity.desired,
-      credentials: stage.context.credentials
-    )
+    stage.context.initialNumReplicas = stage.context.capacity.desired
+
+    mapper.copy()
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(stage.context, DeployGoogleServerGroupOperation)
   }
 
   private TaskId deploy(DeployGoogleServerGroupOperation deployOperation) {

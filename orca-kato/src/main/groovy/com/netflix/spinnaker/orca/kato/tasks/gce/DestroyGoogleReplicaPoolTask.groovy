@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
@@ -24,10 +25,14 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class DestroyGoogleReplicaPoolTask implements Task {
   @Autowired
   KatoService kato
+
+  @Autowired
+  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
@@ -46,10 +51,11 @@ class DestroyGoogleReplicaPoolTask implements Task {
   }
 
   DestroyGoogleReplicaPoolOperation convert(Stage stage) {
-    new DestroyGoogleReplicaPoolOperation(
-      replicaPoolName: stage.context.asgName,
-      zone: stage.context.zones ? stage.context.zones[0] : null,
-      credentials: stage.context.credentials
-    )
+    stage.context.replicaPoolName = stage.context.asgName
+    stage.context.zone = stage.context.zones ? stage.context.zones[0] : null
+
+    mapper.copy()
+          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+          .convertValue(stage.context, DestroyGoogleReplicaPoolOperation)
   }
 }
