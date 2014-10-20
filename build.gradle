@@ -35,6 +35,8 @@ group = "com.netflix.amazoncomponents"
 dependencies {
   compile 'com.fasterxml.jackson.core:jackson-databind:2.1.1'
   compile 'com.netflix.spinnaker:amos-aws:0.14'
+  compile 'org.apache.httpcomponents:httpclient:4.3.5'
+  compile 'org.apache.httpcomponents:httpcore:4.3.2'
   testCompile 'org.codehaus.groovy:groovy-all:2.3.7'
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
   testCompile 'cglib:cglib-nodep:3.1'
