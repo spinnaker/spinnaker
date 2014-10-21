@@ -77,7 +77,7 @@ class PipelineConfigurationSpec extends Specification {
     thrown NoSuchStageException
 
     where:
-    config = [[type: "qux"]]
+    config = [application: "app", stages: [[type: "qux"]]]
     configJson = mapper.writeValueAsString(config)
   }
 
@@ -89,7 +89,7 @@ class PipelineConfigurationSpec extends Specification {
     1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     where:
-    config = [[type: "foo"]]
+    config = [application: "app", stages: [[type: "foo"]]]
     configJson = mapper.writeValueAsString(config)
   }
 
@@ -108,9 +108,12 @@ class PipelineConfigurationSpec extends Specification {
 
     where:
     config = [
-      [type: "foo"],
-      [type: "bar"],
-      [type: "baz"]
+      application: "app",
+      stages     : [
+        [type: "foo"],
+        [type: "bar"],
+        [type: "baz"]
+      ]
     ]
     configJson = mapper.writeValueAsString(config)
   }
@@ -130,8 +133,11 @@ class PipelineConfigurationSpec extends Specification {
     expect context, containsAllOf(expectedInputs)
 
     where:
-    config = [[type: "foo", region: "us-west-1", os: "ubuntu"]]
+    config = [
+      application: "app",
+      stages     : [[type: "foo", region: "us-west-1", os: "ubuntu"]]
+    ]
     configJson = mapper.writeValueAsString(config)
-    expectedInputs = Maps.filterKeys(config.first()) { it != "type" }
+    expectedInputs = Maps.filterKeys(config.stages.first()) { it != "type" }
   }
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @Slf4j
@@ -36,9 +37,9 @@ class OrcaApi {
   @RequestMapping(value = '/orchestrate', method = RequestMethod.POST)
   DeferredResult<Pipeline> orchestrate(@RequestBody Map pipeline) {
     log.info("starting pipeline {} for application {}", pipeline.name, pipeline.application)
-    String stageJson = mapper.writeValueAsString(pipeline.stages.findAll { it.type != 'jenkins' })
+    def json = mapper.writeValueAsString(pipeline)
     def q = new DeferredResult<Pipeline>()
-    pipelineStarter.start(stageJson).subscribe {
+    pipelineStarter.start(json).subscribe {
       q.setResult(it)
     }
   }

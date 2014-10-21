@@ -59,23 +59,26 @@ class OrcaSmokeSpec extends Specification {
     app = "mimirdemo"
     region = "us-west-1"
     config = [
-      [
-        type     : "bake",
-        region   : region,
-        user     : "danw",
-        package  : app,
-        baseOs   : "ubuntu",
-        baseLabel: "release"
-      ], [
-        type             : "deploy",
-        application      : app,
-        stack            : "test",
-        instanceType     : "m3.large",
-        securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
-        subnetType       : "internal",
-        availabilityZones: [(region): []],
-        capacity         : [min: 1, max: 1, desired: 1],
-        credentials      : "test"
+      application: app,
+      stages     : [
+        [
+          type     : "bake",
+          region   : region,
+          user     : "danw",
+          package  : app,
+          baseOs   : "ubuntu",
+          baseLabel: "release"
+        ], [
+          type             : "deploy",
+          application      : app,
+          stack            : "test",
+          instanceType     : "m3.large",
+          securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
+          subnetType       : "internal",
+          availabilityZones: [(region): []],
+          capacity         : [min: 1, max: 1, desired: 1],
+          credentials      : "test"
+        ]
       ]
     ]
   }
@@ -94,12 +97,15 @@ class OrcaSmokeSpec extends Specification {
 
     where:
     config = [
-      [
-        type             : "copyLastAsg",
-        application      : "mimirdemo",
-        stack            : "test",
-        availabilityZones: ["us-east-1": []],
-        credentials      : "test"
+      application: "mimirdemo",
+      stages     : [
+        [
+          type             : "copyLastAsg",
+          application      : "mimirdemo",
+          stack            : "test",
+          availabilityZones: ["us-east-1": []],
+          credentials      : "test"
+        ]
       ]
     ]
   }

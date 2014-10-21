@@ -78,9 +78,11 @@ class PipelineStarter {
   @VisibleForTesting
   private Pipeline parseConfig(String configJson) {
     // TODO: map directly to the Pipeline class
-    List<Map<String, ? extends Serializable>> configMap = mapper.readValue(configJson, new TypeReference<List<Map>>() {
-    }) as List
-    Pipeline.builder().withStages(configMap).build()
+    Map<String, Object> config = mapper.readValue(configJson, Map)
+    Pipeline.builder()
+            .withApplication(config.application.toString())
+            .withStages((List<Map<String, Serializable>>) config.stages)
+            .build()
   }
 
   private Job createJobFrom(Pipeline pipeline, ReplaySubject subject) {

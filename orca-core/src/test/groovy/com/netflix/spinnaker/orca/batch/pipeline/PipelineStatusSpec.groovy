@@ -77,9 +77,12 @@ class PipelineStatusSpec extends Specification {
 
     where:
     stageTypes = ["foo", "bar", "baz"]
-    config = stageTypes.collect {
-      [type: it]
-    }
+    config = [
+      application: "app",
+      stages     : stageTypes.collect {
+        [type: it]
+      }
+    ]
     configJson = mapper.writeValueAsString(config)
   }
 
@@ -95,9 +98,12 @@ class PipelineStatusSpec extends Specification {
 
     where:
     stageTypes = ["foo", "bar", "baz"]
-    config = stageTypes.collect {
-      [type: it]
-    }
+    config = [
+      application: "app",
+      stages     : stageTypes.collect {
+        [type: it]
+      }
+    ]
     configJson = mapper.writeValueAsString(config)
   }
 

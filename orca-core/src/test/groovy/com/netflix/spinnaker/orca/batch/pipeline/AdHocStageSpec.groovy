@@ -81,7 +81,10 @@ class AdHocStageSpec extends Specification {
     1 * barTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     where:
-    config = [[type: "foo"], [type: "bar"]]
+    config = [
+      application: "app",
+      stages     : [[type: "foo"], [type: "bar"]]
+    ]
     configJson = mapper.writeValueAsString(config)
   }
 
@@ -104,9 +107,14 @@ class AdHocStageSpec extends Specification {
     2 * fooTask.execute(_) >>> [new DefaultTaskResult(RUNNING), DefaultTaskResult.SUCCEEDED]
 
     where:
-    config = [[type: "foo"]]
+    config = [
+      application: "app",
+      stages     : [[type: "foo"]]
+    ]
     configJson = mapper.writeValueAsString(config)
   }
 
-  private static interface RetryableStandaloneTask extends RetryableTask, StandaloneTask {}
+  private
+  static interface RetryableStandaloneTask extends RetryableTask, StandaloneTask {
+  }
 }
