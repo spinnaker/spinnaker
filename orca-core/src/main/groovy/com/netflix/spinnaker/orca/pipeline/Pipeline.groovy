@@ -63,6 +63,10 @@ class Pipeline implements Serializable {
     private final Pipeline pipeline = new Pipeline()
 
     Builder withStage(String type, Map<String, Serializable> context = [:]) {
+      if (context.providerType) {
+        type += "_$context.providerType"
+      }
+
       pipeline.@stages << new Stage(pipeline, type, context)
       return this
     }
