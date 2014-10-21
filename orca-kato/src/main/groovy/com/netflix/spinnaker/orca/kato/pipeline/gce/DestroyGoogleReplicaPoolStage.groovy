@@ -20,9 +20,7 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.DestroyGoogleReplicaPoolTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.PreconfigureDestroyGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
@@ -43,15 +41,11 @@ class DestroyGoogleReplicaPoolStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def resizeSteps = resizeGoogleReplicaPoolStage.buildSteps(stage)
+    def step1 = buildStep("destroyAsg", DestroyGoogleReplicaPoolTask)
+    def step2 = buildStep("monitorAsg", MonitorKatoTask)
+    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep("sendNotification", NotifyEchoTask)
 
-    def step1 = buildStep("preconfigureResize", PreconfigureDestroyGoogleReplicaPoolTask)
-    def step2 = buildStep("destroyAsg", DestroyGoogleReplicaPoolTask)
-    def step3 = buildStep("monitorAsg", MonitorKatoTask)
-    def step4 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step5 = buildStep("waitForCapacityMatch", WaitForCapacityMatchTask)
-    def step6 = buildStep("sendNotification", NotifyEchoTask)
-
-    [step1, resizeSteps, step2, step3, step4, step5, step6].flatten().toList()
+    [step1, step2, step3, step4].flatten().toList()
   }
 }
