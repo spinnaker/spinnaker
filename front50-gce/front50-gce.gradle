@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
-
-include 'front50-web', 'front50-core', 'front50-aws', 'front50-gce'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+dependencies {
+  compile project(":front50-core")
+  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+  compile "com.google.apis:google-api-services-compute:v1-rev17-1.18.0-rc"
+  compile "com.google.apis:google-api-services-datastore-protobuf:v1beta2-rev1-2.1.0"
+  compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
+  spinnaker.group("gce")
+  compile spinnaker.dependency("frigga")
 }
