@@ -63,14 +63,13 @@ gulp.task('test:ci', function(done) {
   );
 });
 
-gulp.task('test:e2e', ['default'], function() {
+gulp.task('test:e2e', ['connect'], function() {
   return gulp.src(['test/e2e/**/*.js'])
     .pipe($.protractor.protractor({
       configFile: 'protractor.conf.js',
     }))
-    .on('error', function(e) {
-      throw e;
-    });
+    .on('error', console.log)
+    .on('close', process.exit);
 });
 
 gulp.task('test', ['test:karma']);
