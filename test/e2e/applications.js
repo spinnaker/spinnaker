@@ -5,10 +5,6 @@ var newApplicationModal = require('../pages/newApplicationModal.js');
 var Q = require('q');
 
 describe('applications view', function() {
-  beforeEach(function() {
-    browser.ignoreSynchronization = true;
-  });
-
   it('should redirect to /applications from /', function() {
     browser.get('/');
     expect(page.header.getText()).toEqual('Applications');
