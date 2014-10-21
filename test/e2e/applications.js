@@ -5,6 +5,15 @@ var newApplicationModal = require('../pages/newApplicationModal.js');
 var Q = require('q');
 
 describe('applications view', function() {
+  var browserName;
+
+  beforeEach(function(done) {
+    browser.getCapabilities().then(function(capabilities) {
+      browserName = capabilities.caps_.browserName;
+      done();
+    });
+  });
+
   beforeEach(function() {
     this.openMenu = function() {
       browser.get(page.url);
@@ -48,7 +57,7 @@ describe('applications view', function() {
         });
 
         Q.all([
-          newApplicationModal.name.sendKeys('deck-e2e-test'),
+          newApplicationModal.name.sendKeys('deck-e2e-test-'+browserName),
           newApplicationModal.description.sendKeys('a deck test'),
           newApplicationModal.email.sendKeys('delivery-engineering+deck-e2e@netflix.com'),
           newApplicationModal.prod.click(),
