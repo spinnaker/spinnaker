@@ -84,6 +84,7 @@ class PipelineStarter {
     Map<String, Object> config = mapper.readValue(configJson, Map)
     Pipeline.builder()
             .withApplication(config.application.toString())
+            .withName(config.name.toString())
             .withStages((List<Map<String, Serializable>>) config.stages)
             .build()
   }

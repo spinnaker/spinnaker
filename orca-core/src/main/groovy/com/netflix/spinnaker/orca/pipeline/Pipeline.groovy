@@ -25,6 +25,7 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 class Pipeline implements Serializable {
 
   String application
+  String name
   String id
 
   private final List<Stage> stages = []
@@ -86,6 +87,11 @@ class Pipeline implements Serializable {
 
     Builder withApplication(String application) {
       pipeline.@application = application
+      return this
+    }
+
+    Builder withName(String name) {
+      pipeline.@name = name
       return this
     }
   }
