@@ -3,5 +3,4 @@ module.exports = {
   header: element(by.css('[data-purpose="view-header"]')),
   menu: element(by.css('[data-purpose="applications-menu"] button')),
   createApplicationMenuItem: element(by.css('[data-purpose="applications-menu"] li')),
-  newApplicationHeader: element(by.css('[data-purpose="modal-header"]')),
 };

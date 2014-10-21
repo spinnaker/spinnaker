@@ -9,6 +9,7 @@
         <div class="col-sm-9">
           <input type="text"
                  class="form-control input-sm"
+                 data-purpose="application-name"
                  ng-model="application.name"
                  placeholder="Enter an application name"
                  id="applicationName">
@@ -20,6 +21,7 @@
         <div class="col-sm-9">
           <input type="email"
                  class="form-control input-sm"
+                 data-purpose="application-email"
                  ng-model="application.email"
                  placeholder="Enter an email address"
                  id="ownerEmail">
@@ -44,6 +46,7 @@
                  class="form-control input-sm"
                  ng-model="application.description"
                  placeholder="Enter a description"
+                 data-purpose="application-description"
                  id="applicationDescription">
           </textarea>
         </div>
@@ -53,8 +56,11 @@
         <div class="col-md-9">
           <select class="form-control input-sm"
                   ng-model="application.account"
-                  ng-options="account for account in accounts"
+                  data-purpose="application-accounts"
                   required>
+            <option ng-repeat="account in accounts" value="{{ account }}">
+              {{ account }}
+            </option>
           </select>
         </div>
       </div>
@@ -62,6 +68,7 @@
     <div class="modal-footer">
       <button type="submit"
               class="btn btn-default"
+              data-purpose="submit"
               ng-click="$close(application)">
         Submit
       </button>
