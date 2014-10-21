@@ -78,10 +78,9 @@ angular.module('deckApp')
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      if (serverGroup.region !== loadBalancer.region || loadBalancer.serverGroups.indexOf(serverGroup.name) === -1) {
-        return false;
-      }
-      return true;
+      return serverGroup.account === loadBalancer.account &&
+        serverGroup.region === loadBalancer.region &&
+        serverGroup.asg && serverGroup.asg.loadBalancerNames.indexOf(loadBalancer.name) !== -1;
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
