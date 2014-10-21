@@ -42,6 +42,7 @@ class OrcaApi {
     pipelineStarter.start(json).subscribe {
       q.setResult(it)
     }
+    q
   }
 
   @RequestMapping(value = '/status/{id}', method = RequestMethod.GET)
