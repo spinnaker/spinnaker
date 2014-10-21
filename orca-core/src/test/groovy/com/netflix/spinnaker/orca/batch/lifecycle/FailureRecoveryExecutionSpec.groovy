@@ -83,7 +83,7 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
   protected Job configureJob(JobBuilder jobBuilder) {
     def pipeline = Pipeline.builder().withStage("failureRecovery").build()
     def subject = ReplaySubject.create(1)
-    def builder = jobBuilder.flow(initializationStep(steps, pipeline, subject))
+    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new FailureRecoveryStage(
       steps: steps,
       startTask: startTask,

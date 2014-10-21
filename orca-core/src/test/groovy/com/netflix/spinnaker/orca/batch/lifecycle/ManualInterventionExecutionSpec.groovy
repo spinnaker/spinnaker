@@ -110,8 +110,7 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     def pipeline = Pipeline.builder().withStage("manualIntervention").build()
-    def subject = ReplaySubject.create(1)
-    def builder = jobBuilder.flow(initializationStep(steps, pipeline, subject))
+    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new ManualInterventionStage(steps: steps, preInterventionTask: preInterventionTask, postInterventionTask: postInterventionTask, finalTask: finalTask)
       .build(builder, pipeline.namedStage("manualIntervention"))
       .build()

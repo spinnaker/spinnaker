@@ -80,7 +80,7 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
   protected Job configureJob(JobBuilder jobBuilder) {
     def pipeline = Pipeline.builder().withStage("startAndMonitor").build()
     def subject = ReplaySubject.create(1)
-    def builder = jobBuilder.flow(initializationStep(steps, pipeline, subject))
+    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
       .build(builder, pipeline.namedStage("startAndMonitor"))
       .build()

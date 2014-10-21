@@ -37,8 +37,7 @@ class PipelineInitializerTaskletSpec extends Specification {
   def chunkContext = new ChunkContext(stepContext)
 
   def pipeline = new Pipeline()
-  def subject  = ReplaySubject.create(1)
-  @Subject tasklet = new PipelineInitializerTasklet(pipeline, subject)
+  @Subject tasklet = new PipelineInitializerTasklet(pipeline)
 
   def "places pipeline into the execution context"() {
     when:

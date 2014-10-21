@@ -33,6 +33,9 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 import rx.Observable
 import rx.subjects.ReplaySubject
+
+
+import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static java.util.UUID.randomUUID
 
@@ -88,7 +91,8 @@ class PipelineStarter {
   private Job createJobFrom(Pipeline pipeline, ReplaySubject subject) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-job-${randomUUID()}")
-      .flow(initializationStep(steps, pipeline, subject))
+      .flow(initializationStep(steps, pipeline))
+      .next(initializeFulfiller(steps, pipeline, subject)) as JobFlowBuilder
     buildFlow(jobBuilder, pipeline).build().build()
   }
 
