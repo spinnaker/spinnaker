@@ -10,6 +10,9 @@ angular.module('deckApp')
     }).all('ops');
 
     function executeTask(taskCommand) {
+      if (taskCommand.job[0].providerType === 'aws') {
+        delete taskCommand.job[0].providerType;
+      }
       var op = endpoint.post(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
@@ -67,7 +70,6 @@ angular.module('deckApp')
     }
 
     function destroyServerGroup(serverGroup, applicationName) {
-      var providerType = serverGroup.type === 'aws' ? null : serverGroup.type;
       return executeTask({
         job: [
           {
@@ -77,7 +79,7 @@ angular.module('deckApp')
             zones: serverGroup.zones,
             credentials: serverGroup.account,
             user: 'deckUser',
-            providerType: providerType
+            providerType: serverGroup.type
           }
         ],
         application: applicationName,
