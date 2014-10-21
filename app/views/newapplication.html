@@ -1,5 +1,5 @@
 <div class="modal-page">
-  <form role="form" class="container-fluid">
+  <form role="form" class="container-fluid" novalidate name="newApplicationForm">
     <div class="modal-header">
       <h3 data-purpose="modal-header">New Application</h3>
     </div>
@@ -24,6 +24,7 @@
                  data-purpose="application-email"
                  ng-model="application.email"
                  placeholder="Enter an email address"
+                 required
                  id="ownerEmail">
           </input>
         </div>
@@ -69,6 +70,7 @@
       <button type="submit"
               class="btn btn-default"
               data-purpose="submit"
+              ng-disabled="!newApplicationForm.$valid"
               ng-click="$close(application)">
         Submit
       </button>

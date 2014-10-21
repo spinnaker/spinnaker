@@ -41,13 +41,19 @@ describe('applications view', function() {
       });
 
       it('takes a name, email, description and account', function(done) {
-        // TODO: write validation tests
+        Q.all([
+          newApplicationModal.prod.click(),
+        ]).then(function() {
+          expect(newApplicationModal.submit.getAttribute('disabled')).not.toBe(null);
+        });
+
         Q.all([
           newApplicationModal.name.sendKeys('deck-e2e-test'),
           newApplicationModal.description.sendKeys('a deck test'),
           newApplicationModal.email.sendKeys('delivery-engineering+deck-e2e@netflix.com'),
           newApplicationModal.prod.click(),
         ]).then(function() {
+          expect(newApplicationModal.submit.getAttribute('disabled')).toBe(null);
           done();
         }, console.log);
       });
