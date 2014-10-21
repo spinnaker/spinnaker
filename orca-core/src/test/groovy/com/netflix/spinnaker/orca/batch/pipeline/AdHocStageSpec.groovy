@@ -63,7 +63,7 @@ class AdHocStageSpec extends Specification {
     given:
     def fooTask = Mock(Task)
     def barTask = Mock(StandaloneTask) {
-      getName() >> "bar"
+      getType() >> "bar"
     }
     applicationContext.beanFactory.with {
       registerSingleton "fooStage", new TestStage("foo", steps, fooTask)
@@ -92,7 +92,7 @@ class AdHocStageSpec extends Specification {
   def "an ad-hoc stage can be retryable"() {
     given:
     def fooTask = Mock(RetryableStandaloneTask) {
-      getName() >> "foo"
+      getType() >> "foo"
       getTimeout() >> Long.MAX_VALUE
     }
     applicationContext.beanFactory.with {

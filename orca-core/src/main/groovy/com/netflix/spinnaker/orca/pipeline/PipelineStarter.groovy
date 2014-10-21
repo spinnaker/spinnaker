@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import javax.annotation.PostConstruct
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.core.type.TypeReference
+import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -33,8 +32,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 import rx.Observable
 import rx.subjects.ReplaySubject
-
-
 import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static java.util.UUID.randomUUID
@@ -71,10 +68,10 @@ class PipelineStarter {
       stages[it.type] = it
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
-      def stage = new SimpleStage(it.name, it)
+      def stage = new SimpleStage(it.type, it)
       applicationContext.autowireCapableBeanFactory.autowireBean(stage)
       // TODO: this should be a prototype scoped bean or use a factory I guess
-      stages[it.name] = stage
+      stages[it.type] = stage
     }
   }
 

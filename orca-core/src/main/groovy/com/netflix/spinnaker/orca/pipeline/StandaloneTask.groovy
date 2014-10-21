@@ -28,8 +28,8 @@ import com.netflix.spinnaker.orca.Task
 interface StandaloneTask extends Task {
 
   /**
-   * @return the name corresponding to the Mayo configuration for this task.
+   * @return corresponds to the Mayo type for this task.
    */
-  String getName()
+  String getType()
 
 }
