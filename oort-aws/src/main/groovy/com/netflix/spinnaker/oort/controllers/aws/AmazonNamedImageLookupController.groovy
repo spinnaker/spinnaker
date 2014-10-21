@@ -86,15 +86,7 @@ class AmazonNamedImageLookupController {
 
     Collection<CacheData> namedImages = cacheView.getAll(NAMED_IMAGES.ns, filtered)
 
-    if (lookupOptions.region) {
-      namedImages = namedImages.findAll { namedImage ->
-        return namedImage.relationships[IMAGES.ns].any { imageKey ->
-          Keys.parse(imageKey).region == lookupOptions.region
-        }
-      }
-    }
-
-    render(namedImages, lookupOptions.imageName)
+    render(namedImages, lookupOptions.imageName, lookupOptions.region)
   }
 
   private List<NamedImage> render(Collection<CacheData> namedImages, String requestedName = null, String requiredRegion = null) {
