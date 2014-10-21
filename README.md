@@ -24,3 +24,13 @@ the running application, refreshing the page as changes are detected.
 Silencing jshint
 ----------------
 To prevent jshint from running, run gulp with ```NODE_ENV=dev gulp```.
+
+e2e tests
+---------
+To run e2e tests, first make sure protractor is installed and webdriver is running:
+
+  * ```npm install -g protractor```
+  * ```webdriver-manager update```
+  * ```webdriver-manager start```
+
+Then, run the test suite via ```gulp test:e2e```.

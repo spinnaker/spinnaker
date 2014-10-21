@@ -63,7 +63,7 @@ gulp.task('test:ci', function(done) {
   );
 });
 
-gulp.task('test:e2e', function() {
+gulp.task('test:e2e', ['default'], function() {
   return gulp.src(['test/e2e/**/*.js'])
     .pipe($.protractor.protractor({
       configFile: 'protractor.conf.js',
