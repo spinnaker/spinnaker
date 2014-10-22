@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.google.common.annotations.VisibleForTesting
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import com.google.common.annotations.VisibleForTesting
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component
 import rx.subjects.ReplaySubject
-
-
 import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static java.lang.System.currentTimeMillis
@@ -44,7 +43,8 @@ class PipelineStarter extends AbstractOrchestrationInitiator {
   }
 
   @VisibleForTesting
-  private static Pipeline parseConfig(Map<String, Object> config) {
+  @PackageScope
+  static Pipeline parseConfig(Map<String, Object> config) {
     Pipeline.builder()
       .withApplication(config.application.toString())
       .withName(config.name.toString())
