@@ -14,6 +14,7 @@ angular.module('deckApp.aws')
 
     $scope.state = {
       loaded: false,
+      imagesLoaded: false,
       queryAllImages: false
     };
 
@@ -50,24 +51,90 @@ angular.module('deckApp.aws')
       $scope.keyPairs = keyPairs;
     });
 
-    var imageLoader = searchService.search('oort', {q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
-      $scope.packageImages = searchResults.results;
-      if ($scope.packageImages.length === 0) {
+
+    function buildCommandFromExisting(serverGroup) {
+      var command = {
+        'credentials': serverGroup.account,
+        'cooldown': serverGroup.asg.defaultCooldown,
+        'healthCheckGracePeriod': serverGroup.asg.healthCheckGracePeriod,
+        'healthCheckType': serverGroup.asg.healthCheckType,
+        'terminationPolicies': serverGroup.asg.terminationPolicies,
+        'loadBalancers': serverGroup.asg.loadBalancerNames,
+        'region': serverGroup.region,
+        'capacity': {
+          'min': serverGroup.asg.minSize,
+          'max': serverGroup.asg.maxSize,
+          'desired': serverGroup.asg.desiredCapacity
+        },
+        'allImageSelection': null,
+        'instanceProfile': 'custom'
+      };
+      if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
+        command.securityGroups = serverGroup.launchConfig.securityGroups;
+      }
+      return command;
+    }
+
+    function createCommandTemplate() {
+      var defaultCredentials = 'test';
+      var defaultRegion = 'us-east-1';
+      return {
+        'application': application.name,
+        'credentials': defaultCredentials,
+        'region': defaultRegion,
+        'usePreferredZones': true,
+        'capacity': {
+          'min': 0,
+          'max': 0,
+          'desired': 0
+        },
+        'cooldown': 10,
+        'healthCheckType': 'EC2',
+        'healthCheckGracePeriod': 600,
+        'instanceMonitoring': false,
+        'ebsOptimized': false,
+
+        'iamRole': 'BaseIAMRole', // should not be hard coded here
+
+        'terminationPolicies': ['Default'],
+        'vpcId': null,
+        allImageSelection: null
+      };
+    }
+
+
+    if (serverGroup) {
+      $scope.command = buildCommandFromExisting(serverGroup);
+    } else {
+      $scope.command = createCommandTemplate();
+    }
+
+    var imageLoader = oortService.findImages(application.name, $scope.command.region, $scope.command.credentials).then(function(images) {
+      $scope.packageImages = images;
+      if (images.length === 0) {
         if (serverGroup) {
-          searchService.search('oort', {q: serverGroup.launchConfig.imageId, type: 'namedImages'}).then(function (searchResults) {
-            if (searchResults.results.length > 0) {
+          oortService.getAmi(serverGroup.launchConfig.imageId, serverGroup.region, serverGroup.account).then(function (namedImage) {
+            if (namedImage) {
               var packageRegex = /(\w+)-?\w+/;
-              $scope.imageName = searchResults.results[0].imageName;
-              var match = packageRegex.exec($scope.imageName);
-              $scope.applicationName = match[1];
-              searchService.search('oort', {q: $scope.applicationName, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
-                $scope.packageImages = searchResults.results;
+              $scope.command.amiName = namedImage.imageName;
+              var match = packageRegex.exec(namedImage.imageName);
+              $scope.packageBase = match[1];
+              oortService.findImages($scope.packageBase, $scope.command.region, $scope.command.credentials).then(function(searchResults) {
+                $scope.packageImages = searchResults;
+                $scope.state.imagesLoaded = true;
+                configureImages();
               });
+            } else {
+              $scope.state.queryAllImages = true;
+              $scope.state.imagesLoaded = true;
             }
           });
         } else {
+          $scope.state.imagesLoaded = true;
           $scope.state.queryAllImages = true;
         }
+      } else {
+        $scope.state.imagesLoaded = true;
       }
     });
 
@@ -213,10 +280,8 @@ angular.module('deckApp.aws')
         .filter({'name': $scope.command.region})
         .pluck('loadBalancers')
         .flatten(true)
-        .pluck('elb')
-        .remove(undefined)
-        .filter({'vpcid': $scope.command.vpcId})
-        .pluck('loadBalancerName')
+        .filter({'vpcId': $scope.command.vpcId})
+        .pluck('name')
         .unique()
         .valueOf();
 
@@ -233,9 +298,10 @@ angular.module('deckApp.aws')
 
     function configureImages() {
       if ($scope.command.region) {
-        $scope.regionalImages = _.filter($scope.packageImages, {region: $scope.command.region});
-        if ($scope.command.amiName && !_($scope.regionalImages).some({imageName: $scope.command.amiName})) {
-          $scope.command.amiName = null;
+        $scope.regionalImages = $scope.packageImages.filter(function(image) { return image.amis && image.amis[$scope.command.region]; });
+        if ($scope.command.amiName &&
+            !$scope.regionalImages.some(function(image) { return image.imageName === $scope.command.amiName; } )) {
+              $scope.command.amiName = null;
         }
       } else {
         $scope.regionalImages = null;
@@ -261,103 +327,57 @@ angular.module('deckApp.aws')
         .valueOf();
     }
 
-    function buildCommandFromExisting(serverGroup) {
-      var serverGroupName = serverGroupService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
-      var zones = serverGroup.asg.availabilityZones.sort();
-      var preferredZones = $scope.preferredZones[serverGroup.account][serverGroup.region].sort();
-      var usePreferredZones = zones.join(',') === preferredZones.join(',');
-      var command = {
-        'application': serverGroupName.application,
-        'stack': serverGroupName.stack,
-        'freeFormDetails': serverGroupName.freeFormDetails,
-        'credentials': serverGroup.account,
-        'cooldown': serverGroup.asg.defaultCooldown,
-        'healthCheckGracePeriod': serverGroup.asg.healthCheckGracePeriod,
-        'healthCheckType': serverGroup.asg.healthCheckType,
-        'terminationPolicies': serverGroup.asg.terminationPolicies,
-        'loadBalancers': serverGroup.asg.loadBalancerNames,
-        'region': serverGroup.region,
-        'availabilityZones': zones,
-        'usePreferredZones': usePreferredZones,
-        'capacity': {
-          'min': serverGroup.asg.minSize,
-          'max': serverGroup.asg.maxSize,
-          'desired': serverGroup.asg.desiredCapacity
-        },
-        'allImageSelection': null,
-        'instanceProfile': 'custom'
-      };
-      if (serverGroup.launchConfig) {
-        var amiName = null;
-        if (serverGroup.launchConfig.imageId) {
-          var foundImage = _($scope.packageImages).find({'imageId': serverGroup.launchConfig.imageId});
-          if (foundImage) {
-            amiName = foundImage.imageName;
-          }
-        }
-        angular.extend(command, {
-          'instanceType': serverGroup.launchConfig.instanceType,
-          'iamRole': serverGroup.launchConfig.iamInstanceProfile,
-          'keyPair': serverGroup.launchConfig.keyName,
-          'associatePublicIpAddress': serverGroup.launchConfig.associatePublicIpAddress,
-          'ramdiskId': serverGroup.launchConfig.ramdiskId,
-          'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring.enabled,
-          'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
-          'amiName': amiName
-        });
-      }
-      var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
-      if (vpcZoneIdentifier !== '') {
-        var subnetId = vpcZoneIdentifier.split(',')[0];
-        var subnet = _($scope.subnets).find({'id': subnetId});
-        command.subnetType = subnet.purpose;
-        command.vpcId = subnet.vpcId;
-      } else {
-        command.subnetType = '';
-        command.vpcId = null;
-      }
-      if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
-        command.securityGroups = serverGroup.launchConfig.securityGroups;
-      }
-      return command;
-    }
-
-    function createCommandTemplate() {
-      var defaultCredentials = 'test';
-      var defaultRegion = 'us-east-1';
-      return {
-        'application': application.name,
-        'credentials': defaultCredentials,
-        'region': defaultRegion,
-        'usePreferredZones': true,
-        'availabilityZones': $scope.preferredZones[defaultCredentials][defaultRegion],
-        'capacity': {
-          'min': 0,
-          'max': 0,
-          'desired': 0
-        },
-        'cooldown': 10,
-        'healthCheckType': 'EC2',
-        'healthCheckGracePeriod': 600,
-        'instanceMonitoring': false,
-        'ebsOptimized': false,
-
-        'keyPair': $scope.regionsKeyedByAccount[defaultCredentials].defaultKeyPair,
-
-        'iamRole': 'BaseIAMRole', // should not be hard coded here
-
-        'terminationPolicies': ['Default'],
-        'vpcId': null,
-        allImageSelection: null
-      };
-    }
-
     function initializeCommand() {
+      var command = $scope.command;
       if (serverGroup) {
-        $scope.command = buildCommandFromExisting(serverGroup);
+        var serverGroupName = serverGroupService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+        var zones = serverGroup.asg.availabilityZones.sort();
+        var preferredZones = $scope.preferredZones[serverGroup.account][serverGroup.region].sort();
+        var usePreferredZones = zones.join(',') === preferredZones.join(',');
+
+        command.application = serverGroupName.application;
+        command.stack = serverGroupName.stack;
+        command.freeFormDetails = serverGroupName.freeFormDetails;
+        command.availabilityZones = zones;
+        command.usePreferredZones = usePreferredZones;
+
+        var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
+        if (vpcZoneIdentifier !== '') {
+          var subnetId = vpcZoneIdentifier.split(',')[0];
+          var subnet = _($scope.subnets).find({'id': subnetId});
+          command.subnetType = subnet.purpose;
+          command.vpcId = subnet.vpcId;
+        } else {
+          command.subnetType = '';
+          command.vpcId = null;
+        }
+
+        if (serverGroup.launchConfig) {
+          var amiName = null;
+          if (serverGroup.launchConfig.imageId) {
+            var foundImage = $scope.packageImages.filter(function(image) {
+              return image.amis[serverGroup.region] && image.amis[serverGroup.region].indexOf(serverGroup.launchConfig.imageId) !== -1;
+            });
+            if (foundImage.length) {
+              amiName = foundImage[0].imageName;
+            }
+          }
+          angular.extend(command, {
+            'instanceType': serverGroup.launchConfig.instanceType,
+            'iamRole': serverGroup.launchConfig.iamInstanceProfile,
+            'keyPair': serverGroup.launchConfig.keyName,
+            'associatePublicIpAddress': serverGroup.launchConfig.associatePublicIpAddress,
+            'ramdiskId': serverGroup.launchConfig.ramdiskId,
+            'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring.enabled,
+            'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
+            'amiName': amiName
+          });
+        }
       } else {
-        $scope.command = createCommandTemplate();
+        command.availabilityZones = $scope.preferredZones[command.credentials][command.region];
+        command.keyPair = $scope.regionsKeyedByAccount[command.credentials].defaultKeyPair;
       }
+
     }
 
     this.isValid = function () {

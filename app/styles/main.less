@@ -477,6 +477,21 @@ server-error-flag {
   background: url('/images/loading-large.gif') center 20px no-repeat;
 }
 
+.loader {
+  opacity: 0.6;
+  text-align: center;
+  margin-top: 3px;
+  &:before {
+    font-family: 'Glyphicons Halflings';
+    font-weight: 400;
+    position: relative;
+    .glyphicon-spinning();
+    content: "\2a";
+    display: inline-block;
+    line-height: 1;
+  }
+}
+
 .dropdown {
   .dropdown-header {
     margin-top: 15px;

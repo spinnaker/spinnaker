@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService, searchService, RxService) {
+  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService, oortService, RxService) {
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
@@ -13,12 +13,13 @@ angular.module('deckApp')
     });
 
     function searchImages(q) {
+      $scope.allImageSearchResults = [
+        {
+          message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
+        }
+      ];
       return new RxService.Observable.fromPromise(
-        searchService.search('oort', {
-          q: q,
-          type: 'namedImages',
-          filters: {region: $scope.command.region}
-        })
+        oortService.findImages(q, $scope.command.region, $scope.command.credentials)
       );
     }
 
@@ -28,13 +29,11 @@ angular.module('deckApp')
       .throttle(250)
       .flatMapLatest(searchImages)
       .subscribe(function (data) {
-        $scope.allImageSearchResults = data.results;
+        $scope.allImageSearchResults = data;
       });
 
     this.searchImages = function(q) {
-      if (q) {
-        imageSearchResultsStream.onNext(q);
-      }
+      imageSearchResultsStream.onNext(q);
     };
 
     this.getNamePreview = function() {
