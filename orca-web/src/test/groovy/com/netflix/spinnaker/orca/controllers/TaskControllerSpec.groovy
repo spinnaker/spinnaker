@@ -56,7 +56,7 @@ class TaskControllerSpec extends Specification {
     jobExplorer.findJobInstancesByJobName(jobs[1].name, _, _) >> [jobs[1].instance]
     jobExplorer.getJobExecutions(_) >> { args -> [new JobExecution(args[0], null)] }
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
-    tasks.every { task -> task.name == jobs[tasks.indexOf(task)].name }
+    tasks.name == ['jobOne', 'jobTwo'] // make sure they are ordered; they are.
     tasks.size() == 2
   }
 
