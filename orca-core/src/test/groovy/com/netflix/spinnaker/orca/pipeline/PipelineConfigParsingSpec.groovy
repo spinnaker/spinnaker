@@ -75,7 +75,7 @@ class PipelineConfigParsingSpec extends Specification {
 
   def "parses Pipeline object from JSON"() {
     when:
-    def pipeline = new PipelineStarter(mapper: mapper).parseConfig(json)
+    def pipeline = PipelineStarter.parseConfig(jsonMap)
 
     then:
     with(pipeline) {
@@ -90,8 +90,7 @@ class PipelineConfigParsingSpec extends Specification {
     }
 
     where:
-    json = pipelineJson
-    jsonMap = mapper.readValue(json, Map)
+    jsonMap = mapper.readValue(pipelineJson, Map)
   }
 
 }
