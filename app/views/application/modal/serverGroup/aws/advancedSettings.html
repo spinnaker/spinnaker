@@ -70,29 +70,35 @@
     </div>
     <div class="form-group">
       <div class="col-md-5 sm-label-left"><b>Instance Monitoring</b></div>
-      <div class="col-md-6">
+      <div class="col-md-6 checkbox">
         <label><input type="checkbox" ng-model="command.instanceMonitoring"/> Enable Instance Monitoring </label>
       </div>
     </div>
     <div class="form-group">
       <div class="col-md-5 sm-label-left"><b>EBS Optimized</b></div>
-      <div class="col-md-6">
+      <div class="col-md-6 checkbox">
         <label><input type="checkbox" ng-model="command.ebsOptimized"/> Optimize Instances for EBS</label>
       </div>
     </div>
     <div class="form-group">
       <div class="col-md-5 sm-label-left"><b>Associate Public IP Address</b></div>
-      <div class="col-md-2">
-        <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
-        &nbsp;<label for="associatePublicIpAddressTrue" class="choice">Yes</label>
+      <div class="col-md-2 radio">
+        <label>
+          <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
+          Yes
+        </label>
       </div>
-      <div class="col-md-2">
-        <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
-        &nbsp;<label for="associatePublicIpAddressFalse" class="choice">No</label>
+      <div class="col-md-2 radio">
+        <label>
+          <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
+          No
+        </label>
       </div>
-      <div class="col-md-2">
-        <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="null" id="associatePublicIpAddressDefault"/>
-        &nbsp;<label for="associatePublicIpAddressDefault" class="choice">Default</label>
+      <div class="col-md-2 radio">
+        <label>
+          <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="null" id="associatePublicIpAddressDefault"/>
+          Default
+        </label>
       </div>
     </div>
   </div>

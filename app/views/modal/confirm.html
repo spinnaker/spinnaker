@@ -1,35 +1,36 @@
 <div modal-page class="confirmation-modal">
   <task-monitor monitor="taskMonitor"></task-monitor>
-  <form role="form" class="container-fluid">
-    <div class="modal-header">
-      <h3>{{params.header}}</h3>
-    </div>
-    <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry">
-      <p ng-if="params.body">
-        {{params.body}}
-      </p>
-      <div class="row" ng-if="verification.requireAccountEntry">
-        <div class="col-sm-offset-1 col-sm-10">
-          <p>Type the name of the account ( <account-tag account="params.account"></account-tag> ) below to continue.</p>
-          <div class="form-inline">
-            <div class="form-group">
-              <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm" placeholder="{{params.account.toUpperCase()}}"/>
-            </div>
+  <div class="modal-header">
+    <h3>{{params.header}}</h3>
+  </div>
+  <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry">
+    <form role="form" class="container-fluid">
+    <p ng-if="params.body">
+      {{params.body}}
+    </p>
+    <div class="row" ng-if="verification.requireAccountEntry">
+      <div class="col-sm-offset-1 col-sm-10">
+        <p>Type the name of the account ( <account-tag account="params.account"></account-tag> ) below to continue.</p>
+        <div class="form-inline">
+          <div class="form-group">
+            <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm" placeholder="{{params.account.toUpperCase()}}"/>
           </div>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button class="btn btn-primary"
-              ng-disabled="taskMonitor.submitting || (verification.requireAccountEntry && verification.verifyAccount !== params.account.toUpperCase())"
-              ng-click="ctrl.confirm()">
-        <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-disabled="taskMonitor.submitting || (verification.requireAccountEntry && verification.verifyAccount !== params.account.toUpperCase())"
+            ng-click="ctrl.confirm()">
+      <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
         <span ng-if="submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
           <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
         </span>
-        {{params.buttonText}}
-      </button>
-    </div>
-  </form>
+      {{params.buttonText}}
+    </button>
+  </div>
+
 </div>

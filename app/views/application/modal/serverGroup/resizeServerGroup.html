@@ -1,9 +1,9 @@
 <div modal-page>
-  <form role="form" class="container-fluid form-horizontal">
-    <div class="modal-header">
-      <h3>Resize {{serverGroup.name}}</h3>
-    </div>
-    <div class="modal-body">
+  <div class="modal-header">
+    <h3>Resize {{serverGroup.name}}</h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" class="container-fluid form-horizontal">
       <div ng-if="command.advancedMode">
         <div class="form-group">
           <div class="col-md-12">
@@ -93,14 +93,14 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button class="btn btn-primary"
-              ng-click="ctrl.resize()"
-              ng-disabled="!ctrl.isValid()">
-        Submit
-      </button>
-    </div>
-  </form>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="ctrl.resize()"
+            ng-disabled="!ctrl.isValid()">
+      Submit
+    </button>
+  </div>
 </div>
