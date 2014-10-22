@@ -62,7 +62,7 @@ class TaskController {
 
   private static JobViewModel convert(JobExecution jobExecution) {
     def steps = jobExecution.stepExecutions.collect {
-      def stepName = it.stepName.tokenize('.')[1]
+      def stepName = it.stepName.contains('.') ? it.stepName.tokenize('.')[1] : it.stepName
       [name: stepName, status: it.exitStatus.exitCode, startTime: it.startTime, endTime: it.endTime]
     }
     def variables = []

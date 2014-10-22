@@ -42,7 +42,7 @@ class TaskControllerSpec extends Specification {
     ).build()
     jobs = [
       [instance: new JobInstance(0, 'jobOne'), name: 'jobOne', id: 0],
-      [instance: new JobInstance(1, 'jobTwo'), name: 'jobTwo', id: 1]
+      [instance: new JobInstance(1, 'jobTwo'), name: 'deploy.jobTwo.randomStuff', id: 1]
     ]
   }
 
@@ -71,6 +71,19 @@ class TaskControllerSpec extends Specification {
     jobExplorer.getJobExecutions(_) >> { args -> [new JobExecution(args[0], args[0].id, null, null)] }
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.id == [0, 1]
+  }
+
+  void 'step names are properly translated'() {
+    when:
+    def response = mockMvc.perform(get('/tasks')).andReturn().response
+
+    then:
+    jobExplorer.jobNames >> [jobs[1].name, jobs[0].name]
+    jobExplorer.findJobInstancesByJobName(jobs[0].name, _, _) >> [jobs[0].instance]
+    jobExplorer.findJobInstancesByJobName(jobs[1].name, _, _) >> [jobs[1].instance]
+    jobExplorer.getJobExecutions(_) >> { args -> [new JobExecution(args[0], args[0].id, null, null)] }
+    List tasks = new ObjectMapper().readValue(response.contentAsString, List)
+    tasks.name == ['jobOne', 'jobTwo']
   }
 
   void '/tasks returns [] when there are no tasks'() {
