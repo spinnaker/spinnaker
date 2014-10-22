@@ -114,10 +114,11 @@ class InstanceCachingAgent implements CachingAgent {
 
     for (Instance instance : awsInstances) {
       def data = new InstanceData(instance, account.name, region)
-
-      cacheImage(data, images)
-      cacheServerGroup(data, serverGroups)
-      cacheInstance(data, instances)
+      if (data.cache) {
+        cacheImage(data, images)
+        cacheServerGroup(data, serverGroups)
+        cacheInstance(data, instances)
+      }
     }
 
     new DefaultCacheResult(
@@ -155,14 +156,18 @@ class InstanceCachingAgent implements CachingAgent {
 
   private static class InstanceData {
     static final String ASG_TAG_NAME = "aws:autoscaling:groupName"
+    static final int SHUTTING_DOWN = 32
+    static final int TERMINATED = 48
 
     final Instance instance
     final String instanceId
     final String serverGroup
     final String imageId
+    final boolean cache
 
     public InstanceData(Instance instance, String account, String region) {
       this.instance = instance
+      cache = !(instance.state.code == SHUTTING_DOWN || instance.state.code == TERMINATED)
       this.instanceId = Keys.getInstanceKey(instance.instanceId, account, region)
       String sgTag = instance.tags?.find { it.key == ASG_TAG_NAME }?.value
       this.serverGroup = sgTag ? Keys.getServerGroupKey(sgTag, account, region) : null
