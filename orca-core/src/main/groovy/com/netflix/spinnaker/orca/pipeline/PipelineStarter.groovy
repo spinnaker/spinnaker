@@ -16,79 +16,45 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
-import javax.annotation.PostConstruct
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.batch.StageBuilder
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobParameters
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobFlowBuilder
-import org.springframework.batch.core.launch.JobLauncher
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import rx.Observable
 import rx.subjects.ReplaySubject
+
+
 import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
-import static java.util.UUID.randomUUID
+import static java.lang.System.currentTimeMillis
 
 @Component
 @CompileStatic
-class PipelineStarter {
-
-  @Autowired private ApplicationContext applicationContext
-  @Autowired private JobLauncher launcher
-  @Autowired private JobBuilderFactory jobs
-  @Autowired private StepBuilderFactory steps
-  @Autowired private ObjectMapper mapper
-
-  private final Map<String, StageBuilder> stages = [:]
+class PipelineStarter extends AbstractOrchestrationInitiator {
 
   /**
-   * Builds and launches a _pipeline_ based on config from _Mayo_.
+   * Builds a _pipeline_ based on config from _Mayo_.
    *
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  Observable<Pipeline> start(String configJson) {
-    def pipeline = parseConfig(configJson)
-    def subject = ReplaySubject.createWithSize(1)
-    def job = createJobFrom(pipeline, subject)
-    launcher.run(job, new JobParameters())
-    subject
-  }
-
-  @PostConstruct
-  void initialize() {
-    applicationContext.getBeansOfType(StageBuilder).values().each {
-      stages[it.type] = it
-    }
-    applicationContext.getBeansOfType(StandaloneTask).values().each {
-      def stage = new SimpleStage(it.type, it)
-      applicationContext.autowireCapableBeanFactory.autowireBean(stage)
-      // TODO: this should be a prototype scoped bean or use a factory I guess
-      stages[it.type] = stage
-    }
+  Job build(Map<String, Object> config, ReplaySubject subject) {
+    def pipeline = parseConfig(config)
+    createJobFrom(pipeline, subject)
   }
 
   @VisibleForTesting
-  private Pipeline parseConfig(String configJson) {
-    // TODO: map directly to the Pipeline class
-    Map<String, Object> config = mapper.readValue(configJson, Map)
+  private static Pipeline parseConfig(Map<String, Object> config) {
     Pipeline.builder()
-            .withApplication(config.application.toString())
-            .withName(config.name.toString())
-            .withStages((List<Map<String, Serializable>>) config.stages)
-            .build()
+      .withApplication(config.application.toString())
+      .withName(config.name.toString())
+      .withStages((List<Map<String, Serializable>>) config.stages)
+      .build()
   }
 
   private Job createJobFrom(Pipeline pipeline, ReplaySubject subject) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def jobBuilder = jobs.get("orca-job-${randomUUID()}")
+    def jobBuilder = jobs.get("orca-pipeline-${pipeline.application}-${pipeline.name}-${currentTimeMillis()}")
       .flow(initializationStep(steps, pipeline))
       .next(initializeFulfiller(steps, pipeline, subject)) as JobFlowBuilder
     buildFlow(jobBuilder, pipeline).build().build()
@@ -98,15 +64,4 @@ class PipelineStarter {
     (JobFlowBuilder) pipeline.stages.inject(jobBuilder, this.&createStage)
   }
 
-  private JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage stage) {
-    builderFor(stage).build(jobBuilder, stage)
-  }
-
-  private StageBuilder builderFor(Stage stage) {
-    if (stages.containsKey(stage.type)) {
-      stages.get(stage.type)
-    } else {
-      throw new NoSuchStageException(stage.type)
-    }
-  }
 }
