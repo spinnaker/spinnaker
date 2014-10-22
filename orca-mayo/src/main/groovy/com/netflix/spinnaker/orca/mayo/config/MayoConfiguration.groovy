@@ -14,55 +14,48 @@
  * limitations under the License.
  */
 
-
-
-package com.netflix.spinnaker.orca.echo.config
-
-import com.netflix.spinnaker.orca.notifications.BuildJobNotificationHandler
-import com.netflix.spinnaker.orca.notifications.NotificationHandler
-
-
-import static retrofit.Endpoints.newFixedEndpoint
+package com.netflix.spinnaker.orca.mayo.config
 
 import com.google.gson.Gson
-import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.*
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
 
+
+import static retrofit.Endpoints.newFixedEndpoint
+
 @Configuration
 @Import(RetrofitConfiguration)
-@ConditionalOnProperty(value='echo.baseUrl')
 @CompileStatic
-class EchoConfiguration {
+@ConditionalOnProperty("mayo.baseUrl")
+class MayoConfiguration {
 
-  @Autowired Client retrofitClient
-  @Autowired RestAdapter.LogLevel retrofitLogLevel
+  @Autowired
+  Client retrofitClient
+  @Autowired
+  RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint echoEndpoint(@Value('${echo.baseUrl:http://echo.prod.netflix.net}') String echoBaseUrl) {
-    newFixedEndpoint(echoBaseUrl)
+  @Bean
+  Endpoint mayoEndpoint(@Value('${mayo.baseUrl:http://mayo.prod.netflix.net}') String url) {
+    newFixedEndpoint(url)
   }
 
-  @Bean EchoService notificationService(Endpoint echoEndpoint, Gson gson) {
+  @Bean
+  MayoService notificationService(Endpoint mayoEndpoint, Gson gson) {
     new RestAdapter.Builder()
-      .setEndpoint(echoEndpoint)
+      .setEndpoint(mayoEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setConverter(new GsonConverter(gson))
       .build()
-      .create(EchoService)
-  }
-
-  @Bean BuildJobNotificationHandler buildJobNotificationHandler() {
-    new BuildJobNotificationHandler()
+      .create(MayoService)
   }
 }

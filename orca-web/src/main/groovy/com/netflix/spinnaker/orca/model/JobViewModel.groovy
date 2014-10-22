@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
+package com.netflix.spinnaker.orca.model
 
-rootProject.name = "orca"
+import groovy.transform.Immutable
+import org.springframework.batch.core.BatchStatus
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
+@Immutable(knownImmutables = ['status', 'variables', 'steps'])
+class JobViewModel {
+  Long id
+  String name
+  BatchStatus status
+  def variables
+  def steps
+  Date startTime
+  Date endTime
 }

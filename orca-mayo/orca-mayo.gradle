@@ -14,29 +14,10 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
+apply from: "$rootDir/gradle/groovy-module.gradle"
 
-rootProject.name = "orca"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
+dependencies {
+  compile project(":orca-retrofit")
+  compile spinnaker.dependency('bootAutoConfigure')
+  testCompile project(":orca-test")
 }

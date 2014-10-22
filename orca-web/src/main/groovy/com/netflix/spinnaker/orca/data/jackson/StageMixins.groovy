@@ -14,29 +14,12 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
+package com.netflix.spinnaker.orca.data.jackson
 
-rootProject.name = "orca"
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
+interface StageMixins {
+  @JsonIgnore
+  Pipeline getPipeline()
 }
