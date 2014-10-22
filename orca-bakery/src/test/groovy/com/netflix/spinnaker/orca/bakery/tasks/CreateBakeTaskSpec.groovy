@@ -30,7 +30,7 @@ import static java.util.UUID.randomUUID
 class CreateBakeTaskSpec extends Specification {
 
   @Subject task = new CreateBakeTask()
-  def stage = new Stage("bake")
+  Stage stage
   def mapper = new ObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
@@ -45,7 +45,7 @@ class CreateBakeTaskSpec extends Specification {
   def setup() {
     task.mapper = mapper
 
-    stage.context.putAll(bakeConfig)
+    stage = new Stage("bake", bakeConfig)
   }
 
   def "creates a bake for the correct region"() {

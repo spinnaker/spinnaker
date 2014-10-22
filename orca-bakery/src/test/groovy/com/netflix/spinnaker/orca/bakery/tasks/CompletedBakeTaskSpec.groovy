@@ -32,7 +32,6 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 class CompletedBakeTaskSpec extends Specification {
 
   @Subject task = new CompletedBakeTask()
-  def stage = new Stage("bake")
 
   @Shared notFoundError = RetrofitError.httpError(
     null,
@@ -48,8 +47,7 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    stage.context.region = region
-    stage.context.status = new BakeStatus(resourceId: bakeId)
+    def stage = new Stage("bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
 
     when:
     def result = task.execute(stage)
@@ -71,8 +69,7 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    stage.context.region = region
-    stage.context.status = new BakeStatus(resourceId: bakeId)
+    def stage = new Stage("bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
 
     when:
     def result = task.execute(stage)

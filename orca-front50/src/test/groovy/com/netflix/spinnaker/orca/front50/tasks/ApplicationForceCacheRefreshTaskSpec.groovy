@@ -23,15 +23,10 @@ import spock.lang.Subject
 
 class ApplicationForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new ApplicationForceCacheRefreshTask()
-  def stage = new Stage("forceRefresh")
-
   def config = [
     account: "fzlem"
   ]
-
-  def setup() {
-    stage.context.putAll(config)
-  }
+  def stage = new Stage("forceRefresh", config)
 
   void "should force cache refresh applications via oort"() {
     setup:

@@ -29,17 +29,12 @@ import static java.util.UUID.randomUUID
 class MonitorBakeTaskSpec extends Specification {
 
   @Subject task = new MonitorBakeTask()
-  def stage = new Stage("bake")
-
-  def setup() {
-    stage.context.region = "us-west-1"
-  }
 
   @Unroll
   def "should return #taskStatus if bake is #bakeState"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    stage.context.status = previousStatus
+    def stage = new Stage("bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {
@@ -63,7 +58,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "outputs the updated bake status"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    stage.context.status = previousStatus
+    def stage = new Stage("bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {
