@@ -257,8 +257,7 @@ gulp.task('watch', function() {
     run('test:karma');
   });
   $.watch([
-    dist+'/scripts/**/*',
-    dist+'/styles/**/*',
+    'dist/index.html'
   ]).pipe($.connect.reload());
 });
 
