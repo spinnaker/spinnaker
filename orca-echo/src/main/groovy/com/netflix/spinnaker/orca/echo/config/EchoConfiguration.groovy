@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import com.netflix.spinnaker.orca.notifications.BuildJobNotificationHandler
+import com.netflix.spinnaker.orca.notifications.BuildJobPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 
 
@@ -52,7 +53,7 @@ class EchoConfiguration {
     newFixedEndpoint(echoBaseUrl)
   }
 
-  @Bean EchoService notificationService(Endpoint echoEndpoint, Gson gson) {
+  @Bean EchoService echoService(Endpoint echoEndpoint, Gson gson) {
     new RestAdapter.Builder()
       .setEndpoint(echoEndpoint)
       .setClient(retrofitClient)
@@ -64,5 +65,9 @@ class EchoConfiguration {
 
   @Bean BuildJobNotificationHandler buildJobNotificationHandler() {
     new BuildJobNotificationHandler()
+  }
+
+  @Bean BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+    new BuildJobPollingNotificationAgent(notificationHandlers)
   }
 }
