@@ -16,21 +16,24 @@
 
 package com.netflix.spinnaker.orca
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
-import com.netflix.spinnaker.orca.batch.config.JedisConfiguration
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
+import com.netflix.spinnaker.orca.pipeline.Stage
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
@@ -53,5 +56,13 @@ class Main {
   static void main(String... args) {
     System.setProperty('netflix.environment', 'test')
     SpringApplication.run(Main, args)
+  }
+
+  static class StockMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {}
+
+  @Bean
+  StockMappingJackson2HttpMessageConverter customJacksonConverter(ObjectMapper objectMapper) {
+    objectMapper.addMixInAnnotations(Stage, StageMixins)
+    new StockMappingJackson2HttpMessageConverter(objectMapper: objectMapper)
   }
 }
