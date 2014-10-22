@@ -2,12 +2,14 @@
 
 
 angular.module('deckApp')
-  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch, $, $window) {
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch) {
+    var ctrl = this;
     var search = infrastructureSearch();
 
     $scope.showSearchResults = false;
 
     function reset() {
+      $scope.querying = false;
       $scope.query = null;
       $scope.categories = null;
       $scope.showSearchResults = false;
@@ -21,60 +23,49 @@ angular.module('deckApp')
     };
 
     this.dispatchQueryInput = function(event) {
-      if (!$scope.query) {
-        $scope.showSearchResults = false;
-        $scope.categories = null;
-        return;
-      }
       if ($scope.showSearchResults) {
-        if (event.which === 27) {
+        if (event.which === 27) { // escape
           return reset();
         }
-        if (event.which === 40) {
-          return focusFirstSearchResult(event);
+        if (event.which === 40) { // down
+          return ctrl.focusFirstSearchResult(event);
         }
-        if (event.which === 38) {
-          return focusLastSearchResult(event);
+        if (event.which === 38) { // up
+          return ctrl.focusLastSearchResult(event);
         }
-        if (event.which === 9) {
+        if (event.which === 39 || event.which === 37 || event.which === 16) { // right, left, shift
+          return;
+        }
+        if (event.which === 9) { // tab
           if (!event.shiftKey) {
-            focusFirstSearchResult(event);
+            ctrl.focusFirstSearchResult(event);
           }
           return;
         }
       }
+      $scope.querying = true;
       search.query($scope.query).then(function(result) {
+        $scope.querying = false;
         $scope.categories = result;
-        $scope.showSearchResults = true;
+        $scope.showSearchResults = !!$scope.query;
       });
     };
 
-    $($window).bind('click.globalsearch', function(event) {
-      if (event.target === $element.find('input').get(0)) {
-        return;
-      }
-      $scope.$apply(function(scope) {
-        scope.showSearchResults = false;
-      });
-    });
 
-    $scope.$on('$destroy', function() {
-      $window.unbind('.globalsearch');
-    });
 
-    function focusFirstSearchResult() {
+    this.focusFirstSearchResult = function focusFirstSearchResult() {
       event.preventDefault();
       try {
         $element.find('.dropdown-menu').find('a').first().focus();
       } catch (e) {}
-    }
+    };
 
-    function focusLastSearchResult() {
+    this.focusLastSearchResult = function focusLastSearchResult() {
       event.preventDefault();
       try {
         $element.find('.dropdown-menu').find('a').last().focus();
       } catch (e) {}
-    }
+    };
 
     this.showSearchResults = function() {
       if (angular.isObject($scope.categories)) {
@@ -95,7 +86,7 @@ angular.module('deckApp')
             .children[0]
             .focus();
         } catch (e) {
-          focusFirstSearchResult();
+          ctrl.focusFirstSearchResult();
         }
         event.preventDefault();
       }
@@ -107,7 +98,7 @@ angular.module('deckApp')
             .children[0]
             .focus();
         } catch (e) {
-          focusLastSearchResult();
+          ctrl.focusLastSearchResult();
         }
         event.preventDefault();
       }

@@ -5,14 +5,19 @@
         class="form-control"
         placeholder="Search"
         ng-model="query"
-        ng-focus="ctrl.displayResults($event)"
+        ng-focus="ctrl.displayResults()"
         ng-keyup="ctrl.dispatchQueryInput($event)">
       </input>
     </div>
   </form>
   <ul class="dropdown-menu"
       role="menu"
-      ng-if="showSearchResults">
+      ng-if="querying">
+    <li class="loader">searching..</li>
+  </ul>
+  <ul class="dropdown-menu"
+      role="menu"
+      ng-if="!querying && showSearchResults">
     <li ng-repeat-start="category in categories" class="category-heading">
       <div class="category-heading">{{ category.category }}</div>
     </li>
