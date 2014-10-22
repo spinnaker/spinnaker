@@ -179,8 +179,7 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
-    def bakeStage = new Stage(stage.pipeline, "bake", [:])
-    bakeStage.outputs."bake.ami" = amiName
+    def bakeStage = new Stage(stage.pipeline, "bake", [ami: amiName])
     stage.pipeline.@stages.clear()
     stage.pipeline.@stages.addAll([bakeStage, stage])
 

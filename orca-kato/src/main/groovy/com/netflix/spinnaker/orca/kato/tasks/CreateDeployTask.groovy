@@ -63,10 +63,10 @@ class CreateDeployTask implements Task {
                           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
                           .convertValue(stage.context.containsKey("cluster") ? stage.context.cluster : stage.context, Map)
     // TODO This logic is not great... we should have a mechanism to discriminate on stage type, versus how it was built from config.
-    if (stage.preceding("bake")?.outputs?."bake.ami") {
-      operation.amiName = stage.preceding("bake").outputs."bake.ami"
-    } else if (stage.preceding("opinionatedBake")?.outputs?."bake.ami") {
-      operation.amiName = stage.preceding("opinionatedBake").outputs."bake.ami"
+    if (stage.preceding("bake")?.context?.ami) {
+      operation.amiName = stage.preceding("bake").context.ami
+    } else if (stage.preceding("opinionatedBake")?.context?.ami) {
+      operation.amiName = stage.preceding("opinionatedBake").context.ami
     }
     if (stage.context.account && !operation.credentials) {
       operation.credentials = stage.context.account
