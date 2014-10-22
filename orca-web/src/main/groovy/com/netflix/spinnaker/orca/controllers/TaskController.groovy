@@ -75,9 +75,6 @@ class TaskController {
         for (entry in stage.context.entrySet()) {
           variables.add([key: "${stage.type}.${entry.key}".toString(), value: entry.value])
         }
-        for (entry in stage.outputs.entrySet()) {
-          variables.add(entry)
-        }
       }
     }
     new JobViewModel(id: jobExecution.id, name: jobExecution.jobInstance.jobName, status: jobExecution.status,
