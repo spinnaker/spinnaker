@@ -36,12 +36,10 @@ import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.LOAD_BALANCERS
 class AmazonLoadBalancerController {
 
   private final Cache cacheView
-  private final AwsConfigurationProperties awsConfigurationProperties
 
   @Autowired
-  AmazonLoadBalancerController(Cache cacheView, AwsConfigurationProperties awsConfigurationProperties) {
+  AmazonLoadBalancerController(Cache cacheView) {
     this.cacheView = cacheView
-    this.awsConfigurationProperties = awsConfigurationProperties
   }
 
   @RequestMapping(method = RequestMethod.GET)
@@ -52,14 +50,11 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
-    Collection<String> lbIds = awsConfigurationProperties.accounts.collectMany { NetflixAssumeRoleAmazonCredentials account ->
-      Collection<CacheData> regionLbs = account.regions.collect { AmazonCredentials.AWSRegion region ->
-        Keys.getLoadBalancerKey(name, account.name, region.name, null)
-      }
-      regionLbs
+    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+      def key = Keys.parse(it)
+      key.loadBalancer == name
     }
-
-    getSummaryForLoadBalancers(lbIds).get(name)
+    getSummaryForLoadBalancers(identifiers).get(name)
   }
 
   @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
