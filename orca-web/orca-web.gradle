@@ -36,6 +36,8 @@ springBoot {
 }
 
 dependencies {
+  spinnaker.group("bootWeb")
+
   testCompile project(":orca-test")
   compile project(":orca-bakery")
   compile project(":orca-kato")
@@ -43,10 +45,8 @@ dependencies {
   compile project(":orca-mort")
   compile project(":orca-front50")
   compile project(":orca-echo")
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compile commonDependencies.springWeb
-  compile commonDependencies.springBatchTest
-  runtime commonDependencies.spockSpring
-  runtime commonDependencies.springTest
+  compile project(":orca-mayo")
+  testCompile commonDependencies.springBatchTest
+  testCompile commonDependencies.spockSpring
+  testCompile commonDependencies.springTest
 }

@@ -16,14 +16,20 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.data.jackson.StageMixins
+import com.netflix.spinnaker.orca.pipeline.Stage
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
-@ComponentScan(basePackages = 'com.netflix.spinnaker.orca.rest')
+@ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')
 class WebConfiguration {
 
-
-
+  @Bean ObjectMapper objectMapper() {
+    def mapper = new ObjectMapper()
+    mapper.addMixInAnnotations(Stage, StageMixins)
+    mapper
+  }
 }

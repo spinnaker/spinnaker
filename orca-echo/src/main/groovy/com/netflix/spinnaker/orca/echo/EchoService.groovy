@@ -17,14 +17,15 @@
 
 package com.netflix.spinnaker.orca.echo
 
-import retrofit.http.Body
-import retrofit.http.POST
-
 import javax.xml.ws.Response
+import retrofit.http.*
 
 interface EchoService {
 
   @POST('/')
   Response recordEvent(@Body HashMap notification)
 
+  @GET('/search/events/{time}')
+  retrofit.client.Response getEvents(@Path("time") Long time, @Query("size") Long size, @Query("full") Boolean full,
+                                     @Query("type") String type)
 }

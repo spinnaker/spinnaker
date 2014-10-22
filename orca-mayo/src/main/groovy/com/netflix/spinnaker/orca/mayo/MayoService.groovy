@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-web"
+package com.netflix.spinnaker.orca.mayo
 
-rootProject.name = "orca"
+import retrofit.client.Response
+import retrofit.http.GET
+import retrofit.http.Headers
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+interface MayoService {
 
-rootProject.children.each {
-  setBuildFile it
+  @GET("/pipelines")
+  @Headers("Accept: application/json")
+  Response getPipelines()
 }

@@ -18,6 +18,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
   compile project(":orca-retrofit")
+  compile project(":orca-mayo")
   compile spinnaker.dependency('bootAutoConfigure')
   testCompile project(":orca-test")
 }
