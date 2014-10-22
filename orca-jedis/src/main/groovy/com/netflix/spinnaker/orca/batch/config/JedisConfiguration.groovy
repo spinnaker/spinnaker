@@ -14,31 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.config
+package com.netflix.spinnaker.orca.batch.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.batch.core.configuration.annotation.JedisBatchConfigurer
 import groovy.transform.CompileStatic
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.JedisCommands
 
 @Configuration
 @CompileStatic
-class OrcaConfiguration {
-
-  @Bean ObjectMapper mapper() {
-    def mapper = new ObjectMapper()
-    mapper.registerModule(new GuavaModule())
-    return mapper
+class JedisConfiguration {
+  @Bean
+  JedisBatchConfigurer batchConfigurer(JedisCommands jedisCommands) {
+    new JedisBatchConfigurer(jedisCommands)
   }
 
-  @Bean PipelineStarter jobStarter() {
-    new PipelineStarter()
-  }
-
-  @Bean NoopNotificationHandler noopNotificationHandler() {
-    new NoopNotificationHandler()
-  }
 }

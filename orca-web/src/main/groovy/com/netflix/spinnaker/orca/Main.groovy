@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca
 
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.batch.config.JedisConfiguration
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
@@ -27,13 +28,14 @@ import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
 @EnableAsync
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = BatchAutoConfiguration)
 @EnableBatchProcessing(modular = true)
 @Import([
   BakeryConfiguration,
@@ -43,7 +45,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   MortConfiguration,
   OortConfiguration,
   WebConfiguration,
-  MayoConfiguration
+  MayoConfiguration,
+  JedisConfiguration
 ])
 class Main {
 
