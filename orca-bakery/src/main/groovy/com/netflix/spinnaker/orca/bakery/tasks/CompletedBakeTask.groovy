@@ -35,7 +35,7 @@ class CompletedBakeTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def region = stage.context.region as String
-    def bakeStatus = stage.context.status as BakeStatus
+    def bakeStatus = stage.context."bake.status" as BakeStatus
     try {
       def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
       new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["bake.ami": bake.ami])

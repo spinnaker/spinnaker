@@ -37,7 +37,7 @@ class MonitorBakeTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     def region = stage.context.region as String
-    def previousStatus = stage.context.status as BakeStatus
+    def previousStatus = stage.context."bake.status" as BakeStatus
 
     // TODO: could skip the lookup if it's already complete as it will be for a previously requested bake
 

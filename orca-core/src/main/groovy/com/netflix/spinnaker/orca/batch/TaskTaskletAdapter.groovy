@@ -61,6 +61,7 @@ class TaskTaskletAdapter implements Tasklet {
       }
     }
 
+    stage.context.putAll(result.outputs)
     stage.outputs.putAll(result.outputs)
 
     def batchStepStatus = BatchStepStatus.mapResult(result)

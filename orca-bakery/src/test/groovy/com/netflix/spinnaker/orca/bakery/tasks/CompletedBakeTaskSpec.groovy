@@ -47,7 +47,7 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
+    def stage = new Stage("bake", [region: region, "bake.status": new BakeStatus(resourceId: bakeId)])
 
     when:
     def result = task.execute(stage)
@@ -69,7 +69,7 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
+    def stage = new Stage("bake", [region: region, "bake.status": new BakeStatus(resourceId: bakeId)])
 
     when:
     def result = task.execute(stage)
