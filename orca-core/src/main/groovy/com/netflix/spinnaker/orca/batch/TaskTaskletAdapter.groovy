@@ -16,19 +16,15 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.pipeline.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.retry.annotation.Retryable
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 
 @CompileStatic
 @Retryable
@@ -73,15 +69,11 @@ class TaskTaskletAdapter implements Tasklet {
   }
 
   private Stage currentStage(ChunkContext chunkContext) {
-    currentPipeline(chunkContext).namedStage(stageName(chunkContext))
+    (Stage) chunkContext.stepContext.stepExecution.jobExecution
+      .executionContext.get(stageName(chunkContext))
   }
 
-  private Pipeline currentPipeline(ChunkContext chunkContext) {
-    (Pipeline) chunkContext.stepContext.stepExecution.jobExecution
-                           .executionContext.get(PIPELINE_CONTEXT_KEY)
-  }
-
-  private String stageName(ChunkContext chunkContext) {
+  private static String stageName(ChunkContext chunkContext) {
     chunkContext.stepContext.stepName.tokenize(".").first()
   }
 }

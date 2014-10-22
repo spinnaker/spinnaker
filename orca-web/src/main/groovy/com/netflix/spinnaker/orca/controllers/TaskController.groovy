@@ -36,7 +36,7 @@ class TaskController {
     ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).findAll {
-          ((Pipeline) it?.getExecutionContext()?.get('pipeline'))?.application == application
+          it.jobParameters.parameters?.application == application
         }.collect {
           TaskController.convert it
         }

@@ -48,7 +48,7 @@ class TaskTaskletAdapterSpec extends Specification {
   def chunkContext = new ChunkContext(stepContext)
 
   def setup() {
-    stepExecution.jobExecution.executionContext.put(PIPELINE_CONTEXT_KEY, pipeline)
+    new PipelineInitializerTasklet(pipeline).execute(stepContribution, chunkContext)
   }
 
   def "should invoke the step when executed"() {

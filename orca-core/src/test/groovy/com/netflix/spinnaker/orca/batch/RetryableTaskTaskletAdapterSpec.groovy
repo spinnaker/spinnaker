@@ -31,16 +31,14 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class RetryableTaskTaskletAdapterSpec extends Specification {
-
+  def pipeline = Pipeline.builder().withStage("stage").build()
   def stepExecution = createStepExecution("stage.retryableTask", nextLong())
   def stepContext = new StepContext(stepExecution)
   def stepContribution = new StepContribution(stepExecution)
   def chunkContext = new ChunkContext(stepContext)
 
   def setup() {
-    stepExecution.jobExecution.with {
-      executionContext.put(PIPELINE_CONTEXT_KEY, Pipeline.builder().withStage("stage").build())
-    }
+    new PipelineInitializerTasklet(pipeline).execute(stepContribution, chunkContext)
   }
 
   void "should backoff when the task returns continuable"() {
