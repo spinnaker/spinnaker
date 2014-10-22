@@ -30,7 +30,6 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static PipelineStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.PipelineStatus.*
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
@@ -107,7 +106,7 @@ class TaskTaskletAdapterSpec extends Specification {
   }
 
   @Unroll
-  def "should write any task outputs to the stage outputs if the task status is #taskStatus"() {
+  def "should write any task outputs to the stage context if the task status is #taskStatus"() {
     given:
     task.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
 
@@ -115,16 +114,16 @@ class TaskTaskletAdapterSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stage.outputs == outputs
+    stage.context == outputs
 
     where:
     taskStatus << [RUNNING, FAILED, SUCCEEDED]
     outputs = [foo: "bar", baz: "qux"]
   }
 
-  def "should overwrite values in the stage if a task sets them as outputs"() {
+  def "should overwrite values in the stage if a task returns them as outputs"() {
     given:
-    stage.outputs[key] = value
+    stage.context[key] = value
 
     and:
     task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])
@@ -133,7 +132,7 @@ class TaskTaskletAdapterSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stage.outputs[key] == value.reverse()
+    stage.context[key] == value.reverse()
 
     where:
     key = "foo"

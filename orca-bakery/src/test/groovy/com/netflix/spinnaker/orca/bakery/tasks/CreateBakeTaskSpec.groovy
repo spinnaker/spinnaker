@@ -89,7 +89,7 @@ class CreateBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    with(result.outputs["bake.status"]) {
+    with(result.outputs.status) {
       id == runningStatus.id
       state == runningStatus.state
     }
