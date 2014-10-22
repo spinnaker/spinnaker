@@ -29,9 +29,9 @@ import static java.util.UUID.randomUUID
 
 @Component
 @CompileStatic
-class OrchestrationStarter extends AbstractOrchestrationInitiator {
+class OrchestrationStarter extends AbstractOrchestrationInitiator<String> {
 
-  Job build(Map<String, Object> config, ReplaySubject subject) {
+  protected Job build(Map<String, Object> config, ReplaySubject subject) {
     def jobBuilder = jobs.get("orca-orchestration-${randomUUID()}")
       .flow(createTasklet(steps, subject))
       .next(initializeFulfiller(steps, null, subject)) as JobFlowBuilder

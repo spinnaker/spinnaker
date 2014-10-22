@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
+import org.springframework.batch.core.JobParameter
+import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.batch.item.ExecutionContext
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -98,22 +101,42 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/tasks filters tasks by application'() {
     when:
-    def response = mockMvc.perform(get('/applications/test/tasks')).andReturn().response
+    def response = mockMvc.perform(get("/applications/test/tasks")).andReturn().response
 
     then:
     jobExplorer.jobNames >> [jobs[0].name, jobs[1].name]
     jobExplorer.findJobInstancesByJobName(jobs[0].name, _, _) >> [jobs[0].instance]
     jobExplorer.findJobInstancesByJobName(jobs[1].name, _, _) >> [jobs[1].instance]
-    jobExplorer.getJobExecutions(_) >> { args ->
-      def execution = new JobExecution(args[0], null)
+    jobExplorer.getJobExecutions(_) >> { JobInstance jobInstance ->
+      def execution = Mock(JobExecution)
+      execution.getJobInstance() >> jobInstance
       def pipeline = new Pipeline()
-      pipeline.application = "test"
-      if (args[0].id == 1) {
-        execution.getExecutionContext().put('pipeline', pipeline)
+      pipeline.application = application
+      if (jobInstance.id == 1) {
+        execution.getJobParameters() >> {
+          def parameters = Mock(JobParameters)
+          parameters.getParameters() >> [application: new JobParameter(application, true)]
+          parameters
+        }
+        execution.getExecutionContext() >> {
+          def context = new ExecutionContext()
+          context.put('pipeline', pipeline)
+          context
+        }
+      } else {
+        execution.getJobParameters() >> {
+          def parameters = Mock(JobParameters)
+          parameters.getParameters() >> [:]
+          parameters
+        }
+        execution.getExecutionContext() >> new ExecutionContext()
       }
       [execution]
     }
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.size() == 1
+
+    where:
+    application = "test"
   }
 }

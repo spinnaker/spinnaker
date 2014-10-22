@@ -29,7 +29,7 @@ import static java.lang.System.currentTimeMillis
 
 @Component
 @CompileStatic
-class PipelineStarter extends AbstractOrchestrationInitiator {
+class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
   /**
    * Builds a _pipeline_ based on config from _Mayo_.
@@ -37,7 +37,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  Job build(Map<String, Object> config, ReplaySubject subject) {
+  protected Job build(Map<String, Object> config, ReplaySubject subject) {
     def pipeline = parseConfig(config)
     createJobFrom(pipeline, subject)
   }
