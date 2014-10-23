@@ -27,6 +27,7 @@ import rx.schedulers.Schedulers
  *  responsible for sending events to classes that implement an EchoEventListener
  */
 @Slf4j
+@SuppressWarnings(['CatchException'])
 class EventPropagator {
 
     List<EchoEventListener> listeners = []
@@ -40,13 +41,17 @@ class EventPropagator {
 
     void processEvent(Event event) {
         Observable.from(listeners)
-        .subscribeOn(scheduler)
-        .subscribe(
+            .subscribeOn(scheduler)
+            .subscribe(
             { EchoEventListener listener ->
-                listener.processEvent(event)
+                try {
+                    listener.processEvent(event)
+                } catch (Exception e) {
+                    log.error('failed processing event: {}', event.content,  e)
+                }
+            },
+            {
             }, {
-            log.error("Error: ${it.message}")
-        }, {
         } as Action0
         )
     }
