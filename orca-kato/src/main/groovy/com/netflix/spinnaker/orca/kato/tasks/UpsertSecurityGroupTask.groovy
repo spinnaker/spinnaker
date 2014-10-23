@@ -50,7 +50,6 @@ class UpsertSecurityGroupTask implements Task {
     def taskId = kato.requestOperations([[upsertSecurityGroupDescription: upsertSecurityGroupOperation]])
                      .toBlocking()
                      .first()
-    stage.context."kato.last.task.id" = taskId
     Map outputs = [
       "notification.type": "upsertsecuritygroup",
       "kato.last.task.id": taskId,

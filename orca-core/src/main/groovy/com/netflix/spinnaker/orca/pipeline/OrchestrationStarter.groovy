@@ -21,8 +21,6 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component
 import rx.subjects.ReplaySubject
-
-
 import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
 import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static java.util.UUID.randomUUID
@@ -41,7 +39,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<String> {
     for (Map<String, Serializable> context in ((List<Map<String, Serializable>>) config.stages)) {
       def type = context.remove("type").toString()
       if (stages.containsKey(type)) {
-        def stage = new Stage(type, context)
+        def stage = new PipelineStage(type, context)
         stages.get(type).build(jobBuilder, stage)
         stageCollectionReference << stage
       } else {

@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +32,7 @@ import spock.lang.Subject
 class CreateDeployTaskSpec extends Specification {
 
   @Subject task = new CreateDeployTask()
-  def stage = new Stage(new Pipeline(), "deploy", [:])
+  def stage = new PipelineStage(new Pipeline(), "deploy", [:])
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -57,7 +57,7 @@ class CreateDeployTaskSpec extends Specification {
     task.defaultBakeAccount = "test"
 
     stage.pipeline.@stages.add(stage)
-    stage.context.putAll(deployConfig)
+    stage.updateContext(deployConfig)
   }
 
   def cleanup() {
@@ -135,8 +135,7 @@ class CreateDeployTaskSpec extends Specification {
 
   def "can include optional parameters"() {
     given:
-    stage.context.stack = stackValue
-    stage.context.subnetType = subnetTypeValue
+    stage.updateContext(stack: stackValue, subnetType: subnetTypeValue)
 
     def operations = []
     task.kato = Mock(KatoService) {
@@ -179,7 +178,7 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
-    def bakeStage = new Stage(stage.pipeline, "bake", [ami: amiName])
+    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
     stage.pipeline.@stages.clear()
     stage.pipeline.@stages.addAll([bakeStage, stage])
 

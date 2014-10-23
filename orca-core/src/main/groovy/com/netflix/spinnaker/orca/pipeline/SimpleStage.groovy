@@ -31,7 +31,7 @@ class SimpleStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(ConfigurableStage stage) {
     [buildStep("task", task)]
   }
 }

@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class CreateCopyLastAsgTask implements Task {
 
@@ -41,14 +40,12 @@ class CreateCopyLastAsgTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = mapper.copy()
-                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(stage.context, Map)
-    operation.amiName = operation.amiName ?: stage.preceding("bake")?.outputs?.amiName as String
+    def operation = [:]
+    operation.putAll(stage.context)
+    operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
     def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
-    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"  : "createcopylastasg",
       "kato.last.task.id"  : taskId,

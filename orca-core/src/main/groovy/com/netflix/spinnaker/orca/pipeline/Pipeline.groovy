@@ -28,13 +28,13 @@ class Pipeline implements Serializable {
   String name
   String id
 
-  private final List<Stage> stages = []
+  private final List<PipelineStage> stages = []
 
-  ImmutableList<Stage> getStages() {
+  ImmutableList<PipelineStage> getStages() {
     ImmutableList.copyOf(stages)
   }
 
-  Stage namedStage(String type) {
+  PipelineStage namedStage(String type) {
     stages.find {
       it.type == type
     }
@@ -67,7 +67,7 @@ class Pipeline implements Serializable {
         type += "_$context.providerType"
       }
 
-      pipeline.@stages << new Stage(pipeline, type, context)
+      pipeline.@stages << new PipelineStage(pipeline, type, context)
       return this
     }
 

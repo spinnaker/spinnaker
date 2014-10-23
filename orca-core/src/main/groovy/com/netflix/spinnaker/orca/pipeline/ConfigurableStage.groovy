@@ -16,20 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
-import org.springframework.stereotype.Component
+interface ConfigurableStage extends Stage {
 
-@Component
-@CompileStatic
-class JenkinsStage extends LinearStage {
+  void addToContext(String key, Serializable value)
 
-  JenkinsStage() {
-    super("jenkins")
-  }
-
-  @Override
-  protected List<Step> buildSteps(ConfigurableStage stage) {
-    []
-  }
 }

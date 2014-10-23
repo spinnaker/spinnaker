@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -35,7 +35,7 @@ class UpsertSecurityGroupStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(ConfigurableStage stage) {
     def step1 = buildStep("upsertSecurityGroup", UpsertSecurityGroupTask)
     def step2 = buildStep("monitorUpsert", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", SecurityGroupForceCacheRefreshTask)

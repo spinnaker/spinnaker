@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.kato.tasks.EnableAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -37,7 +37,7 @@ class EnableAsgStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(ConfigurableStage stage) {
     def step1 = buildStep("enableAsg", EnableAsgTask)
     def step2 = buildStep("monitorAsg", MonitorKatoTask)
     def step3 = buildStep("waitForUpInstances", WaitForUpInstancesTask)

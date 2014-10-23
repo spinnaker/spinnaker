@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.front50.tasks.ApplicationForceCacheRefreshTask
 import com.netflix.spinnaker.orca.front50.tasks.CreateApplicationTask
+import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -32,7 +32,7 @@ class CreateApplicationStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(ConfigurableStage stage) {
     def step1 = buildStep("createApplication", CreateApplicationTask)
     def step2 = buildStep("forceCacheRefresh", ApplicationForceCacheRefreshTask)
     [step1, step2]

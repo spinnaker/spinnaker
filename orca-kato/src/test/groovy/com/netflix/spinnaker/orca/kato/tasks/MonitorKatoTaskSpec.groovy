@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,8 +38,9 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."kato.last.task.id" = new TaskId(taskId)
+    def stage = new PipelineStage("whatever", [
+      "kato.last.task.id": new TaskId(taskId)
+    ])
 
     expect:
     task.execute(stage).status == expectedResult

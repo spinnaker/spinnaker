@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -59,10 +59,11 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context.credentials = account
-    stage.context.region = region
-    stage.context.name = groupName
+    def stage = new PipelineStage("whatever", [
+      credentials: account,
+      region     : region,
+      name       : groupName
+    ])
 
     when:
     def executionContext = task.execute(stage)

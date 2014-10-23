@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
 class CreateDeployTask implements Task {
@@ -47,21 +46,21 @@ class CreateDeployTask implements Task {
   TaskResult execute(Stage stage) {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
-    stage.context."kato.last.task.id" = taskId
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED,
-        [
-            "notification.type"  : "createdeploy",
+    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+      "notification.type": "createdeploy",
             "kato.last.task.id"  : taskId,
             "kato.task.id"       : taskId, // TODO retire this.
             "deploy.account.name": deployOperations.credentials,
-        ]
-    )
+    ])
   }
 
   private Map deployOperationFromContext(Stage stage) {
-    def operation = mapper.copy()
-                          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-                          .convertValue(stage.context.containsKey("cluster") ? stage.context.cluster : stage.context, Map)
+    def operation = [:]
+    if (stage.context.containsKey("cluster")) {
+      operation.putAll(stage.context.cluster as Map)
+    } else {
+      operation.putAll(stage.context)
+    }
     // TODO This logic is not great... we should have a mechanism to discriminate on stage type, versus how it was built from config.
     if (stage.preceding("bake")?.context?.ami) {
       operation.amiName = stage.preceding("bake").context.ami
