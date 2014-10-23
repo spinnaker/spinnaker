@@ -66,6 +66,7 @@ class TaskController {
       [name: stepName, status: it.exitStatus.exitCode, startTime: it.startTime, endTime: it.endTime]
     }
     def variables = []
+    variables << [description: jobExecution.jobParameters.getString("description")]
     for (entry in jobExecution.executionContext.entrySet()) {
       if (entry.key != "pipeline") variables.add(entry)
     }
