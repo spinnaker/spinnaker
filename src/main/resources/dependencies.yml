@@ -18,6 +18,7 @@ versions:
   slf4j: "1.7.7"
   okHttp: "2.0.0"
   objenesis: "2.1"
+  googleCompute: "v1-rev17-1.18.0-rc"
 
 groups:
   bootWeb:
@@ -42,9 +43,14 @@ groups:
       - aws
       - httpclient
       - httpcore
+  google:
+    compile:
+      - amosGce
+      - googleCompute
 
 dependencies:
   amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
+  amosGce: "com.netflix.spinnaker:amos-gce:${versions.amos}"
   bootActuator: "org.springframework.boot:spring-boot-starter-actuator:${versions.springBoot}"
   bootAutoConfigure: "org.springframework.boot:spring-boot-autoconfigure:${versions.springBoot}"
   bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
@@ -69,4 +75,5 @@ dependencies:
   slf4j: "org.slf4j:jcl-over-slf4j:${versions.slf4j}"
   okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
   objenesis: "org.objenesis:objenesis:${versions.objenesis}"
+  googleCompute: "com.google.apis:google-api-services-compute:${versions.googleCompute}"
 
