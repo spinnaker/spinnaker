@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.pipeline.Stage
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.StepExecutionListenerSupport
@@ -30,7 +30,7 @@ class StageStatusPropagationListener extends StepExecutionListenerSupport {
   @Override
   ExitStatus afterStep(StepExecution stepExecution) {
     def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
-    ((Stage) stepExecution.jobExecution.executionContext.get(stageName)).status =
+    ((PipelineStage) stepExecution.jobExecution.executionContext.get(stageName)).status =
       PipelineStatus.valueOf(stepExecution.exitStatus.exitDescription)
     super.afterStep(stepExecution)
   }
