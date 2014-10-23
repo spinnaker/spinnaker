@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.core.step.tasklet.TaskletStep
 import org.springframework.batch.repeat.RepeatStatus
-import rx.subjects.ReplaySubject
+
+
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
 @CompileStatic
@@ -34,8 +35,8 @@ class PipelineInitializerTasklet implements Tasklet {
 
   static TaskletStep initializationStep(StepBuilderFactory steps, Pipeline pipeline) {
     steps.get("orca-init-step")
-         .tasklet(new PipelineInitializerTasklet(pipeline))
-         .build()
+      .tasklet(new PipelineInitializerTasklet(pipeline))
+      .build()
   }
 
   public static final String PIPELINE_CONTEXT_KEY = "pipeline"

@@ -66,7 +66,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    */
   protected Step buildStep(String taskName, Class<? extends Task> taskType) {
     steps.get(stepName(taskName))
-         .listener(PipelineStatusPropagationListener.instance)
+         .listener(StageStatusPropagationListener.instance)
          .tasklet(buildTask(taskType))
          .build()
   }
@@ -81,7 +81,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    */
   protected Step buildStep(String taskName, Task task) {
     steps.get(stepName(taskName))
-         .listener(PipelineStatusPropagationListener.instance)
+         .listener(StageStatusPropagationListener.instance)
          .tasklet(decorate(task))
          .build()
   }

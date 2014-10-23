@@ -27,7 +27,7 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class PipelineStatusPropagationListenerSpec extends Specification {
 
-  @Subject listener = PipelineStatusPropagationListener.instance
+  @Subject listener = StageStatusPropagationListener.instance
 
   def "updates the stage status when a task execution completes"() {
     given: "a batch execution context"
@@ -37,6 +37,7 @@ class PipelineStatusPropagationListenerSpec extends Specification {
     and: "a pipeline model"
     def pipeline = Pipeline.builder().withStage(stageType).build()
     jobExecution.executionContext.put("pipeline", pipeline)
+    for (stage in pipeline.stages) jobExecution.executionContext.put(stage.type, stage)
 
     and: "a task has run"
     executeTaskReturning taskStatus, stepExecution

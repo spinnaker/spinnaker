@@ -32,17 +32,23 @@ import static java.util.UUID.randomUUID
 class OrchestrationStarter extends AbstractOrchestrationInitiator<String> {
 
   protected Job build(Map<String, Object> config, ReplaySubject subject) {
+    // this is less-than-ideal
+    def stageCollectionReference = []
     def jobBuilder = jobs.get("orca-orchestration-${randomUUID()}")
-      .flow(createTasklet(steps, subject))
+      .flow(createTasklet(steps, stageCollectionReference, subject))
       .next(initializeFulfiller(steps, null, subject)) as JobFlowBuilder
+
     for (Map<String, Serializable> context in ((List<Map<String, Serializable>>) config.stages)) {
       def type = context.remove("type").toString()
       if (stages.containsKey(type)) {
-        stages.get(type).build(jobBuilder, new Stage(type, context))
+        def stage = new Stage(type, context)
+        stages.get(type).build(jobBuilder, stage)
+        stageCollectionReference << stage
       } else {
         throw new NoSuchStageException(type)
       }
     }
+
     jobBuilder.build().build()
   }
 }
