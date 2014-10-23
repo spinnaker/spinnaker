@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-abstract class WaitForDownInstancesTask extends AbstractInstancesCheckTask {
+class WaitForDownInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
   protected boolean hasSucceeded(List instances) {

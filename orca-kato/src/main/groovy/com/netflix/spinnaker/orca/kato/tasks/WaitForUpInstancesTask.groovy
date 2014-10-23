@@ -15,17 +15,9 @@
  */
 
 
-
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.Stage
-
-class WaitForUpInstancesTask extends AbstractInstancesCheckTask {
-
-  @Override
-  protected Map<String, List<String>> getServerGroups(Stage stage) {
-    (Map<String, List<String>>) stage.context."deploy.server.groups"
-  }
+class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
   protected boolean hasSucceeded(List instances) {

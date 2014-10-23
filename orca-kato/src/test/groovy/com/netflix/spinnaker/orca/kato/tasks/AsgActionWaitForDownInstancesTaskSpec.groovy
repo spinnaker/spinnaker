@@ -29,7 +29,7 @@ import spock.lang.Subject
  * Created by aglover on 7/10/14.
  */
 class AsgActionWaitForDownInstancesTaskSpec extends Specification {
-  @Subject task = new AsgActionWaitForDownInstancesTask()
+  @Subject task = new WaitForDownInstancesTask()
 
   def mapper = new ObjectMapper()
 

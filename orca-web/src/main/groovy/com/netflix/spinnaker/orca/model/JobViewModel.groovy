@@ -26,6 +26,6 @@ class JobViewModel {
   BatchStatus status
   def variables
   def steps
-  Date startTime
-  Date endTime
+  long startTime
+  long endTime
 }

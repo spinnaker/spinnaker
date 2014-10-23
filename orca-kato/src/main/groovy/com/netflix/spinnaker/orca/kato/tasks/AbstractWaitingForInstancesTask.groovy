@@ -18,25 +18,30 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.pipeline.Stage
 
-class AsgActionWaitForDownInstancesTask extends WaitForDownInstancesTask {
+abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(Stage stage) {
     def key = "disableAsg"
+    Map<String, List<String>> serverGroups = [:]
 
     if (stage.context.containsKey("targetop.asg.enableAsg.name")) {
       key = "enableAsg"
     }
 
-    String asgName = stage.context."targetop.asg.enableAsg.name"
-    List<String> regions = stage.context."targetop.asg.enableAsg.regions"
+    String asgName = stage.context."targetop.asg.${key}.name".toString()
+    List<String> regions = stage.context."targetop.asg.${key}.regions"
 
-    Map<String, List<String>> serverGroups = [:]
-
-    regions.each { region ->
-      if (!serverGroups.containsKey(region)) {
-        serverGroups[region] = [asgName]
+    if (!asgName || !regions) {
+      if (stage.context.containsKey("deploy.server.groups")) {
+        serverGroups = (Map<String, List<String>>)stage.context."deploy.server.groups"
       }
-      serverGroups[region] << asgName
+    } else {
+      regions.each { region ->
+        if (!serverGroups.containsKey(region)) {
+          serverGroups[region] = [asgName]
+        }
+        serverGroups[region] << asgName
+      }
     }
     serverGroups
   }

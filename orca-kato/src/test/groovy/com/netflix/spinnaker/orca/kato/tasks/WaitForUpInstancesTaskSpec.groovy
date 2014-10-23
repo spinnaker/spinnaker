@@ -106,10 +106,18 @@ class WaitForUpInstancesTaskSpec extends Specification {
     and:
     def stage = new Stage("whatever")
     stage.context."account.name" = "test"
-    stage.context."deploy.server.groups" = ["us-west-1": ["front50-v001"]]
 
-    expect:
+    when:
+    stage.context."targetop.asg.enableAsg.name" = "front50-v000"
+    stage.context."targetop.asg.enableAsg.regions" = ['us-west-1']
+
+    then:
     task.execute(stage).status == PipelineStatus.RUNNING
+
+    when:
+    stage.context."targetop.asg.enableAsg.name" = "front50-v001"
+
+    then:
     task.execute(stage).status == PipelineStatus.SUCCEEDED
 
   }
