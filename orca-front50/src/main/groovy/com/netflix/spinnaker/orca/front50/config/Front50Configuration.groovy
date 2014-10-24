@@ -45,13 +45,14 @@ class Front50Configuration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint mortEndpoint(@Value('${front50.baseUrl:http://front50.prod.netflix.net}') String mortBaseUrl) {
-    newFixedEndpoint(mortBaseUrl)
+  @Bean Endpoint front50Endpoint(
+    @Value('${front50.baseUrl:http://front50.prod.netflix.net}') String front50BaseUrl) {
+    newFixedEndpoint(front50BaseUrl)
   }
 
-  @Bean Front50Service mortDeployService(Endpoint mortEndpoint, Gson gson) {
+  @Bean Front50Service front50Service(Endpoint front50Endpoint, Gson gson) {
     new RestAdapter.Builder()
-      .setEndpoint(mortEndpoint)
+      .setEndpoint(front50Endpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setConverter(new GsonConverter(gson))
