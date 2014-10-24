@@ -49,6 +49,9 @@ class PipelineStage implements ConfigurableStage {
 
   @Override
   Stage preceding(String type) {
+    if (!pipeline) {
+      return null
+    }
     def i = pipeline.stages.indexOf(this)
     pipeline.stages[i..0].find {
       it.type == type
