@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.model.JobViewModel
 import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.PipelineFactory
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
@@ -31,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController
 class TaskController {
   @Autowired
   JobExplorer jobExplorer
+
+  @Autowired PipelineFactory pipelineFactory
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   def list(@PathVariable String application) {
@@ -61,6 +64,24 @@ class TaskController {
     convert jobExplorer.getJobExecution(id)
   }
 
+  @RequestMapping(value = "/pipeline/{id}", method = RequestMethod.GET)
+  Pipeline getPipeline(@PathVariable String id) {
+    pipelineFactory.retrieve(id)
+  }
+
+  @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
+  List<Pipeline> getPipelines() {
+    def pipelines = []
+    jobExplorer.jobNames.each { name ->
+      jobExplorer.getJobInstances(name, 0, Integer.MAX_VALUE).each { jobInstance ->
+        jobExplorer.getJobExecutions(jobInstance).each { execution ->
+          pipelines << pipelineFactory.retrieve(execution.id.toString())
+        }
+      }
+    }
+    return pipelines
+  }
+
   private static JobViewModel convert(JobExecution jobExecution) {
     def steps = jobExecution.stepExecutions.collect {
       def stepName = it.stepName.contains('.') ? it.stepName.tokenize('.')[1] : it.stepName
@@ -76,7 +97,7 @@ class TaskController {
     for (stepExecution in jobExecution.stepExecutions) {
       def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
       if (!stageName) continue
-      Stage stage = (Stage)stepExecution.jobExecution.executionContext.get(stageName)
+      Stage stage = (Stage) stepExecution.jobExecution.executionContext.get(stageName)
       for (entry in stage.context.entrySet()) {
         variables[entry.key] = entry.value
       }
