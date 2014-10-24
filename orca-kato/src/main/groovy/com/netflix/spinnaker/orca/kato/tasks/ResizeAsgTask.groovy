@@ -41,7 +41,6 @@ class ResizeAsgTask implements Task {
     def taskId = kato.requestOperations([[resizeAsgDescription: resizeAsgOperation]])
                      .toBlocking()
                      .first()
-    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"   : "resizeasg",
       "deploy.account.name" : resizeAsgOperation.credentials,

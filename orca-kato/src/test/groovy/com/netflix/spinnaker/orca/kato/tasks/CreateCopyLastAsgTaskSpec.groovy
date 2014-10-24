@@ -21,14 +21,14 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
 class CreateCopyLastAsgTaskSpec extends Specification {
   @Subject task = new CreateCopyLastAsgTask()
-  def stage = new Stage(new Pipeline(), "copyLastAsg", [:])
+  def stage = new PipelineStage(new Pipeline(), "copyLastAsg", [:])
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -45,7 +45,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     task.mapper = mapper
 
     stage.pipeline.@stages.add(stage)
-    stage.context.putAll(copyLastAsgConfig)
+    stage.updateContext(copyLastAsgConfig)
   }
 
   def "creates a deployment based on job parameters"() {
@@ -71,8 +71,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "can include optional parameters"() {
     given:
-    stage.context.instanceType = "t1.megaBig"
-    stage.context.stack = "hodork"
+    stage.updateContext(instanceType: "t1.megaBig", stack: "hodork")
 
     def operations
     task.kato = Mock(KatoService) {
@@ -99,8 +98,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "amiName prefers value from context over bake input"() {
     given:
-    stage.context.amiName = "ami-696969"
-    stage.context."bake.ami" = "ami-soixante-neuf"
+    stage.updateContext(amiName: "ami-696969", ami: "ami-soixante-neuf")
 
 
     def operations
@@ -126,7 +124,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    def bakeStage = new Stage(stage.pipeline, "bake", [ami: amiName])
+    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
     stage.pipeline.@stages.removeAll()
     stage.pipeline.@stages.addAll([bakeStage, stage])
 
@@ -157,7 +155,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "calls allowlaunch prior to copyLast"() {
     given:
-    stage.context.amiName = amiName
+    stage.updateContext(amiName: amiName)
 
 
     def operations

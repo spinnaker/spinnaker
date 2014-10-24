@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -10,7 +10,7 @@ import spock.lang.Subject
  */
 class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   @Subject task = new UpsertAmazonLoadBalancerForceRefreshTask()
-  def stage = new Stage("whatever")
+  def stage = new PipelineStage("whatever")
 
   def config = [
     "account.name"  : "fzlem",
@@ -19,13 +19,13 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   ]
 
   def setup() {
-    stage.context.putAll(config)
+    stage.updateContext(config)
   }
 
   void "should force cache refresh server groups via oort when clusterName provided"() {
     setup:
     def name = "flapjack"
-    stage.context.clusterName = name
+    stage.updateContext(clusterName: name)
     task.oort = Mock(OortService)
 
     when:
@@ -42,7 +42,7 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   void "should force cache refresh server groups via oort when name provided"() {
     setup:
     def name = "flapjack-frontend"
-    stage.context.name = name
+    stage.updateContext(name: name)
     task.oort = Mock(OortService)
 
     when:

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -54,8 +54,9 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."instance.ids" = [instanceId]
+    def stage = new PipelineStage("whatever", [
+      "instance.ids": [instanceId]
+    ])
 
     expect:
     task.execute(stage).status == taskStatus
@@ -78,8 +79,9 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."instance.ids" = [instanceId]
+    def stage = new PipelineStage("whatever", [
+      "instance.ids": [instanceId]
+    ])
 
     expect:
     task.execute(stage).status == PipelineStatus.RUNNING
@@ -104,8 +106,9 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."instance.ids" = [instanceId]
+    def stage = new PipelineStage("whatever", [
+      "instance.ids": [instanceId]
+    ])
 
     expect:
     task.execute(stage).status == PipelineStatus.RUNNING
@@ -136,8 +139,9 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."instance.ids" = instanceIds
+    def stage = new PipelineStage("whatever", [
+      "instance.ids": instanceIds
+    ])
 
     expect:
     task.execute(stage).status == PipelineStatus.SUCCEEDED
@@ -164,8 +168,9 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."instance.ids" = instanceIds
+    def stage = new PipelineStage("whatever", [
+      "instance.ids": instanceIds
+    ])
 
     expect:
     task.execute(stage).status == PipelineStatus.RUNNING

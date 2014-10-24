@@ -50,12 +50,14 @@ class ResizeGoogleReplicaPoolTask implements Task {
   }
 
   ResizeGoogleReplicaPoolOperation convert(Stage stage) {
-    stage.context.replicaPoolName = stage.context.asgName
-    stage.context.numReplicas = stage.context.capacity.desired
-    stage.context.zone = stage.context.zones ? stage.context.zones[0] : null
+    def operation = [:]
+    operation.putAll(stage.context)
+    operation.replicaPoolName = operation.asgName
+    operation.numReplicas = operation.capacity.desired
+    operation.zone = operation.zones ? operation.zones[0] : null
 
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, ResizeGoogleReplicaPoolOperation)
+          .convertValue(operation, ResizeGoogleReplicaPoolOperation)
   }
 }

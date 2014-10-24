@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.model
+package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.Immutable
-import org.springframework.batch.core.BatchStatus
+interface ConfigurableStage extends Stage {
 
-@Immutable(knownImmutables = ['status', 'variables', 'steps'])
-class JobViewModel {
-  Long id
-  String name
-  BatchStatus status
-  def variables
-  def steps
-  long startTime
-  long endTime
+  void addToContext(String key, Serializable value)
+
 }

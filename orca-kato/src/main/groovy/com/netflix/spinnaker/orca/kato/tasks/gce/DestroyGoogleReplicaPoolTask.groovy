@@ -51,11 +51,13 @@ class DestroyGoogleReplicaPoolTask implements Task {
   }
 
   DestroyGoogleReplicaPoolOperation convert(Stage stage) {
-    stage.context.replicaPoolName = stage.context.asgName
-    stage.context.zone = stage.context.zones ? stage.context.zones[0] : null
+    def operation = [:]
+    operation.putAll(stage.context)
+    operation.replicaPoolName = operation.asgName
+    operation.zone = operation.zones ? operation.zones[0] : null
 
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, DestroyGoogleReplicaPoolOperation)
+          .convertValue(operation, DestroyGoogleReplicaPoolOperation)
   }
 }

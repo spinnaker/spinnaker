@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
+import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import groovy.transform.CompileStatic
 import org.springframework.context.annotation.Bean
@@ -36,6 +37,10 @@ class OrcaConfiguration {
 
   @Bean PipelineStarter jobStarter() {
     new PipelineStarter()
+  }
+
+  @Bean OrchestrationStarter orchestrationStarter() {
+    new OrchestrationStarter()
   }
 
   @Bean NoopNotificationHandler noopNotificationHandler() {

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.kato.pipeline.redblack
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.tasks.PreconfigureRedBlackStep
+import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -39,7 +39,7 @@ class RedBlackStageBuilder extends LinearStage {
     super(MAYO_NAME)
   }
 
-  List<Step> buildSteps(Stage stage) {
+  List<Step> buildSteps(ConfigurableStage stage) {
     def step1 = buildStep("preconfigureRedBlackStage",PreconfigureRedBlackStep)
     def middleSteps = copyLastAsgStage.buildSteps(stage)
     def closingSteps = disableAsgStage.buildSteps(stage)

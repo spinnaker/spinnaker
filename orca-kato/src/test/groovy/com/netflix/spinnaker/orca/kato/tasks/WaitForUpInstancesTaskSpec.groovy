@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import spock.lang.Specification
+import spock.lang.Subject
 
 class WaitForUpInstancesTaskSpec extends Specification {
 
@@ -104,12 +104,25 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context."account.name" = "test"
-    stage.context."deploy.server.groups" = ["us-west-1": ["front50-v001"]]
+    def stage = new PipelineStage("whatever", [
+      "account.name": "test"
+    ])
 
-    expect:
+    when:
+    stage.updateContext(
+      "targetop.asg.enableAsg.name": "front50-v000",
+      "targetop.asg.enableAsg.regions": ['us-west-1']
+    )
+
+    then:
     task.execute(stage).status == PipelineStatus.RUNNING
+
+    when:
+    stage.updateContext(
+      "targetop.asg.enableAsg.name": "front50-v001"
+    )
+
+    then:
     task.execute(stage).status == PipelineStatus.SUCCEEDED
 
   }

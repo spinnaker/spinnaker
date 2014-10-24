@@ -22,13 +22,13 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAsgOperation
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DeleteAsgTaskSpec extends Specification {
   @Subject task = new DeleteAsgTask()
-  def stage = new Stage("whatever")
+  def stage = new PipelineStage("whatever")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -44,7 +44,7 @@ class DeleteAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.context.putAll(deleteASGConfig)
+    stage.updateContext(deleteASGConfig)
   }
 
   def "creates a delete ASG task based on job parameters"() {

@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DeleteAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   @Subject task = new DeleteAmazonLoadBalancerForceRefreshTask()
-  def stage = new Stage("whatever")
+  def stage = new PipelineStage("whatever")
 
   def config = [
     regions         : ["us-west-1"],
@@ -32,7 +32,7 @@ class DeleteAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
   ]
 
   def setup() {
-    stage.context.putAll(config)
+    stage.updateContext(config)
   }
 
   void "should force cache refresh server groups via oort when clusterName provided"() {

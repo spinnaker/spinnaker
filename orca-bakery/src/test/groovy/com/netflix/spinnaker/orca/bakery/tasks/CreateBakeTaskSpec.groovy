@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
@@ -45,7 +46,7 @@ class CreateBakeTaskSpec extends Specification {
   def setup() {
     task.mapper = mapper
 
-    stage = new Stage("bake", bakeConfig)
+    stage = new PipelineStage("bake", bakeConfig)
   }
 
   def "creates a bake for the correct region"() {

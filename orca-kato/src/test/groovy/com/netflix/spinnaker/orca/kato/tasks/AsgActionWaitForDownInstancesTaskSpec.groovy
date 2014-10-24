@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -29,7 +29,7 @@ import spock.lang.Subject
  * Created by aglover on 7/10/14.
  */
 class AsgActionWaitForDownInstancesTaskSpec extends Specification {
-  @Subject task = new AsgActionWaitForDownInstancesTask()
+  @Subject task = new WaitForDownInstancesTask()
 
   def mapper = new ObjectMapper()
 
@@ -42,21 +42,21 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
       def input = Mock(TypedInput)
       input.in() >> {
         def jsonObj = [
-                name        : "front50",
-                serverGroups: [
-                    [
-                        region   : "us-west-1",
-                        name     : "front50-v000",
-                        asg      : [
-                            minSize: 1
-                        ],
-                        instances: [
-                            [
-                                isHealthy: false
-                            ]
-                        ]
-                    ]
+          name        : "front50",
+          serverGroups: [
+            [
+              region   : "us-west-1",
+              name     : "front50-v000",
+              asg      : [
+                minSize: 1
+              ],
+              instances: [
+                [
+                  isHealthy: false
                 ]
+              ]
+            ]
+          ]
         ]
         new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
       }
@@ -67,10 +67,11 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("asgActionWaitForDownInstances")
-    stage.context."targetop.asg.enableAsg.name" = "front50-v000"
-    stage.context."targetop.asg.enableAsg.regions" = ['us-west-1']
-    stage.context."account.name" = "test"
+    def stage = new PipelineStage("asgActionWaitForDownInstances", [
+      "targetop.asg.enableAsg.name"   : "front50-v000",
+      "targetop.asg.enableAsg.regions": ['us-west-1'],
+      "account.name"                  : "test"
+    ])
 
     expect:
     task.execute(stage).status == PipelineStatus.SUCCEEDED

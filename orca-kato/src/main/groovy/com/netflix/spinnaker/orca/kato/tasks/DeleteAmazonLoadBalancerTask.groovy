@@ -44,7 +44,6 @@ class DeleteAmazonLoadBalancerTask implements Task {
     def taskId = kato.requestOperations([[deleteAmazonLoadBalancerDescription: deleteAmazonLoadBalancerOperation]])
                      .toBlocking()
                      .first()
-    stage.context."kato.last.task.id" = taskId
     Map outputs = [
       "notification.type"  : "deleteamazonloadbalancer",
       "kato.last.task.id"  : taskId,

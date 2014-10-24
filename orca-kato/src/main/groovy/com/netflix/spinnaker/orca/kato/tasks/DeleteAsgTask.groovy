@@ -43,7 +43,6 @@ class DeleteAsgTask implements Task {
     def taskId = kato.requestOperations([[deleteAsgDescription: operation]])
       .toBlocking()
       .first()
-    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED,
       ["deploy.account.name" : operation.credentials,
        "kato.last.task.id"   : taskId,

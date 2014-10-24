@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -47,12 +47,13 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever")
-    stage.context.account = account
-    stage.context.region = region
-    stage.context.name = groupName
+    def stage = new PipelineStage("whatever", [
+      account: account,
+      region : region,
+      name   : groupName
+    ])
     if (old) {
-      stage.context."pre.response" = old
+      stage.updateContext("pre.response": old)
     }
 
     expect:

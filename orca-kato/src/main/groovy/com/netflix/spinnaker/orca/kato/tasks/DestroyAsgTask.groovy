@@ -43,7 +43,6 @@ class DestroyAsgTask implements Task {
     def taskId = kato.requestOperations([[destroyAsgDescription: operation]])
                      .toBlocking()
                      .first()
-    stage.context."kato.last.task.id" = taskId
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "notification.type"   : "destroyasg",
       "deploy.account.name" : operation.credentials,

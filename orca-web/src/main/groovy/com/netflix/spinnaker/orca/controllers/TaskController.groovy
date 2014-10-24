@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.model.JobViewModel
 import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,23 +64,25 @@ class TaskController {
   private static JobViewModel convert(JobExecution jobExecution) {
     def steps = jobExecution.stepExecutions.collect {
       def stepName = it.stepName.contains('.') ? it.stepName.tokenize('.')[1] : it.stepName
-      [name: stepName, status: it.exitStatus.exitCode, startTime: it.startTime, endTime: it.endTime]
+      [name: stepName, status: it.exitStatus.exitCode, startTime: it.startTime?.time, endTime: it.endTime?.time]
     }
-    def variables = []
-    variables << [description: jobExecution.jobParameters.getString("description")]
-    for (entry in jobExecution.executionContext.entrySet()) {
-      if (entry.key != "pipeline") variables.add(entry)
+    def variables = [:]
+    if (jobExecution.jobParameters.parameters.containsKey("description")) {
+      variables.description = jobExecution.jobParameters.getString("description")
     }
-    if (jobExecution.executionContext.containsKey("pipeline")) {
-      Pipeline pipeline = (Pipeline) jobExecution.executionContext.get("pipeline")
-      for (stage in pipeline.stages) {
-        for (entry in stage.context.entrySet()) {
-          variables.add([key: "${stage.type}.${entry.key}".toString(), value: entry.value])
-        }
+    if (jobExecution.jobParameters.parameters.containsKey("name")) {
+      variables.description = jobExecution.jobParameters.getString("name")
+    }
+    for (stepExecution in jobExecution.stepExecutions) {
+      def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
+      if (!stageName) continue
+      Stage stage = (Stage)stepExecution.jobExecution.executionContext.get(stageName)
+      for (entry in stage.context.entrySet()) {
+        variables[entry.key] = entry.value
       }
     }
     new JobViewModel(id: jobExecution.id, name: jobExecution.jobInstance.jobName, status: jobExecution.status,
-      variables: variables, steps: steps, startTime: jobExecution.startTime,
-      endTime: jobExecution.endTime)
+      variables: variables.entrySet(), steps: steps, startTime: jobExecution.startTime?.time,
+      endTime: jobExecution.endTime?.time)
   }
 }

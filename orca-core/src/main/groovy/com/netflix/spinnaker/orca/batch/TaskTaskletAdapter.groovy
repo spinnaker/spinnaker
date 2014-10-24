@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -63,16 +63,16 @@ class TaskTaskletAdapter implements Tasklet {
       }
     }
 
-    stage.context.putAll(result.outputs)
+    stage.updateContext(result.outputs)
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
     contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
     return batchStepStatus.repeatStatus
   }
 
-  private Stage currentStage(ChunkContext chunkContext) {
-    (Stage) chunkContext.stepContext.stepExecution.jobExecution
-      .executionContext.get(stageName(chunkContext))
+  private PipelineStage currentStage(ChunkContext chunkContext) {
+    (PipelineStage) chunkContext.stepContext.stepExecution.jobExecution
+                                .executionContext.get(stageName(chunkContext))
   }
 
   private static String stageName(ChunkContext chunkContext) {
