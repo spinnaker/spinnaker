@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.model.JobViewModel
+import com.netflix.spinnaker.orca.model.PipelineViewModel
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineFactory
 import com.netflix.spinnaker.orca.pipeline.Stage
@@ -70,12 +71,13 @@ class TaskController {
   }
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
-  List<Pipeline> getPipelines() {
+  List<PipelineViewModel> getPipelines() {
     def pipelines = []
     jobExplorer.jobNames.each { name ->
       jobExplorer.getJobInstances(name, 0, Integer.MAX_VALUE).each { jobInstance ->
         jobExplorer.getJobExecutions(jobInstance).each { execution ->
-          pipelines << pipelineFactory.retrieve(execution.id.toString())
+          pipelines <<
+            PipelineViewModel.fromPipelineAndExecution(pipelineFactory.retrieve(execution.id.toString()), execution)
         }
       }
     }
