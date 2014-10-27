@@ -58,12 +58,14 @@
     </div>
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
       <dl>
-        <dt>Private DNS Name:</dt>
-        <dd>{{instance.privateDnsName}}</dd>
-        <dt>Private IP Address:</dt>
-        <dd><a href="http://{{instance.privateIpAddress}}" target="_blank">{{instance.privateIpAddress}}</a></dd>
+        <dt ng-if="instance.privateDnsName">Private DNS Name:</dt>
+        <dd ng-if="instance.privateDnsName"><a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a></dd>
+        <dt ng-if="instance.publicDnsName">Public DNS Name:</dt>
+        <dd ng-if="instance.publicDnsName"><a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a></dd>
+        <dt ng-if="instance.privateIpAddress">Private IP Address:</dt>
+        <dd ng-if="instance.privateIpAddress"><a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a></dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
-        <dd ng-if="instance.publicIpAddress">{{instance.publicIpAddress}}</dd>
+        <dd ng-if="instance.publicIpAddress"><a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
@@ -75,25 +77,25 @@
           </li>
         </ul>
     </collapsible-section>
-    <collapsible-section heading="Logs" ng-if="!instance.notFound && instance.privateIpAddress">
+    <collapsible-section heading="Logs" ng-if="baseIpAddress">
       <ul>
         <li>
-          <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
         </li>
         <li>
-          <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
         </li>
         <li>
-          <a href="http://{{instance.privateIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
         </li>
         <li>
-          <a href="http://{{instance.privateIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
+          <a href="http://{{baseIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
         </li>
         <li>
-          <a href="http://{{instance.privateIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
+          <a href="http://{{baseIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
         </li>
         <li>
-          <a href="http://{{instance.privateIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
+          <a href="http://{{baseIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
         </li>
       </ul>
     </collapsible-section>

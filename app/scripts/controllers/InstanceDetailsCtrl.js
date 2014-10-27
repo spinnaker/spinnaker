@@ -23,6 +23,7 @@ angular.module('deckApp')
             if (possibleInstance.instanceId === instance.instanceId) {
               $scope.instance = possibleInstance;
               extractHealthMetrics(possibleInstance);
+              $scope.baseIpAddress = possibleInstance.publicDnsName || possibleInstance.privateIpAddress;
               return true;
             }
           });
