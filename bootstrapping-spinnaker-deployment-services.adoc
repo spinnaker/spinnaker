@@ -152,13 +152,13 @@ Spinnaker's deployment UI, Deck, provides a web interface for managing cloud dep
 
 === Building Deck
 
-Deck is a Angular application, which is first built with Grunt, then packaged into a webjar with Gradle. It is distributed, then later consumed by Amps, which provides a container for the static content to be served. This process is not entirely necessary, however, if the static content can be hosted on CDN or in a static Apache folder. To build the Deck distribution, NPM and bower must be installed on the build server. The project can be staged for build by running +npm install+, which will pull down the necessary dependencies. Following that, a +grunt build+ command will compile the project into the +dist+ directory of the project.
+Deck is a Angular application, which is first built with Gulp, then packaged into a webjar with Gradle. It is distributed, then later consumed by another web application, which provides a container for the static content to be served. This process is not entirely necessary, however, if the static content can be hosted on CDN or in a static Apache folder. To build the Deck distribution, NPM and Gulp must be installed on the build server. The project can be staged for build by running +npm install+ and +npm install gulp+, which will pull down the necessary dependencies. Following that, a +gulp+ command will compile the project into the +dist+ directory of the project.
 
-To generate a webjar of the project, after it has been built with Grunt, the Gradle build can be invoked in the form of +./gradlew clean build+, which will place the static assets in the +META-INF/resources+ directory of the generated artifact.
+To generate a webjar of the project, after it has been built with Gulp, the Gradle build can be invoked in the form of +./gradlew clean build+, which will place the static assets in the +META-INF/resources+ directory of the generated artifact.
 
 === Running Deck
 
-Since Deck generates down to a collection of static assets, it can be released to any HTTP capable web server for deployment. From a development perspective, however, the project can be run using the +grunt serve+ command.
+Since Deck generates down to a collection of static assets, it can be released to any HTTP capable web server for deployment. From a development perspective, however, the project can be run using the +gulp+ command.
 
 === Configuring Deck
 
