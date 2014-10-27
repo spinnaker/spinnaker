@@ -51,11 +51,13 @@ class CreateGoogleServerGroupTask implements Task {
   }
 
   DeployGoogleServerGroupOperation convert(Stage stage) {
-    stage.context.initialNumReplicas = stage.context.capacity.desired
+    def operation = [:]
+    operation.putAll(stage.context)
+    operation.initialNumReplicas = operation.capacity.desired
 
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, DeployGoogleServerGroupOperation)
+          .convertValue(operation, DeployGoogleServerGroupOperation)
   }
 
   private TaskId deploy(DeployGoogleServerGroupOperation deployOperation) {
