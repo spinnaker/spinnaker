@@ -27,8 +27,9 @@ angular.module('deckApp')
         },
         runningTime: {
           get: function() {
+            var endTime = parseInt(item.endTime) || parseInt(item.startTime);
             return momentService
-              .duration(parseInt(item.endTime) - parseInt(item.startTime))
+              .duration(endTime - parseInt(item.startTime))
               .humanize();
           }
         }
