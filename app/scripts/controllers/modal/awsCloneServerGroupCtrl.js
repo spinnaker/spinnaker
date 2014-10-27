@@ -380,6 +380,10 @@ angular.module('deckApp.aws')
 
     }
 
+    this.useAllImageSelection = function() {
+      return $scope.state.queryAllImages || !$scope.regionalImages || $scope.regionalImages.length === 0;
+    };
+
     this.isValid = function () {
       return $scope.command && ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
@@ -442,6 +446,9 @@ angular.module('deckApp.aws')
         }
         description = 'Create New Server Group in cluster ' + asgName;
       }
+      if (this.useAllImageSelection()) {
+        command.amiName = command.allImageSelection;
+      }
       command.availabilityZones = {};
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       delete command.region;
@@ -449,6 +456,10 @@ angular.module('deckApp.aws')
       delete command.instanceProfile;
       delete command.vpcId;
       delete command.usePreferredZones;
+
+      if (!command.subnetType) {
+        delete command.subnetType;
+      }
 
       $scope.taskMonitor.submit(
         function() {
