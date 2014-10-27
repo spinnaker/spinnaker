@@ -1,0 +1,17 @@
+server:
+     port: 8052
+google:
+  kmsServer : http://leanjazz02.rtp.raleigh.ibm.com:8090
+  accounts:
+    - name: default
+      project : rjminsha-test-project
+      pkcs12Password : notasecret 
+      kmsServer : http://leanjazz02.rtp.raleigh.ibm.com:8090
+docker:
+  accounts:
+    - name: local
+      url: http://192.168.59.103:2375
+      registry: http://leanjazz.rtp.raleigh.ibm.com:5000
+    - name: remote
+      url: http://leanjazz02.rtp.raleigh.ibm.com:2375
+      registry: http://leanjazz.rtp.raleigh.ibm.com:5000
