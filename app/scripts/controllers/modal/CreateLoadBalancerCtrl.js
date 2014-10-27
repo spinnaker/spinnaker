@@ -120,7 +120,10 @@ angular.module('deckApp')
       var account = $scope.loadBalancer.credentials,
           region = $scope.loadBalancer.region;
       return mortService.listSubnets().then(function(subnets) {
-        return _.filter(subnets, {account: account, region: region, target: 'elb'});
+        return _(subnets)
+          .filter({account: account, region: region})
+          .reject({'target': 'ec2'})
+          .valueOf();
       });
     }
 

@@ -237,7 +237,8 @@ angular.module('deckApp.aws')
         $scope.regionSubnetPurposes = null;
       }
       $scope.regionSubnetPurposes = _($scope.subnets)
-        .filter({'account': $scope.command.credentials, 'region': $scope.command.region, 'target': 'ec2'})
+        .filter({'account': $scope.command.credentials, 'region': $scope.command.region})
+        .reject({'target': 'elb'})
         .pluck('purpose')
         .uniq()
         .map(function(purpose) { return { purpose: purpose, label: purpose };})
