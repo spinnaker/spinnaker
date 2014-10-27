@@ -38,6 +38,11 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<String> {
 
     for (Map<String, Serializable> context in ((List<Map<String, Serializable>>) config.stages)) {
       def type = context.remove("type").toString()
+
+      if (context.providerType) {
+        type += "_$context.providerType"
+      }
+
       if (stages.containsKey(type)) {
         def stage = new PipelineStage(type, context)
         stages.get(type).build(jobBuilder, stage)
