@@ -84,6 +84,23 @@ class TaskController {
     return pipelines
   }
 
+  @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
+  List<PipelineViewModel> getApplicationPipelines(@PathVariable String application) {
+    def pipelines = []
+    jobExplorer.jobNames.each { name ->
+      jobExplorer.getJobInstances(name, 0, Integer.MAX_VALUE).each { jobInstance ->
+        jobExplorer.getJobExecutions(jobInstance).collect { execution ->
+          PipelineViewModel.fromPipelineAndExecution(pipelineFactory.retrieve(execution.id.toString()), execution)
+        }.findAll {
+          it.application == application
+        }.each {
+          pipelines << it
+        }
+      }
+    }
+    return pipelines
+  }
+
   private static JobViewModel convert(JobExecution jobExecution) {
     def steps = jobExecution.stepExecutions.collect {
       def stepName = it.stepName.contains('.') ? it.stepName.tokenize('.')[1] : it.stepName

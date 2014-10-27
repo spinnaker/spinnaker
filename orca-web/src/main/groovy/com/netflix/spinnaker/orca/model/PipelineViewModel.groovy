@@ -27,6 +27,8 @@ class PipelineViewModel {
   String name
   String application
   String status
+  Long startTime
+  Long endTime
   List<PipelineStageViewModel> stages
 
   static class PipelineStageViewModel {
@@ -45,34 +47,47 @@ class PipelineViewModel {
     Long endTime
   }
 
+  static final String PENDING_STAGE_STATUS_VAL = "NOT_STARTED"
+
   static PipelineViewModel fromPipelineAndExecution(Pipeline pipeline, JobExecution jobExecution) {
-    Map<String, List<StageStepViewModel>> steps = [:]
+    Map<String, PipelineStageViewModel> stages = [:]
+
     for (stepExecution in jobExecution.stepExecutions) {
-      def stage = "pipeline"
+      def stage = "init"
       def step = stepExecution.stepName
       if (stepExecution.stepName.contains('.')) {
         def parts = stepExecution.stepName.tokenize('.')
         stage = parts[0]
         step = parts[1]
       }
-      if (!steps.containsKey(stage)) {
-        steps[stage] = []
+      if (!stages.containsKey(stage)) {
+        stages[stage] = new PipelineStageViewModel(name: stage, context: [:], steps: [])
       }
-      steps[stage] << new StageStepViewModel(name: step, status: stepExecution.exitStatus.exitCode,
+      stages[stage].steps << new StageStepViewModel(name: step, status: stepExecution.exitStatus.exitCode,
         startTime: stepExecution.startTime?.time, endTime: stepExecution.endTime?.time)
     }
-    List<PipelineStageViewModel> stages = []
-    for (entry in steps) {
-      def stageName = entry.key
-      def stageSteps = entry.value
-      def context = [:]
-      if (jobExecution.executionContext.get(stageName) instanceof Stage) {
-        context = ((Stage)jobExecution.executionContext.get(stageName)).context
+    for (stage in pipeline.stages) {
+      if (!stages.containsKey(stage.type)) {
+        stages[stage.type] = new PipelineStageViewModel(name: stage.type, context: stage.context, steps: [])
       }
-      stages << new PipelineStageViewModel(name: stageName, status: stageSteps[-1].status, context: context,
-        steps: stageSteps, startTime: stageSteps[0]?.startTime, endTime: stageSteps[-1]?.endTime)
     }
-    new PipelineViewModel(id: pipeline.id, name: pipeline.name, application: pipeline.application, stages: stages,
-      status: stages[-1]?.status)
+    for (stage in stages.values()) {
+      if (jobExecution.executionContext.get(stage.name) instanceof Stage) {
+        stage.context = ((Stage)jobExecution.executionContext.get(stage.name)).context
+      }
+      stage.startTime = stage.steps?.getAt(0)?.startTime
+      stage.status = PENDING_STAGE_STATUS_VAL
+      if (stage.steps.size() > 0) {
+        def lastStep = stage.steps.getAt(-1)
+        stage.status = lastStep?.status
+        stage.endTime = lastStep?.endTime
+      }
+    }
+    def pipelineStages = stages.values() as List
+    def status = pipelineStages ? pipelineStages?.getAt(-1)?.status : "EXECUTING"
+    def startTime = pipelineStages ? pipelineStages?.getAt(0)?.startTime : null
+    def endTime = pipelineStages ? pipelineStages?.getAt(-1)?.endTime : null
+    new PipelineViewModel(id: pipeline.id, name: pipeline.name, application: pipeline.application,
+      stages: pipelineStages, status: status, startTime: startTime)
   }
 }
