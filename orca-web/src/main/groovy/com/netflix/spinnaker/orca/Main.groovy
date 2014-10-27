@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
-import com.netflix.spinnaker.orca.filters.SimpleCORSFilter
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
@@ -49,7 +48,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   KatoConfiguration,
   MortConfiguration,
   OortConfiguration,
-  SimpleCORSFilter,
   WebConfiguration,
   MayoConfiguration
 ])
