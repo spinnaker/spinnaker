@@ -23,7 +23,7 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-left"><b>Image</b></div>
       <div class="col-md-7" ng-if="!state.imagesLoaded"><h5 class="loader"> finding images...</h5></div>
-      <div class="col-md-9" ng-if="state.imagesLoaded && (state.queryAllImages || regionalImages.length === 0)">
+      <div class="col-md-9" ng-if="state.imagesLoaded && ctrl.useAllImageSelection()">
         <ui-select ng-model="command.allImageSelection"
                    class="form-control input-sm"
                    required>
@@ -39,7 +39,7 @@
         </ui-select>
         <a ng-if="regionalImages.length > 0" href ng-click="state.queryAllImages = false">Only show images matching "{{packageBase || applicationName}}"</a>
       </div>
-      <div class="col-md-9" ng-if="state.imagesLoaded && !state.queryAllImages && regionalImages.length > 0">
+      <div class="col-md-9" ng-if="state.imagesLoaded && !ctrl.useAllImageSelection()">
         <ui-select ng-model="command.amiName" class="form-control input-sm" required>
           <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
           <ui-select-choices repeat="image.imageName as image in regionalImages | filter: $select.search | orderBy: '-imageName'">
