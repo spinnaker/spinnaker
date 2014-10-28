@@ -11,7 +11,8 @@ angular.module('deckApp')
         component: '=',
         field: '@',
         account: '=',
-        onChange: '&'
+        onChange: '&',
+        labelColumns: '@'
       }
     };
   }
