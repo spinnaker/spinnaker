@@ -23,16 +23,12 @@ import com.google.api.services.compute.Compute
 import groovy.transform.Canonical
 import groovy.transform.TupleConstructor
 import java.security.PrivateKey
-import org.apache.log4j.Logger
-
 
 @TupleConstructor(includeFields = true)
 @Canonical
 class GoogleCredentials {
   final String project
   final Compute compute
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
 
   private final HttpTransport httpTransport
   private final JsonFactory jsonFactory
@@ -41,7 +37,6 @@ class GoogleCredentials {
 
   // This is used to gain access to the "limited preview" capabilities like Replica Pools.
   GoogleCredential.Builder createCredentialBuilder(String... serviceAccountScopes) {
-    log.info('GoogleCredentials.createCredentialBuilder')
     new GoogleCredential.Builder().setTransport(httpTransport)
             .setJsonFactory(jsonFactory)
             .setServiceAccountId(email)

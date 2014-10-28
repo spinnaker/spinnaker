@@ -51,7 +51,6 @@ class GoogleConfig {
 
   @PostConstruct
   void init() {
-    log.info('GoogleConfig.init: Initializing managed accounts')
     for (managedAccount in googleConfigurationProperties.accounts) {
       try {
         accountCredentialsRepository.save(managedAccount.name, new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.pkcs12Password, managedAccount.name, managedAccount.project))

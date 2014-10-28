@@ -22,21 +22,15 @@ import com.netflix.spinnaker.kato.services.docker.RegistryService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
-import org.apache.log4j.Logger
-
 
 @Component("dockerDeployDescriptionValidator")
 class DockerDeployDescriptionValidator extends DescriptionValidator<DockerDeployDescription> {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
 
   @Autowired
   RegistryService registryService
 
   @Override
   void validate(List priorDescriptions, DockerDeployDescription description, Errors errors) {
-    log.info(">>>Docker Deploy Validator")
-    log.info("description: ${description}")
     if (!description.application) {
       errors.rejectValue "application", "dockerDeployDescription.application.empty.or.null"
     }

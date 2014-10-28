@@ -21,14 +21,10 @@ import com.netflix.spinnaker.kato.model.docker.Image
 import com.netflix.spinnaker.kato.security.docker.Docker
 import groovy.json.JsonSlurper
 import org.springframework.stereotype.Service
-import org.apache.log4j.Logger
-
 
 @Service
 class DefaultRegistryService implements RegistryService {
   static JsonSlurper jsonSlurper = new JsonSlurper()
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
 
   @Override
   Image getImage(Docker docker, String application, String version) {
@@ -36,36 +32,22 @@ class DefaultRegistryService implements RegistryService {
   }
 
   private Deployable getDeployable(Docker docker, String name) {
-    log.info(">>>getDeployable")
     getDeployables(docker).find { it.name == name }
   }
 
   private Set<Deployable> getDeployables(Docker docker) {
-    try{
-      log.info(">>>getDeployableS")
-      def body = "${docker.registry}/v1/search".toURL().text
-      log.info("Docker Registry Service.  Finding image in registry ${body}")
-      def json = jsonSlurper.parseText(body) as Map
-      log.info("Returned json ${json}")
-      def results = []
-      for (result in json.results) {
-        def (String library, String repoName) = result.name.split('/')
-        log.info("   found library:${library} and repoName:${repoName}")
-        results << getDeployable(docker.registry, library, repoName)
-      }
-      results
-    }catch(e){
-      log.info("caught exception ${e}")
-      e.printStackTrace()
-      throw e
+    def body = "${docker.registry}/v1/search".toURL().text
+    def json = jsonSlurper.parseText(body) as Map
+    def results = []
+    for (result in json.results) {
+      def (String library, String repoName) = result.name.split('/')
+      results << getDeployable(docker.registry, library, repoName)
     }
+    results
   }
 
   private static Deployable getDeployable(String registryUrl, String library, String name) {
-   log.info(">>>getDeployable(registryUrl, library, name)")
     def deployable = new Deployable(library: library, name: name, images: [])
-    log.info("Docker Registry Service. getDeployable. Finding image in registry")
-    log.info("URL: ${registryUrl}/v1/repositories/${library}/${name}/tags")
 
     def detailsBody = "${registryUrl}/v1/repositories/${library}/${name}/tags".toURL().text
     def detailsJson = jsonSlurper.parseText(detailsBody)
