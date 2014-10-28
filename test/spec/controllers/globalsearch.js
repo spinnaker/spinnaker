@@ -19,7 +19,7 @@ describe('Controller: GlobalSearch', function () {
       this.input = inputSpy;
       this.$element = { find: function() { return inputSpy; } };
 
-      spyOn(infrastructureSearch, 'query').andCallFake(function() { return $q.when([])});
+      spyOn(infrastructureSearch, 'query').and.callFake(function() { return $q.when([])});
 
       this.ctrl = $controller('GlobalSearchCtrl', {
         $scope: this.$scope,
@@ -51,7 +51,7 @@ describe('Controller: GlobalSearch', function () {
     });
 
     it('pressing down or tab (without shift) selects the first search result', function () {
-      spyOn(this.ctrl, 'focusFirstSearchResult').andCallFake(angular.noop);
+      spyOn(this.ctrl, 'focusFirstSearchResult').and.callFake(angular.noop);
       var event = {which: 40};
 
       this.ctrl.dispatchQueryInput(event);
@@ -74,7 +74,7 @@ describe('Controller: GlobalSearch', function () {
     });
 
     it('pressing up selects the last search result', function () {
-      spyOn(this.ctrl, 'focusLastSearchResult').andCallFake(angular.noop);
+      spyOn(this.ctrl, 'focusLastSearchResult').and.callFake(angular.noop);
 
       var event = {which: 38};
       this.ctrl.dispatchQueryInput(event);
@@ -84,7 +84,7 @@ describe('Controller: GlobalSearch', function () {
     });
 
     it('ignores left, right, shift key events', function() {
-      spyOn(this.ctrl, 'focusLastSearchResult').andCallFake(angular.noop);
+      spyOn(this.ctrl, 'focusLastSearchResult').and.callFake(angular.noop);
 
       this.ctrl.dispatchQueryInput({which: 39});
       this.$scope.$digest();

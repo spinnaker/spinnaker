@@ -18,16 +18,8 @@
         </div>
       </div>
       <div class="row">
-        <div class="progress" style="">
-          <div class="progress-bar"
-               ng-class="{active: task.isRunning, 'progress-bar-info': task.isRunning, 'progress-bar-striped': task.isRunning, 'progress-bar-success': task.isCompleted, 'progress-bar-danger': task.isFailed}"
-               role="progressbar"
-               aria-valuenow="1"
-               aria-valuemin="0"
-               aria-valuemax="1"
-               style="width: 100%;">
-          </div>
-        </div>
+        <panel-progress item="task">
+        </panel-progress>
       </div>
       <div class="row details" style="padding-top: 10px; padding-bottom: 10px;">
         <div class="col-md-12">

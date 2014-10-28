@@ -1,0 +1,148 @@
+@import "app/styles/imports/commonImports.less";
+
+.pipelines {
+  .form-inline {
+    margin-bottom: 10px;
+  }
+  .faded {
+    color: @mid_lighter_grey;
+  }
+  .execution {
+    .timestamp {
+      color: @mid_grey;
+      font-size: .8em;
+      padding-top: 22px;
+    }
+    .panel {
+      .summary {
+        background-color: @mid_light_grey;
+        cursor: pointer;
+        padding-bottom: 0px;
+        h5 {
+          font-weight: bold;
+          display: inline-block;
+        }
+      }
+      .summary.current {
+        background-color: #FFF;
+      }
+
+
+      /*
+      .details.ng-enter, .details.ng-leave {
+        -webkit-transition:0.5s linear all;
+        transition:0.5s linear all;
+      }
+      .details.ng-enter {
+        height: 0px;
+      }
+      */
+
+      .details {
+        .tr {
+          background-color: lighten(@spinnaker-blue, 20%);
+        }
+      }
+
+    }
+    .label-succeeded, .label-completed {
+      background-color: @healthy_green_border;
+    }
+    .label-failed {
+      background-color: @unhealthy_red;
+    }
+    .label-started, .label-running, .label-executing {
+      background-color: @spinnaker-blue;
+    }
+  }
+}
+
+.pipeline-details {
+  @media(min-width: 992px) {
+    .details-panel {
+      /*width: 34% !important;*/
+    }
+  }
+  @media(max-width: 992px) {
+    .details-panel {
+      display: none;
+    }
+  }
+  .glyphicon-ok {
+    color: @healthy_green_icon;
+  }
+  .glyphicon-warning-sign {
+    color: @unhealthy_red;
+  }
+  dt {
+    float: left;
+    margin-right: 5px;
+  }
+}
+
+.pipeline-grouping {
+  background-color: @light_grey;
+  border: 1px solid #c4c4c4;
+  border-radius: 3px;
+}
+.build-timeline {
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+  .x.axis path {
+    display: none;
+  }
+
+  .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+  }
+}
+.pipelines-header {
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid @mid_light_grey;
+}
+.nav.delivery-nav {
+  /* looks like some styles are being overridden :( */
+  border: none !important;
+  background: none !important;
+  padding: 0px !important;
+  min-height: 0px !important;
+  margin-bottom: 5px;
+  a.active {
+    background-color: @spinnaker-blue;
+    border-radius: 3px;
+    color: #fff;
+  
+  }
+}
+.pipeline-stacked-bar {
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  .bar {
+    fill: steelblue;
+  }
+  .x.axis path {
+    display: none;
+  }
+  .axis {
+  font-size: .7em;
+  }
+  rect {
+    stroke: #000;
+  }
+  .vis-label {
+    fill: #fff;
+    font-size: .8em;
+  }
+}

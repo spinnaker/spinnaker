@@ -84,7 +84,7 @@ describe('Service: taskTracker', function() {
   describe('generateNotifications(tasks, appendedMessage)', function() {
     it('generates one notification for each task', function() {
       this.taskTracker.generateNotifications(this.secondSnapshot);
-      expect(this.notifications.create.calls.length).toEqual(this.secondSnapshot.length);
+      expect(this.notifications.create.calls.count()).toEqual(this.secondSnapshot.length);
     });
   });
 
@@ -94,14 +94,14 @@ describe('Service: taskTracker', function() {
     });
 
     it('will generate a success notification for each completed task', function() {
-      spyOn(this.taskTracker, 'getCompleted').andReturn(this.secondSnapshot);
+      spyOn(this.taskTracker, 'getCompleted').and.returnValue(this.secondSnapshot);
       this.taskTracker.handleTaskUpdates(this.initialSnapshot, this.secondSnapshot);
       expect(this.taskTracker.generateNotifications)
         .toHaveBeenCalledWith(this.secondSnapshot, 'Completed Successfully');
     });
 
     it('will generate a failure notification for each failed task', function() {
-      spyOn(this.taskTracker, 'getFailed').andReturn(this.secondSnapshot);
+      spyOn(this.taskTracker, 'getFailed').and.returnValue(this.secondSnapshot);
       this.taskTracker.handleTaskUpdates(this.initialSnapshot, this.secondSnapshot);
       expect(this.taskTracker.generateNotifications)
         .toHaveBeenCalledWith(this.secondSnapshot, 'Failed');
@@ -109,14 +109,14 @@ describe('Service: taskTracker', function() {
 
     it('will initiate a force refresh when there are completed tasks', function() {
       spyOn(this.taskTracker, 'forceRefreshFromTasks');
-      spyOn(this.taskTracker, 'getCompleted').andReturn(this.secondSnapshot);
+      spyOn(this.taskTracker, 'getCompleted').and.returnValue(this.secondSnapshot);
       this.taskTracker.handleTaskUpdates(this.initialSnapshot, this.secondSnapshot);
       expect(this.taskTracker.forceRefreshFromTasks).toHaveBeenCalled();
     });
 
     it('will not initiate a force refresh when there are no completed tasks', function() {
       spyOn(this.taskTracker, 'forceRefreshFromTasks');
-      spyOn(this.taskTracker, 'getCompleted').andReturn([]);
+      spyOn(this.taskTracker, 'getCompleted').and.returnValue([]);
       this.taskTracker.handleTaskUpdates(this.initialSnapshot, this.initialSnapshot);
       expect(this.taskTracker.forceRefreshFromTasks).not.toHaveBeenCalled();
     });

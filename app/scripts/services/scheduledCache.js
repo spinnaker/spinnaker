@@ -37,6 +37,10 @@ angular.module('deckApp')
     };
 
     that.remove = function(k) {
+      if (that.schedules[k]) {
+        that.schedules[k].dispose();
+        delete that.schedules[k];
+      }
       that.cache.remove(k);
     };
 

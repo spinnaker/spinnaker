@@ -1,0 +1,91 @@
+<div class="row">
+  <div class="col-md-12 execution">
+    <div class="row">
+      <div class="col-md-2 timestamp">
+        {{ execution.startTime | relativeTime }}
+      </div>
+      <div class="col-md-8 panel">
+        <div class="row summary"
+             ng-class="{current: ctrl.currentExecution() }">
+          <div class="col-md-12">
+            <div class="row" ng-click="ctrl.toggle()">
+              <div class="col-sm-4" style="font-size: .7em;">
+                <div class="row">
+                  Triggered by {{ execution.trigger.type }}
+                </div>
+                <div class="row">
+                  <span ng-switch="execution.trigger.type">
+                    <span ng-switch-when="jenkins">
+                       Build <a href="{{ execution.trigger.buildInfo.webUrl }}">
+                        #{{ execution.trigger.buildInfo.lastBuildLabel }}
+                      </a>
+                    </span>
+                    <span ng-switch-default></span>
+                  </span>
+                </div>
+              </div>
+              <div class="col-sm-4" ng-click="ctrl.toggle()">
+                <h5 style="display: inline-block;"
+                    ng-if="!filter.groupByPipeline">
+                  {{ execution.name }}
+                </h5>
+              </div>
+              <div class="col-sm-4">
+                <h5 style="float: right;">
+                  <ng-include src="'views/delivery/statuslabel.html'">
+                  </ng-include>
+                  {{ execution.currentStage + 1 }} / {{ execution.stages.length }}
+                </h5>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-right: -5px;">
+            <panel-progress item="execution" class="col-md-12">
+            </panel-progress>
+          </div>
+        </div>
+        <div class="row details" ng-if="show">
+          <div class="col-md-12">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped table-hover table-condensed">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Started</th>
+                      <th>Completed</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="stage in execution.stages"
+                        ng-class="{ current: ctrl.currentStage(stage) }">
+                      <td>{{ stage.name }}</td>
+                      <td>
+                        <span class="label label-default label-{{ stage.status | lowercase }}">
+                          {{ stage.status }}
+                        </span>
+                      </td>
+                      <td>{{ stage.startTime | relativeTime }}</td>
+                      <td>{{ stage.endTime | relativeTime }}</td>
+                      <td>
+                        <a ui-sref=".stageDetails({pipelineName: execution.name, executionId: execution.id, stageName: stage.name})">
+                          <span class="glyphicon glyphicon-info-sign faded"></span>
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 timestamp"
+           ng-if="execution.endTime">
+        {{ execution.endTime | relativeTime }}
+      </div>
+    </div>
+  </div>
+</div>

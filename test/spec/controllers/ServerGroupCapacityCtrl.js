@@ -23,7 +23,7 @@ describe('Controller: ServerGroupCapacity', function () {
 
     this.wizard = jasmine.createSpyObj('wizard', ['markComplete', 'markClean', 'markDirty']);
 
-    spyOn(modalWizardService, 'getWizard').andReturn(this.wizard);
+    spyOn(modalWizardService, 'getWizard').and.returnValue(this.wizard);
 
     this.ctrl = $controller('ServerGroupCapacityCtrl', {
       $scope: this.scope,

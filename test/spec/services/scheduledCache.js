@@ -57,19 +57,19 @@ describe('scheduledCache', function() {
 
     describe('the update', function() {
       beforeEach(function() {
-        spyOn(this.scheduler, 'subscribeEveryN').andCallFake(function(cycles, fn) {
+        spyOn(this.scheduler, 'subscribeEveryN').and.callFake(function(cycles, fn) {
           fn();
         });
       });
 
       it('makes a get request to the cache key (a url)', function() {
-        spyOn(this.$http, 'get').andCallThrough();
+        spyOn(this.$http, 'get').and.callThrough();
         this.scheduledCache.put('a key', 'a value');
         expect(this.$http.get).toHaveBeenCalledWith('a key', jasmine.any(Object));
       });
 
       it('supplies the underlying cache for use in the $http request', function() {
-        spyOn(this.$http, 'get').andCallFake(function(url, config) {
+        spyOn(this.$http, 'get').and.callFake(function(url, config) {
           expect(config.cache).toEqual(this.scheduledCache.cache);
           return { success: angular.noop };
         }.bind(this));
