@@ -222,7 +222,7 @@ body > .container {
   color: #fff;
 }
 
-.sm-label, .sm-label-left {
+.sm-label, .sm-label-left, .sm-label-right {
   line-height: 30px;
   font-weight: bold;
   text-align: right;
@@ -242,6 +242,9 @@ body > .container {
 
 .sm-label-left {
   text-align: left;
+}
+.sm-label-right {
+  text-align: right;
 }
 
 .form-inline {
@@ -642,4 +645,12 @@ server-error-flag {
   -webkit-animation:spin 4s linear infinite;
   -moz-animation:spin 4s linear infinite;
   animation:spin 4s linear infinite;
+}
+
+.help-field {
+  opacity: 0.8;
+  span {
+    top: -2px;
+    font-size: 70%;
+  }
 }

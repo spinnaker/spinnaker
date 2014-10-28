@@ -10,4 +10,12 @@ angular.module('deckApp')
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
   })
+  .config(function($tooltipProvider) {
+    $tooltipProvider.options({
+      appendToBody: true
+    });
+    $tooltipProvider.setTriggers({
+      'mouseenter focus': 'mouseleave blur'
+    });
+  })
 ;
