@@ -5,9 +5,10 @@ angular.module('deckApp')
   .factory('taskTracker', function(notifications, scheduler) {
     var that = {};
     that.getValueForKey = function getValueForKey(task, k) {
-      return task.variables.filter(function(v) {
+      var variables =  task.variables.filter(function(v) {
         return v.key === k;
-      })[0].value; // assume only one
+      });
+      return variables.length ? variables[0].value : null; // assume only one
     };
 
     that.getTasksMatchingPred = function getTasksMatchingPred(oldTasks, newTasks, pred) {
@@ -51,8 +52,8 @@ angular.module('deckApp')
       tasks.forEach(function(task) {
         // generate notifications
         notifications.create({
-          title: that.getValueForKey(task, 'application'),
-          message: that.getValueForKey(task, 'description') + ' ' + appendedMessage,
+          title: that.getValueForKey(task, 'application') || '(unknown)',
+          message: (that.getValueForKey(task, 'description') || '') + ' ' + appendedMessage,
           href: '/',
         });
       });

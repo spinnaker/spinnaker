@@ -24,8 +24,10 @@
       <dl>
         <dt>Started</dt>
         <dd>{{ task.startTime | relativeTime }}</dd>
-        <dt>Completed</dt>
-        <dd>{{ task.endTime | relativeTime }}</dd>
+        <span ng-if="task.isCompleted">
+          <dt>Completed</dt>
+          <dd>{{ task.endTime | relativeTime }}</dd>
+        </span>
         <dt>Running time</dt>
         <dd>{{ task.runningTime }}</dd>
       </dl>
