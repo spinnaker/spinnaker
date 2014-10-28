@@ -18,6 +18,8 @@ package com.netflix.spinnaker.oort.provider.aws.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -47,10 +49,15 @@ class AwsProviderConfig {
   CredentialsInitializer credentialsInitializer
 
   @Bean
-  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AwsConfigurationProperties awsConfigurationProperties, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, RestTemplate restTemplate) {
+  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, RestTemplate restTemplate) {
     Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
     List<CachingAgent> agents = []
-    for (NetflixAmazonCredentials credentials : awsConfigurationProperties.accounts) {
+
+    for (AccountCredentials cred : accountCredentialsRepository.all) {
+      if (!(cred instanceof NetflixAmazonCredentials)) {
+        continue
+      }
+      NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) cred
       if (credentials.front50Enabled) {
         agents << new Front50CachingAgent(credentials, restTemplate)
       }
