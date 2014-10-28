@@ -35,7 +35,7 @@
       <checklist class="col-md-9" ng-if="loadBalancer.region" items="availabilityZones"
                  model="loadBalancer.regionZones"></checklist>
     </div>
-    <subnet-select-field label-columns="3" component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
+    <subnet-select-field label-columns="3" help-key="aws.loadBalancer.subnet" component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
   </div>
   <div class="modal-footer">
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"

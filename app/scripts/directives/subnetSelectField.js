@@ -12,7 +12,8 @@ angular.module('deckApp')
         field: '@',
         region: '=',
         onChange: '&',
-        labelColumns: '@'
+        labelColumns: '@',
+        helpKey: '@'
       }
     };
   }

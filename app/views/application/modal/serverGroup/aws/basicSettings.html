@@ -8,7 +8,7 @@
     </div>
     <account-select-field label-columns="2" component="command" field="credentials" accounts="accounts" loading="false"></account-select-field>
     <region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="regions"></region-select-field>
-    <subnet-select-field label-columns="2" component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
+    <subnet-select-field label-columns="2" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
     <div class="form-group">
       <div class="col-md-2 sm-label-left">
         <b>Stack</b>
