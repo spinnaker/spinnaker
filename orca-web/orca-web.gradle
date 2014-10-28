@@ -51,3 +51,5 @@ dependencies {
   testCompile commonDependencies.spockSpring
   testCompile commonDependencies.springTest
 }
+
+applicationDefaultJvmArgs = ["-Dserver.port=8083"]
