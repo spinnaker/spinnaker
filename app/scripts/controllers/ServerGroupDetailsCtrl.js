@@ -162,7 +162,7 @@ angular.module('deckApp')
         scope: $scope
       });
       modal.opened.then(function() {
-        serverGroupService.getScalingActivities(application, $scope.account, $scope.cluster.name, $scope.serverGroup.name, $scope.serverGroup.region).then(function(response) {
+        serverGroupService.getScalingActivities(application.name, $scope.account, $scope.cluster.name, $scope.serverGroup.name, $scope.serverGroup.region).then(function(response) {
           $scope.activities = response;
         });
       });
@@ -170,14 +170,9 @@ angular.module('deckApp')
 
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.launchConfig.userData);
-      var modal = $modal.open({
+      $modal.open({
         templateUrl: 'views/application/modal/serverGroup/userData.html',
         scope: $scope
-      });
-      modal.opened.then(function() {
-        serverGroupService.getScalingActivities(application, $scope.account, $scope.cluster.name, $scope.serverGroup.name, $scope.serverGroup.region).then(function(response) {
-          $scope.activities = response;
-        });
       });
     };
 
