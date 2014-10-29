@@ -149,7 +149,7 @@ gulp.task('html', ['clean:html'], function() {
 });
 
 var prepareCss = function(src, out) {
-  return src //.pipe($.sourcemaps.init({loadMaps: true}))
+  return src.pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.less())
     .pipe($.concatCss(out))
     .pipe($.rev())
