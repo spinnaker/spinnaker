@@ -16,25 +16,22 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.model.JobViewModel
 import com.netflix.spinnaker.orca.model.PipelineViewModel
-import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.PipelineFactory
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.*
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 class TaskController {
   @Autowired
   JobExplorer jobExplorer
 
-  @Autowired PipelineFactory pipelineFactory
+  @Autowired
+  PipelineFactory pipelineFactory
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   def list(@PathVariable String application) {
@@ -75,7 +72,9 @@ class TaskController {
     def pipelines = []
     jobExplorer.jobNames.each { name ->
       jobExplorer.getJobInstances(name, 0, Integer.MAX_VALUE).each { jobInstance ->
-        jobExplorer.getJobExecutions(jobInstance).each { execution ->
+        jobExplorer.getJobExecutions(jobInstance).findAll { execution ->
+          execution.executionContext.containsKey(PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY)
+        }.each { execution ->
           pipelines <<
             PipelineViewModel.fromPipelineAndExecution(pipelineFactory.retrieve(execution.id.toString()), execution)
         }
@@ -86,19 +85,9 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<PipelineViewModel> getApplicationPipelines(@PathVariable String application) {
-    def pipelines = []
-    jobExplorer.jobNames.each { name ->
-      jobExplorer.getJobInstances(name, 0, Integer.MAX_VALUE).each { jobInstance ->
-        jobExplorer.getJobExecutions(jobInstance).collect { execution ->
-          PipelineViewModel.fromPipelineAndExecution(pipelineFactory.retrieve(execution.id.toString()), execution)
-        }.findAll {
-          it.application == application
-        }.each {
-          pipelines << it
-        }
-      }
+    pipelines.collect {
+      it.application == application
     }
-    return pipelines
   }
 
   private static JobViewModel convert(JobExecution jobExecution) {
