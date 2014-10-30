@@ -55,7 +55,10 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
         List<Map> stages = pipeline.stages
         for (Map stage in stages) {
           if (stage.type == INTERESTING_STEP) {
-            interestingPipelines[stage[TRIGGER_KEY] as String] = pipeline
+            if (!interestingPipelines.containsKey(stage[TRIGGER_KEY] as String)) {
+              interestingPipelines[stage[TRIGGER_KEY] as String] = []
+            }
+            interestingPipelines[stage[TRIGGER_KEY] as String] << pipeline
           }
         }
       }
@@ -74,16 +77,18 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
     try {
       if (interestingPipelines.containsKey(input.name)) {
         if (input.lastBuildStatus != "Success") return
-        def pipelineConfig = interestingPipelines[input.name as String]
-        def jenkinsStageIdx = pipelineConfig.stages.findIndexOf {
-          it.type == "jenkins"
+        def pipelineConfigs = interestingPipelines[input.name as String]
+        for (Map pipelineConfig in pipelineConfigs) {
+          def jenkinsStageIdx = pipelineConfig.stages.findIndexOf {
+            it.type == "jenkins"
+          }
+          def stages = (jenkinsStageIdx + 1..pipelineConfig.stages.size() - 1).collect { int n ->
+            pipelineConfig.stages[n]
+          }
+          def config = [application: pipelineConfig.application, name: pipelineConfig.name, stages: stages]
+          def json = objectMapper.writeValueAsString(config)
+          pipelineStarter.start(json).subscribe()
         }
-        def stages = (jenkinsStageIdx + 1..pipelineConfig.stages.size() - 1).collect { int n ->
-          pipelineConfig.stages[n]
-        }
-        def config = [application: pipelineConfig.application, name: pipelineConfig.name, stages: stages]
-        def json = objectMapper.writeValueAsString(config)
-        pipelineStarter.start(json).subscribe()
       }
     } catch (e) {
       e.printStackTrace()

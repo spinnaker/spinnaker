@@ -18,24 +18,39 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import groovy.json.JsonSlurper
+import retrofit.client.Response
+import retrofit.mime.TypedInput
 import spock.lang.Specification
 
 class BuildJobNotificationHandlerSpec extends Specification {
+
+  def pipeline1 = [
+    name: "pipeline1",
+    stages: [[type: "jenkins",
+              job: "SPINNAKER-package-pond"],
+             [type: "bake"],
+             [type: "deploy", cluster: [name: "bar"]]]
+  ]
+
+  def pipeline2 = [
+    name: "pipeline2",
+    stages: [[type: "jenkins",
+              job: "SPINNAKER-package-pond"],
+             [type: "bake"],
+             [type: "deploy", cluster: [name: "foo"]]]
+  ]
 
   void "should pick up stages subsequent to build job completing"() {
     setup:
       PipelineStarter pipelineStarter = Mock(PipelineStarter)
       def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
-      handler.interestingPipelines["SPINNAKER-package-pond"] = [
-          stages: [[type: "jenkins",
-                    name: "SPINNAKER-package-pond"],
-                   [type: "bake"],
-                   [type: "deploy"]]
-      ]
+      handler.interestingPipelines["SPINNAKER-package-pond"] = [pipeline1]
 
     when:
       handler.handle([name: "SPINNAKER-package-pond", lastBuildStatus: "Success"])
@@ -50,5 +65,32 @@ class BuildJobNotificationHandlerSpec extends Specification {
         pipeline.id = "1"
         rx.Observable.from(pipeline)
       }
+  }
+
+  void "should add multiple pipeline targets to single trigger type"() {
+    setup:
+      def mayo = Mock(MayoService)
+      def pipelineStarter = Mock(PipelineStarter)
+      def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper(), mayoService: mayo)
+
+    when:
+      handler.run()
+
+    then:
+      1 * mayo.getPipelines() >> {
+        def response = GroovyMock(Response)
+        def typedInput = Mock(TypedInput)
+        typedInput.in() >> {
+          def json = new ObjectMapper().writeValueAsString([pipeline1, pipeline2])
+          new ByteArrayInputStream(json.bytes)
+        }
+        response.getBody() >> typedInput
+        response
+      }
+      2 == handler.interestingPipelines[job].size()
+      handler.interestingPipelines[job].name == ["pipeline1", "pipeline2"]
+
+    where:
+      job = "SPINNAKER-package-pond"
   }
 }

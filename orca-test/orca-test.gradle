@@ -17,6 +17,7 @@
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
+  compile commonDependencies.objenesis
   compile commonDependencies.spock
   compile commonDependencies.springTest
   compile commonDependencies.springBatchTest
