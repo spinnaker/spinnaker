@@ -16,7 +16,7 @@ angular.module('deckApp')
           var max = scope.$eval(attr.validateMax) || Infinity;
           if (!isEmpty(value) && value > max) {
             ctrl.$setValidity('validateMax', false);
-            return undefined;
+            return value;
           } else {
             ctrl.$setValidity('validateMax', true);
             return value;

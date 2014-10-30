@@ -23,7 +23,7 @@ angular.module('deckApp')
           var min = scope.$eval(attr.validateMin) || 0;
           if (!isEmpty(value) && value < min) {
             ctrl.$setValidity('validateMin', false);
-            return undefined;
+            return value;
           } else {
             ctrl.$setValidity('validateMin', true);
             return value;
