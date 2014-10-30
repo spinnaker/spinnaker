@@ -46,8 +46,10 @@
             <span ng-bind-html="result.imageName | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
-        <a ng-if="regionalImages.length > 0" href ng-click="state.queryAllImages = false">Only show images matching "{{packageBase || applicationName}}"</a>
-        <help-field key="aws.serverGroup.filterImages"></help-field>
+        <span ng-if="regionalImages.length > 0">
+          <a href ng-click="state.queryAllImages = false">Only show images matching "{{packageBase || applicationName}}"</a>
+          <help-field key="aws.serverGroup.filterImages"></help-field>
+        </span>
       </div>
       <div class="col-md-10" ng-if="state.imagesLoaded && !ctrl.useAllImageSelection()">
         <ui-select ng-model="command.amiName" class="form-control input-sm" required>
