@@ -113,10 +113,14 @@ class DeployStage extends LinearStage {
   }
 
   private List<Map> getExistingAsgs(String app, String account, String cluster) {
-    def response = oort.getCluster(app, account, cluster)
-    def json = response.body.in().text
-    def map = mapper.readValue(json, Map)
-    map.serverGroups
+    try {
+      def response = oort.getCluster(app, account, cluster)
+      def json = response.body.in().text
+      def map = mapper.readValue(json, Map)
+      map.serverGroups
+    } catch (e) {
+      null
+    }
   }
 
   @Immutable
