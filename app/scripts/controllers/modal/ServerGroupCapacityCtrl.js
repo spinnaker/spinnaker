@@ -20,4 +20,10 @@ angular.module('deckApp')
       { label: 'Manual', value: false}
     ];
 
+    $scope.$watch('command.capacity.desired', function(newVal) {
+      if ($scope.state.useSimpleCapacity) {
+        $scope.command.capacity.min = newVal;
+        $scope.command.capacity.max = newVal;
+      }
+    });
   });
