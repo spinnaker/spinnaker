@@ -45,7 +45,7 @@ angular.module('deckApp')
       original.steps = updated.steps;
       original.endTime = updated.endTime;
       original.variables = updated.variables;
-      if (updated.katoTasks.length) {
+      if (updated.katoTasks && updated.katoTasks.length) {
         var katoTasks = getKatoTasks(original);
         katoTasks[katoTasks.length - 1].history = updated.katoTasks;
       }

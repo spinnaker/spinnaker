@@ -111,7 +111,7 @@ angular.module('deckApp')
 
       var taskMonitor = {
         application: application,
-        title: 'Disabling ' + serverGroup.name,
+        title: 'Enabling ' + serverGroup.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true
       };

@@ -2,7 +2,8 @@
 
 
 angular.module('deckApp')
-  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, application, serverGroup) {
+  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, taskMonitorService,
+                                                application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       min: serverGroup.asg.minSize,
@@ -33,11 +34,21 @@ angular.module('deckApp')
       if (!$scope.command.advancedMode) {
         capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
       }
-      orcaService.resizeServerGroup(serverGroup, capacity, application.name)
-        .then(function (response) {
-          $modalInstance.close();
-          console.warn('task:', response.ref);
-        });
+
+      var submitMethod = function() {
+        return orcaService.resizeServerGroup(serverGroup, capacity, application.name);
+      };
+
+      var taskMonitorConfig = {
+        modalInstance: $modalInstance,
+        application: application,
+        title: 'Resizing ' + serverGroup.name,
+        submitMethod: submitMethod
+      };
+
+      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+
+      $scope.taskMonitor.submit(submitMethod);
     };
 
     this.cancel = function () {
