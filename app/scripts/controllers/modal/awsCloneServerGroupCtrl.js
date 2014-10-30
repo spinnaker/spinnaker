@@ -15,7 +15,8 @@ angular.module('deckApp.aws')
     $scope.state = {
       loaded: false,
       imagesLoaded: false,
-      queryAllImages: false
+      queryAllImages: false,
+      useSimpleCapacity: true
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -84,9 +85,9 @@ angular.module('deckApp.aws')
         'region': defaultRegion,
         'usePreferredZones': true,
         'capacity': {
-          'min': 0,
-          'max': 0,
-          'desired': 0
+          'min': 1,
+          'max': 1,
+          'desired': 1
         },
         'cooldown': 10,
         'healthCheckType': 'EC2',
@@ -334,6 +335,8 @@ angular.module('deckApp.aws')
     function initializeCommand() {
       var command = $scope.command;
       if (serverGroup) {
+        var asg = serverGroup.asg;
+        $scope.state.useSimpleCapacity = asg.minSize === asg.maxSize;
         var serverGroupName = serverGroupService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
         var zones = serverGroup.asg.availabilityZones.sort();
         var preferredZones = $scope.preferredZones[serverGroup.account][serverGroup.region].sort();
