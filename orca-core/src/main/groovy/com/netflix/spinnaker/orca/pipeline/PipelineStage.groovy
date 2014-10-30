@@ -44,7 +44,14 @@ class PipelineStage implements ConfigurableStage {
    */
   @Override
   ImmutableMap<String, Serializable> getContext() {
-    ImmutableMap.copyOf(context)
+    // TODO this is a nasty hack to ensure that null values are not passed to the ImmutableMap
+    def copy = [:]
+    for (Map.Entry<String, Serializable> entry in context.entrySet()) {
+      if (entry.value) {
+        copy[entry.key] = entry.value
+      }
+    }
+    ImmutableMap.copyOf(copy)
   }
 
   @Override
