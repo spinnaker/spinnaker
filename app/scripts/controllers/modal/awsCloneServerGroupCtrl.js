@@ -253,7 +253,9 @@ angular.module('deckApp.aws')
         var previousCount = $scope.command.securityGroups.length;
         // not initializing - we are actually changing groups
         var matchedGroupNames = $scope.command.securityGroups.map(function(groupId) {
-          return _($scope.regionalSecurityGroups).find({id: groupId}).name;
+          var securityGroup = _($scope.regionalSecurityGroups).find({id: groupId}) ||
+            _($scope.regionalSecurityGroups).find({name: groupId});
+          return securityGroup ? securityGroup.name : null;
         }).map(function(groupName) {
           return _(newRegionalSecurityGroups).find({name: groupName});
         }).filter(function(group) {
@@ -386,7 +388,9 @@ angular.module('deckApp.aws')
     };
 
     this.isValid = function () {
-      return $scope.command && ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
+      return $scope.command &&
+        (this.useAllImageSelection () ? $scope.command.allImageSelection !== null : $scope.command.amiName !== null) &&
+        ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
         ($scope.command.region !== null) && ($scope.command.availabilityZones !== null) &&
         ($scope.command.capacity.min !== null) && ($scope.command.capacity.max !== null) &&
