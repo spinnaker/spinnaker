@@ -53,7 +53,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl class="dl-horizontal dl-narrow">
+      <dl>
         <dt>Name</dt>
         <dd>{{launchConfig.launchConfigurationName}}</dd>
         <dt>Image ID</dt>
@@ -63,15 +63,16 @@
         <dt>IAM Profile</dt>
         <dd>{{launchConfig.iamInstanceProfile}}</dd>
         <dt>Instance Monitoring</dt>
-        <dd>{{launchConfig.instanceMonitoring}}</dd>
-        <dt>Key Name</dt>
-        <dd>{{launchConfig.keyName}}</dd>
-        <dt>Kernel ID</dt>
-        <dd>{{launchConfig.kernelId}}</dd>
-        <dt>Ramdisk ID</dt>
-        <dd>{{launchConfig.ramdiskId}}</dd>
+        <dd>{{launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}}</dd>
+        <dt ng-if="launchConfig.keyName">Key Name</dt>
+        <dd ng-if="launchConfig.keyName">{{launchConfig.keyName}}</dd>
+        <dt ng-if="launchConfig.kernelId">Kernel ID</dt>
+        <dd ng-if="launchConfig.kernelId">{{launchConfig.kernelId}}</dd>
+        <dt ng-if="launchConfig.ramdiskId">Ramdisk ID</dt>
+        <dd ng-if="launchConfig.ramdiskId">{{launchConfig.ramdiskId}}</dd>
         <dt>User Data</dt>
-        <dd><a href ng-click="ctrl.showUserData()">show</a></dd>
+        <dd ng-if="launchConfig.userData"><a href ng-click="ctrl.showUserData()">Show User Data</a></dd>
+        <dd ng-if="!launchConfig.userData">[none]</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Security Groups">

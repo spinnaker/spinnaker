@@ -16,11 +16,10 @@ angular.module('deckApp')
             $scope.account = serverGroup.accountId;
             if (toCheck.launchConfig) {
               var launchConfig = angular.copy(toCheck.launchConfig);
-              $scope.securityGroups = _.map(launchConfig.securityGroups, function(id) {
-                return _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'id': id });
-              });
-              delete launchConfig.createdTime;
-              delete launchConfig.securityGroups;
+              $scope.securityGroups = _(launchConfig.securityGroups).map(function(id) {
+                return _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'id': id }) ||
+                  _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'name': id });
+              }).compact().value();
               $scope.launchConfig = launchConfig;
             }
             return true;
