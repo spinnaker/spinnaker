@@ -7,7 +7,7 @@
   <div class="col-md-7" ng-if="region">
     <select class="form-control input-sm" ng-model="component[field]"
             ng-change="onChange()"
-            ng-options="subnet.purpose as subnet.label for subnet in subnets">
+            ng-options="subnet.purpose as subnet.label for subnet in subnets | orderBy: 'label'">
       <option value="">None (EC2 Classic)</option>
     </select>
   </div>

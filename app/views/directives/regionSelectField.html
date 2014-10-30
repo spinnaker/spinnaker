@@ -5,7 +5,7 @@
     <select class="form-control input-sm"
             ng-if="account"
             ng-model="component[field]"
-            ng-options="region.name as region.name for region in regions"
+            ng-options="region.name as region.name for region in regions | orderBy:'name'"
             ng-change="onChange()"
             required>
     </select>

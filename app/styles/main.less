@@ -638,10 +638,14 @@ server-error-flag {
   animation:spin 4s linear infinite;
 }
 
-.help-field {
+a.help-field {
+  color: @mid_lighter_grey;
   opacity: 0.8;
+  &:active, &:hover {
+    opacity: 1;
+  }
   span {
-    top: -2px;
+    top: 0;
     font-size: 70%;
   }
 }
