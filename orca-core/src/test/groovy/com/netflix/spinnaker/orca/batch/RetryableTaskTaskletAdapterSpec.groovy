@@ -26,11 +26,11 @@ import org.springframework.util.StopWatch
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
 import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
-class RetryableTaskSpec extends Specification {
-
+class RetryableTaskTaskletAdapterSpec extends Specification {
   def pipeline = Pipeline.builder().withStage("stage").build()
   def stepExecution = createStepExecution("stage.retryableTask", nextLong())
   def stepContext = new StepContext(stepExecution)
@@ -41,14 +41,14 @@ class RetryableTaskSpec extends Specification {
     new PipelineInitializerTasklet(pipeline).execute(stepContribution, chunkContext)
   }
 
-  void "should backoff when the task is not complete"() {
+  void "should backoff when the task returns continuable"() {
     setup:
     def step = Mock(RetryableTask) {
       getBackoffPeriod() >> 1000L
       getTimeout() >> 5000L
     }
 
-    def tasklet = TaskTaskletAdapter.decorate(step)
+    def tasklet = new RetryableTaskTaskletAdapter(step)
     def timer = new StopWatch()
     timer.start()
 

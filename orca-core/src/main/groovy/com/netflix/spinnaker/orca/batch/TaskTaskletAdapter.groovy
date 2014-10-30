@@ -21,32 +21,22 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.PipelineStage
-import org.springframework.aop.framework.ProxyFactory
-import org.springframework.aop.target.SingletonTargetSource
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.retry.annotation.Retryable
-import org.springframework.retry.backoff.FixedBackOffPolicy
-import org.springframework.retry.interceptor.RetryInterceptorBuilder
 
 @CompileStatic
 @Retryable
 class TaskTaskletAdapter implements Tasklet {
 
   static Tasklet decorate(Task task) {
-    def tasklet = new TaskTaskletAdapter(task)
     if (task instanceof RetryableTask) {
-      def interceptor = RetryInterceptorBuilder.stateless()
-                                               .backOffPolicy(new FixedBackOffPolicy(backOffPeriod: task.backoffPeriod))
-                                               .build()
-      def proxyFactory = new ProxyFactory(Tasklet, new SingletonTargetSource(tasklet))
-      proxyFactory.addAdvice(interceptor)
-      return proxyFactory.proxy as Tasklet
+      new RetryableTaskTaskletAdapter(task)
     } else {
-      return tasklet
+      new TaskTaskletAdapter(task)
     }
   }
 
@@ -77,15 +67,7 @@ class TaskTaskletAdapter implements Tasklet {
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
     contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
-
-    if (task instanceof RetryableTask && batchStepStatus.repeatStatus.continuable) {
-      // I hate having to do this but it's how Spring's retry template works and
-      // believe it or not that's the only way to delay between executions of a
-      // tasklet
-      throw new RuntimeException()
-    } else {
-      return batchStepStatus.repeatStatus
-    }
+    return batchStepStatus.repeatStatus
   }
 
   private PipelineStage currentStage(ChunkContext chunkContext) {

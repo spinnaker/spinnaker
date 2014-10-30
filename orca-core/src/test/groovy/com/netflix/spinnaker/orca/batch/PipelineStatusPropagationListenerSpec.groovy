@@ -27,29 +27,19 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class PipelineStatusPropagationListenerSpec extends Specification {
 
-  def id = nextLong()
-  def jobExecution = new JobExecution(id)
-  def stepExecution = new StepExecution("foo.task1", jobExecution)
-
-  def pipeline = Pipeline.builder().withStage("foo").build()
-
   @Subject listener = StageStatusPropagationListener.instance
 
-  def setup() {
+  def "updates the stage status when a task execution completes"() {
+    given: "a batch execution context"
+    def jobExecution = new JobExecution(id)
+    def stepExecution = new StepExecution("${stageType}.task1", jobExecution)
+
+    and: "a pipeline model"
+    def pipeline = Pipeline.builder().withStage(stageType).build()
     jobExecution.executionContext.put("pipeline", pipeline)
     for (stage in pipeline.stages) jobExecution.executionContext.put(stage.type, stage)
-  }
 
-  def "updates the stage status to RUNNING when a task starts"() {
-    when: "the listener is triggered"
-    listener.beforeStep stepExecution
-
-    then: "it updates the status of the stage"
-    pipeline.stages.first().status == PipelineStatus.RUNNING
-  }
-
-  def "updates the stage status when a task execution completes"() {
-    given: "a task has run"
+    and: "a task has run"
     executeTaskReturning taskStatus, stepExecution
 
     when: "the listener is triggered"
@@ -64,6 +54,9 @@ class PipelineStatusPropagationListenerSpec extends Specification {
     where:
     taskStatus               | _
     PipelineStatus.SUCCEEDED | _
+
+    id = nextLong()
+    stageType = "foo"
   }
 
   /**
