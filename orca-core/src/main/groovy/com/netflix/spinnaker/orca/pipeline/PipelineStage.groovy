@@ -47,7 +47,7 @@ class PipelineStage implements ConfigurableStage {
     // TODO this is a nasty hack to ensure that null values are not passed to the ImmutableMap
     def copy = [:]
     for (Map.Entry<String, Serializable> entry in context.entrySet()) {
-      if (entry.value) {
+      if (entry.value == null) {
         copy[entry.key] = entry.value
       }
     }
