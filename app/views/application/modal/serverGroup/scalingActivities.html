@@ -8,11 +8,19 @@
     </div>
     <div ng-repeat="activity in activities" ng-if="activities.length">
         <p class="clearfix">
-          <span class="label label-{{isSuccessful(activity) ? 'success' : 'danger'}} pull-left">{{activity.statusCode}}</span>
+          <span class="label label-{{ctrl.isSuccessful(activity) ? 'success' : 'danger'}} pull-left">{{activity.statusCode}}</span>
           <span class="label label-default pull-right">{{activity.startTime | relativeTime}}</span>
         </p>
         <p>{{activity.cause}}</p>
-        <hr/>
+        <p>Summary of activities:
+          <ul>
+            <li ng-repeat="event in activity.events | orderBy: ['availabilityZone', 'description']">
+              {{event.description}}
+              <span ng-if="event.availabilityZone"> ({{event.availabilityZone}})</span>
+            </li>
+          </ul>
+        </p>
+        <hr ng-if="!$last"/>
     </div>
   </div>
   <div class="modal-footer">

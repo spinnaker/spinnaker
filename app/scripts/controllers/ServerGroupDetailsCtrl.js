@@ -155,15 +155,15 @@ angular.module('deckApp')
 
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
-      var modal = $modal.open({
+      $modal.open({
         templateUrl: 'views/application/modal/serverGroup/scalingActivities.html',
         controller: 'ScalingActivitiesCtrl as ctrl',
-        scope: $scope
-      });
-      modal.opened.then(function() {
-        serverGroupService.getScalingActivities(application.name, $scope.account, $scope.cluster.name, $scope.serverGroup.name, $scope.serverGroup.region).then(function(response) {
-          $scope.activities = response;
-        });
+        resolve: {
+          applicationName: function() { return application.name; },
+          account: function() { return $scope.account; },
+          clusterName: function() { return $scope.cluster.name; },
+          serverGroup: function() { return $scope.serverGroup; }
+        }
       });
     };
 
@@ -171,7 +171,7 @@ angular.module('deckApp')
       $scope.userData = window.atob($scope.launchConfig.userData);
       $modal.open({
         templateUrl: 'views/application/modal/serverGroup/userData.html',
-        controller: 'UserDataCtrl',
+        controller: 'CloseableModalCtrl',
         scope: $scope
       });
     };
@@ -184,11 +184,4 @@ angular.module('deckApp')
       return null;
     };
   }
-).controller('ScalingActivitiesCtrl', function($scope, $modalInstance) {
-  $scope.isSuccessful = function(activity) {
-    return activity.statusCode === 'Successful';
-  };
-  $scope.close = $modalInstance.dismiss;
-}).controller('UserDataCtrl', function($scope, $modalInstance) {
-    $scope.close = $modalInstance.dismiss;
-});
+);
