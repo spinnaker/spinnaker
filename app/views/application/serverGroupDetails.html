@@ -20,7 +20,6 @@
             Server Group Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
-            <li class="dropdown-header">CONFIG</li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
             <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>

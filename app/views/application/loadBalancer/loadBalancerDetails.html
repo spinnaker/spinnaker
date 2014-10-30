@@ -23,7 +23,6 @@
             Load Balancer Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
-            <li class="dropdown-header">CONFIG</li>
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
             <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
             <li ng-if="loadBalancer.instances.length" class="disabled" tooltip="You must detach all instances before you can delete this load balancer.">
