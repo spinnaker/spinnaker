@@ -27,7 +27,7 @@ class PipelineStage implements ConfigurableStage {
   final String type
   final Pipeline pipeline
   PipelineStatus status = NOT_STARTED
-  private final Map<String, Serializable> context = [:]
+  private final Map<String, Serializable> context = [:] as PipelineStageContext
 
   PipelineStage(Pipeline pipeline, String type, Map<String, Serializable> context) {
     this.pipeline = pipeline
