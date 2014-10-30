@@ -4,7 +4,7 @@ angular.module('deckApp')
   .constant('helpContents', {
     'aws.serverGroup.subnet': 'This is the VPC in which your server group will run. Options vary by account and region; the most common ones are:' +
       '<ul>' +
-      '<li><b>None (Classic)</b>: instances will not run in VPC</li>' +
+      '<li><b>None (EC2 Classic)</b>: instances will not run in a VPC</li>' +
       '<li><b>internal</b> instances will be restricted to internal clients (i.e. require VPN access)</li>' +
       '<li><b>external</b> instances will be publicly accessible and running in VPC</li>' +
       '</ul>',
@@ -12,7 +12,7 @@ angular.module('deckApp')
       ' This also restricts the server groups which can be serviced by the load balancer.' +
       ' Options vary by account and region; the most common ones are:' +
       '<ul>' +
-      '<li><b>None (Classic)</b>: the load balancer will not run in VPC</li>' +
+      '<li><b>None (EC2 Classic)</b>: the load balancer will not run in a VPC</li>' +
       '<li><b>internal</b> access to the load balancer will be restricted to internal clients (i.e. require VPN access)</li>' +
       '<li><b>external</b> the load balancer will be publicly accessible and running in VPC</li>' +
       '</ul>',

@@ -1,6 +1,6 @@
 <div class="form-group">
   <div class="col-md-{{labelColumns}} sm-label-left">
-    Subnet
+    VPC
     <help-field key="{{helpKey}}"></help-field>
   </div>
   <div class="col-md-7" ng-if="!region">(Select an account)</div>
@@ -8,7 +8,7 @@
     <select class="form-control input-sm" ng-model="component[field]"
             ng-change="onChange()"
             ng-options="subnet.purpose as subnet.label for subnet in subnets">
-      <option value="">None (Classic)</option>
+      <option value="">None (EC2 Classic)</option>
     </select>
   </div>
 </div>
