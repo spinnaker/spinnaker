@@ -8,7 +8,7 @@
             ng-change="onChange()"
             required>
       <option ng-repeat="region in primaryRegions" value="{{region}}" ng-selected="component[field] === region">{{region}}</option>
-      <option ng-if="primaryRegions.length && secondaryRegions.length" disabled>{{dividerText}}</option>
+      <option ng-if="primaryRegions.length && secondaryRegions.length" value="{{dividerText}}" disabled>{{dividerText}}</option>
       <option ng-repeat="region in secondaryRegions" value="{{region}}" ng-selected="component[field] === region">{{region}}</option>
     </select>
   </div>
