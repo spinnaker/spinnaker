@@ -229,7 +229,11 @@ gulp.task('connect', function() {
 
 gulp.task('build:prepare', ['scripts', 'css', 'fonts', 'static']);
 gulp.task('build', ['clean'], function(done) {
-  run('build:prepare', 'test:karma', 'html', done);
+  if (development) {
+    run('build:prepare', 'html', done);
+  } else {
+    run('build:prepare', 'test:karma', 'html', done);
+  }
 });
 
 gulp.task('serve:prepare', ['build']);
@@ -253,9 +257,11 @@ gulp.task('watch', function() {
   gulp.watch('./bower_components/**/*.css', function() {
     run('css:vendor', 'html');
   });
-  gulp.watch('./test/**/*', function() {
-    run('test:karma');
-  });
+  if (!development) {
+    gulp.watch('./test/**/*', function() {
+      run('test:karma');
+    });
+  }
   $.watch([
     'dist/index.html'
   ]).pipe($.connect.reload());
