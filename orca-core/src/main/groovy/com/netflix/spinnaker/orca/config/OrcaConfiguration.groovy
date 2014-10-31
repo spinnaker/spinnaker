@@ -25,9 +25,11 @@ import com.netflix.spinnaker.orca.pipeline.PipelineFactory
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@ComponentScan("com.netflix.spinnaker.orca.pipeline")
 @CompileStatic
 class OrcaConfiguration {
 
