@@ -59,14 +59,17 @@ class TaskTaskletAdapter implements Tasklet {
     if (result.status == PipelineStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.with {
         setTerminateOnly()
-        exitStatus = ExitStatus.FAILED.addExitDescription(result.status.name())
+        executionContext.put("orcaTaskStatus", result.status)
+        exitStatus = ExitStatus.FAILED
       }
     }
 
     stage.updateContext(result.outputs)
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
-    contribution.exitStatus = batchStepStatus.exitStatus.addExitDescription(result.status.name())
+    chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
+    contribution.exitStatus = batchStepStatus.exitStatus
+
     return batchStepStatus.repeatStatus
   }
 

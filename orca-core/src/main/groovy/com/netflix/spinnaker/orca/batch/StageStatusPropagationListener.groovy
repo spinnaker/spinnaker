@@ -28,10 +28,25 @@ import org.springframework.batch.core.listener.StepExecutionListenerSupport
 class StageStatusPropagationListener extends StepExecutionListenerSupport {
 
   @Override
+  void beforeStep(StepExecution stepExecution) {
+    currentStage(stepExecution).status = PipelineStatus.RUNNING
+  }
+
+  @Override
   ExitStatus afterStep(StepExecution stepExecution) {
-    def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
-    ((PipelineStage) stepExecution.jobExecution.executionContext.get(stageName)).status =
-      PipelineStatus.valueOf(stepExecution.exitStatus.exitDescription)
+    def stage = currentStage(stepExecution)
+
+    def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as PipelineStatus
+    if (orcaTaskStatus) {
+      stage.status = orcaTaskStatus
+    } else {
+      stage.status = PipelineStatus.TERMINAL
+    }
     super.afterStep(stepExecution)
+  }
+
+  private PipelineStage currentStage(StepExecution stepExecution) {
+    def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
+    (PipelineStage) stepExecution.jobExecution.executionContext.get(stageName)
   }
 }

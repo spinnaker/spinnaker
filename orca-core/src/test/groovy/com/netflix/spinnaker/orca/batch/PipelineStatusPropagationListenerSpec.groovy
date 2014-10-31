@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.JobExecution
@@ -67,7 +66,6 @@ class PipelineStatusPropagationListenerSpec extends Specification {
    * @param stepExecution the batch execution context we want to update.
    */
   private void executeTaskReturning(PipelineStatus taskStatus, StepExecution stepExecution) {
-    def taskResult = BatchStepStatus.mapResult(new DefaultTaskResult(taskStatus))
-    stepExecution.exitStatus = taskResult.exitStatus.addExitDescription(taskStatus.name())
+    stepExecution.executionContext.put("orcaTaskStatus", taskStatus)
   }
 }

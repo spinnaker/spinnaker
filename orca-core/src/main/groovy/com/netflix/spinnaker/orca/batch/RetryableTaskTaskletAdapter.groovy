@@ -20,9 +20,6 @@ import com.netflix.spinnaker.orca.RetryableTask
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
-import org.springframework.retry.backoff.FixedBackOffPolicy
-import org.springframework.retry.policy.SoftReferenceMapRetryContextCache
-import org.springframework.retry.policy.TimeoutRetryPolicy
 import org.springframework.retry.support.RetryTemplate
 
 class RetryableTaskTaskletAdapter extends TaskTaskletAdapter {
@@ -31,21 +28,24 @@ class RetryableTaskTaskletAdapter extends TaskTaskletAdapter {
 
   protected RetryableTaskTaskletAdapter(RetryableTask task) {
     super(task)
-    retryTemplate = new RetryTemplate()
-    retryTemplate.retryContextCache = new SoftReferenceMapRetryContextCache()
-    retryTemplate.backOffPolicy = new FixedBackOffPolicy(backOffPeriod: task.backoffPeriod)
-    retryTemplate.retryPolicy = new TimeoutRetryPolicy(timeout: task.timeout)
+//    retryTemplate = new RetryTemplate()
+//    retryTemplate.retryContextCache = new SoftReferenceMapRetryContextCache()
+//    retryTemplate.backOffPolicy = new FixedBackOffPolicy(backOffPeriod: task.backoffPeriod)
+//    retryTemplate.retryPolicy = new TimeoutRetryPolicy(timeout: task.timeout)
   }
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    retryTemplate.execute {
+//    retryTemplate.execute {
       def status = super.execute(contribution, chunkContext)
       if (status.continuable) {
+        // I hate having to do this but it's how Spring's retry template works and
+        // believe it or not that's the only way to delay between executions of a
+        // tasklet
         throw new RuntimeException()
       } else {
         return status
       }
-    }
+//    }
   }
 }

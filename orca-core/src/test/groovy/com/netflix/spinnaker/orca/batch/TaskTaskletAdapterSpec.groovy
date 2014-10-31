@@ -85,9 +85,8 @@ class TaskTaskletAdapterSpec extends Specification {
     SUSPENDED        | RepeatStatus.FINISHED    | ExitStatus.STOPPED
   }
 
-  // TODO: this feels a bit stringly-typed but I think it's better than just throwing it into the execution context under some arbitrary key
-  @Unroll("should attach the task result status of #taskResultStatus as an exit description")
-  def "should attach the task result status as an exit description"() {
+  @Unroll
+  def "should attach the task result of #taskResultStatus status to the execution context"() {
     given:
     task.execute(*_) >> new DefaultTaskResult(taskResultStatus)
 
@@ -95,7 +94,7 @@ class TaskTaskletAdapterSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stepContribution.exitStatus.exitDescription == taskResultStatus.name()
+    chunkContext.stepContext.stepExecutionContext.orcaTaskStatus == taskResultStatus
 
     where:
     taskResultStatus | _
