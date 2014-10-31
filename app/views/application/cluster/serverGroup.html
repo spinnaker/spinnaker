@@ -9,7 +9,6 @@
       <span class="glyphicon glyphicon-th"></span>
       {{serverGroup.name}}
       <account-tag account="serverGroup.account" pad="both"></account-tag>
-      <span ng-if="serverGroup.isDisabled" class="badge">disabled</span>
     </a>
     <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
   </div>
@@ -29,6 +28,7 @@
       <span ng-if="!serverGroup.isDisabled">
         <health-counts container="serverGroup"></health-counts>
       </span>
+      <span ng-if="serverGroup.isDisabled" class="badge badge-disabled">disabled</span>
     </div>
     <div ng-if="displayOptions.showInstances">
       <instances highlight="displayOptions.filter" instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
