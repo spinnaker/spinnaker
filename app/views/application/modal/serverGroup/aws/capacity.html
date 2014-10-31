@@ -17,18 +17,21 @@
                                      class="form-control input-sm"
                                      ng-model="command.capacity.min"
                                      min="0"
-                                     validate-max="command.capacity.max"/></div>
+                                     validate-max="command.capacity.max"
+                                     required/></div>
         <div class="col-md-2"><input type="number"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.max"
                                      min="0"
-                                     validate-min="command.capacity.min"/></div>
+                                     validate-min="command.capacity.min"
+                                     required/></div>
         <div class="col-md-2"><input type="number"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.desired"
                                      min="0"
                                      validate-min="command.capacity.min"
-                                     validate-max="command.capacity.max"/></div>
+                                     validate-max="command.capacity.max"
+                                     required/></div>
       </div>
     </div>
 
@@ -42,7 +45,8 @@
         <div class="col-md-2"><input type="number"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.desired"
-                                     min="0"/></div>
+                                     min="0"
+                                     required/></div>
       </div>
     </div>
 

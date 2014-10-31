@@ -21,7 +21,7 @@ angular.module('deckApp')
 
     this.isValid = function () {
       var command = $scope.command;
-      if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account) {
+      if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
         return false;
       }
       return command.advancedMode ?

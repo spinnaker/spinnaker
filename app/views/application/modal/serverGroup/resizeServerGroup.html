@@ -29,16 +29,19 @@
                                        class="form-control input-sm"
                                        ng-model="command.min"
                                        min="0"
+                                       required
                                        validate-max="command.max"/></div>
           <div class="col-md-2"><input type="number"
                                        class="form-control input-sm"
                                        ng-model="command.max"
                                        min="0"
+                                       required
                                        validate-min="command.min"/></div>
           <div class="col-md-2"><input type="number"
                                        class="form-control input-sm"
                                        ng-model="command.desired"
                                        min="0"
+                                       required
                                        validate-min="command.min"
                                        validate-max="command.max"/></div>
         </div>
@@ -61,7 +64,7 @@
               <input type="number"
                      class="form-control input-sm"
                      ng-model="currentSize.desired"
-                     style="width: 50px"
+                     style="width: 60px"
                      readonly/>
               instance<span ng-if="currentSize.desired > 1">s</span>
             </label>
@@ -76,10 +79,11 @@
           <div class="col-md-11 col-md-offset-1">
             <label>
               <input type="number"
-                     class="form-control input-sm"
+                     class="form-control input-sm highlight-pristine"
                      ng-model="command.newSize"
                      min="0"
-                     style="width: 50px"/>
+                     required
+                     style="width: 60px"/>
               instances
             </label>
           </div>
@@ -87,10 +91,13 @@
       </div>
       <div ng-if="verification.required">
         <hr/>
-        <h4>Type the name of the account ( <account-tag account="serverGroup.account" pad="both"></account-tag> ) below to continue.</h4>
+        <h4 class="confirmation-modal">Type the name of the account ( <account-tag account="serverGroup.account" pad="both"></account-tag> ) below to continue.</h4>
         <div class="form-group form-inline">
           <div class="col-md-11 col-md-offset-1">
-            <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm" placeholder="{{serverGroup.account}}"/>
+            <input type="text"
+                   ng-model="verification.verifyAccount"
+                   class="form-control input-sm highlight-pristine"
+                   ng-class="{'ng-invalid': verification.verifyAccount !== serverGroup.account.toUpperCase()}"/>
           </div>
         </div>
       </div>
