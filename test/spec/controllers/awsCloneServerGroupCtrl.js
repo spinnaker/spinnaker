@@ -5,7 +5,7 @@ describe('Controller: awsCloneServerGroup', function () {
   beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(function() {
-    inject(function ($controller, $rootScope, accountService, orcaService, mortService, oortService,
+    inject(function ($controller, $rootScope, accountService, orcaService, mortService, oortService, settings,
                      searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService, $q) {
 
       this.$scope = $rootScope.$new();
@@ -18,6 +18,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.modalWizardService = modalWizardService;
       this.securityGroupService = securityGroupService;
       this.taskMonitorService = taskMonitorService;
+      this.settings = settings;
       this.$q = $q;
     });
 
@@ -57,6 +58,7 @@ describe('Controller: awsCloneServerGroup', function () {
       inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
+          settings: this.settings,
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           orcaService: this.orcaService,
@@ -208,6 +210,7 @@ describe('Controller: awsCloneServerGroup', function () {
       inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
+          settings: this.settings,
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           orcaService: this.orcaService,
@@ -379,6 +382,7 @@ describe('Controller: awsCloneServerGroup', function () {
       inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
+          settings: this.settings,
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           orcaService: this.orcaService,

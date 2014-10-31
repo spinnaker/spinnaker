@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.aws')
-  .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
+  .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state, settings,
                                                accountService, orcaService, mortService, oortService, searchService, serverGroupService,
                                                instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
                                                serverGroup, application, title) {
@@ -77,8 +77,8 @@ angular.module('deckApp.aws')
     }
 
     function createCommandTemplate() {
-      var defaultCredentials = 'test';
-      var defaultRegion = 'us-east-1';
+      var defaultCredentials = settings.defaults.account;
+      var defaultRegion = settings.defaults.region;
       return {
         'application': application.name,
         'credentials': defaultCredentials,
