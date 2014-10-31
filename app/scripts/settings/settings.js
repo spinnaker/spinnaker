@@ -15,5 +15,6 @@ angular.module('deckApp')
     },
     pollSchedule: 30000,
     providers: ['aws'],
-    primaryAccounts: ['prod', 'test']
+    primaryAccounts: ['prod', 'test'],
+    primaryRegions: ['eu-west-1','us-east-1','us-west-1','us-west-2']
   });

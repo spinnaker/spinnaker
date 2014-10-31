@@ -16,7 +16,9 @@ angular.module('deckApp')
       },
       link: function(scope) {
         function groupAccounts(accounts) {
-          scope.primaryAccounts = accounts.sort();
+          if (accounts) {
+            scope.primaryAccounts = accounts.sort();
+          }
           if (accounts && accounts.length) {
             scope.primaryAccounts = accounts.filter(function(account) {
                 return settings.primaryAccounts.indexOf(account) !== -1;
