@@ -8,6 +8,7 @@ angular.module('deckApp')
     pondUrl: 'http://pond-prestaging.prod.netflix.net',
     katoUrl: 'http://kato-prestaging.prod.netflix.net',
     credentialsUrl: 'http://kato-prestaging.prod.netflix.net/',
+    feedbackUrl: 'http://hootch.test.netflix.net/submit',
     accounts: {
       prod: {
         challengeDestructiveActions: true
