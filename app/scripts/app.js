@@ -22,7 +22,7 @@ angular.module('deckApp', [
     'deckApp.aws',
     'deckApp.gce'
   ])
-  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack) {
+  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
@@ -50,7 +50,7 @@ angular.module('deckApp', [
         fromState: fromState,
         fromParams: fromParams
       });
-      $rootScope.routing = true;
+      pageTitleService.handleRoutingStart();
     });
 
     $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
@@ -63,7 +63,7 @@ angular.module('deckApp', [
         error: error
       });
       $state.go('home.404');
-      $rootScope.routing = false;
+      pageTitleService.handleRoutingError();
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
@@ -74,6 +74,6 @@ angular.module('deckApp', [
         fromState: fromState,
         fromParams: fromParams
       });
-      $rootScope.routing = false;
+      pageTitleService.handleRoutingSuccess(toState.data);
     });
   });
