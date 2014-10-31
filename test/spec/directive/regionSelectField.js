@@ -58,7 +58,7 @@ describe('Directives: regionSelectField', function () {
     options.each(function(idx, option) {
       expect(option.value).toBe(expected[idx]);
     });
-    expect(elem.find('option[disabled]').text()).toBe(this.divider);
+    expect(elem.find('option[disabled]')[0].value).toBe(this.divider);
     expect(elem.find('option[selected]').text()).toBe('sa-east-1');
   });
 
