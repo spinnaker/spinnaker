@@ -59,7 +59,7 @@ describe('Directives: regionSelectField', function () {
       expect(option.value).toBe(expected[idx]);
     });
     expect(elem.find('option[disabled]')[0].value).toBe(this.divider);
-    expect(elem.find('option[selected]').text()).toBe('sa-east-1');
+    expect(elem.find('option[selected]')[0].value).toBe('sa-east-1');
   });
 
   it('does not group if only primary or secondary regions are available', function() {
