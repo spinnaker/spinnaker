@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CacheInvalidationService
 import com.netflix.spinnaker.gate.services.FlapJackService
+import com.netflix.spinnaker.gate.services.Front50Service
 import com.netflix.spinnaker.gate.services.OortService
 import com.netflix.spinnaker.gate.services.PondService
 import com.netflix.spinnaker.gate.services.TagService
@@ -41,6 +42,7 @@ class FunctionalSpec extends Specification {
   static CacheInvalidationService cacheInvalidationService
   static ApplicationService applicationService
   static FlapJackService flapJackService
+  static Front50Service front50Service
   static OortService oortService
   static PondService pondService
   static TagService tagService
@@ -120,6 +122,11 @@ class FunctionalSpec extends Specification {
     @Bean
     OortService oortService() {
       oortService
+    }
+
+    @Bean
+    Front50Service front50Service() {
+      front50Service
     }
 
     @Bean
