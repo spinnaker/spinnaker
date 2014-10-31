@@ -21,6 +21,7 @@ import com.netflix.hystrix.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
+import rx.functions.Func1
 
 @Component
 class ClusterService {
@@ -33,13 +34,34 @@ class ClusterService {
   @Autowired
   FlapJackService flapJackService
 
-  Observable<Map> getClusters(String app, String account) {
+  Observable<Map> getClusters(String app) {
     new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
         .andCommandKey(HystrixCommandKey.Factory.asKey("getClusters"))) {
 
       @Override
       protected Observable<Map> run() {
-        Observable.from(oortService.getClusters(app, account))
+        Observable.from(oortService.getClusters(app))
+      }
+
+      @Override
+      protected Observable<Map> getFallback() {
+        Observable.from([])
+      }
+
+      @Override
+      protected String getCacheKey() {
+        "clusters-${app}"
+      }
+    }.toObservable()
+  }
+
+  Observable<Map> getClustersForAccount(String app, String account) {
+    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+        .andCommandKey(HystrixCommandKey.Factory.asKey("getClustersForAccount"))) {
+
+      @Override
+      protected Observable<Map> run() {
+        Observable.from(oortService.getClustersForAccount(app, account))
       }
 
       @Override
@@ -60,12 +82,12 @@ class ClusterService {
 
       @Override
       protected Observable<Map> run() {
-        Observable.from(oortService.getCluster(app, account, clusterName))
+        Observable.from(oortService.getCluster(app, account, clusterName)?.getAt(0))
       }
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([])
+        Observable.from([:])
       }
 
       @Override
@@ -75,25 +97,10 @@ class ClusterService {
     }.toObservable()
   }
 
-  Observable<Map> getClusterByType(String app, String account, String clusterName, String type) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getClusterByType"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.from(oortService.getClusterByType(app, account, clusterName, type))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.from([])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "clusters-${app}-${account}-${clusterName}-${type}"
-      }
-    }.toObservable()
+  Observable<List> getClusterServerGroups(String app, String account, String clusterName) {
+    getCluster(app, account, clusterName).map {
+      it.serverGroups
+    }
   }
 
   Observable<List<String>> getClusterTags(String clusterName) {

@@ -23,7 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 import rx.Observable
+import rx.functions.Func2
+import rx.schedulers.Schedulers
 
 @CompileStatic
 @Component
@@ -36,6 +39,9 @@ class ApplicationService implements CacheEnabledService {
 
   @Autowired
   PondService pondService
+
+  @Autowired
+  Front50Service front50Service
 
   @Autowired
   CacheInvalidationService cacheInvalidationService
@@ -68,6 +74,22 @@ class ApplicationService implements CacheEnabledService {
 
   @Cacheable("application")
   Observable<Map> get(String name) {
+    Observable.just(getApp(name), getMetaData("test", name), getMetaData("prod", name)).observeOn(Schedulers.io())
+    .flatMap {
+      it
+    }.map {
+      it
+    }.reduce([:], { Map map, Map input ->
+      if (input.containsKey("attributes")) {
+        map.putAll(input)
+      } else {
+        ((Map)map.attributes).putAll(input)
+      }
+      map
+    })
+  }
+
+  private Observable<Map> getApp(String name) {
     new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
         .andCommandKey(HystrixCommandKey.Factory.asKey("get"))) {
 
@@ -78,12 +100,41 @@ class ApplicationService implements CacheEnabledService {
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([])
+        Observable.from([:])
       }
 
       @Override
       protected String getCacheKey() {
-        "application"
+        "application-${name}"
+      }
+    }.toObservable()
+  }
+
+  private Observable<Map> getMetaData(String account, String name) {
+    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+        .andCommandKey(HystrixCommandKey.Factory.asKey("getMetaData"))) {
+
+      @Override
+      protected Observable<Map> run() {
+        try {
+          Observable.just(front50Service.getMetaData(account, name))
+        } catch (RetrofitError e) {
+          if (e.response.status == 404) {
+            getFallback()
+          } else {
+            throw e
+          }
+        }
+      }
+
+      @Override
+      protected Observable<Map> getFallback() {
+        Observable.from([:])
+      }
+
+      @Override
+      protected String getCacheKey() {
+        "getMetaData-${account}-${name}"
       }
     }.toObservable()
   }
@@ -99,6 +150,12 @@ class ApplicationService implements CacheEnabledService {
   Observable<List> getTasks(String app) {
     Preconditions.checkNotNull(app)
     pondService.getTasks(app)
+  }
+
+  // TODO Hystrix fallback?
+  Observable<Map> getTask(String id) {
+    Preconditions.checkNotNull(id)
+    pondService.getTask(id)
   }
 
 }

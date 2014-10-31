@@ -20,6 +20,7 @@ import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.services.*
 import javax.servlet.*
+import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cache.Cache
@@ -95,6 +96,12 @@ class GateConfig {
     createClient "flapjack", FlapJackService, serviceConfiguration, retrofitClient
   }
 
+  @Bean
+  Front50Service front50Service(ServiceConfiguration serviceConfiguration,
+                                Client retrofitClient) {
+    createClient "front50", Front50Service, serviceConfiguration, retrofitClient
+  }
+
   private
   static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
     def endpoint = serviceConfiguration.discoveryHosts ?
@@ -107,6 +114,23 @@ class GateConfig {
         .setLogLevel(RestAdapter.LogLevel.FULL)
         .build()
         .create(type)
+  }
+
+  @Bean Filter simpleCORSFilter() {
+    new Filter() {
+      public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        HttpServletResponse response = (HttpServletResponse) res;
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
+        chain.doFilter(req, res);
+      }
+
+      public void init(FilterConfig filterConfig) {}
+
+      public void destroy() {}
+    }
   }
 
   @Component

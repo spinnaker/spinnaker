@@ -29,8 +29,12 @@ interface OortService {
   Map getApplication(@Path("name") String name)
 
   @Headers("Accept: application/json")
+  @GET("/applications/{name}/clusters")
+  Map getClusters(@Path("name") String name)
+
+  @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}")
-  List getClusters(@Path("name") String name,
+  List getClustersForAccount(@Path("name") String name,
                    @Path("account") String account)
 
   @Headers("Accept: application/json")
@@ -45,6 +49,14 @@ interface OortService {
                        @Path("account") String account,
                        @Path("cluster") String cluster,
                        @Path("type") String type)
+
+  @Headers("Accept: application/json")
+  @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroupName}")
+  List getServerGroup(@Path("name") String name,
+                       @Path("account") String account,
+                       @Path("cluster") String cluster,
+                       @Path("type") String type,
+                       @Path("serverGroupName") String serverGroupName)
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/loadBalancers")

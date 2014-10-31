@@ -67,6 +67,17 @@ class ApplicationController {
     q
   }
 
+  @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
+  def getTask(@PathVariable("id") String id) {
+    DeferredResult<Map> q = new DeferredResult<>()
+    applicationService.getTask(id).subscribe({
+      q.setResult(it)
+    }, { Throwable t ->
+      q.setErrorResult(t)
+    })
+    q
+  }
+
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
   def create(@RequestBody Map map) {
     DeferredResult<Map> q = new DeferredResult<>()

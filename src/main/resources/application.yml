@@ -13,3 +13,5 @@ services:
     group: events
   - name: flapjack
     group: tags
+  - name: front50
+    group: metadata

@@ -16,24 +16,11 @@
 
 package com.netflix.spinnaker.gate.services
 
-import retrofit.http.Body
 import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.POST
 import retrofit.http.Path
-import rx.Observable
 
-interface PondService {
+interface Front50Service {
 
-  @Headers("Accept: application/context+json")
-  @POST("/ops")
-  Observable<Map> doOperation(@Body Map<String, ? extends Object> body)
-
-  @Headers("Accept: application/json")
-  @GET("/applications/{application}/tasks")
-  Observable<List> getTasks(@Path("application") String app)
-
-  @Headers("Accept: application/json")
-  @GET("/tasks/{id}")
-  Observable<Map> getTask(@Path("id") String id)
+  @GET('/{account}/applications/name/{name}')
+  Map getMetaData(@Path('account') String account, @Path('name') String name)
 }
