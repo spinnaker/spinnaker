@@ -19,8 +19,8 @@ angular.module('deckApp')
         title: params.title,
         forceRefreshMessage: params.forceRefreshMessage || null,
         application: params.application,
-        onApplicationRefresh: params.onApplicationRefresh || params.modalInstance.dismiss,
-        onTaskComplete: params.onTaskComplete || params.modalInstance.dismiss,
+        onApplicationRefresh: params.onApplicationRefresh || angular.noop,
+        onTaskComplete: params.onTaskComplete || angular.noop,
         modalInstance: params.modalInstance,
         katoPhaseToMonitor: params.katoPhaseToMonitor || null
       };

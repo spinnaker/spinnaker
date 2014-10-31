@@ -19,8 +19,7 @@
         </ul>
         <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.forceRefreshComplete">
           <li>
-            <span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span>Operation succeeded. Waiting for task to finish up...
-            <p>You can <a href ng-click="taskMonitor.closeModal()">close this dialog</a> and continue working.</p>
+            <span class="glyphicon glyphicon-ok-circle"></span> <strong>Operation succeeded!</strong>
           </li>
         </ul>
         <ul class="task task-progress task-progress-running" ng-if="!taskMonitor.forceRefreshComplete && !taskMonitor.forceRefreshing && !taskMonitor.error">
