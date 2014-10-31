@@ -52,9 +52,12 @@ describe('Directives: regionSelectField', function () {
     scope.$digest();
 
     var options = elem.find('option');
+    var expected = ['us-east-1',this.divider,'eu-west-1','sa-east-1'];
 
     expect(options.length).toBe(4);
-    expect(options.text()).toBe(['us-east-1',this.divider,'eu-west-1','sa-east-1'].join(''));
+    options.each(function(idx, option) {
+      expect(option.value).toBe(expected[idx]);
+    });
     expect(elem.find('option[disabled]').text()).toBe(this.divider);
     expect(elem.find('option[selected]').text()).toBe('sa-east-1');
   });
@@ -72,8 +75,12 @@ describe('Directives: regionSelectField', function () {
     scope.$digest();
 
     var options = elem.find('option');
-    expect(options.text()).toBe(['us-east-1','us-east-2'].join(''));
+    var expected = ['us-east-1','us-east-2'];
+
     expect(options.length).toBe(2);
+    options.each(function(idx, option) {
+      expect(option.value).toBe(expected[idx]);
+    });
   });
 
   it('updates values when regions change', function() {
@@ -93,8 +100,13 @@ describe('Directives: regionSelectField', function () {
     scope.regions = [{name: 'us-east-1'}, {name: 'us-west-1'}];
     scope.$digest();
 
-    expect(elem.find('option').length).toBe(2);
-    expect(elem.find('option').text()).toBe(['us-east-1','us-west-1'].join(''));
+    var options = elem.find('option');
+    var expected = ['us-east-1','us-west-1'];
+
+    expect(options.length).toBe(2);
+    options.each(function(idx, option) {
+      expect(option.value).toBe(expected[idx]);
+    });
   });
 
 
