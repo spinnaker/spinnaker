@@ -24,6 +24,12 @@ angular.module('deckApp')
               instanceId: $stateParams.instanceId
             };
           }]
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Instance Details',
+            nameParam: 'instanceId'
+          }
         }
       };
 
@@ -44,6 +50,14 @@ angular.module('deckApp')
               region: $stateParams.region
             };
           }]
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Server Group Details',
+            nameParam: 'serverGroup',
+            accountParam: 'accountId',
+            regionParam: 'region'
+          }
         }
       };
 
@@ -64,6 +78,14 @@ angular.module('deckApp')
               region: $stateParams.region
             };
           }]
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Load Balancer Details',
+            nameParam: 'name',
+            accountParam: 'accountId',
+            regionParam: 'region'
+          }
         }
       };
 
@@ -84,6 +106,14 @@ angular.module('deckApp')
               region: $stateParams.region
             };
           }]
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Security Group Details',
+            nameParam: 'name',
+            accountParam: 'accountId',
+            regionParam: 'region'
+          }
         }
       };
 
@@ -143,6 +173,11 @@ angular.module('deckApp')
               controller: 'AllClustersCtrl as ctrl'
             }
           },
+          data: {
+            pageTitleSection: {
+              title: 'Clusters'
+            }
+          },
           children: [
             loadBalancerDetails,
             serverGroupDetails,
@@ -162,6 +197,13 @@ angular.module('deckApp')
                   return {account: $stateParams.account, clusterName: $stateParams.cluster};
                 }]
               },
+              data: {
+                pageTitleSection: {
+                  title: 'Cluster',
+                  nameParam: 'cluster',
+                  accountParam: 'account'
+                }
+              },
               children: [loadBalancerDetails, serverGroupDetails, instanceDetails],
             }
           ],
@@ -177,6 +219,11 @@ angular.module('deckApp')
             'master': {
               templateUrl: 'views/application/loadBalancer/all.html',
               controller: 'AllLoadBalancersCtrl as ctrl'
+            }
+          },
+          data: {
+            pageTitleSection: {
+              title: 'Load Balancers'
             }
           },
           children: [
@@ -202,6 +249,14 @@ angular.module('deckApp')
                   };
                 }]
               },
+              data: {
+                pageTitleMain: {
+                  title: 'Load Balancer',
+                  nameParam: 'loadBalancer',
+                  accountParam: 'loadBalancerAccount',
+                  regionParam: 'loadBalancerRegion'
+                }
+              },
               children: [loadBalancerDetails, serverGroupDetails, instanceDetails],
             }
           ],
@@ -216,6 +271,11 @@ angular.module('deckApp')
             'master': {
               templateUrl: 'views/application/connection/all.html',
               controller: 'AllSecurityGroupsCtrl as ctrl'
+            }
+          },
+          data: {
+            pageTitleSection: {
+              title: 'Security Groups'
             }
           },
           children: [
@@ -240,6 +300,14 @@ angular.module('deckApp')
                   };
                 }]
               },
+              data: {
+                pageTitleSection: {
+                  title: 'Security Group',
+                  nameParam: 'securityGroup',
+                  accountParam: 'securityGroupAccount',
+                  regionParam: 'securityGroupRegion'
+                }
+              },
               children: [loadBalancerDetails, serverGroupDetails, securityGroupDetails]
             }
           ]
@@ -255,6 +323,11 @@ angular.module('deckApp')
             templateUrl: 'views/tasks.html',
             controller: 'TasksCtrl',
           },
+        },
+        data: {
+          pageTitleSection: {
+            title: 'Tasks'
+          }
         },
         children: [taskDetails],
       };
@@ -273,6 +346,11 @@ angular.module('deckApp')
             return oortService.getApplication($stateParams.application);
           }]
         },
+        data: {
+          pageTitleMain: {
+            field: 'application'
+          }
+        },
         children: [
           insight,
           tasks,
@@ -286,6 +364,11 @@ angular.module('deckApp')
           'main@': {
             templateUrl: 'views/applications.html',
             controller: 'ApplicationsCtrl as ctrl'
+          }
+        },
+        data: {
+          pageTitleMain: {
+            label: 'Applications'
           }
         },
         children: [
@@ -303,6 +386,11 @@ angular.module('deckApp')
             controller: 'InfrastructureCtrl as ctrl',
           }
         },
+        data: {
+          pageTitleMain: {
+            label: 'Infrastructure'
+          }
+        }
       };
 
       var home = {
