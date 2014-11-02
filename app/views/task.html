@@ -37,8 +37,13 @@
             </div>
             <div class="col-md-11 col-sm-11 col-xs-11">
               <dl>
-                <dt>Started</dt> <dd>{{ task.startTime | relativeTime }}</dd>
-                <span ng-if="task.isCompleted">
+                <span ng-if="task.isEnqueued">
+                  <dt>Enqueued</dt>
+                </span>
+                <span ng-if="!task.isEnqueued">
+                  <dt>Started</dt> <dd>{{ task.startTime | relativeTime }}</dd>
+                </span>
+                <span ng-if="task.isCompleted && task.endTime">
                   <dt>Completed</dt> <dd>{{ task.endTime | relativeTime }}</dd>
                 </span>
                 <dt>Running time<dt> <dd>{{ task.runningTime }}</dd>

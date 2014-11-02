@@ -5,6 +5,11 @@ angular.module('deckApp')
   .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato, $exceptionHandler) {
     function setStatusProperties(item) {
       Object.defineProperties(item, {
+        isEnqueued: {
+          get: function() {
+            return item.startTime === 0 && item.status === 'STARTED';
+          }
+        },
         isCompleted: {
           get: function() {
             return item.status === 'COMPLETED';
