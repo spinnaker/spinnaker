@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class StandardEurekaComponents {
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(InstanceInfo.InstanceStatus.class)
     public InstanceInfo.InstanceStatus instanceStatus() {
         return InstanceInfo.InstanceStatus.UNKNOWN;
     }
