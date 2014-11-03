@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.appinfo.ApplicationInfoManager
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import java.util.concurrent.Executors
@@ -39,7 +41,10 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
   @Autowired
   ObjectMapper objectMapper
 
-  final Map<String, Map> interestingPipelines = [:]
+  @Autowired
+  ApplicationInfoManager applicationInfoManager
+
+  private Map<String, Map> interestingPipelines = [:]
 
   @PostConstruct
   void init() {
@@ -49,19 +54,21 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
   @Override
   void run() {
     try {
+      def _interestingPipelines = [:]
       List<Map> pipelines = objectMapper.readValue(mayoService.pipelines.body.in().text, new TypeReference<List<Map>>() {
       })
       for (Map pipeline in pipelines) {
         List<Map> stages = pipeline.stages
         for (Map stage in stages) {
           if (stage.type == INTERESTING_STEP) {
-            if (!interestingPipelines.containsKey(stage[TRIGGER_KEY] as String)) {
-              interestingPipelines[stage[TRIGGER_KEY] as String] = []
+            if (!_interestingPipelines.containsKey(stage[TRIGGER_KEY] as String)) {
+              _interestingPipelines[stage[TRIGGER_KEY] as String] = []
             }
-            interestingPipelines[stage[TRIGGER_KEY] as String] << pipeline
+            _interestingPipelines[stage[TRIGGER_KEY] as String] << pipeline
           }
         }
       }
+      this.interestingPipelines = _interestingPipelines
     } catch (e) {
       e.printStackTrace()
     }
@@ -74,6 +81,9 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
 
   @Override
   void handle(Map input) {
+    if (applicationInfoManager?.info?.status == InstanceInfo.InstanceStatus.OUT_OF_SERVICE) {
+      return
+    }
     try {
       if (interestingPipelines.containsKey(input.name)) {
         if (input.lastBuildStatus != "Success") return
