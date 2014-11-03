@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.oort.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.amos.aws.config.CredentialsConfig
 import com.netflix.spinnaker.amos.aws.config.CredentialsLoader
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -43,7 +44,16 @@ class AmazonCredentialsInitializer {
   }
 
   @Bean
-  CredentialsLoader<NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, AbstractEnvironment environment) {
+  Class<? extends NetflixAmazonCredentials> credentialsType(CredentialsConfig credentialsConfig) {
+    if (!credentialsConfig.accounts) {
+      NetflixAmazonCredentials
+    } else {
+      NetflixAssumeRoleAmazonCredentials
+    }
+  }
+
+  @Bean
+  CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, AbstractEnvironment environment, Class<? extends NetflixAmazonCredentials> credentialsType) {
     Map<String, String> envProps = environment.getPropertySources().findAll {
       it instanceof MapPropertySource
     }.collect { MapPropertySource mps ->
@@ -51,11 +61,11 @@ class AmazonCredentialsInitializer {
         [(it): environment.getConversionService().convert(mps.getProperty(it), String)]
       }
     }.flatten().collectEntries()
-    new CredentialsLoader<NetflixAmazonCredentials>(awsCredentialsProvider, NetflixAmazonCredentials, envProps)
+    new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, credentialsType, envProps)
   }
 
   @Bean
-  List<NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<NetflixAmazonCredentials> credentialsLoader,
+  List<? extends NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
                                                           CredentialsConfig credentialsConfig,
                                                           AccountCredentialsRepository accountCredentialsRepository,
                                                           @Value('${default.account.env:default}') String defaultEnv) {
@@ -66,7 +76,7 @@ class AmazonCredentialsInitializer {
         accounts: [new CredentialsConfig.Account(name: defaultEnv)])
     }
 
-    List<NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
+    List<? extends NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
 
     for (act in accounts) {
       accountCredentialsRepository.save(act.name, act)
