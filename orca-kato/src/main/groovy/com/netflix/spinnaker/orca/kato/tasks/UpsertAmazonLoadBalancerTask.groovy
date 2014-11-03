@@ -42,7 +42,6 @@ class UpsertAmazonLoadBalancerTask implements Task {
     def taskId = kato.requestOperations([[upsertAmazonLoadBalancerDescription: upsertAmazonLoadBalancerOperation]])
                      .toBlocking()
                      .first()
-    stage.context."kato.last.task.id" = taskId
     Map outputs = [
       "notification.type": "upsertamazonloadbalancer",
       "kato.last.task.id": taskId,
