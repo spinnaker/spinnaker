@@ -47,7 +47,7 @@ class CreateApplicationTask implements Task {
       new DefaultTaskResult(PipelineStatus.TERMINAL)
     } else {
       new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["application.name": application.name,
-                                                       "account": stage.context."createApplication.account"])
+                                                       "account": stage.context.account])
     }
   }
 }
