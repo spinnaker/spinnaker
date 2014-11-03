@@ -47,12 +47,14 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipeline = jobStarter.start(configJson)
+    def pipelineObservable = jobStarter.start(configJson)
 
     then:
-    with(jobExplorer.getJobExecution(pipeline.id.toLong())) {
-      status == BatchStatus.COMPLETED
-      exitStatus == ExitStatus.COMPLETED
+    with(pipelineObservable.toBlocking().first()) {
+      with(jobExplorer.getJobExecution(id.toLong())) {
+        status == BatchStatus.COMPLETED
+        exitStatus == ExitStatus.COMPLETED
+      }
     }
 
     where:
@@ -87,12 +89,14 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipeline = jobStarter.start(configJson)
+    def pipelineObservable = jobStarter.start(configJson)
 
     then:
-    with(jobExplorer.getJobExecution(pipeline.id.toLong())) {
-      status == BatchStatus.COMPLETED
-      exitStatus == ExitStatus.COMPLETED
+    with(pipelineObservable.toBlocking().first()) {
+      with(jobExplorer.getJobExecution(id.toLong())) {
+        status == BatchStatus.COMPLETED
+        exitStatus == ExitStatus.COMPLETED
+      }
     }
 
     where:
