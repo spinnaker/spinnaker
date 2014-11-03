@@ -18,37 +18,31 @@
 
 package com.netflix.spinnaker.oort.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.oort.security.aws.BastionCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-import javax.annotation.PostConstruct
-
 @Configuration
-@ConditionalOnExpression('${bastion.enabled:false}')
-class BastionCredentialsInitializer implements CredentialsInitializer {
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
+@ConditionalOnProperty('bastion.enabled')
+@EnableConfigurationProperties
+class BastionCredentialsInitializer {
 
-  @Autowired
-  BastionConfiguration bastionConfiguration
+  @Bean
+  @ConfigurationProperties("bastion")
+  BastionConfiguration bastionConfiguration() {
+    new BastionConfiguration()
+  }
 
-  @Autowired
-  AwsConfigurationProperties awsConfigurationProperties
-
-  @PostConstruct
-  void init() {
+  @Bean
+  AWSCredentialsProvider awsCredentialsProvider(BastionConfiguration bastionConfiguration) {
     def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
-        bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
+        bastionConfiguration.proxyRegion, bastionConfiguration.accountIamRole)
     provider.refresh()
-
-    for (account in awsConfigurationProperties.accounts) {
-      account.assumeRole = account.assumeRole ?: awsConfigurationProperties.assumeRole
-      account.credentialsProvider = provider
-      accountCredentialsRepository.save(account.name, account)
-    }
+    provider
   }
 
 

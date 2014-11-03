@@ -19,7 +19,6 @@ package com.netflix.spinnaker.oort
 import com.codahale.metrics.JmxReporter
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.health.HealthCheckRegistry
-import com.netflix.appinfo.InstanceInfo
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurer
 import org.springframework.beans.factory.annotation.Autowired

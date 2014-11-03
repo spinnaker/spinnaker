@@ -19,12 +19,8 @@
 package com.netflix.spinnaker.oort.config
 
 import groovy.transform.CompileStatic
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
 
 @CompileStatic
-@Component
-@ConfigurationProperties("bastion")
 class BastionConfiguration {
   Boolean enabled
   String host
@@ -32,4 +28,5 @@ class BastionConfiguration {
   Integer port
   String proxyCluster
   String proxyRegion
+  String accountIamRole
 }
