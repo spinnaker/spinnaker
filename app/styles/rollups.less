@@ -51,7 +51,7 @@
     color: @healthy_green_icon;
   }
 
-  &.active {
+  &.active, &:hover {
     border-color: #121212;
     box-shadow: 0 0 8px 0px #999999;
     .rollup-summary {
@@ -140,6 +140,7 @@
   .text-right;
 
   .icon-elb {
+    color: @text-color;
     position: relative;
     font-size: 120%;
   }

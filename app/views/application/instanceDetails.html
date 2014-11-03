@@ -43,7 +43,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
-      <dl class="dl-medium dl-horizontal">
+      <dl>
         <dt ng-repeat-start="metric in healthMetrics">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span> {{metric.state}}
