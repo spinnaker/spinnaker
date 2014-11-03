@@ -24,7 +24,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import static org.apache.commons.lang.math.RandomUtils.nextLong
 
-class PipelineStatusPropagationListenerSpec extends Specification {
+class StageStatusPropagationListenerSpec extends Specification {
 
   @Subject listener = StageStatusPropagationListener.instance
 
