@@ -1,6 +1,6 @@
 versions:
   springBoot: "1.1.8.RELEASE"
-  kork: "1.21"
+  kork: "1.22"
   groovy: "2.3.7"
   astyanax: "1.56.49"
   rxJava: "0.20.4"
@@ -8,8 +8,8 @@ versions:
   batch: "3.0.1.RELEASE"
   frigga: "0.13"
   cglib: "3.1"
-  amos: "0.16"
-  amazoncomponents: "0.9.24"
+  amos: "0.17"
+  amazoncomponents: "0.9.25"
   aws: "1.9.3"
   httpclient: "4.3.5"
   httpcore: "4.3.2"
