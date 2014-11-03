@@ -62,21 +62,21 @@ class OrcaSmokeGoogleSpec extends Specification {
 
     where:
     config = [
-            application: "googletest",
-            stages     : [
-                    [
-                            type         : "createApplication",
-                            account      : "my-account-name",
-                            application  :
-                                           [
-                                             name        : "googletest",
-                                             description : "A test Google application.",
-                                             email       : "some-email-addr@gmail.com",
-                                             pdApiKey    : "Some pager key."
-                                           ],
-                            description  : "Create new googletest application as smoke test."
-                    ]
-            ]
+      application: "googletest",
+      stages     : [
+        [
+          type         : "createApplication",
+          account      : "my-account-name",
+          application  :
+            [
+              name        : "googletest",
+              description : "A test Google application.",
+              email       : "some-email-addr@gmail.com",
+              pdApiKey    : "Some pager key."
+            ],
+          description  : "Create new googletest application as smoke test."
+        ]
+      ]
     ]
   }
 
