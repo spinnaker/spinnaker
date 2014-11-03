@@ -30,7 +30,7 @@
 .details-panel {
   position: fixed;
   top: 150px;
-  bottom: 10px;
+  bottom: 0;
   overflow-y: hidden;
   width: 240px;
 
@@ -53,7 +53,9 @@
   }
 
   border: 1px solid #aaaaaa;
-  border-radius: 5px;
+  border-bottom-width: 0;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
   background-color: #ffffff;
   padding: 0;
   margin-left: 20px;
@@ -81,7 +83,7 @@
 
   .header {
     padding: 20px 15px 0 15px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     .header-text {
       word-break: break-all;
       padding: 15px 0;
@@ -142,7 +144,7 @@
         .pull-left;
       }
     }
-    padding: 0 15px 0 10px;
+    padding: 0;
     border-bottom: 1px solid #c4c4c4;
 
     &:last-child {
@@ -151,6 +153,7 @@
 
     &:first-child {
       padding-top: 0;
+      border-top: 1px solid #c4c4c4;
     }
   }
 }

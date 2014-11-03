@@ -54,6 +54,9 @@
   &.active {
     border-color: #121212;
     box-shadow: 0 0 8px 0px #999999;
+    .rollup-summary {
+      font-weight: 600;
+    }
   }
 
   &.unhealthy {
@@ -125,6 +128,12 @@
 .rollup-title-cell {
   display: table-cell;
   width: auto;
+  color: @text-color;
+  &:active, &:hover {
+    color: @text-color;
+    text-decoration: none;
+    font-weight: 600;
+  }
 }
 
 .rollup-title-cell-load-balancers {

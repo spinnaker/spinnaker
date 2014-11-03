@@ -26,7 +26,7 @@ angular.module('deckApp')
       };
 
       monitor.onModalClose = function() {
-        if (monitor.task) {
+        if (monitor.task && monitor.task.cancelPolls) {
           monitor.task.cancelPolls();
         }
       };

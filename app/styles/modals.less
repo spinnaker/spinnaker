@@ -10,19 +10,21 @@
   }
 
   .steps-indicator {
+    @indicator-size: 18px;
+    @indicator-radius: @indicator-size/2;
     position: relative;
-    height: 70px;
+    height: 74px;
     overflow-x: hidden;
-    padding-top: 20px;
+    padding-top: @indicator-size;
 
     &:before {
-      top: 30px;
+      top: @indicator-size + 10;
     }
 
     li {
       margin-top: 10px;
       font-size: 80%;
-      padding: 10px 3px 0;
+      padding: @indicator-size - 5 3px 0;
       transition: all 0.25s ease-in-out;
 
       &.ng-enter {
@@ -43,10 +45,13 @@
       }
 
       a:before {
+        top: @indicator-radius * -1;
+        width: @indicator-size;
+        height: @indicator-size;
         background-color: transparent;
         font-size: 120%;
         font-family: 'Glyphicons Halflings';
-        left: ~'calc(50% - 7px)';
+        left: ~'calc(50% - @{indicator-radius})';
       }
 
       &.done {

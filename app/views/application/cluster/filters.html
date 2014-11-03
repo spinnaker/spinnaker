@@ -20,13 +20,15 @@
         </select>
       </label>
     </div>
-    <div class="form-group pull-right">
+    <div class="form-group pull-right has-feedback">
       <label>
         Filter
         <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, Server Groups"
                set-focus
                ng-model="sortFilter.filter"
+               style="width: 235px"
                ng-change="ctrl.updateClusterGroups()"/>
+        <span class="glyphicon glyphicon-search form-control-feedback"></span>
       </label>
     </div>
   </div>

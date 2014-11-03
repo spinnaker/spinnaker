@@ -1,13 +1,15 @@
 <li class="global-search open">
   <form class="navbar-form right global-search">
-    <div class="form-group">
-      <input type="search"
-        class="form-control"
-        placeholder="Search"
-        ng-model="query"
-        ng-focus="ctrl.displayResults()"
-        ng-keyup="ctrl.dispatchQueryInput($event)">
-      </input>
+    <div class="form-group has-feedback">
+      <div class="input-group">
+        <input type="search"
+          class="form-control"
+          placeholder="Search"
+          ng-model="query"
+          ng-focus="ctrl.displayResults()"
+          ng-keyup="ctrl.dispatchQueryInput($event)"/>
+        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+      </div>
     </div>
   </form>
   <ul class="dropdown-menu"

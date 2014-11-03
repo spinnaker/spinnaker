@@ -18,10 +18,15 @@
         </div>
       </div>
       <div class="col-md-5">
-        <input type="search"
-               class="form-control"
-               placeholder="Filter tasks"
-               ng-model="taskFilter">
+        <div class="form-group has-feedback">
+          <label class="sr-only" for="task-filter">Filter tasks</label>
+            <input type="search"
+                   id="task-filter"
+                   class="form-control"
+                   placeholder="Filter tasks"
+                   ng-model="taskFilter">
+          <span class="glyphicon glyphicon-search form-control-feedback"></span>
+        </div>
       </div>
     </div>
     <div class="row padding" ng-repeat="task in application.tasks | taskFilter:taskStateFilter | filter:taskFilter | orderBy:'startTime':'true'">
