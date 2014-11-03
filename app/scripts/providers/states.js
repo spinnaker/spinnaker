@@ -138,14 +138,8 @@ angular.module('deckApp')
           }
         },
         resolve: {
-          task: ['application', '$stateParams', '$state', function(application, $stateParams, $state) {
-            var filtered = application.tasks.filter(function(task) {
-              return task.id === parseInt($stateParams.taskId);
-            });
-            if (filtered.length === 0) {
-              $state.go('home.404');
-            }
-            return filtered[0];
+          taskId: ['$stateParams', function($stateParams) {
+            return parseInt($stateParams.taskId);
           }]
         }
       };
