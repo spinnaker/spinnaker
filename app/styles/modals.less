@@ -68,6 +68,9 @@
         }
       }
       &.current {
+        a {
+          color: @text-color;
+        }
         a:before {
           background-color: @spinnaker-blue;
           content: '';
@@ -208,7 +211,7 @@ select.select2 {
     }
     &.select2-container-multi {
       .select2-drop {
-        padding-right: 30px;
+        padding-right: 29px;
         border: none;
         box-shadow: none;
         background: transparent;
@@ -217,6 +220,7 @@ select.select2 {
         background-color: #ffffff;
         border: 1px solid #66afe9;
         border-top: none;
+        border-left-width: 2px;
       }
     }
     .select2-result-single {
@@ -258,7 +262,7 @@ select.select2 {
       border: 1px dashed #a5a5a5;
       color: #a5a5a5;
       padding: 0;
-      margin: 4px 0 0 0;
+      margin: 4px 0 0 1px;
       cursor: pointer;
       background-color: transparent;
 
@@ -271,7 +275,7 @@ select.select2 {
 
     .select2-search-choice {
       float: none;
-      margin: 0 0 5px 0;
+      margin: 0 0 5px 1px;
       border: 0;
       padding: 0;
       background-image: none;

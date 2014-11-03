@@ -46,6 +46,7 @@ angular.module('deckApp')
             blocked: attrs.blocked !== 'false',
             required: attrs.mandatory !== 'false'
           };
+        $scope.hideSubheading = attrs.hideSubheading === 'true';
         $scope.key = attrs.key;
         $scope.label = attrs.label;
         $scope.lazy = attrs.lazy !== 'true';
