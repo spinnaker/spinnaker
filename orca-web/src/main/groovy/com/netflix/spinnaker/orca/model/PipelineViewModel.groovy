@@ -84,9 +84,10 @@ class PipelineViewModel {
       }
     }
     def pipelineStages = stages.values() as List
-    def status = pipelineStages ? pipelineStages?.getAt(-1)?.status : "EXECUTING"
+    def lastExecutedStage = pipelineStages.reverse().find { it.status != PENDING_STAGE_STATUS_VAL }
+    def status = lastExecutedStage?.status ?: "EXECUTING"
     def startTime = pipelineStages ? pipelineStages?.getAt(0)?.startTime : null
-    def endTime = pipelineStages ? pipelineStages?.getAt(-1)?.endTime : null
+    def endTime = lastExecutedStage?.endTime ?: null
     new PipelineViewModel(id: pipeline.id, name: pipeline.name, application: pipeline.application,
       stages: pipelineStages, status: status, startTime: startTime, endTime: endTime)
   }
