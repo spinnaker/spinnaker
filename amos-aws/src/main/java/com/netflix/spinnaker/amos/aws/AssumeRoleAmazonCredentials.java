@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.amos.aws;
 
-import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Provides an Amazon credential pack that uses Assume Role (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-assume-role.html) to provide API access to the account.
@@ -26,31 +29,52 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
  * @author Dan Woods
  */
 public class AssumeRoleAmazonCredentials extends AmazonCredentials {
+    static final String DEFAULT_SESSION_NAME = "Spinnaker";
+
+    static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, Long accountId, String assumeRole, String sessionName) {
+        if (accountId == null) {
+            throw new NullPointerException("accountId");
+        }
+        if (assumeRole == null) {
+            throw new NullPointerException("assumeRole");
+        }
+        if (sessionName == null) {
+            throw new NullPointerException("sessionName");
+        }
+        return credentialsProvider == null ? null : new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
+                String.format("arn:aws:iam::%s:%s", accountId, assumeRole), sessionName);
+    }
+
     /**
      * The role to assume on the target account.
      */
-    private String assumeRole;
-    private String sessionName = "Spinnaker";
+    private final String assumeRole;
+    private final String sessionName;
+
+    public AssumeRoleAmazonCredentials(@JsonProperty("name") String name,
+                                       @JsonProperty("accountId") Long accountId,
+                                       @JsonProperty("defaultKeyPair") String defaultKeyPair,
+                                       @JsonProperty("regions") List<AWSRegion> regions,
+                                       @JsonProperty("assumeRole") String assumeRole,
+                                       @JsonProperty("sessionName") String sessionName) {
+        this(name, accountId, defaultKeyPair, regions, null, assumeRole, sessionName);
+    }
+
+    public AssumeRoleAmazonCredentials(AssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
+        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
+    }
+
+    AssumeRoleAmazonCredentials(String name, Long accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
+        super(name, accountId, defaultKeyPair, regions, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
+        this.assumeRole = assumeRole;
+        this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
+    }
 
     public String getAssumeRole() {
         return assumeRole;
     }
 
-    public void setAssumeRole(String assumeRole) {
-        this.assumeRole = assumeRole;
-    }
-
     public String getSessionName() {
         return sessionName;
-    }
-
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
-    }
-
-    @Override
-    public AWSCredentials getCredentials() {
-        return new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
-                String.format("arn:aws:iam::%s:%s", getAccountId(), assumeRole), sessionName).getCredentials();
     }
 }

@@ -16,56 +16,54 @@
 
 package com.netflix.spinnaker.amos.aws;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
 
 /**
  * @author Dan Woods
  * @see com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
  */
 public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {
-    private final AtomicReference<STSAssumeRoleSessionCredentialsProvider> stsSessionCredentialsProvider = new AtomicReference<>(null);
-    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * The role to assume on the target account.
      */
-    private String assumeRole;
-    private String sessionName = "Spinnaker";
+    private final String assumeRole;
+    private final String sessionName;
+
+    public NetflixAssumeRoleAmazonCredentials(@JsonProperty("name") String name,
+                                              @JsonProperty("accountId") Long accountId,
+                                              @JsonProperty("defaultKeyPair") String defaultKeyPair,
+                                              @JsonProperty("regions") List<AWSRegion> regions,
+                                              @JsonProperty("edda") String edda,
+                                              @JsonProperty("eddaEnabled") Boolean eddaEnabled,
+                                              @JsonProperty("discovery") String discovery,
+                                              @JsonProperty("discoveryEnabled") Boolean discoveryEnabled,
+                                              @JsonProperty("front50") String front50,
+                                              @JsonProperty("front50Enabled") Boolean front50Enabled,
+                                              @JsonProperty("assumeRole") String assumeRole,
+                                              @JsonProperty("sessionName") String sessionName) {
+
+        this(name, accountId, defaultKeyPair, regions, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, assumeRole, sessionName);
+    }
+
+    public NetflixAssumeRoleAmazonCredentials(NetflixAssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
+        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getAssumeRole(), copy.getSessionName());
+    }
+
+    NetflixAssumeRoleAmazonCredentials(String name, Long accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String assumeRole, String sessionName) {
+        super(name, accountId, defaultKeyPair, regions, AssumeRoleAmazonCredentials.createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName), edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
+        this.assumeRole = assumeRole;
+        this.sessionName = sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName;
+    }
 
     public String getAssumeRole() {
         return assumeRole;
     }
 
-    public void setAssumeRole(String assumeRole) {
-        this.assumeRole = assumeRole;
-    }
-
     public String getSessionName() {
         return sessionName;
-    }
-
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
-    }
-
-    @Override
-    public AWSCredentials getCredentials() {
-        if (stsSessionCredentialsProvider.get() == null) {
-            lock.lock();
-            try {
-                if (stsSessionCredentialsProvider.get() == null) {
-                    this.stsSessionCredentialsProvider.set(new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
-                            String.format("arn:aws:iam::%s:%s", getAccountId(), assumeRole), sessionName));
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        return this.stsSessionCredentialsProvider.get().getCredentials();
     }
 }

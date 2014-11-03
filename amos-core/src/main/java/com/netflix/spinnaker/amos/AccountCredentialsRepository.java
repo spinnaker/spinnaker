@@ -55,6 +55,7 @@ public interface AccountCredentialsRepository {
      * Indicates that the keyed reference should be updated with the provided {@link com.netflix.spinnaker.amos.AccountCredentials} object.
      * This is an identify function.
      *
+     * @param key the key to associate with this account credentials object
      * @param credentials account credentials object to associate with the provided key
      * @return input
      */
