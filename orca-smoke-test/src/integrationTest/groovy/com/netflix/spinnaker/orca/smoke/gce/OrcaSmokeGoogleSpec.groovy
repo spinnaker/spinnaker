@@ -46,23 +46,6 @@ class OrcaSmokeGoogleSpec extends Specification {
   @Autowired ObjectMapper mapper
   @Autowired JobExplorer jobExplorer
 
-//  {
-//      "job": [
-//            {
-//              "type": "createApplication",
-//              "account": "my-account-name",
-//                "application": {
-//                  "name": "testapp1",
-//                  "description": "desc",
-//                  "email": "rosco@email.com",
-//                  "pdApiKey": "pd"
-//              }
-//            }
-//    ],
-//    "application": "testapp1",
-//    "description": "Create Application: testapp1"
-//  }
-
   def "can create application"() {
     def configJson = mapper.writeValueAsString(config)
 
