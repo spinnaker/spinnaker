@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.amos.aws;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AvailabilityZone;
@@ -34,7 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
-    private static final Pattern IAM_ARN_PATTERN = Pattern.compile(".*arn:aws:iam::([\\d+]):.*");
+    private static final Pattern IAM_ARN_PATTERN = Pattern.compile(".*?arn:aws:(?:iam|sts)::(\\d+):.*");
 
     private final AWSCredentialsProvider credentialsProvider;
 
