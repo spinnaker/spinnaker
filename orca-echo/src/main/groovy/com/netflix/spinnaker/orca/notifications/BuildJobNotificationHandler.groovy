@@ -26,6 +26,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 
 class BuildJobNotificationHandler implements NotificationHandler, Runnable {
 
@@ -42,7 +43,8 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
   ObjectMapper objectMapper
 
   @Autowired
-  ApplicationInfoManager applicationInfoManager
+  @Qualifier("appInfoManager")
+  ApplicationInfoManager appInfoManager
 
   private Map<String, Map> interestingPipelines = [:]
 
@@ -81,7 +83,7 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
 
   @Override
   void handle(Map input) {
-    if (applicationInfoManager?.info?.status == InstanceInfo.InstanceStatus.OUT_OF_SERVICE) {
+    if (appInfoManager?.info?.status == InstanceInfo.InstanceStatus.OUT_OF_SERVICE) {
       return
     }
     try {
