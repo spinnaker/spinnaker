@@ -1,39 +1,42 @@
-
-<div class="row page-header application-header">
-  <h2><a ui-sref="home.applications"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>{{application.name}}</h2>
-  <ul class="nav nav-pills">
-    <!--<li>-->
+<div class="row page-header application-header navbar-fixed-top navbar">
+  <div class="container">
+    <h2><a ui-sref="home.applications"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>{{application.name}}
+    </h2>
+    <ul class="nav nav-pills">
+      <!--<li>-->
       <!--<a href>-->
-        <!--Delivery-->
+      <!--Delivery-->
       <!--</a>-->
-    <!--</li>-->
-    <li>
-      <a ui-sref=".insight.clusters" ng-class="{active: $state.includes('**.clusters.**')}">
-        <!--<span class="glyphicon glyphicon-th"></span>-->
-        Clusters
-      </a>
-    </li>
-    <li>
-      <a ui-sref=".insight.loadBalancers" ng-class="{active: $state.includes('**.loadBalancers.**') || $state.includes('*.loadBalancer')}">
-        <!--<span class="glyphicon glyphicon-elb"></span>-->
-        Load Balancers
-      </a>
-    </li>
-    <li>
-      <a ui-sref=".insight.connections" ng-class="{active: $state.includes('**.connections.**')}">
-        <!--<span class="glyphicon glyphicon-transfer"></span>-->
-        Security Groups
-      </a>
-    <li>
-    <li>
-      <a ui-sref=".tasks" ng-class="{active: $state.includes('**.tasks.**')}">
-        <!--<span class="glyphicon glyphicon-align-justify"></span>-->
-        Tasks <span class="badge" ng-if="application.tasks.runningCount">
+      <!--</li>-->
+      <li>
+        <a ui-sref=".insight.clusters" ng-class="{active: $state.includes('**.clusters.**')}">
+          <!--<span class="glyphicon glyphicon-th"></span>-->
+          Clusters
+        </a>
+      </li>
+      <li>
+        <a ui-sref=".insight.loadBalancers"
+           ng-class="{active: $state.includes('**.loadBalancers.**') || $state.includes('*.loadBalancer')}">
+          <!--<span class="glyphicon glyphicon-elb"></span>-->
+          Load Balancers
+        </a>
+      </li>
+      <li>
+        <a ui-sref=".insight.connections" ng-class="{active: $state.includes('**.connections.**')}">
+          <!--<span class="glyphicon glyphicon-transfer"></span>-->
+          Security Groups
+        </a>
+      <li>
+      <li>
+        <a ui-sref=".tasks" ng-class="{active: $state.includes('**.tasks.**')}">
+          <!--<span class="glyphicon glyphicon-align-justify"></span>-->
+          Tasks <span class="badge" ng-if="application.tasks.runningCount">
           {{ application.tasks.runningCount }}
         </span>
-      </a>
-    </li>
-  </ul>
+        </a>
+      </li>
+    </ul>
+  </div>
 </div>
 <div class="row">
   <div class="col-md-12 secondary-panel" ui-view="insight"></div>
