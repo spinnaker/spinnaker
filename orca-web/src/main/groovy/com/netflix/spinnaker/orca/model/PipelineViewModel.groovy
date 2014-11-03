@@ -88,6 +88,6 @@ class PipelineViewModel {
     def startTime = pipelineStages ? pipelineStages?.getAt(0)?.startTime : null
     def endTime = pipelineStages ? pipelineStages?.getAt(-1)?.endTime : null
     new PipelineViewModel(id: pipeline.id, name: pipeline.name, application: pipeline.application,
-      stages: pipelineStages, status: status, startTime: startTime)
+      stages: pipelineStages, status: status, startTime: startTime, endTime: endTime)
   }
 }

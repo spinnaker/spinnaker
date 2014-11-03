@@ -172,6 +172,10 @@ class TaskControllerSpec extends Specification {
   }
 
   void 'a pipeline should be differentiated from a task'() {
+    setup:
+    def pipeline = new Pipeline()
+    pipeline.application = application
+
     when:
     def response = mockMvc.perform(get("/applications/${application}/pipelines")).andReturn().response
 
@@ -180,18 +184,17 @@ class TaskControllerSpec extends Specification {
     jobExplorer.jobNames >> [jobs[0].name, jobs[1].name]
     jobExplorer.getJobInstances(jobs[0].name, _, _) >> [jobs[0].instance]
     jobExplorer.getJobInstances(jobs[1].name, _, _) >> [jobs[1].instance]
+    pipelineFactory.retrieve(jobs[0].id.toString()) >> pipeline
     jobExplorer.getJobExecutions(_) >> { JobInstance jobInstance ->
       def execution = Mock(JobExecution)
+      execution.getId() >> jobInstance.instanceId
       execution.getJobInstance() >> jobInstance
-      def pipeline = new Pipeline()
-      pipeline.application = application
-      pipelineFactory.retrieve(jobs[0].id.toString()) >> pipeline
       execution.getJobParameters() >> {
         def parameters = Mock(JobParameters)
         parameters.getParameters() >> [application: new JobParameter(application, true)]
         parameters
       }
-      if (jobInstance.id == 1) {
+      if (jobInstance.id == jobs[0].id) {
         execution.getExecutionContext() >> {
           def context = new ExecutionContext()
           context.put(PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY, pipeline)
@@ -206,6 +209,7 @@ class TaskControllerSpec extends Specification {
     }
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.size() == 1
+    tasks.first().application == application // ensure the pipeline serialized properly
 
     where:
     application = "test"
