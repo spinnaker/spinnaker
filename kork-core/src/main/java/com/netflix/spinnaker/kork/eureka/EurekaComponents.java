@@ -28,6 +28,7 @@ import com.netflix.discovery.shared.LookupService;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,32 +39,37 @@ import org.springframework.context.annotation.Primary;
 public class EurekaComponents {
 
     @Bean
+    @ConditionalOnMissingBean(ApplicationInfoManager.class)
     public ApplicationInfoManagerFactoryBean applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
         return new ApplicationInfoManagerFactoryBean(eurekaInstanceConfig);
     }
 
     @Bean
+    @ConditionalOnMissingBean(InstanceInfo.class)
     public InstanceInfo instanceInfo(ApplicationInfoManager applicationInfoManager) {
         return applicationInfoManager.getInfo();
     }
 
     @Bean
+    @ConditionalOnMissingBean(EurekaInstanceConfig.class)
     public EurekaInstanceConfig eurekaInstanceConfig(@Value("${eureka.instance.namespace:netflix.appinfo.}") String namespace) {
         return new MyDataCenterInstanceConfig(fixNamespace(namespace));
     }
 
     @Bean
+    @ConditionalOnMissingBean(EurekaClientConfig.class)
     public EurekaClientConfig eurekaClientConfig(@Value("${eureka.instance.namespace:netflix.discovery.}") String namespace) {
         return new DefaultEurekaClientConfig(fixNamespace(namespace));
     }
 
     @Bean
-    @Primary
+    @ConditionalOnMissingBean(LookupService.class)
     public LookupService lookupService(Applications applications) {
         return new StaticLookupService(applications);
     }
 
     @Bean
+    @ConditionalOnMissingBean(Applications.class)
     public Applications applications(ListableBeanFactory beanFactory) {
         Applications applications = new Applications();
         for (Application application : beanFactory.getBeansOfType(Application.class).values()) {
