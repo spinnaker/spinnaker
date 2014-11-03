@@ -134,7 +134,7 @@ angular.module('deckApp')
         credentials: settings.defaults.account,
         region: settings.defaults.region,
         vpcId: null,
-        healthCheckProtocol: 'HTTPS',
+        healthCheckProtocol: 'HTTP',
         healthCheckPort: 7001,
         healthCheckPath: '/health',
         regionZones: [],
