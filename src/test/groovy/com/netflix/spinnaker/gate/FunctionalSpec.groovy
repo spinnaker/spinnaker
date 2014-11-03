@@ -22,8 +22,9 @@ import com.netflix.spinnaker.gate.services.CacheInvalidationService
 import com.netflix.spinnaker.gate.services.FlapJackService
 import com.netflix.spinnaker.gate.services.Front50Service
 import com.netflix.spinnaker.gate.services.OortService
-import com.netflix.spinnaker.gate.services.PondService
+import com.netflix.spinnaker.gate.services.OrcaService
 import com.netflix.spinnaker.gate.services.TagService
+import com.netflix.spinnaker.gate.services.TaskService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
@@ -43,15 +44,17 @@ class FunctionalSpec extends Specification {
   static ApplicationService applicationService
   static FlapJackService flapJackService
   static Front50Service front50Service
+  static TaskService taskService
   static OortService oortService
-  static PondService pondService
+  static OrcaService orcaService
   static TagService tagService
 
   void setup() {
     applicationService = Mock(ApplicationService)
     flapJackService = Mock(FlapJackService)
+    taskService = Mock(TaskService)
     oortService = Mock(OortService)
-    pondService = Mock(PondService)
+    orcaService = Mock(OrcaService)
     tagService = Mock(TagService)
 
     def sock = new ServerSocket(0)
@@ -103,12 +106,12 @@ class FunctionalSpec extends Specification {
       name = "foo"
   }
 
-  void "should call ApplicationService to create a task for an application"() {
+  void "should call TaskService to create a task for an application"() {
     when:
       api.createTask("foo", task)
 
     then:
-      1 * applicationService.create(task) >> Observable.just([:])
+      1 * taskService.create(task) >> Observable.just([:])
 
     where:
       name = "foo"
@@ -130,8 +133,13 @@ class FunctionalSpec extends Specification {
     }
 
     @Bean
-    PondService pondService() {
-      pondService
+    TaskService taskService() {
+      taskService
+    }
+
+    @Bean
+    OrcaService orcaService() {
+      orcaService
     }
 
     @Bean

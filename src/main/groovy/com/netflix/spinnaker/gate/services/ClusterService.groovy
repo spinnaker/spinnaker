@@ -18,11 +18,12 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.frigga.Names
 import com.netflix.hystrix.*
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
-import rx.functions.Func1
 
+@CompileStatic
 @Component
 class ClusterService {
   private static final String SERVICE = "clusters"
@@ -45,7 +46,7 @@ class ClusterService {
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([])
+        Observable.from([:])
       }
 
       @Override
@@ -61,12 +62,12 @@ class ClusterService {
 
       @Override
       protected Observable<Map> run() {
-        Observable.from(oortService.getClustersForAccount(app, account))
+        Observable.just(oortService.getClustersForAccount(app, account))
       }
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([])
+        Observable.just([:])
       }
 
       @Override
@@ -82,12 +83,12 @@ class ClusterService {
 
       @Override
       protected Observable<Map> run() {
-        Observable.from(oortService.getCluster(app, account, clusterName)?.getAt(0))
+        Observable.just(oortService.getCluster(app, account, clusterName)?.getAt(0))
       }
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([:])
+        Observable.just([:])
       }
 
       @Override
@@ -123,7 +124,7 @@ class ClusterService {
         "cluster-tags-${clusterName}"
       }
     }.toObservable().filter({
-      it.item == "cluster" && it.name.toLowerCase() == clusterName.toLowerCase()
+      it.item == "cluster" && (it.name as String).toLowerCase() == clusterName.toLowerCase()
     }).flatMap({
       Observable.just(it.tags)
     }).reduce(new HashSet(), { Set objs, obj ->

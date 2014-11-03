@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.gate.services
 
+import groovy.transform.CompileStatic
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@CompileStatic
 @Component
 class CacheInvalidationService {
   private final List<CacheEnabledService> cacheEnabledServices

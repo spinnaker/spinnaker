@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.Path
+import retrofit.http.*
 
 interface FlapJackService {
 

@@ -21,18 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import groovy.transform.Immutable
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
-import rx.Observable
 
 
 import static retrofit.Endpoints.newFixedEndpoint

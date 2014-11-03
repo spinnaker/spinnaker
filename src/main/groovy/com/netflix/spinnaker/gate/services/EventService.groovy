@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.hystrix.HystrixCommandGroupKey
-import com.netflix.hystrix.HystrixCommandKey
-import com.netflix.hystrix.HystrixObservableCommand
+import com.netflix.hystrix.*
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
-import rx.functions.Action1
 
+@CompileStatic
 @Component
 class EventService {
   private static final String SERVICE = "events"

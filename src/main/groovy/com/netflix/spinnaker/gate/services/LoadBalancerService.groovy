@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.hystrix.*
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
 
+@CompileStatic
 @Component
 class LoadBalancerService {
   private static final String SERVICE = "loadBalancers"

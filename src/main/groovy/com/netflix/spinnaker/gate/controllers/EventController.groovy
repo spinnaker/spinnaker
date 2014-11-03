@@ -17,12 +17,17 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.EventService
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
 
+
+import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
+
+@CompileStatic
 @RestController
 class EventController {
 
@@ -30,10 +35,9 @@ class EventController {
   EventService eventService
 
   @RequestMapping(value = "/events", method = RequestMethod.GET)
-  def all(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
+  DeferredResult<HttpEntity> all(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
           @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
-    DeferredResult<HttpEntity<List>> q = new DeferredResult<>()
-    eventService.getAll(offset, size).map({
+    def obs = eventService.getAll(offset, size).map({
       def headers = new HttpHeaders()
       headers.add("X-Result-Total", Integer.valueOf(it.total as String).toString())
       headers.add("X-Result-Offset", offset.toString())
@@ -41,24 +45,12 @@ class EventController {
       new HttpEntity(it.hits, headers)
     }).doOnError({ Throwable t ->
       t.printStackTrace()
-    }).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
     })
-    q
+    defer obs
   }
 
   @RequestMapping(value = "/applications/{app}/events", method = RequestMethod.GET)
-  def getForApp(@PathVariable("app") String app) {
-    DeferredResult<List> q = new DeferredResult<>()
-    eventService.getForApplication(app).map({
-      it.hits
-    }).toList().subscribe({
-      q.setResult(it?.flatten())
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<List> getForApp(@PathVariable("app") String app) {
+    defer eventService.getForApplication(app).map({ it.hits }).toList()
   }
 }

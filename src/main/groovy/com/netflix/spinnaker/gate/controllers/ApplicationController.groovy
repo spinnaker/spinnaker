@@ -18,10 +18,16 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.TagService
+import com.netflix.spinnaker.gate.services.TaskService
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
 
+
+import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
+
+@CompileStatic
 @RequestMapping("/applications")
 @RestController
 class ApplicationController {
@@ -30,74 +36,44 @@ class ApplicationController {
   ApplicationService applicationService
 
   @Autowired
+  TaskService taskService
+
+  @Autowired
   TagService tagService
 
   @RequestMapping(method = RequestMethod.GET)
-  def get() {
-    DeferredResult<List> q = new DeferredResult<>()
-    applicationService.all.toList().subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<List<Map>> get() {
+    defer applicationService.all.toList()
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-  def show(@PathVariable("name") String name) {
-    DeferredResult<Map> q = new DeferredResult<>()
-    applicationService.get(name).doOnError({ Throwable t ->
-      q.setErrorResult(t)
-    }).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<Map> show(@PathVariable("name") String name) {
+    defer applicationService.get(name)
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.GET)
-  def getTasks(@PathVariable("name") String name) {
-    DeferredResult<List> q = new DeferredResult<>()
-    applicationService.getTasks(name).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<List> getTasks(@PathVariable("name") String name) {
+    defer applicationService.getTasks(name)
+  }
+
+  @RequestMapping(value = "/{name}/pipelines", method = RequestMethod.GET)
+  DeferredResult<List> getPiplines(@PathVariable("name") String name) {
+    defer applicationService.getPipelines(name)
   }
 
   @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
-  def getTask(@PathVariable("id") String id) {
-    DeferredResult<Map> q = new DeferredResult<>()
-    applicationService.getTask(id).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<Map> getTask(@PathVariable("id") String id) {
+    defer taskService.getTask(id)
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
-  def create(@RequestBody Map map) {
-    DeferredResult<Map> q = new DeferredResult<>()
-    applicationService.create(map).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<Map> create(@RequestBody Map map) {
+    defer taskService.create(map)
   }
 
-  // TODO get flapjack properly implemented
   @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
-  def getTags(@PathVariable("name") String name) {
-    DeferredResult<List> q = new DeferredResult<>()
-    tagService.getTags(name).subscribe({
-      q.setResult(it)
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+  DeferredResult<List<String>> getTags(@PathVariable("name") String name) {
+    defer tagService.getTags(name)
   }
+
 }

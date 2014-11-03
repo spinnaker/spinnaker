@@ -14,25 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.config
+package com.netflix.spinnaker.gate.services
 
+import com.google.common.base.Preconditions
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
+import rx.Observable
 
 @CompileStatic
-@Component
-@ConfigurationProperties
-class ServiceConfiguration {
-  List<String> discoveryHosts
-  List<Service> services
+@Service
+class TaskService {
 
   @Autowired
-  ApplicationContext ctx
+  OrcaService orcaService
 
-  Service getSerivce(String name) {
-    services.find { it.name == name }
+  @Autowired
+  CacheInvalidationService cacheInvalidationService
+
+  Observable<Map> create(Map body) {
+    orcaService.doOperation(body).map({
+      // TODO maybe need something more ideal here...
+      cacheInvalidationService.invalidateAll()
+      it
+    })
+  }
+
+  // TODO Hystrix fallback?
+  Observable<Map> getTask(String id) {
+    Preconditions.checkNotNull(id)
+    orcaService.getTask(id)
   }
 }

@@ -23,13 +23,13 @@ interface EchoService {
   @Headers("Accept: application/json")
   @GET("/search/events/0")
   Map getAllEvents(@Query("from") int offset,
-                                  @Query("size") int size,
-                                  @Query("full") boolean full)
+                   @Query("size") int size,
+                   @Query("full") boolean full)
 
   @Headers("Accept: application/json")
   @GET("/search/events/0")
   Map getEvents(@Query("application") String application,
-                               @Query("from") int offset,
-                               @Query("size") int size,
-                               @Query("full") boolean full)
+                @Query("from") int offset,
+                @Query("size") int size,
+                @Query("full") boolean full)
 }

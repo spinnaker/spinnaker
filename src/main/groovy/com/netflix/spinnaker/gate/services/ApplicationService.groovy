@@ -25,7 +25,6 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import rx.Observable
-import rx.functions.Func2
 import rx.schedulers.Schedulers
 
 @CompileStatic
@@ -38,7 +37,7 @@ class ApplicationService implements CacheEnabledService {
   OortService oortService
 
   @Autowired
-  PondService pondService
+  OrcaService orcaService
 
   @Autowired
   Front50Service front50Service
@@ -75,7 +74,7 @@ class ApplicationService implements CacheEnabledService {
   @Cacheable("application")
   Observable<Map> get(String name) {
     Observable.just(getApp(name), getMetaData("test", name), getMetaData("prod", name)).observeOn(Schedulers.io())
-    .flatMap {
+        .flatMap {
       it
     }.map {
       it
@@ -83,7 +82,7 @@ class ApplicationService implements CacheEnabledService {
       if (input.containsKey("attributes")) {
         map.putAll(input)
       } else {
-        ((Map)map.attributes).putAll(input)
+        ((Map) map.attributes).putAll(input)
       }
       map
     })
@@ -139,23 +138,15 @@ class ApplicationService implements CacheEnabledService {
     }.toObservable()
   }
 
-  Observable<Map> create(Map body) {
-    pondService.doOperation(body).map({
-      cacheInvalidationService.invalidateAll()
-      it
-    })
-  }
-
   // TODO Hystrix fallback?
   Observable<List> getTasks(String app) {
     Preconditions.checkNotNull(app)
-    pondService.getTasks(app)
+    orcaService.getTasks(app)
   }
-
   // TODO Hystrix fallback?
-  Observable<Map> getTask(String id) {
-    Preconditions.checkNotNull(id)
-    pondService.getTask(id)
+  Observable<List> getPipelines(String app) {
+    Preconditions.checkNotNull(app)
+    orcaService.getPipelines(app)
   }
 
 }

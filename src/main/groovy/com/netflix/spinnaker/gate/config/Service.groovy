@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.gate.config
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class Service {
   // Will be used as the VIP if no baseUrl is specified
   String name

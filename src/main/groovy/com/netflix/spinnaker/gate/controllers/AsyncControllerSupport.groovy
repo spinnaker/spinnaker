@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.config
+package com.netflix.spinnaker.gate.controllers
 
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Component
+import org.springframework.web.context.request.async.DeferredResult
 
 @CompileStatic
-@Component
-@ConfigurationProperties
-class ServiceConfiguration {
-  List<String> discoveryHosts
-  List<Service> services
-
-  @Autowired
-  ApplicationContext ctx
-
-  Service getSerivce(String name) {
-    services.find { it.name == name }
+class AsyncControllerSupport {
+  static <T> DeferredResult<T> defer(rx.Observable<T> obs) {
+    def q = new DeferredResult<T>()
+    obs.subscribe({
+      q.result = it
+    }, { Throwable t ->
+      q.errorResult = t
+    })
+    q
   }
 }

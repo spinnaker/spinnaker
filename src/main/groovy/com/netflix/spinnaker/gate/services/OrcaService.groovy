@@ -16,14 +16,10 @@
 
 package com.netflix.spinnaker.gate.services
 
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.POST
-import retrofit.http.Path
+import retrofit.http.*
 import rx.Observable
 
-interface PondService {
+interface OrcaService {
 
   @Headers("Accept: application/context+json")
   @POST("/ops")
@@ -34,6 +30,14 @@ interface PondService {
   Observable<List> getTasks(@Path("application") String app)
 
   @Headers("Accept: application/json")
+  @GET("/applications/{application}/pipelines")
+  Observable<List> getPipelines(@Path("application") String app)
+
+  @Headers("Accept: application/json")
   @GET("/tasks/{id}")
   Observable<Map> getTask(@Path("id") String id)
+
+  @Headers("Accept: application/json")
+  @GET("/tasks")
+  Observable<Map> all()
 }

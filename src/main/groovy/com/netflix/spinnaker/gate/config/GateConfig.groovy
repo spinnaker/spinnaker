@@ -19,9 +19,9 @@ package com.netflix.spinnaker.gate.config
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.services.*
+import groovy.transform.CompileStatic
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
@@ -38,6 +38,7 @@ import retrofit.client.OkClient
 
 import static retrofit.Endpoints.newFixedEndpoint
 
+@CompileStatic
 @Configuration
 class GateConfig {
 
@@ -79,9 +80,9 @@ class GateConfig {
   }
 
   @Bean
-  PondService pondService(ServiceConfiguration serviceConfiguration,
+  OrcaService orcaService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
-    createClient "pond", PondService, serviceConfiguration, retrofitClient
+    createClient "pond", OrcaService, serviceConfiguration, retrofitClient
   }
 
   @Bean
@@ -92,7 +93,7 @@ class GateConfig {
 
   @Bean
   FlapJackService flapJackService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
+                                  Client retrofitClient) {
     createClient "flapjack", FlapJackService, serviceConfiguration, retrofitClient
   }
 
@@ -116,7 +117,8 @@ class GateConfig {
         .create(type)
   }
 
-  @Bean Filter simpleCORSFilter() {
+  @Bean
+  Filter simpleCORSFilter() {
     new Filter() {
       public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res;
