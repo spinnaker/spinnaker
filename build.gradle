@@ -74,6 +74,15 @@ allprojects {
     apply plugin: 'codenarc'
     apply plugin: 'jacoco'
     group = "com.netflix.spinnaker.echo"
+
+    configurations.all {
+        exclude group: 'javax.servlet', module: 'servlet-api'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+
+        resolutionStrategy {
+            force 'org.apache.httpcomponents:httpclient:4.3.2'
+        }
+    }
 }
 
 subprojects {
