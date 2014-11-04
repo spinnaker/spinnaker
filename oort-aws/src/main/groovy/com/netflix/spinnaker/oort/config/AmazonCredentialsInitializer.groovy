@@ -18,45 +18,70 @@
 package com.netflix.spinnaker.oort.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.config.CredentialsConfig
+import com.netflix.spinnaker.amos.aws.config.CredentialsLoader
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
+import org.springframework.core.env.AbstractEnvironment
+import org.springframework.core.env.MapPropertySource
+
 import static com.amazonaws.regions.Regions.*
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Configuration
 
-import javax.annotation.PostConstruct
-
 @Configuration
-@ConditionalOnExpression('!${bastion.enabled:false}')
-class AmazonCredentialsInitializer implements CredentialsInitializer {
-  @Autowired
-  AWSCredentialsProvider awsCredentialsProvider
+@EnableConfigurationProperties
+class AmazonCredentialsInitializer {
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
+  @Bean
+  @ConfigurationProperties("aws")
+  CredentialsConfig credentialsConfig() {
+    new CredentialsConfig()
+  }
 
-  @Autowired
-  AwsConfigurationProperties awsConfigurationProperties
-
-  @Value('${default.account.env:default}')
-  String defaultEnv
-
-  @PostConstruct
-  void init() {
-    if (!awsConfigurationProperties.accounts) {
-      def credentials = new NetflixAmazonCredentials(name: defaultEnv)
-      credentials.credentialsProvider = awsCredentialsProvider
-      credentials.regions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new AmazonCredentials.AWSRegion(name: it.name) }
-      accountCredentialsRepository.save(defaultEnv, credentials)
+  @Bean
+  Class<? extends NetflixAmazonCredentials> credentialsType(CredentialsConfig credentialsConfig) {
+    if (!credentialsConfig.accounts) {
+      NetflixAmazonCredentials
     } else {
-      for (account in awsConfigurationProperties.accounts) {
-        account.assumeRole = account.assumeRole ?:  awsConfigurationProperties.assumeRole
-        account.credentialsProvider = awsCredentialsProvider
-        accountCredentialsRepository.save(account.name, account)
-      }
+      NetflixAssumeRoleAmazonCredentials
     }
+  }
+
+  @Bean
+  CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, AbstractEnvironment environment, Class<? extends NetflixAmazonCredentials> credentialsType) {
+    Map<String, String> envProps = environment.getPropertySources().findAll {
+      it instanceof MapPropertySource
+    }.collect { MapPropertySource mps ->
+      mps.propertyNames.collect {
+        [(it): environment.getConversionService().convert(mps.getProperty(it), String)]
+      }
+    }.flatten().collectEntries()
+    new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, credentialsType, envProps)
+  }
+
+  @Bean
+  List<? extends NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
+                                                          CredentialsConfig credentialsConfig,
+                                                          AccountCredentialsRepository accountCredentialsRepository,
+                                                          @Value('${default.account.env:default}') String defaultEnv) {
+
+    if (!credentialsConfig.accounts) {
+      credentialsConfig = new CredentialsConfig(
+        defaultRegions: [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) },
+        accounts: [new CredentialsConfig.Account(name: defaultEnv)])
+    }
+
+    List<? extends NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
+
+    for (act in accounts) {
+      accountCredentialsRepository.save(act.name, act)
+    }
+
+    accounts
   }
 }

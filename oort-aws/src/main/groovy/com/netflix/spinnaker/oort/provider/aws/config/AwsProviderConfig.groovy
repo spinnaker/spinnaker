@@ -23,8 +23,6 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
-import com.netflix.spinnaker.oort.config.CredentialsInitializer
 import com.netflix.spinnaker.oort.config.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.config.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
@@ -36,19 +34,16 @@ import com.netflix.spinnaker.oort.provider.aws.agent.ImageCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.InstanceCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.oort.provider.aws.agent.LoadBalancerCachingAgent
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.web.client.RestTemplate
 
 @Configuration
 class AwsProviderConfig {
 
-  // This is just so Spring gets the dependency graph right
-  @Autowired
-  CredentialsInitializer credentialsInitializer
-
   @Bean
+  @DependsOn('netflixAmazonCredentials')
   AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, RestTemplate restTemplate) {
     Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
     List<CachingAgent> agents = []

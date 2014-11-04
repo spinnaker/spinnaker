@@ -17,11 +17,7 @@
 package com.netflix.spinnaker.oort.controllers.aws
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.oort.config.AwsConfigurationProperties
 import com.netflix.spinnaker.oort.data.aws.Keys
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable

@@ -21,11 +21,15 @@ import com.netflix.spinnaker.oort.security.gce.GoogleNamedAccountCredentials
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
-@Component
+@Configuration
+@EnableConfigurationProperties
 class GoogleConfig {
   private static final Logger log = Logger.getLogger(this.class.simpleName)
 
@@ -38,21 +42,23 @@ class GoogleConfig {
     String pkcs12Password
   }
 
-  @Component
-  @ConfigurationProperties("google")
   static class GoogleConfigurationProperties {
     String kmsServer
     List<ManagedAccount> accounts = []
   }
 
-  @Autowired
-  GoogleConfigurationProperties googleConfigurationProperties
+  @Bean
+  @ConfigurationProperties("google")
+  GoogleConfigurationProperties googleConfigurationProperties() {
+    new GoogleConfigurationProperties()
+  }
 
   @PostConstruct
   void init() {
-    for (managedAccount in googleConfigurationProperties.accounts) {
+    def config = googleConfigurationProperties()
+    for (managedAccount in config.accounts) {
       try {
-        accountCredentialsRepository.save(managedAccount.name, new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.pkcs12Password, managedAccount.name, managedAccount.project))
+        accountCredentialsRepository.save(managedAccount.name, new GoogleNamedAccountCredentials(config.kmsServer, managedAccount.pkcs12Password, managedAccount.name, managedAccount.project))
       } catch (e) {
         log.info "Could not load account ${managedAccount.name} for Google", e
       }
