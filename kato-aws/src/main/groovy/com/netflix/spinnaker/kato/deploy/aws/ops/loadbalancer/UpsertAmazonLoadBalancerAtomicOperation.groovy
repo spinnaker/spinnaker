@@ -177,7 +177,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
       if (metadataJson) {
         Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && metadata.target == SUBNET_PURPOSE_TYPE) {
+        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && ((metadata.target != null && metadata.target == SUBNET_PURPOSE_TYPE) || metadata.target == null)) {
           mySubnets << subnet
         }
       }
