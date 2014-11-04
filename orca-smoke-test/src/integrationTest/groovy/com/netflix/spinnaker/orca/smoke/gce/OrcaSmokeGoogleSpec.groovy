@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.smoke.gce.config.OrcaSmokeGoogleSpecConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
@@ -37,10 +36,16 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 
 // Only runs if the gcs-kms server is listening on port 7909 on the same machine.
 @Requires({ isReachable("http://localhost:7909") })
-@ContextConfiguration(classes = [OrcaSmokeGoogleSpecConfiguration, OrcaConfiguration, KatoConfiguration,
-                                 BatchTestConfiguration, OortConfiguration, Front50Configuration])
+@ContextConfiguration(classes = [OrcaConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration,
+                                 Front50Configuration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeGoogleSpec extends Specification {
+
+  def setupSpec() {
+    System.setProperty("kato.baseUrl", "http://localhost:8501")
+    System.setProperty("oort.baseUrl", "http://localhost:8081")
+    System.setProperty("front50.baseUrl", "http://localhost:8080")
+  }
 
   @Autowired PipelineStarter jobStarter
   @Autowired ObjectMapper mapper
