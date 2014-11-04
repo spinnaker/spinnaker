@@ -156,7 +156,8 @@ angular.module('deckApp')
         children: [
           {
           name: 'clusters',
-          url: '/clusters?primary&secondary&hideInstances&hideHealthy&hideDisabled',
+          reloadOnSearch: false,
+          url: '/clusters?q&primary&secondary&hideInstances&hideHealthy&hideDisabled',
           views: {
             'nav': {
               templateUrl: 'views/application/cluster/navigation.html',
@@ -177,17 +178,6 @@ angular.module('deckApp')
             serverGroupDetails,
             instanceDetails,
             securityGroupDetails,
-            {
-              name: 'filteredClusters',
-              url: '?q',
-              reloadOnSearch: false,
-              children: [
-                loadBalancerDetails,
-                serverGroupDetails,
-                instanceDetails,
-                securityGroupDetails
-              ]
-            },
             {
               name: 'cluster',
               url: '/:account/:cluster',
