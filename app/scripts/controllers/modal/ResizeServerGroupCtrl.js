@@ -30,6 +30,9 @@ angular.module('deckApp')
     };
 
     this.resize = function () {
+      if (!this.isValid()) {
+        return;
+      }
       var capacity = { min: $scope.command.min, max: $scope.command.max, desired: $scope.command.desired };
       if (!$scope.command.advancedMode) {
         capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };

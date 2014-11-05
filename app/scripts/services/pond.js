@@ -32,7 +32,7 @@ angular.module('deckApp')
         },
         runningTime: {
           get: function() {
-            var endTime = parseInt(item.endTime) || parseInt(item.startTime);
+            var endTime = item.status === 'STARTED' ? new Date() : parseInt(item.endTime) || parseInt(item.startTime);
             return momentService
               .duration(endTime - parseInt(item.startTime))
               .humanize();

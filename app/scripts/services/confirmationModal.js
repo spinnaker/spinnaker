@@ -46,8 +46,14 @@ angular.module('deckApp')
       verifyAccount: ''
     };
 
+    this.formDisabled = function() {
+      return $scope.verification.requireAccountEntry && $scope.verification.verifyAccount !== params.account.toUpperCase();
+    };
+
     this.confirm = function () {
-      $scope.taskMonitor.submit(params.submitMethod);
+      if (!this.formDisabled()) {
+        $scope.taskMonitor.submit(params.submitMethod);
+      }
     };
 
     this.cancel = function () {
