@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit
  */
 @Slf4j
 @Service
+@SuppressWarnings('CatchException')
 class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
@@ -88,54 +89,60 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
     List<Map> changedBuilds(String master) {
 
         log.info('Checking for new builds for ' + master)
-
         List<Map> results = []
-        List<String> cachedBuilds = cache.getJobNames(master)
-        List<Project> builds = jenkinsMasters.map[master].projects?.list
 
-        List<String> buildNames = builds*.name
-        Observable.from(cachedBuilds).filter { String name ->
-            !(name in buildNames)
-        }.subscribe(
-            { String jobName ->
-                log.info "Removing ${master}:${jobName}"
-                cache.remove(master, jobName)
-            }, {
-            log.error("Error: ${it.message}")
-        }, {} as Action0
-        )
+        try {
 
-        Observable.from(builds).subscribe(
-            { Project project ->
-                boolean addToCache = false
-                Map cachedBuild = null
-                if (cachedBuilds.contains(project.name)) {
-                    cachedBuild = cache.getLastBuild(master, project.name)
-                    if ((project.lastBuildStatus != cachedBuild.lastBuildStatus) ||
-                        (project.lastBuildLabel > cachedBuild.lastBuildLabel)) {
-                        log.info "Build changed: ${master}: ${project.name} : ${project.lastBuildStatus} :" +
+            List<String> cachedBuilds = cache.getJobNames(master)
+            List<Project> builds = jenkinsMasters.map[master].projects?.list
+
+            List<String> buildNames = builds*.name
+            Observable.from(cachedBuilds).filter { String name ->
+                !(name in buildNames)
+            }.subscribe(
+                { String jobName ->
+                    log.info "Removing ${master}:${jobName}"
+                    cache.remove(master, jobName)
+                }, {
+                log.error("Error: ${it.message}")
+            }, {} as Action0
+            )
+
+            Observable.from(builds).subscribe(
+                { Project project ->
+                    boolean addToCache = false
+                    Map cachedBuild = null
+                    if (cachedBuilds.contains(project.name)) {
+                        cachedBuild = cache.getLastBuild(master, project.name)
+                        if ((project.lastBuildStatus != cachedBuild.lastBuildStatus) ||
+                            (project.lastBuildLabel > cachedBuild.lastBuildLabel)) {
+                            log.info "Build changed: ${master}: ${project.name} : ${project.lastBuildStatus} :" +
+                                "${project.lastBuildLabel}"
+                            addToCache = true
+                        }
+                    } else {
+                        log.info "New Build: ${master}: ${project.name} : ${project.lastBuildStatus} : " +
                             "${project.lastBuildLabel}"
                         addToCache = true
                     }
-                } else {
-                    log.info "New Build: ${master}: ${project.name} : ${project.lastBuildStatus} : " +
-                        "${project.lastBuildLabel}"
-                    addToCache = true
-                }
-                if (addToCache) {
-                    cache.setLastBuild(master, project.name, project.lastBuildLabel, project.lastBuildStatus)
-                    if (echoService) {
-                        echoService.postBuild(
-                            new BuildDetails(content: new BuildContent(project: project, master: master))
-                        )
+                    if (addToCache) {
+                        cache.setLastBuild(master, project.name, project.lastBuildLabel, project.lastBuildStatus)
+                        if (echoService) {
+                            echoService.postBuild(
+                                new BuildDetails(content: new BuildContent(project: project, master: master))
+                            )
+                        }
+                        results << [previous: cachedBuild, current: project]
                     }
-                    results << [previous: cachedBuild, current: project]
-                }
+                }, {
+                log.error("Error: ${it.message}")
             }, {
-            log.error("Error: ${it.message}")
-        }, {
-        } as Action0
-        )
+            } as Action0
+            )
+
+        } catch (e) {
+            log.error("failed to update master $master", e)
+        }
 
         results
     }
