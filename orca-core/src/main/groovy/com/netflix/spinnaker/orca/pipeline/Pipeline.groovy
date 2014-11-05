@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.PipelineStatus
@@ -28,7 +29,12 @@ class Pipeline implements Serializable {
   String name
   String id
 
+  final Map<String, Serializable> trigger = [:]
   private final List<PipelineStage> stages = []
+
+  ImmutableMap<String, Serializable> getTrigger() {
+    ImmutableMap.copyOf(trigger)
+  }
 
   ImmutableList<PipelineStage> getStages() {
     ImmutableList.copyOf(stages)
@@ -61,6 +67,14 @@ class Pipeline implements Serializable {
   static class Builder {
 
     private final Pipeline pipeline = new Pipeline()
+
+    Builder withTrigger(Map<String, Serializable> trigger = [:]) {
+      if (trigger) {
+        pipeline.@trigger.clear()
+        pipeline.@trigger.putAll(trigger)
+      }
+      return this
+    }
 
     Builder withStage(String type, Map<String, Serializable> context = [:]) {
       if (context.providerType) {

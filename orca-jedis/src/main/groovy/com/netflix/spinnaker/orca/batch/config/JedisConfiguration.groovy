@@ -29,5 +29,4 @@ class JedisConfiguration {
   JedisBatchConfigurer batchConfigurer(JedisCommands jedisCommands) {
     new JedisBatchConfigurer(jedisCommands)
   }
-
 }

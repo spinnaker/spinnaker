@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
+package com.netflix.spinnaker.orca.batch.repository.dao
 
-dependencies {
-  compile commonDependencies.objenesis
-  compile commonDependencies.spock
-  compile commonDependencies.korkJedisTest
-  compile commonDependencies.springTest
-  compile commonDependencies.springBatchTest
-  runtime commonDependencies.spockSpring
-  compile project(":orca-jedis")
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import spock.lang.AutoCleanup
+import spock.lang.Shared
+import spock.lang.Specification
+
+abstract class AbstractEmbeddedJedisSpec extends Specification {
+  @Shared
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
 }

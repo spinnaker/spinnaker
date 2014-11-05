@@ -32,7 +32,7 @@ import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 
-abstract class ExecutionContextDaoTck extends Specification {
+abstract class ExecutionContextDaoTck extends AbstractEmbeddedJedisSpec {
 
   @Subject ExecutionContextDao executionContextDao
   JobInstanceDao jobInstanceDao

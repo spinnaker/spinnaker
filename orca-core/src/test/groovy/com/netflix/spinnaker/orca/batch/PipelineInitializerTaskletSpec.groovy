@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.StepContribution
-import org.springframework.batch.core.StepExecution
+import com.netflix.spinnaker.orca.pipeline.Stage
+import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import spock.lang.Specification
 import spock.lang.Subject
-import rx.subjects.ReplaySubject
+
+
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.APPLICATION_CONTEXT_KEY
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
@@ -36,8 +37,9 @@ class PipelineInitializerTaskletSpec extends Specification {
   def stepContribution = new StepContribution(stepExecution)
   def chunkContext = new ChunkContext(stepContext)
 
-  def pipeline = new Pipeline()
-  @Subject tasklet = new PipelineInitializerTasklet(pipeline)
+  def pipeline = Pipeline.builder().withApplication("app").withStage("stage1").build()
+  @Subject
+    tasklet = new PipelineInitializerTasklet(pipeline)
 
   def "places pipeline into the execution context"() {
     when:
@@ -45,6 +47,22 @@ class PipelineInitializerTaskletSpec extends Specification {
 
     then:
     jobExecution.executionContext.get(PIPELINE_CONTEXT_KEY) is pipeline
+  }
+
+  def "places pipeline stages into the execution context"() {
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    jobExecution.executionContext.get("stage1") instanceof Stage
+  }
+
+  def "places application name into the execution context"() {
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    jobExecution.executionContext.get(APPLICATION_CONTEXT_KEY) == "app"
   }
 
   def "always returns finished status"() {

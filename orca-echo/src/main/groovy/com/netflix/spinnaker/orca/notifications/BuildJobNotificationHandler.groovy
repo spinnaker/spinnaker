@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 
 class BuildJobNotificationHandler implements NotificationHandler, Runnable {
 
-  static final String INTERESTING_STEP = "jenkins"
+  static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
 
   @Autowired
@@ -60,13 +60,13 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
       List<Map> pipelines = objectMapper.readValue(mayoService.pipelines.body.in().text, new TypeReference<List<Map>>() {
       })
       for (Map pipeline in pipelines) {
-        List<Map> stages = pipeline.stages
-        for (Map stage in stages) {
-          if (stage.type == INTERESTING_STEP) {
-            if (!_interestingPipelines.containsKey(stage[TRIGGER_KEY] as String)) {
-              _interestingPipelines[stage[TRIGGER_KEY] as String] = []
+        List<Map> triggers = pipeline.triggers
+        for (Map trigger in triggers) {
+          if (trigger.type == TRIGGER_TYPE) {
+            if (!_interestingPipelines.containsKey(trigger[TRIGGER_KEY] as String)) {
+              _interestingPipelines[trigger[TRIGGER_KEY] as String] = []
             }
-            _interestingPipelines[stage[TRIGGER_KEY] as String] << pipeline
+            _interestingPipelines[trigger[TRIGGER_KEY] as String] << pipeline
           }
         }
       }
@@ -91,14 +91,13 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
         if (input.lastBuildStatus != "Success") return
         def pipelineConfigs = interestingPipelines[input.name as String]
         for (Map pipelineConfig in pipelineConfigs) {
-          def jenkinsStageIdx = pipelineConfig.stages.findIndexOf {
-            it.type == "jenkins"
-          }
-          def stages = (jenkinsStageIdx + 1..pipelineConfig.stages.size() - 1).collect { int n ->
-            pipelineConfig.stages[n]
-          }
-          def config = [application: pipelineConfig.application, name: pipelineConfig.name, stages: stages]
-          def json = objectMapper.writeValueAsString(config)
+          Map trigger = pipelineConfig.triggers.find {
+            it.type == "jenkins" && it.job == input.name
+          } as Map
+          def pipelineConfigClone = new HashMap(pipelineConfig)
+          pipelineConfigClone.trigger = new HashMap(trigger)
+          pipelineConfigClone.trigger.buildInfo = input
+          def json = objectMapper.writeValueAsString(pipelineConfigClone)
           pipelineStarter.start(json).subscribe()
         }
       }

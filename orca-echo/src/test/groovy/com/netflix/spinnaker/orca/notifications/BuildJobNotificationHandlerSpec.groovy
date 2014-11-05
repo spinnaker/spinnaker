@@ -15,10 +15,8 @@
  */
 
 
-
 package com.netflix.spinnaker.orca.notifications
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.Pipeline
@@ -31,66 +29,71 @@ import spock.lang.Specification
 class BuildJobNotificationHandlerSpec extends Specification {
 
   def pipeline1 = [
-    name: "pipeline1",
-    stages: [[type: "jenkins",
-              job: "SPINNAKER-package-pond"],
-             [type: "bake"],
-             [type: "deploy", cluster: [name: "bar"]]]
+    name    : "pipeline1",
+    triggers: [[type: "jenkins",
+                job : "SPINNAKER-package-pond"]],
+    stages  : [[type: "bake"],
+               [type: "deploy", cluster: [name: "bar"]]]
   ]
 
   def pipeline2 = [
-    name: "pipeline2",
-    stages: [[type: "jenkins",
-              job: "SPINNAKER-package-pond"],
-             [type: "bake"],
-             [type: "deploy", cluster: [name: "foo"]]]
+    name    : "pipeline2",
+    triggers: [[type: "jenkins",
+                job : "SPINNAKER-package-pond"]],
+    stages  : [[type: "bake"],
+               [type: "deploy", cluster: [name: "foo"]]]
   ]
 
   void "should pick up stages subsequent to build job completing"() {
     setup:
-      PipelineStarter pipelineStarter = Mock(PipelineStarter)
-      def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
-      handler.interestingPipelines["SPINNAKER-package-pond"] = [pipeline1]
+    PipelineStarter pipelineStarter = Mock(PipelineStarter)
+    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
+    handler.interestingPipelines["SPINNAKER-package-pond"] = [pipeline1]
 
     when:
-      handler.handle([name: "SPINNAKER-package-pond", lastBuildStatus: "Success"])
+    handler.handle(input)
 
     then:
-      1 * pipelineStarter.start(_) >> { json ->
-        def config = new JsonSlurper().parseText(json) as Map
-        assert config.stages.size() == 2
-        assert config.stages[0].type == "bake"
-        assert config.stages[1].type == "deploy"
-        def pipeline = new Pipeline()
-        pipeline.id = "1"
-        rx.Observable.from(pipeline)
-      }
+    1 * pipelineStarter.start(_) >> { json ->
+      def config = new JsonSlurper().parseText(json) as Map
+      assert config.stages.size() == 2
+      assert config.stages[0].type == "bake"
+      assert config.stages[1].type == "deploy"
+      assert config.trigger.type == "jenkins"
+      assert config.trigger.buildInfo == input
+      def pipeline = new Pipeline()
+      pipeline.id = "1"
+      rx.Observable.from(pipeline)
+    }
+
+    where:
+    input = [name: "SPINNAKER-package-pond", lastBuildStatus: "Success"]
   }
 
   void "should add multiple pipeline targets to single trigger type"() {
     setup:
-      def mayo = Mock(MayoService)
-      def pipelineStarter = Mock(PipelineStarter)
-      def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper(), mayoService: mayo)
+    def mayo = Mock(MayoService)
+    def pipelineStarter = Mock(PipelineStarter)
+    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper(), mayoService: mayo)
 
     when:
-      handler.run()
+    handler.run()
 
     then:
-      1 * mayo.getPipelines() >> {
-        def response = GroovyMock(Response)
-        def typedInput = Mock(TypedInput)
-        typedInput.in() >> {
-          def json = new ObjectMapper().writeValueAsString([pipeline1, pipeline2])
-          new ByteArrayInputStream(json.bytes)
-        }
-        response.getBody() >> typedInput
-        response
+    1 * mayo.getPipelines() >> {
+      def response = GroovyMock(Response)
+      def typedInput = Mock(TypedInput)
+      typedInput.in() >> {
+        def json = new ObjectMapper().writeValueAsString([pipeline1, pipeline2])
+        new ByteArrayInputStream(json.bytes)
       }
-      2 == handler.interestingPipelines[job].size()
-      handler.interestingPipelines[job].name == ["pipeline1", "pipeline2"]
+      response.getBody() >> typedInput
+      response
+    }
+    2 == handler.interestingPipelines[job].size()
+    handler.interestingPipelines[job].name == ["pipeline1", "pipeline2"]
 
     where:
-      job = "SPINNAKER-package-pond"
+    job = "SPINNAKER-package-pond"
   }
 }

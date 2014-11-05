@@ -31,7 +31,7 @@ import static com.netflix.spinnaker.orca.batch.BatchHelpers.toJobParameters
 import static org.hamcrest.Matchers.containsInAnyOrder
 import static spock.util.matcher.HamcrestSupport.that
 
-abstract class JobInstanceDaoTck extends Specification {
+abstract class JobInstanceDaoTck extends AbstractEmbeddedJedisSpec {
 
   @Subject JobInstanceDao jobInstanceDao
   JobExecutionDao jobExecutionDao

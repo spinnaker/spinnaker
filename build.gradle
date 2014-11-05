@@ -30,7 +30,7 @@ ext {
     groovy  : "2.3.7",
     guava   : "14.0.1",
     jackson : "2.3.3",
-    kork    : "1.13",
+    kork    : "1.23",
     okhttp  : "2.0.0",
     retrofit: "1.6.1",
     rx      : "0.19.6",
@@ -47,6 +47,7 @@ ext {
     jacksonGuava   : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
     kork           : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
     korkJedis      : dependencies.create("com.netflix.spinnaker.kork:kork-jedis:$versions.kork"),
+    korkJedisTest  : dependencies.create("com.netflix.spinnaker.kork:kork-jedis-test:$versions.kork"),
     logback        : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
     okHttp         : dependencies.create("com.squareup.okhttp:okhttp-urlconnection:$versions.okhttp"),
     retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),
@@ -67,6 +68,10 @@ ext {
 allprojects {
   apply plugin: "spinnaker-gradle-project"
   group = "com.netflix.spinnaker.orca"
+
+  repositories {
+    mavenLocal()
+  }
 
   configurations.all {
     resolutionStrategy {

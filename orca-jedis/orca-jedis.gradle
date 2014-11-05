@@ -20,5 +20,6 @@ dependencies {
   compile commonDependencies.springBatch
   compile commonDependencies.korkJedis
   compile commonDependencies.kork
+  testCompile commonDependencies.korkJedisTest
   testCompile commonDependencies.hamcrest
 }

@@ -25,6 +25,7 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 class PipelineSpec extends Specification {
 
   @Subject pipeline = Pipeline.builder()
+                              .withTrigger([name: "SPINNAKER-build-job", lastBuildLabel: 1])
                               .withStage("stage1")
                               .withStage("stage2")
                               .build()
@@ -53,6 +54,11 @@ class PipelineSpec extends Specification {
   def "can get a previous stage from a stage by type"() {
     expect:
     pipeline.namedStage("stage2").preceding("stage1") is pipeline.stages[0]
+  }
+
+  def "trigger is properly build into the pipeline"() {
+    expect:
+    pipeline.trigger.name == "SPINNAKER-build-job" && pipeline.trigger.lastBuildLabel == 1
   }
 
 }
