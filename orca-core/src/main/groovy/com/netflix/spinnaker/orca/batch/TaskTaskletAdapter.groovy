@@ -21,22 +21,32 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import org.springframework.aop.framework.ProxyFactory
+import org.springframework.aop.target.SingletonTargetSource
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
-import org.springframework.retry.annotation.Retryable
+import org.springframework.retry.backoff.FixedBackOffPolicy
+import org.springframework.retry.backoff.Sleeper
+import static org.springframework.retry.interceptor.RetryInterceptorBuilder.stateless
 
 @CompileStatic
-@Retryable
 class TaskTaskletAdapter implements Tasklet {
 
-  static Tasklet decorate(Task task) {
+  static Tasklet decorate(Task task, Sleeper sleeper = null) {
     if (task instanceof RetryableTask) {
-      new RetryableTaskTaskletAdapter(task)
+      def tasklet = new RetryableTaskTaskletAdapter(task)
+      def proxyFactory = new ProxyFactory(Tasklet, new SingletonTargetSource(tasklet))
+      def backOffPolicy = new FixedBackOffPolicy(backOffPeriod: task.backoffPeriod)
+      if (sleeper) {
+        backOffPolicy.sleeper = sleeper
+      }
+      proxyFactory.addAdvice(stateless().backOffPolicy(backOffPolicy).build())
+      return proxyFactory.proxy as Tasklet
     } else {
-      new TaskTaskletAdapter(task)
+      return new TaskTaskletAdapter(task)
     }
   }
 

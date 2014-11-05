@@ -18,46 +18,53 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import org.springframework.batch.core.StepContribution
-import org.springframework.batch.core.scope.context.ChunkContext
-import org.springframework.batch.core.scope.context.StepContext
-import org.springframework.util.StopWatch
-import spock.lang.Specification
+import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.Job
+import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.retry.backoff.Sleeper
+import spock.lang.Shared
 import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
 import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY
-import static org.apache.commons.lang.math.RandomUtils.nextLong
-import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
-class RetryableTaskTaskletAdapterSpec extends Specification {
-  def pipeline = Pipeline.builder().withStage("stage").build()
-  def stepExecution = createStepExecution("stage.retryableTask", nextLong())
-  def stepContext = new StepContext(stepExecution)
-  def stepContribution = new StepContribution(stepExecution)
-  def chunkContext = new ChunkContext(stepContext)
+class RetryableTaskTaskletAdapterSpec extends BatchExecutionSpec {
 
-  def setup() {
-    new PipelineInitializerTasklet(pipeline).execute(stepContribution, chunkContext)
+  @Shared backoffPeriod = 1000L
+
+  def task = Mock(RetryableTask) {
+    getBackoffPeriod() >> backoffPeriod
+  }
+
+  def sleeper = Mock(Sleeper)
+
+  @Override
+  protected Job configureJob(JobBuilder jobBuilder) {
+    def pipeline = new Pipeline.Builder().withStage("retryable").build()
+    def step1 = steps.get("init")
+                     .tasklet(new PipelineInitializerTasklet(pipeline))
+                     .build()
+    def step2 = steps.get("retryable.task1")
+                     .listener(StageStatusPropagationListener.instance)
+                     .tasklet(TaskTaskletAdapter.decorate(task, sleeper))
+                     .build()
+    jobBuilder.start(step1).next(step2).build()
   }
 
   void "should backoff when the task returns continuable"() {
-    setup:
-    def step = Mock(RetryableTask) {
-      getBackoffPeriod() >> 1000L
-      getTimeout() >> 5000L
-    }
-
-    def tasklet = new RetryableTaskTaskletAdapter(step)
-    def timer = new StopWatch()
-    timer.start()
-
     when:
-    tasklet.execute(stepContribution, chunkContext)
-    timer.stop()
+    def jobExecution = launchJob()
 
     then:
-    2 * step.execute(*_) >>> [new DefaultTaskResult(RUNNING), new DefaultTaskResult(SUCCEEDED)]
-    timer.totalTimeMillis > 1000
+    2 * task.execute(_) >>> [
+      new DefaultTaskResult(RUNNING),
+      new DefaultTaskResult(SUCCEEDED)
+    ]
+
+    and:
+    1 * sleeper.sleep(backoffPeriod)
+
+    and:
+    jobExecution.status == BatchStatus.COMPLETED
   }
 }
