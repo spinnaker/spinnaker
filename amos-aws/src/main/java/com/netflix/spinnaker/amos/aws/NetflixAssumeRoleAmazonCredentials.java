@@ -34,7 +34,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
     private final String sessionName;
 
     public NetflixAssumeRoleAmazonCredentials(@JsonProperty("name") String name,
-                                              @JsonProperty("accountId") Long accountId,
+                                              @JsonProperty("accountId") String accountId,
                                               @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                               @JsonProperty("regions") List<AWSRegion> regions,
                                               @JsonProperty("edda") String edda,
@@ -53,7 +53,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getAssumeRole(), copy.getSessionName());
     }
 
-    NetflixAssumeRoleAmazonCredentials(String name, Long accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String assumeRole, String sessionName) {
+    NetflixAssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String assumeRole, String sessionName) {
         super(name, accountId, defaultKeyPair, regions, AssumeRoleAmazonCredentials.createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName), edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName;

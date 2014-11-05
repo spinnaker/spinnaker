@@ -20,8 +20,11 @@ import java.util.Collection;
 import java.util.List;
 
 public interface AWSAccountInfoLookup {
-    Long findAccountId();
+    String findAccountId();
+
     List<AmazonCredentials.AWSRegion> listRegions(Collection<String> regionNames);
+
     List<AmazonCredentials.AWSRegion> listRegions(String... regionNames);
+
     List<String> listAvailabilityZones(String region);
 }

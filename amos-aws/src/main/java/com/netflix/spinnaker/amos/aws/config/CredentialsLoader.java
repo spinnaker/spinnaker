@@ -22,13 +22,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.amos.aws.AWSAccountInfoLookup;
 import com.netflix.spinnaker.amos.aws.AmazonCredentials;
 import com.netflix.spinnaker.amos.aws.DefaultAWSAccountInfoLookup;
+import com.netflix.spinnaker.amos.aws.config.CredentialsConfig.Account;
+import com.netflix.spinnaker.amos.aws.config.CredentialsConfig.Region;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import com.netflix.spinnaker.amos.aws.config.CredentialsConfig.*;
 
 
 public class CredentialsLoader<T extends AmazonCredentials> {
@@ -222,7 +223,9 @@ public class CredentialsLoader<T extends AmazonCredentials> {
 
     static interface CredentialTranslator<T extends AmazonCredentials> {
         Class<T> getCredentialType();
+
         boolean resolveAccountId();
+
         T translate(AWSCredentialsProvider credentialsProvider, Account account) throws Throwable;
     }
 
@@ -267,7 +270,6 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             }
         }
     }
-
 
 
     static class StringTemplater {

@@ -41,20 +41,20 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
     }
 
     @Override
-    public Long findAccountId() {
+    public String findAccountId() {
         AmazonIdentityManagement iam = new AmazonIdentityManagementClient(credentialsProvider.getCredentials());
         try {
             String arn = iam.getUser().getUser().getArn();
             Matcher matcher = IAM_ARN_PATTERN.matcher(arn);
             if (matcher.matches()) {
-                return Long.parseLong(matcher.group(1));
+                return matcher.group(1);
             }
         } catch (AmazonServiceException ase) {
             if ("AccessDenied".equals(ase.getErrorCode())) {
                 String message = ase.getMessage();
                 Matcher matcher = IAM_ARN_PATTERN.matcher(message);
                 if (matcher.matches()) {
-                    return Long.parseLong(matcher.group(1));
+                    return matcher.group(1);
                 }
             }
             throw ase;
@@ -86,7 +86,7 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
         List<Region> regions = ec2.describeRegions(request).getRegions();
         if (regions.size() != nameSet.size()) {
             Set<String> missingSet = new HashSet<>(nameSet);
-            for (Region region: regions) {
+            for (Region region : regions) {
                 missingSet.remove(region.getRegionName());
             }
             throw new IllegalArgumentException("Unknown region" + (missingSet.size() > 1 ? "s: " : ": ") + missingSet);

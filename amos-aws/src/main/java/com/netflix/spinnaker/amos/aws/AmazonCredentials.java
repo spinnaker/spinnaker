@@ -16,30 +16,15 @@
 
 package com.netflix.spinnaker.amos.aws;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.AvailabilityZone;
-import com.amazonaws.services.ec2.model.DescribeRegionsRequest;
-import com.amazonaws.services.ec2.model.Region;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.amos.AccountCredentials;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Basic set of Amazon credentials that will a provided {@link com.amazonaws.auth.AWSCredentialsProvider} to resolve account credentials.
@@ -50,7 +35,7 @@ import java.util.regex.Pattern;
  */
 public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private final String name;
-    private final Long accountId;
+    private final String accountId;
     private final String defaultKeyPair;
     private final List<AWSRegion> regions;
     private final AWSCredentialsProvider credentialsProvider;
@@ -61,14 +46,14 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
     public static AmazonCredentials fromAWSCredentials(String name, String defaultKeyPair, AWSCredentialsProvider credentialsProvider) {
         AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider);
-        final Long accountId = lookup.findAccountId();
+        final String accountId = lookup.findAccountId();
         final List<AWSRegion> regions = lookup.listRegions();
         return new AmazonCredentials(name, accountId, defaultKeyPair, regions, credentialsProvider);
     }
 
 
     public AmazonCredentials(@JsonProperty("name") String name,
-                             @JsonProperty("accountId") Long accountId,
+                             @JsonProperty("accountId") String accountId,
                              @JsonProperty("defaultKeyPair") String defaultKeyPair,
                              @JsonProperty("regions") List<AWSRegion> regions) {
         this(name, accountId, defaultKeyPair, regions, null);
@@ -79,7 +64,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         this(source.getName(), source.getAccountId(), source.getDefaultKeyPair(), source.getRegions(), credentialsProvider);
     }
 
-    AmazonCredentials(String name, Long accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider) {
+    AmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider) {
         if (name == null) {
             throw new NullPointerException("name");
         }
@@ -100,7 +85,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         return name;
     }
 
-    public Long getAccountId() {
+    public String getAccountId() {
         return accountId;
     }
 
@@ -152,7 +137,8 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         }
     }
 
-    @JsonIgnore public AWSCredentialsProvider getCredentialsProvider() {
+    @JsonIgnore
+    public AWSCredentialsProvider getCredentialsProvider() {
         return credentialsProvider;
     }
 

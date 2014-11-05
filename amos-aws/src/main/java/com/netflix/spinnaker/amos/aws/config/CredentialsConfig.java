@@ -46,7 +46,7 @@ public class CredentialsConfig {
 
     public static class Account {
         private String name;
-        private Long accountId;
+        private String accountId;
         private String defaultKeyPair;
         private List<Region> regions;
         private String edda;
@@ -66,11 +66,11 @@ public class CredentialsConfig {
             this.name = name;
         }
 
-        public Long getAccountId() {
+        public String getAccountId() {
             return accountId;
         }
 
-        public void setAccountId(Long accountId) {
+        public void setAccountId(String accountId) {
             this.accountId = accountId;
         }
 

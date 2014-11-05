@@ -13,18 +13,18 @@ class DefaultAWSAccountInfoLookupSpec extends Specification {
         def creds = Stub(AWSCredentialsProvider) {
             getCredentials() >> cred
         }
-        String errMsg = 'com.amazonaws.AmazonServiceException: User: arn:aws:sts::149510111645:assumed-role/SpinnakerInstanceProfile/i-faea8732 is not authorized to perform: iam:GetUser on resource: arn:aws:sts::149510111645:assumed-role/SpinnakerInstanceProfile/i-faea8732 (Service: AmazonIdentityManagement; Status Code: 403; Error Code: AccessDenied; Request ID: bcd9f5c2-63a2-11e4-947e-d5b6d530e261)'
+        String errMsg = 'com.amazonaws.AmazonServiceException: User: arn:aws:sts::123456:assumed-role/SpinnakerInstanceProfile/i-fieber is not authorized to perform: iam:GetUser on resource: arn:aws:sts::149510111645:assumed-role/SpinnakerInstanceProfile/i-faea8732 (Service: AmazonIdentityManagement; Status Code: 403; Error Code: AccessDenied; Request ID: bcd9f5c2-63a2-11e4-947e-d5b6d530e261)'
         def exception = new AmazonServiceException(errMsg)
         exception.setErrorCode('AccessDenied')
 
         def lookup = new DefaultAWSAccountInfoLookup(creds)
 
         when:
-        long actId = lookup.findAccountId()
+        def actId = lookup.findAccountId()
 
         then:
         cred._ >> { throw exception }
-        actId == 149510111645
+        actId == "123456"
 
     }
 }

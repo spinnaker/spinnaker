@@ -19,16 +19,16 @@ package com.netflix.spinnaker.amos.aws;
 import java.util.*;
 
 public class StaticAWSAccountInfoLookup implements AWSAccountInfoLookup {
-    private final long accountId;
+    private final String accountId;
     private final List<AmazonCredentials.AWSRegion> knownRegions;
 
-    public StaticAWSAccountInfoLookup(long accountId, List<AmazonCredentials.AWSRegion> knownRegions) {
+    public StaticAWSAccountInfoLookup(String accountId, List<AmazonCredentials.AWSRegion> knownRegions) {
         this.accountId = accountId;
         this.knownRegions = knownRegions;
     }
 
     @Override
-    public Long findAccountId() {
+    public String findAccountId() {
         return accountId;
     }
 

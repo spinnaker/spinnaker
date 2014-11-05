@@ -52,7 +52,7 @@ class CredentialsLoaderSpec extends Specification {
         then:
         creds.size() == 2
         with(creds.find { it.name == 'prod' }) { AmazonCredentials cred ->
-            cred.accountId == 67890
+            cred.accountId == "67890"
             cred.defaultKeyPair == 'nf-prod-keypair-a'
             cred.regions.size() == 2
             cred.regions.find { it.name == 'us-east-1' }.availabilityZones.size() == 3
@@ -78,7 +78,7 @@ class CredentialsLoaderSpec extends Specification {
         creds.size() == 1
         with (creds.first()) { AmazonCredentials cred ->
             cred.name == 'default'
-            cred.accountId == 696969
+            cred.accountId == "696969"
             cred.credentialsProvider == provider
             cred.defaultKeyPair == null
             cred.regions.size() == 1
@@ -165,7 +165,7 @@ class CredentialsLoaderSpec extends Specification {
         creds.size() == 1
         with(creds.first()) { NetflixAmazonCredentials cred ->
             cred.name == 'test'
-            cred.accountId == 12345
+            cred.accountId == "12345"
             cred.defaultKeyPair == 'oss-12345-keypair'
             cred.discovery == 'us-west-1.discoveryqa.netflix.net'
             cred.discoveryEnabled

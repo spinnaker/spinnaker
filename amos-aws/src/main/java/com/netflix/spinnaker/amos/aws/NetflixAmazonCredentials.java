@@ -17,7 +17,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     private final boolean front50Enabled;
 
     public NetflixAmazonCredentials(@JsonProperty("name") String name,
-                                    @JsonProperty("accountId") Long accountId,
+                                    @JsonProperty("accountId") String accountId,
                                     @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                     @JsonProperty("regions") List<AWSRegion> regions,
                                     @JsonProperty("edda") String edda,
@@ -37,7 +37,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled());
     }
 
-    NetflixAmazonCredentials(String name, Long accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled) {
+    NetflixAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled) {
         super(name, accountId, defaultKeyPair, regions, credentialsProvider);
         this.edda = edda;
         this.eddaEnabled = flagValue(edda, eddaEnabled);

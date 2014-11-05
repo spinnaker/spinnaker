@@ -31,7 +31,7 @@ import java.util.List;
 public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     static final String DEFAULT_SESSION_NAME = "Spinnaker";
 
-    static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, Long accountId, String assumeRole, String sessionName) {
+    static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, String accountId, String assumeRole, String sessionName) {
         if (accountId == null) {
             throw new NullPointerException("accountId");
         }
@@ -52,7 +52,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     private final String sessionName;
 
     public AssumeRoleAmazonCredentials(@JsonProperty("name") String name,
-                                       @JsonProperty("accountId") Long accountId,
+                                       @JsonProperty("accountId") String accountId,
                                        @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                        @JsonProperty("regions") List<AWSRegion> regions,
                                        @JsonProperty("assumeRole") String assumeRole,
@@ -64,7 +64,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
     }
 
-    AssumeRoleAmazonCredentials(String name, Long accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
+    AssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
         super(name, accountId, defaultKeyPair, regions, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
