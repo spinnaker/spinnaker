@@ -7,6 +7,7 @@ angular.module('deckApp')
     mortUrl: 'http://mort-prestaging.prod.netflix.net',
     pondUrl: 'http://pond-prestaging.prod.netflix.net',
     katoUrl: 'http://kato-prestaging.prod.netflix.net',
+    gateUrl: 'http://spinnaker-api-prestaging.prod.netflix.net',
     credentialsUrl: 'http://kato-prestaging.prod.netflix.net/',
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
     accounts: {

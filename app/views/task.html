@@ -36,16 +36,13 @@
               <span class="glyphicon glyphicon-time"></span>
             </div>
             <div class="col-md-11 col-sm-11 col-xs-11">
-              <dl>
-                <span ng-if="task.isEnqueued">
-                  <dt>Enqueued</dt>
-                </span>
-                <span ng-if="!task.isEnqueued">
-                  <dt>Started</dt> <dd>{{ task.startTime | relativeTime }}</dd>
-                </span>
-                <span ng-if="task.isCompleted && task.endTime">
-                  <dt>Completed</dt> <dd>{{ task.endTime | relativeTime }}</dd>
-                </span>
+              <dl ng-if="task.isEnqueued">
+                <dt>Enqueued</dt>
+              </dl>
+              <dl ng-if="!task.isEnqueued">
+                <dt>Started</dt> <dd>{{ task.startTime | relativeTime }}</dd>
+                <dt ng-if="task.isCompleted && task.endTime">Completed</dt>
+                <dd ng-if="task.isCompleted && task.endTime">{{ task.endTime | relativeTime }}</dd>
                 <dt>Running time<dt> <dd>{{ task.runningTime }}</dd>
               </dl>
             </div>
