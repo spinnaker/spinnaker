@@ -1,6 +1,6 @@
 versions:
   springBoot: "1.1.8.RELEASE"
-  kork: "1.22"
+  kork: "1.23"
   groovy: "2.3.7"
   astyanax: "1.56.49"
   rxJava: "0.20.4"
