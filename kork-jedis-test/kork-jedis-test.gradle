@@ -1,0 +1,4 @@
+dependencies {
+  compile 'com.orange.redis-embedded:embedded-redis:0.6'
+  compile project(':kork-jedis')
+}

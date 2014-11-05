@@ -26,6 +26,7 @@ import com.netflix.discovery.shared.Application;
 import com.netflix.discovery.shared.Applications;
 import com.netflix.discovery.shared.LookupService;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -39,6 +40,7 @@ import org.springframework.context.annotation.Primary;
 public class EurekaComponents {
 
     @Bean
+    @Qualifier("appInfoManager")
     @ConditionalOnMissingBean(ApplicationInfoManager.class)
     public ApplicationInfoManagerFactoryBean applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
         return new ApplicationInfoManagerFactoryBean(eurekaInstanceConfig);

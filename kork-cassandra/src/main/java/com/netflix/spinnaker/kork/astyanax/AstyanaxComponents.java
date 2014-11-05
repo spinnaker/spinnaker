@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
@@ -61,7 +62,7 @@ public class AstyanaxComponents {
                 .setCqlVersion("3.0.0")
                 .setTargetCassandraVersion("1.2");
     }
-    
+
     @Bean
     public ConnectionPoolMonitor connectionPoolMonitor() {
         return new CountingConnectionPoolMonitor();
@@ -82,8 +83,10 @@ public class AstyanaxComponents {
     @ConditionalOnExpression("${cassandra.embedded:true} and '${cassandra.host:127.0.0.1}' == '127.0.0.1'")
     @ConditionalOnBean(Keyspace.class)
     @Bean
-    public EmbeddedCassandraRunner embeddedCassandra(Keyspace keyspace, @Value("${cassandra.port:9160}") int port, @Value("${cassandra.host:127.0.0.1}") String host) {
-        return new EmbeddedCassandraRunner(keyspace, port, host);
+    public EmbeddedCassandraRunner embeddedCassandra(Keyspace keyspace, @Value("${cassandra.port:9160}") int port,
+                                                     @Value("${cassandra.storagePort:7000}") int storagePort,
+                                                     @Value("${cassandra.host:127.0.0.1}") String host) {
+        return new EmbeddedCassandraRunner(keyspace, port, storagePort, host);
     }
 
     public static class EmbeddedCassandraRunner {
@@ -91,18 +94,20 @@ public class AstyanaxComponents {
 
         private final Keyspace keyspace;
         private final int port;
+        private final int storagePort;
         private final String host;
         private EmbeddedCassandra embeddedCassandra;
 
-        public EmbeddedCassandraRunner(Keyspace keyspace, int port, String host) {
+        public EmbeddedCassandraRunner(Keyspace keyspace, int port, int storagePort, String host) {
             this.keyspace = keyspace;
             this.port = port;
+            this.storagePort = storagePort;
             this.host = host;
         }
 
         @PostConstruct
         public void init() throws Exception {
-            embeddedCassandra = new EmbeddedCassandra("build/cassandra-test");
+            embeddedCassandra = new EmbeddedCassandra(new File("build/cassandra-test"), "TestCluster", port, storagePort);
             embeddedCassandra.start();
             log.info("Waiting for Embedded Cassandra instance...");
             Future<Object> waitForCassandraFuture = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {

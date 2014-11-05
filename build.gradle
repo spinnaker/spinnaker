@@ -16,7 +16,7 @@
 
 buildscript {
   repositories {
-    if( project.hasProperty('internalArtifactory') ){
+    if (project.hasProperty('internalArtifactory')) {
       maven { url project.internalArtifactory }
     } else {
       jcenter()
@@ -29,23 +29,26 @@ buildscript {
 }
 
 allprojects {
- apply plugin: 'idea'
-}
+  apply plugin: 'spinnaker-gradle-project'
+  apply plugin: 'groovy'
+  apply plugin: 'jacoco'
+  apply plugin: 'idea'
 
-subprojects {
+  group = 'com.netflix.spinnaker.kork'
 
   repositories {
-    if( parent.hasProperty('internalArtifactory') ){
+    if (parent.hasProperty('internalArtifactory')) {
       maven { url parent.internalArtifactory }
     } else {
       jcenter()
     }
   }
 
-  group = 'com.netflix.spinnaker.kork'
-  apply plugin: 'spinnaker-gradle-project'
-  apply plugin: 'groovy'
-  apply plugin: 'jacoco'
+  if (it.name.contains('jedis')) {
+    dependencies {
+      compile 'redis.clients:jedis:2.6.0'
+    }
+  }
 
   sourceCompatibility = 1.7
   targetCompatibility = 1.7

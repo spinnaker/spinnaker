@@ -1,7 +1,4 @@
 dependencies {
-  compile 'org.slf4j:slf4j-api:1.7.7'
   compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.8.RELEASE'
-  compile 'redis.clients:jedis:2.5.2'
   spinnaker.group('spockBase')
-  testRuntime 'org.slf4j:slf4j-simple:1.7.7'
 }
