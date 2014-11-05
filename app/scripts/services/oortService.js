@@ -5,11 +5,15 @@ angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
+    });
+
+    var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
@@ -83,7 +87,7 @@ angular.module('deckApp')
     }
 
     function getApplicationEndpoint(application) {
-      return oortEndpoint.one('applications', application);
+      return gateEndpoint.one('applications', application);
     }
 
     function deepCopyApplication(original, newApplication) {
@@ -171,7 +175,7 @@ angular.module('deckApp')
     }
 
     function listLoadBalancers() {
-      return applicationListEndpoint
+      return oortEndpoint
         .all('aws/loadBalancers')
 //        .withHttpConfig({cache: scheduledCache })
         .getList();
