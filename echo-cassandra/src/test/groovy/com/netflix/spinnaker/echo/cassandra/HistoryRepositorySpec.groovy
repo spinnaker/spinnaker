@@ -39,6 +39,7 @@ class HistoryRepositorySpec extends Specification {
     void setupSpec() {
 
         int port = 9160
+        int storagePort = 7000
         String host = '127.0.0.1'
 
         AstyanaxComponents components = new AstyanaxComponents()
@@ -47,7 +48,7 @@ class HistoryRepositorySpec extends Specification {
             components.connectionPoolConfiguration(port, host, 3),
             components.connectionPoolMonitor()
         ).getKeyspace('workflow', 'test')
-        runner = new EmbeddedCassandraRunner(keyspace, port, host)
+        runner = new EmbeddedCassandraRunner(keyspace, port, storagePort, host)
         runner.init()
         repo = new HistoryRepository()
         repo.keyspace = keyspace
