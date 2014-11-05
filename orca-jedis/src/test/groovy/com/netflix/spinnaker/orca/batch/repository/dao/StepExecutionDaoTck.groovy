@@ -27,7 +27,7 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.orca.CopyUtils.copy
 import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 
-abstract class StepExecutionDaoTck extends Specification {
+abstract class StepExecutionDaoTck extends AbstractEmbeddedJedisSpec {
 
   @Subject StepExecutionDao stepExecutionDao
   JobInstanceDao jobInstanceDao

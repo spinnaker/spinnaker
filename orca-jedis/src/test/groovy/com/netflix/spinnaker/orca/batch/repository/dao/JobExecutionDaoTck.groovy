@@ -31,7 +31,7 @@ import static com.netflix.spinnaker.orca.batch.BatchHelpers.noParameters
 import static com.netflix.spinnaker.orca.batch.BatchHelpers.toJobParameters
 import static com.netflix.spinnaker.orca.CopyUtils.copy
 
-abstract class JobExecutionDaoTck extends Specification {
+abstract class JobExecutionDaoTck extends AbstractEmbeddedJedisSpec {
 
   @Subject JobExecutionDao jobExecutionDao
   JobInstanceDao jobInstanceDao

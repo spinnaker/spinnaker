@@ -16,29 +16,18 @@
 
 package com.netflix.spinnaker.orca.batch.repository.dao
 
-import com.netflix.spinnaker.kork.jedis.JedisConfig
 import org.springframework.batch.core.repository.dao.JobExecutionDao
 import org.springframework.batch.core.repository.dao.JobInstanceDao
-import redis.clients.jedis.Jedis
-import spock.lang.AutoCleanup
-import spock.lang.Shared
 
 class JedisJobExecutionDaoSpec extends JobExecutionDaoTck {
 
-  @Shared @AutoCleanup("destroy") JedisConfig jedisConfig = new JedisConfig()
-  @Shared Jedis jedis = jedisConfig.jedis(0, "127.0.0.1", System.env['redis.connection'] ?: "none")
-
-  def cleanup() {
-    jedis.flushDB()
-  }
-
   @Override
   JobExecutionDao createJobExecutionDao(JobInstanceDao jobInstanceDao) {
-    new JedisJobExecutionDao(jedis, jobInstanceDao)
+    new JedisJobExecutionDao(embeddedRedis.jedisCommands, jobInstanceDao)
   }
 
   @Override
   JobInstanceDao createJobInstanceDao() {
-    new JedisJobInstanceDao(jedis)
+    new JedisJobInstanceDao(embeddedRedis.jedisCommands)
   }
 }

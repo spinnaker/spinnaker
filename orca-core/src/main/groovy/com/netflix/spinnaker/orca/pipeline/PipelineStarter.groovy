@@ -48,6 +48,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     Pipeline.builder()
       .withApplication(config.application.toString())
       .withName(config.name.toString())
+      .withTrigger((Map<String, Serializable>) config.trigger)
       .withStages((List<Map<String, Serializable>>) config.stages)
       .build()
   }

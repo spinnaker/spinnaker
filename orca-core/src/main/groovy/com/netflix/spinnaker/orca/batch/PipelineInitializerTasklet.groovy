@@ -39,6 +39,7 @@ class PipelineInitializerTasklet implements Tasklet {
       .build()
   }
 
+  public static final String APPLICATION_CONTEXT_KEY = "application"
   public static final String PIPELINE_CONTEXT_KEY = "pipeline"
 
   private final Pipeline pipeline
@@ -48,6 +49,7 @@ class PipelineInitializerTasklet implements Tasklet {
     chunkContext.stepContext.stepExecution.jobExecution.with {
       pipeline.id = id.toString()
       executionContext.put(PIPELINE_CONTEXT_KEY, pipeline)
+      executionContext.put(APPLICATION_CONTEXT_KEY, pipeline.application)
       for (stage in pipeline.stages) {
         executionContext.put(stage.type, stage)
       }

@@ -118,7 +118,7 @@ class JedisJobInstanceDao implements JobInstanceDao {
     JobInstance jobInstance = null
     def hash = jedis.hgetAll(key)
     if (hash) {
-      jobInstance = new JobInstance(hash.id as Long, hash.jobName)
+      jobInstance = new JobInstance(hash.id as Long, hash.jobName as String)
       jobInstance.version = hash.version as Integer
     }
     return jobInstance

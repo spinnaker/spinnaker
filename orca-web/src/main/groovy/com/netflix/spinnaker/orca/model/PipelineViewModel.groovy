@@ -29,6 +29,7 @@ class PipelineViewModel {
   String status
   Long startTime
   Long endTime
+  Map<String, Serializable> trigger
   List<PipelineStageViewModel> stages
 
   static class PipelineStageViewModel {
@@ -88,7 +89,7 @@ class PipelineViewModel {
     def status = lastExecutedStage?.status ?: "EXECUTING"
     def startTime = pipelineStages ? pipelineStages?.getAt(0)?.startTime : null
     def endTime = lastExecutedStage?.endTime ?: null
-    new PipelineViewModel(id: pipeline.id, name: pipeline.name, application: pipeline.application,
+    new PipelineViewModel(id: pipeline.id, name: pipeline.name, trigger: pipeline.trigger, application: pipeline.application,
       stages: pipelineStages, status: status, startTime: startTime, endTime: endTime)
   }
 }
