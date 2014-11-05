@@ -34,7 +34,7 @@ ext {
         groovy  : "2.3.6",
         guava   : "14.0.1",
         jackson : "2.3.3",
-        kork    : "1.18",
+        kork    : "1.23",
         okhttp  : "2.0.0",
         retrofit: "1.6.1",
         rx      : "0.20.2",
