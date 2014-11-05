@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.config
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineFactory
@@ -27,6 +28,7 @@ import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.retry.backoff.ThreadWaitSleeper
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.orca.pipeline")
@@ -53,5 +55,9 @@ class OrcaConfiguration {
 
   @Bean PipelineFactory pipelineFactory(JobExplorer jobExplorer) {
     new PipelineFactory(jobExplorer)
+  }
+
+  @Bean TaskTaskletAdapter taskTaskletAdapter() {
+    new TaskTaskletAdapter(new ThreadWaitSleeper())
   }
 }

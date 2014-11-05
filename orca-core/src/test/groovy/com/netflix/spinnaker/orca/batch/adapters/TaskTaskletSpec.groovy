@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch
+package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
@@ -33,13 +34,13 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
-class TaskTaskletAdapterSpec extends Specification {
+class TaskTaskletSpec extends Specification {
 
   def pipeline = Pipeline.builder().withStage("stage").build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
-  @Subject tasklet = new TaskTaskletAdapter(task)
+  @Subject tasklet = new TaskTasklet(task)
 
   def stepExecution = createStepExecution("${stage.type}.task1", nextLong())
   def stepContext = new StepContext(stepExecution)

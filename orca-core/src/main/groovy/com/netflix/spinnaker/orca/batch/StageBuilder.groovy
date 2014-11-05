@@ -25,7 +25,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
-import static com.netflix.spinnaker.orca.batch.TaskTaskletAdapter.decorate
 import static java.util.UUID.randomUUID
 
 /**
@@ -41,6 +40,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   final String type
 
   private StepBuilderFactory steps
+  private TaskTaskletAdapter taskTaskletAdapter
 
   StageBuilder(String type) {
     this.type = type
@@ -82,7 +82,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   protected Step buildStep(String taskName, Task task) {
     steps.get(stepName(taskName))
          .listener(StageStatusPropagationListener.instance)
-         .tasklet(decorate(task))
+         .tasklet(taskTaskletAdapter.decorate(task))
          .build()
   }
 
@@ -96,7 +96,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   private Tasklet buildTask(Class<? extends Task> taskType) {
     def task = taskType.newInstance()
     autowire task
-    decorate task
+    taskTaskletAdapter.decorate task
   }
 
   private String stepName(String taskName) {
@@ -106,5 +106,10 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   @Autowired
   void setSteps(StepBuilderFactory steps) {
     this.steps = steps
+  }
+
+  @Autowired
+  void setTaskTaskletAdapter(TaskTaskletAdapter taskTaskletAdapter) {
+    this.taskTaskletAdapter = taskTaskletAdapter
   }
 }

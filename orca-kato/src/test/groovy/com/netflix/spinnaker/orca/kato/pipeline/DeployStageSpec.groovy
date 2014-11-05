@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.Stage
@@ -81,6 +82,7 @@ class DeployStageSpec extends Specification {
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
       mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
+    deployStage.taskTaskletAdapter = new TaskTaskletAdapter()
     deployStage.applicationContext = Stub(ApplicationContext)
   }
 
@@ -147,7 +149,9 @@ class DeployStageSpec extends Specification {
     def steps = deployStage.buildSteps(stage)
 
     then:
-    steps*.name.collect { it.tokenize('.')[1] } == deployStage.basicStages()*.name.collect { it.tokenize('.')[1] }
+    steps*.name.collect {
+      it.tokenize('.')[1]
+    } == deployStage.basicStages()*.name.collect { it.tokenize('.')[1] }
   }
 
   static class TestTask implements Task {

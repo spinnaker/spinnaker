@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch
+package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.RetryableTask
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
 
-class RetryableTaskTaskletAdapter extends TaskTaskletAdapter {
+class RetryableTaskTasklet extends TaskTasklet {
 
-  protected RetryableTaskTaskletAdapter(RetryableTask task) {
+  RetryableTaskTasklet(RetryableTask task) {
     super(task)
   }
 

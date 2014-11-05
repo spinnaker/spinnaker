@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.pipeline
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
@@ -36,6 +37,7 @@ class TestStage extends LinearStage {
   TestStage(String name, StepBuilderFactory steps, Task... tasks) {
     super(name)
     this.steps = steps
+    this.taskTaskletAdapter = new TaskTaskletAdapter()
     this.tasks.addAll tasks
   }
 

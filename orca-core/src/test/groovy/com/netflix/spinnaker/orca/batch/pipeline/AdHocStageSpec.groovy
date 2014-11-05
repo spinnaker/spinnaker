@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -37,7 +38,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 
 @Narrative("Orca should support the addition of ad-hoc stages (i.e. those with no pre-defined stage that just consist of a single task) to a pipeline")
 @Issue("https://github.com/spinnaker/orca/issues/42")
-@ContextConfiguration(classes = [BatchTestConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, OrcaConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class AdHocStageSpec extends Specification {
 
@@ -47,17 +48,9 @@ class AdHocStageSpec extends Specification {
   @Autowired JobLauncher jobLauncher
   @Autowired JobRepository jobRepository
 
-  @Subject jobStarter = new PipelineStarter()
+  @Autowired @Subject PipelineStarter jobStarter
 
   @Shared mapper = new ObjectMapper()
-
-  def setup() {
-    applicationContext.beanFactory.with {
-      registerSingleton "mapper", mapper
-
-      autowireBean jobStarter
-    }
-  }
 
   def "an unknown stage is interpreted as an ad-hoc task"() {
     given:

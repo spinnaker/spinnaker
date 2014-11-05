@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
@@ -64,7 +65,9 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
 
   def "does not start monitoring if the start task fails"() {
     given:
-    startTask.execute(_) >> { throw new RuntimeException("something went wrong") }
+    startTask.execute(_) >> {
+      throw new RuntimeException("something went wrong")
+    }
 
     when:
     def jobExecution = launchJob()
@@ -81,9 +84,13 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
     def pipeline = Pipeline.builder().withStage("startAndMonitor").build()
     def subject = ReplaySubject.create(1)
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
-    new StartAndMonitorStage(steps: steps, startTask: startTask, monitorTask: monitorTask)
-      .build(builder, pipeline.namedStage("startAndMonitor"))
-      .build()
-      .build()
+    new StartAndMonitorStage(
+      steps: steps,
+      startTask: startTask,
+      monitorTask: monitorTask,
+      taskTaskletAdapter: new TaskTaskletAdapter()
+    ).build(builder, pipeline.namedStage("startAndMonitor"))
+     .build()
+     .build()
   }
 }

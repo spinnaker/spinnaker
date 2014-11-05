@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch
+package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.BatchStatus
@@ -28,7 +31,7 @@ import spock.lang.Shared
 import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
 import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
 
-class RetryableTaskTaskletAdapterSpec extends BatchExecutionSpec {
+class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
   @Shared backoffPeriod = 1000L
 
@@ -37,6 +40,7 @@ class RetryableTaskTaskletAdapterSpec extends BatchExecutionSpec {
   }
 
   def sleeper = Mock(Sleeper)
+  def taskFactory = new TaskTaskletAdapter(sleeper)
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
@@ -46,7 +50,7 @@ class RetryableTaskTaskletAdapterSpec extends BatchExecutionSpec {
                      .build()
     def step2 = steps.get("retryable.task1")
                      .listener(StageStatusPropagationListener.instance)
-                     .tasklet(TaskTaskletAdapter.decorate(task, sleeper))
+                     .tasklet(taskFactory.decorate(task))
                      .build()
     jobBuilder.start(step1).next(step2).build()
   }

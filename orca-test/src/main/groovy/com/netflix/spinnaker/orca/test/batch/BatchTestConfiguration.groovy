@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.test.batch
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisConfig
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.batch.core.configuration.annotation.JedisBatchConfigurer
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.batch.core.explore.JobExplorer
