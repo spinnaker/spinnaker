@@ -28,4 +28,7 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class PollRequiresRetry extends RuntimeException {
+  @Override Throwable fillInStackTrace() {
+    return this
+  }
 }
