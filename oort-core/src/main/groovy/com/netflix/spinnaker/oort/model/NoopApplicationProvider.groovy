@@ -15,17 +15,15 @@
  */
 
 package com.netflix.spinnaker.oort.model
-/**
- * A default, no-op implementation of an {@link OnDemandCacheUpdater}
- */
-class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
+
+class NoopApplicationProvider implements ApplicationProvider {
   @Override
-  boolean handles(String type) {
-    false
+  Set<Application> getApplications() {
+    Collections.emptySet()
   }
 
   @Override
-  void handle(String type, Map<String, ? extends Object> data) {
-
+  Application getApplication(String name) {
+    null
   }
 }

@@ -15,28 +15,27 @@
  */
 
 package com.netflix.spinnaker.oort.config
-
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.cats.agent.AgentScheduler
-import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler
-import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
+import com.netflix.spinnaker.oort.model.*
+import com.netflix.spinnaker.oort.search.NoopSearchProvider
+import com.netflix.spinnaker.oort.search.SearchProvider
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 import java.util.concurrent.TimeUnit
 
 @Configuration
-@ComponentScan(basePackages = ['com.netflix.spinnaker.oort.model'])
 class DefaultConfig {
 
   @Bean
@@ -61,6 +60,64 @@ class DefaultConfig {
   @ConditionalOnMissingBean(AgentScheduler)
   AgentScheduler agentScheduler() {
     new DefaultAgentScheduler(60, TimeUnit.SECONDS)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(Provider)
+  Provider noopProvider() {
+    new Provider() {
+      @Override
+      String getProviderName() {
+        "noop"
+      }
+
+      @Override
+      Collection<CachingAgent> getCachingAgents() {
+        Collections.emptySet()
+      }
+    }
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(SearchProvider)
+  SearchProvider noopSearchProvider() {
+    new NoopSearchProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ApplicationProvider)
+  ApplicationProvider noopApplicationProvider() {
+    new NoopApplicationProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(LoadBalancerProvider)
+  LoadBalancerProvider noopLoadBalancerProvider() {
+    new NoopLoadBalancerProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ClusterProvider)
+  ClusterProvider noopClusterProvider() {
+    new NoopClusterProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(OnDemandCacheUpdater)
+  OnDemandCacheUpdater noopOnDemandCacheUpdater() {
+    new NoopOnDemandCacheUpdater()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ExecutionInstrumentation)
+  ExecutionInstrumentation noopExecutionInstrumentation() {
+    new NoopExecutionInstrumentation()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AgentScheduler)
+  AgentScheduler defaultAgentScheduler(@Value('${pollIntervalSeconds:60') long pollIntervalSeconds) {
+    new DefaultAgentScheduler(pollIntervalSeconds, TimeUnit.SECONDS)
   }
 
   @Bean

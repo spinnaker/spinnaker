@@ -15,17 +15,26 @@
  */
 
 package com.netflix.spinnaker.oort.model
-/**
- * A default, no-op implementation of an {@link OnDemandCacheUpdater}
- */
-class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
+
+class NoopClusterProvider implements ClusterProvider<Cluster> {
+
   @Override
-  boolean handles(String type) {
-    false
+  Map<String, Set<Cluster>> getClusters() {
+    Collections.emptyMap()
   }
 
   @Override
-  void handle(String type, Map<String, ? extends Object> data) {
+  Map<String, Set<Cluster>> getClusters(String application) {
+    Collections.emptyMap()
+  }
 
+  @Override
+  Set<Cluster> getClusters(String application, String account) {
+    Collections.emptySet()
+  }
+
+  @Override
+  Cluster getCluster(String application, String account, String name) {
+    null
   }
 }
