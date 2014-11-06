@@ -74,6 +74,9 @@ allprojects {
   }
 
   configurations.all {
+    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+    exclude group: "org.slf4j", module: "slf4j-simple"
     resolutionStrategy {
       force "com.netflix.rxjava:rxjava-core:$versions.rx"
     }

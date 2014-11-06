@@ -51,10 +51,10 @@ class UpsertAmazonLoadBalancerTask implements Task {
     ]
 
     if (upsertAmazonLoadBalancerOperation.clusterName) {
-      outputs."upsert.clusterName" = upsertAmazonLoadBalancerOperation.clusterName
+      outputs.clusterName = upsertAmazonLoadBalancerOperation.clusterName
     }
     if (upsertAmazonLoadBalancerOperation.name) {
-      outputs."upsert.name" = upsertAmazonLoadBalancerOperation.name
+      outputs.name = upsertAmazonLoadBalancerOperation.name
     }
 
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)

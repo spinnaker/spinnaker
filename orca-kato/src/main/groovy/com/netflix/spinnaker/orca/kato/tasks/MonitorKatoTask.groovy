@@ -56,7 +56,8 @@ class MonitorKatoTask implements RetryableTask {
       if (stage.context.containsKey("kato.tasks")) {
         katoTasks = stage.context."kato.tasks" as List<Map<String, Object>>
       }
-      Map<String, Object> m = [id: katoTask.id, status: katoTask.status, history: katoTask.history]
+      Map<String, Object> m = [id: katoTask.id, status: katoTask.status, history: katoTask.history,
+                               resultObjects: katoTask.resultObjects]
       if (katoTask.resultObjects.find { it.type == "EXCEPTION" }) {
         def exception = katoTask.resultObjects.find { it.type == "EXCEPTION" }
         m.exception = exception

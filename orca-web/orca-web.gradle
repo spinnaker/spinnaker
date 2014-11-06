@@ -26,12 +26,6 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 apply plugin: 'spring-boot'
 
-configurations.all {
-    exclude group: 'javax.servlet', module: 'servlet-api'
-    exclude group: "org.slf4j", module: "slf4j-log4j12"
-    exclude group: "org.slf4j", module: "slf4j-simple"
-}
-
 springBoot {
     mainClass = 'com.netflix.spinnaker.orca.Main'
 }
