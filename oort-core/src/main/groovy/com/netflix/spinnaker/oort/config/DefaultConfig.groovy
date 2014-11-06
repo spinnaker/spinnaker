@@ -30,11 +30,13 @@ import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 import java.util.concurrent.TimeUnit
 
 @Configuration
+@ComponentScan(basePackages = ['com.netflix.spinnaker.oort.model'])
 class DefaultConfig {
 
   @Bean

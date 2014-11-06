@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.data.aws
 
+import com.netflix.spinnaker.oort.aws.data.Keys
 import spock.lang.Specification
 import spock.lang.Unroll
 

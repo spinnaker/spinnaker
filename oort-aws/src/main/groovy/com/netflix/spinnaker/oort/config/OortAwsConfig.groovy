@@ -20,12 +20,19 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestTemplate
 
 @Configuration
+@ConditionalOnProperty('aws.enabled')
 class OortAwsConfig {
+
+  @Configuration
+  @ComponentScan('com.netflix.spinnaker.oort.aws')
+  static class ImportConfig {}
 
   @Bean
   AmazonClientProvider amazonClientProvider() {
