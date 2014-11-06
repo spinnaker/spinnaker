@@ -89,7 +89,7 @@ class SearchController {
 
     /**
      * (optional) a map of ad-hoc key-value pairs to further filter the keys,
-     * based on the map provided by {@link com.netflix.spinnaker.oort.data.aws.Keys#parse(java.lang.String)}
+     * based on the map provided by {@link com.netflix.spinnaker.oort.aws.data.Keys#parse(java.lang.String)}
      * potential matches must fully intersect the filter map entries
      */
     Map<String, String> filter

@@ -39,7 +39,7 @@ import javax.annotation.PreDestroy
 import javax.servlet.Filter
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.oort")
+@ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters"])
 @EnableAutoConfiguration
 @EnableScheduling
 @EnableAsync
@@ -53,9 +53,9 @@ class Main extends SpringBootServletInitializer {
     imposeSpinnakerClasspathConfig("oort-local.yml")
   }
 
-  static void main(_) {
+  static void main(String... args) {
     System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
-    SpringApplication.run this, [] as String
+    SpringApplication.run this, args
   }
 
   static void imposeSpinnakerFileConfig(String file) {

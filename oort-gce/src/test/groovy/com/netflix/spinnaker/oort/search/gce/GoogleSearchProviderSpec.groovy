@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.oort.search.gce
 
-import com.netflix.spinnaker.oort.model.gce.GoogleApplication
-import com.netflix.spinnaker.oort.model.gce.GoogleCluster
-import com.netflix.spinnaker.oort.model.gce.GoogleResourceRetriever
-import spock.lang.Shared
+import com.netflix.spinnaker.oort.gce.model.GoogleApplication
+import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
+import com.netflix.spinnaker.oort.gce.search.GoogleSearchProvider
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GoogleSearchProviderSpec extends Specification {
   private static final String ACCOUNT_NAME = "default"
