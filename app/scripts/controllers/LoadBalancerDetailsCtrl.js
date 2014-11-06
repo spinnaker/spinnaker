@@ -15,7 +15,7 @@ angular.module('deckApp')
         detailsLoader.then(function(details) {
           var securityGroups = [];
           var filtered = details.filter(function(test) {
-            return test.vpcid === loadBalancer.vpcId;
+            return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
           });
           if (filtered.length) {
             $scope.loadBalancer.elb = filtered[0];
