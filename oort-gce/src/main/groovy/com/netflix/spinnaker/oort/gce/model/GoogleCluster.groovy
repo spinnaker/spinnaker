@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.model.gce
+package com.netflix.spinnaker.oort.gce.model
 
-import com.netflix.spinnaker.oort.model.Application
+import com.netflix.spinnaker.oort.model.Cluster
+import com.netflix.spinnaker.oort.model.LoadBalancer
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
-@EqualsAndHashCode(includes = ["name"])
-class GoogleApplication implements Application, Serializable {
+@EqualsAndHashCode(includes = ["name", "accountName"])
+class GoogleCluster implements Cluster, Serializable {
   String name
-  Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())
-  Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
-  Map<String, Map<String, GoogleCluster>> clusters = Collections.synchronizedMap(new HashMap<String, Map<String, GoogleCluster>>())
+  // TODO(duftler): Once the UI can request a type other than 'aws', fix this.
+//  String type = "gce"
+  String type = "aws"
+  String accountName
+  Set<GoogleServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<GoogleServerGroup>())
+  Set<LoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<LoadBalancer>())
 }

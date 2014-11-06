@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.search.gce
+package com.netflix.spinnaker.oort.gce.search
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.oort.model.gce.GoogleResourceRetriever
+import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
 import groovy.text.SimpleTemplateEngine

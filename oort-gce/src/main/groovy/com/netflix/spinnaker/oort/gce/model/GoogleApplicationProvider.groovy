@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.model.gce
+package com.netflix.spinnaker.oort.gce.model
 
 import com.codahale.metrics.Timer
 import com.netflix.spinnaker.amos.AccountCredentialsProvider

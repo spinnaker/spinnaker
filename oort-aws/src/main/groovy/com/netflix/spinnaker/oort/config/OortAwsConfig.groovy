@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort.config
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -28,11 +27,8 @@ import org.springframework.web.client.RestTemplate
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
+@ComponentScan('com.netflix.spinnaker.oort.aws')
 class OortAwsConfig {
-
-  @Configuration
-  @ComponentScan('com.netflix.spinnaker.oort.aws')
-  static class ImportConfig {}
 
   @Bean
   AmazonClientProvider amazonClientProvider() {

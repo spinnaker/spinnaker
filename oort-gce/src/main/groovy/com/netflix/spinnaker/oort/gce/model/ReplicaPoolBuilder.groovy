@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.model.gce
+package com.netflix.spinnaker.oort.gce.model
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.services.replicapool.Replicapool
