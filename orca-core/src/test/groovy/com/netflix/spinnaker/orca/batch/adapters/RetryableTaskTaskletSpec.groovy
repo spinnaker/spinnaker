@@ -60,15 +60,44 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     def jobExecution = launchJob()
 
     then:
-    2 * task.execute(_) >>> [
+    3 * task.execute(_) >>> [
+      new DefaultTaskResult(RUNNING),
       new DefaultTaskResult(RUNNING),
       new DefaultTaskResult(SUCCEEDED)
     ]
 
     and:
-    1 * sleeper.sleep(backoffPeriod)
+    2 * sleeper.sleep(backoffPeriod)
 
     and:
     jobExecution.status == BatchStatus.COMPLETED
+  }
+
+  void "should not retry if task immediately succeeds"() {
+    given:
+    task.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+    when:
+    def jobExecution = launchJob()
+
+    then:
+    0 * sleeper._
+
+    and:
+    jobExecution.status == BatchStatus.COMPLETED
+  }
+
+  void "should not retry if an exception is thrown"() {
+    given:
+    task.execute(_) >> { throw new RuntimeException("o noes!") }
+
+    when:
+    def jobExecution = launchJob()
+
+    then:
+    0 * sleeper._
+
+    and:
+    jobExecution.status == BatchStatus.FAILED
   }
 }

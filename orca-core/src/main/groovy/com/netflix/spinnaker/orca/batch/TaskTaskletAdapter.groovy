@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.adapters.RetryableTaskTasklet
 import com.netflix.spinnaker.orca.batch.adapters.TaskTasklet
+import com.netflix.spinnaker.orca.batch.retry.PollingRetryPolicy
 import org.springframework.aop.framework.ProxyFactory
 import org.springframework.aop.target.SingletonTargetSource
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -46,11 +47,15 @@ class TaskTaskletAdapter {
     if (task instanceof RetryableTask) {
       def tasklet = new RetryableTaskTasklet(task)
       def proxyFactory = new ProxyFactory(Tasklet, new SingletonTargetSource(tasklet))
-      def backOffPolicy = new FixedBackOffPolicy(backOffPeriod: task.backoffPeriod)
-      if (sleeper) {
-        backOffPolicy.sleeper = sleeper
-      }
-      proxyFactory.addAdvice(stateless().backOffPolicy(backOffPolicy).build())
+      def backOffPolicy = new FixedBackOffPolicy(
+        backOffPeriod: task.backoffPeriod,
+        sleeper: sleeper
+      )
+      proxyFactory.addAdvice(
+        stateless().retryPolicy(new PollingRetryPolicy())
+                   .backOffPolicy(backOffPolicy)
+                   .build()
+      )
       return proxyFactory.proxy as Tasklet
     } else {
       return new TaskTasklet(task)

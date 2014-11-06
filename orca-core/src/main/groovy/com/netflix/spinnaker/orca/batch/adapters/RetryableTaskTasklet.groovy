@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.batch.retry.PollRequiresRetry
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
@@ -29,14 +30,10 @@ class RetryableTaskTasklet extends TaskTasklet {
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-      def status = super.execute(contribution, chunkContext)
-      if (status.continuable) {
-        // I hate having to do this but it's how Spring's retry template works and
-        // believe it or not that's the only way to delay between executions of a
-        // tasklet
-        throw new RuntimeException()
-      } else {
-        return status
-      }
+    def status = super.execute(contribution, chunkContext)
+    if (status.continuable) {
+      throw new PollRequiresRetry()
+    }
+    return status
   }
 }
