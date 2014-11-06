@@ -31,7 +31,7 @@ import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.oort.aws.data.Keys
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
-import static Keys.Namespace.*
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
