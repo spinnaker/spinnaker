@@ -2,7 +2,7 @@
      ng-class="{active: $state.includes('**.loadBalancer.**', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
   <div class="rollup-summary">
     <a class="rollup-title-cell"
-       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name})">
+       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})">
       <span class="icon icon-elb"></span> {{loadBalancer.name}}
       <account-tag account="loadBalancer.account" pad="left"></account-tag>
       <span ng-if="!displayOptions.showServerGroups">

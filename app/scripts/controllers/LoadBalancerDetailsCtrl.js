@@ -2,22 +2,32 @@
 
 
 angular.module('deckApp')
-  .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, notifications, loadBalancer, application, securityGroupService, $modal, _, confirmationModalService, orcaService) {
+  .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, notifications, loadBalancer, application,
+                                                   securityGroupService, $modal, _, confirmationModalService, orcaService, loadBalancerService) {
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
+        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && test.vpcId === loadBalancer.vpcId;
       })[0];
 
-      if ($scope.loadBalancer && $scope.loadBalancer.elb && $scope.loadBalancer.elb.securityGroups) {
-        var securityGroups = [];
-        $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
-          var match = securityGroupService.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
-          if (match) {
-            securityGroups.push(match);
+      if ($scope.loadBalancer) {
+        var detailsLoader = loadBalancerService.getLoadBalancerDetails('aws', loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+        detailsLoader.then(function(details) {
+          var securityGroups = [];
+          var filtered = details.filter(function(test) {
+            return test.vpcid === loadBalancer.vpcId;
+          });
+          if (filtered.length) {
+            $scope.loadBalancer.elb = filtered[0];
+            $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
+              var match = securityGroupService.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
+              if (match) {
+                securityGroups.push(match);
+              }
+            });
+            $scope.securityGroups = _.sortBy(securityGroups, 'name');
           }
         });
-        $scope.securityGroups = _.sortBy(securityGroups, 'name');
       }
       if (!$scope.loadBalancer) {
         notifications.create({

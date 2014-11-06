@@ -66,6 +66,10 @@ angular.module('deckApp')
       });
     }
 
+    function getLoadBalancerDetails(provider, account, region, name) {
+      return oortEndpoint.one(provider).one('loadBalancers').one(account).one(region).one(name).getList();
+    }
+
     function normalizeLoadBalancersWithServerGroups(application) {
       application.loadBalancers.forEach(function(loadBalancer) {
         var serverGroups = application.serverGroups.filter(function(serverGroup) {
@@ -156,7 +160,8 @@ angular.module('deckApp')
       normalizeLoadBalancersWithServerGroups: normalizeLoadBalancersWithServerGroups,
       serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
-      constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate
+      constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
+      getLoadBalancerDetails: getLoadBalancerDetails
     };
 
   });
