@@ -63,7 +63,7 @@ angular.module('deckApp')
 
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
-        url: '/loadBalancerDetails?name&accountId&region',
+        url: '/loadBalancerDetails?name&accountId&region&vpcId',
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/loadBalancer/loadBalancerDetails.html',
@@ -75,7 +75,8 @@ angular.module('deckApp')
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
-              region: $stateParams.region
+              region: $stateParams.region,
+              vpcId: $stateParams.vpcId
             };
           }]
         },
