@@ -62,6 +62,19 @@ class AmazonLoadBalancerController {
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
+  @RequestMapping(value = "/{account}/{region}/{name}", method = RequestMethod.GET)
+  List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+      def key = Keys.parse(it)
+      key.account == account && key.region == region && key.loadBalancer == name
+    }
+    def results = []
+
+    identifiers.each {
+      results << cacheView.get(LOAD_BALANCERS.ns, it).attributes
+    }
+    results
+  }
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
