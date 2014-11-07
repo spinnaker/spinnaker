@@ -182,7 +182,7 @@ gulp.task('jshint', function() {
 var prepareJs = function(src, out) {
   return src.pipe($.if(!release, $.sourcemaps.init({loadMaps: true})))
     .pipe($.concat(out))
-    .pipe($.if(!release, $.rev()))
+    .pipe($.rev())
     .pipe($.if(release, $.ngAnnotate()))
     .pipe($.if(release, $.uglify()))
     .pipe($.if(!release, $.sourcemaps.write('.')))
@@ -212,7 +212,7 @@ gulp.task('scripts:templates', ['clean:scripts:templates'], function() {
       base: app,
     }))
     .pipe($.concat('templates.js'))
-    .pipe($.if(!release, $.rev()))
+    .pipe($.rev())
     .pipe(gulp.dest([dist, scripts].join('/')));
 });
 
