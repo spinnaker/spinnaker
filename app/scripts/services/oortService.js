@@ -5,7 +5,7 @@ angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
+      RestangularConfigurer.setBaseUrl(settings.oortUrl);
     });
 
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
