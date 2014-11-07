@@ -13,7 +13,7 @@ angular.module('deckApp')
     });
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
+      RestangularConfigurer.setBaseUrl(settings.oortUrl);
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
