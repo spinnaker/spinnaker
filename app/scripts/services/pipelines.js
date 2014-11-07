@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('pipelines', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, pipelinesFixture, appendTransform) {
+  .factory('pipelines', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, appendTransform) {
     function getCurrentPipeline() {
       var deferred = $q.defer();
       getPipelines().then(function(pipelines) {
@@ -70,49 +70,6 @@ angular.module('deckApp')
         ].join('/'),
       }).then(function(resp) {
         deferred.resolve(resp.data);
-      });
-      return deferred.promise;
-    }
-
-    pipelinesFixture.forEach(function(pipeline) {
-      orchestratedItem.defineProperties(pipeline);
-    });
-
-    function getPipelinesFromFixture() {
-      if (false) {
-        getPipelines();
-      }
-      var deferred = $q.defer();
-      deferred.resolve(pipelinesFixture);
-      return deferred.promise;
-    }
-
-    function getCurrentStageFromFixture() {
-      if (false) {
-        getCurrentStage();
-      }
-      var deferred = $q.defer();
-      getCurrentPipelineFromFixture().then(function(pipeline) {
-        deferred.resolve(pipeline.stages.reduce(function(acc, stage) {
-          if (stage.name === $stateParams.stageName) {
-            acc = stage;
-          }
-          return acc;
-        }, {}));
-      });
-      return deferred.promise;
-    }
-    console.log(getCurrentStageFromFixture);
-
-    function getCurrentPipelineFromFixture() {
-      var deferred = $q.defer();
-      getPipelinesFromFixture().then(function(pipelines) {
-        deferred.resolve(pipelines.reduce(function(acc, pipeline) {
-          if (pipeline.id === $stateParams.executionId) {
-            acc = pipeline;
-          }
-          return acc;
-        }, {}));
       });
       return deferred.promise;
     }
