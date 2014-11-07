@@ -143,7 +143,6 @@ gulp.task('html', ['clean:html'], function() {
       [dist, scripts, 'vendor*.js'].join('/'),
       [dist, scripts, 'templates*.js'].join('/'),
       [dist, scripts, 'application*.js'].join('/'),
-      [dist, scripts, 'settings*.js'].join('/'),
     ], {read: false}), {ignorePath: dist}))
     .pipe(gulp.dest(dist));
 });
@@ -189,8 +188,8 @@ var prepareJs = function(src, out) {
     .pipe(gulp.dest([dist, scripts].join('/')));
 };
 gulp.task('scripts:settings', ['clean:scripts:settings'], function() {
-  return prepareJs(
-    gulp.src([app, 'scripts', 'settings', 'settings.js'].join('/')), 'settings.js');
+  return gulp.src([app, 'scripts', 'settings', 'settings.js'].join('/'))
+    .pipe(gulp.dest([dist, scripts].join('/')));
 });
 gulp.task('scripts:application', ['jshint', 'clean:scripts:application'], function() {
   return prepareJs(gulp.src([
