@@ -47,6 +47,7 @@
         <dt ng-repeat-start="metric in healthMetrics">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span> {{metric.state}}
+          <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">(Health Check)</a>
         </dd>
       </dl>
     </collapsible-section>
