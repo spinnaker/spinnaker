@@ -72,3 +72,56 @@
     }
   }
 }
+
+/**
+  This can all be deleted once https://github.com/spinnaker/deck/issues/35 is resolved
+*/
+.form-inline .all-clusters-filter {
+  width: 100%;
+  label {
+    width: 100%;
+  }
+  @media(min-width: 768px) {
+    width: auto;
+    .pull-right();
+    .form-control-feedback {
+      margin-top: 10px;
+    }
+    input {
+      margin-top: 10px;
+      width: 385px;
+    }
+  }
+  @media(min-width: 992px) {
+    .pull-right();
+    .form-control-feedback {
+      margin-top: 10px;
+    }
+    input {
+      margin-top: 10px;
+      width: 368px;
+    }
+  }
+  @media(min-width: 1200px) {
+    .pull-right();
+    .form-control-feedback {
+      margin-top: 0;
+    }
+    input {
+      margin-top: 0;
+      width: 155px;
+    }
+  }
+  @media(min-width: 1400px) {
+    .pull-right();
+    .form-control-feedback {
+      margin-top: 0;
+    }
+    input {
+      margin-top: 0;
+      width: 250px;
+    }
+  }
+}
+
+
