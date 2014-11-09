@@ -67,14 +67,14 @@ angular.module('deckApp')
 
     function activateScrollEvent() {
       if (!scrollEventActive) {
-        $$window.bind('scroll.triggeredEvents', fireEvents);
+        $$window.bind('scroll.triggeredEvents resize.triggeredEvents', fireEvents);
         scrollEventActive = true;
       }
     }
 
     function disableScrollEvent() {
       if (scrollEventActive) {
-        $$window.unbind('scroll.triggeredEvents');
+        $$window.unbind('scroll.triggeredEvents resize.triggeredEvents');
         scrollEventActive = false;
       }
     }
