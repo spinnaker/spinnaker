@@ -52,6 +52,45 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
   }
 
   @Override
+  Boolean isDisabled() {
+    def asg = getAsg()
+    if (asg) {
+      List<Map> suspendedProcesses = asg.suspendedProcesses
+      return suspendedProcesses.processName.containsAll(['AddToLoadBalancer', 'Launch', 'Terminate'])
+    }
+    return false
+  }
+
+  @Override
+  Long getCreatedTime() {
+    def asg = getAsg()
+    if (asg) {
+      return asg.createdTime
+    }
+    return null
+  }
+
+  @Override
+  Set<String> getLoadBalancers() {
+    def loadBalancerNames = []
+    def asg = getAsg()
+    if (asg && asg.containsKey("loadBalancerNames")) {
+      loadBalancerNames = asg.loadBalancerNames
+    }
+    return loadBalancerNames
+  }
+
+  @Override
+  Set<String> getSecurityGroups() {
+    def securityGroups = []
+    def launchConfig = getLaunchConfig()
+    if (launchConfig && launchConfig.containsKey("securityGroups")) {
+      securityGroups = launchConfig.securityGroups
+    }
+    securityGroups
+  }
+
+  @Override
   Set<String> getZones() {
     (Set<String>) getProperty("zones")
   }
@@ -59,5 +98,13 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
   @Override
   Set<Instance> getInstances() {
     (Set<Instance>) getProperty("instances")
+  }
+
+  private Map<String, Object> getAsg() {
+    (Map<String, Object>) getProperty("asg")
+  }
+
+  private Map<String, Object> getLaunchConfig() {
+    (Map<String, Object>) getProperty("launchConfig")
   }
 }

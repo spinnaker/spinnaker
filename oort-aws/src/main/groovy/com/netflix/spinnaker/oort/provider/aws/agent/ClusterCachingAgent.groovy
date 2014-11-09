@@ -219,6 +219,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       attributes.launchConfigName = data.asg.launchConfigurationName
       attributes.zones = data.asg.availabilityZones
       attributes.instances = data.asg.instances
+      attributes.vpcId = data.vpcId
 
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[CLUSTERS.ns].add(data.cluster)
@@ -257,6 +258,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     final String appName
     final String cluster
     final String serverGroup
+    final String vpcId
     final String launchConfig
     final Set<String> loadBalancerNames
     final Set<String> instanceIds
@@ -279,6 +281,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         }
         vpcId = vpcIds.first()
       }
+      this.vpcId = vpcId
       launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, account, region)
 
       loadBalancerNames = (asg.loadBalancerNames.collect { Keys.getLoadBalancerKey(it, account, region, vpcId) } as Set).asImmutable()

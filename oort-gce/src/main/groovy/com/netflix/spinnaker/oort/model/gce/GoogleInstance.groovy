@@ -34,6 +34,16 @@ class GoogleInstance extends HashMap implements Instance, Serializable {
   }
 
   @Override
+  Long getLaunchTime() {
+    getProperty "launchTime"
+  }
+
+  @Override
+  List<Map<String, String>> getHealth() {
+    getProperty "health"
+  }
+
+  @Override
   boolean equals(Object o) {
     if (o instanceof GoogleInstance)
     o.name.equals(name)

@@ -35,4 +35,19 @@ interface Instance {
    * @return true/false depending on healthy/unhealthy
    */
   boolean isHealthy()
+
+  /**
+   * A timestamp indicating when the instance was launched
+   *
+   * @return the number of milliseconds after the beginning of time (1 January, 1970 UTC) when
+   * this instance was launched
+   */
+  Long getLaunchTime()
+
+  /**
+   * A list of all health metrics reported for this instance. This will always
+   * include keys for type and status, and may include others, depending on the
+   * health metric
+   */
+  List<Map<String, String>> getHealth()
 }

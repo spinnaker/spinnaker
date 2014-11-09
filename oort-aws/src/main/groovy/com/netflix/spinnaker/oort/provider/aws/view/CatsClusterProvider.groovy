@@ -20,13 +20,8 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.data.aws.Keys
-import com.netflix.spinnaker.oort.model.Application
-import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.model.LoadBalancer
-import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.spinnaker.oort.model.aws.AmazonCluster
 import com.netflix.spinnaker.oort.model.aws.AmazonLoadBalancer
 import com.netflix.spinnaker.oort.model.aws.AmazonServerGroup
@@ -34,8 +29,6 @@ import com.netflix.spinnaker.oort.model.aws.AwsInstanceHealth
 import com.netflix.spinnaker.oort.provider.aws.AwsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import java.util.regex.Pattern
 
 import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.oort.data.aws.Keys.Namespace.CLUSTERS
@@ -59,7 +52,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   @Override
   Map<String, Set<AmazonCluster>> getClusters() {
     Collection<CacheData> clusterData = cacheView.getAll(CLUSTERS.ns)
-    Collection<AmazonCluster> clusters = clusterData.findResults this.&translate
+    Collection<AmazonCluster> clusters = clusterData.findResults this.&translateCluster
     mapResponse(clusters)
   }
 
@@ -70,7 +63,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       return [:]
     }
 
-    Collection<AmazonCluster> clusters = resolveRelationshipData(application, CLUSTERS.ns).findResults this.&translate
+    Collection<AmazonCluster> clusters = resolveRelationshipData(application, CLUSTERS.ns).findResults this.&translateCluster
     mapResponse(clusters)
   }
 
@@ -78,7 +71,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
   }
 
-  AmazonCluster translate(CacheData clusterData) {
+  AmazonCluster translateCluster(CacheData clusterData) {
     Map<String, String> clusterKey = Keys.parse(clusterData.id)
 
     def cluster = new AmazonCluster()
@@ -110,7 +103,10 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     sg.instances = resolveRelationshipData(serverGroupData, INSTANCES.ns).collect { CacheData instance ->
       Map<String, String> instanceKey = Keys.parse(instance.id)
       HealthState amazonState = instance.attributes.state?.code == 16 ? HealthState.Unknown : HealthState.Down
-      Collection<Map<String, Object>> healths = [new AwsInstanceHealth(type: 'Amazon', instanceId: instanceKey.instanceId, state: amazonState.toString())]
+      Collection<Map<String, Object>> healths = []
+      Map awsInstanceHealth = new AwsInstanceHealth(type: 'Amazon', instanceId: instanceKey.instanceId, state: amazonState.toString()).properties
+      awsInstanceHealth.remove('class')
+      healths << awsInstanceHealth
 
       Collection<String> healthKeys = AwsProvider.HEALTH_PROVIDERS.collect { Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it) }
       healths.addAll(cacheView.getAll(HEALTH.ns, healthKeys)*.attributes)
@@ -172,7 +168,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     if (application == null) {
       return [] as Set
     }
-    resolveRelationshipData(application, CLUSTERS.ns) { Keys.parse(it).account == account }.findResults(this.&translate).findAll { } as Set<AmazonCluster>
+    resolveRelationshipData(application, CLUSTERS.ns) { Keys.parse(it).account == account }.findResults(this.&translateCluster).findAll { } as Set<AmazonCluster>
   }
 
   @Override
@@ -181,7 +177,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     if (cluster == null) {
       null
     } else {
-      translate(cluster)
+      translateCluster(cluster)
     }
   }
 }
