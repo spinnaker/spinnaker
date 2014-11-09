@@ -19,7 +19,8 @@
     "rxjs": "~2.3.12"
   },
   "devDependencies": {
-    "angular-mocks": "~1.2.26"
+    "angular-mocks": "~1.2.26",
+    "octicons": "~2.1.2"
   },
   "overrides": {
     "rxjs": {
