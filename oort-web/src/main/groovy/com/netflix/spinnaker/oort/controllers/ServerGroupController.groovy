@@ -35,7 +35,7 @@ class ServerGroupController {
 
   @RequestMapping(value="/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
-    clusterProviders.collect {
+    clusterProviders.findResults {
       it.getServerGroup(account, region, name)
     }?.first()
   }
@@ -44,9 +44,9 @@ class ServerGroupController {
   List<ServerGroupViewModel> list(@PathVariable String application) {
     List<ServerGroupViewModel> serverGroupViews = []
 
-    def clusters = (Set<Cluster>) clusterProviders.collectMany {
+    def clusters = (Set<Cluster>) clusterProviders.findResults {
       it.getClusters(application, true).values()
-    }.flatten()
+    }.flatten() - null
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->
         serverGroupViews << new ServerGroupViewModel(serverGroup, cluster)

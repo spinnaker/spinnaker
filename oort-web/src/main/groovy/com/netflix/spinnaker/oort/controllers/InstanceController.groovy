@@ -41,9 +41,9 @@ class InstanceController {
 
   @RequestMapping(value = "/{account}/{region}/{id}", method = RequestMethod.GET)
   Instance getInstance(@PathVariable String account, @PathVariable String region, @PathVariable String id) {
-    Collection<Instance> instanceMatches = instanceProviders.collect {
+    Collection<Instance> instanceMatches = instanceProviders.findResults {
       it.getInstance(account, region, id)
-    } - null
+    }
     if (!instanceMatches) {
       throw new InstanceNotFoundException(name: id)
     }

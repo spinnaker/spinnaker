@@ -81,9 +81,9 @@ class AmazonLoadBalancerController {
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys)
+    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collectEntries { [(it.id): it] }
     for (lb in loadBalancerKeys) {
-      CacheData loadBalancerFromCache = loadBalancers.find { it.id == lb }
+      CacheData loadBalancerFromCache = loadBalancers[lb]
       if (loadBalancerFromCache) {
         def parts = Keys.parse(lb)
         String name = parts.loadBalancer
