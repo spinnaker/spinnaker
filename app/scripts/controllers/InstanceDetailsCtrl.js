@@ -2,7 +2,8 @@
 
 
 angular.module('deckApp')
-  .controller('InstanceDetailsCtrl', function ($scope, $state, notifications, instance, application, orcaService, confirmationModalService) {
+  .controller('InstanceDetailsCtrl', function ($scope, $state, notifications, instance, application,
+                                               orcaService, oortService, confirmationModalService) {
 
     function extractHealthMetrics(instance) {
       if (!instance.health) {
@@ -16,20 +17,30 @@ angular.module('deckApp')
       $scope.healthMetrics = displayableMetrics;
     }
 
-    function extractInstance() {
+    function retrieveInstance() {
+      var instanceSummary, account, region;
       application.clusters.some(function (cluster) {
         return cluster.serverGroups.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
-            if (possibleInstance.instanceId === instance.instanceId) {
-              $scope.instance = possibleInstance;
-              extractHealthMetrics(possibleInstance);
-              $scope.baseIpAddress = possibleInstance.publicDnsName || possibleInstance.privateIpAddress;
+            if (possibleInstance.id === instance.instanceId) {
+              instanceSummary = possibleInstance;
+              account = serverGroup.account;
+              region = serverGroup.region;
               return true;
             }
           });
         });
       });
-      if (!$scope.instance) {
+
+      if (instanceSummary && account && region) {
+        oortService.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+          $scope.instance = angular.extend(details.plain(), instanceSummary);
+          extractHealthMetrics($scope.instance);
+          $scope.instance.account = account;
+          $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
+        });
+      }
+      if (!instanceSummary) {
         notifications.create({
           message: 'Could not find instance "' + instance.instanceId,
           autoDismiss: true,
@@ -72,9 +83,9 @@ angular.module('deckApp')
       });
     };
 
-    extractInstance();
+    retrieveInstance();
 
-    application.registerAutoRefreshHandler(extractInstance, $scope);
+    application.registerAutoRefreshHandler(retrieveInstance, $scope);
 
     $scope.account = instance.account;
 

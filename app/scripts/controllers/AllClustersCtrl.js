@@ -81,7 +81,7 @@ angular.module('deckApp')
       return serverGroups
         .filter(checkAgainstActiveFilters)
         .reduce(function(total, serverGroup) {
-          return serverGroup.asg.instances.length + total;
+          return serverGroup.instances.length + total;
         }, totalInstancesDisplayed);
     }
 

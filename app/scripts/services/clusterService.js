@@ -2,57 +2,24 @@
 
 
 angular.module('deckApp')
-  .factory('clusterService', function (settings, $q, Restangular, _, $exceptionHandler) {
+  .factory('clusterService', function (settings, $q, Restangular) {
 
     var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
     });
 
-    function getApplicationEndpoint(application) {
-      return oortEndpoint.one('applications', application);
-    }
-
-    function getClustersForAccountEndpoint(application, account) {
-      return getApplicationEndpoint(application).all('clusters').all(account);
-    }
-
-    function loadClusters(application) {
-      var clusterPromises = [];
-
-      application.accounts.forEach(function (account) {
-        var accountClusters = application.clusters[account] || [];
-        accountClusters.forEach(function (cluster) {
-          var clusterPromise = getCluster(application, account, cluster.name);
-          clusterPromises.push(clusterPromise);
+    function loadServerGroups(applicationName) {
+      return oortEndpoint.one('applications', applicationName).one('serverGroups').getList()
+        .then(function (serverGroups) {
+          serverGroups.forEach(addHealthyCountsToServerGroup);
+          return serverGroups;
         });
-      });
-
-      return $q.all(clusterPromises);
     }
 
-    function getCluster(application, account, clusterName) {
-      return getClustersForAccountEndpoint(application.name, account).one(clusterName, 'aws').get().then(function(cluster) {
-        if (!cluster.name) {
-          $exceptionHandler(cluster, 'no cluster found'); // TODO: remove when https://github.com/spinnaker/oort/issues/35 resolved
-          return {
-            account: account,
-            serverGroups: []
-          };
-        }
-        cluster.serverGroups.forEach(function(serverGroup) {
-          normalizeServerGroup(serverGroup, account, clusterName);
-        });
-        cluster.account = account;
-        addHealthCountsToCluster(cluster);
-        return cluster;
-      },
-      function(error) {
-        $exceptionHandler(error, 'error retrieving cluster');
-        return {
-          account: account,
-          serverGroups: []
-        };
-      });
+    function addHealthyCountsToServerGroup(serverGroup) {
+      serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
+      serverGroup.downCount = _.filter(serverGroup.instances, {isHealthy: false}).length;
+      serverGroup.unknownCount = 0;
     }
 
     function addHealthCountsToCluster(cluster) {
@@ -72,35 +39,18 @@ angular.module('deckApp')
       });
     }
 
-    function addInstancesOnlyFoundInAsg(serverGroup) {
-      var foundIds = serverGroup.instances.map(function (instance) {
-        return instance.instanceId;
-      });
-      var rejected = serverGroup.asg.instances.filter(function (asgInstance) {
-        return foundIds.indexOf(asgInstance.instanceId) === -1;
-      });
-      rejected.forEach(function(rejected) {
-        rejected.serverGroup = serverGroup.name;
-      });
-      serverGroup.instances = serverGroup.instances.concat(rejected);
-    }
-
-    function addHealthyCountsToServerGroup(serverGroup) {
-      serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
-      serverGroup.downCount = _.filter(serverGroup.instances, {isHealthy: false}).length;
-      serverGroup.unknownCount = 0;
-    }
-
-    function normalizeInstances(serverGroup) {
-      if (serverGroup.instances && serverGroup.instances.length) {
-        serverGroup.instances.forEach(function (instance) {
-          var asgInstance = serverGroup.asg.instances.filter(function (asgInstance) {
-            return asgInstance.instanceId === instance.instanceId;
-          })[0];
-          instance.region = serverGroup.region;
-          angular.extend(instance, asgInstance);
+    function collateServerGroupsIntoClusters(serverGroups) {
+      var clusters = [];
+      var groupedByAccount = _.groupBy(serverGroups, 'account');
+      _.forOwn(groupedByAccount, function(accountServerGroups, account) {
+        var groupedByCluster = _.groupBy(accountServerGroups, 'cluster');
+        _.forOwn(groupedByCluster, function(clusterServerGroups, clusterName) {
+          var cluster = {account: account, name: clusterName, serverGroups: clusterServerGroups};
+          addHealthCountsToCluster(cluster);
+          clusters.push(cluster);
         });
-      }
+      });
+      return clusters;
     }
 
     function updateLoadBalancers(application) {
@@ -115,27 +65,9 @@ angular.module('deckApp')
       updateLoadBalancers(application);
     }
 
-    function normalizeServerGroup(serverGroup, accountName, clusterName) {
-      var suspendedProcesses = _.collect(serverGroup.asg.suspendedProcesses, 'processName'),
-        disabledProcessFlags = ['AddToLoadBalancer', 'Launch', 'Terminate'];
-
-      serverGroup.instances = serverGroup.instances.map(function(instance) {
-        var toReturn = instance.instance;
-        toReturn.account = accountName;
-        toReturn.health = instance.health;
-        toReturn.isHealthy = instance.isHealthy;
-        return toReturn;
-      });
-      serverGroup.account = accountName;
-      serverGroup.cluster = clusterName;
-      serverGroup.isDisabled = _.intersection(disabledProcessFlags, suspendedProcesses).length === disabledProcessFlags.length;
-      normalizeInstances(serverGroup);
-      addInstancesOnlyFoundInAsg(serverGroup);
-      addHealthyCountsToServerGroup(serverGroup);
-    }
-
     return {
-      loadClusters: loadClusters,
+      loadServerGroups: loadServerGroups,
+      createServerGroupClusters: collateServerGroupsIntoClusters,
       normalizeServerGroupsWithLoadBalancers: normalizeServerGroupsWithLoadBalancers
     };
 

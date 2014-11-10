@@ -14,8 +14,8 @@
   </div>
   <div class="rollup-details">
     <div class="build-title">
-      <span ng-if="serverGroup.asg.createdTime">
-        Created: {{serverGroup.asg.createdTime | date : 'MM/dd/yy @ HH:mm'}},
+      <span ng-if="serverGroup.createdTime">
+        Created: {{serverGroup.createdTime | date : 'MM/dd/yy @ HH:mm'}},
       </span>
       <a ng-if="serverGroup.buildInfo.jenkins.host"
          href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
