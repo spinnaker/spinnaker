@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.controllers.aws
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.data.aws.Keys
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -80,24 +81,28 @@ class AmazonLoadBalancerController {
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
+    Collection<CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys)
     for (lb in loadBalancerKeys) {
-      def parts = Keys.parse(lb)
-      String name = parts.loadBalancer
-      String region = parts.region
-      String account = parts.account
-      def summary = map.get(name)
-      if (!summary) {
-        summary = new AmazonLoadBalancerSummary(name: name)
-        map.put name, summary
+      CacheData loadBalancerFromCache = loadBalancers.find { it.id == lb }
+      if (loadBalancerFromCache) {
+        def parts = Keys.parse(lb)
+        String name = parts.loadBalancer
+        String region = parts.region
+        String account = parts.account
+        def summary = map.get(name)
+        if (!summary) {
+          summary = new AmazonLoadBalancerSummary(name: name)
+          map.put name, summary
+        }
+        def loadBalancer = new AmazonLoadBalancerDetail()
+        loadBalancer.account = parts.account
+        loadBalancer.region = parts.region
+        loadBalancer.name = parts.loadBalancer
+        loadBalancer.vpcId = parts.vpcId
+        loadBalancer.securityGroups = loadBalancerFromCache.attributes.securityGroups
+
+        summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
       }
-      def loadBalancer = new AmazonLoadBalancerDetail()
-      loadBalancer.account = parts.account
-      loadBalancer.region = parts.region
-      loadBalancer.name = parts.loadBalancer
-      loadBalancer.vpcId = parts.vpcId
-
-
-      summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
     }
     map
   }
@@ -149,5 +154,6 @@ class AmazonLoadBalancerController {
     String name
     String vpcId
     String type = 'aws'
+    List<String> securityGroups = []
   }
 }
