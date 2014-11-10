@@ -41,9 +41,13 @@ interface ClusterProvider<T extends Cluster> {
    *
    * @param application
    * @return set of clusters or an empty set if none exist
+   *
+   * @param includeDetails if true, the following collections of objects will be populated; otherwise, only the names of those objects will be populated:
+   *   * loadBalancers
+   *   * serverGroups
    */
   @Empty
-  Map<String, Set<T>> getClusters(String application)
+  Map<String, Set<T>> getClusters(String application, boolean includeDetails)
 
   /**
    * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.amos.AccountCredentials} registered with
@@ -51,7 +55,7 @@ interface ClusterProvider<T extends Cluster> {
    *
    * @param application
    * @param account name
-   * @return set of clusters or an empty set if none exist
+   * @return set of clusters with load balancers and server groups populated, or an empty set if none exist
    */
   @Empty
   Set<T> getClusters(String application, String account)
@@ -61,8 +65,18 @@ interface ClusterProvider<T extends Cluster> {
    *
    * @param account
    * @param name
-   * @return cluster or null if none exists
+   * @return cluster with load balancers and server groups populated, or null if none exists
    */
   @Nullable
   T getCluster(String application, String account, String name)
+
+  /**
+   * Looks up a server group known to this provider, within a specified {@link com.netflix.spinnaker.amos.AccountCredentials} and region, and with the specified name.
+   * @param account name
+   * @param region
+   * @param name
+   * @return the server group or null if none exists
+   */
+  @Nullable
+  ServerGroup getServerGroup(String account, String region, String name)
 }

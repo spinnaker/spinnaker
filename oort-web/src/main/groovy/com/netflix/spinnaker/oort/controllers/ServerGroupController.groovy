@@ -20,7 +20,6 @@ import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
-import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -34,12 +33,19 @@ class ServerGroupController {
   @Autowired
   List<ClusterProvider> clusterProviders
 
+  @RequestMapping(value="/{account}/{region}/{name:.+}", method = RequestMethod.GET)
+  ServerGroup getServerGroup(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+    clusterProviders.collect {
+      it.getServerGroup(account, region, name)
+    }?.first()
+  }
+
   @RequestMapping(method = RequestMethod.GET)
   List<ServerGroupViewModel> list(@PathVariable String application) {
     List<ServerGroupViewModel> serverGroupViews = []
 
     def clusters = (Set<Cluster>) clusterProviders.collectMany {
-      it.getClusters(application).values()
+      it.getClusters(application, true).values()
     }.flatten()
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->
@@ -50,7 +56,6 @@ class ServerGroupController {
     serverGroupViews
   }
 
-  @Canonical
   static class ServerGroupViewModel {
     String name
     String account
@@ -65,39 +70,47 @@ class ServerGroupController {
     Set<String> securityGroups
 
     ServerGroupViewModel(ServerGroup serverGroup, Cluster cluster) {
-      this.name = serverGroup.name
-      this.account = cluster.accountName
-      this.region = serverGroup.region
       this.cluster = cluster.name
-      this.buildInfo = serverGroup.buildInfo
-      this.createdTime = serverGroup.getCreatedTime()
-      this.isDisabled = serverGroup.isDisabled()
-      this.vpcId = serverGroup.vpcId
-      this.instances = serverGroup.getInstances().collect { instance ->
-        new InstanceViewModel(
-          instance.name,
-          instance.health.collect { health ->
-            Map healthMetric = [type: health.type, state: health.state.toString()]
-            if (health.containsKey('status')) {
-              healthMetric.status = health.status
-            }
-            healthMetric
-          },
-          instance.isHealthy,
-          instance.instance.launchTime
-        )
+      name = serverGroup.name
+      account = cluster.accountName
+      region = serverGroup.region
+      createdTime = serverGroup.getCreatedTime()
+      isDisabled = serverGroup.isDisabled()
+      instances = serverGroup.getInstances().collect { new InstanceViewModel(it) }
+      securityGroups = serverGroup.getSecurityGroups()
+      loadBalancers = serverGroup.getLoadBalancers()
+      if (serverGroup.hasProperty("buildInfo")) {
+        buildInfo = serverGroup.buildInfo
       }
-      this.securityGroups = serverGroup.getSecurityGroups()
-      this.loadBalancers = serverGroup.getLoadBalancers()
+      if (serverGroup.hasProperty("vpcId")) {
+        vpcId = serverGroup.vpcId
+      }
     }
   }
 
-  @Canonical
   static class InstanceViewModel {
     String id
     List<Map<String, Object>> health
     Boolean isHealthy
     Long launchTime
+    String availabilityZone
+
+    InstanceViewModel(Instance instance) {
+      id = instance.name
+      isHealthy = instance.isHealthy()
+      launchTime = instance.launchTime
+      availabilityZone = instance.zone
+      health = instance.health.collect { health ->
+        Map healthMetric = [type: health.type]
+        if (health.containsKey("state")) {
+          healthMetric.state = health.state.toString()
+        }
+        if (health.containsKey("status")) {
+          healthMetric.status = health.status
+        }
+        healthMetric
+      }
+    }
   }
 
 }

@@ -39,6 +39,11 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   }
 
   @Override
+  String getZone() {
+    getProperty "zone"
+  }
+
+  @Override
   List<Map<String, String>> getHealth() {
     getProperty "health"
   }

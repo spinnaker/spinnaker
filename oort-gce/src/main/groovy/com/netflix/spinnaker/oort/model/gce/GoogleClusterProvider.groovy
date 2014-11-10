@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.model.gce
 
 import com.codahale.metrics.Timer
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 
 import com.netflix.spinnaker.oort.model.*
@@ -67,7 +68,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   }
 
   @Override
-  Map<String, Set<GoogleCluster>> getClusters(String application) {
+  Map<String, Set<GoogleCluster>> getClusters(String application, boolean includeDetails) {
     clustersByApplication.time {
       def googleApplication = (googleResourceRetriever.getApplicationsMap())[application]
       def clusterMap = new HashMap<String, Set<GoogleCluster>>()
@@ -81,7 +82,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   @Override
   Set<GoogleCluster> getClusters(String application, String accountName) {
     clustersByApplicationAndAccount.time {
-      def clusters = getClusters(application)
+      def clusters = getClusters(application, true)
 
       clusters[accountName]
     }
@@ -90,7 +91,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   @Override
   GoogleCluster getCluster(String application, String account, String name) {
     clustersById.time {
-      def clusters = getClusters(application)
+      def clusters = getClusters(application, true)
       def cluster
 
       if (clusters && clusters[account]) {
@@ -99,6 +100,17 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
 
       cluster
     }
+  }
+
+  @Override
+  GoogleServerGroup getServerGroup(String account, String region, String name) {
+    GoogleServerGroup serverGroup = null
+    Names nameParts = Names.parseName(name)
+    GoogleCluster cluster = getCluster(nameParts.app, account, region)
+    if (cluster) {
+      serverGroup = cluster.serverGroups.find { it.name == name }
+    }
+    serverGroup
   }
 
   private void populateClusterMapFromApplication(GoogleApplication googleApplication, HashMap<String, Set<GoogleCluster>> clusterMap) {

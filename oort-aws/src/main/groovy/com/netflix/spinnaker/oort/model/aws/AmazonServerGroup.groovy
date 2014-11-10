@@ -100,11 +100,21 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
     (Set<Instance>) getProperty("instances")
   }
 
+  @Override
+  Map<String, Object> getLaunchConfig() {
+    (Map<String, Object>) getProperty("launchConfig")
+  }
+
+  Map getBuildInfo() {
+    (Map) getProperty("buildInfo")
+  }
+
+  String getVpcId() {
+    (String) getProperty("vpcId")
+  }
+
   private Map<String, Object> getAsg() {
     (Map<String, Object>) getProperty("asg")
   }
 
-  private Map<String, Object> getLaunchConfig() {
-    (Map<String, Object>) getProperty("launchConfig")
-  }
 }

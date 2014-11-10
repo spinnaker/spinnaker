@@ -58,7 +58,7 @@ class DefaultConfig {
   @Bean
   @ConditionalOnMissingBean(AgentScheduler)
   AgentScheduler agentScheduler() {
-    new DefaultAgentScheduler(600000, TimeUnit.SECONDS)
+    new DefaultAgentScheduler(60, TimeUnit.SECONDS)
   }
 
   @Bean

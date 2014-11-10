@@ -39,6 +39,11 @@ class GoogleInstance extends HashMap implements Instance, Serializable {
   }
 
   @Override
+  String getZone() {
+    getProperty "availabilityZone"
+  }
+
+  @Override
   List<Map<String, String>> getHealth() {
     getProperty "health"
   }

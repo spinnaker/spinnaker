@@ -45,9 +45,17 @@ interface Instance {
   Long getLaunchTime()
 
   /**
-   * A list of all health metrics reported for this instance. This will always
-   * include keys for type and status, and may include others, depending on the
-   * health metric
+   * A zone specifier indicating where the instance resides
+   *
+   * @return the availability zone
+   */
+  String getZone()
+
+  /**
+   * A list of all health metrics reported for this instance
+   *
+   * @return A list of health metrics, which will always include keys for type and status,
+   * and may include others, depending on the health metric
    */
   List<Map<String, String>> getHealth()
 }

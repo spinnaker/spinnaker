@@ -61,6 +61,11 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
   }
 
   @Override
+  Map<String, Object> getLaunchConfig() {
+    (Map<String, Object>) getProperty("launchConfig")
+  }
+
+  @Override
   Boolean isDisabled() {
     false // TODO fill in
   }

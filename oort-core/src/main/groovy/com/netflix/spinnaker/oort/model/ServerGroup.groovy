@@ -92,4 +92,12 @@ interface ServerGroup {
   @Empty
   Set<String> getSecurityGroups()
 
+  /**
+   * A collection of attributes describing the launch configuration of this server group
+   *
+   * @return a map containing various attributes of the launch configuration
+   */
+  @Empty
+  Map<String, Object> getLaunchConfig()
+
 }
