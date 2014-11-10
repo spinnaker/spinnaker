@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.handlers
 
+import com.google.api.services.compute.model.InstanceProperties
+import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.Pool
-import com.google.api.services.replicapool.model.Template
-import com.google.api.services.replicapool.model.VmParams
-import com.netflix.frigga.Names
+import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.NameValidation
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
-import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.deploy.gce.GCEUtil
+import com.netflix.spinnaker.kato.deploy.gce.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import org.springframework.stereotype.Component
@@ -41,6 +41,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   // TODO(duftler): These should be exposed/configurable.
   private static final long diskSizeGb = 100
+  private static final String diskType = "PERSISTENT";
   private static final String networkName = "default"
   private static final String accessConfigName = "External NAT"
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
@@ -88,27 +89,33 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
+    def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
+
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
-    def newDisk = GCEUtil.buildNewDisk(sourceImage, diskSizeGb)
+    def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, diskSizeGb, diskType)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(networkName, accessConfigName, accessConfigType)
+    def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
-    def vmParams = new VmParams(machineType: description.instanceType,
-                                disksToCreate: [newDisk],
-                                networkInterfaces: [networkInterface])
+    def instanceProperties = new InstanceProperties(machineType: description.instanceType,
+                                                    disks: [attachedDisk],
+                                                    networkInterfaces: [networkInterface])
 
-    def template = new Template(vmParams: vmParams)
+    def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
+                                                properties: instanceProperties)
+    def instanceTemplateUrl = compute.instanceTemplates().insert(project, instanceTemplate).execute().targetLink
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
+    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
 
-    replicapool.pools().insert(project,
-                               description.zone,
-                               new Pool(name: serverGroupName,
-                                        initialNumReplicas: description.initialNumReplicas,
-                                        template: template)).execute()
+    replicapool.instanceGroupManagers().insert(project,
+                                               zone,
+                                               description.initialNumReplicas,
+                                               new InstanceGroupManager()
+                                                       .setName(serverGroupName)
+                                                       .setBaseInstanceName(serverGroupName)
+                                                       .setInstanceTemplate(instanceTemplateUrl)).execute()
 
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
@@ -122,9 +129,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                              GoogleCredentials credentials,
                              ReplicaPoolBuilder replicaPoolBuilder) {
     def maxSeqNumber = -1
+    def managedInstanceGroups = GCEUtil.queryManagedInstanceGroups(project,
+                                                                   zone,
+                                                                   credentials,
+                                                                   replicaPoolBuilder,
+                                                                   APPLICATION_NAME)
 
-    for (def replicaPool : GCEUtil.queryReplicaPools(project, zone, credentials, replicaPoolBuilder, APPLICATION_NAME)) {
-      def names = Names.parseName(replicaPool.getName())
+    for (def managedInstanceGroup : managedInstanceGroups) {
+      def names = Names.parseName(managedInstanceGroup.getName())
 
       if (names.cluster == clusterName) {
         maxSeqNumber = Math.max(maxSeqNumber, names.sequence)

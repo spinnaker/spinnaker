@@ -17,20 +17,15 @@
 package com.netflix.spinnaker.kato.deploy.gce
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.AttachedDisk
-import com.google.api.services.compute.model.AttachedDiskInitializeParams
-import com.google.api.services.compute.model.Image
-import com.google.api.services.compute.model.MachineType
-import com.google.api.services.compute.model.Network
+import com.google.api.services.compute.model.*
 import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.NewDisk
-import com.google.api.services.replicapool.model.NewDiskInitializeParams
-import com.google.api.services.replicapool.model.Pool
+import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class GCEUtil {
+  // TODO(duftler): Add support for ubuntu image project.
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
                                                  "opensuse-cloud", "rhel-cloud", "suse-cloud"]
@@ -80,15 +75,15 @@ class GCEUtil {
     }
   }
 
-  static List<Pool> queryReplicaPools(String projectName,
-                                      String zone,
-                                      GoogleCredentials credentials,
-                                      ReplicaPoolBuilder replicaPoolBuilder,
-                                      String applicationName) {
-    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
+  static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
+                                                               String zone,
+                                                               GoogleCredentials credentials,
+                                                               ReplicaPoolBuilder replicaPoolBuilder,
+                                                               String applicationName) {
+    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
 
-    replicapool.pools().list(projectName, zone).execute().getResources()
+    replicapool.instanceGroupManagers().list(projectName, zone).execute().getItems()
   }
 
   static String getRegionFromZone(String projectName, String zone, Compute compute) {
@@ -99,35 +94,17 @@ class GCEUtil {
     regionParts[regionParts.length - 1]
   }
 
-  static AttachedDisk buildAttachedDisk(Image sourceImage, String diskType) {
-    def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink)
+  static AttachedDisk buildAttachedDisk(Image sourceImage, long diskSizeGb, String diskType) {
+    def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
+                                                                        diskSizeGb: diskSizeGb,)
 
-    return new AttachedDisk(boot: true, autoDelete: true, type: "PERSISTENT", initializeParams: attachedDiskInitializeParams)
+    return new AttachedDisk(boot: true, autoDelete: true, type: diskType, initializeParams: attachedDiskInitializeParams)
   }
 
-  static NewDisk buildNewDisk(Image sourceImage, long diskSizeGb) {
-    def newDiskInitializeParams = new NewDiskInitializeParams(sourceImage: sourceImage.selfLink, diskSizeGb: diskSizeGb)
+  static NetworkInterface buildNetworkInterface(Network network, String accessConfigName, String accessConfigType) {
+    def accessConfig = new AccessConfig(name: accessConfigName, type: accessConfigType)
 
-    return new NewDisk(boot: true, initializeParams: newDiskInitializeParams)
-  }
-
-  // There are 2 distinct types named NetworkInterface since the Replica Pool logic is in limited preview.
-  // TODO(duftler): Reconcile these methods once com.google.apis:google-api-services-compute includes everything.
-  static com.google.api.services.compute.model.NetworkInterface buildNetworkInterface(Network network,
-                                                                                      String accessConfigType) {
-    def accessConfig = new com.google.api.services.compute.model.AccessConfig(type: accessConfigType)
-
-    return new com.google.api.services.compute.model.NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
-  }
-
-  // There are 2 distinct types named NetworkInterface since the Replica Pool logic is in limited preview.
-  // TODO(duftler): Reconcile these methods once com.google.apis:google-api-services-compute includes everything.
-  static com.google.api.services.replicapool.model.NetworkInterface buildNetworkInterface(String networkName,
-                                                                                          String accessConfigName,
-                                                                                          String accessConfigType) {
-    def accessConfig = new com.google.api.services.replicapool.model.AccessConfig(name: accessConfigName, type: accessConfigType)
-
-    return new com.google.api.services.replicapool.model.NetworkInterface(network: networkName, accessConfigs: [accessConfig])
+    return new NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
   }
 
   private static void updateStatusAndThrowException(String errorMsg, Task task, String phase) {

@@ -28,6 +28,13 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
 
+  // TODO(duftler): These should be exposed/configurable.
+  private static final long diskSizeGb = 100
+  private static final String diskType = "PERSISTENT";
+  private static final String networkName = "default"
+  private static final String accessConfigName = "External NAT"
+  private static final String accessConfigType = "ONE_TO_ONE_NAT"
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -64,9 +71,9 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def network = GCEUtil.queryNetwork(project, "default", compute, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Composing instance..."
-    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, "PERSISTENT")
+    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, diskSizeGb, diskType)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, "ONE_TO_ONE_NAT")
+    def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
     def clusterName = "${description.application}-${description.stack}"
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
@@ -75,7 +82,10 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def instanceName = "${clusterName}-v${nextSequence}-instance1".toString()
     task.updateStatus BASE_PHASE, "Produced instance name: $instanceName"
 
-    def instance = new Instance(name: instanceName, machineType: machineType.getSelfLink(), disks: [rootDrive], networkInterfaces: [networkInterface])
+    def instance = new Instance(name: instanceName,
+                                machineType: machineType.getSelfLink(),
+                                disks: [rootDrive],
+                                networkInterfaces: [networkInterface])
 
     task.updateStatus BASE_PHASE, "Creating instance $instanceName..."
     compute.instances().insert(project, zone, instance).execute()
