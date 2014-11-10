@@ -40,8 +40,8 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def replicaPoolMock = Mock(Replicapool)
-      def poolsMock = Mock(Replicapool.Pools)
-      def poolsDeleteMock = Mock(Replicapool.Pools.Delete)
+      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
+      def instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                zone: ZONE,
@@ -54,8 +54,8 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
-      1 * replicaPoolMock.pools() >> poolsMock
-      1 * poolsMock.delete(PROJECT_NAME, ZONE, _, _) >> poolsDeleteMock
-      1 * poolsDeleteMock.execute()
+      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersDeleteMock
+      1 * instanceGroupManagersDeleteMock.execute()
   }
 }

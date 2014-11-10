@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.kato.deploy.gce.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.Image
-import com.google.api.services.compute.model.ImageList
 import com.google.api.services.replicapool.Replicapool
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -43,8 +41,8 @@ class ResizeGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def replicaPoolMock = Mock(Replicapool)
-      def poolsMock = Mock(Replicapool.Pools)
-      def poolsResizeMock = Mock(Replicapool.Pools.Resize)
+      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
+      def instanceGroupManagersResizeMock = Mock(Replicapool.InstanceGroupManagers.Resize)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new ResizeGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                numReplicas: DESIRED_NUM_REPLICAS,
@@ -58,9 +56,11 @@ class ResizeGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
-      1 * replicaPoolMock.pools() >> poolsMock
-      1 * poolsMock.resize(PROJECT_NAME, ZONE, _) >> poolsResizeMock
-      1 * poolsResizeMock.setNumReplicas(DESIRED_NUM_REPLICAS) >> poolsResizeMock
-      1 * poolsResizeMock.execute()
+      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.resize(PROJECT_NAME,
+                                           ZONE,
+                                           REPLICA_POOL_NAME,
+                                           DESIRED_NUM_REPLICAS) >> instanceGroupManagersResizeMock
+      1 * instanceGroupManagersResizeMock.execute()
   }
 }

@@ -46,13 +46,14 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
     def project = description.credentials.project
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
+    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
 
-    replicapool.pools().resize(project,
-                               description.zone,
-                               description.replicaPoolName).setNumReplicas(description.numReplicas).execute()
+    replicapool.instanceGroupManagers().resize(project,
+                                               description.zone,
+                                               description.replicaPoolName,
+                                               description.numReplicas).execute()
 
     task.updateStatus BASE_PHASE, "Done resizing replica pool $description.replicaPoolName in $description.zone."
     null
