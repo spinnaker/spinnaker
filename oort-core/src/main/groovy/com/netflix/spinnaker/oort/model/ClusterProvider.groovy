@@ -38,12 +38,24 @@ interface ClusterProvider<T extends Cluster> {
   /**
    * Looks up all of the clusters known to this provider to be for a specified application
    * Keyed on account name.
+   * Similar to {@link #getClusterSummaries(java.lang.String)}, but returns the names of server groups and load balancers, not reified views.
    *
    * @param application
    * @return set of clusters or an empty set if none exist
    */
   @Empty
-  Map<String, Set<T>> getClusters(String application)
+  Map<String, Set<T>> getClusterSummaries(String application)
+
+  /**
+   * Looks up all of the clusters known to this provider to be for a specified application
+   * Keyed on account name.
+   * Similar to {@link #getClusterSummaries(java.lang.String)}, but returns reified views of server groups and load balancers.
+   *
+   * @param application
+   * @return set of clusters or an empty set if none exist
+   */
+  @Empty
+  Map<String, Set<T>> getClusterDetails(String application)
 
   /**
    * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.amos.AccountCredentials} registered with
@@ -51,7 +63,7 @@ interface ClusterProvider<T extends Cluster> {
    *
    * @param application
    * @param account name
-   * @return set of clusters or an empty set if none exist
+   * @return set of clusters with load balancers and server groups populated, or an empty set if none exist
    */
   @Empty
   Set<T> getClusters(String application, String account)
@@ -61,8 +73,18 @@ interface ClusterProvider<T extends Cluster> {
    *
    * @param account
    * @param name
-   * @return cluster or null if none exists
+   * @return cluster with load balancers and server groups populated, or null if none exists
    */
   @Nullable
   T getCluster(String application, String account, String name)
+
+  /**
+   * Looks up a server group known to this provider, within a specified {@link com.netflix.spinnaker.amos.AccountCredentials} and region, and with the specified name.
+   * @param account name
+   * @param region
+   * @param name
+   * @return the server group or null if none exists
+   */
+  @Nullable
+  ServerGroup getServerGroup(String account, String region, String name)
 }

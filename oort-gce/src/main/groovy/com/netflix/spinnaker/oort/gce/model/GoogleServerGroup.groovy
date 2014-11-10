@@ -51,6 +51,31 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
   }
 
   @Override
+  Set<String> getSecurityGroups() {
+    (Set<String>) getProperty("securityGroups")
+  }
+
+  @Override
+  Set<String> getLoadBalancers() {
+    (Set<String>) getProperty("loadBalancers")
+  }
+
+  @Override
+  Map<String, Object> getLaunchConfig() {
+    (Map<String, Object>) getProperty("launchConfig")
+  }
+
+  @Override
+  Boolean isDisabled() {
+    false // TODO fill in
+  }
+
+  @Override
+  Long getCreatedTime() {
+    0 // TODO fill in
+  }
+
+  @Override
   Set<String> getZones() {
     (Set<String>) getProperty("zones")
   }

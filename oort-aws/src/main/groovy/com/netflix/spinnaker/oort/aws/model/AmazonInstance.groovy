@@ -34,6 +34,21 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   }
 
   @Override
+  Long getLaunchTime() {
+    ((Map) getProperty("instance")).get("launchTime")
+  }
+
+  @Override
+  String getZone() {
+    getProperty "zone"
+  }
+
+  @Override
+  List<Map<String, String>> getHealth() {
+    getProperty "health"
+  }
+
+  @Override
   boolean equals(Object o) {
     if (o instanceof AmazonInstance)
     o.name.equals(name)

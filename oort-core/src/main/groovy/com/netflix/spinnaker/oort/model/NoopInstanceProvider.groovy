@@ -16,35 +16,9 @@
 
 package com.netflix.spinnaker.oort.model
 
-class NoopClusterProvider implements ClusterProvider<Cluster> {
-
+class NoopInstanceProvider implements InstanceProvider<Instance> {
   @Override
-  Map<String, Set<Cluster>> getClusters() {
-    Collections.emptyMap()
-  }
-
-  @Override
-  Map<String, Set<Cluster>> getClusterDetails(String application) {
-    Collections.emptyMap()
-  }
-
-  @Override
-  Map<String, Set<Cluster>> getClusterSummaries(String application) {
-    Collections.emptyMap()
-  }
-
-  @Override
-  ServerGroup getServerGroup(String account, String region, String name) {
-    null
-  }
-
-  @Override
-  Set<Cluster> getClusters(String application, String account) {
-    Collections.emptySet()
-  }
-
-  @Override
-  Cluster getCluster(String application, String account, String name) {
+  Instance getInstance(String account, String region, String id) {
     null
   }
 }

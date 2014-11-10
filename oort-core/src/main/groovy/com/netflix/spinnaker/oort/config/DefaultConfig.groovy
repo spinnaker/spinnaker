@@ -115,6 +115,12 @@ class DefaultConfig {
   }
 
   @Bean
+  @ConditionalOnMissingBean(InstanceProvider)
+  InstanceProvider noopInstanceProvider() {
+    new NoopInstanceProvider()
+  }
+
+  @Bean
   @ConditionalOnMissingBean(AgentScheduler)
   AgentScheduler defaultAgentScheduler(@Value('${pollIntervalSeconds:60') long pollIntervalSeconds) {
     new DefaultAgentScheduler(pollIntervalSeconds, TimeUnit.SECONDS)

@@ -46,6 +46,21 @@ interface ServerGroup {
   String getRegion()
 
   /**
+   * Some vendor-specific indicator that the server group is disabled
+   *
+   * @return true if the server group is disabled; false otherwise
+   */
+  Boolean isDisabled()
+
+  /**
+   * Timestamp indicating when the server group was created
+   *
+   * @return the number of milliseconds after the beginning of time (1 January, 1970 UTC) when
+   * this server group was created
+   */
+  Long getCreatedTime()
+
+  /**
    * The zones within a region that the instances within this server group occupy.
    *
    * @return zones of a region for which this server group has presence or is capable of having presence, or an empty set if none exist
@@ -60,4 +75,29 @@ interface ServerGroup {
    */
   @Empty
   Set<Instance> getInstances()
+
+  /**
+   * The names of the load balancers associated with this server group
+   *
+   * @return the set of load balancer names or an empty set if none exist
+   */
+  @Empty
+  Set<String> getLoadBalancers()
+
+  /**
+   * The names of the security groups associated with this server group
+   *
+   * @return the set of security group names or an empty set if none exist
+   */
+  @Empty
+  Set<String> getSecurityGroups()
+
+  /**
+   * A collection of attributes describing the launch configuration of this server group
+   *
+   * @return a map containing various attributes of the launch configuration
+   */
+  @Empty
+  Map<String, Object> getLaunchConfig()
+
 }
