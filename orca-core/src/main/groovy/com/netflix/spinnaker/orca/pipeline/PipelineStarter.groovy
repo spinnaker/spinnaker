@@ -39,6 +39,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    */
   protected Job build(Map<String, Object> config, ReplaySubject subject) {
     def pipeline = parseConfig(config)
+    pipelineStore.store(pipeline)
     createJobFrom(pipeline, subject)
   }
 
@@ -46,18 +47,18 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
   @PackageScope
   static Pipeline parseConfig(Map<String, Object> config) {
     Pipeline.builder()
-      .withApplication(config.application.toString())
-      .withName(config.name.toString())
-      .withTrigger((Map<String, Serializable>) config.trigger)
-      .withStages((List<Map<String, Serializable>>) config.stages)
-      .build()
+            .withApplication(config.application.toString())
+            .withName(config.name.toString())
+            .withTrigger((Map<String, Serializable>) config.trigger)
+            .withStages((List<Map<String, Serializable>>) config.stages)
+            .build()
   }
 
   private Job createJobFrom(Pipeline pipeline, ReplaySubject subject) {
     // TODO: can we get any kind of meaningful identifier from the mayo config?
     def jobBuilder = jobs.get("orca-pipeline-${pipeline.application}-${pipeline.name}-${currentTimeMillis()}")
-      .flow(initializationStep(steps, pipeline))
-      .next(initializeFulfiller(steps, pipeline, subject)) as JobFlowBuilder
+                         .flow(initializationStep(steps, pipeline))
+                         .next(initializeFulfiller(steps, pipeline, subject)) as JobFlowBuilder
     buildFlow(jobBuilder, pipeline).build().build()
   }
 

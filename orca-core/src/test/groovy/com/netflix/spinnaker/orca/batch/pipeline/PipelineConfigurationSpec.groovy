@@ -20,9 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.*
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -49,29 +47,31 @@ class PipelineConfigurationSpec extends Specification {
   @Autowired JobLauncher jobLauncher
   @Autowired JobRepository jobRepository
 
-  @Subject jobStarter = new PipelineStarter()
+  @Subject pipelineStarter = new PipelineStarter()
 
   def fooTask = Mock(Task)
   def barTask = Mock(Task)
   def bazTask = Mock(Task)
 
   @Shared mapper = new ObjectMapper()
+  def pipelineStore = Mock(PipelineStore)
 
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
+      registerSingleton "pipelineStore", pipelineStore
       registerSingleton "fooStage", new TestStage("foo", steps, fooTask)
       registerSingleton "barStage", new TestStage("bar", steps, barTask)
       registerSingleton "bazStage", new TestStage("baz", steps, bazTask)
 
-      autowireBean jobStarter
+      autowireBean pipelineStarter
     }
-    jobStarter.initialize()
+    pipelineStarter.initialize()
   }
 
   def "an unknown stage type results in an exception"() {
     when:
-    jobStarter.start configJson
+    pipelineStarter.start configJson
 
     then:
     thrown NoSuchStageException
@@ -83,7 +83,7 @@ class PipelineConfigurationSpec extends Specification {
 
   def "a single step is constructed from mayo's json config"() {
     when:
-    jobStarter.start configJson
+    pipelineStarter.start configJson
 
     then:
     1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
@@ -95,7 +95,7 @@ class PipelineConfigurationSpec extends Specification {
 
   def "multiple steps are constructed from mayo's json config"() {
     when:
-    jobStarter.start configJson
+    pipelineStarter.start configJson
 
     then:
     1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
@@ -127,7 +127,7 @@ class PipelineConfigurationSpec extends Specification {
     }
 
     when:
-    jobStarter.start configJson
+    pipelineStarter.start configJson
 
     then:
     expect context, containsAllOf(expectedInputs)
@@ -139,5 +139,28 @@ class PipelineConfigurationSpec extends Specification {
     ]
     configJson = mapper.writeValueAsString(config)
     expectedInputs = Maps.filterKeys(config.stages.first()) { it != "type" }
+  }
+
+  def "pipeline is persisted"() {
+    when:
+    pipelineStarter.start(configJson)
+
+    then:
+
+    1 * pipelineStore.store(_) >> { Pipeline pipeline ->
+      assert pipeline.application == config.application
+      assert pipeline.stages.type == config.stages.type
+    }
+
+    where:
+    config = [
+      application: "app",
+      stages     : [
+        [type: "foo"],
+        [type: "bar"],
+        [type: "baz"]
+      ]
+    ]
+    configJson = mapper.writeValueAsString(config)
   }
 }

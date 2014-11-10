@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
+package com.netflix.spinnaker.orca.pipeline
 
-dependencies {
-  compile commonDependencies.springBatch
-  compile commonDependencies.jacksonDatabind
-  compile commonDependencies.jacksonGuava
-  compile commonDependencies.rxJava
-  compile commonDependencies.korkJedis
-  testCompile project(":orca-test")
+interface PipelineStore {
+
+  /**
+   * @param pipeline a <code>Pipeline</code> instance to store.
+   */
+  void store(Pipeline pipeline)
+
 }

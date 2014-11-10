@@ -25,7 +25,7 @@ import static com.netflix.spinnaker.orca.PipelineStatus.*
 class PipelineSpec extends Specification {
 
   @Subject pipeline = Pipeline.builder()
-                              .withTrigger([name: "SPINNAKER-build-job", lastBuildLabel: 1])
+                              .withTrigger(name: "SPINNAKER-build-job", lastBuildLabel: 1)
                               .withStage("stage1")
                               .withStage("stage2")
                               .build()

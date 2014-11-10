@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import javax.annotation.PostConstruct
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
@@ -32,14 +32,15 @@ import rx.Observable
 import rx.subjects.ReplaySubject
 
 abstract class AbstractOrchestrationInitiator<T> {
+
   @Autowired protected ApplicationContext applicationContext
   @Autowired protected JobLauncher launcher
   @Autowired protected JobBuilderFactory jobs
   @Autowired protected StepBuilderFactory steps
   @Autowired protected ObjectMapper mapper
+  @Autowired protected PipelineStore pipelineStore
 
   protected final Map<String, StageBuilder> stages = [:]
-
 
   @PostConstruct
   void initialize() {
