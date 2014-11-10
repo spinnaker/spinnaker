@@ -136,8 +136,8 @@ class GoogleClusterProviderSpec extends Specification {
       appMap[appName2] = app2
 
     when:
-      def resultMap1 = clusterProvider.getClusters("rosco_app_1", true)
-      def resultMap2 = clusterProvider.getClusters("rosco_app_2", true)
+      def resultMap1 = clusterProvider.getClusterDetails("rosco_app_1")
+      def resultMap2 = clusterProvider.getClusterDetails("rosco_app_2")
 
     then:
       1 * resourceRetrieverMock.getApplicationsMap() >> appMap

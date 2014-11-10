@@ -73,7 +73,7 @@ class ApplicationControllerSpec extends Specification {
     def result = applicationsController.get("foo")
 
     then:
-    2 * cluProvider1.getClusters("foo", false) >> [test: cluster]
+    2 * cluProvider1.getClusterSummaries("foo") >> [test: cluster]
     1 * appProvider1.getApplication("foo") >> app1
     1 * appProvider2.getApplication("foo") >> app2
     result.name == "foo"
@@ -101,7 +101,7 @@ class ApplicationControllerSpec extends Specification {
     def result = applicationsController.get("foo")
 
     then:
-    1 * cluProvider1.getClusters("foo", false) >> [test: cluster]
+    1 * cluProvider1.getClusterSummaries("foo") >> [test: cluster]
     1 * appProvider1.getApplication("foo") >> app1
     1 * appProvider2.getApplication("foo") >> null
     result.name == "foo"

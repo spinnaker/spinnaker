@@ -24,7 +24,12 @@ class NoopClusterProvider implements ClusterProvider<Cluster> {
   }
 
   @Override
-  Map<String, Set<Cluster>> getClusters(String application, boolean includeDetails) {
+  Map<String, Set<Cluster>> getClusterDetails(String application) {
+    Collections.emptyMap()
+  }
+
+  @Override
+  Map<String, Set<Cluster>> getClusterSummaries(String application) {
     Collections.emptyMap()
   }
 

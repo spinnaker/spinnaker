@@ -38,16 +38,24 @@ interface ClusterProvider<T extends Cluster> {
   /**
    * Looks up all of the clusters known to this provider to be for a specified application
    * Keyed on account name.
+   * Similar to {@link #getClusterSummaries(java.lang.String)}, but returns the names of server groups and load balancers, not reified views.
    *
    * @param application
    * @return set of clusters or an empty set if none exist
-   *
-   * @param includeDetails if true, the following collections of objects will be populated; otherwise, only the names of those objects will be populated:
-   *   * loadBalancers
-   *   * serverGroups
    */
   @Empty
-  Map<String, Set<T>> getClusters(String application, boolean includeDetails)
+  Map<String, Set<T>> getClusterSummaries(String application)
+
+  /**
+   * Looks up all of the clusters known to this provider to be for a specified application
+   * Keyed on account name.
+   * Similar to {@link #getClusterSummaries(java.lang.String)}, but returns reified views of server groups and load balancers.
+   *
+   * @param application
+   * @return set of clusters or an empty set if none exist
+   */
+  @Empty
+  Map<String, Set<T>> getClusterDetails(String application)
 
   /**
    * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.amos.AccountCredentials} registered with

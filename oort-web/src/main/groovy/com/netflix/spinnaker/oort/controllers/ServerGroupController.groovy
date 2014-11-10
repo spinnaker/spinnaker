@@ -45,7 +45,7 @@ class ServerGroupController {
     List<ServerGroupViewModel> serverGroupViews = []
 
     def clusters = (Set<Cluster>) clusterProviders.findResults {
-      it.getClusters(application, true).values()
+      it.getClusterDetails(application).values()
     }.flatten() - null
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->

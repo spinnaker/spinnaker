@@ -68,7 +68,12 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   }
 
   @Override
-  Map<String, Set<GoogleCluster>> getClusters(String application, boolean includeDetails) {
+  Map<String, Set<GoogleCluster>> getClusterSummaries(String application) {
+    getClusterDetails(application) // TODO: Provide a higher level view (load balancer, security group names only)
+  }
+
+  @Override
+  Map<String, Set<GoogleCluster>> getClusterDetails(String application) {
     clustersByApplication.time {
       def googleApplication = (googleResourceRetriever.getApplicationsMap())[application]
       def clusterMap = new HashMap<String, Set<GoogleCluster>>()
@@ -82,7 +87,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   @Override
   Set<GoogleCluster> getClusters(String application, String accountName) {
     clustersByApplicationAndAccount.time {
-      def clusters = getClusters(application, true)
+      def clusters = getClusterDetails(application)
 
       clusters[accountName]
     }
@@ -91,7 +96,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   @Override
   GoogleCluster getCluster(String application, String account, String name) {
     clustersById.time {
-      def clusters = getClusters(application, true)
+      def clusters = getClusterDetails(application)
       def cluster
 
       if (clusters && clusters[account]) {

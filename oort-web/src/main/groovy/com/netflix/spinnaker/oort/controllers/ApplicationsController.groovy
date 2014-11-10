@@ -87,7 +87,7 @@ class ApplicationsController {
       attributes << app.attributes
 
       clusterProviders.collectMany {
-        it.getClusters(app.name, false)?.values()?.flatten() as Set ?: []
+        it.getClusterSummaries(app.name)?.values()?.flatten() as Set ?: []
       }.each { Cluster cluster ->
         def account = cluster.accountName
         if (!result.clusters.containsKey(account)) {

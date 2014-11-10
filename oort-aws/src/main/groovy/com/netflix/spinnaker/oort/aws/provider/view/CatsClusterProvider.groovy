@@ -47,6 +47,15 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   @Override
+  Map<String, Set<AmazonCluster>> getClusterSummaries(String applicationName) {
+    getClusters(applicationName, false)
+  }
+
+  @Override
+  Map<String, Set<AmazonCluster>> getClusterDetails(String applicationName) {
+    getClusters(applicationName, true)
+  }
+
   Map<String, Set<AmazonCluster>> getClusters(String applicationName, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) {
