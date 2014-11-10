@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.annotation.JsonBackReference
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
@@ -25,7 +26,7 @@ import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
 class PipelineStage implements ConfigurableStage {
 
   final String type
-  final Pipeline pipeline
+  @JsonBackReference final Pipeline pipeline
   PipelineStatus status = NOT_STARTED
   private final Map<String, Serializable> context = [:]
 

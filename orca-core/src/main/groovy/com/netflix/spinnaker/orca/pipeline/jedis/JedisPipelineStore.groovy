@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.jedis
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStore
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,10 +27,12 @@ import redis.clients.jedis.JedisCommands
 class JedisPipelineStore implements PipelineStore {
 
   private final JedisCommands jedis
+  private final ObjectMapper mapper
 
   @Autowired
-  JedisPipelineStore(JedisCommands jedis) {
+  JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper) {
     this.jedis = jedis
+    this.mapper = mapper
   }
 
   @Override
@@ -37,7 +40,6 @@ class JedisPipelineStore implements PipelineStore {
     pipeline.id = UUID.randomUUID().toString()
 
     def key = "pipeline:$pipeline.id"
-    jedis.hset(key, "application", pipeline.application)
-    jedis.hset(key, "name", pipeline.name)
+    jedis.hset(key, "config", mapper.writeValueAsString(pipeline))
   }
 }
