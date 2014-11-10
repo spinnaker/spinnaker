@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -57,6 +58,7 @@ class PipelineStatusSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
+      registerSingleton "pipelineStore", Stub(PipelineStore)
       ["foo", "bar", "baz"].each { name ->
         registerSingleton "${name}Stage", new TestStage(name, steps, fooTask)
       }

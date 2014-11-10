@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
-import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
-import com.netflix.spinnaker.orca.pipeline.PipelineFactory
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.*
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -39,6 +37,15 @@ class OrcaConfiguration {
     def mapper = new ObjectMapper()
     mapper.registerModule(new GuavaModule())
     return mapper
+  }
+
+  @Bean PipelineStore pipelineStore() {
+    new PipelineStore() {
+      @Override
+      void store(Pipeline pipeline) {
+        // no-op will get replaced
+      }
+    }
   }
 
   @Bean PipelineStarter jobStarter() {
