@@ -1,10 +1,10 @@
 <div class="instances">
   <a class="instance health-status-{{instance.isHealthy ? 'Healthy' : 'Unhealthy'}}"
-     ng-class="{highlighted: highlight && highlight.length > 1 && instance.instanceId.indexOf(highlight) !== -1, 'health-status-Unknown': instance.healthStatus === 'Disabled'}"
+     ng-class="{highlighted: highlight && highlight.length > 1 && instance.id.indexOf(highlight) !== -1, 'health-status-Unknown': instance.healthStatus === 'Disabled'}"
      ng-repeat="instance in displayedInstances | orderBy:'launchTime'"
      tooltip="{{instance.instanceId}}"
-     ui-sref=".instanceDetails({instanceId: instance.instanceId })"
+     ui-sref=".instanceDetails({instanceId: instance.id })"
      ui-sref-active="active">
-    <span class="sr-only">{{instance.instanceId}}</span></a>
+    <span class="sr-only">{{instance.id}}</span></a>
   <span ng-if="renderInstancesOnScroll && !rendered">(Rendering instances...)</span>
 </div>

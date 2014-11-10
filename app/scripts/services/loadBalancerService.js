@@ -38,14 +38,12 @@ angular.module('deckApp')
       var instances = loadBalancer.instances;
       loadBalancer.healthCounts = {
         upCount: instances.filter(function (instance) {
-          return instance.healthStatus === 'Healthy';
+          return instance.isHealthy;
         }).length,
         downCount: instances.filter(function (instance) {
-          return instance.healthStatus === 'Unhealthy';
+          return !instance.isHealthy;
         }).length,
-        unknownCount: instances.filter(function (instance) {
-          return instance.healthStatus === 'Unknown';
-        }).length
+        unknownCount: 0
       };
     }
 
@@ -84,7 +82,8 @@ angular.module('deckApp')
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
       return serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
-        serverGroup.asg && serverGroup.asg.loadBalancerNames.indexOf(loadBalancer.name) !== -1;
+        serverGroup.vpcId === loadBalancer.vpcId &&
+        serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {

@@ -52,8 +52,8 @@ angular.module('deckApp')
       });
 
       application.loadBalancers.forEach(function(loadBalancer) {
-        if (loadBalancer.elb && loadBalancer.elb.securityGroups) {
-          loadBalancer.elb.securityGroups.forEach(function(securityGroupId) {
+        if (loadBalancer.securityGroups) {
+          loadBalancer.securityGroups.forEach(function(securityGroupId) {
             var securityGroup = indexedSecurityGroups[loadBalancer.account][loadBalancer.region][securityGroupId];
             if (!securityGroup) {
               $exceptionHandler('could not find:', loadBalancer.name, securityGroupId);
@@ -66,8 +66,8 @@ angular.module('deckApp')
         }
       });
       application.serverGroups.forEach(function(serverGroup) {
-        if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups) {
-          serverGroup.launchConfig.securityGroups.forEach(function (securityGroupId) {
+        if (serverGroup.securityGroups) {
+          serverGroup.securityGroups.forEach(function (securityGroupId) {
             var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
             if (!securityGroup) {
               $exceptionHandler('could not find:', serverGroup.name, securityGroupId);

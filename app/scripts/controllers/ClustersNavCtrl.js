@@ -13,12 +13,12 @@ angular.module('deckApp')
       {
         label: 'Account',
         key: 'account',
-        clusterKey: 'accountName',
+        clusterKey: 'account',
         getDisplayValue: function(cluster) {
-          return cluster.accountName || '';
+          return cluster.account || '';
         },
         getDisplayLabel: function(cluster) {
-          return cluster.accountName || '';
+          return cluster.account || '';
         }
       },
       {
@@ -72,7 +72,7 @@ angular.module('deckApp')
 
     this.getClusterLabel = function getClusterLabel(cluster) {
       if ($scope.sortFilter.sortPrimary === 'cluster') {
-        return cluster.accountName;
+        return cluster.account;
       }
       return cluster.name;
     };

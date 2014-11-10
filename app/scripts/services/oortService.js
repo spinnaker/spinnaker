@@ -106,42 +106,45 @@ angular.module('deckApp')
     function getApplication(applicationName) {
       var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(applicationName),
           loadBalancersByApplicationNameLoader = loadBalancerService.loadLoadBalancersByApplicationName(applicationName),
-          applicationLoader = getApplicationEndpoint(applicationName).get();
+          applicationLoader = getApplicationEndpoint(applicationName).get(),
+          serverGroupLoader = clusterService.loadServerGroups(applicationName),
+          taskLoader = pond.one('applications', applicationName).all('tasks').getList();
+
+      var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
+
+      var loadBalancerLoader, securityGroupLoader;
 
       return $q.all({
         securityGroups: securityGroupsByApplicationNameLoader,
         loadBalancersByApplicationName: loadBalancersByApplicationNameLoader,
-        application: applicationLoader
+        application: applicationLoader,
+        tasks: taskLoader
       })
         .then(function(applicationLoader) {
-          var application = applicationLoader.application;
-          var securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
-          var loadBalancerAccounts = _(applicationLoader.loadBalancersByApplicationName).pluck('account').unique().value();
+          application = applicationLoader.application;
+          securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
+          loadBalancerAccounts = _(applicationLoader.loadBalancersByApplicationName).pluck('account').unique().value();
           application.accounts = _([applicationLoader.application.accounts, securityGroupAccounts, loadBalancerAccounts])
             .flatten()
             .compact()
             .unique()
             .value();
+          application.tasks = angular.isArray(applicationLoader.tasks) ? applicationLoader.tasks : [];
 
-          var clusterLoader = clusterService.loadClusters(application);
-          var loadBalancerLoader = loadBalancerService.loadLoadBalancers(application, applicationLoader.loadBalancersByApplicationName);
-          var securityGroupLoader = securityGroupService.loadSecurityGroups(application);
-
-          var taskLoader = pond.one('applications', applicationName)
-            .all('tasks')
-            .getList();
+          loadBalancerLoader = loadBalancerService.loadLoadBalancers(application, applicationLoader.loadBalancersByApplicationName);
+          securityGroupLoader = securityGroupService.loadSecurityGroups(application);
 
           return $q.all({
-            clusters: clusterLoader,
             loadBalancers: loadBalancerLoader,
-            tasks: taskLoader,
-            securityGroups: securityGroupLoader
+            securityGroups: securityGroupLoader,
+            serverGroups: serverGroupLoader
           })
             .then(function(results) {
-              application.clusters = results.clusters;
-              application.serverGroups = _.flatten(_.pluck(results.clusters, 'serverGroups'));
+              serverGroups = results.serverGroups.plain();
+              application.serverGroups = serverGroups;
+              application.clusters = clusterService.createServerGroupClusters(serverGroups);
+
               application.loadBalancers = results.loadBalancers;
-              application.tasks = angular.isArray(results.tasks) ? results.tasks : [];
               loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               securityGroupService.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
@@ -181,11 +184,16 @@ angular.module('deckApp')
         .getList();
     }
 
+    function getInstanceDetails(account, region, id) {
+      return oortEndpoint.all('instances').one(account).one(region).one(id).get();
+    }
+
     return {
       listApplications: listApplications,
       getApplication: getApplication,
       findImages: findImages,
       getAmi: getAmi,
+      getInstanceDetails: getInstanceDetails,
       listLoadBalancers: listLoadBalancers,
       getApplicationWithoutAppendages: getApplicationEndpoint,
     };

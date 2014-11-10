@@ -7,39 +7,41 @@ angular.module('deckApp')
                                                   mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
-    function extractServerGroup() {
-      application.clusters.some(function (cluster) {
-        return cluster.serverGroups.some(function (toCheck) {
-          if (toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region) {
-            $scope.serverGroup = toCheck;
-            $scope.cluster = cluster;
-            $scope.account = serverGroup.accountId;
-            if (toCheck.launchConfig) {
-              var launchConfig = angular.copy(toCheck.launchConfig);
-              $scope.securityGroups = _(launchConfig.securityGroups).map(function(id) {
-                return _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'id': id }) ||
-                  _.find(application.securityGroups, { 'accountName': toCheck.account, 'region': toCheck.region, 'name': id });
-              }).compact().value();
-              $scope.launchConfig = launchConfig;
-            }
-            return true;
-          }
-        });
+
+    function extractServerGroupSummary() {
+      var found = application.serverGroups.filter(function (toCheck) {
+        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
-      if (!$scope.serverGroup) {
-        notifications.create({
-          message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
-        $state.go('^');
-      }
+      return found ? found[0] : null;
     }
 
-    extractServerGroup();
+    function retrieveServerGroup() {
+      var summary = extractServerGroupSummary();
+      serverGroupService.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+        angular.extend(details, summary);
+        $scope.serverGroup = details;
+        if (details.launchConfig && details.launchConfig.securityGroups) {
+          $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
+            return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+              _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+          }).compact().value();
+        }
 
-    application.registerAutoRefreshHandler(extractServerGroup, $scope);
+        if (!$scope.serverGroup) {
+          notifications.create({
+            message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
+            autoDismiss: true,
+            hideTimestamp: true,
+            strong: true
+          });
+          $state.go('^');
+        }
+      });
+    }
+
+    retrieveServerGroup();
+
+    application.registerAutoRefreshHandler(retrieveServerGroup, $scope);
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
@@ -160,15 +162,15 @@ angular.module('deckApp')
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
           applicationName: function() { return application.name; },
-          account: function() { return $scope.account; },
-          clusterName: function() { return $scope.cluster.name; },
+          account: function() { return $scope.serverGroup.account; },
+          clusterName: function() { return $scope.serverGroup.cluster; },
           serverGroup: function() { return $scope.serverGroup; }
         }
       });
     };
 
     this.showUserData = function showScalingActivities() {
-      $scope.userData = window.atob($scope.launchConfig.userData);
+      $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
         templateUrl: 'views/application/modal/serverGroup/userData.html',
         controller: 'CloseableModalCtrl',
