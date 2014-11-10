@@ -17,6 +17,10 @@
 package com.netflix.spinnaker.oort.model.gce
 
 import com.codahale.metrics.Timer
+import com.netflix.spinnaker.oort.gce.model.GoogleApplication
+import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import com.netflix.spinnaker.oort.gce.model.GoogleClusterProvider
+import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import spock.lang.Specification
 
 class GoogleClusterProviderSpec extends Specification {

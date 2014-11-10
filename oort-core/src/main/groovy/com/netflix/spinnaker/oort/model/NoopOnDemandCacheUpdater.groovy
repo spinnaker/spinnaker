@@ -15,13 +15,9 @@
  */
 
 package com.netflix.spinnaker.oort.model
-
-import org.springframework.stereotype.Component
-
 /**
  * A default, no-op implementation of an {@link OnDemandCacheUpdater}
  */
-@Component
 class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
   @Override
   boolean handles(String type) {

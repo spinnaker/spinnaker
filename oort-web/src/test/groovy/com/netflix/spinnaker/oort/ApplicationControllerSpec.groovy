@@ -20,9 +20,8 @@ import com.netflix.spinnaker.oort.controllers.ApplicationsController
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
-import com.netflix.spinnaker.oort.model.LoadBalancerProvider
 import com.netflix.spinnaker.oort.model.ServerGroup
-import com.netflix.spinnaker.oort.model.aws.AmazonApplication
+import com.netflix.spinnaker.oort.aws.model.AmazonApplication
 import spock.lang.Shared
 import spock.lang.Specification
 
