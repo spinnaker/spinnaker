@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
-
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+package com.netflix.spinnaker.mort.aws.config
 import groovy.transform.CompileStatic
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
 
 @CompileStatic
-@Component
-@ConfigurationProperties("aws")
-class AwsConfigurationProperties {
-  String assumeRole
-  // This is the IAM Role that Mort will operate under
+class BastionConfiguration {
+  Boolean enabled
+  String host
+  String user
+  Integer port
+  String proxyCluster
+  String proxyRegion
   String accountIamRole
-  // These are accounts that have been configured with permissions under the above assumeRole for Kato to perform operations
-  List<NetflixAssumeRoleAmazonCredentials> accounts
 }

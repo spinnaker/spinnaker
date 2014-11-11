@@ -28,7 +28,7 @@ import rx.schedulers.Schedulers
 
 class RxCachingAgentScheduler implements CachingAgentScheduler {
 
-  private static final Worker worker = Schedulers.computation().createWorker()
+  private static final Worker worker = Schedulers.io().createWorker()
 
   @Value('${cachingInterval:30000}')
   long cachingInterval

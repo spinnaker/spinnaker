@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.model
 
-interface CredentialsInitializer {
+class NoopCachingAgent implements CachingAgent {
+    @Override
+    void call() {
 
+    }
 }

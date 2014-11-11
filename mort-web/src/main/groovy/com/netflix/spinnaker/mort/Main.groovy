@@ -28,7 +28,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter
 import javax.servlet.Filter
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.mort")
+@ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnnaker.mort.web', 'com.netflix.spinnaker.mort.filters'])
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
   static {
@@ -36,8 +36,8 @@ class Main extends SpringBootServletInitializer {
     imposeSpinnakerFileConfig("mort-local.yml")
   }
 
-  static void main(_) {
-    SpringApplication.run this, [] as String[]
+  static void main(String... args) {
+    SpringApplication.run this, args
   }
 
   static void imposeSpinnakerFileConfig(String file) {

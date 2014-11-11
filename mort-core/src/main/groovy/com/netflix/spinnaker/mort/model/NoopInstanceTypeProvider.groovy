@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.model
 
-import groovy.transform.CompileStatic
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
-
-@CompileStatic
-@Component
-@ConfigurationProperties("bastion")
-class BastionConfiguration {
-  Boolean enabled
-  String host
-  String user
-  Integer port
-  String proxyCluster
-  String proxyRegion
+class NoopInstanceTypeProvider implements InstanceTypeProvider<InstanceType> {
+    @Override
+    Set<InstanceType> getAll() {
+        Collections.emptySet()
+    }
 }

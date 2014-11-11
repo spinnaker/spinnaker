@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mort.config
+package com.netflix.spinnaker.mort.model
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-
-@Configuration
-@ConditionalOnProperty('aws.enabled')
-@ComponentScan('com.netflix.spinnaker.mort.aws')
-class MortAwsConfig {
-
+class NoopSubnetProvider implements SubnetProvider<Subnet> {
+    @Override
+    Set<Subnet> getAll() {
+        Collections.emptySet()
+    }
 }
