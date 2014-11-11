@@ -21,7 +21,7 @@ import rx.Observable
 
 interface OrcaService {
 
-  @Headers("Accept: application/context+json")
+  @Headers("Content-type: application/context+json")
   @POST("/ops")
   Observable<Map> doOperation(@Body Map<String, ? extends Object> body)
 
