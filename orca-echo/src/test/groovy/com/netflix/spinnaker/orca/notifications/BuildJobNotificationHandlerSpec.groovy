@@ -17,11 +17,11 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import groovy.json.JsonSlurper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import groovy.json.JsonSlurper
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -63,7 +63,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
       assert config.trigger.buildInfo == input
       def pipeline = new Pipeline()
       pipeline.id = "1"
-      rx.Observable.from(pipeline)
+      return pipeline
     }
 
     where:

@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import javax.annotation.PostConstruct
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 
@@ -98,7 +98,7 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
           pipelineConfigClone.trigger = new HashMap(trigger)
           pipelineConfigClone.trigger.buildInfo = input
           def json = objectMapper.writeValueAsString(pipelineConfigClone)
-          pipelineStarter.start(json).subscribe()
+          pipelineStarter.start(json)
         }
       }
     } catch (e) {

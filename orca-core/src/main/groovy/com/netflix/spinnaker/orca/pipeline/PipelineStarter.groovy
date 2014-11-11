@@ -22,14 +22,18 @@ import com.google.common.annotations.VisibleForTesting
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component
-import rx.subjects.ReplaySubject
-import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
-import static java.lang.System.currentTimeMillis
 
 @Component
 @CompileStatic
 class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
+
+  @Override
+  protected Pipeline createSubject(Map<String, Object> config) {
+    def pipeline = parseConfig(config)
+    pipelineStore.store(pipeline)
+    return pipeline
+  }
 
   /**
    * Builds a _pipeline_ based on config from _Mayo_.
@@ -37,10 +41,8 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  protected Job build(Map<String, Object> config, ReplaySubject subject) {
-    def pipeline = parseConfig(config)
-    pipelineStore.store(pipeline)
-    createJobFrom(pipeline, subject)
+  protected Job build(Map<String, Object> config, Pipeline subject) {
+    createJobFrom(subject)
   }
 
   @VisibleForTesting
@@ -54,11 +56,9 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
             .build()
   }
 
-  private Job createJobFrom(Pipeline pipeline, ReplaySubject subject) {
-    // TODO: can we get any kind of meaningful identifier from the mayo config?
-    def jobBuilder = jobs.get("orca-pipeline-${pipeline.application}-${pipeline.name}-${currentTimeMillis()}")
-                         .flow(initializationStep(steps, pipeline))
-                         .next(initializeFulfiller(steps, pipeline, subject)) as JobFlowBuilder
+  private Job createJobFrom(Pipeline pipeline) {
+    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+                         .flow(initializationStep(steps, pipeline)) as JobFlowBuilder
     buildFlow(jobBuilder, pipeline).build().build()
   }
 

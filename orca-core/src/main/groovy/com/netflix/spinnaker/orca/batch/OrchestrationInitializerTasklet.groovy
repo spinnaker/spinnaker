@@ -16,41 +16,35 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.pipeline.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
+import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
-import rx.subjects.ReplaySubject
-
-
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
 @CompileStatic
 @TupleConstructor(includeFields = true)
 class OrchestrationInitializerTasklet implements Tasklet {
 
-  static Step createTasklet(StepBuilderFactory steps, List<Stage> stages, ReplaySubject subject) {
+  static Step createTasklet(StepBuilderFactory steps, List<ConfigurableStage> stages) {
     steps.get("orca-init-step")
-      .tasklet(new OrchestrationInitializerTasklet(stages, subject))
+         .tasklet(new OrchestrationInitializerTasklet(stages))
       .build()
   }
 
-  private final List<Stage> stages
-  private final ReplaySubject subject
+  private final List<ConfigurableStage> stages
 
   @Override
-  RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+  RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     chunkContext.stepContext.stepExecution.jobExecution.with {
       for (stage in stages) {
         executionContext.put(stage.type, stage)
       }
-      subject.onNext(it.id)
-      subject.onCompleted()
     }
     return FINISHED
   }

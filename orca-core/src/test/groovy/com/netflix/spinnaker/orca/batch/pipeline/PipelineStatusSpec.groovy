@@ -70,11 +70,9 @@ class PipelineStatusSpec extends Specification {
 
   def "can get a list of stages from the pipeline"() {
     expect:
-    pipelineStarter.start(configJson).subscribe {
-      with(it) {
-        stages.size() == 3
-        stages.type == stageTypes
-      }
+    with(pipelineStarter.start(configJson)) {
+      stages.size() == 3
+      stages.type == stageTypes
     }
 
     where:
@@ -90,13 +88,11 @@ class PipelineStatusSpec extends Specification {
 
   def "can get the status of each stage"() {
     expect:
-    pipelineStarter.start(configJson).subscribe({
-      with(it) {
-        // Pipeline has a getStatus as well as stage – here we want the stage
-        // status. Really should remove the duplication
-        stages*.status == [PipelineStatus.SUCCEEDED] * 3
-      }
-    })
+    with(pipelineStarter.start(configJson)) {
+      // Pipeline has a getStatus as well as stage – here we want the stage
+      // status. Really should remove the duplication
+      stages*.status == [PipelineStatus.SUCCEEDED] * 3
+    }
 
     where:
     stageTypes = ["foo", "bar", "baz"]

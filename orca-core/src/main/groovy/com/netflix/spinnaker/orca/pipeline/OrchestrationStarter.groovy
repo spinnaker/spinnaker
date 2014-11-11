@@ -20,22 +20,16 @@ import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component
-import rx.subjects.ReplaySubject
 import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
-import static com.netflix.spinnaker.orca.batch.PipelineFulfillerTasklet.initializeFulfiller
 import static java.util.UUID.randomUUID
 
 @Component
 @CompileStatic
-class OrchestrationStarter extends AbstractOrchestrationInitiator<String> {
+class OrchestrationStarter extends AbstractOrchestrationInitiator<List<ConfigurableStage>> {
 
-  protected Job build(Map<String, Object> config, ReplaySubject subject) {
-    // this is less-than-ideal
+  @Override
+  protected List<ConfigurableStage> createSubject(Map<String, Object> config) {
     def stageCollectionReference = []
-    def jobBuilder = jobs.get("orca-orchestration-${randomUUID()}")
-      .flow(createTasklet(steps, stageCollectionReference, subject))
-      .next(initializeFulfiller(steps, null, subject)) as JobFlowBuilder
-
     for (Map<String, Serializable> context in ((List<Map<String, Serializable>>) config.stages)) {
       def type = context.remove("type").toString()
 
@@ -45,11 +39,21 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<String> {
 
       if (stages.containsKey(type)) {
         def stage = new PipelineStage(type, context)
-        stages.get(type).build(jobBuilder, stage)
         stageCollectionReference << stage
       } else {
         throw new NoSuchStageException(type)
       }
+    }
+    return stageCollectionReference
+  }
+
+  @Override
+  protected Job build(Map<String, Object> config, List<ConfigurableStage> subject) {
+    // this is less-than-ideal
+    def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
+                         .flow(createTasklet(steps, subject)) as JobFlowBuilder
+    subject.each { stage ->
+      stages.get(stage.type).build(jobBuilder, stage)
     }
 
     jobBuilder.build().build()

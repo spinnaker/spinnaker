@@ -28,8 +28,6 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import rx.Observable
-import rx.subjects.ReplaySubject
 
 abstract class AbstractOrchestrationInitiator<T> {
 
@@ -55,15 +53,17 @@ abstract class AbstractOrchestrationInitiator<T> {
     }
   }
 
-  Observable<T> start(String configJson) {
+  T start(String configJson) {
     Map<String, Object> config = mapper.readValue(configJson, Map)
-    def subject = ReplaySubject.createWithSize(1)
+    def subject = createSubject(config)
     def job = build(config, subject)
     launcher.run job, new JobParameters(paramsFromConfig(config))
     subject
   }
 
-  protected abstract Job build(Map<String, Object> config, ReplaySubject subject)
+  protected abstract T createSubject(Map<String, Object> config)
+
+  protected abstract Job build(Map<String, Object> config, T subject)
 
   protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage stage) {
     builderFor(stage).build(jobBuilder, stage)

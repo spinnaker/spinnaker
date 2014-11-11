@@ -43,7 +43,7 @@ class OrcaConfiguration {
     new PipelineStore() {
       @Override
       void store(Pipeline pipeline) {
-        // no-op will get replaced
+        pipeline.id = UUID.randomUUID().toString()
       }
     }
   }
