@@ -25,11 +25,11 @@ describe('scheduler', function() {
 
       this.scheduler.subscribe(this.test.call);
 
-      expect(this.test.call.calls.length).toEqual(0);
+      expect(this.test.call.calls.count()).toEqual(0);
 
       this.scheduler.get().onNext();
 
-      expect(this.test.call.calls.length).toEqual(1);
+      expect(this.test.call.calls.count()).toEqual(1);
     });
   });
 
@@ -40,41 +40,34 @@ describe('scheduler', function() {
     });
 
     describe('#subscribe', function() {
-      it('it takes a callback that is invoked at each iteration of the scheduler', function() {
+      it('it takes a callback that is invoked at each iteration of the scheduler', function(done) {
 
-        runs(function() {
-          spyOn(this.test, 'call');
-          this.pre = this.test.call.calls.length;
-          this.scheduler.subscribe(this.test.call);
-        }.bind(this));
-
-        waits(this.pollSchedule * this.numIterations);
-
-        runs(function() {
-          var post = this.test.call.calls.length;
+        spyOn(this.test, 'call');
+        this.pre = this.test.call.calls.count();
+        this.scheduler.subscribe(this.test.call);
+        setTimeout(function() {
+          var post = this.test.call.calls.count();
           // error bounds of +/- 1
           expect(post - this.pre).toBeGreaterThan(this.numIterations - 2);
           expect(post - this.pre).toBeLessThan(this.numIterations + 2);
-        }.bind(this));
+          done();
+        }.bind(this), this.pollSchedule * this.numIterations);
+
       });
     });
 
     describe('#subscribeEveryN', function() {
-      it('it takes an int N, a callback that is invoked every N scheduler iterations', function() {
-        runs(function() {
-          spyOn(this.test, 'call');
-          this.pre = this.test.call.calls.length;
-          this.scheduler.subscribeEveryN(this.cycles, this.test.call);
-        }.bind(this));
-
-        waits(this.pollSchedule * this.numIterations);
-
-        runs(function() {
-          var post = this.test.call.calls.length;
+      it('it takes an int N, a callback that is invoked every N scheduler iterations', function(done) {
+        spyOn(this.test, 'call');
+        this.pre = this.test.call.calls.count();
+        this.scheduler.subscribeEveryN(this.cycles, this.test.call);
+        setTimeout(function() {
+          var post = this.test.call.calls.count();
           // error bounds of +/- 1
           expect(post - this.pre).toBeGreaterThan(this.numIterations/this.cycles - 2);
           expect(post - this.pre).toBeLessThan(this.numIterations/this.cycles + 2);
-        }.bind(this));
+          done();
+        }.bind(this), this.pollSchedule * this.numIterations);
       });
     });
   });
@@ -87,9 +80,9 @@ describe('scheduler', function() {
       for(var i = 0; i < numSubscribers; i++) {
         this.scheduler.subscribe(this.test.call);
       }
-      var pre = this.test.call.calls.length;
+      var pre = this.test.call.calls.count();
       this.scheduler.scheduleImmediate();
-      expect(this.test.call.calls.length - pre).toBe(numSubscribers);
+      expect(this.test.call.calls.count() - pre).toBe(numSubscribers);
     });
   });
 });

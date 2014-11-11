@@ -8,7 +8,7 @@ angular.module('deckApp')
       var variables =  task.variables.filter(function(v) {
         return v.key === k;
       });
-      return variables.length ? variables[0].value : null; // assume only one
+      return variables.length ? variables[0].value : null;
     };
 
     that.getTasksMatchingPred = function getTasksMatchingPred(oldTasks, newTasks, pred) {
@@ -48,12 +48,20 @@ angular.module('deckApp')
       return false;
     };
 
+    that.getApplicationNameFromTask = function(task) {
+      return that.getValueForKey(task, 'application') || task.application;
+    };
+
+    that.getDescriptionFromTask = function(task) {
+      return that.getValueForKey(task, 'description') || task.name;
+    };
+
     that.generateNotifications = function generateNotifications(tasks, appendedMessage) {
       tasks.forEach(function(task) {
         // generate notifications
         notifications.create({
-          title: that.getValueForKey(task, 'application') || '(unknown)',
-          message: (that.getValueForKey(task, 'description') || '') + ' ' + appendedMessage,
+          title: that.getApplicationNameFromTask(task),
+          message: that.getDescriptionFromTask(task) + ' ' + appendedMessage,
           href: '/',
         });
       });

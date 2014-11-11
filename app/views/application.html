@@ -35,6 +35,14 @@
         </span>
         </a>
       </li>
+      <li ng-if="pipelines.length > 0">
+        <a ui-sref=".delivery" ng-class="{active: $state.includes('**.delivery.**')}">
+          Delivery <span class="badge"
+                         ng-if="( pipelines | filter:{isRunning:'true'}).length > 0">
+            {{ (pipelines | filter:{isRunning:'true'}).length }}
+          </span>
+        </a>
+      </li>
     </ul>
   </div>
 </div>

@@ -18,6 +18,7 @@ angular.module('deckApp', [
     'ui.select',
     'restangular',
     'angularSpinner',
+    'angular.filter',
     'deckApp.templates',
     'deckApp.aws',
     'deckApp.gce'

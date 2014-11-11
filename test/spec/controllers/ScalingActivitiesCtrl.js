@@ -13,7 +13,7 @@ describe('Controller: ScalingActivitiesCtrl', function () {
       this.serverGroupService = serverGroupService;
       this.activities = [];
 
-      spyOn(this.serverGroupService, 'getScalingActivities').andCallFake(function () {
+      spyOn(this.serverGroupService, 'getScalingActivities').and.callFake(function () {
         return $q.when(spec.activities);
       });
 

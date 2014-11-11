@@ -80,18 +80,18 @@ describe('Controller: awsCloneServerGroup', function () {
       var resolve = this.resolve;
 
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
-      spyOn(this.accountService, 'getPreferredZonesByAccount').andCallFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').andCallFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
-      spyOn(this.mortService, 'listSubnets').andCallFake(resolve([]));
-      spyOn(this.mortService, 'listKeyPairs').andCallFake(resolve([]));
-      spyOn(this.securityGroupService, 'getAllSecurityGroups').andCallFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
-      spyOn(this.oortService, 'listLoadBalancers').andCallFake(resolve([]));
-      spyOn(this.oortService, 'findImages').andCallFake(resolve([{amis: {'us-east-1': []}}]));
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
+      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+      spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
+      spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
+      spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.oortService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
 
-      spyOn(this.searchService, 'search').andCallFake(resolve({results: []}));
-      spyOn(this.modalWizardService, 'getWizard').andReturn(this.wizard);
+      spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
+      spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
 
-      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').andCallFake(resolve([]));
+      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
     it('initializes to default values, setting usePreferredZone flag to true', function () {
@@ -156,7 +156,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.usePreferredZones).toBe(true);
       expect($scope.command.availabilityZones).toEqual(['c', 'd']);
-      expect(this.wizard.markDirty.calls.length).toBe(0);
+      expect(this.wizard.markDirty.calls.count()).toBe(0);
     });
 
     it('clears availability zones when region changed and not using preferred values', function() {
@@ -175,7 +175,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.usePreferredZones).toBe(false);
       expect($scope.command.availabilityZones).toEqual(['b','c']);
-      expect(this.wizard.markDirty.calls.length).toBe(1);
+      expect(this.wizard.markDirty.calls.count()).toBe(1);
     });
 
     it('sets/clears availability zones to preferred zones when toggled on/off', function() {
@@ -232,24 +232,24 @@ describe('Controller: awsCloneServerGroup', function () {
       var resolve = this.resolve;
 
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
-      spyOn(this.accountService, 'getPreferredZonesByAccount').andCallFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').andCallFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
-      spyOn(this.mortService, 'listSubnets').andCallFake(resolve([]));
-      spyOn(this.mortService, 'listKeyPairs').andCallFake(resolve([]));
-      spyOn(this.securityGroupService, 'getAllSecurityGroups').andCallFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
-      spyOn(this.oortService, 'listLoadBalancers').andCallFake(resolve([]));
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
+      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+      spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
+      spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
+      spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
 
-      spyOn(this.searchService, 'search').andCallFake(resolve({results: []}));
-      spyOn(this.modalWizardService, 'getWizard').andReturn(this.wizard);
+      spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
+      spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
 
-      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').andCallFake(resolve([]));
+      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
     it('sets state flags for imagesLoaded and queryAllImages when none found and no server group provided', function() {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      spyOn(this.oortService, 'findImages').andCallFake(this.resolve([]));
+      spyOn(this.oortService, 'findImages').and.callFake(this.resolve([]));
 
       initController();
 
@@ -264,7 +264,7 @@ describe('Controller: awsCloneServerGroup', function () {
           regionalImages = [{amis: {'us-east-1': []}}];
       setupMocks.bind(this).call();
 
-      spyOn(this.oortService, 'findImages').andCallFake(this.resolve(regionalImages));
+      spyOn(this.oortService, 'findImages').and.callFake(this.resolve(regionalImages));
 
       initController();
 
@@ -295,7 +295,7 @@ describe('Controller: awsCloneServerGroup', function () {
           };
       setupMocks.bind(this).call();
 
-      spyOn(this.oortService, 'findImages').andCallFake(function(query) {
+      spyOn(this.oortService, 'findImages').and.callFake(function(query) {
         if (query === 'something') {
           return context.resolve(packageBasedImages).call();
         } else {
@@ -303,7 +303,7 @@ describe('Controller: awsCloneServerGroup', function () {
         }
       });
 
-      spyOn(this.oortService, 'getAmi').andCallFake(this.resolve(amiBasedImage));
+      spyOn(this.oortService, 'getAmi').and.callFake(this.resolve(amiBasedImage));
 
       initController(serverGroup);
 
@@ -322,8 +322,8 @@ describe('Controller: awsCloneServerGroup', function () {
           serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
 
-      spyOn(this.oortService, 'findImages').andCallFake(this.resolve([]));
-      spyOn(this.oortService, 'getAmi').andCallFake(this.resolve(null));
+      spyOn(this.oortService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.oortService, 'getAmi').and.callFake(this.resolve(null));
 
       initController(serverGroup);
 
@@ -341,8 +341,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       setupMocks.bind(this).call();
 
-      spyOn(this.oortService, 'findImages').andCallFake(this.resolve([]));
-      spyOn(this.oortService, 'getAmi').andCallFake(this.resolve(null));
+      spyOn(this.oortService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.oortService, 'getAmi').and.callFake(this.resolve(null));
 
       initController();
 
@@ -357,8 +357,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       setupMocks.bind(this).call();
 
-      spyOn(this.oortService, 'findImages').andCallFake(this.resolve([{imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}}]));
-      spyOn(this.oortService, 'getAmi').andCallFake(this.resolve(null));
+      spyOn(this.oortService, 'findImages').and.callFake(this.resolve([{imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}}]));
+      spyOn(this.oortService, 'getAmi').and.callFake(this.resolve(null));
 
       initController();
 
@@ -405,21 +405,21 @@ describe('Controller: awsCloneServerGroup', function () {
           spec = this;
 
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
-      spyOn(this.accountService, 'getPreferredZonesByAccount').andCallFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').andCallFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
-      spyOn(this.mortService, 'listSubnets').andCallFake(resolve([]));
-      spyOn(this.mortService, 'listKeyPairs').andCallFake(resolve([]));
-      spyOn(this.securityGroupService, 'getAllSecurityGroups').andCallFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
-      spyOn(this.oortService, 'listLoadBalancers').andCallFake(resolve([]));
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
+      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+      spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
+      spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
+      spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
 
-      spyOn(this.searchService, 'search').andCallFake(resolve({results: []}));
-      spyOn(this.modalWizardService, 'getWizard').andReturn(this.wizard);
+      spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
+      spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
 
-      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').andCallFake(resolve([]));
-      spyOn(this.oortService, 'findImages').andCallFake(this.resolve([]));
-      spyOn(this.oortService, 'getAmi').andCallFake(this.resolve(null));
+      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.oortService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.oortService, 'getAmi').and.callFake(this.resolve(null));
 
-      spyOn(this.orcaService, 'cloneServerGroup').andCallFake(function(command, applicationName, description) {
+      spyOn(this.orcaService, 'cloneServerGroup').and.callFake(function(command, applicationName, description) {
         spec.submitted = {
           command: command,
           applicationName: applicationName,
@@ -436,7 +436,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       initController();
 
-      spyOn(this.$scope.taskMonitor, 'submit').andCallFake(function(method) {
+      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
         method.call();
       });
 
@@ -458,7 +458,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       initController();
 
-      spyOn(this.$scope.taskMonitor, 'submit').andCallFake(function(method) {
+      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
         method.call();
       });
 
@@ -483,7 +483,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       initController();
 
-      spyOn(this.$scope.taskMonitor, 'submit').andCallFake(function(method) {
+      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
         method.call();
       });
 
@@ -520,7 +520,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       initController(serverGroup);
 
-      spyOn(this.$scope.taskMonitor, 'submit').andCallFake(function(method) {
+      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
         method.call();
       });
 

@@ -290,6 +290,7 @@ angular.module('deckApp')
           return taskCollection;
         });
         RestangularConfigurer.addElementTransformer('tasks', false, function(task) {
+
           setStatusProperties(task);
           if (task.steps && task.steps.length) {
             task.steps.forEach(setStatusProperties);
