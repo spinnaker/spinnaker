@@ -17,10 +17,10 @@ angular.module('deckApp')
       var parts = configurePageTitle(config);
       var title = parts.main || 'Spinnaker';
       if (parts.section) {
-        title += ' - ' + parts.section;
+        title += ' · ' + parts.section;
       }
       if (parts.details) {
-        title += ' - ' + parts.details;
+        title += ' · ' + parts.details;
       }
       $rootScope.routing = false;
       $rootScope.pageTitle = title;
