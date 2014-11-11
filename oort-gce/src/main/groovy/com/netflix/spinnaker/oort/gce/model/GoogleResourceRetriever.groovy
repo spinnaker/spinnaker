@@ -61,11 +61,13 @@ class GoogleResourceRetriever {
     }
   }
 
+  // TODO(duftler): Handle paginated results.
+  // TODO(duftler): Batch calls.
   private static void load(AccountCredentialsProvider accountCredentialsProvider) {
     log.info "Loading GCE resources..."
 
     def tempAppMap = new HashMap<String, GoogleApplication>()
-    def simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    def simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 
     getAllGoogleCredentialsObjects(accountCredentialsProvider).each {
       def accountName = it.key
@@ -73,13 +75,16 @@ class GoogleResourceRetriever {
 
       for (GoogleCredentials credentials : credentialsSet) {
         def project = credentials.project
-        def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
-        def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, APPLICATION_NAME);
-        def poolsListResult = replicapool.pools().list(project, ZONE).execute()
+        def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
+        def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, APPLICATION_NAME)
+        def instanceGroupManagersListResult = replicapool.instanceGroupManagers().list(project, ZONE).execute()
 
-        for (def pool : poolsListResult.resources) {
-          def names = Names.parseName(pool.name)
+        for (def instanceGroupManager : instanceGroupManagersListResult.items) {
+          def names = Names.parseName(instanceGroupManager.name)
           def appName = names.app.toLowerCase()
+
+          def instanceTemplateName = getLocalName(instanceGroupManager.instanceTemplate)
+          def instanceTemplate = credentials.compute.instanceTemplates().get(project, instanceTemplateName).execute()
 
           if (appName) {
             if (!tempAppMap[appName]) {
@@ -96,40 +101,46 @@ class GoogleResourceRetriever {
 
             tempAppMap[appName].clusterNames[accountName] << names.cluster
 
-            // pool.name == names.group
-            def googleServerGroup = new GoogleServerGroup(pool.name, GOOGLE_SERVER_GROUP_TYPE, REGION)
+            // instanceGroupManager.name == names.group
+            def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, REGION)
             googleServerGroup.zones << ZONE
 
             def instanceIdSet = new HashSet<>()
             def earliestReplicaTimestamp = Long.MAX_VALUE
-            def replicasListResult = replicapool.replicas().list(project, ZONE, pool.name).execute()
-            for (def replica : replicasListResult.resources) {
-              long replicaTimestamp = replica.status.vmStartTime
-                                      ? simpleDateFormat.parse(replica.status.vmStartTime).getTime()
-                                      : Long.MAX_VALUE
 
-              // Use earliest replica launchTime as createdTime of replica pool for now.
-              earliestReplicaTimestamp = Math.min(earliestReplicaTimestamp, replicaTimestamp)
+            def resourceViews = new ResourceViewsBuilder().buildResourceViews(credentialBuilder, APPLICATION_NAME)
+            def listResourcesResult = resourceViews.zoneViews().listResources(project, ZONE, instanceGroupManager.name).execute()
 
-              def googleInstance = new GoogleInstance(replica.name)
-              googleInstance.setProperty("isHealthy", replica.status.state == "RUNNING")
+            for (def listResource : listResourcesResult.getItems()) {
+              def instanceName = getLocalName(listResource.resource)
+              def instance = credentials.compute.instances().get(project, ZONE, instanceName).execute()
+
+              long instanceTimestamp = instance.creationTimestamp
+                                       ? simpleDateFormat.parse(instance.creationTimestamp).getTime()
+                                       : Long.MAX_VALUE
+
+              // Use earliest replica launchTime as createdTime of instance group for now.
+              earliestReplicaTimestamp = Math.min(earliestReplicaTimestamp, instanceTimestamp)
+
+              def googleInstance = new GoogleInstance(instance.name)
+              googleInstance.setProperty("isHealthy", instance.status == "RUNNING")
               // oort.aws puts a com.amazonaws.services.ec2.model.Instance here. More importantly, deck expects it.
-              googleInstance.setProperty("instance", [instanceId: replica.name,
-                                                      instanceType: pool.template.vmParams.machineType,
+              googleInstance.setProperty("instance", [instanceId: instance.name,
+                                                      instanceType: instanceTemplate.properties.machineType,
                                                       providerType: GOOGLE_INSTANCE_TYPE,
-                                                      launchTime: replicaTimestamp,
+                                                      launchTime: instanceTimestamp,
                                                       placement : [availabilityZone: ZONE]])
               googleServerGroup.instances << googleInstance
 
-              instanceIdSet << [instanceId: replica.name]
+              instanceIdSet << [instanceId: instance.name]
             }
 
             // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
             googleServerGroup.setProperty("asg", [createdTime: earliestReplicaTimestamp,
                                                   instances  : instanceIdSet,
-                                                  minSize    : pool.currentNumReplicas,
-                                                  maxSize    : pool.currentNumReplicas,
-                                                  desiredCapacity: pool.currentNumReplicas])
+                                                  minSize    : instanceGroupManager.targetSize,
+                                                  maxSize    : instanceGroupManager.targetSize,
+                                                  desiredCapacity: instanceGroupManager.targetSize])
 
             cluster.serverGroups << googleServerGroup
           }
@@ -166,5 +177,11 @@ class GoogleResourceRetriever {
 
   Map<String, GoogleApplication> getApplicationsMap() {
     return appMap
+  }
+
+  private static String getLocalName(String fullUrl) {
+    int lastIndex = fullUrl.lastIndexOf('/')
+
+    return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 }
