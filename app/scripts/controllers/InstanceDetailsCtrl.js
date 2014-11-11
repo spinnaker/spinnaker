@@ -35,7 +35,7 @@ angular.module('deckApp')
       if (instanceSummary && account && region) {
         oortService.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           $scope.instance = angular.extend(details.plain(), instanceSummary);
-          extractHealthMetrics($scope.instance);
+          extractHealthMetrics(details);
           $scope.instance.account = account;
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         });
