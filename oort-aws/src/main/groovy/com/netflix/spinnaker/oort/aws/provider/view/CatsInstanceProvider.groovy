@@ -24,6 +24,7 @@ import com.netflix.spinnaker.oort.model.InstanceProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
 @Component
@@ -44,6 +45,9 @@ class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
     }
     AmazonInstance instance = new AmazonInstance(id)
     instance.putAll(instanceEntry.attributes)
+    if (instanceEntry.relationships[HEALTH.ns]) {
+      instance.health = cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes
+    }
 
     instance
   }

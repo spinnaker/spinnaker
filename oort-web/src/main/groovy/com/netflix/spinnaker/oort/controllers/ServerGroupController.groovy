@@ -76,7 +76,7 @@ class ServerGroupController {
       region = serverGroup.region
       createdTime = serverGroup.getCreatedTime()
       isDisabled = serverGroup.isDisabled()
-      instances = serverGroup.getInstances().collect { new InstanceViewModel(it) }
+      instances = serverGroup.getInstances().findResults { it ? new InstanceViewModel(it) : null }
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
       if (serverGroup.hasProperty("buildInfo")) {
