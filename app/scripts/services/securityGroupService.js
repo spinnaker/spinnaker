@@ -47,7 +47,7 @@ angular.module('deckApp')
           attachUsageFields(match);
           applicationSecurityGroups.push(match);
         } catch(e) {
-          $exceptionHandler('could not find', securityGroup, e);
+          $exceptionHandler('could not initialize application security group:', securityGroup);
         }
       });
 
@@ -60,7 +60,7 @@ angular.module('deckApp')
               securityGroup.usages.loadBalancers.push(loadBalancer);
               applicationSecurityGroups.push(securityGroup);
             } catch (e) {
-              $exceptionHandler('could not find:', loadBalancer.name, securityGroupId);
+              $exceptionHandler('could attach security group to load balancer:', loadBalancer.name, securityGroupId);
             }
           });
         }
@@ -70,13 +70,11 @@ angular.module('deckApp')
           serverGroup.securityGroups.forEach(function (securityGroupId) {
             try {
               var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
-              if (!securityGroup.usages) {
-                securityGroup.usages = { serverGroups: [], loadBalancers: [] };
-              }
+              attachUsageFields(securityGroup);
               securityGroup.usages.serverGroups.push(serverGroup);
               applicationSecurityGroups.push(securityGroup);
             } catch (e) {
-              $exceptionHandler('could not find:', serverGroup.name, e);
+              $exceptionHandler('could not attach security group to server group:', serverGroup.name, securityGroupId);
             }
           });
         }
