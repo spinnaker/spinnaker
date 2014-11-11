@@ -2,7 +2,7 @@ dependencies {
   compile project(":oort-core")
 
   spinnaker.group("bootWeb")
-  spinnaker.group("gce")
+  spinnaker.group("google")
 
   compile spinnaker.dependency("frigga")
   compile 'com.codahale.metrics:metrics-core:3.0.2'
