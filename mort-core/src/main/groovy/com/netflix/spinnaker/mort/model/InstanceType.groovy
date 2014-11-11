@@ -25,10 +25,6 @@ package com.netflix.spinnaker.mort.model
  */
 interface InstanceType {
 
-    String getId()
-
     String getName()
-
-    String getDescription()
 
 }

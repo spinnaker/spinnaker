@@ -54,7 +54,7 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
       })
 
       observable.subscribe {
-          cacheService.put(Keys.getInstanceTypeKey(it.reservedInstancesOfferingId, region, account), it)
+          cacheService.put(Keys.getInstanceTypeKey(it.instanceType, region, account), it)
       }
   }
 }

@@ -35,18 +35,14 @@ class AmazonInstanceTypeProviderSpec extends Specification {
                 new AmazonInstanceType(
                         account: 'test',
                         region: 'us-east-1',
-                        id: 'itp1',
                         name: 'm1.large',
-                        availabilityZone: 'us-east-1a',
-                        description: 'Linux/UNIX'
+                        availabilityZone: 'us-east-1a'
                 ),
                 new AmazonInstanceType(
                         account: 'prod',
                         region: 'us-west-1',
-                        id: 'itp2',
                         name: 'm1.medium',
-                        availabilityZone: 'us-west-1b',
-                        description: 'Linux/UNIX'
+                        availabilityZone: 'us-west-1b'
                 )
         ] as Set
 

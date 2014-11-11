@@ -63,7 +63,7 @@ class AmazonSecurityGroupOnDemandCacheUpdater implements OnDemandCacheUpdater {
       return
     }
 
-    def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+    def ec2 = amazonClientProvider.getAmazonEC2(credentials, region)
     def cachingAgent = new AmazonSecurityGroupCachingAgent(account: credentials.name, region: region, ec2: ec2,
         cacheService: cacheService)
 

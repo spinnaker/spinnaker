@@ -46,10 +46,10 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
         reservedInstancesOfferings: [
-            new ReservedInstancesOffering(reservedInstancesOfferingId: '1')
+            new ReservedInstancesOffering(instanceType: '1')
         ]
     )
-    1 * cacheService.put('instanceTypes:1:test:us-east-1', new ReservedInstancesOffering(reservedInstancesOfferingId: '1'))
+    1 * cacheService.put('instanceTypes:1:test:us-east-1', new ReservedInstancesOffering(instanceType: '1'))
     0 * _
   }
 
@@ -60,19 +60,19 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
       then:
       1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
               reservedInstancesOfferings: [
-                      new ReservedInstancesOffering(reservedInstancesOfferingId: '1'),
-                      new ReservedInstancesOffering(reservedInstancesOfferingId: '2')
+                      new ReservedInstancesOffering(instanceType: '1'),
+                      new ReservedInstancesOffering(instanceType: '2')
               ],
               nextToken: 'moar'
       )
       1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest(nextToken: 'moar')) >> new DescribeReservedInstancesOfferingsResult(
               reservedInstancesOfferings: [
-                      new ReservedInstancesOffering(reservedInstancesOfferingId: '3')
+                      new ReservedInstancesOffering(instanceType: '3')
               ]
       )
-      1 * cacheService.put('instanceTypes:1:test:us-east-1', new ReservedInstancesOffering(reservedInstancesOfferingId: '1'))
-      1 * cacheService.put('instanceTypes:2:test:us-east-1', new ReservedInstancesOffering(reservedInstancesOfferingId: '2'))
-      1 * cacheService.put('instanceTypes:3:test:us-east-1', new ReservedInstancesOffering(reservedInstancesOfferingId: '3'))
+      1 * cacheService.put('instanceTypes:1:test:us-east-1', new ReservedInstancesOffering(instanceType: '1'))
+      1 * cacheService.put('instanceTypes:2:test:us-east-1', new ReservedInstancesOffering(instanceType: '2'))
+      1 * cacheService.put('instanceTypes:3:test:us-east-1', new ReservedInstancesOffering(instanceType: '3'))
       0 * _
   }
 
