@@ -107,8 +107,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.cluster
       if (includeDetails) {
-        cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancers.get(it) }
-        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroups.get(it) }
+        cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
+        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
@@ -142,7 +142,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
       def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
       serverGroup.putAll(serverGroupEntry.attributes)
-      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.collect { instances.get(it) } - null
+      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
       [(serverGroupEntry.id) : serverGroup]
     }
 
@@ -234,7 +234,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship) {
-    Collection<String> relationships = sources.collect { it.relationships[relationship]?: [] }.flatten()
+    Collection<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
     relationships ? cacheView.getAll(relationship, relationships) : []
   }
 

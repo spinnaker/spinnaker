@@ -41,7 +41,7 @@ interface ClusterProvider<T extends Cluster> {
    * Similar to {@link #getClusterSummaries(java.lang.String)}, but returns the names of server groups and load balancers, not reified views.
    *
    * @param application
-   * @return set of clusters or an empty set if none exist
+   * @return map of clusters, keyed on account name, or an empty map if none exist
    */
   @Empty
   Map<String, Set<T>> getClusterSummaries(String application)
@@ -52,7 +52,7 @@ interface ClusterProvider<T extends Cluster> {
    * Similar to {@link #getClusterSummaries(java.lang.String)}, but returns reified views of server groups and load balancers.
    *
    * @param application
-   * @return set of clusters or an empty set if none exist
+   * @return map of clusters, keyed on account name, or an empty map if none exist
    */
   @Empty
   Map<String, Set<T>> getClusterDetails(String application)
