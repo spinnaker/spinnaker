@@ -42,25 +42,25 @@ angular.module('deckApp')
       application.securityGroupsIndex = indexedSecurityGroups;
 
       nameBasedSecurityGroups.forEach(function(securityGroup) {
-        var match = indexedSecurityGroups[securityGroup.account][securityGroup.region][securityGroup.id];
-        if (match) {
+        try {
+          var match = indexedSecurityGroups[securityGroup.account][securityGroup.region][securityGroup.id];
           attachUsageFields(match);
           applicationSecurityGroups.push(match);
-        } else {
-          $exceptionHandler('could not find', securityGroup, indexedSecurityGroups);
+        } catch(e) {
+          $exceptionHandler('could not find', securityGroup, e);
         }
       });
 
       application.loadBalancers.forEach(function(loadBalancer) {
         if (loadBalancer.securityGroups) {
           loadBalancer.securityGroups.forEach(function(securityGroupId) {
-            var securityGroup = indexedSecurityGroups[loadBalancer.account][loadBalancer.region][securityGroupId];
-            if (!securityGroup) {
-              $exceptionHandler('could not find:', loadBalancer.name, securityGroupId);
-            } else {
+            try {
+              var securityGroup = indexedSecurityGroups[loadBalancer.account][loadBalancer.region][securityGroupId];
               attachUsageFields(securityGroup);
               securityGroup.usages.loadBalancers.push(loadBalancer);
               applicationSecurityGroups.push(securityGroup);
+            } catch (e) {
+              $exceptionHandler('could not find:', loadBalancer.name, securityGroupId);
             }
           });
         }
@@ -68,15 +68,15 @@ angular.module('deckApp')
       application.serverGroups.forEach(function(serverGroup) {
         if (serverGroup.securityGroups) {
           serverGroup.securityGroups.forEach(function (securityGroupId) {
-            var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
-            if (!securityGroup) {
-              $exceptionHandler('could not find:', serverGroup.name, securityGroupId);
-            } else {
+            try {
+              var securityGroup = indexedSecurityGroups[serverGroup.account][serverGroup.region][securityGroupId];
               if (!securityGroup.usages) {
                 securityGroup.usages = { serverGroups: [], loadBalancers: [] };
               }
               securityGroup.usages.serverGroups.push(serverGroup);
               applicationSecurityGroups.push(securityGroup);
+            } catch (e) {
+              $exceptionHandler('could not find:', serverGroup.name, e);
             }
           });
         }
