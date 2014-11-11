@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.ops
 
-import com.google.api.services.replicapool.model.PoolsDeleteRequest
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -47,11 +46,11 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
     def project = description.credentials.project
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.REPLICAPOOL)
+    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
 
-    replicapool.pools().delete(project, description.zone, description.replicaPoolName, new PoolsDeleteRequest()).execute()
+    replicapool.instanceGroupManagers().delete(project, description.zone, description.replicaPoolName).execute()
 
     task.updateStatus BASE_PHASE, "Done deleting replica pool $description.replicaPoolName in $description.zone."
     null

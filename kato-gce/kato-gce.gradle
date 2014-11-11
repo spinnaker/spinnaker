@@ -17,7 +17,7 @@
 dependencies {
   compile project(":kato-core")
   compile spinnaker.dependency("frigga")
-  compile "com.google.apis:google-api-services-compute:v1-rev17-1.18.0-rc"
-  compile 'com.google.apis:google-api-services-replicapool:v1beta1-rev16-1.19.0'
+  compile 'com.google.apis:google-api-services-compute:v1-rev40-1.19.0'
+  compile 'com.google.apis:google-api-services-replicapool:v1beta2-rev1-1.19.0'
   compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
 }
