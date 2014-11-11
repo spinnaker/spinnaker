@@ -4,7 +4,7 @@
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, mortService,
                                           securityGroupService, accountService, oortService,
-                                          _, $stateParams, $location, settings, $q) {
+                                          _, $stateParams, $location, settings, $q, $window) {
     var defPrimary = 'account', defSecondary = 'region';
     $scope.sortFilter.allowSorting = true;
     $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;
@@ -25,6 +25,18 @@ angular.module('deckApp')
         sortOptions.filter(function(option) { return option.key !== exclude; }) :
         sortOptions;
     };
+
+    // Because we use reloadOnSearch: false for this state, and reloadOnSearch doesn't discriminate parameters,
+    // we won't change state when the application changes in the URL via global search or manually changing the URL
+    // if the current view is 'clusters'. So we must brutally reload the entire page.
+    $scope.$on('$locationChangeStart', function(event, newLocation, currentLocation) {
+      var pattern = /applications\/(.+)\/clusters([^\/]?)/;
+      var newLocationMatch = pattern.exec(newLocation),
+          currentLocationMatch = pattern.exec(currentLocation);
+      if (newLocationMatch && currentLocationMatch && newLocationMatch[1] !== currentLocationMatch[1]) {
+        $window.location.reload();
+      }
+    });
 
     this.updateSorting = function updateSorting() {
       var sortFilter = $scope.sortFilter;

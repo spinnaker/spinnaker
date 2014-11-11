@@ -15,7 +15,8 @@ angular.module('deckApp')
             accountId: input.account,
             region: input.region,
             serverGroup: input.serverGroup,
-          }
+          },
+          { inherit: false }
         );
       },
       // url for a single instance
@@ -28,7 +29,8 @@ angular.module('deckApp')
             accountId: input.account,
             instanceId: input.instanceId,
             account: input.account,
-          }
+          },
+          { inherit: false }
         );
       },
       // url for a single cluster
@@ -39,7 +41,8 @@ angular.module('deckApp')
             application: input.application,
             cluster: input.cluster,
             account: input.account,
-          }
+          },
+          { inherit: false }
         );
       },
       // url for a single application
@@ -48,7 +51,8 @@ angular.module('deckApp')
           'home.applications.application.insight.clusters',
           {
             application: input.application,
-          }
+          },
+          { inherit: false }
         );
       },
       // url for a single load balancer
@@ -60,7 +64,8 @@ angular.module('deckApp')
             name: input.loadBalancer,
             region: input.region,
             accountId: input.account
-          }
+          },
+          { inherit: false }
         );
       },
       // url for application tasks
@@ -69,7 +74,8 @@ angular.module('deckApp')
           'home.applications.application.tasks',
           {
             application: input.application,
-          }
+          },
+          { inherit: false }
         );
       },
       'task': function(input) {
@@ -78,7 +84,8 @@ angular.module('deckApp')
           {
             application: input.application,
             taskId: input.taskId
-          }
+          },
+          { inherit: false }
         );
       }
     };
