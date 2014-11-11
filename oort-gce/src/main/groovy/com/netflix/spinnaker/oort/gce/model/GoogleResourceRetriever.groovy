@@ -19,7 +19,7 @@ package com.netflix.spinnaker.oort.gce.model
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.oort.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import org.apache.log4j.Logger
 
 import java.util.concurrent.atomic.AtomicBoolean
