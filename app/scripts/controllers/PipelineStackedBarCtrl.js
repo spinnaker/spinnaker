@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .controller('PipelineStackedBarCtrl', function($scope, $element, d3Service, momentService) {
+  .controller('PipelineStackedBarCtrl', function($scope, $element, d3Service, momentService, $window) {
     var data = $scope.executions;
     $scope.timescale = 'absolute';
 
@@ -97,7 +97,7 @@ angular.module('deckApp')
       .enter()
       .append('rect')
       .attr('height', y.rangeBand())
-      .attr('class', 'what')
+      .attr('class', 'segment')
       .style('fill', function(d) { return color(d.name); });
 
       var legend = svg.selectAll('.legend')
@@ -119,29 +119,6 @@ angular.module('deckApp')
         .style('text-anchor', 'start')
         .text(function(d) { return d; });
 
-    /*
-    execution.selectAll('text')
-      .data(function(d) {
-        return d.stages.map(function(stage) {
-          stage.executionStart = d.startTime;
-          return stage;
-        });
-      })
-      .enter()
-      .append('text')
-      .attr('height', y.rangeBand())
-      .attr('x', function(d) { return x(d.startTime) - x(d.executionStartTime); })
-      .attr('width', function(d) { return x(d.endTime) - x(d.startTime) ; })
-      .text(function(d) {
-        return x(d.endTime) - x(d.startTime) > 10 ? d.name : '';
-      })
-      .attr('color', '#fff')
-      .attr('text-anchoer', 'middle')
-      .attr('dy', 25)
-      .attr('dx', 5)
-      .attr('class', 'vis-label');
-      */
-
     $scope.$watch('timescale', function(scale) {
       var trans = svg
         .transition()
@@ -152,8 +129,8 @@ angular.module('deckApp')
           x.domain([0,1]);
 
           trans
-           .selectAll('rect.what')
-            .attr('x', function(d) { 
+           .selectAll('rect.segment')
+            .attr('x', function(d) {
               return x(d.startTimePercentage);
             })
             .attr('width', function(d) {
@@ -170,11 +147,31 @@ angular.module('deckApp')
           ]);
 
           trans
-            .selectAll('rect.what')
+            .selectAll('rect.segment')
             .attr('x', function(d) { return x(d.startTime) - x(d.executionStartTime); })
             .attr('width', function(d) { return x(d.endTime) - x(d.startTime) ; });
-          break;  
+          break;
         }
       }
+    });
+
+    angular.element($window).bind('resize', function() {
+      var width = $element.get()[0].clientWidth - margin.left - margin.right;
+      var height = 300 - margin.top - margin.bottom;
+      svg.attr({
+        width: width,
+        height: height,
+      });
+      x.rangeRound([0, width]);
+      y.rangeRoundBands([height, 0], 0.1);
+
+      execution
+        .selectAll('rect.segment')
+        .attr('x', function(d) { return x(d.startTime) - x(d.executionStartTime); })
+        .attr('width', function(d) { return x(d.endTime) - x(d.startTime) ; });
+    });
+
+    $scope.$on('$destroy', function() {
+      angular.element($element).unbind();
     });
   });
