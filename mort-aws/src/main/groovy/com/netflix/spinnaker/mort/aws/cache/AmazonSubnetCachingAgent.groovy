@@ -22,9 +22,11 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.CachingAgent
 import groovy.transform.Immutable
+import groovy.util.logging.Slf4j
 import rx.Observable
 
 @Immutable(knownImmutables = ["ec2", "cacheService"])
+@Slf4j
 class AmazonSubnetCachingAgent implements CachingAgent {
   final String account
   final String region
@@ -32,8 +34,13 @@ class AmazonSubnetCachingAgent implements CachingAgent {
   final CacheService cacheService
 
   @Override
+  String getDescription() {
+    "[$account:$region:snt]"
+  }
+
+  @Override
   void call() {
-    println "[$account:$region:snt] - Caching..."
+    log.info "$description - Caching..."
     def result = ec2.describeSubnets()
     Observable.from(result.subnets).subscribe {
       cacheService.put(Keys.getSubnetKey(it.subnetId, region, account), it)

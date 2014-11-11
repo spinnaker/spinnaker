@@ -21,9 +21,11 @@ import com.amazonaws.services.ec2.model.ReservedInstancesOffering
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.CachingAgent
 import groovy.transform.Immutable
+import groovy.util.logging.Slf4j
 import rx.Subscriber
 
 @Immutable(knownImmutables = ["ec2", "cacheService"])
+@Slf4j
 class AmazonInstanceTypeCachingAgent implements CachingAgent {
   final String account
   final String region
@@ -31,8 +33,13 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
   final CacheService cacheService
 
   @Override
+  String getDescription() {
+      "[$account:$region:itp]"
+  }
+
+  @Override
   void call() {
-    println "[$account:$region:itp] - Caching..."
+      log.info "$description - Caching..."
 
       def observable = rx.Observable.create(new rx.Observable.OnSubscribe<ReservedInstancesOffering>() {
           @Override

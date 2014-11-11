@@ -22,8 +22,10 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.CachingAgent
 import groovy.transform.Immutable
+import groovy.util.logging.Slf4j
 
 @Immutable(knownImmutables = ["ec2", "cacheService"])
+@Slf4j
 class AmazonVpcCachingAgent implements CachingAgent {
   final String account
   final String region
@@ -33,8 +35,13 @@ class AmazonVpcCachingAgent implements CachingAgent {
   private Set<String> lastRun = []
 
   @Override
+  String getDescription() {
+    "[$account:$region:vpc]"
+  }
+
+  @Override
   void call() {
-    println "[$account:$region:vpc] - Caching..."
+    log.info "$description - Caching..."
     def result = ec2.describeVpcs()
     def thisRun = []
     rx.Observable.from(result.vpcs).filter {

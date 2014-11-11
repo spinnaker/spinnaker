@@ -17,6 +17,12 @@
 package com.netflix.spinnaker.mort.model
 
 class NoopCachingAgent implements CachingAgent {
+
+    @Override
+    String getDescription() {
+        "[noop]"
+    }
+
     @Override
     void call() {
 

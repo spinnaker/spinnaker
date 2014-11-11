@@ -18,14 +18,17 @@ package com.netflix.spinnaker.mort.rx
 
 import com.netflix.spinnaker.mort.model.CachingAgent
 import com.netflix.spinnaker.mort.model.CachingAgentScheduler
-import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import rx.Scheduler.Worker
 import rx.functions.Action0
 import rx.schedulers.Schedulers
 
+import javax.annotation.PostConstruct
+import java.util.concurrent.TimeUnit
+
+@Slf4j
 class RxCachingAgentScheduler implements CachingAgentScheduler {
 
   private static final Worker worker = Schedulers.io().createWorker()
@@ -51,8 +54,7 @@ class RxCachingAgentScheduler implements CachingAgentScheduler {
         try {
             cachingAgent.call()
         } catch (e) {
-            e.printStackTrace() // Give some indication that the cache is failing
-            throw e
+            log.warn("Caching failed for $cachingAgent.description", e)
         }
     }
   }

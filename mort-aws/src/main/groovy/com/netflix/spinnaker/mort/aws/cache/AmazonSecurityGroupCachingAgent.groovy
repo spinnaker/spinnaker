@@ -23,9 +23,11 @@ import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.*
 import com.netflix.spinnaker.mort.model.securitygroups.*
 import groovy.transform.Immutable
+import groovy.util.logging.Slf4j
 import rx.Observable
 
 @Immutable(knownImmutables = ["ec2", "cacheService"])
+@Slf4j
 class AmazonSecurityGroupCachingAgent implements CachingAgent {
   final String account
   final String region
@@ -35,8 +37,13 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
   private Map<String, Integer> lastRun = [:]
 
   @Override
+  String getDescription() {
+      "[$account:$region:sgs]"
+  }
+
+  @Override
   void call() {
-    println "[$account:$region:sgs] - Caching..."
+    log.info "$description - Caching..."
     def result = ec2.describeSecurityGroups()
     def thisRun = [:]
     Observable.from(result.securityGroups).filter {
