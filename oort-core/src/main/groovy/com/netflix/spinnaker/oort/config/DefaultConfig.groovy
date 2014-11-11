@@ -123,7 +123,7 @@ class DefaultConfig {
   @Bean
   @ConditionalOnMissingBean(AgentScheduler)
   AgentScheduler defaultAgentScheduler(@Value('${pollIntervalSeconds:60') long pollIntervalSeconds) {
-    new DefaultAgentScheduler(3000, TimeUnit.SECONDS)
+    new DefaultAgentScheduler(pollIntervalSeconds, TimeUnit.SECONDS)
   }
 
   @Bean
