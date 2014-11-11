@@ -25,7 +25,6 @@ dependencies {
   compile project(":mort-aws")
   spinnaker.group('bootWeb')
   runtime spinnaker.dependency("kork")
-  compile "com.netflix.eureka:eureka-client:1.1.136"
 }
 
 ospackage {
