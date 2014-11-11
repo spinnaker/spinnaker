@@ -18,10 +18,10 @@
 
 package com.netflix.spinnaker.front50.exception
 
-import groovy.transform.InheritConstructors;
+import groovy.transform.InheritConstructors
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * Created by aglover on 4/23/14.
- */
 @InheritConstructors
+@ResponseStatus(value = HttpStatus.NOT_FOUND)
 public class NotFoundException extends RuntimeException {}

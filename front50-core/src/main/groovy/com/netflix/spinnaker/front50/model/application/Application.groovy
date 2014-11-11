@@ -20,9 +20,13 @@ package com.netflix.spinnaker.front50.model.application
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.front50.exception.NoPrimaryKeyException
+import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.validator.ApplicationValidationErrors
+import com.netflix.spinnaker.front50.validator.ApplicationValidator
+import groovy.transform.Canonical
 import groovy.transform.ToString
+import org.springframework.validation.Errors
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -47,6 +51,9 @@ class Application {
 
   @JsonIgnore
   ApplicationDAO dao
+
+  @JsonIgnore
+  Collection<ApplicationValidator> validators
 
   Application() {} //forces Groovy to add LinkedHashMap constructor
 
@@ -79,15 +86,22 @@ class Application {
   }
 
   void update(Map<String, String> newAttributes) {
-    checkForName()
-    //must have a name, go ahead and remove it
-    newAttributes.remove("name")
+    validate(new Application(allColumnProperties() << newAttributes))
+
+    ["name", "updateTs", "createTs"].each {
+      // remove attributes that should not be externally modifiable
+      newAttributes.remove(it)
+    }
+    newAttributes.each { String key, String value ->
+      // apply updates locally (in addition to DAO persistence)
+      this[key] = value
+    }
+
     this.dao.update(this.name.toUpperCase(), newAttributes)
   }
 
   void delete() {
-    checkForName()
-    this.dao.delete(this.name.toUpperCase())
+    this.dao.delete(findByName(this.name).name)
   }
 
   Application clear() {
@@ -116,10 +130,15 @@ class Application {
   }
 
   Application save() {
+    validate(this)
+
+    try {
+      if (findByName(getName())) {
+        throw new ApplicationAlreadyExistsException()
+      }
+    } catch (NotFoundException ignored) {}
+
     Map<String, String> values = allSetColumnProperties()
-    if (!values.containsKey('name') || !values.containsKey('email')) {
-      throw new NoPrimaryKeyException("Application lacks a name and/or email!")
-    }
     return dao.create(values['name'].toUpperCase(), values)
   }
 
@@ -128,6 +147,10 @@ class Application {
   }
 
   Application findByName(String name) throws NotFoundException {
+    if (!name?.trim()) {
+      throw new NotFoundException("No application name provided")
+    }
+
     return dao.findByName(name.toUpperCase())
   }
 
@@ -140,9 +163,31 @@ class Application {
     return this
   }
 
-  private void checkForName() {
-    if (this.name == null || this.name.equals("")) {
-      throw new NoPrimaryKeyException("Application lacks a name!")
+  Map<String, String> allSetColumnProperties() {
+    return allColumnProperties(true)
+  }
+
+  Map<String, String> allColumnProperties(boolean onlySet = false) {
+    Application.declaredFields.toList().findResults {
+      if (isColumnProperty(it)) {
+        def value = this."$it.name"
+        if (onlySet) {
+          return value ? [it.name, value] : null
+        }
+        return [it.name, value]
+      }
+      null
+    }.collectEntries()
+  }
+
+  private void validate(Application application) {
+    def errors = new ApplicationValidationErrors(application)
+    validators.each {
+      it.validate(application, errors)
+    }
+
+    if (errors.hasErrors()) {
+      throw new ValidationException(errors)
     }
   }
 
@@ -150,13 +195,8 @@ class Application {
     (field.modifiers == Modifier.PRIVATE) && (field.genericType == String.class)
   }
 
-  Map<String, String> allSetColumnProperties() {
-    Application.declaredFields.toList().findResults {
-      if (isColumnProperty(it)) {
-        def value = this."$it.name"
-        return value ? [it.name, value] : null
-      }
-      null
-    }.collectEntries()
+  @Canonical
+  static class ValidationException extends RuntimeException {
+    Errors errors
   }
 }

@@ -18,7 +18,9 @@
 
 package com.netflix.spinnaker.front50.model.application
 
-import com.netflix.spinnaker.front50.exception.NoPrimaryKeyException
+import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.validator.HasEmailValidator
+import com.netflix.spinnaker.front50.validator.HasNameValidator
 import spock.lang.Specification
 
 /**
@@ -92,6 +94,7 @@ class ApplicationModelSpec extends Specification {
 
     def application = new Application()
     application.dao = dao
+    application.validators = [new HasNameValidator()]
 
     application.email = 'aglover@netflix.com'
 
@@ -99,7 +102,7 @@ class ApplicationModelSpec extends Specification {
     application.update(["email": "cameron@netflix.com"])
 
     then:
-    thrown(NoPrimaryKeyException)
+    thrown(Application.ValidationException)
   }
 
   void 'save should result in a newly created application'() {
@@ -120,27 +123,27 @@ class ApplicationModelSpec extends Specification {
   }
 
   void 'save should result in an exception is no name is provided'() {
-    def dao = Mock(ApplicationDAO)
-
     def application = new Application()
+    application.validators = [new HasNameValidator()]
+
     application.email = 'aglover@netflix.com'
     when:
     application.save()
 
     then:
-    thrown(NoPrimaryKeyException)
+    thrown(Application.ValidationException)
   }
 
   void 'save should result in an exception is no email is provided'() {
-    def dao = Mock(ApplicationDAO)
-
     def application = new Application()
+    application.validators = [new HasEmailValidator()]
+
     application.name = 'TEST-APP'
     when:
     application.save()
 
     then:
-    thrown(NoPrimaryKeyException)
+    thrown(Application.ValidationException)
   }
 
   void 'delete should just work'() {
@@ -154,6 +157,7 @@ class ApplicationModelSpec extends Specification {
 
     then:
     1 * dao.delete("TEST_APP")
+    1 * dao.findByName("TEST_APP") >> new Application(name: "TEST_APP")
   }
 
   void 'cannot delete w/o a name'() {
@@ -165,7 +169,20 @@ class ApplicationModelSpec extends Specification {
     app.delete()
 
     then:
-    thrown(NoPrimaryKeyException)
+    thrown(NotFoundException)
+  }
+
+  void 'cannot delete an app that does not exist'() {
+    def dao = Mock(ApplicationDAO)
+    def app = new Application(name: "APP")
+    app.dao = dao
+
+    when:
+    app.delete()
+
+    then:
+    1 * dao.findByName("APP") >> { throw new NotFoundException() }
+    thrown(NotFoundException)
   }
 
   void 'find apps by name'() {

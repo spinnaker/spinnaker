@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
+configurations.all {
+  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
 dependencies {
-  spinnaker.group "bootWeb"
-  compile spinnaker.dependency("amos")
+  compile project(":front50-core")
+  compile("com.netflix.spinnaker.kork:kork-cassandra:1.23")
+}
+
+test {
+  // jamm is required when using prepared statements with in-memory C*
+  jvmArgs "-javaagent:${project.configurations.compile.find { it.name.startsWith('jamm') }}"
 }

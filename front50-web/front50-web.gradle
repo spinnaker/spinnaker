@@ -33,10 +33,16 @@ ideaConfig {
 
 applicationDefaultJvmArgs = ["-Dserver.port=8080"]
 
+configurations.all {
+  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
 dependencies {
   compile project(":front50-core")
   compile project(":front50-aws")
   compile project(":front50-gce")
+  compile project(":front50-cassandra")
+
   spinnaker.group "bootWeb"
   compile spinnaker.dependency("kork")
 }

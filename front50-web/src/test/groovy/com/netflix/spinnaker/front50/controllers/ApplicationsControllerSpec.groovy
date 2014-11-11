@@ -25,6 +25,9 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
+import com.netflix.spinnaker.front50.validator.HasEmailValidator
+import com.netflix.spinnaker.front50.validator.HasNameValidator
+import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -58,7 +61,12 @@ class ApplicationsControllerSpec extends Specification {
     daoProvider.supports(_) >> true
     daoProvider.getForAccount(_) >> dao
     accountCredentialsProvider = Mock(AccountCredentialsProvider)
-    this.controller = new ApplicationsController(applicationDAOProviders: [daoProvider], accountCredentialsProvider: accountCredentialsProvider)
+    this.controller = new ApplicationsController(
+        applicationDAOProviders: [daoProvider],
+        accountCredentialsProvider: accountCredentialsProvider,
+        applicationValidators: [new HasNameValidator(), new HasEmailValidator()],
+        messageSource: new StaticMessageSource()
+    )
     this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
   }
 
@@ -107,7 +115,22 @@ class ApplicationsControllerSpec extends Specification {
     response.andExpect status().is4xxClientError()
   }
 
-  void 'a post w/a new application should yeild a success'() {
+  void 'a post w/an existing application will throw an error'() {
+    setup:
+    def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
+        "netflix.com application", "Standalone Application", null, null, null, null, null, null)
+
+    when:
+    def response = mockMvc.perform(post("/test/applications/name/SAMPLEAPP").
+        contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
+
+    then:
+    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
+    1 * dao.findByName("SAMPLEAPP") >> sampleApp
+    response.andExpect status().is4xxClientError()
+  }
+
+  void 'a post w/a new application should yield a success'() {
     setup:
     def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
       "netflix.com application", "Standalone Application", null, null, null, null, null, null)
@@ -119,6 +142,7 @@ class ApplicationsControllerSpec extends Specification {
 
     then:
     1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
+    1 * dao.findByName(_) >> { throw new NotFoundException() }
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
   }
@@ -154,6 +178,7 @@ class ApplicationsControllerSpec extends Specification {
 
     then:
     1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
+    1 * dao.findByName("SAMPLEAPP") >> new Application(name: "SAMPLEAPP")
     1 * dao.delete("SAMPLEAPP")
     response.andExpect status().isAccepted()
 

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-dependencies {
-  spinnaker.group "bootWeb"
-  compile spinnaker.dependency("amos")
+
+package com.netflix.spinnaker.front50.validator
+
+import com.netflix.spinnaker.front50.model.application.Application
+
+interface ApplicationValidator {
+  void validate(Application application, ApplicationValidationErrors validationErrors)
 }
