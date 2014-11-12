@@ -69,6 +69,9 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   AmazonServerGroup getServerGroup(String account, String region, String name) {
     String serverGroupKey = Keys.getServerGroupKey(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
+    if (serverGroupData == null) {
+      return null
+    }
     Collection<CacheData> launchConfigs = resolveRelationshipData(serverGroupData, LAUNCH_CONFIGS.ns)
     def asg = serverGroupData.attributes["asg"]
     def serverGroup = new AmazonServerGroup()
