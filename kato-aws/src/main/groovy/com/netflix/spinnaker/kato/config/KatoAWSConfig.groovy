@@ -22,20 +22,27 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
-import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
-import com.netflix.spinnaker.kato.security.aws.BastionCredentialsProvider
+import com.netflix.spinnaker.kato.aws.deploy.userdata.NullOpUserDataProvider
+import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
+import com.netflix.spinnaker.kato.aws.security.BastionCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
+@ConditionalOnProperty('aws.enabled')
+@EnableConfigurationProperties
+@ComponentScan('com.netflix.spinnaker.kato.aws')
 @Configuration
 class KatoAWSConfig {
 

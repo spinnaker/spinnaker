@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.kato")
+@ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters"])
 @EnableAutoConfiguration
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
@@ -37,8 +37,8 @@ class Main extends SpringBootServletInitializer {
     imposeSpinnakerClasspathConfig("kato-local.yml")
   }
 
-  static void main(_) {
-    SpringApplication.run this, [] as String[]
+  static void main(String... args) {
+    SpringApplication.run this, args
   }
 
   static void imposeSpinnakerFileConfig(String file) {

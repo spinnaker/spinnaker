@@ -22,7 +22,7 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.19'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.28'
   }
 }
 
@@ -38,12 +38,6 @@ subprojects { project ->
   sourceCompatibility = 1.7
 
   group = "com.netflix.spinnaker.kato"
-
-  configurations.all {
-    resolutionStrategy {
-      force "com.netflix.archaius:archaius-core:0.6.0"
-    }
-  }
 
   repositories {
     jcenter()

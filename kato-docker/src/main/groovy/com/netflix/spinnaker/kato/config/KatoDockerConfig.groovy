@@ -17,18 +17,24 @@
 package com.netflix.spinnaker.kato.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.kato.security.docker.DockerAccountCredentials
+import com.netflix.spinnaker.kato.docker.security.DockerAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 import javax.annotation.PostConstruct
 
+@ConditionalOnProperty('docker.enabled')
 @Configuration
+@EnableConfigurationProperties
+@ComponentScan('com.netflix.spinnaker.docker')
 class KatoDockerConfig {
 
   @Bean
