@@ -66,7 +66,7 @@ angular.module('deckApp')
               serverGroup.name.toLowerCase(),
               serverGroup.account.toLowerCase(),
               _.collect(serverGroup.loadBalancers, 'name').join(' '),
-              _.collect(serverGroup.instances, 'instanceId').join(' ')
+              _.collect(serverGroup.instances, 'id').join(' ')
             ].join(' ');
           }
         });
