@@ -111,7 +111,8 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   GoogleServerGroup getServerGroup(String account, String region, String name) {
     GoogleServerGroup serverGroup = null
     Names nameParts = Names.parseName(name)
-    GoogleCluster cluster = getCluster(nameParts.app, account, region)
+    GoogleCluster cluster = getCluster(nameParts.app, account, nameParts.cluster)
+    // TODO(duftler): Take region into account as well.
     if (cluster) {
       serverGroup = cluster.serverGroups.find { it.name == name }
     }
