@@ -90,11 +90,7 @@
          ng-repeat="(pipelineName, executions) in pipelines | groupBy:'name'"
          ng-if="filter.groupByPipeline">
       <div class="col-md-12 execution">
-        <div class="row">
-          <div class="col-md-12 pipeline-grouping">
-            <h4 style="font-weight: bold;">{{ pipelineName }}</h4>
-          </div>
-        </div>
+        <pipeline-heading name="pipelineName"></pipeline-heading>
         <timeline iterable="executions"
                   element="exec"
                   timestamp="filter.sortKey">
