@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.mort.config
 
+import com.netflix.amazoncomponents.security.AmazonClientProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
@@ -24,5 +26,8 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnProperty('aws.enabled')
 @ComponentScan('com.netflix.spinnaker.mort.aws')
 class MortAwsConfig {
-
+    @Bean
+    AmazonClientProvider amazonClientProvider() {
+        new AmazonClientProvider()
+    }
 }

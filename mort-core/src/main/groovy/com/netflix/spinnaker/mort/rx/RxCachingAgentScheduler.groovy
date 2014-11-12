@@ -15,13 +15,11 @@
  */
 
 package com.netflix.spinnaker.mort.rx
-
 import com.netflix.spinnaker.mort.model.CachingAgent
 import com.netflix.spinnaker.mort.model.CachingAgentScheduler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import rx.Scheduler.Worker
 import rx.functions.Action0
 import rx.schedulers.Schedulers
 
@@ -30,8 +28,6 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 class RxCachingAgentScheduler implements CachingAgentScheduler {
-
-  private static final Worker worker = Schedulers.io().createWorker()
 
   @Value('${cachingInterval:30000}')
   long cachingInterval
@@ -42,7 +38,7 @@ class RxCachingAgentScheduler implements CachingAgentScheduler {
   @PostConstruct
   void init() {
     for (agent in cachingAgents) {
-      worker.schedulePeriodically(new CachingAgentRxAdapter(cachingAgent: agent), 0, cachingInterval,
+      Schedulers.computation().createWorker().schedulePeriodically(new CachingAgentRxAdapter(cachingAgent: agent), 0, cachingInterval,
           TimeUnit.MILLISECONDS)
     }
   }

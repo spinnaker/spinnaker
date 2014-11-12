@@ -16,46 +16,45 @@
 
 package com.netflix.spinnaker.mort.aws.config
 
+import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.mort.aws.cache.AmazonInstanceTypeCachingAgent
-import com.netflix.spinnaker.mort.aws.cache.AmazonKeyPairCachingAgent
-import com.netflix.spinnaker.mort.aws.cache.AmazonSecurityGroupCachingAgent
-import com.netflix.spinnaker.mort.aws.cache.AmazonSubnetCachingAgent
-import com.netflix.spinnaker.mort.aws.cache.AmazonVpcCachingAgent
+import com.netflix.spinnaker.mort.aws.cache.*
 import com.netflix.spinnaker.mort.model.CacheService
+import com.netflix.spinnaker.mort.model.CachingAgent
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 
 @Configuration
 class AWSCachingAgentConfigurator {
 
-  @Bean
-  Void init(AmazonClientProvider clientProvider,
-            CacheService cacheService,
-            AccountCredentialsRepository accountCredentialsRepository,
-            ConfigurableListableBeanFactory beanFactory) {
-    for (a in accountCredentialsRepository.all) {
-      if (!NetflixAmazonCredentials.isAssignableFrom(a.class)) {
-        continue
-      }
-      def account = (NetflixAmazonCredentials)a
-      for (region in account.regions) {
-        def ec2 = clientProvider.getAmazonEC2(account, region.name)
-        beanFactory.registerSingleton("securityGroupCacher-${account.name}-${region.name}",
-            new AmazonSecurityGroupCachingAgent(account.name, region.name, ec2, cacheService))
-        beanFactory.registerSingleton("subnetCacher-${account.name}-${region.name}",
-            new AmazonSubnetCachingAgent(account.name, region.name, ec2, cacheService))
-        beanFactory.registerSingleton("vpcCacher-${account.name}-${region.name}",
-            new AmazonVpcCachingAgent(account.name, region.name, ec2, cacheService))
-        beanFactory.registerSingleton("keyPairCacher-${account.name}-${region.name}",
-            new AmazonKeyPairCachingAgent(account.name, region.name, ec2, cacheService))
-        beanFactory.registerSingleton("instanceTypeCacher-${account.name}-${region.name}",
-            new AmazonInstanceTypeCachingAgent(account.name, region.name, ec2, cacheService))
-      }
+    @Bean
+    @DependsOn('netflixAmazonCredentials')
+    Map<String, CachingAgent> cachingAgents(AmazonClientProvider clientProvider,
+                                     CacheService cacheService,
+                                     AccountCredentialsRepository accountCredentialsRepository,
+                                     ConfigurableListableBeanFactory beanFactory) {
+        Map<String, CachingAgent> agents = [:]
+        for (a in accountCredentialsRepository.all) {
+            if (!NetflixAmazonCredentials.isAssignableFrom(a.class)) {
+                continue
+            }
+            def account = (NetflixAmazonCredentials) a
+            for (region in account.regions) {
+                AmazonEC2 ec2 = clientProvider.getAmazonEC2(account, region.name)
+                agents["securityGroupCacher-${account.name}-${region.name}".toString()] = new AmazonSecurityGroupCachingAgent(account.name, region.name, ec2, cacheService)
+                agents["subnetCacher-${account.name}-${region.name}".toString()] = new AmazonSubnetCachingAgent(account.name, region.name, ec2, cacheService)
+                agents["vpcCacher-${account.name}-${region.name}".toString()] = new AmazonVpcCachingAgent(account.name, region.name, ec2, cacheService)
+                agents["keyPairCacher-${account.name}-${region.name}".toString()] = new AmazonKeyPairCachingAgent(account.name, region.name, ec2, cacheService)
+                agents["instanceTypeCacher-${account.name}-${region.name}".toString()] = new AmazonInstanceTypeCachingAgent(account.name, region.name, ec2, cacheService)
+            }
+        }
+
+        agents.each { k, v -> beanFactory.registerSingleton(k, v)}
+
+        agents
     }
-    null
-  }
 }

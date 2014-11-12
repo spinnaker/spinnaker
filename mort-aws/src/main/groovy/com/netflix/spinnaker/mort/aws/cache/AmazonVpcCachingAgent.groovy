@@ -17,7 +17,6 @@
 
 
 package com.netflix.spinnaker.mort.aws.cache
-
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.CachingAgent
