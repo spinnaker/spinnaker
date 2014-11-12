@@ -89,4 +89,10 @@ class CoreConfig {
   CachingAgent noopCachingAgent() {
     new NoopCachingAgent()
   }
+
+  @Bean
+  @ConditionalOnMissingBean(OnDemandCacheUpdater)
+  OnDemandCacheUpdater noopOnDemandCacheUpdater() {
+    new NoopOnDemandCacheUpdater()
+  }
 }
