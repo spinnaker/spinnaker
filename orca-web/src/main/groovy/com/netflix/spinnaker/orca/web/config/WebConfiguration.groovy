@@ -21,21 +21,42 @@ import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.pipeline.Stage
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import org.springframework.batch.core.configuration.ListableJobLocator
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer
+import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.batch.core.launch.JobLauncher
+import org.springframework.batch.core.launch.JobOperator
+import org.springframework.batch.core.launch.support.SimpleJobOperator
+import org.springframework.batch.core.repository.JobRepository
+import org.springframework.context.annotation.*
 
 @Configuration
 @ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')
 class WebConfiguration {
+  @Bean
+  BatchConfigurer batchConfigurer() {
+    new MultiThreadedBatchConfigurer()
+  }
 
-  @Bean ObjectMapper objectMapper() {
+  @Bean
+  JobOperator jobOperator(JobLauncher jobLauncher, JobRepository jobRepository, JobExplorer jobExplorer, ListableJobLocator jobRegistry) {
+    def jobOperator = new SimpleJobOperator()
+    jobOperator.jobLauncher = jobLauncher
+    jobOperator.jobRepository = jobRepository
+    jobOperator.jobExplorer = jobExplorer
+    jobOperator.jobRegistry = jobRegistry
+    return jobOperator
+  }
+
+  @Bean
+  ObjectMapper objectMapper() {
     def mapper = new ObjectMapper()
     mapper.addMixInAnnotations(Stage, StageMixins)
     mapper
   }
 
-  @Bean Filter simpleCORSFilter() {
+  @Bean
+  Filter simpleCORSFilter() {
     new Filter() {
       public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res;

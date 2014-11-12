@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import retrofit.RetrofitError
 
 abstract class AbstractInstancesCheckTask implements RetryableTask {
   long backoffPeriod = 1000
@@ -55,37 +56,45 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       return new DefaultTaskResult(PipelineStatus.FAILED)
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
-    def response = oortService.getCluster(names.app, account, names.cluster)
-    if (response.status != 200) {
-      return new DefaultTaskResult(PipelineStatus.RUNNING)
-    }
-    def cluster = objectMapper.readValue(response.body.in().text, Map)
-    if (!cluster || !cluster.serverGroups) {
-      return new DefaultTaskResult(PipelineStatus.RUNNING)
-    }
-    Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
-    for (Map serverGroup in cluster.serverGroups) {
-      String region = serverGroup.region
-      String name = serverGroup.name
-
-      List instances = serverGroup.instances
-      Map asg = serverGroup.asg
-      int minSize = asg.minSize
-
-      if (!serverGroups.containsKey(region) || !serverGroups[region].contains(name) || minSize > instances.size()) {
-        continue
-      }
-
-      seenServerGroup[name] = true
-      def isComplete = hasSucceeded(instances)
-      if (!isComplete) {
+    try {
+      def response = oortService.getCluster(names.app, account, names.cluster)
+      if (response.status != 200) {
         return new DefaultTaskResult(PipelineStatus.RUNNING)
       }
-    }
-    if (seenServerGroup.values().contains(false)) {
-      new DefaultTaskResult(PipelineStatus.RUNNING)
-    } else {
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+      def cluster = objectMapper.readValue(response.body.in().text, Map)
+      if (!cluster || !cluster.serverGroups) {
+        return new DefaultTaskResult(PipelineStatus.RUNNING)
+      }
+      Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
+      for (Map serverGroup in cluster.serverGroups) {
+        String region = serverGroup.region
+        String name = serverGroup.name
+
+        List instances = serverGroup.instances
+        Map asg = serverGroup.asg
+        int minSize = asg.minSize
+
+        if (!serverGroups.containsKey(region) || !serverGroups[region].contains(name) || minSize > instances.size()) {
+          continue
+        }
+
+        seenServerGroup[name] = true
+        def isComplete = hasSucceeded(instances)
+        if (!isComplete) {
+          return new DefaultTaskResult(PipelineStatus.RUNNING)
+        }
+      }
+      if (seenServerGroup.values().contains(false)) {
+        new DefaultTaskResult(PipelineStatus.RUNNING)
+      } else {
+        new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+      }
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        new DefaultTaskResult(PipelineStatus.RUNNING)
+      } else {
+        throw e
+      }
     }
   }
 
