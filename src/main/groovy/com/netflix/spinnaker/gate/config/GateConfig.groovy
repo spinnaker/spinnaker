@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.client.OkClient
+import retrofit.converter.JacksonConverter
 
 
 import static retrofit.Endpoints.newFixedEndpoint
@@ -105,13 +106,14 @@ class GateConfig {
 
   private
   static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
-    def endpoint = serviceConfiguration.discoveryHosts ?
+    def endpoint = serviceConfiguration.discoveryHosts && !serviceConfiguration.getSerivce(serviceName)?.baseUrl ?
         newFixedEndpoint("niws://${serviceConfiguration.getSerivce(serviceName).name}")
         : newFixedEndpoint(serviceConfiguration.getSerivce(serviceName).baseUrl)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
         .setClient(client)
+        .setConverter(new JacksonConverter())
         .setLogLevel(RestAdapter.LogLevel.FULL)
         .build()
         .create(type)
