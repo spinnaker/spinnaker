@@ -45,6 +45,7 @@ class DiscoveryInstance implements Health {
   String amiId
   String instanceType
 
+  String statusPageUrl
   String healthCheckUrl
   String vipAddress
   Long lastUpdatedTimestamp
@@ -57,6 +58,7 @@ class DiscoveryInstance implements Health {
                     @JsonProperty('status') String status,
                     @JsonProperty('overriddenstatus') String overriddenstatus,
                     @JsonProperty('dataCenterInfo') DataCenterInfo dataCenterInfo,
+                    @JsonProperty('statusPageUrl') String statusPageUrl,
                     @JsonProperty('healthCheckUrl') String healthCheckUrl,
                     @JsonProperty('vipAddress') String vipAddress,
                     @JsonProperty('lastUpdatedTimestamp') long lastUpdatedTimestamp,
@@ -81,6 +83,7 @@ class DiscoveryInstance implements Health {
       meta?.instanceId,
       meta?.amiId,
       meta?.instanceType,
+      statusPageUrl,
       healthCheckUrl,
       vipAddress,
       lastUpdatedTimestamp,
