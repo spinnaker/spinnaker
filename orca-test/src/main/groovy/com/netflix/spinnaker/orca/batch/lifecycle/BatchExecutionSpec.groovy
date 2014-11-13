@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobParameter
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.JobFactory
 import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -71,6 +73,17 @@ abstract class BatchExecutionSpec extends Specification implements JobFactory {
    */
   final JobExecution launchJob() {
     jobLauncherTestUtils.launchJob()
+  }
+
+  /**
+   * Launches the configured {@code Job} with parameters.
+   * @return the execution instance you can use to monitor and control the job.
+   */
+  final JobExecution launchJob(Map<String, String> parameters) {
+    def params = parameters.inject(new JobParametersBuilder()) { JobParametersBuilder builder, entry ->
+      builder.addParameter(entry.key, new JobParameter(entry.value))
+    } toJobParameters()
+    jobLauncherTestUtils.launchJob(params)
   }
 
   /**
