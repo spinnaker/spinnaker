@@ -8,9 +8,6 @@ dependencies {
   compile 'com.codahale.metrics:metrics-core:3.0.2'
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
   compile 'com.codahale.metrics:metrics-annotation:3.0.2'
-  compile spinnaker.dependency('retrofit')
-  compile spinnaker.dependency('okHttp')
-  compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
-  compile 'com.squareup.retrofit:converter-jackson:1.6.1'
+  spinnaker.group('retrofitDefault')
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
 }
