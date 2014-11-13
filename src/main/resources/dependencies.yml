@@ -2,7 +2,7 @@ versions:
   springBoot: "1.1.9.RELEASE"
   kork: "1.24"
   groovy: "2.3.7"
-  astyanax: "2.0.1"
+  astyanax: "2.0.2"
   rxJava: "0.20.4"
   spock: "0.7-groovy-2.0"
   batch: "3.0.1.RELEASE"
