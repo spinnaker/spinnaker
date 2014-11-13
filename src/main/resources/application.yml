@@ -7,7 +7,7 @@ discoveryHosts:
 services:
   - name: oort
     group: applications
-    baseUrl: http://oort-prestaging.prod.netflix.net
+    baseUrl: http://oort.prod.netflix.net
   - name: pond
     group: orchestration
     baseUrl: http://pond.prod.netflix.net
