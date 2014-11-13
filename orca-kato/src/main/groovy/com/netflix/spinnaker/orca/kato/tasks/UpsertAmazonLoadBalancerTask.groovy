@@ -17,15 +17,10 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.UpsertAmazonLoadBalancerOperation
 import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class UpsertAmazonLoadBalancerTask implements Task {
 
@@ -37,32 +32,25 @@ class UpsertAmazonLoadBalancerTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def upsertAmazonLoadBalancerOperation = convert(stage)
+    def taskId = kato.requestOperations([[upsertAmazonLoadBalancerDescription: stage.context]])
+      .toBlocking()
+      .first()
 
-    def taskId = kato.requestOperations([[upsertAmazonLoadBalancerDescription: upsertAmazonLoadBalancerOperation]])
-                     .toBlocking()
-                     .first()
     Map outputs = [
       "notification.type": "upsertamazonloadbalancer",
       "kato.last.task.id": taskId,
       "kato.task.id"     : taskId, // TODO retire this.
-      "upsert.account"   : upsertAmazonLoadBalancerOperation.credentials,
-      "upsert.regions"   : upsertAmazonLoadBalancerOperation.availabilityZones.keySet().join(',')
+      "upsert.account"   : stage.context.credentials,
+      "upsert.regions"   : ((Map)stage.context.availabilityZones).keySet().join(',')
     ]
 
-    if (upsertAmazonLoadBalancerOperation.clusterName) {
-      outputs.clusterName = upsertAmazonLoadBalancerOperation.clusterName
+    if (stage.context.clusterName) {
+      outputs.clusterName = stage.context.clusterName
     }
-    if (upsertAmazonLoadBalancerOperation.name) {
-      outputs.name = upsertAmazonLoadBalancerOperation.name
+    if (stage.context.name) {
+      outputs.name = stage.context.name
     }
 
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
-  }
-
-  UpsertAmazonLoadBalancerOperation convert(Stage stage) {
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, UpsertAmazonLoadBalancerOperation)
   }
 }
