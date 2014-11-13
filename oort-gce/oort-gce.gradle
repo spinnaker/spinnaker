@@ -8,8 +8,5 @@ dependencies {
   compile 'com.codahale.metrics:metrics-core:3.0.2'
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
   compile 'com.codahale.metrics:metrics-annotation:3.0.2'
-  compile 'com.google.apis:google-api-services-compute:v1-rev40-1.19.0'
-  compile 'com.google.apis:google-api-services-replicapool:v1beta2-rev1-1.19.0'
-  compile 'com.google.apis:google-api-services-resourceviews:v1beta2-rev3-1.19.0'
-  compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
+  spinnaker.group("gceApi")
 }
