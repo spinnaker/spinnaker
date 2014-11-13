@@ -1,6 +1,4 @@
 dependencies {
   compile project(":amos-core")
-  compile 'com.amazonaws:aws-java-sdk-ec2:1.9.3'
-  compile 'com.amazonaws:aws-java-sdk-iam:1.9.3'
-  compile 'com.amazonaws:aws-java-sdk-sts:1.9.3'
+  spinnaker.group('awsCreds')
 }
