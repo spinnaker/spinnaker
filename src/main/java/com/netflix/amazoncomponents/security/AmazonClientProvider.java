@@ -18,7 +18,7 @@ package com.netflix.amazoncomponents.security;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
@@ -209,8 +209,8 @@ public class AmazonClientProvider {
 
   protected <T extends AmazonWebServiceClient> T getClient(Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) throws IllegalAccessException, InvocationTargetException,
     InstantiationException, NoSuchMethodException {
-    Constructor<T> constructor = impl.getConstructor(AWSCredentials.class);
-    T delegate = constructor.newInstance(amazonCredentials.getCredentials());
+    Constructor<T> constructor = impl.getConstructor(AWSCredentialsProvider.class);
+    T delegate = constructor.newInstance(amazonCredentials.getCredentialsProvider());
     if (region != null && region.length() > 0) {
       delegate.setRegion(Region.getRegion(Regions.fromName(region)));
     }
