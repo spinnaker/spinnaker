@@ -85,7 +85,7 @@ class FunctionalSpec extends Specification {
       api.applications
 
     then:
-      1 * applicationService.getAll() >> Observable.just([:])
+      1 * applicationService.getAll() >> Observable.just([])
   }
 
   void "should call ApplicationService for a single application"() {
