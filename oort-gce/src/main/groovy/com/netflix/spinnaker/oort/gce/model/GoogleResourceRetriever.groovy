@@ -105,7 +105,6 @@ class GoogleResourceRetriever {
             def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, REGION)
             googleServerGroup.zones << ZONE
 
-            def instanceIdSet = new HashSet<>()
             def earliestReplicaTimestamp = Long.MAX_VALUE
 
             def resourceViews = new ResourceViewsBuilder().buildResourceViews(credentialBuilder, APPLICATION_NAME)
@@ -124,23 +123,20 @@ class GoogleResourceRetriever {
 
               def googleInstance = new GoogleInstance(instance.name)
               googleInstance.setProperty("isHealthy", instance.status == "RUNNING")
-              // oort.aws puts a com.amazonaws.services.ec2.model.Instance here. More importantly, deck expects it.
-              googleInstance.setProperty("instance", [instanceId: instance.name,
-                                                      instanceType: instanceTemplate.properties.machineType,
-                                                      providerType: GOOGLE_INSTANCE_TYPE,
-                                                      launchTime: instanceTimestamp,
-                                                      placement : [availabilityZone: ZONE]])
+              googleInstance.setProperty("instanceId", instance.name)
+              googleInstance.setProperty("instanceType", instanceTemplate.properties.machineType)
+              googleInstance.setProperty("providerType", GOOGLE_INSTANCE_TYPE)
+              googleInstance.setProperty("launchTime", instanceTimestamp)
+              googleInstance.setProperty("placement", [availabilityZone: ZONE])
               googleServerGroup.instances << googleInstance
-
-              instanceIdSet << [instanceId: instance.name]
             }
 
             // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
-            googleServerGroup.setProperty("asg", [createdTime: earliestReplicaTimestamp,
-                                                  instances  : instanceIdSet,
-                                                  minSize    : instanceGroupManager.targetSize,
+            googleServerGroup.setProperty("asg", [minSize    : instanceGroupManager.targetSize,
                                                   maxSize    : instanceGroupManager.targetSize,
                                                   desiredCapacity: instanceGroupManager.targetSize])
+
+            googleServerGroup.setProperty("launchConfig", [createdTime: earliestReplicaTimestamp])
 
             cluster.serverGroups << googleServerGroup
           }

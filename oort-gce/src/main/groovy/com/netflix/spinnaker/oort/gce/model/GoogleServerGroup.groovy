@@ -72,7 +72,11 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   Long getCreatedTime() {
-    0 // TODO fill in
+    def launchConfig = getLaunchConfig()
+    if (launchConfig) {
+      return launchConfig.createdTime
+    }
+    return null
   }
 
   @Override

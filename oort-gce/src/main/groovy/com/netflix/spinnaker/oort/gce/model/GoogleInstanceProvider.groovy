@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import groovy.transform.CompileStatic
@@ -41,7 +42,36 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
 
   @Override
   GoogleInstance getInstance(String account, String region, String id) {
-    null // TODO: implement
+    // TODO(duftler): Create a unit test.
+    String serverGroupName = getInstanceGroupBaseName(id)
+    Names nameParts = Names.parseName(serverGroupName)
+    GoogleApplication googleApplication = (googleResourceRetriever.getApplicationsMap())[nameParts.app]
+
+    if (googleApplication) {
+      Map<String, Map<String, GoogleCluster>> accountNameToClustersMap = googleApplication.clusters
+      Map<String, GoogleCluster> clusterMap = accountNameToClustersMap[account]
+
+      if (clusterMap) {
+        GoogleCluster cluster = clusterMap[nameParts.cluster]
+
+        if (cluster) {
+          GoogleServerGroup serverGroup = cluster.serverGroups.find { it.name == nameParts.group }
+
+          if (serverGroup) {
+            return (GoogleInstance) serverGroup.instances.find { it.name == id}
+          }
+        }
+      }
+    }
+
+    return null
+  }
+
+  // Strip off the final segment of the instance id (the unique portion that is added onto the instance group name).
+  private static String getInstanceGroupBaseName(String instanceId) {
+    int lastIndex = instanceId.lastIndexOf('-')
+
+    return lastIndex != -1 ? instanceId.substring(0, lastIndex) : instanceId
   }
 
 }
