@@ -14,13 +14,15 @@ versions:
   aws: "1.9.4"
   httpclient: "4.3.5"
   httpcore: "4.3.2"
-  retrofit: "1.6.1"
+  retrofit: "1.7.1"
   jedis: "2.6.0"
   guava: "18.0"
   slf4j: "1.7.7"
-  okHttp: "2.0.0"
+  okHttp: "2.1.0"
   objenesis: "2.1"
-  googleCompute: "v1-rev17-1.18.0-rc"
+  googleCompute: "v1-rev40-1.19.0"
+  googleReplicapool: "v1beta2-rev1-1.19.0"
+  googleResourceviews: "v1beta2-rev3-1.19.0"
   googleHttp: "1.18.0-rc"
 
 groups:
@@ -57,14 +59,25 @@ groups:
       - awsEc2
       - awsIam
       - awsSts
+  retrofitDefault:
+    compile:
+      - retrofit
+      - okHttp
+      - okHttpUrlconnection
+      - retrofitJackson
   gceApi:
     compile:
       - googleCompute
+      - googleReplicapool
+      - googleResourceviews
       - googleHttp
   google:
     compile:
       - amosGce
       - googleCompute
+      - googleReplicapool
+      - googleResourceviews
+      - googleHttp
 
 dependencies:
   amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
@@ -96,13 +109,17 @@ dependencies:
   httpclient: "org.apache.httpcomponents:httpclient:${versions.httpclient}"
   httpcore: "org.apache.httpcomponents:httpcore:${versions.httpcore}"
   retrofit: "com.squareup.retrofit:retrofit:${versions.retrofit}"
+  retrofitJackson: "com.squareup.retrofit:converter-jackson:${versions.retrofit}"
   jedis: "redis.clients:jedis:${versions.jedis}"
   guava: "com.google.guava:guava:${versions.guava}"
   slf4j: "org.slf4j:jcl-over-slf4j:${versions.slf4j}"
   slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}"
   slf4jSimple: "org.slf4j:slf4j-simple:${versions.slf4j}"
   okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
+  okHttpUrlconnection: "com.squareup.okhttp:okhttp-urlconnection:${versions.okHttp}"
   objenesis: "org.objenesis:objenesis:${versions.objenesis}"
   googleCompute: "com.google.apis:google-api-services-compute:${versions.googleCompute}"
+  googleReplicapool: "com.google.apis:google-api-services-replicapool:${versions.googleReplicapool}"
+  googleResourceviews: "com.google.apis:google-api-services-resourceviews:${versions.googleResourceviews}"
   googleHttp: "com.google.http-client:google-http-client-jackson2:${versions.googleHttp}"
 
