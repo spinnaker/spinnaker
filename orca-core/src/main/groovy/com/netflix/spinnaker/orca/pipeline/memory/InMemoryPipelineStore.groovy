@@ -14,37 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.jedis
+package com.netflix.spinnaker.orca.pipeline.memory
 
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStore
-import org.springframework.beans.factory.annotation.Autowired
-import redis.clients.jedis.JedisCommands
 
+/**
+ * In-memory implementation of {@link PipelineStore} intended for use in testing
+ */
 @CompileStatic
-class JedisPipelineStore implements PipelineStore {
+class InMemoryPipelineStore implements PipelineStore {
 
-  private final JedisCommands jedis
-  private final ObjectMapper mapper
-
-  @Autowired
-  JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper) {
-    this.jedis = jedis
-    this.mapper = mapper
-  }
+  private final Map<String, Pipeline> pipelines = [:]
 
   @Override
   void store(Pipeline pipeline) {
-    pipeline.id = UUID.randomUUID().toString()
-
-    def key = "pipeline:$pipeline.id"
-    jedis.hset(key, "config", mapper.writeValueAsString(pipeline))
+    if (!pipeline.id) {
+      pipeline.id = UUID.randomUUID().toString()
+    }
+    pipelines[pipeline.id] = pipeline
   }
 
   @Override
   Pipeline retrieve(String id) {
-    throw new UnsupportedOperationException()
+    assert pipelines.containsKey(id) // TODO: introduce an exception class here
+    pipelines[id]
   }
 }

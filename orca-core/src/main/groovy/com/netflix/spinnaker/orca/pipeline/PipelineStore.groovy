@@ -23,4 +23,5 @@ interface PipelineStore {
    */
   void store(Pipeline pipeline)
 
+  Pipeline retrieve(String id)
 }
