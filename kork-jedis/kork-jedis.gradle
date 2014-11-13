@@ -1,4 +1,5 @@
 dependencies {
-  compile 'org.springframework.boot:spring-boot-autoconfigure:1.1.8.RELEASE'
+  compile spinnaker.dependency('bootAutoConfigure')
+  compile spinnaker.dependency('jedis')
   spinnaker.group('spockBase')
 }
