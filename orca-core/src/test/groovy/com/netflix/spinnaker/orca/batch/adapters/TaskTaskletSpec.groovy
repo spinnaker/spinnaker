@@ -19,10 +19,9 @@ package com.netflix.spinnaker.orca.batch.adapters
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.StepContribution
+import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
+import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
@@ -32,23 +31,34 @@ import spock.lang.Unroll
 import static PipelineStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 import static org.apache.commons.lang.math.RandomUtils.nextLong
+import static org.springframework.batch.test.MetaDataInstanceFactory.createJobExecution
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskTaskletSpec extends Specification {
 
+  def pipelineStore = new InMemoryPipelineStore()
   def pipeline = Pipeline.builder().withStage("stage").build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
-  @Subject tasklet = new TaskTasklet(task)
+  @Subject tasklet = new TaskTasklet(task, pipelineStore)
 
-  def stepExecution = createStepExecution("${stage.type}.task1", nextLong())
-  def stepContext = new StepContext(stepExecution)
-  def stepContribution = new StepContribution(stepExecution)
-  def chunkContext = new ChunkContext(stepContext)
+  JobExecution jobExecution
+  StepExecution stepExecution
+  StepContext stepContext
+  StepContribution stepContribution
+  ChunkContext chunkContext
 
-  def setup() {
-    new PipelineInitializerTasklet(pipeline).execute(stepContribution, chunkContext)
+  void setup() {
+    pipelineStore.store(pipeline)
+    jobExecution = createJobExecution(
+      "whatever", nextLong(), nextLong(),
+      new JobParametersBuilder().addString("pipeline", pipeline.id).toJobParameters()
+    )
+    stepExecution = createStepExecution(jobExecution, "${stage.type}.task1", nextLong())
+    stepContext = new StepContext(stepExecution)
+    stepContribution = new StepContribution(stepExecution)
+    chunkContext = new ChunkContext(stepContext)
   }
 
   def "should invoke the step when executed"() {

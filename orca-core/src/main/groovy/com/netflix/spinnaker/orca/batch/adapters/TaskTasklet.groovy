@@ -20,7 +20,9 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.PipelineStore
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -31,9 +33,11 @@ import org.springframework.batch.repeat.RepeatStatus
 class TaskTasklet implements Tasklet {
 
   private final Task task
+  private final PipelineStore pipelineStore
 
-  TaskTasklet(Task task) {
+  TaskTasklet(Task task, PipelineStore pipelineStore) {
     this.task = task
+    this.pipelineStore = pipelineStore
   }
 
   Class<? extends Task> getTaskType() {
@@ -63,9 +67,13 @@ class TaskTasklet implements Tasklet {
     return batchStepStatus.repeatStatus
   }
 
+  private Pipeline currentPipeline(ChunkContext chunkContext) {
+    String id = chunkContext.stepContext.jobParameters.pipeline
+    pipelineStore.retrieve(id)
+  }
+
   private PipelineStage currentStage(ChunkContext chunkContext) {
-    (PipelineStage) chunkContext.stepContext.stepExecution.jobExecution
-                                .executionContext.get(stageName(chunkContext))
+    currentPipeline(chunkContext).namedStage(stageName(chunkContext))
   }
 
   private static String stageName(ChunkContext chunkContext) {
