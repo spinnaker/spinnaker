@@ -16,6 +16,14 @@
 
 package com.netflix.spinnaker.gate.services
 
-interface CacheEnabledService {
-  void evict()
+import retrofit.http.GET
+import retrofit.http.Path
+
+interface MortService {
+
+  @GET('/credentials')
+  List<String> getAccountNames()
+
+  @GET('/credentials/{account}')
+  Map<String, Map> getAccount(@Path("account") String account)
 }

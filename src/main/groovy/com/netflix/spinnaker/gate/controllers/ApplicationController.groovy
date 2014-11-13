@@ -43,7 +43,12 @@ class ApplicationController {
 
   @RequestMapping(method = RequestMethod.GET)
   DeferredResult<List<Map>> get() {
-    defer applicationService.all.toList()
+    defer applicationService.all
+  }
+
+  @RequestMapping(method = RequestMethod.POST)
+  DeferredResult<Map> create(@RequestBody Map<String, String> app) {
+    defer applicationService.create(app)
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
@@ -67,7 +72,7 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
-  DeferredResult<Map> create(@RequestBody Map map) {
+  DeferredResult<Map> task(@RequestBody Map map) {
     defer taskService.create(map)
   }
 

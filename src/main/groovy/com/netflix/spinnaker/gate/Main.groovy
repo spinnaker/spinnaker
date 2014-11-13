@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
 
 @EnableAsync
-@EnableCaching(proxyTargetClass = true)
 @Configuration
 @ComponentScan("com.netflix.spinnaker.gate")
 @EnableAutoConfiguration

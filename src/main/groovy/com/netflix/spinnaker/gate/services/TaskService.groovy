@@ -29,13 +29,8 @@ class TaskService {
   @Autowired
   OrcaService orcaService
 
-  @Autowired
-  CacheInvalidationService cacheInvalidationService
-
   Observable<Map> create(Map body) {
     orcaService.doOperation(body).map({
-      // TODO maybe need something more ideal here...
-      cacheInvalidationService.invalidateAll()
       it
     })
   }

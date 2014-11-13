@@ -104,6 +104,12 @@ class GateConfig {
     createClient "front50", Front50Service, serviceConfiguration, retrofitClient
   }
 
+  @Bean
+  MortService mortService(ServiceConfiguration serviceConfiguration,
+                                Client retrofitClient) {
+    createClient "mort", MortService, serviceConfiguration, retrofitClient
+  }
+
   private
   static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
     def endpoint = serviceConfiguration.discoveryHosts && !serviceConfiguration.getSerivce(serviceName)?.baseUrl ?

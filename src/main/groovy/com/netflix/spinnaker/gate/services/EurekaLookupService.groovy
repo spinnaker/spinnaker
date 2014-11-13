@@ -29,6 +29,7 @@ import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
+import rx.schedulers.Schedulers
 
 
 import static retrofit.Endpoints.newFixedEndpoint

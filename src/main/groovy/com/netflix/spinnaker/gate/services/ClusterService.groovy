@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
+import rx.functions.Func1
 
 @CompileStatic
 @Component

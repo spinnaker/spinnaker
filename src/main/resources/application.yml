@@ -7,11 +7,19 @@ discoveryHosts:
 services:
   - name: oort
     group: applications
+    baseUrl: http://oort-prestaging.prod.netflix.net
   - name: pond
     group: orchestration
+    baseUrl: http://pond.prod.netflix.net
   - name: echo
     group: events
+    baseUrl: http://echo.prod.netflix.net
   - name: flapjack
     group: tags
+    baseUrl: http://flapjack.prod.netflix.net
   - name: front50
     group: metadata
+    baseUrl: http://front50.prod.netflix.net
+  - name: mort
+    group: credentials
+    baseUrl: http://mort.prod.netflix.net

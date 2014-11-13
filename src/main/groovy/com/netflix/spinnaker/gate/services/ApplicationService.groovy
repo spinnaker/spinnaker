@@ -20,16 +20,16 @@ import com.google.common.base.Preconditions
 import com.netflix.hystrix.*
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.cache.annotation.CacheEvict
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import rx.Observable
+import rx.functions.Func1
+import rx.functions.Func2
+import rx.functions.FuncN
 import rx.schedulers.Schedulers
 
-@CompileStatic
 @Component
-class ApplicationService implements CacheEnabledService {
+class ApplicationService {
   private static final String SERVICE = "applications"
   private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
 
@@ -43,20 +43,63 @@ class ApplicationService implements CacheEnabledService {
   Front50Service front50Service
 
   @Autowired
-  CacheInvalidationService cacheInvalidationService
+  CredentialsService credentialsService
 
-  @CacheEvict(value = "applications", allEntries = true)
-  void evict() {
+  static HystrixCommandProperties.Setter createHystrixCommandPropertiesSetter(){
+    HystrixCommandProperties.invokeMethod("Setter", null)
   }
 
-  @Cacheable("applications")
-  Observable<Map> getAll() {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getAll"))) {
+  Observable<List<Map>> getAll() {
+    new HystrixObservableCommand<List<Map>>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+        .andCommandKey(HystrixCommandKey.Factory.asKey("getAll"))
+        .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
+                                        .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
+      @Override
+      protected Observable<List<Map>> run() {
+        credentialsService.getAccountNames().flatMap { String name ->
+          rx.Observable.from(front50Service.getAll(name))
+        }.toList()
+      }
 
       @Override
+      protected Observable<List<Map>> getFallback() {
+        Observable.from([])
+      }
+
+      @Override
+      protected String getCacheKey() {
+        "applications-all"
+      }
+    }.observe()
+  }
+
+  Observable<Map> get(String name) {
+    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+        .andCommandKey(HystrixCommandKey.Factory.asKey("getApp-${name}"))
+        .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
+        .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
+      @Override
       protected Observable<Map> run() {
-        Observable.from(oortService.applications)
+        Observable.just(oortService.getApplication(name)).mergeWith(credentialsService.accountNames.flatMap { String account ->
+          rx.Observable.just(front50Service.getMetaData(account, name))
+        }).onErrorReturn(new Func1<Throwable, Map>() {
+          @Override
+          Map call(Throwable throwable) {
+            [:]
+          }
+        }).observeOn(Schedulers.io()).map {
+          it
+        }.reduce([:], { Map app, Map data ->
+          if (data.containsKey("clusters")) {
+            app.putAll data
+          } else {
+            if (!app.containsKey("attributes")) {
+              app.attributes = [:]
+            }
+            app.attributes.putAll(data)
+          }
+          app
+        })
       }
 
       @Override
@@ -66,76 +109,10 @@ class ApplicationService implements CacheEnabledService {
 
       @Override
       protected String getCacheKey() {
-        "applications-all"
+        "applications-${name}"
       }
-    }.toObservable()
-  }
+    }.observe()
 
-  @Cacheable("application")
-  Observable<Map> get(String name) {
-    Observable.just(getApp(name), getMetaData("test", name), getMetaData("prod", name)).observeOn(Schedulers.io())
-        .flatMap {
-      it
-    }.map {
-      it
-    }.reduce([:], { Map map, Map input ->
-      if (input.containsKey("attributes")) {
-        map.putAll(input)
-      } else {
-        ((Map) map.attributes).putAll(input)
-      }
-      map
-    })
-  }
-
-  private Observable<Map> getApp(String name) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("get"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(oortService.getApplication(name))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.from([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "application-${name}"
-      }
-    }.toObservable()
-  }
-
-  private Observable<Map> getMetaData(String account, String name) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getMetaData"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        try {
-          Observable.just(front50Service.getMetaData(account, name))
-        } catch (RetrofitError e) {
-          if (e.response.status == 404) {
-            getFallback()
-          } else {
-            throw e
-          }
-        }
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.from([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "getMetaData-${account}-${name}"
-      }
-    }.toObservable()
   }
 
   // TODO Hystrix fallback?
@@ -147,6 +124,12 @@ class ApplicationService implements CacheEnabledService {
   Observable<List> getPipelines(String app) {
     Preconditions.checkNotNull(app)
     orcaService.getPipelines(app)
+  }
+
+  Observable<Map> create(Map<String, String> app) {
+    def account = app.remove("account")
+    orcaService.doOperation([application: app.name, description: "Create application (Gate",
+                             job: [type: "createApplication", application: app, account: account]])
   }
 
 }

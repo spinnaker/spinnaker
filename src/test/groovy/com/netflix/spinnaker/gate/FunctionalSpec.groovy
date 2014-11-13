@@ -18,9 +18,10 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.CacheInvalidationService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.FlapJackService
 import com.netflix.spinnaker.gate.services.Front50Service
+import com.netflix.spinnaker.gate.services.MortService
 import com.netflix.spinnaker.gate.services.OortService
 import com.netflix.spinnaker.gate.services.OrcaService
 import com.netflix.spinnaker.gate.services.TagService
@@ -40,14 +41,15 @@ class FunctionalSpec extends Specification {
   @Shared
   Api api
 
-  static CacheInvalidationService cacheInvalidationService
   static ApplicationService applicationService
   static FlapJackService flapJackService
   static Front50Service front50Service
+  static MortService mortService
   static TaskService taskService
   static OortService oortService
   static OrcaService orcaService
   static TagService tagService
+  static CredentialsService credentialsService
 
   void setup() {
     applicationService = Mock(ApplicationService)
@@ -55,7 +57,9 @@ class FunctionalSpec extends Specification {
     taskService = Mock(TaskService)
     oortService = Mock(OortService)
     orcaService = Mock(OrcaService)
+    mortService = Mock(MortService)
     tagService = Mock(TagService)
+    credentialsService = Mock(CredentialsService)
 
     def sock = new ServerSocket(0)
     def localPort = sock.localPort
@@ -128,6 +132,11 @@ class FunctionalSpec extends Specification {
     }
 
     @Bean
+    MortService mortService() {
+      mortService
+    }
+
+    @Bean
     Front50Service front50Service() {
       front50Service
     }
@@ -158,8 +167,8 @@ class FunctionalSpec extends Specification {
     }
 
     @Bean
-    CacheInvalidationService cacheInvalidationService() {
-      cacheInvalidationService
+    CredentialsService credentialsService() {
+      credentialsService
     }
 
     @Bean
