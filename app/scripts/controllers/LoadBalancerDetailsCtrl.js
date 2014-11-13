@@ -19,6 +19,7 @@ angular.module('deckApp')
           });
           if (filtered.length) {
             $scope.loadBalancer.elb = filtered[0];
+            $scope.loadBalancer.account = loadBalancer.accountId;
             $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
               var match = securityGroupService.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
               if (match) {
