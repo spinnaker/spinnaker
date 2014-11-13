@@ -26,7 +26,7 @@ dependencies {
   compile project(":oort-gce")
   spinnaker.group("bootWeb")
 
-  compile 'com.netflix.eureka:eureka-client:1.1.141'
+  compile spinnaker.dependency('eurekaClient')
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
   compile 'com.codahale.metrics:metrics-core:3.0.2'
 }
