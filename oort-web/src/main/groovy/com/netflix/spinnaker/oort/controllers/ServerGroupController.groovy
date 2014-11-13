@@ -21,9 +21,14 @@ import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -33,11 +38,18 @@ class ServerGroupController {
   @Autowired
   List<ClusterProvider> clusterProviders
 
+  @Autowired
+  MessageSource messageSource
+
   @RequestMapping(value="/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
-    clusterProviders.findResults {
+    def matches = (Set<ServerGroup>) clusterProviders.findResults {
       it.getServerGroup(account, region, name)
-    }?.first()
+    }
+    if (!matches) {
+      throw new ServerGroupNotFoundException([name: name, account: account, region: region])
+    }
+    matches.first()
   }
 
   @RequestMapping(method = RequestMethod.GET)
@@ -54,6 +66,19 @@ class ServerGroupController {
     }
 
     serverGroupViews
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleServerGroupNotFoundException(ServerGroupNotFoundException ex) {
+    def message = messageSource.getMessage("serverGroup.not.found", [ex.name, ex.account, ex.region] as String[], "serverGroup.not.found", LocaleContextHolder.locale)
+    [error: "serverGroup.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  static class ServerGroupNotFoundException extends RuntimeException {
+    String name
+    String account
+    String region
   }
 
   static class ServerGroupViewModel {
