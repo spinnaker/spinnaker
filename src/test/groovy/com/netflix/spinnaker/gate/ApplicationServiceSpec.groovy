@@ -48,9 +48,8 @@ class ApplicationServiceSpec extends Specification {
     then:
       1 * credentialsService.getAccountNames() >> { rx.Observable.from([account]) }
       1 * front50.getAll(account) >> [meta]
-      1 * oort.getApplications() >> [testApp]
       1 == results.size()
-      results.first() == [name: name, attributes: [name: name, email: email, owner: owner], clusters: [prod: [cluster]]]
+      results.first() == [name: name, email: email, owner: owner]
 
     where:
       name = "foo"
