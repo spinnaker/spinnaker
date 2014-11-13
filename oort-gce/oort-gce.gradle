@@ -8,5 +8,4 @@ dependencies {
   compile 'com.codahale.metrics:metrics-core:3.0.2'
   compile 'com.ryantenney.metrics:metrics-spring:3.0.1'
   compile 'com.codahale.metrics:metrics-annotation:3.0.2'
-  spinnaker.group("gceApi")
 }
