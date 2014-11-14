@@ -42,7 +42,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
-      1 * getSecurityGroupForApplication("myasg") >> "sg-1234"
+      1 * getSecurityGroupForApplication("myasg", null) >> "sg-1234"
     }
 
     when:
@@ -62,7 +62,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
-      1 * getSecurityGroupForApplication("myasg") >> "sg-1234"
+      1 * getSecurityGroupForApplication("myasg", null) >> "sg-1234"
     }
 
     when:
@@ -85,7 +85,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
-      1 * getSecurityGroupForApplication("myasg")
+      1 * getSecurityGroupForApplication("myasg", null)
       1 * createSecurityGroup("myasg", null) >> "sg-1234"
     }
 
@@ -210,7 +210,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.securityGroups = ["sg-12345", "mysecurityGroup"]
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
-      1 * getSecurityGroupForApplication("myasg")
+      1 * getSecurityGroupForApplication("myasg", null)
       1 * createSecurityGroup("myasg", null) >> "sg-1234"
       1 * getSecurityGroupIds(["mysecurityGroup"]) >> ["mysecurityGroup": "sg-0000"]
     }
