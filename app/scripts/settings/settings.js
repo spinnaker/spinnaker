@@ -11,7 +11,7 @@ angular.module('deckApp.settings', [])
     mayoUrl: 'http://mayo-prestaging.prod.netflix.net',
     credentialsUrl: 'http://kato-prestaging.prod.netflix.net/',
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
-    gateUrl: 'http://spinnaker-api-prestaging.prod.netflix.net',
+    gateUrl: 'http://spinnaker-api.prod.netflix.net',
     accounts: {
       prod: {
         challengeDestructiveActions: true
