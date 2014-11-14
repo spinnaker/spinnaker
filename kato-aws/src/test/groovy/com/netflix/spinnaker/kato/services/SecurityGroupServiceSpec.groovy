@@ -104,4 +104,15 @@ class SecurityGroupServiceSpec extends Specification {
     0 * _
   }
 
+  void "should not get vpc security groups for an ec2 application"() {
+    when:
+    def result = securityGroupService.getSecurityGroupForApplication("test", null)
+
+    then:
+    1 * securityGroupService.amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(securityGroups: [new SecurityGroup(groupName: "test", vpcId: "vpc1234")])
+    result == null
+
+
+  }
+
 }

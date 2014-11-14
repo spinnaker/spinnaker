@@ -32,12 +32,17 @@ class SecurityGroupService {
   /**
    * Find a security group that matches the name of this application.
    *
-   * @param applicationName
+   * @param applicationName the name of the application to lookup
+   * @param subnetPurpose the subnet within which the lookup should take place
    * @return id of Security Group for application
    */
-  String getSecurityGroupForApplication(String applicationName) {
+  String getSecurityGroupForApplication(String applicationName, String subnetPurpose = null) {
     try {
-      getSecurityGroupIds([applicationName])?.values()?.getAt(0)
+      if (subnetPurpose) {
+        getSecurityGroupIds([applicationName], subnetAnalyzer.getVpcIdForSubnetPurpose(subnetPurpose))?.values()?.getAt(0)
+      } else {
+        getSecurityGroupIds([applicationName])?.values()?.getAt(0)
+      }
     } catch (SecurityGroupNotFoundException ignore) {
       null
     }
@@ -49,9 +54,9 @@ class SecurityGroupService {
    * @param securityGroupNames
    * @return Map of security group ids keyed by corresponding security group name
    */
-  Map<String, String> getSecurityGroupIds(Collection<String> securityGroupNames) {
+  Map<String, String> getSecurityGroupIds(Collection<String> securityGroupNames, String vpcId = null) {
     DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups()
-    Map<String, String> securityGroups = result.securityGroups.findAll { securityGroupNames.contains(it.groupName) }.collectEntries {
+    Map<String, String> securityGroups = result.securityGroups.findAll { securityGroupNames.contains(it.groupName) && it.vpcId == vpcId }.collectEntries {
       [(it.groupName): it.groupId]
     }
     if (!securityGroups.keySet().containsAll(securityGroupNames)) {

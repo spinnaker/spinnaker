@@ -112,7 +112,7 @@ class AutoScalingWorker {
     }
 
     task.updateStatus AWS_PHASE, "Checking for security package."
-    String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application)
+    String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
     if (!applicationSecurityGroup) {
       applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
     }
