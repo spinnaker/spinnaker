@@ -110,7 +110,7 @@ class ClusterControllerSpec extends Specification {
 
     when:
     clusterController.getForAccountAndName("app", "account", "name")
-    
+
     then:
     1 * clusterProvider1.getCluster(*_) >> null
     thrown ClusterController.ClusterNotFoundException

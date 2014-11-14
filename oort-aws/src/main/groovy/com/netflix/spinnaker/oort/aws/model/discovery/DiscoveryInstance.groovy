@@ -38,6 +38,7 @@ class DiscoveryInstance implements Health {
   String status
   String overriddenStatus
   HealthState state
+  String discoveryStatus
 
 //  DataCenterInfo dataCenterInfo
   String availabilityZone
@@ -79,6 +80,7 @@ class DiscoveryInstance implements Health {
       status,
       overriddenstatus,
       healthState,
+      status,
       meta?.availabilityZone,
       meta?.instanceId,
       meta?.amiId,
