@@ -326,7 +326,7 @@ class AutoScalingWorker {
     } else if (subnetType && !subnets) {
       throw new RuntimeException("No suitable subnet was found for internal subnet purpose '${subnetType}'!")
     } else {
-      task.updateStatus AWS_PHASE, " > Deploying to availabilityZones: $availabilityZones"
+      task.updateStatus AWS_PHASE, "Deploying to availabilityZones: $availabilityZones"
       request.withAvailabilityZones(availabilityZones)
     }
 

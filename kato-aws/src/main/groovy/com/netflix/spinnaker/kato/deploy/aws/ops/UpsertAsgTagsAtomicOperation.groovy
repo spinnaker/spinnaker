@@ -53,10 +53,10 @@ class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "No ASG named $description.asgName found in $region"
         continue
       }
-      task.updateStatus BASE_PHASE, " > Preparing tags for $description.asgName in $region..."
+      task.updateStatus BASE_PHASE, "Preparing tags for $description.asgName in $region..."
       def tags = description.tags.collect { k, v -> new Tag().withKey(k).withValue(v).withResourceId(description.asgName).withResourceType("auto-scaling-group").withPropagateAtLaunch(true) }
       def createTagsRequest = new CreateOrUpdateTagsRequest().withTags(tags)
-      task.updateStatus BASE_PHASE, " > Creating tags for $description.asgName in $region..."
+      task.updateStatus BASE_PHASE, "Creating tags for $description.asgName in $region..."
       autoScaling.createOrUpdateTags(createTagsRequest)
       task.updateStatus BASE_PHASE, "Tags created for $description.asgName in $region"
     }

@@ -88,11 +88,11 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           awsListener.withInstanceProtocol(listener.externalProtocol.name())
         }
         if (listener.sslCertificateId) {
-          task.updateStatus BASE_PHASE, " > Attaching listener with SSL Certificate: ${listener.sslCertificateId}"
+          task.updateStatus BASE_PHASE, "Attaching listener with SSL Certificate: ${listener.sslCertificateId}"
           awsListener.withSSLCertificateId(listener.sslCertificateId)
         }
         listeners << awsListener
-        task.updateStatus BASE_PHASE, " > Appending listener ${awsListener.protocol}:${awsListener.loadBalancerPort} -> ${awsListener.instanceProtocol}:${awsListener.instancePort}"
+        task.updateStatus BASE_PHASE, "Appending listener ${awsListener.protocol}:${awsListener.loadBalancerPort} -> ${awsListener.instanceProtocol}:${awsListener.instancePort}"
       }
 
       try {
@@ -108,7 +108,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         // Networking Related
         if (description.subnetType) {
           def subnets = getSubnetIds(description.subnetType, availabilityZones, amazonEC2)
-          task.updateStatus BASE_PHASE, " > Subnet type: ${description.subnetType} = [$subnets]"
+          task.updateStatus BASE_PHASE, "Subnet type: ${description.subnetType} = [$subnets]"
           request.withSubnets(subnets)
           if (description.subnetType == "internal") {
             request.scheme = description.subnetType
@@ -116,7 +116,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         } else {
           request.withAvailabilityZones(availabilityZones)
         }
-        task.updateStatus BASE_PHASE, " > Creating load balancer."
+        task.updateStatus BASE_PHASE, "Creating load balancer."
         request.withListeners(listeners)
         loadBalancing.createLoadBalancer(request)
         loadBalancer = getLoadBalancer()
@@ -147,7 +147,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         task.updateStatus BASE_PHASE, "Applying security groups ${description.securityGroups} to ${loadBalancerName} in ${region}"
         def securityGroups = getSecurityGroupIds(amazonEC2, description.securityGroups as String[])
         loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest().withSecurityGroups(securityGroups).withLoadBalancerName(loadBalancerName))
-        task.updateStatus BASE_PHASE, " > Security groups applied!"
+        task.updateStatus BASE_PHASE, "Security groups applied!"
       }
 
       // Configure health checks

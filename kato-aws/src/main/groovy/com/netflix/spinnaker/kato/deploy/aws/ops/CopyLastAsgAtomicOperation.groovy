@@ -96,9 +96,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       BasicAmazonDeployDescription newDescription = description.clone()
 
       if (ancestorAsg.VPCZoneIdentifier) {
-        task.updateStatus BASE_PHASE, " > Looking up subnet type..."
+        task.updateStatus BASE_PHASE, "Looking up subnet type..."
         newDescription.subnetType = getPurposeForSubnet(sourceRegion, ancestorAsg.VPCZoneIdentifier.tokenize(',').getAt(0))
-        task.updateStatus BASE_PHASE, " > Found: ${newDescription.subnetType}."
+        task.updateStatus BASE_PHASE, "Found: ${newDescription.subnetType}."
       }
 
       newDescription.iamRole = description.iamRole ?: ancestorLaunchConfiguration.iamInstanceProfile

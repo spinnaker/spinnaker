@@ -56,7 +56,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus BASE_PHASE, "Looking up instance ids for $description.asgName in $region..."
       def instanceIds = getInstanceIds(region, description.asgName)
       for (instanceId in instanceIds) {
-        task.updateStatus BASE_PHASE, " > Destroying instance $instanceId"
+        task.updateStatus BASE_PHASE, "Destroying instance $instanceId"
         client.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName).withMinSize(0).withMaxSize(0).withDesiredCapacity(0))
         client.terminateInstanceInAutoScalingGroup(new TerminateInstanceInAutoScalingGroupRequest().withInstanceId(instanceId).withShouldDecrementDesiredCapacity(true))
       }

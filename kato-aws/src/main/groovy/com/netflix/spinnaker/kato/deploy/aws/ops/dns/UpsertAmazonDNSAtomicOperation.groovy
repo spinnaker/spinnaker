@@ -27,7 +27,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSResult> {
-  private static final String BASE_PHASE = "CREATE_ELB"
+  private static final String BASE_PHASE = "UPSERT_DNS"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -49,7 +49,7 @@ class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSR
     def priorElb = priorOutputs.find { it instanceof UpsertAmazonLoadBalancerResult } as UpsertAmazonLoadBalancerResult
 
     if (priorElb && !description.target) {
-      task.updateStatus BASE_PHASE, " > No target specified. Assuming target of prior ELB deployment."
+      task.updateStatus BASE_PHASE, "No target specified. Assuming target of prior ELB deployment."
       description.target = priorElb.loadBalancers?.values()?.getAt(0)?.dnsName
     }
 
