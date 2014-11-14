@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.gate.services
 
-package com.netflix.spinnaker.gate.model.discovery
+import retrofit.http.GET
+import retrofit.http.Path
 
-import groovy.transform.EqualsAndHashCode
+interface MayoService {
 
-@EqualsAndHashCode
-class DataCenterInfo {
-  String name
-  DataCenterMetadata metadata
+  @GET('/pipelines/{app}')
+  rx.Observable<List<Map>> getPipelineConfigs(@Path("app") String app)
+
+  @GET('/pipelines/{app}/{name}')
+  rx.Observable<Map> getPipelineConfig(@Path("app") String app, @Path("name") String name)
 }

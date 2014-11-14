@@ -15,7 +15,6 @@
  */
 
 
-
 package com.netflix.spinnaker.gate.model.discovery
 
 import com.fasterxml.jackson.annotation.JsonProperty

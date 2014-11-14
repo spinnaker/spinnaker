@@ -28,7 +28,7 @@ dependencies {
   compile spinnaker.dependency("groovy")
   compile spinnaker.dependency("kork")
   compile spinnaker.dependency("frigga")
-  
+
   compile 'org.springframework:springloaded:1.2.1.RELEASE'
 
   compile 'cglib:cglib-nodep:3.1'

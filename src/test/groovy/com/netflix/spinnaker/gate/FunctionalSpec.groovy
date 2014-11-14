@@ -17,15 +17,7 @@
 package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.controllers.ApplicationController
-import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.CredentialsService
-import com.netflix.spinnaker.gate.services.FlapJackService
-import com.netflix.spinnaker.gate.services.Front50Service
-import com.netflix.spinnaker.gate.services.MortService
-import com.netflix.spinnaker.gate.services.OortService
-import com.netflix.spinnaker.gate.services.OrcaService
-import com.netflix.spinnaker.gate.services.TagService
-import com.netflix.spinnaker.gate.services.TaskService
+import com.netflix.spinnaker.gate.services.*
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
@@ -50,6 +42,7 @@ class FunctionalSpec extends Specification {
   static OrcaService orcaService
   static TagService tagService
   static CredentialsService credentialsService
+  static MayoService mayoService
 
   void setup() {
     applicationService = Mock(ApplicationService)
@@ -60,6 +53,7 @@ class FunctionalSpec extends Specification {
     mortService = Mock(MortService)
     tagService = Mock(TagService)
     credentialsService = Mock(CredentialsService)
+    mayoService = Mock(MayoService)
 
     def sock = new ServerSocket(0)
     def localPort = sock.localPort
@@ -169,6 +163,11 @@ class FunctionalSpec extends Specification {
     @Bean
     CredentialsService credentialsService() {
       credentialsService
+    }
+
+    @Bean
+    MayoService mayoService() {
+      mayoService
     }
 
     @Bean

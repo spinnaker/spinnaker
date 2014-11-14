@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.gate
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.CredentialsService
-import com.netflix.spinnaker.gate.services.Front50Service
-import com.netflix.spinnaker.gate.services.OortService
+import com.netflix.spinnaker.gate.services.*
 import spock.lang.Specification
 
 class ApplicationServiceSpec extends Specification {
@@ -39,7 +36,7 @@ class ApplicationServiceSpec extends Specification {
       service.credentialsService = credentialsService
 
     and:
-      def testApp  = [name: name, attributes: [:], clusters: [prod: [cluster]]]
+      def testApp = [name: name, attributes: [:], clusters: [prod: [cluster]]]
       def meta = [name: name, email: email, owner: owner]
 
     when:

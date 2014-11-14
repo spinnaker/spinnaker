@@ -36,7 +36,7 @@ class EventController {
 
   @RequestMapping(value = "/events", method = RequestMethod.GET)
   DeferredResult<HttpEntity> all(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
-          @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
+                                 @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
     def obs = eventService.getAll(offset, size).map({
       def headers = new HttpHeaders()
       headers.add("X-Result-Total", Integer.valueOf(it.total as String).toString())

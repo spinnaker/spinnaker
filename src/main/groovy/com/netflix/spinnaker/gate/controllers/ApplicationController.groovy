@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.TagService
-import com.netflix.spinnaker.gate.services.TaskService
+import com.netflix.spinnaker.gate.services.*
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -56,6 +54,22 @@ class ApplicationController {
     defer applicationService.get(name)
   }
 
+  @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+  DeferredResult<Map> delete(@RequestParam String account, @PathVariable String name) {
+    defer applicationService.delete(account, name)
+  }
+
+  @RequestMapping(value = "/{name}/bake", method = RequestMethod.POST)
+  DeferredResult<Map> bake(@PathVariable("name") String name, @RequestBody(required = false) BakeCommand bakeCommand) {
+    if (!bakeCommand) {
+      bakeCommand = new BakeCommand(pkg: name)
+    }
+    if (!bakeCommand.pkg) {
+      bakeCommand.pkg = name
+    }
+    defer applicationService.bake(name, bakeCommand.pkg, bakeCommand.baseOs, bakeCommand.baseLabel, bakeCommand.region)
+  }
+
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.GET)
   DeferredResult<List> getTasks(@PathVariable("name") String name) {
     defer applicationService.getTasks(name)
@@ -64,6 +78,17 @@ class ApplicationController {
   @RequestMapping(value = "/{name}/pipelines", method = RequestMethod.GET)
   DeferredResult<List> getPiplines(@PathVariable("name") String name) {
     defer applicationService.getPipelines(name)
+  }
+
+  @RequestMapping(value = "/{name}/pipelineConfigs", method = RequestMethod.GET)
+  DeferredResult<List> getPiplineConfigs(@PathVariable("name") String name) {
+    defer applicationService.getPipelineConfigs(name)
+  }
+
+  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.GET)
+  DeferredResult<List> getPiplineConfig(
+      @PathVariable("name") String name, @PathVariable("pipelineName") String pipelineName) {
+    defer applicationService.getPipelineConfig(name, pipelineName)
   }
 
   @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
@@ -79,6 +104,13 @@ class ApplicationController {
   @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
   DeferredResult<List<String>> getTags(@PathVariable("name") String name) {
     defer tagService.getTags(name)
+  }
+
+  static class BakeCommand {
+    String pkg
+    String baseOs = "ubuntu"
+    String baseLabel = "release"
+    String region = "us-east-1"
   }
 
 }

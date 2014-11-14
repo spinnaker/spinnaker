@@ -17,10 +17,8 @@
 
 package com.netflix.spinnaker.gate.model.discovery
 
-import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
-import com.fasterxml.jackson.annotation.JsonSetter
 import com.netflix.frigga.Names
 import groovy.transform.EqualsAndHashCode
 

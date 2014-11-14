@@ -106,7 +106,7 @@ class GateConfig {
 
   @Bean
   MortService mortService(ServiceConfiguration serviceConfiguration,
-                                Client retrofitClient) {
+                          Client retrofitClient) {
     createClient "mort", MortService, serviceConfiguration, retrofitClient
   }
 
