@@ -28,6 +28,9 @@ interface Front50Service {
   @POST("/{account}/applications/name/{name}")
   Response create(@Path("account") String account, @Path("name") String name, @Body Application application)
 
+  @DELETE("/{account}/applications/name/{name}")
+  Response delete(@Path("account") String account, @Path("name") String name)
+
   @PUT("/{account}/applications")
   Response update(@Path("account") String account, @Body Application application)
 }
