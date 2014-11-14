@@ -129,7 +129,12 @@ class AutoScalingWorker {
         }
       }
       if (securityGroupsWithNames) {
-        def lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames)
+        def lookedUpIds = [:]
+        if (subnetType) {
+          lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames, securityGroupService.subnetAnalyzer.getVpcIdForSubnetPurpose(subnetType))
+        } else {
+          lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames)
+        }
         securityGroupsWithIds.addAll(lookedUpIds.values())
       }
       securityGroups = securityGroupsWithIds

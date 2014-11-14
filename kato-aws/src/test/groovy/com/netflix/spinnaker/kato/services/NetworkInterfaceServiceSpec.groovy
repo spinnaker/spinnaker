@@ -66,9 +66,10 @@ class NetworkInterfaceServiceSpec extends Specification {
 
     and:
     with(networkInterfaceService.securityGroupService) {
-      1 * getSecurityGroupIds(["asgard"]) >> [asgard: "sg-12345678"]
+      1 * getSecurityGroupIds(["asgard"], 'vpc-1234') >> [asgard: "sg-12345678"]
     }
     with(networkInterfaceService.subnetAnalyzer) {
+      1 * getVpcIdForSubnetPurpose('internal') >> "vpc-1234"
       1 * getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB) >> ["subnet-12345678"]
     }
     with(networkInterfaceService.amazonEC2) {
@@ -91,9 +92,10 @@ class NetworkInterfaceServiceSpec extends Specification {
 
     and:
     with(networkInterfaceService.securityGroupService) {
-      1 * getSecurityGroupIds(["asgard"]) >> [asgard: "sg-12345678"]
+      1 * getSecurityGroupIds(["asgard"], 'vpc-1234') >> [asgard: "sg-12345678"]
     }
     with(networkInterfaceService.subnetAnalyzer) {
+      1 * getVpcIdForSubnetPurpose('internal') >> "vpc-1234"
       1 * getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB) >> ["subnet-12345678"]
     }
     with(networkInterfaceService.amazonEC2) {
@@ -115,9 +117,10 @@ class NetworkInterfaceServiceSpec extends Specification {
 
     and:
     with(networkInterfaceService.securityGroupService) {
-      1 * getSecurityGroupIds(["asgard"]) >> [asgard: "sg-12345678"]
+      1 * getSecurityGroupIds(["asgard"], 'vpc-1234') >> [asgard: "sg-12345678"]
     }
     with(networkInterfaceService.subnetAnalyzer) {
+      1 * getVpcIdForSubnetPurpose('internal') >> "vpc-1234"
       1 * getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB) >> ["subnet-12345678"]
     }
     with(networkInterfaceService.amazonEC2) {

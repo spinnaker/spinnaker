@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.services
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.kato.model.aws.SecurityGroupNotFoundException
@@ -109,10 +110,17 @@ class SecurityGroupServiceSpec extends Specification {
     def result = securityGroupService.getSecurityGroupForApplication("test", null)
 
     then:
-    1 * securityGroupService.amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(securityGroups: [new SecurityGroup(groupName: "test", vpcId: "vpc1234")])
+    1 * securityGroupService.amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(securityGroups: [new SecurityGroup(groupId: "sg-1234", groupName: "test", vpcId: "vpc1234")])
     result == null
-
-
   }
 
+  void "should get vpc security groups for a vpc application"() {
+    when:
+    def result = securityGroupService.getSecurityGroupForApplication("test", "internal")
+
+    then:
+    1 * securityGroupService.subnetAnalyzer.getVpcIdForSubnetPurpose("internal") >> "vpc1234"
+    1 * securityGroupService.amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(securityGroups: [new SecurityGroup(groupId: "sg-1234", groupName: "test", vpcId: "vpc1234")])
+    result == "sg-1234"
+  }
 }

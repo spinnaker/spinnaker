@@ -32,13 +32,14 @@ class NetworkInterfaceService {
   final AmazonEC2 amazonEC2
 
   NetworkInterface createNetworkInterface(String availabilityZone, String subnetPurpose, AwsNetworkInterface networkInterface) {
+    def vpcId = subnetAnalyzer.getVpcIdForSubnetPurpose(subnetPurpose)
     List<String> subnetIds = subnetAnalyzer.getSubnetIdsForZones([availabilityZone], subnetPurpose, SubnetTarget.ELB)
     String subnetId = Iterables.getOnlyElement(subnetIds)
     CreateNetworkInterfaceRequest request = new CreateNetworkInterfaceRequest(
       subnetId: subnetId,
       description: networkInterface.description,
       privateIpAddress: networkInterface.primaryPrivateIpAddress,
-      groups: securityGroupService.getSecurityGroupIds(networkInterface.securityGroupNames).values(),
+      groups: vpcId ? securityGroupService.getSecurityGroupIds(networkInterface.securityGroupNames, vpcId).values() : securityGroupService.getSecurityGroupIds(networkInterface.securityGroupNames).values(),
       privateIpAddresses: networkInterface.secondaryPrivateIpAddresses.collect {
         new PrivateIpAddressSpecification(privateIpAddress: it, primary: false)
       },
