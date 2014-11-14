@@ -1,0 +1,71 @@
+<form class="form-inline">
+  <label class="label-bold">Filter Stages</label>
+  <div class="form-group">
+    <label>Status</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-repeat="(status, displayName) in statusDisplayNames"
+             ng-model="filter.stage.status[status]"
+             ng-mouseenter="ctrl.solo('status', status)"
+             ng-mouseleave="ctrl.endSolo()"
+             btn-checkbox>
+        <span class="legend color"
+              style="background-color: {{ scale.status(status) }}">
+        </span>
+        {{ displayName }}
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Scale</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.stage.scale"
+             btn-radio="'relative'">
+        Relative
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.stage.scale"
+             btn-radio="'absolute'">
+        Absolute
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.stage.scale"
+             btn-radio="'fixed'">
+        Fixed
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Overlay</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.stage.colorOverlay"
+             btn-radio="'status'">
+        Status
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.stage.colorOverlay"
+             btn-radio="'name'">
+        Stage name
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Stage name</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-repeat="stageName in executions | stageNames"
+             ng-model="filter.stage.name[stageName]"
+             ng-mouseenter="ctrl.solo('name', stageName)"
+             ng-mouseleave="ctrl.endSolo()"
+             btn-checkbox>
+        <span class="legend color"
+              ng-if="filter.stage.colorOverlay == 'name'"
+              style="background-color: {{ scale.name(stageName) }}">
+        </span>
+        {{ stageName }}
+      </label>
+    </div>
+  </div>
+</form>

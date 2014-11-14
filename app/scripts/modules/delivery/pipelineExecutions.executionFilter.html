@@ -1,0 +1,58 @@
+<form class="form-inline">
+<label class="label-bold">Filter Executions</label>
+  <div class="form-group">
+    <label>Status</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.status.executing"
+             btn-checkbox>
+        Executing
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.status.completed"
+             btn-checkbox>
+        Completed
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.status.failed"
+             btn-checkbox>
+        Failed
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Group by</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.groupBy"
+             btn-radio="false">
+        None
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.groupBy"
+             btn-radio="'name'">
+        Pipeline
+      </label>
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.groupBy"
+             btn-radio="'timeBoundary'">
+        Time Boundary
+      </label>
+      <!--<label class="btn btn-default btn-xs"
+             ng-model="filter.execution.groupBy"
+             btn-radio="'trigger'">
+        Trigger
+        </label>-->
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Sort by</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn-xs"
+             ng-model="filter.execution.sortBy"
+             btn-radio="'startTime'">
+        Start Time
+      </label>
+    </div>
+  </div>
+</form>

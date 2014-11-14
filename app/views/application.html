@@ -35,11 +35,11 @@
         </span>
         </a>
       </li>
-      <li ng-if="pipelines.length > 0">
-        <a ui-sref=".delivery" ng-class="{active: $state.includes('**.delivery.**')}">
+      <li ng-if="executions.length > 0">
+        <a ui-sref=".executions" ng-class="{active: $state.includes('**.executions.**')}">
           Delivery <span class="badge"
-                         ng-if="( pipelines | filter:{isRunning:'true'}).length > 0">
-            {{ (pipelines | filter:{isRunning:'true'}).length }}
+                         ng-if="( executions | filter:{isRunning:'true'}).length > 0">
+            {{ (executions | filter:{isRunning:'true'}).length }}
           </span>
         </a>
       </li>

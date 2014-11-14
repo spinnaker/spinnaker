@@ -24,6 +24,11 @@ angular.module('deckApp')
             return item.status === 'STOPPED';
           }
         },
+        hasNotStarted: {
+          get: function() {
+            return item.status === 'NOT_STARTED';
+          }
+        },
         runningTime: {
           get: function() {
             return momentService

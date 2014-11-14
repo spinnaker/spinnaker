@@ -1,8 +1,26 @@
 @import "app/styles/imports/commonImports.less";
 
 .pipelines {
-  .form-inline {
-    margin-bottom: 10px;
+  .stage-filters {
+    label {
+      font-size: 12px;
+      vertical-align: -1px;
+      font-weight: normal;
+    }
+    border-bottom: 1px solid @mid_light_grey;
+    border-top: 1px solid @mid_light_grey;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    .form-group {
+      margin-right: 5px;
+    }
+    .legend.color {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
   }
   .faded {
     color: @mid_lighter_grey;
@@ -81,9 +99,6 @@
 }
 
 .pipeline-grouping {
-  background-color: @light_grey;
-  border: 1px solid #c4c4c4;
-  border-radius: 3px;
 }
 .build-timeline {
   .axis path,
@@ -119,7 +134,7 @@
     background-color: @spinnaker-blue;
     border-radius: 3px;
     color: #fff;
-  
+
   }
 }
 .pipeline-stacked-bar {
@@ -144,5 +159,29 @@
   .vis-label {
     fill: #fff;
     font-size: .8em;
+  }
+  .legend {
+    .block {
+      cursor: pointer;
+      stroke: none;
+    }
+  }
+  .legend.active {
+    .block {
+      stroke: @mid_grey;
+
+    }
+  }
+  .stage.succeeded, .stage.completed {
+    fill: @healthy_green_border !important;
+  }
+  .stage.failed {
+    fill: @unhealthy_red !important;
+  }
+  .stage.started, .stage.running, .stage.executing {
+    fill: @spinnaker-blue !important;
+  }
+  .stage.not_started {
+    fill: #ffffff !important;
   }
 }
