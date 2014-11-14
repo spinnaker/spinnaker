@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.deploy.gce.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.replicapool.Replicapool
+import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.gce.description.DeleteGoogleReplicaPoolDescription
@@ -29,6 +30,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
+  private static final INSTANCE_TEMPLATE_NAME = "$REPLICA_POOL_NAME-${System.currentTimeMillis()}"
   private static final ZONE = "us-central1-b"
 
   def setupSpec() {
@@ -41,7 +43,12 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def replicaPoolMock = Mock(Replicapool)
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def instanceGroupManager = new InstanceGroupManager()
+      instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
       def instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
+      def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
+      def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                zone: ZONE,
@@ -55,7 +62,15 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
     then:
       1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
+
+      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersDeleteMock
       1 * instanceGroupManagersDeleteMock.execute()
+
+      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
+      1 * instanceTemplatesDeleteMock.execute()
   }
 }
