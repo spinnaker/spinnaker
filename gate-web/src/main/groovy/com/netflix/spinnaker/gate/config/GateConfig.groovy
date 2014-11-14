@@ -110,6 +110,12 @@ class GateConfig {
     createClient "mort", MortService, serviceConfiguration, retrofitClient
   }
 
+  @Bean
+  MayoService mayoService(ServiceConfiguration serviceConfiguration,
+                          Client retrofitClient) {
+    createClient "mayo", MayoService, serviceConfiguration, retrofitClient
+  }
+
   private
   static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
     def endpoint = serviceConfiguration.discoveryHosts && !serviceConfiguration.getSerivce(serviceName)?.baseUrl ?

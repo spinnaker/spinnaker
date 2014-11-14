@@ -1,0 +1,54 @@
+===== Create Application Stage
+
+====== Type
+
++createApplication+
+
+====== Description
+
+This stage will orchestrate the creation of an application within a specified account
+
+====== Services Involved
+
+_orca_, _front50_
+
+====== Steps
+
+_createApplication_, _forceCacheRefresh_
+
+====== Example Request Body
+[source,javascript]
+----
+{
+  "type": "createApplication",
+  "account": "test",
+  "name": "kato",
+  "description": "Deployment services",
+  "email": "delivery-engineering@netflix.com",
+  "owner": "Delivery Engineering",
+  "type": "Web Service",
+  "group": "Spinnaker",
+  "monitorBucketType": "none",
+  "pdApiKey": null,
+  "regions": null,
+  "tags": null
+}
+----
+
+====== Description of inputs
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Key               | Type   | Required | Value
+|account           | string | true     | The account within which this application should be created
+|name              | string | true     | The name of the application
+|description       | string | true     | A description of the application
+|email             | string | true     | An email address for the application's owner. May be a distribution list
+|owner             | string | true     | The named owner of the application
+|type              | string | true     | The type of application. May be one of: Web Service, Web Application, Standalone Service
+|group             | string | false    | The application group that this belongs to. May be used for correlation purposes
+|monitorBucketType | string | false    | The monitoring bucket that this application should be placed into. Should be one of: cluster, application
+|pdApiKey          | string | false    | The PagerDuty API key for this application
+|regions           | string | false    | The regions within which this application will run
+|tags              | string | false    | Comma-separated list of tag values. May be used for querying and correlation purposes
+|======================

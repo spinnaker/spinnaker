@@ -23,3 +23,6 @@ services:
   - name: mort
     group: credentials
     baseUrl: http://mort.prod.netflix.net
+  - name: mayo
+    group: config
+    baseUrl: http://mayo.prod.netflix.net

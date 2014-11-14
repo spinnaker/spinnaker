@@ -1,0 +1,50 @@
+buildscript {
+  ext {
+    springBootVersion = "1.1.7.RELEASE"
+  }
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+  }
+}
+
+apply plugin: 'spring-boot'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+repositories {
+  jcenter()
+  maven { url "http://repo.spring.io/snapshot" }
+}
+
+dependencies {
+  compile project(":gate-manual")
+
+  compile spinnaker.dependency("groovy")
+  compile spinnaker.dependency("kork")
+  compile spinnaker.dependency("frigga")
+
+  compile 'org.springframework:springloaded:1.2.1.RELEASE'
+
+  compile 'cglib:cglib-nodep:3.1'
+  compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
+  compile 'com.netflix.hystrix:hystrix-core:1.4.0-RC5'
+  compile 'com.squareup.retrofit:retrofit:1.6.1'
+  compile 'com.squareup.retrofit:converter-jackson:1.6.1'
+
+  spinnaker.group("bootWeb")
+  spinnaker.group("test")
+}
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+ideaConfig {
+  mainClassName = 'com.netflix.spinnaker.gate.Main'
+}
+
+tasks.bootRepackage.enabled = false
