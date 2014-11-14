@@ -18,9 +18,7 @@ package com.netflix.spinnaker.oort.aws.model
 
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
-import groovy.transform.CompileStatic
 
-//@CompileStatic
 class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
 
   AmazonServerGroup() {
@@ -103,6 +101,15 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
   @Override
   Map<String, Object> getLaunchConfig() {
     (Map<String, Object>) getProperty("launchConfig")
+  }
+
+  @Override
+  ServerGroup.InstanceCounts getInstanceCounts() {
+    Set<Instance> instances = getInstances()
+    def total = instances.size()
+    def up = instances.findAll { it.healthy }?.size() ?: 0
+    def down = instances.findAll { !it.healthy }?.size() ?: 0
+    new ServerGroup.InstanceCounts(total: total, up: up, down: down)
   }
 
   Map getBuildInfo() {

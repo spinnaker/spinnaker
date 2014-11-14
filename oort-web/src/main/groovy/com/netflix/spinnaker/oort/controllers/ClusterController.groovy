@@ -67,6 +67,9 @@ class ClusterController {
       }
       clusterViews
     }?.flatten() as Set
+    if (!clusters) {
+      throw new AccountClustersNotFoundException(application: application, account: account)
+    }
     clusters
   }
 
@@ -77,6 +80,9 @@ class ClusterController {
       it.getCluster(application, account, name)
     }
     clusters.removeAll([null])
+    if (!clusters) {
+      throw new ClusterNotFoundException(cluster: name)
+    }
     clusters
   }
 
@@ -110,6 +116,13 @@ class ClusterController {
 
   @ExceptionHandler
   @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleClusterNotFoundException(AccountClustersNotFoundException ex) {
+    def message = messageSource.getMessage("account.clusters.not.found", [ex.application, ex.account] as String[], "account.clusters.not.found", LocaleContextHolder.locale)
+    [error: "account.clusters.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
   Map handleClusterNotFoundException(ClusterNotFoundException ex) {
     def message = messageSource.getMessage("cluster.not.found", [ex.cluster] as String[], "cluster.not.found", LocaleContextHolder.locale)
     [error: "cluster.not.found", message: message, status: HttpStatus.NOT_FOUND]
@@ -120,6 +133,11 @@ class ClusterController {
   Map handleServerGroupNotFoundException(ServerGroupNotFoundException ex) {
     def message = messageSource.getMessage("serverGroup.not.found", [ex.serverGroupName] as String[], "serverGroup.not.found", LocaleContextHolder.locale)
     [error: "serverGroup.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  static class AccountClustersNotFoundException extends RuntimeException {
+    String application
+    String account
   }
 
   static class ClusterNotFoundException extends RuntimeException {

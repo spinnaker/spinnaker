@@ -100,4 +100,27 @@ interface ServerGroup {
   @Empty
   Map<String, Object> getLaunchConfig()
 
+  /**
+   * A data structure with instance counts, including total, number of up, and number of down instances
+   *
+   * @return a data structure
+   */
+  InstanceCounts getInstanceCounts()
+
+  class InstanceCounts {
+    /**
+     * Total number of instances in the server group
+     */
+    Integer total
+
+    /**
+     * Total number of "up" instances (which are healthy)
+     */
+    Integer up
+
+    /**
+     * Total number of "down" instances (which are unhealthy)
+     */
+    Integer down
+  }
 }

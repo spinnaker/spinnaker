@@ -21,8 +21,6 @@ import com.netflix.spinnaker.oort.model.*
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.lang.Void as Should
-
 class ClusterControllerSpec extends Specification {
 
   @Shared
@@ -32,7 +30,7 @@ class ClusterControllerSpec extends Specification {
     clusterController = new ClusterController()
   }
 
-  Should "call all application providers to get and merge the cluster names"() {
+  void "should call all application providers to get and merge the cluster names"() {
     setup:
     def app1 = Stub(Application) {
       getName() >> "app"
@@ -60,7 +58,7 @@ class ClusterControllerSpec extends Specification {
     result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set]
   }
 
-  Should "throw exception when looking for specific cluster that doesnt exist"() {
+  void "should throw exception when looking for specific cluster that doesnt exist"() {
     setup:
     def clusterProvider1 = Mock(ClusterProvider)
     clusterController.clusterProviders = [clusterProvider1]
@@ -72,7 +70,7 @@ class ClusterControllerSpec extends Specification {
     thrown ClusterController.ClusterNotFoundException
   }
 
-  Should "return specific named serverGroup"() {
+  void "should return specific named serverGroup"() {
     setup:
     def clusterProvider1 = Mock(ClusterProvider)
     clusterController.clusterProviders = [clusterProvider1]
@@ -90,5 +88,31 @@ class ClusterControllerSpec extends Specification {
       cluster
     }
     result == [serverGroup] as Set
+  }
+
+  void "should throw exception when no clusters are found for an account"() {
+    setup:
+    def clusterProvider1 = Mock(ClusterProvider)
+    clusterController.clusterProviders = [clusterProvider1]
+
+    when:
+    clusterController.getForAccount("app", "account")
+
+    then:
+    1 * clusterProvider1.getClusters(_, _) >> null
+    thrown ClusterController.AccountClustersNotFoundException
+  }
+
+  void "should throw exception when a requested cluster is not found within an account"() {
+    setup:
+    def clusterProvider1 = Mock(ClusterProvider)
+    clusterController.clusterProviders = [clusterProvider1]
+
+    when:
+    clusterController.getForAccountAndName("app", "account", "name")
+    
+    then:
+    1 * clusterProvider1.getCluster(*_) >> null
+    thrown ClusterController.ClusterNotFoundException
   }
 }

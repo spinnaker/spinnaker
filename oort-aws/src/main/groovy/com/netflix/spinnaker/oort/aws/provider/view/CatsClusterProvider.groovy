@@ -48,21 +48,12 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   @Override
   Map<String, Set<AmazonCluster>> getClusterSummaries(String applicationName) {
-    getClusters(applicationName, false)
+    getClusters0(applicationName, false)
   }
 
   @Override
   Map<String, Set<AmazonCluster>> getClusterDetails(String applicationName) {
-    getClusters(applicationName, true)
-  }
-
-  Map<String, Set<AmazonCluster>> getClusters(String applicationName, boolean includeDetails) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
-    if (application == null) {
-      return [:]
-    }
-    Collection<AmazonCluster> clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
-    mapResponse(clusters)
+    getClusters0(applicationName, true)
   }
 
   @Override
@@ -86,8 +77,15 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup
   }
 
-  private Map<String, Set<AmazonCluster>> mapResponse(Collection<AmazonCluster> clusters) {
+  private static Map<String, Set<AmazonCluster>> mapResponse(Collection<AmazonCluster> clusters) {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
+  }
+
+  private static Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
+    loadBalancerData.collectEntries { loadBalancerEntry ->
+      Map<String, String> lbKey = Keys.parse(loadBalancerEntry.id)
+      [(loadBalancerEntry.id) : new AmazonLoadBalancer(lbKey.loadBalancer, lbKey.region)]
+    }
   }
 
   private Collection<AmazonCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
@@ -128,11 +126,13 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     clusters
   }
 
-  private Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
-    loadBalancerData.collectEntries { loadBalancerEntry ->
-      Map<String, String> lbKey = Keys.parse(loadBalancerEntry.id)
-      [(loadBalancerEntry.id) : new AmazonLoadBalancer(lbKey.loadBalancer, lbKey.region)]
+  private Map<String, Set<AmazonCluster>> getClusters0(String applicationName, boolean includeDetails) {
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
+    if (application == null) {
+      return null
     }
+    Collection<AmazonCluster> clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
+    mapResponse(clusters)
   }
 
   private Map<String, AmazonServerGroup> translateServerGroups(Collection<CacheData> serverGroupData) {

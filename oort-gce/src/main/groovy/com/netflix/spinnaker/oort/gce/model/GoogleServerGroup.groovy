@@ -19,7 +19,6 @@ package com.netflix.spinnaker.oort.gce.model
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 
-//@CompileStatic
 class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
   GoogleServerGroup() {
@@ -63,6 +62,15 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
   @Override
   Map<String, Object> getLaunchConfig() {
     (Map<String, Object>) getProperty("launchConfig")
+  }
+
+  @Override
+  ServerGroup.InstanceCounts getInstanceCounts() {
+    def instances = getInstances()
+    def total = instances.size()
+    def up = instances.findAll { it.healthy }?.size() ?: 0
+    def down = instances.findAll { !it.healthy }?.size() ?: 0
+    new ServerGroup.InstanceCounts(total: total, up: up, down: down)
   }
 
   @Override
