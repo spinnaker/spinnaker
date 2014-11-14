@@ -4,4 +4,4 @@ build/
 *.ipr
 *.iws
 /.idea/
-
+gate-manual/src/main/resources/static/manual
