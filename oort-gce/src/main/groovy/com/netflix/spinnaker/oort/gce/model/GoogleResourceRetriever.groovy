@@ -113,21 +113,23 @@ class GoogleResourceRetriever {
             for (def listResource : listResourcesResult.getItems()) {
               def instanceName = getLocalName(listResource.resource)
               def instance = credentials.compute.instances().get(project, ZONE, instanceName).execute()
-
               long instanceTimestamp = instance.creationTimestamp
                                        ? simpleDateFormat.parse(instance.creationTimestamp).getTime()
                                        : Long.MAX_VALUE
+              boolean instanceIsHealthy = instance.status == "RUNNING"
 
               // Use earliest replica launchTime as createdTime of instance group for now.
               earliestReplicaTimestamp = Math.min(earliestReplicaTimestamp, instanceTimestamp)
 
               def googleInstance = new GoogleInstance(instance.name)
-              googleInstance.setProperty("isHealthy", instance.status == "RUNNING")
+              googleInstance.setProperty("isHealthy", instanceIsHealthy)
               googleInstance.setProperty("instanceId", instance.name)
               googleInstance.setProperty("instanceType", instanceTemplate.properties.machineType)
               googleInstance.setProperty("providerType", GOOGLE_INSTANCE_TYPE)
               googleInstance.setProperty("launchTime", instanceTimestamp)
               googleInstance.setProperty("placement", [availabilityZone: ZONE])
+              googleInstance.setProperty("health", [[type: "GCE",
+                                                     state: instanceIsHealthy ? "Up" : "Down"]])
               googleServerGroup.instances << googleInstance
             }
 
