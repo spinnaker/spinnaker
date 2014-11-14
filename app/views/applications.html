@@ -55,18 +55,18 @@
       <tbody ng-if="fullyLoaded">
         <tr ng-repeat="application in ctrl.resultPage()">
           <td>
-            <a ui-sref=".application({ application: application.name })">
-              {{ application.name }}
+            <a ui-sref=".application({ application: application.name.toLowerCase() })">
+              {{ application.name.toLowerCase() }}
             </a>
           </td>
           <td>
-            {{ application.attributes.createTs | relativeTime }}
+            {{ application.createTs | relativeTime }}
           </td>
           <td>
-            {{ application.attributes.updateTs | relativeTime }}
+            {{ application.updateTs | relativeTime }}
           </td>
           <td>
-            {{ application.attributes.email }}
+            {{ application.email }}
           </td>
         </tr>
       </tbody>
