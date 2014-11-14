@@ -44,15 +44,36 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing delete of replica pool $description.replicaPoolName in $description.zone..."
 
+    def compute = description.credentials.compute
     def project = description.credentials.project
+    def zone = description.zone
+    def replicaPoolName = description.replicaPoolName
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
 
-    replicapool.instanceGroupManagers().delete(project, description.zone, description.replicaPoolName).execute()
+    def instanceGroupManager = replicapool.instanceGroupManagers().get(project, zone, replicaPoolName).execute()
 
-    task.updateStatus BASE_PHASE, "Done deleting replica pool $description.replicaPoolName in $description.zone."
+    // We create a new instance template for each managed instance group. We need to delete it here.
+    def instanceTemplateName = getLocalName(instanceGroupManager.instanceTemplate)
+
+    task.updateStatus BASE_PHASE, "Identified instance template."
+
+    replicapool.instanceGroupManagers().delete(project, zone, replicaPoolName).execute()
+
+    task.updateStatus BASE_PHASE, "Deleted instance group."
+
+    compute.instanceTemplates().delete(project, instanceTemplateName).execute()
+
+    task.updateStatus BASE_PHASE, "Deleted instance template."
+
+    task.updateStatus BASE_PHASE, "Done deleting replica pool $replicaPoolName in $zone."
     null
+  }
+
+  private static String getLocalName(String fullUrl) {
+    int lastIndex = fullUrl.lastIndexOf('/')
+
+    return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 }
