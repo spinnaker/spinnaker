@@ -18,20 +18,23 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+
+import javax.annotation.PostConstruct
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class BuildJobNotificationHandler implements NotificationHandler, Runnable {
 
   static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
+  static final String TRIGGER_MASTER = "master"
 
   @Autowired
   MayoService mayoService
@@ -63,10 +66,11 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
         List<Map> triggers = pipeline.triggers
         for (Map trigger in triggers) {
           if (trigger.type == TRIGGER_TYPE) {
-            if (!_interestingPipelines.containsKey(trigger[TRIGGER_KEY] as String)) {
-              _interestingPipelines[trigger[TRIGGER_KEY] as String] = []
+            String key = generateKey(trigger[TRIGGER_MASTER], trigger[TRIGGER_KEY])
+            if (!_interestingPipelines.containsKey(key)) {
+              _interestingPipelines[key] = []
             }
-            _interestingPipelines[trigger[TRIGGER_KEY] as String] << pipeline
+            _interestingPipelines[key] << pipeline
           }
         }
       }
@@ -87,12 +91,13 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
       return
     }
     try {
-      if (interestingPipelines.containsKey(input.name)) {
+      String key = generateKey(input.master as String, input.name as String)
+      if (interestingPipelines.containsKey(key)) {
         if (input.lastBuildStatus != "Success") return
-        def pipelineConfigs = interestingPipelines[input.name as String]
+        def pipelineConfigs = interestingPipelines[key]
         for (Map pipelineConfig in pipelineConfigs) {
           Map trigger = pipelineConfig.triggers.find {
-            it.type == "jenkins" && it.job == input.name
+            it.type == "jenkins" && it.job == input.name && it.master == input.master
           } as Map
           def pipelineConfigClone = new HashMap(pipelineConfig)
           pipelineConfigClone.trigger = new HashMap(trigger)
@@ -105,5 +110,10 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
       e.printStackTrace()
       throw e
     }
+  }
+
+  @VisibleForTesting
+  static private String generateKey(String master, String job) {
+    "$master:$job"
   }
 }
