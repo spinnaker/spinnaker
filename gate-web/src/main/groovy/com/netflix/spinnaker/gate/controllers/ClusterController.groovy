@@ -65,14 +65,14 @@ class ClusterController {
 
   @CompileStatic(TypeCheckingMode.SKIP)
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
-  DeferredResult<Map> getServerGroups(@PathVariable("application") String app,
+  DeferredResult<List<Map>> getServerGroups(@PathVariable("application") String app,
                                       @PathVariable("account") String account,
                                       @PathVariable("clusterName") String clusterName,
                                       @PathVariable("serverGroupName") String serverGroupName) {
-    DeferredResult<Map> q = new DeferredResult<>()
+    DeferredResult<List<Map>> q = new DeferredResult<>()
     // TODO this crappy logic needs to be here until the "type" field is removed in Oort
     clusterService.getClusterServerGroups(app, account, clusterName).subscribe({ serverGroups ->
-      q.setResult(serverGroups.find {
+      q.setResult(serverGroups.findAll {
         it.name == serverGroupName
       })
     }, { Throwable t ->
