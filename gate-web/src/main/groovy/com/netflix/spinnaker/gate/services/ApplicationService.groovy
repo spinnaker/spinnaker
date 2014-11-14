@@ -158,7 +158,7 @@ class ApplicationService {
     PipelineConfigsCommand(String app, MayoService mayoService) {
       super(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
           .andCommandKey(HystrixCommandKey.Factory.asKey("getPipelineConfigs-${app}"))
-          .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
+          .andCommandPropertiesDefaults(ApplicationService.createHystrixCommandPropertiesSetter()
           .withExecutionIsolationThreadTimeoutInMilliseconds(30000)))
       this.app = app
       this.mayoService = mayoService
@@ -187,7 +187,7 @@ class ApplicationService {
     PipelineConfigCommand(String app, String pipelineName, MayoService mayoService) {
       super(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
           .andCommandKey(HystrixCommandKey.Factory.asKey("getPipelineConfig-${app}-${pipelineName}"))
-          .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
+          .andCommandPropertiesDefaults(ApplicationService.createHystrixCommandPropertiesSetter()
           .withExecutionIsolationThreadTimeoutInMilliseconds(30000)))
       this.app = app
       this.pipelineName = pipelineName
