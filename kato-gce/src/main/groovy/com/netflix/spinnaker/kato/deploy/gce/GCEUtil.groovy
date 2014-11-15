@@ -84,13 +84,13 @@ class GCEUtil {
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
     def zones = getZonesFromRegion(projectName, region, credentials.compute)
 
-    def allMIGSInRegions = zones.findResults {
+    def allMIGSInRegion = zones.findResults {
       def localZoneName = getLocalName(it)
 
       replicapool.instanceGroupManagers().list(projectName, localZoneName).execute().getItems()
     }.flatten()
 
-    allMIGSInRegions
+    allMIGSInRegion
   }
 
   static String getRegionFromZone(String projectName, String zone, Compute compute) {
