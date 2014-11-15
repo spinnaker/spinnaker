@@ -20,7 +20,6 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
-import redis.clients.jedis.JedisCommands
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
