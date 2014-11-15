@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort.aws.provider.config
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentials
@@ -26,14 +25,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.oort.aws.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
-import com.netflix.spinnaker.oort.aws.provider.agent.ClusterCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.DiscoveryCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.EddaLoadBalancerCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.Front50CachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.ImageCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.InstanceCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.LaunchConfigCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.LoadBalancerCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
@@ -53,9 +45,6 @@ class AwsProviderConfig {
         continue
       }
       NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) cred
-      if (credentials.front50Enabled) {
-        agents << new Front50CachingAgent(credentials, restTemplate)
-      }
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         agents << new ClusterCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         agents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)

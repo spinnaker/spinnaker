@@ -47,7 +47,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
-    INFORMATIVE.forType(APPLICATIONS.ns),
+    AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
     INFORMATIVE.forType(LAUNCH_CONFIGS.ns),
@@ -196,6 +196,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   private void cacheApplication(AsgData data, Map<String, CacheData> applications) {
     applications[data.appName].with {
+      attributes.name = data.name.app
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)

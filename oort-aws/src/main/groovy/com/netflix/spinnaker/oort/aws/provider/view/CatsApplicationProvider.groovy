@@ -46,18 +46,7 @@ class CatsApplicationProvider implements ApplicationProvider {
   Set<Application> getApplications() {
     Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns)
 
-    applications.collect {
-      new CatsApplication(
-        (String) Keys.parse(it.id).application,
-        [
-          owner:    (String) it.attributes.owner,
-          email:    (String) it.attributes.email,
-          createTs: (String) it.attributes.createTs,
-          updateTs: (String) it.attributes.updateTs
-        ],
-        [:]
-      )
-    }
+    applications.collect this.&translate
   }
 
   @Override
