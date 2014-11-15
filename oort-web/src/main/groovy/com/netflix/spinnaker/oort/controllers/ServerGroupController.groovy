@@ -93,6 +93,7 @@ class ServerGroupController {
     List<InstanceViewModel> instances
     Set<String> loadBalancers
     Set<String> securityGroups
+    ServerGroup.InstanceCounts instanceCounts
 
     ServerGroupViewModel(ServerGroup serverGroup, Cluster cluster) {
       this.cluster = cluster.name
@@ -102,6 +103,7 @@ class ServerGroupController {
       createdTime = serverGroup.getCreatedTime()
       isDisabled = serverGroup.isDisabled()
       instances = serverGroup.getInstances().findResults { it ? new InstanceViewModel(it) : null }
+      instanceCounts = serverGroup.instanceCounts
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
       if (serverGroup.hasProperty("buildInfo")) {
