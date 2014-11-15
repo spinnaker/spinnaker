@@ -62,8 +62,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20140415", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20140415", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20141017", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20141017", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
    *
    * @param description
    * @param priorOutputs
@@ -81,7 +81,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
 
-    def nextSequence = getNextSequence(clusterName, project, zone, description.credentials, replicaPoolBuilder)
+    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+
+    def nextSequence = getNextSequence(clusterName, project, region, description.credentials, replicaPoolBuilder)
     task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
 
     def serverGroupName = "${clusterName}-v${nextSequence}".toString()
@@ -117,20 +119,18 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                        .setBaseInstanceName(serverGroupName)
                                                        .setInstanceTemplate(instanceTemplateUrl)).execute()
 
-    def region = GCEUtil.getRegionFromZone(project, zone, compute)
-
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
     new DeploymentResult(serverGroupNames: ["$region:$serverGroupName".toString()])
   }
 
   static def getNextSequence(String clusterName,
                              String project,
-                             String zone,
+                             String region,
                              GoogleCredentials credentials,
                              ReplicaPoolBuilder replicaPoolBuilder) {
     def maxSeqNumber = -1
     def managedInstanceGroups = GCEUtil.queryManagedInstanceGroups(project,
-                                                                   zone,
+                                                                   region,
                                                                    credentials,
                                                                    replicaPoolBuilder,
                                                                    APPLICATION_NAME)
