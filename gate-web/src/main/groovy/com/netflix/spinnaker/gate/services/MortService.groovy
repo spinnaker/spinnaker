@@ -25,5 +25,5 @@ interface MortService {
   List<String> getAccountNames()
 
   @GET('/credentials/{account}')
-  Map<String, Map> getAccount(@Path("account") String account)
+  Map getAccount(@Path("account") String account)
 }

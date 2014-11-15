@@ -50,18 +50,18 @@ class CredentialsService {
     }.toObservable()
   }
 
-  Observable<List> getAccount(String account) {
+  Observable<Map> getAccount(String account) {
     new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
         .andCommandKey(HystrixCommandKey.Factory.asKey("getAccount"))) {
 
       @Override
-      protected Observable<List> run() {
+      protected Observable<Map> run() {
         Observable.from(mortService.getAccount(account))
       }
 
       @Override
-      protected Observable<List> getFallback() {
-        Observable.from([])
+      protected Observable<Map> getFallback() {
+        Observable.from([:])
       }
 
       @Override

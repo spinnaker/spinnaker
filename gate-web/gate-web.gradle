@@ -7,10 +7,12 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath 'com.netflix.nebula:nebula-ospackage-plugin:1.12.+'
   }
 }
 
 apply plugin: 'spring-boot'
+apply plugin: 'nebula-ospackage-application'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
@@ -46,6 +48,13 @@ configurations.all {
 
 ideaConfig {
   mainClassName = 'com.netflix.spinnaker.gate.Main'
+}
+
+tasks.startScripts {
+  doLast {
+    def scriptFile = file "${outputDir}/${applicationName}"
+    scriptFile.text = scriptFile.text.replace('CLASSPATH=$APP_HOME/lib', 'CLASSPATH=$APP_HOME/lib/int/*:$APP_HOME/lib')
+  }
 }
 
 tasks.bootRepackage.enabled = false
