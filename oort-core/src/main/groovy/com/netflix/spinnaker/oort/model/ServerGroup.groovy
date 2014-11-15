@@ -107,7 +107,7 @@ interface ServerGroup {
    */
   InstanceCounts getInstanceCounts()
 
-  class InstanceCounts {
+  static class InstanceCounts {
     /**
      * Total number of instances in the server group
      */
