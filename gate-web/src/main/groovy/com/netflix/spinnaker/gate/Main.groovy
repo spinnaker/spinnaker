@@ -33,6 +33,8 @@ class Main extends SpringBootServletInitializer {
 
   static {
     System.setProperty(ENV_KEY, System.getProperty(ENV_KEY, "test"))
+    imposeSpinnakerFileConfig("onelogin.yml")
+    imposeSpinnakerClasspathConfig("onelogin.yml")
   }
 
   static void main(_) {
@@ -42,5 +44,19 @@ class Main extends SpringBootServletInitializer {
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
     builder.sources(Main)
+  }
+
+  static void imposeSpinnakerFileConfig(String file) {
+    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
+    if (internalConfig.exists()) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
+    }
+  }
+
+  static void imposeSpinnakerClasspathConfig(String resource) {
+    def internalConfig = getClass().getResourceAsStream("/${resource}")
+    if (internalConfig) {
+      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/${resource}")
+    }
   }
 }

@@ -4,6 +4,10 @@ discoveryHosts:
   - http://us-west-2.discoveryprod.netflix.net:7001
   - http://eu-west-1.discoveryprod.netflix.net:7001
 
+security:
+  basic:
+    enabled: false
+
 services:
   - name: oort
     group: applications

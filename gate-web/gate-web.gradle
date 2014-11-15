@@ -33,6 +33,7 @@ dependencies {
   compile 'com.netflix.hystrix:hystrix-core:1.4.0-RC5'
   compile 'com.squareup.retrofit:retrofit:1.6.1'
   compile 'com.squareup.retrofit:converter-jackson:1.6.1'
+  compile 'org.springframework.boot:spring-boot-starter-security'
 
   spinnaker.group("bootWeb")
   spinnaker.group("test")
