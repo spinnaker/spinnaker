@@ -35,9 +35,6 @@ class GoogleResourceRetriever {
   // TODO(duftler): Need to query all regions.
   private static final String REGION = "us-central1"
 
-  // TODO(duftler): Need to query all zones.
-  private static final String ZONE = "us-central1-b"
-
   private static final String GOOGLE_SERVER_GROUP_TYPE = "gce"
   private static final String GOOGLE_INSTANCE_TYPE = "gce"
 
@@ -77,7 +74,11 @@ class GoogleResourceRetriever {
         def project = credentials.project
         def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
         def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, APPLICATION_NAME)
-        def instanceGroupManagersListResult = replicapool.instanceGroupManagers().list(project, ZONE).execute()
+        def zones = credentials.compute.regions().get(project, REGION).execute().getZones()
+
+        zones.each { zone ->
+        def localZoneName = getLocalName(zone)
+        def instanceGroupManagersListResult = replicapool.instanceGroupManagers().list(project, localZoneName).execute()
 
         for (def instanceGroupManager : instanceGroupManagersListResult.items) {
           def names = Names.parseName(instanceGroupManager.name)
@@ -103,16 +104,16 @@ class GoogleResourceRetriever {
 
             // instanceGroupManager.name == names.group
             def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, REGION)
-            googleServerGroup.zones << ZONE
+            googleServerGroup.zones << localZoneName
 
             def earliestReplicaTimestamp = Long.MAX_VALUE
 
             def resourceViews = new ResourceViewsBuilder().buildResourceViews(credentialBuilder, APPLICATION_NAME)
-            def listResourcesResult = resourceViews.zoneViews().listResources(project, ZONE, instanceGroupManager.name).execute()
+            def listResourcesResult = resourceViews.zoneViews().listResources(project, localZoneName, instanceGroupManager.name).execute()
 
             for (def listResource : listResourcesResult.getItems()) {
               def instanceName = getLocalName(listResource.resource)
-              def instance = credentials.compute.instances().get(project, ZONE, instanceName).execute()
+              def instance = credentials.compute.instances().get(project, localZoneName, instanceName).execute()
               long instanceTimestamp = instance.creationTimestamp
                                        ? simpleDateFormat.parse(instance.creationTimestamp).getTime()
                                        : Long.MAX_VALUE
@@ -127,7 +128,7 @@ class GoogleResourceRetriever {
               googleInstance.setProperty("instanceType", instanceTemplate.properties.machineType)
               googleInstance.setProperty("providerType", GOOGLE_INSTANCE_TYPE)
               googleInstance.setProperty("launchTime", instanceTimestamp)
-              googleInstance.setProperty("placement", [availabilityZone: ZONE])
+              googleInstance.setProperty("placement", [availabilityZone: localZoneName])
               googleInstance.setProperty("health", [[type: "GCE",
                                                      state: instanceIsHealthy ? "Up" : "Down"]])
               googleServerGroup.instances << googleInstance
@@ -142,6 +143,7 @@ class GoogleResourceRetriever {
 
             cluster.serverGroups << googleServerGroup
           }
+        }
         }
       }
     }
