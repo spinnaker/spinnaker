@@ -5,7 +5,7 @@ angular.module('deckApp')
   .factory('accountService', function(settings, Restangular, $q, scheduledCache) {
 
     var credentialsEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.credentialsUrl);
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     var preferredZonesByAccount = {

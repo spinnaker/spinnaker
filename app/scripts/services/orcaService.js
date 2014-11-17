@@ -5,15 +5,18 @@ angular.module('deckApp')
   .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.pondUrl);
-      RestangularConfigurer.setDefaultHeaders( {'Content-Type':'application/context+json'} );
-    }).all('ops');
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
+    }).all('applications');
+
+    function getEndpoint(application) {
+      return endpoint.all(application).all('tasks');
+    }
 
     function executeTask(taskCommand) {
       if (taskCommand.job[0].providerType === 'aws') {
         delete taskCommand.job[0].providerType;
       }
-      var op = endpoint.post(taskCommand).then(
+      var op = getEndpoint(taskCommand.application).post(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
           notifications.create({
@@ -25,7 +28,7 @@ angular.module('deckApp')
               taskId: taskId
             })
           });
-          return pond.one('tasks', taskId).get();
+          return pond.one('applications', taskCommand.application).one('tasks', taskId).get();
         },
         function(response) {
           var error = {

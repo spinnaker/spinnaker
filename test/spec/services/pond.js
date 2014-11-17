@@ -39,12 +39,12 @@ describe('Service: Pond - task complete, task force refresh', function() {
     }
 
     beforeEach(function() {
-      task = service.one('tasks', 1).get().$object;
+      task = service.one('applications', 'deck').one('tasks', 1).get().$object;
     });
 
     it('resolves watchForTaskComplete immediately if task is complete', function() {
 
-      $http.whenGET(config.pondUrl + '/tasks/1').respond(200, {
+      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
         id: 1,
         status: 'COMPLETED'
       });
@@ -66,7 +66,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
     it('polls task when watchForTaskComplete is called until task completes', function() {
 
       var result = null,
-        requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
       // Step 1: running
       requestHandler.respond(200, { id: 1, status: 'STARTED' });
@@ -93,7 +93,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
     it('polls task, failing when task fails or stops', function() {
 
       var result = null,
-        requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
       // Scenario 1: FAILED
       // Step 1: running
@@ -131,7 +131,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     it('waits for force refresh step to complete, then resolves', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
       $http.flush();
@@ -171,7 +171,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     it('rejects when force refresh step fails', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
       $http.flush();
@@ -210,7 +210,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     it('rejects when force refresh step never occurs', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'COMPLETED', steps: [] });
       $http.flush();
@@ -224,7 +224,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     it('cancels pending requests', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.pondUrl + '/tasks/1');
+        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
       $http.flush();
@@ -263,7 +263,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         }
       };
 
-      $http.whenGET(config.pondUrl + '/tasks/1').respond(200, {
+      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
         id: 1,
         status: 'STARTED',
         steps: [],
@@ -300,14 +300,14 @@ describe('Service: Pond - task complete, task force refresh', function() {
   describe('task running time', function() {
 
     function execute() {
-      service.one('tasks', 1).get().then(function(resolved) { task = resolved; });
+      service.one('applications', 'deck').one('tasks', 1).get().then(function(resolved) { task = resolved; });
 
       $http.flush();
       scope.$digest();
     }
 
     it('uses start time to calculate running time if endTime is zero', function() {
-      $http.whenGET(config.pondUrl + '/tasks/1').respond(200, {
+      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',
         startTime: new Date(),
@@ -320,7 +320,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
     });
 
     it('uses start time to calculate running time if endTime is not present', function() {
-      $http.whenGET(config.pondUrl + '/tasks/1').respond(200, {
+      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',
         startTime: new Date()
@@ -334,7 +334,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
     it('calculates running time based on start and end times', function() {
       var start = new Date().getTime(),
           end = start + 120*1000;
-      $http.whenGET(config.pondUrl + '/tasks/1').respond(200, {
+      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',
         startTime: start,
