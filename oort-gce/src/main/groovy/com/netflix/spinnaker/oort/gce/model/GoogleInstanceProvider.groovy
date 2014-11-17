@@ -55,10 +55,10 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
         GoogleCluster cluster = clusterMap[nameParts.cluster]
 
         if (cluster) {
-          GoogleServerGroup serverGroup = cluster.serverGroups.find { it.name == nameParts.group }
+          GoogleServerGroup serverGroup = cluster.serverGroups.find { it.name == nameParts.group && it.region == region }
 
           if (serverGroup) {
-            return (GoogleInstance) serverGroup.instances.find { it.name == id}
+            return (GoogleInstance) serverGroup.instances.find { it.name == id }
           }
         }
       }

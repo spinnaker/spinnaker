@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.services.replicapool.ReplicapoolScopes
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
+import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import org.apache.log4j.Logger
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -28,18 +30,6 @@ import java.util.concurrent.TimeUnit
 
 class GoogleResourceRetriever {
   protected static final Logger log = Logger.getLogger(this)
-
-  // TODO(duftler): This should move to a common location.
-  private static final String APPLICATION_NAME = "Spinnaker"
-
-  // TODO(duftler): Need to query all regions.
-  private static final String REGION = "us-central1"
-
-  // TODO(duftler): Need to query all zones.
-  private static final String ZONE = "us-central1-b"
-
-  private static final String GOOGLE_SERVER_GROUP_TYPE = "gce"
-  private static final String GOOGLE_INSTANCE_TYPE = "gce"
 
   // The value of this field is always assigned atomically and the map is never modified after assignment.
   private static appMap = new HashMap<String, GoogleApplication>()
@@ -67,7 +57,6 @@ class GoogleResourceRetriever {
     log.info "Loading GCE resources..."
 
     def tempAppMap = new HashMap<String, GoogleApplication>()
-    def simpleDateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 
     getAllGoogleCredentialsObjects(accountCredentialsProvider).each {
       def accountName = it.key
@@ -75,74 +64,34 @@ class GoogleResourceRetriever {
 
       for (GoogleCredentials credentials : credentialsSet) {
         def project = credentials.project
+        def compute = credentials.compute
+
+        BatchRequest regionsBatch = compute.batch()
+        BatchRequest migsBatch = compute.batch()
+        BatchRequest resourceViewsBatch = compute.batch()
+        BatchRequest instancesBatch = compute.batch()
+
         def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-        def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, APPLICATION_NAME)
-        def instanceGroupManagersListResult = replicapool.instanceGroupManagers().list(project, ZONE).execute()
+        def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+        def regions = compute.regions().list(project).execute().getItems()
+        def regionsCallback = new RegionsCallback(tempAppMap,
+                                                  accountName,
+                                                  project,
+                                                  compute,
+                                                  credentialBuilder,
+                                                  replicapool,
+                                                  migsBatch,
+                                                  resourceViewsBatch,
+                                                  instancesBatch)
 
-        for (def instanceGroupManager : instanceGroupManagersListResult.items) {
-          def names = Names.parseName(instanceGroupManager.name)
-          def appName = names.app.toLowerCase()
-
-          def instanceTemplateName = getLocalName(instanceGroupManager.instanceTemplate)
-          def instanceTemplate = credentials.compute.instanceTemplates().get(project, instanceTemplateName).execute()
-
-          if (appName) {
-            if (!tempAppMap[appName]) {
-              tempAppMap[appName] = new GoogleApplication(name: appName)
-              tempAppMap[appName].clusterNames[accountName] = new HashSet<String>()
-              tempAppMap[appName].clusters[accountName] = new HashMap<String, GoogleCluster>()
-            }
-
-            if (!tempAppMap[appName].clusters[accountName][names.cluster]) {
-              tempAppMap[appName].clusters[accountName][names.cluster] = new GoogleCluster(name: names.cluster, accountName: accountName)
-            }
-
-            def cluster = tempAppMap[appName].clusters[accountName][names.cluster]
-
-            tempAppMap[appName].clusterNames[accountName] << names.cluster
-
-            // instanceGroupManager.name == names.group
-            def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, REGION)
-            googleServerGroup.zones << ZONE
-
-            def earliestReplicaTimestamp = Long.MAX_VALUE
-
-            def resourceViews = new ResourceViewsBuilder().buildResourceViews(credentialBuilder, APPLICATION_NAME)
-            def listResourcesResult = resourceViews.zoneViews().listResources(project, ZONE, instanceGroupManager.name).execute()
-
-            for (def listResource : listResourcesResult.getItems()) {
-              def instanceName = getLocalName(listResource.resource)
-              def instance = credentials.compute.instances().get(project, ZONE, instanceName).execute()
-              long instanceTimestamp = instance.creationTimestamp
-                                       ? simpleDateFormat.parse(instance.creationTimestamp).getTime()
-                                       : Long.MAX_VALUE
-              boolean instanceIsHealthy = instance.status == "RUNNING"
-
-              // Use earliest replica launchTime as createdTime of instance group for now.
-              earliestReplicaTimestamp = Math.min(earliestReplicaTimestamp, instanceTimestamp)
-
-              def googleInstance = new GoogleInstance(instance.name)
-              googleInstance.setProperty("isHealthy", instanceIsHealthy)
-              googleInstance.setProperty("instanceId", instance.name)
-              googleInstance.setProperty("instanceType", instanceTemplate.properties.machineType)
-              googleInstance.setProperty("providerType", GOOGLE_INSTANCE_TYPE)
-              googleInstance.setProperty("launchTime", instanceTimestamp)
-              googleInstance.setProperty("placement", [availabilityZone: ZONE])
-              googleInstance.setProperty("health", [[type: "GCE",
-                                                     state: instanceIsHealthy ? "Up" : "Down"]])
-              googleServerGroup.instances << googleInstance
-            }
-
-            // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
-            googleServerGroup.setProperty("asg", [minSize    : instanceGroupManager.targetSize,
-                                                  maxSize    : instanceGroupManager.targetSize,
-                                                  desiredCapacity: instanceGroupManager.targetSize])
-
-            googleServerGroup.setProperty("launchConfig", [createdTime: earliestReplicaTimestamp])
-
-            cluster.serverGroups << googleServerGroup
-          }
+        regions.each { region ->
+          compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
         }
+
+        regionsBatch.execute()
+        migsBatch.execute()
+        resourceViewsBatch.execute()
+        instancesBatch.execute()
       }
     }
 
@@ -175,11 +124,5 @@ class GoogleResourceRetriever {
 
   Map<String, GoogleApplication> getApplicationsMap() {
     return appMap
-  }
-
-  private static String getLocalName(String fullUrl) {
-    int lastIndex = fullUrl.lastIndexOf('/')
-
-    return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 }
