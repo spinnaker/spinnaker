@@ -61,4 +61,6 @@ ospackage {
   packageName = "gate"
 }
 
+tasks.build.dependsOn = [buildDeb]
+
 tasks.bootRepackage.enabled = false
