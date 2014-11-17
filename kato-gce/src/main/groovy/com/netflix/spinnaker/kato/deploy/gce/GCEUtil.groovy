@@ -76,22 +76,32 @@ class GCEUtil {
   }
 
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
-                                                               String zone,
+                                                               String region,
                                                                GoogleCredentials credentials,
                                                                ReplicaPoolBuilder replicaPoolBuilder,
                                                                String applicationName) {
     def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
+    def zones = getZonesFromRegion(projectName, region, credentials.compute)
 
-    replicapool.instanceGroupManagers().list(projectName, zone).execute().getItems()
+    def allMIGSInRegion = zones.findResults {
+      def localZoneName = getLocalName(it)
+
+      replicapool.instanceGroupManagers().list(projectName, localZoneName).execute().getItems()
+    }.flatten()
+
+    allMIGSInRegion
   }
 
   static String getRegionFromZone(String projectName, String zone, Compute compute) {
     // Zone.getRegion() returns a full URL reference.
     def fullRegion = compute.zones().get(projectName, zone).execute().getRegion()
     // Even if getRegion() is changed to return just the unqualified region name, this will still work.
-    def regionParts = fullRegion.split("/")
-    regionParts[regionParts.length - 1]
+    getLocalName(fullRegion)
+  }
+
+  static List<String> getZonesFromRegion(String projectName, String region, Compute compute) {
+    return compute.regions().get(projectName, region).execute().getZones()
   }
 
   static AttachedDisk buildAttachedDisk(Image sourceImage, long diskSizeGb, String diskType) {
@@ -110,5 +120,11 @@ class GCEUtil {
   private static void updateStatusAndThrowException(String errorMsg, Task task, String phase) {
     task.updateStatus phase, errorMsg
     throw new GCEResourceNotFoundException(errorMsg)
+  }
+
+  private static String getLocalName(String fullUrl) {
+    def urlParts = fullUrl.split("/")
+
+    return urlParts[urlParts.length - 1]
   }
 }
