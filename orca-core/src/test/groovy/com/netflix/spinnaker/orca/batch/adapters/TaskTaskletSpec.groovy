@@ -15,8 +15,9 @@
  */
 
 package com.netflix.spinnaker.orca.batch.adapters
-
-import com.fasterxml.jackson.databind.ObjectMapper
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -29,9 +30,6 @@ import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createJobExecution
@@ -144,7 +142,7 @@ class TaskTaskletSpec extends Specification {
     FAILED     | _
     SUCCEEDED  | _
 
-    outputs = [foo: "bar", baz: "qux"]
+    outputs = [foo: "bar", baz: "qux", appConfig: [:]]
   }
 
   def "should overwrite values in the stage if a task returns them as outputs"() {
