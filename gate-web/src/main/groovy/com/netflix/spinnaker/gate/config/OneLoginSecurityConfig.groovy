@@ -112,7 +112,8 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
       String callback = request.session.getAttribute(SPINNAKER_SSO_CALLBACK_KEY)
       if (!callback) {
-        callback = '/auth/info'
+        response.status = 401
+        return
       }
 
       response.sendRedirect callback
@@ -120,11 +121,11 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     User getUser(HttpServletResponse response) {
-      User whoami = (User) SecurityContextHolder.context.authentication.principal
-      if (!whoami) {
+      Object whoami = SecurityContextHolder.context.authentication.principal
+      if (!whoami || !(whoami instanceof User)) {
         response.sendRedirect('/auth')
       } else {
-        return whoami
+        return (User)whoami
       }
       // will never hit this
       null
