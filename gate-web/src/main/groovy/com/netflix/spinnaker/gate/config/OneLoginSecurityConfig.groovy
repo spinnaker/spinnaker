@@ -70,6 +70,8 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
   @RestController
   static class OneLoginSecurityController {
 
+    private static final String SPINNAKER_SSO_CALLBACK_KEY = "_SPINNAKER_SSO_CALLBACK"
+
     private final String url
     private final String certificate
 
@@ -83,11 +85,13 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     RememberMeServices rememberMeServices
 
     @RequestMapping(method = RequestMethod.GET)
-    void get(HttpServletRequest request, HttpServletResponse response) {
+    void get(@RequestParam(value = "callback", required = false) String cb, HttpServletRequest request, HttpServletResponse response) {
       def redirect = new URL(request.scheme, request.serverName, request.serverPort, '/auth/signIn')
       def appSettings = new AppSettings(issuer: url, assertionConsumerServiceUrl: redirect)
       def authReq = new AuthRequest(appSettings)
       def samlReq = URLEncoder.encode(authReq.request, 'UTF-8')
+
+      request.session.setAttribute(SPINNAKER_SSO_CALLBACK_KEY, cb)
 
       response.status = 302
       response.addHeader("Location", "${url}?SAMLRequest=${samlReq}")
@@ -106,7 +110,12 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
       SecurityContextHolder.context.authentication = auth
       rememberMeServices.loginSuccess(request, response, auth)
 
-      response.sendRedirect '/auth/info'
+      String callback = request.session.getAttribute(SPINNAKER_SSO_CALLBACK_KEY)
+      if (!callback) {
+        callback = '/auth/info'
+      }
+
+      response.sendRedirect callback
     }
 
     @RequestMapping(value = "/info", method = RequestMethod.GET)
