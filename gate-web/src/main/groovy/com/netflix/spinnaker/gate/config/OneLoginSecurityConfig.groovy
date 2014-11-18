@@ -69,7 +69,7 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
   @RequestMapping("/auth")
   @RestController
   static class OneLoginSecurityController {
-
+    private static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL"
     private static final String SPINNAKER_SSO_CALLBACK_KEY = "_SPINNAKER_SSO_CALLBACK"
 
     private final String url
@@ -112,8 +112,8 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
       String callback = request.session.getAttribute(SPINNAKER_SSO_CALLBACK_KEY)
       if (!callback) {
-        response.status = 401
-        return
+        response.sendError(200, "ok")
+        return;
       }
 
       response.sendRedirect callback
@@ -123,12 +123,12 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     User getUser(HttpServletResponse response) {
       Object whoami = SecurityContextHolder.context.authentication.principal
       if (!whoami || !(whoami instanceof User)) {
-        response.sendRedirect('/auth')
+        response.addHeader AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth/signIn"
+        response.sendError 401
+        null
       } else {
-        return (User)whoami
+        (User)whoami
       }
-      // will never hit this
-      null
     }
 
     @Immutable
