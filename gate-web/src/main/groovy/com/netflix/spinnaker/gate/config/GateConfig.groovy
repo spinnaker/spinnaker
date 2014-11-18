@@ -44,8 +44,6 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Configuration
 class GateConfig {
 
-  private static final String AUTHENTICATION_ORIGIN_HEADER_NAME = "X-AUTH-ORIGIN"
-
   @Bean
   @ConditionalOnMissingBean(RestTemplate)
   RestTemplate restTemplate() {
@@ -146,7 +144,7 @@ class GateConfig {
       public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res;
         HttpServletRequest request = (HttpServletRequest) req;
-        String origin = request.getHeader(AUTHENTICATION_ORIGIN_HEADER_NAME) ?: "*"
+        String origin = request.getHeader("Origin") ?: "*"
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
