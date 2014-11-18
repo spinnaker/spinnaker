@@ -278,22 +278,14 @@ angular.module('deckApp.gce')
           'keyPair': serverGroup.launchConfig.keyName,
           'associatePublicIpAddress': serverGroup.launchConfig.associatePublicIpAddress,
           'ramdiskId': serverGroup.launchConfig.ramdiskId,
-          'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring.enabled,
+          'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring && serverGroup.launchConfig.instanceMonitoring.enabled,
           'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
           'amiName': amiName
         });
       }
-      var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
-      if (vpcZoneIdentifier !== '') {
-        var subnetId = vpcZoneIdentifier.split(',')[0];
-        var subnet = _($scope.subnets).find({'id': subnetId});
-        command.subnetType = subnet.purpose;
-        command.vpcId = subnet.vpcId;
-      } else {
-        command.subnetType = '';
-        command.vpcId = null;
-      }
-      if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups.length) {
+      command.subnetType = '';
+      command.vpcId = null;
+      if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups && serverGroup.launchConfig.securityGroups.length) {
         command.securityGroups = serverGroup.launchConfig.securityGroups;
       }
       return command;
@@ -377,8 +369,9 @@ angular.module('deckApp.gce')
       var command = angular.copy($scope.command);
       var description;
       if (serverGroup) {
-        description = 'Create Cloned Server Group from ' + serverGroup.asg.autoScalingGroupName;
+        description = 'Create Cloned Server Group from ' + serverGroup.name;
         command.type = 'copyLastAsg';
+        command.providerType = 'gce';
         command.source = {
           'account': serverGroup.account,
           'region': serverGroup.region,
