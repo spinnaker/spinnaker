@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.services.*
 import groovy.transform.CompileStatic
 import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cache.Cache
@@ -42,6 +43,8 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 class GateConfig {
+
+  private static final String AUTHENTICATION_ORIGIN_HEADER_NAME = "X-AUTH-ORIGIN"
 
   @Bean
   @ConditionalOnMissingBean(RestTemplate)
@@ -142,7 +145,10 @@ class GateConfig {
     new Filter() {
       public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res;
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        HttpServletRequest request = (HttpServletRequest) req;
+        String origin = request.getHeader(AUTHENTICATION_ORIGIN_HEADER_NAME) ?: "*"
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Origin", origin);
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
