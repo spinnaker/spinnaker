@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-  spinnaker.group "bootWeb"
-  compile spinnaker.dependency("amos")
+
+package com.netflix.spinnaker.front50.controllers.exception
+
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
+
+@ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Exception, baby")
+class ApplicationException extends RuntimeException {
+  public ApplicationException(Throwable cause) {
+    super(cause)
+  }
 }

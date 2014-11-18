@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-dependencies {
-  spinnaker.group "bootWeb"
-  compile spinnaker.dependency("amos")
-}
+
+package com.netflix.spinnaker.front50.exception
+
+import groovy.transform.InheritConstructors
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
+
+@InheritConstructors
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Application already exists")
+class ApplicationAlreadyExistsException extends RuntimeException {}

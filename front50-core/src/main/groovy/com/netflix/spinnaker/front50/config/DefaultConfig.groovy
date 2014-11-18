@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class DefaultConfig {
-
   @Bean
   @ConditionalOnMissingBean(AccountCredentialsRepository)
   AccountCredentialsRepository accountCredentialsRepository() {

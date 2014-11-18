@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-dependencies {
-  spinnaker.group "bootWeb"
-  compile spinnaker.dependency("amos")
+
+package com.netflix.spinnaker.front50.security
+
+import com.netflix.spinnaker.amos.AccountCredentials
+import groovy.transform.Canonical
+
+@Canonical
+class CassandraCredentials implements AccountCredentials<Map> {
+  String name
+
+  @Override
+  Map getCredentials() {
+    return [:]
+  }
 }

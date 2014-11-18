@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Configuration
 @EnableAutoConfiguration
 @ComponentScan("com.netflix.spinnaker.front50")
 public class Main extends SpringBootServletInitializer {
-
   static {
     if (!System.properties["netflix.environment"]) {
       System.setProperty("netflix.environment", "test")

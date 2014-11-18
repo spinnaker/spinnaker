@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-dependencies {
-  spinnaker.group "bootWeb"
-  compile spinnaker.dependency("amos")
+
+package com.netflix.spinnaker.front50.validator
+
+import com.netflix.spinnaker.front50.model.application.Application
+import org.springframework.stereotype.Component
+
+@Component
+class HasEmailValidator implements ApplicationValidator {
+  @Override
+  void validate(Application application, ApplicationValidationErrors validationErrors) {
+    if (!application.email?.trim()) {
+      validationErrors.rejectValue("email", "application.email.empty", "Application must have a non-empty email")
+    }
+  }
 }

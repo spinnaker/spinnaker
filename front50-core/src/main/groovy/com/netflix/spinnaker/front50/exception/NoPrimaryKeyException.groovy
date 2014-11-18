@@ -20,8 +20,5 @@ package com.netflix.spinnaker.front50.exception
 
 import groovy.transform.InheritConstructors;
 
-/**
- * Created by aglover on 4/25/14.
- */
 @InheritConstructors
 public class NoPrimaryKeyException extends RuntimeException {}
