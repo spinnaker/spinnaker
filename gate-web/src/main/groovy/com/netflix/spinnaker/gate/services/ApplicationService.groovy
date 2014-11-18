@@ -79,31 +79,36 @@ class ApplicationService {
         .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
       @Override
       protected Observable<Map> run() {
-        Observable.just(oortService.getApplication(name)).mergeWith(credentialsService.accountNames.flatMap { String account ->
-          rx.Observable.just(front50Service.getMetaData(account, name))
-        }).onErrorReturn(new Func1<Throwable, Map>() {
-          @Override
-          Map call(Throwable throwable) {
-            [:]
-          }
-        }).observeOn(Schedulers.io()).map {
-          it
-        }.reduce([:], { Map app, Map data ->
-          if (data.containsKey("clusters")) {
-            app.putAll data
-          } else {
-            if (!app.containsKey("attributes")) {
-              app.attributes = [:]
+        Observable<Map> perAccount = credentialsService.accountNames.flatMap({ List<String> accounts ->
+          Observable.from(accounts).flatMap({ String account ->
+            Observable.just(front50Service.getMetaData(account, name))
+          } as Func1<String, Observable<Map>>)
+        } as Func1<List<String>, Observable<Map>>)
+
+        Observable<Map> o = Observable.mergeDelayError(
+                oortService.getApplication(name),
+                perAccount).onErrorReturn { t -> [:] }
+
+        o.observeOn(Schedulers.io()).reduce([:], { Map app, Map data ->
+          if (data) {
+            if (data.containsKey("clusters")) {
+              app.putAll data
+            } else {
+              if (!app.containsKey("attributes")) {
+                app.attributes = [:]
+              }
+              app.attributes.putAll(data)
             }
-            app.attributes.putAll(data)
           }
           app
         })
+
+        o
       }
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([])
+        Observable.empty()
       }
 
       @Override

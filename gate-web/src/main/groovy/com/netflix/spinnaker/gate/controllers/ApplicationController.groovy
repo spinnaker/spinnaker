@@ -15,13 +15,15 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
-
-import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.TagService
+import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
-
 
 import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
 
@@ -51,8 +53,16 @@ class ApplicationController {
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   DeferredResult<Map> show(@PathVariable("name") String name) {
-    defer applicationService.get(name)
+    defer applicationService.get(name).map { if (!it) {
+      throw new ApplicationNotFoundException("Application ${name} not found")
+    } else {
+      it
+    }}
   }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @InheritConstructors
+  static class ApplicationNotFoundException extends RuntimeException {}
 
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   DeferredResult<Map> delete(@RequestParam String account, @PathVariable String name) {
@@ -112,5 +122,4 @@ class ApplicationController {
     String baseLabel = "release"
     String region = "us-east-1"
   }
-
 }
