@@ -43,6 +43,25 @@
         </dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.asg.minSize === serverGroup.asg.maxSize">
+        <dt>Min/Max:</dt>
+        <dd>{{serverGroup.asg.desiredCapacity}}</dd>
+        <dt>Current:</dt>
+        <dd>{{serverGroup.instances.length}}</dd>
+      </dl>
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.asg.minSize !== serverGroup.asg.maxSize">
+        <dt>Min:</dt>
+        <dd>{{serverGroup.asg.minSize}}</dd>
+        <dt>Desired:</dt>
+        <dd>{{serverGroup.asg.desiredCapacity}}</dd>
+        <dt>Max:</dt>
+        <dd>{{serverGroup.asg.maxSize}}</dd>
+        <dt>Current:</dt>
+        <dd>{{serverGroup.instances.length}}</dd>
+      </dl>
+      <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
+    </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal dl-narrow" ng-if="serverGroup">
         <dt>Instances:</dt>
