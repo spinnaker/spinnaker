@@ -17,17 +17,14 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.spinnaker.kato.config.KatoAWSConfig.AwsConfigurationProperties
+import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 
-public abstract class AmazonDescriptionValidationSupport<T> extends DescriptionValidator<T> {
+public abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
 
-  @Autowired
-  AwsConfigurationProperties awsConfigurationProperties
 
   void validateAsgNameAndRegions(T description, Errors errors) {
     validateAsgName description, errors
@@ -44,18 +41,21 @@ public abstract class AmazonDescriptionValidationSupport<T> extends DescriptionV
 
   void validateRegions(T description, Errors errors) {
     def key = description.getClass().simpleName
-    validateRegions(description.regions, key, errors)
+    validateRegions(description, description.regions, key, errors)
   }
 
-  void validateRegion(String regionName, String errorKey, Errors errors) {
-    validateRegions([regionName], errorKey, errors, "region")
+  void validateRegion(T description, String regionName, String errorKey, Errors errors) {
+    validateRegions(description, [regionName], errorKey, errors, "region")
   }
 
-  void validateRegions(Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
+  void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
     if (!regionNames) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.empty")
-    } else if (awsConfigurationProperties.regions && !awsConfigurationProperties.regions.containsAll(regionNames)) {
-      errors.rejectValue(attributeName, "${errorKey}.${attributeName}.not.configured")
+    } else {
+      def allowedRegions = description.credentials?.regions?.name
+      if (allowedRegions && !allowedRegions.containsAll(regionNames)) {
+        errors.rejectValue(attributeName, "${errorKey}.${attributeName}.not.configured")
+      }
     }
   }
 

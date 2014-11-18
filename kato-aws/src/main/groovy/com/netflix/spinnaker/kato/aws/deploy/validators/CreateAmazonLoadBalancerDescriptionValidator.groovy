@@ -23,6 +23,7 @@ import org.springframework.validation.Errors
 
 @Component("createAmazonLoadBalancerDescriptionValidator")
 class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
+
   @Override
   void validate(List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
     if (!description.name && !description.clusterName) {
@@ -34,10 +35,10 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
     for (Map.Entry entry in description.availabilityZones) {
       def region = entry.key
       def azs = entry.value
-      def acct = awsConfigurationProperties.accounts.find { it.name == description.credentialAccount }
-      def acctRegion = acct ? acct.regions.find { it.name == region } : null
 
-      if (!awsConfigurationProperties.regions.contains(region)) {
+      def acctRegion = description.credentials.regions.find { it.name == region }
+
+      if (!acctRegion) {
         errors.rejectValue("availabilityZones", "createAmazonLoadBalancerDescription.region.not.configured")
       }
       if (!description.subnetType && !azs) {

@@ -33,6 +33,6 @@ class CreateNetworkInterfaceDescriptionValidator extends AmazonDescriptionValida
     if (!description.subnetType) {
       errors.rejectValue "subnetType", "createNetworkInterfaceDescription.subnetType.empty"
     }
-    validateRegions(regions, "createNetworkInterfaceDescription", errors)
+    validateRegions(description, regions, "createNetworkInterfaceDescription", errors)
   }
 }

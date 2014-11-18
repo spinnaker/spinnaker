@@ -29,6 +29,6 @@ class TerminateInstancesDescriptionValidator extends AmazonDescriptionValidation
         errors.rejectValue("instanceIds", "${key}.instanceId.invalid")
       }
     }
-    validateRegion(description.region, key, errors)
+    validateRegion(description, description.region, key, errors)
   }
 }

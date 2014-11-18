@@ -47,6 +47,6 @@ class UpsertSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
       }
     }
 
-    validateRegions([description.region], "upsertSecurityGroupDescription", errors)
+    validateRegions(description, [description.region], "upsertSecurityGroupDescription", errors)
   }
 }

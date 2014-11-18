@@ -16,8 +16,6 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstanceAndDecrementAsgDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -30,7 +28,6 @@ class TerminateInstanceAndDecrementAsgDescriptionValidatorSpec extends Specifica
 
   void setupSpec() {
     validator = new TerminateInstanceAndDecrementAsgDescriptionValidator()
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
   }
 
   void "empty description fails validation"() {
@@ -60,7 +57,7 @@ class TerminateInstanceAndDecrementAsgDescriptionValidatorSpec extends Specifica
     1 * errors.rejectValue("region", _)
 
     when:
-    description.region = validator.awsConfigurationProperties.regions.first()
+    description.region = 'us-west-1'
     validator.validate([], description, errors)
 
     then:

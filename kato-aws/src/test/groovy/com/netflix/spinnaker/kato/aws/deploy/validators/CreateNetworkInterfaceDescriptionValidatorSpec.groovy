@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.AwsNetworkInterface
 import org.springframework.validation.Errors
@@ -23,8 +21,7 @@ import spock.lang.Specification
 
 class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
 
-  CreateNetworkInterfaceDescriptionValidator validator = new CreateNetworkInterfaceDescriptionValidator(
-    awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-east-1", "us-west-1"]))
+  CreateNetworkInterfaceDescriptionValidator validator = new CreateNetworkInterfaceDescriptionValidator()
 
   void "pass validation with proper description inputs"() {
     setup:

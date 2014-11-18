@@ -15,8 +15,6 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertScalingPolicyDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -43,7 +41,6 @@ class UpsertScalingPolicyDescriptionValidatorSpec extends Specification {
   Errors errors
 
   def setup() {
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
     errors = Mock(Errors)
   }
 

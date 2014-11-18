@@ -31,6 +31,6 @@ class TerminateInstanceAndDecrementAsgDescriptionValidator extends AmazonDescrip
     if (!description.instance) {
       errors.rejectValue("instance", "${key}.instance.empty")
     }
-    validateRegion(description.region, key, errors)
+    validateRegion(description, description.region, key, errors)
   }
 }

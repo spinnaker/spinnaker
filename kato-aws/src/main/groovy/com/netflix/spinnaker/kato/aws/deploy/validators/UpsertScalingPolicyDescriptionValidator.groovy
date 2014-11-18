@@ -24,7 +24,7 @@ import org.springframework.validation.Errors
 class UpsertScalingPolicyDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertScalingPolicyDescription> {
   @Override
   void validate(List priorDescriptions, UpsertScalingPolicyDescription description, Errors errors) {
-    validateRegions([description.region], "upsertScalingPolicyDescription", errors)
+    validateRegions(description, [description.region], "upsertScalingPolicyDescription", errors)
 
     if (!description.asgName) {
       rejectNull "asgName", errors

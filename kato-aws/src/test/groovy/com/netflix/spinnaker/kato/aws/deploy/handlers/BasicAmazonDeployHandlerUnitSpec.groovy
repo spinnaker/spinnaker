@@ -16,7 +16,6 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.handlers
-
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
@@ -24,15 +23,15 @@ import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
+import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -51,11 +50,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
       getAmazonEC2(_, _) >> amazonEC2
     }
-    KatoAWSConfig.AwsConfigurationProperties awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(defaults: new KatoAWSConfig.DeployDefaults())
-    awsConfigurationProperties.defaults.iamRole = "IamRole"
+    def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole', instanceClassBlockDevices: [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)])
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
-    awsConfigurationProperties.defaults.instanceClassBlockDevices = [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)]
-    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, awsConfigurationProperties: awsConfigurationProperties,
+    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, deployDefaults: defaults,
       regionScopedProviderFactory: Mock(RegionScopedProviderFactory))
     handler.regionScopedProviderFactory.forRegion(_, _) >> Mock(RegionScopedProviderFactory.RegionScopedProvider)
     Task task = Stub(Task) {

@@ -16,10 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -34,23 +32,11 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void setupSpec() {
     validator = new CreateAmazonLoadBalancerDescriptionValidator()
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(
-      regions: ["us-west-1"],
-      accounts: [
-        new NetflixAssumeRoleAmazonCredentials(
-          name: 'test',
-          regions: [
-            new AmazonCredentials.AWSRegion(
-              name: "us-west-1",
-              availabilityZones: ["us-west-1a"]
-            )
-          ]
-        )
-      ])
   }
 
   void setup() {
-    description = new UpsertAmazonLoadBalancerDescription(credentials: new NetflixAssumeRoleAmazonCredentials(name: 'test'))
+    description = new UpsertAmazonLoadBalancerDescription(credentials:
+            new NetflixAmazonCredentials('test', '12345', 'kp', [new AmazonCredentials.AWSRegion("us-west-1", ["us-west-1a"])], null, null, null, null, null, null))
   }
 
   void "empty parameters fails validation"() {

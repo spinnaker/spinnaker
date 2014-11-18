@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -31,10 +30,6 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
   abstract DescriptionValidator getDescriptionValidator()
 
   abstract Object getDescription()
-
-  void setupSpec() {
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
-  }
 
   void "empty description fails validation"() {
     setup:

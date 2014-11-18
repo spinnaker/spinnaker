@@ -32,7 +32,7 @@ class DeleteAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
 
   @Override
   void validate(List priorDescriptions, DeleteAmazonLoadBalancerDescription description, Errors errors) {
-    validateRegions(description.regions, "deleteAmazonLoadBalancerDescription", errors)
+    validateRegions(description, description.regions, "deleteAmazonLoadBalancerDescription", errors)
     for (region in description.regions) {
       validateLoadBalancer region, description.loadBalancerName, description.credentials, errors
     }

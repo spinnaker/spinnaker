@@ -16,8 +16,6 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.ShrinkClusterDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -29,7 +27,6 @@ class ShrinkClusterDescriptionValidatorSpec extends Specification {
 
   void setupSpec() {
     validator = new ShrinkClusterDescriptionValidator()
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
   }
 
   void "empty description fails validation"() {

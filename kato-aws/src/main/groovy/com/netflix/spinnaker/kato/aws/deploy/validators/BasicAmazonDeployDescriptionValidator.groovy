@@ -62,10 +62,8 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     if (!description.availabilityZones.values()?.flatten() && !description.subnetType) {
       errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.availabilityZones.or.subnetType.not.supplied"
     }
-    for (String region : description.availabilityZones.keySet()) {
-      if (awsConfigurationProperties.regions && (!awsConfigurationProperties.regions?.contains(region) || !((AmazonCredentials) credentials).regions*.name?.contains(region))) {
-        errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", [region] as String[], "Region $region not configured"
-      }
+    if (!((AmazonCredentials) credentials).regions.name.containsAll(description.availabilityZones.keySet())) {
+      errors.rejectValue "availabilityZones", "basicAmazonDeployDescription.region.not.configured", description.availabilityZones.keySet() as String[], "Region not configured"
     }
     for (AmazonBlockDevice device : description.blockDevices) {
       BlockDeviceRules.validate device, errors

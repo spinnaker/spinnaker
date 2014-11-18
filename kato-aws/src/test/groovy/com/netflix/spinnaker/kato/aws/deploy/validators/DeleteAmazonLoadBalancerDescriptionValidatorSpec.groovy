@@ -15,14 +15,12 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -31,7 +29,7 @@ import spock.lang.Subject
 
 class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   @Subject
-    validator = new DeleteAmazonLoadBalancerDescriptionValidator(awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"]))
+    validator = new DeleteAmazonLoadBalancerDescriptionValidator()
 
   @Shared
   AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
@@ -86,7 +84,7 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     }
 
     when:
-    description.regions = validator.awsConfigurationProperties.regions
+    description.regions = ['us-west-1', 'us-east-1']
     validator.validate([], description, errors)
 
     then:

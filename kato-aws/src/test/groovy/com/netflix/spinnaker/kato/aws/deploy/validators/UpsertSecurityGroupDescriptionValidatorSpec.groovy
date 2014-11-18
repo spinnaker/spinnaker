@@ -15,8 +15,6 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
 import com.netflix.spinnaker.kato.aws.model.SecurityGroupNotFoundException
@@ -53,7 +51,6 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
   }
 
   def setup() {
-    validator.awsConfigurationProperties = new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-west-1"])
     securityGroupService = Mock(SecurityGroupService)
     errors = Mock(Errors)
     def regionScopedProviderFactory = Mock(RegionScopedProviderFactory)

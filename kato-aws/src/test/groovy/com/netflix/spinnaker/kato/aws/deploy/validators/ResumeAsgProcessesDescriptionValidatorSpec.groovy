@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
-import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.aws.deploy.description.ResumeAsgProcessesDescription
 import org.springframework.validation.Errors
 import spock.lang.Specification
 
 class ResumeAsgProcessesDescriptionValidatorSpec extends Specification {
 
-  ResumeAsgProcessesDescriptionValidator validator = new ResumeAsgProcessesDescriptionValidator(
-    awsConfigurationProperties: new KatoAWSConfig.AwsConfigurationProperties(regions: ["us-east-1", "us-west-1"]))
+  ResumeAsgProcessesDescriptionValidator validator = new ResumeAsgProcessesDescriptionValidator()
 
   void "pass validation with proper description inputs"() {
     def description = new ResumeAsgProcessesDescription(
