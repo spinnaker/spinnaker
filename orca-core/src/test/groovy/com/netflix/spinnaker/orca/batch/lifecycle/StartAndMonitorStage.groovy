@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 
 @CompileStatic
@@ -32,7 +32,7 @@ class StartAndMonitorStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(ConfigurableStage stage) {
+  protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("start", startTask)
     def step2 = buildStep("monitor", monitorTask)
     [step1, step2]

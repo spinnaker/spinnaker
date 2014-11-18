@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -67,7 +67,7 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("asgActionWaitForDownInstances", [
+    def stage = new Stage(type: "asgActionWaitForDownInstances", context: [
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"

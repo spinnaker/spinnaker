@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.EnableOrDisableAsgOperation
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,14 +32,14 @@ import spock.lang.Subject
 class EnableAsgTaskSpec extends Specification {
 
   @Subject task = new EnableAsgTask()
-  def stage = new PipelineStage("whatever")
+  def stage = new Stage(type: "whatever")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def disableASGConfig = [
-      asgName    : "test-asg",
-      regions    : ["us-west-1", "us-east-1"],
-      credentials: "fzlem"
+    asgName    : "test-asg",
+    regions    : ["us-west-1", "us-east-1"],
+    credentials: "fzlem"
   ]
 
   def setup() {
@@ -47,7 +47,7 @@ class EnableAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.updateContext(disableASGConfig)
+    stage.context.putAll(disableASGConfig)
   }
 
   def "creates an enable ASG task based on job parameters"() {

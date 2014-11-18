@@ -22,14 +22,14 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class TerminateGoogleInstancesTaskSpec extends Specification {
 
   @Subject task = new TerminateGoogleInstancesTask()
-  def stage = new PipelineStage("whatever")
+  def stage = new Stage(type: "whatever")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -44,7 +44,7 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.updateContext(terminateInstancesConfig)
+    stage.context.putAll(terminateInstancesConfig)
   }
 
   def "creates a terminate google Instance task based on job parameters"() {

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.batch
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.StepExecutionListenerSupport
@@ -59,7 +59,7 @@ class StageStatusPropagationListener extends StepExecutionListenerSupport {
     pipelineStore.retrieve(id)
   }
 
-  private PipelineStage currentStage(StepExecution stepExecution) {
+  private Stage currentStage(StepExecution stepExecution) {
     currentPipeline(stepExecution).namedStage(stageName(stepExecution))
   }
 

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -26,7 +26,7 @@ class ApplicationForceCacheRefreshTaskSpec extends Specification {
   def config = [
     account: "fzlem"
   ]
-  def stage = new PipelineStage("forceRefresh", config)
+  def stage = new Stage(type: "forceRefresh", context: config)
 
   void "should force cache refresh applications via oort"() {
     setup:

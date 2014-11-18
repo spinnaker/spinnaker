@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.pipeline.memory
 
-interface ConfigurableStage extends Stage {
+import com.netflix.spinnaker.orca.pipeline.PipelineStoreTck
 
-  void addToContext(String key, Serializable value)
-
+class InMemoryPipelineStoreSpec extends PipelineStoreTck<InMemoryPipelineStore> {
+  @Override
+  InMemoryPipelineStore createPipelineStore() {
+    new InMemoryPipelineStore()
+  }
 }

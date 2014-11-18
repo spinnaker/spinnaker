@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -31,13 +31,13 @@ import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 @TupleConstructor(includeFields = true)
 class OrchestrationInitializerTasklet implements Tasklet {
 
-  static Step createTasklet(StepBuilderFactory steps, List<ConfigurableStage> stages) {
+  static Step createTasklet(StepBuilderFactory steps, List<Stage> stages) {
     steps.get("orca-init-step")
          .tasklet(new OrchestrationInitializerTasklet(stages))
-      .build()
+         .build()
   }
 
-  private final List<ConfigurableStage> stages
+  private final List<Stage> stages
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {

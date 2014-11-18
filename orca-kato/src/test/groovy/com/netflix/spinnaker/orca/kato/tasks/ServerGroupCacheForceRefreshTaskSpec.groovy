@@ -17,22 +17,22 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
   @Subject task = new ServerGroupCacheForceRefreshTask()
-  def stage = new PipelineStage("whatever")
+  def stage = new Stage(type: "whatever")
 
   def deployConfig = [
-    "account.name"  : "fzlem",
-    "server.groups"  : ["us-east-1": ["kato-main-v000"]]
+    "account.name" : "fzlem",
+    "server.groups": ["us-east-1": ["kato-main-v000"]]
   ]
 
   def setup() {
-    stage.updateContext(deployConfig)
+    stage.context.putAll(deployConfig)
   }
 
   void "should force cache refresh server groups via oort"() {

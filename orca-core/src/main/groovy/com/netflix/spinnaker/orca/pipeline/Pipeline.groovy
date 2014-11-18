@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 
@@ -28,24 +27,16 @@ class Pipeline implements Serializable {
   String application
   String name
   String id
-
   final Map<String, Serializable> trigger = [:]
-  private final List<PipelineStage> stages = []
+  final List<Stage> stages = []
 
-  ImmutableMap<String, Serializable> getTrigger() {
-    ImmutableMap.copyOf(trigger)
-  }
-
-  ImmutableList<PipelineStage> getStages() {
-    ImmutableList.copyOf(stages)
-  }
-
-  PipelineStage namedStage(String type) {
+  Stage namedStage(String type) {
     stages.find {
       it.type == type
     }
   }
 
+  @JsonIgnore
   PipelineStatus getStatus() {
     def status = stages.status.reverse().find {
       it != NOT_STARTED
@@ -81,7 +72,7 @@ class Pipeline implements Serializable {
         type += "_$context.providerType"
       }
 
-      pipeline.@stages << new PipelineStage(pipeline, type, context)
+      pipeline.@stages << new Stage(pipeline: pipeline, type: type, context: context)
       return this
     }
 

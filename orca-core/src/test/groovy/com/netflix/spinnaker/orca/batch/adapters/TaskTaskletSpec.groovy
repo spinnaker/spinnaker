@@ -133,7 +133,7 @@ class TaskTaskletSpec extends Specification {
 
   def "should overwrite values in the stage if a task returns them as outputs"() {
     given:
-    stage.updateContext(key: value)
+    stage.context[key] = value
 
     and:
     task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])

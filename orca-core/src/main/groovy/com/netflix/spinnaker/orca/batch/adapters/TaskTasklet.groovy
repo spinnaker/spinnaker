@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -58,7 +58,7 @@ class TaskTasklet implements Tasklet {
       }
     }
 
-    stage.updateContext(result.outputs)
+    stage.context.putAll result.outputs
 
     def batchStepStatus = BatchStepStatus.mapResult(result)
     chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
@@ -72,7 +72,7 @@ class TaskTasklet implements Tasklet {
     pipelineStore.retrieve(id)
   }
 
-  private PipelineStage currentStage(ChunkContext chunkContext) {
+  private Stage currentStage(ChunkContext chunkContext) {
     currentPipeline(chunkContext).namedStage(stageName(chunkContext))
   }
 

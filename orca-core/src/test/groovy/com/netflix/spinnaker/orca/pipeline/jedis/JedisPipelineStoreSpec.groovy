@@ -18,13 +18,11 @@ package com.netflix.spinnaker.orca.pipeline.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.PipelineStoreTck
 import spock.lang.AutoCleanup
 import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
 
-class JedisPipelineStoreSpec extends Specification {
+class JedisPipelineStoreSpec extends PipelineStoreTck<JedisPipelineStore> {
 
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
   @Shared mapper = new ObjectMapper()
@@ -38,33 +36,9 @@ class JedisPipelineStoreSpec extends Specification {
   }
 
   def jedis = embeddedRedis.jedisCommands
-  @Subject pipelineStore = new JedisPipelineStore(jedis, mapper)
 
-  def "a pipeline is written to the redis store"() {
-    given:
-    def pipeline = Pipeline.builder()
-                           .withApplication("orca")
-                           .withName("dummy-pipeline")
-                           .withStages("one", "two", "three")
-                           .build()
-
-    expect:
-    pipeline.id == null
-
-    when:
-    pipelineStore.store(pipeline)
-
-    then:
-    pipeline.id != null
-
-    and:
-    def key = "pipeline:$pipeline.id"
-    jedis.exists(key)
-    with(mapper.readValue(jedis.hgetAll(key).config, Map)) {
-      application == pipeline.application
-      name == pipeline.name
-      stages.type == pipeline.stages.type
-    }
+  @Override
+  JedisPipelineStore createPipelineStore() {
+    new JedisPipelineStore(jedis, mapper)
   }
-
 }

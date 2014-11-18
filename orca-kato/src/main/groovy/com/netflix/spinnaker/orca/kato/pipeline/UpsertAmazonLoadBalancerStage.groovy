@@ -3,14 +3,10 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerResultObjectExtrapolationTask
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
-import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerTask
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
+import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -25,7 +21,7 @@ class UpsertAmazonLoadBalancerStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(ConfigurableStage stage) {
+  protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("upsertAmazonLoadBalancer", UpsertAmazonLoadBalancerTask)
     def step2 = buildStep("monitorUpsert", MonitorKatoTask)
     def step3 = buildStep("extrapolateUpsertResult", UpsertAmazonLoadBalancerResultObjectExtrapolationTask)

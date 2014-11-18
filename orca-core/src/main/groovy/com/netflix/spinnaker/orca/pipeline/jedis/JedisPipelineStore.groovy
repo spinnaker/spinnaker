@@ -37,7 +37,9 @@ class JedisPipelineStore implements PipelineStore {
 
   @Override
   void store(Pipeline pipeline) {
-    pipeline.id = UUID.randomUUID().toString()
+    if (!pipeline.id) {
+      pipeline.id = UUID.randomUUID().toString()
+    }
 
     def key = "pipeline:$pipeline.id"
     jedis.hset(key, "config", mapper.writeValueAsString(pipeline))
@@ -45,6 +47,9 @@ class JedisPipelineStore implements PipelineStore {
 
   @Override
   Pipeline retrieve(String id) {
-    throw new UnsupportedOperationException()
+    def key = "pipeline:$id"
+    def json = jedis.hget(key, "config")
+    println mapper.writeValueAsString(mapper.readTree(json))
+    mapper.readValue(json, Pipeline)
   }
 }

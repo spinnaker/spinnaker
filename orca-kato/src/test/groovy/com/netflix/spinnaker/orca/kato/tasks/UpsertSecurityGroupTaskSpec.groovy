@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -59,7 +59,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("whatever", [
+    def stage = new Stage(type: "whatever", context: [
       credentials: account,
       region     : region,
       name       : groupName

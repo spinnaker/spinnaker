@@ -20,9 +20,9 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import static java.util.UUID.randomUUID
@@ -54,7 +54,7 @@ class TestStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(ConfigurableStage stage) {
+  protected List<Step> buildSteps(Stage stage) {
     tasks.collect {
       buildStep randomUUID().toString(), it
     }

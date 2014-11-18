@@ -16,22 +16,33 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.google.common.collect.ImmutableMap
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.netflix.spinnaker.orca.PipelineStatus
+import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
 
 /**
  * A _stage_ of an Orca _pipeline_.
  */
-interface Stage extends Serializable {
+class Stage implements Serializable {
 
   /**
-   * @return the name that corresponds to Mayo config.
+   * @return the type that corresponds to Mayo config.
    */
-  String getType()
-
-  ImmutableMap<String, Serializable> getContext()
+  String type
+  @JsonBackReference Pipeline pipeline
+  PipelineStatus status = NOT_STARTED
+  Map<String, Serializable> context = [:]
 
   /**
    * Gets the last stage preceding this stage that has the specified type.
    */
-  Stage preceding(String type)
+  Stage preceding(String type) {
+    if (!pipeline) {
+      return null
+    }
+    def i = pipeline.stages.indexOf(this)
+    pipeline.stages[i..0].find {
+      it.type == type
+    }
+  }
 }

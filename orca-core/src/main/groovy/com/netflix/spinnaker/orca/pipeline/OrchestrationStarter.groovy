@@ -25,10 +25,10 @@ import static java.util.UUID.randomUUID
 
 @Component
 @CompileStatic
-class OrchestrationStarter extends AbstractOrchestrationInitiator<List<ConfigurableStage>> {
+class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Stage>> {
 
   @Override
-  protected List<ConfigurableStage> createSubject(Map<String, Object> config) {
+  protected List<Stage> createSubject(Map<String, Object> config) {
     def stageCollectionReference = []
     for (Map<String, Serializable> context in ((List<Map<String, Serializable>>) config.stages)) {
       def type = context.remove("type").toString()
@@ -38,7 +38,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Configura
       }
 
       if (stages.containsKey(type)) {
-        def stage = new PipelineStage(type, context)
+        def stage = new Stage(type: type, context: context)
         stageCollectionReference << stage
       } else {
         throw new NoSuchStageException(type)
@@ -48,7 +48,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Configura
   }
 
   @Override
-  protected Job build(Map<String, Object> config, List<ConfigurableStage> subject) {
+  protected Job build(Map<String, Object> config, List<Stage> subject) {
     // this is less-than-ideal
     def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
                          .flow(createTasklet(steps, subject)) as JobFlowBuilder

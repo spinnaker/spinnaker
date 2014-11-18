@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.bakery.pipeline
 
 import com.netflix.spinnaker.orca.bakery.tasks.PreconfigureOpinionatedBake
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -41,7 +41,7 @@ class OpinionatedBakeStage extends LinearStage {
     super(MAYO_NAME)
   }
 
-  List<Step> buildSteps(ConfigurableStage stage) {
+  List<Step> buildSteps(Stage stage) {
     stage.context.user = stage.context.user ?: defaultBakeUser
 
     def step1 = buildStep("preconfigureOpinionatedBake", PreconfigureOpinionatedBake)

@@ -20,8 +20,8 @@ import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -36,7 +36,7 @@ class BakeStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(ConfigurableStage stage) {
+  protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("createBake", CreateBakeTask)
     def step2 = buildStep("monitorBake", MonitorBakeTask)
     def step3 = buildStep("completedBake", CompletedBakeTask)

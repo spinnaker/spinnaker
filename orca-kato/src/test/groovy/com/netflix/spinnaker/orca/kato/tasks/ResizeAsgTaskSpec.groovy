@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -23,25 +22,25 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ResizeAsgTaskSpec extends Specification {
   @Subject task = new ResizeAsgTask()
-  def stage = new PipelineStage("pipeline")
+  def stage = new Stage(type: "pipeline")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
-      asgName    : "test-asg",
-      regions    : ["us-west-1", "us-east-1"],
-      credentials: "fzlem",
-      capacity   : [
-          min: 1,
-          max: 10,
-          desired: 6
-      ]
+    asgName    : "test-asg",
+    regions    : ["us-west-1", "us-east-1"],
+    credentials: "fzlem",
+    capacity   : [
+      min    : 1,
+      max    : 10,
+      desired: 6
+    ]
   ]
 
   def setup() {
@@ -49,7 +48,7 @@ class ResizeAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.updateContext(resizeASGConfig)
+    stage.context.putAll(resizeASGConfig)
   }
 
   def "creates a disable ASG task based on job parameters"() {

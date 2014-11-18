@@ -22,13 +22,13 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DestroyAsgTaskSpec extends Specification {
   @Subject task = new DestroyAsgTask()
-  def stage = new PipelineStage("whatever")
+  def stage = new Stage(type: "whatever")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -43,7 +43,7 @@ class DestroyAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.updateContext(destroyASGConfig)
+    stage.context.putAll(destroyASGConfig)
   }
 
   def "creates a destroy ASG task based on job parameters"() {
@@ -86,10 +86,10 @@ class DestroyAsgTaskSpec extends Specification {
 
   void "should pop inputs off destroyAsgDescriptions context field when present"() {
     setup:
-    stage.updateContext(destroyAsgDescriptions: [
+    stage.context.destroyAsgDescriptions = [
       [asgName: "foo", regions: ["us"], credentials: account],
       [asgName: "bar", regions: ["us"], credentials: account]
-    ])
+    ]
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> rx.Observable.from(taskId)
     }

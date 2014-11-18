@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,22 +32,22 @@ import spock.lang.Subject
 class CreateDeployTaskSpec extends Specification {
 
   @Subject task = new CreateDeployTask()
-  def stage = new PipelineStage(new Pipeline(), "deploy", [:])
+  def stage = new Stage(pipeline: new Pipeline(), type: "deploy")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deployConfig = [
-      application      : "hodor",
-      amiName          : "hodor-ubuntu-1",
-      instanceType     : "large",
-      securityGroups   : ["a", "b", "c"],
-      availabilityZones: ["us-east-1": ["a", "d"]],
-      capacity         : [
-          min    : 1,
-          max    : 20,
-          desired: 5
-      ],
-      credentials      : "fzlem"
+    application      : "hodor",
+    amiName          : "hodor-ubuntu-1",
+    instanceType     : "large",
+    securityGroups   : ["a", "b", "c"],
+    availabilityZones: ["us-east-1": ["a", "d"]],
+    capacity         : [
+      min    : 1,
+      max    : 20,
+      desired: 5
+    ],
+    credentials      : "fzlem"
   ]
 
   def setup() {
@@ -57,7 +57,7 @@ class CreateDeployTaskSpec extends Specification {
     task.defaultBakeAccount = "test"
 
     stage.pipeline.@stages.add(stage)
-    stage.updateContext(deployConfig)
+    stage.context.putAll(deployConfig)
   }
 
   def cleanup() {
@@ -84,7 +84,9 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription == expected
+    operations.find {
+      it.containsKey("basicAmazonDeployDescription")
+    }.basicAmazonDeployDescription == expected
   }
 
   def "requests an allowLaunch operation for each region"() {
@@ -104,7 +106,9 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    with(operations.findAll { it.containsKey("allowLaunchDescription") }.allowLaunchDescription) { ops ->
+    with(operations.findAll {
+      it.containsKey("allowLaunchDescription")
+    }.allowLaunchDescription) { ops ->
       ops.every {
         it instanceof AllowLaunchOperation
       }
@@ -135,7 +139,8 @@ class CreateDeployTaskSpec extends Specification {
 
   def "can include optional parameters"() {
     given:
-    stage.updateContext(stack: stackValue, subnetType: subnetTypeValue)
+    stage.context.stack = stackValue
+    stage.context.subnetType = subnetTypeValue
 
     def operations = []
     task.kato = Mock(KatoService) {
@@ -151,17 +156,19 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     operations.size() == 2
-    operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription == [
-        amiName: 'hodor-ubuntu-1',
-        application: 'hodor',
-        availabilityZones: ['us-east-1': ['a', 'd']],
-        capacity: [min: 1, max: 20, desired: 5],
-        credentials: 'fzlem',
-        instanceType: 'large',
-        keyPair: 'nf-fzlem-keypair-a',
-        securityGroups: ['a', 'b', 'c', 'nf-infrastructure-vpc', 'nf-datacenter-vpc'],
-        stack: 'the-stack-value',
-        subnetType: 'the-subnet-type-value'
+    operations.find {
+      it.containsKey("basicAmazonDeployDescription")
+    }.basicAmazonDeployDescription == [
+      amiName          : 'hodor-ubuntu-1',
+      application      : 'hodor',
+      availabilityZones: ['us-east-1': ['a', 'd']],
+      capacity         : [min: 1, max: 20, desired: 5],
+      credentials      : 'fzlem',
+      instanceType     : 'large',
+      keyPair          : 'nf-fzlem-keypair-a',
+      securityGroups   : ['a', 'b', 'c', 'nf-infrastructure-vpc', 'nf-datacenter-vpc'],
+      stack            : 'the-stack-value',
+      subnetType       : 'the-subnet-type-value'
     ]
 
     where:
@@ -178,7 +185,7 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
-    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
+    def bakeStage = new Stage(pipeline: stage.pipeline, type: "bake", context: [ami: amiName])
     stage.pipeline.@stages.clear()
     stage.pipeline.@stages.addAll([bakeStage, stage])
 
@@ -186,7 +193,9 @@ class CreateDeployTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    operations.find { it.containsKey("basicAmazonDeployDescription") }.basicAmazonDeployDescription.amiName == amiName
+    operations.find {
+      it.containsKey("basicAmazonDeployDescription")
+    }.basicAmazonDeployDescription.amiName == amiName
 
     where:
     amiName = "ami-name-from-bake"

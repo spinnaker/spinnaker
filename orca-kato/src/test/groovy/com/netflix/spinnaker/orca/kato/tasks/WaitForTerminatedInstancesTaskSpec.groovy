@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -54,7 +54,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("whatever", [
+    def stage = new Stage(type: "whatever", context: [
       "instance.ids": [instanceId]
     ])
 
@@ -79,7 +79,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("whatever", [
+    def stage = new Stage(type: "whatever", context: [
       "instance.ids": [instanceId]
     ])
 
@@ -106,7 +106,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("whatever", [
+    def stage = new Stage(type: "whatever", context: [
       "instance.ids": [instanceId]
     ])
 
@@ -139,7 +139,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("whatever", [
+    def stage = new Stage(type: "whatever", context: [
       "instance.ids": instanceIds
     ])
 
@@ -168,7 +168,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage("whatever", [
+    def stage = new Stage(type: "whatever", context: [
       "instance.ids": instanceIds
     ])
 

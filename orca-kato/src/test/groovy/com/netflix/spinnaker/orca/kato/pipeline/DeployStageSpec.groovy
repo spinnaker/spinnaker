@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.Stage
 import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -94,7 +93,7 @@ class DeployStageSpec extends Specification {
     setup:
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
-    def stage = new PipelineStage(config.remove("type") as String, config)
+    def stage = new Stage(type: config.remove("type"), context: config)
     def disableAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
@@ -120,7 +119,7 @@ class DeployStageSpec extends Specification {
     setup:
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "highlander"
-    def stage = new PipelineStage(config.remove("type") as String, config)
+    def stage = new Stage(type: config.remove("type"), context: config)
     def destroyAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
@@ -147,7 +146,7 @@ class DeployStageSpec extends Specification {
   void "should create basicDeploy tasks when no strategy is chosen"() {
     setup:
     def config = mapper.readValue(configJson, Map)
-    def stage = new PipelineStage(config.remove("type") as String, config)
+    def stage = new Stage(type: config.remove("type"), context: config)
 
     when:
     def steps = deployStage.buildSteps(stage)
