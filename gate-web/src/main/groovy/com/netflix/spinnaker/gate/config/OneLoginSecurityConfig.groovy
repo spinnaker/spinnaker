@@ -122,7 +122,7 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     User getUser(HttpServletResponse response) {
       Object whoami = SecurityContextHolder.context.authentication.principal
       if (!whoami || !(whoami instanceof User)) {
-        response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth/signIn"
+        response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
         response.sendError 401
         null
       } else {
