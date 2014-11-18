@@ -26,19 +26,19 @@ import com.netflix.astyanax.model.Row
 import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.MapSerializer
 import com.netflix.astyanax.serializers.StringSerializer
-import com.netflix.spinnaker.front50.config.CassandraConfig
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.apache.cassandra.db.marshal.UTF8Type
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-@ConditionalOnBean(CassandraConfig)
+@ConditionalOnExpression('${global.cassandra.enabled:false}')
 class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<ContextRefreshedEvent> {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final Set<String> BUILT_IN_FIELDS = ["name", "description", "email", "updatets", "createts"]

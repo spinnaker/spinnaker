@@ -19,11 +19,11 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.front50.security.CassandraCredentials
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnBean(CassandraApplicationDAO)
+@ConditionalOnExpression('${global.cassandra.enabled:false}')
 class CassandraApplicationDAOProvider implements ApplicationDAOProvider<CassandraCredentials> {
   @Autowired
   CassandraApplicationDAO cassandraApplicationDAO
