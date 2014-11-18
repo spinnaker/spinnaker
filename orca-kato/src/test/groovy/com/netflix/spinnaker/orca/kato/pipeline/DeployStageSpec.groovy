@@ -19,10 +19,12 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
@@ -67,6 +69,7 @@ class DeployStageSpec extends Specification {
   """.stripIndent()
 
   def mapper = new ObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore()
 
   @Subject DeployStage deployStage
 
@@ -82,7 +85,8 @@ class DeployStageSpec extends Specification {
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
       mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    deployStage.taskTaskletAdapter = new TaskTaskletAdapter()
+    deployStage.taskTaskletAdapter = new TaskTaskletAdapter(pipelineStore)
+    deployStage.stageStatusPropagationListener = new StageStatusPropagationListener(pipelineStore)
     deployStage.applicationContext = Stub(ApplicationContext)
   }
 

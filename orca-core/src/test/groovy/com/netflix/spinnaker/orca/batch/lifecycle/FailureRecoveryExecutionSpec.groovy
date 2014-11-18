@@ -18,16 +18,16 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import rx.subjects.ReplaySubject
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
-class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
+class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
 
   def startTask = Stub(Task)
   def recoveryTask = Mock(Task)
@@ -81,16 +81,20 @@ class FailureRecoveryExecutionSpec extends BatchExecutionSpec {
   }
 
   @Override
+  Pipeline createPipeline() {
+    Pipeline.builder().withStage("failureRecovery").build()
+  }
+
+  @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def pipeline = Pipeline.builder().withStage("failureRecovery").build()
-    def subject = ReplaySubject.create(1)
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new FailureRecoveryStage(
       steps: steps,
       startTask: startTask,
       recoveryTask: recoveryTask,
       endTask: endTask,
-      taskTaskletAdapter: new TaskTaskletAdapter()
+      taskTaskletAdapter: new TaskTaskletAdapter(pipelineStore),
+      stageStatusPropagationListener: new StageStatusPropagationListener(pipelineStore)
     ).build(builder, pipeline.namedStage("failureRecovery"))
      .build()
      .build()

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.ExitStatus
@@ -28,7 +29,7 @@ import spock.lang.Ignore
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
-class ManualInterventionExecutionSpec extends BatchExecutionSpec {
+class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
 
   def preInterventionTask = Stub(Task)
   def postInterventionTask = Mock(Task)
@@ -108,17 +109,22 @@ class ManualInterventionExecutionSpec extends BatchExecutionSpec {
   }
 
   @Override
+  Pipeline createPipeline() {
+    Pipeline.builder().withStage("manualIntervention").build()
+  }
+
+  @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def pipeline = Pipeline.builder().withStage("manualIntervention").build()
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new ManualInterventionStage(
       steps: steps,
       preInterventionTask: preInterventionTask,
       postInterventionTask: postInterventionTask,
       finalTask: finalTask,
-      taskTaskletAdapter: new TaskTaskletAdapter()
+      taskTaskletAdapter: new TaskTaskletAdapter(pipelineStore),
+      stageStatusPropagationListener: new StageStatusPropagationListener(pipelineStore)
     ).build(builder, pipeline.namedStage("manualIntervention"))
-      .build()
-      .build()
+     .build()
+     .build()
   }
 }

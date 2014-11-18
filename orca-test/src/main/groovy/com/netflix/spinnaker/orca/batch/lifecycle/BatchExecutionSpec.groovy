@@ -55,7 +55,7 @@ abstract class BatchExecutionSpec extends Specification implements JobFactory {
 
   protected jobLauncherTestUtils = new JobLauncherTestUtils()
 
-  def setup() {
+  void setup() {
     jobRegistry.register(this)
 
     jobLauncherTestUtils.jobLauncher = jobLauncher
@@ -71,7 +71,7 @@ abstract class BatchExecutionSpec extends Specification implements JobFactory {
    * Launches the configured {@code Job}.
    * @return the execution instance you can use to monitor and control the job.
    */
-  final JobExecution launchJob() {
+  JobExecution launchJob() {
     jobLauncherTestUtils.launchJob()
   }
 
@@ -79,7 +79,7 @@ abstract class BatchExecutionSpec extends Specification implements JobFactory {
    * Launches the configured {@code Job} with parameters.
    * @return the execution instance you can use to monitor and control the job.
    */
-  final JobExecution launchJob(Map<String, String> parameters) {
+  JobExecution launchJob(Map<String, String> parameters) {
     def params = parameters.inject(new JobParametersBuilder()) { JobParametersBuilder builder, entry ->
       builder.addParameter(entry.key, new JobParameter(entry.value))
     } toJobParameters()

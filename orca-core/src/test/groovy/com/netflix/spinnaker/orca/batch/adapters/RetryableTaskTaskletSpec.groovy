@@ -18,11 +18,11 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -40,24 +40,24 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   }
 
   def sleeper = Mock(Sleeper)
-  def taskFactory = new TaskTaskletAdapter(sleeper)
+  def pipelineStore = new InMemoryPipelineStore()
+  def taskFactory = new TaskTaskletAdapter(pipelineStore, sleeper)
+  Pipeline pipeline
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def pipeline = new Pipeline.Builder().withStage("retryable").build()
-    def step1 = steps.get("init")
-                     .tasklet(new PipelineInitializerTasklet(pipeline))
-                     .build()
-    def step2 = steps.get("retryable.task1")
-                     .listener(StageStatusPropagationListener.instance)
-                     .tasklet(taskFactory.decorate(task))
-                     .build()
-    jobBuilder.start(step1).next(step2).build()
+    pipeline = Pipeline.builder().withStage("retryable").build()
+    pipelineStore.store(pipeline)
+    def step = steps.get("retryable.task1")
+                    .listener(new StageStatusPropagationListener(pipelineStore))
+                    .tasklet(taskFactory.decorate(task))
+                    .build()
+    jobBuilder.start(step).build()
   }
 
   void "should backoff when the task returns continuable"() {
     when:
-    def jobExecution = launchJob()
+    def jobExecution = launchJob(pipeline: pipeline.id)
 
     then:
     3 * task.execute(_) >>> [
@@ -78,7 +78,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     task.execute(_) >> new DefaultTaskResult(SUCCEEDED)
 
     when:
-    def jobExecution = launchJob()
+    def jobExecution = launchJob(pipeline: pipeline.id)
 
     then:
     0 * sleeper._
@@ -92,7 +92,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     task.execute(_) >> { throw new RuntimeException("o noes!") }
 
     when:
-    def jobExecution = launchJob()
+    def jobExecution = launchJob(pipeline: pipeline.id)
 
     then:
     0 * sleeper._

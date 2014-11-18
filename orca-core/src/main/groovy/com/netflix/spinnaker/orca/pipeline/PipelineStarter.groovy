@@ -20,6 +20,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
@@ -66,4 +68,10 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     (JobFlowBuilder) pipeline.stages.inject(jobBuilder, this.&createStage)
   }
 
+  @Override
+  protected JobParameters createJobParameters(Pipeline pipeline, Map<String, Object> config) {
+    def params = new JobParametersBuilder(super.createJobParameters(pipeline, config))
+    params.addString("pipeline", pipeline.id)
+    params.toJobParameters()
+  }
 }

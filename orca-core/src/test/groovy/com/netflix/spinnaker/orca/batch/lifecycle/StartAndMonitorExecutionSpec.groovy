@@ -18,17 +18,17 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.Pipeline
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import rx.subjects.ReplaySubject
 import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
 import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
-class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
+class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
 
   def startTask = Stub(Task)
   def monitorTask = Mock(Task)
@@ -80,15 +80,19 @@ class StartAndMonitorExecutionSpec extends BatchExecutionSpec {
   }
 
   @Override
+  Pipeline createPipeline() {
+    Pipeline.builder().withStage("startAndMonitor").build()
+  }
+
+  @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def pipeline = Pipeline.builder().withStage("startAndMonitor").build()
-    def subject = ReplaySubject.create(1)
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     new StartAndMonitorStage(
       steps: steps,
       startTask: startTask,
       monitorTask: monitorTask,
-      taskTaskletAdapter: new TaskTaskletAdapter()
+      taskTaskletAdapter: new TaskTaskletAdapter(pipelineStore),
+      stageStatusPropagationListener: new StageStatusPropagationListener(pipelineStore)
     ).build(builder, pipeline.namedStage("startAndMonitor"))
      .build()
      .build()

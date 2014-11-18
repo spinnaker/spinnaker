@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 

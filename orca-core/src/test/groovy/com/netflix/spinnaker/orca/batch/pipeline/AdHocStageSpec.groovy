@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStore
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -49,6 +50,7 @@ class AdHocStageSpec extends Specification {
   @Autowired JobRepository jobRepository
 
   @Autowired @Subject PipelineStarter jobStarter
+  @Autowired PipelineStore pipelineStore
 
   @Shared mapper = new ObjectMapper()
 
@@ -59,7 +61,7 @@ class AdHocStageSpec extends Specification {
       getType() >> "bar"
     }
     applicationContext.beanFactory.with {
-      registerSingleton "fooStage", new TestStage("foo", steps, fooTask)
+      registerSingleton "fooStage", new TestStage("foo", steps, pipelineStore, fooTask)
       registerSingleton "barTask", barTask
     }
     jobStarter.initialize()

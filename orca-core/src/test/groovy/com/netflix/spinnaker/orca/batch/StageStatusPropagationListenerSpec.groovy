@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
 import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobParameter
+import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepExecution
 import spock.lang.Specification
 import spock.lang.Subject
@@ -26,17 +29,17 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class StageStatusPropagationListenerSpec extends Specification {
 
-  @Subject listener = StageStatusPropagationListener.instance
+  def pipelineStore = new InMemoryPipelineStore()
+  @Subject listener = new StageStatusPropagationListener(pipelineStore)
 
   def "updates the stage status when a task execution completes"() {
-    given: "a batch execution context"
-    def jobExecution = new JobExecution(id)
-    def stepExecution = new StepExecution("${stageType}.task1", jobExecution)
-
-    and: "a pipeline model"
+    given: "a pipeline model"
     def pipeline = Pipeline.builder().withStage(stageType).build()
-    jobExecution.executionContext.put("pipeline", pipeline)
-    for (stage in pipeline.stages) jobExecution.executionContext.put(stage.type, stage)
+    pipelineStore.store(pipeline)
+
+    and: "a batch execution context"
+    def jobExecution = new JobExecution(id, new JobParameters(pipeline: new JobParameter(pipeline.id)))
+    def stepExecution = new StepExecution("${stageType}.task1", jobExecution)
 
     and: "a task has run"
     executeTaskReturning taskStatus, stepExecution

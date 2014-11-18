@@ -19,14 +19,18 @@ package com.netflix.spinnaker.orca.config
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
-import com.netflix.spinnaker.orca.pipeline.*
+import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineFactory
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.retry.backoff.ThreadWaitSleeper
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.orca.pipeline")
@@ -40,12 +44,7 @@ class OrcaConfiguration {
   }
 
   @Bean PipelineStore pipelineStore() {
-    new PipelineStore() {
-      @Override
-      void store(Pipeline pipeline) {
-        pipeline.id = UUID.randomUUID().toString()
-      }
-    }
+    new InMemoryPipelineStore()
   }
 
   @Bean PipelineStarter jobStarter() {
@@ -64,7 +63,12 @@ class OrcaConfiguration {
     new PipelineFactory(jobExplorer)
   }
 
-  @Bean TaskTaskletAdapter taskTaskletAdapter() {
-    new TaskTaskletAdapter(new ThreadWaitSleeper())
+  @Bean TaskTaskletAdapter taskTaskletAdapter(PipelineStore pipelineStore) {
+    new TaskTaskletAdapter(pipelineStore)
+  }
+
+  @Bean
+  StageStatusPropagationListener stageStatusPropagationListener(PipelineStore pipelineStore) {
+    new StageStatusPropagationListener(pipelineStore)
   }
 }

@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.*
+import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -54,15 +57,15 @@ class PipelineConfigurationSpec extends Specification {
   def bazTask = Mock(Task)
 
   @Shared mapper = new ObjectMapper()
-  def pipelineStore = Mock(PipelineStore)
+  def pipelineStore = new InMemoryPipelineStore()
 
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
       registerSingleton "pipelineStore", pipelineStore
-      registerSingleton "fooStage", new TestStage("foo", steps, fooTask)
-      registerSingleton "barStage", new TestStage("bar", steps, barTask)
-      registerSingleton "bazStage", new TestStage("baz", steps, bazTask)
+      registerSingleton "fooStage", new TestStage("foo", steps, pipelineStore, fooTask)
+      registerSingleton "barStage", new TestStage("bar", steps, pipelineStore, barTask)
+      registerSingleton "bazStage", new TestStage("baz", steps, pipelineStore, bazTask)
 
       autowireBean pipelineStarter
     }
@@ -143,14 +146,10 @@ class PipelineConfigurationSpec extends Specification {
 
   def "pipeline is persisted"() {
     when:
-    pipelineStarter.start(configJson)
+    def pipeline = pipelineStarter.start(configJson)
 
     then:
-
-    1 * pipelineStore.store(_) >> { Pipeline pipeline ->
-      assert pipeline.application == config.application
-      assert pipeline.stages.type == config.stages.type
-    }
+    pipelineStore.retrieve(pipeline.id) is pipeline
 
     where:
     config = [

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -37,7 +38,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
-@ContextConfiguration(classes = [BatchTestConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, OrcaConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineStatusSpec extends Specification {
 
@@ -48,22 +49,24 @@ class PipelineStatusSpec extends Specification {
   @Autowired JobRepository jobRepository
   @Autowired JobExplorer jobExplorer
 
-  @Subject pipelineStarter = new PipelineStarter()
+  @Autowired @Subject PipelineStarter pipelineStarter
+  @Autowired PipelineStore pipelineStore
 
   @Shared mapper = new ObjectMapper()
+
   def fooTask = Stub(Task) {
     execute(*_) >> DefaultTaskResult.SUCCEEDED
   }
 
   def setup() {
     applicationContext.beanFactory.with {
-      registerSingleton "mapper", mapper
-      registerSingleton "pipelineStore", Stub(PipelineStore)
+//      registerSingleton "mapper", mapper
+//      registerSingleton "pipelineStore", new InMemoryPipelineStore()
       ["foo", "bar", "baz"].each { name ->
-        registerSingleton "${name}Stage", new TestStage(name, steps, fooTask)
+        registerSingleton "${name}Stage", new TestStage(name, steps, pipelineStore, fooTask)
       }
 
-      autowireBean pipelineStarter
+//      autowireBean pipelineStarter
     }
     pipelineStarter.initialize()
   }
@@ -87,8 +90,11 @@ class PipelineStatusSpec extends Specification {
   }
 
   def "can get the status of each stage"() {
+    given:
+    def pipeline = pipelineStarter.start(configJson)
+    sleep 1000
     expect:
-    with(pipelineStarter.start(configJson)) {
+    with(pipeline) {
       // Pipeline has a getStatus as well as stage – here we want the stage
       // status. Really should remove the duplication
       stages*.status == [PipelineStatus.SUCCEEDED] * 3

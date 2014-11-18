@@ -20,8 +20,8 @@ import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobFlowBuilder
@@ -57,7 +57,7 @@ abstract class AbstractOrchestrationInitiator<T> {
     Map<String, Object> config = mapper.readValue(configJson, Map)
     def subject = createSubject(config)
     def job = build(config, subject)
-    launcher.run job, new JobParameters(paramsFromConfig(config))
+    launcher.run job, createJobParameters(subject, config)
     subject
   }
 
@@ -77,17 +77,17 @@ abstract class AbstractOrchestrationInitiator<T> {
     }
   }
 
-  protected static Map<String, JobParameter> paramsFromConfig(Map<String, Object> config) {
-    def params = [:]
+  protected JobParameters createJobParameters(T subject, Map<String, Object> config) {
+    def params = new JobParametersBuilder()
     if (config.containsKey("application")) {
-      params.application = new JobParameter(config.application as String, true)
+      params.addString("application", config.application as String)
     }
     if (config.containsKey("name")) {
-      params.name = new JobParameter(config.name as String, true)
+      params.addString("name", config.name as String)
     }
     if (config.containsKey("description")) {
-      params.description = new JobParameter(config.description as String, false)
+      params.addString("description", config.description as String, false)
     }
-    params
+    params.toJobParameters()
   }
 }

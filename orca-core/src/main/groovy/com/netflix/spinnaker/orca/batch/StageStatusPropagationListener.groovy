@@ -18,14 +18,23 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.PipelineStore
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.StepExecutionListenerSupport
+import org.springframework.beans.factory.annotation.Autowired
 
-@Singleton
 @CompileStatic
 class StageStatusPropagationListener extends StepExecutionListenerSupport {
+
+  private final PipelineStore pipelineStore
+
+  @Autowired
+  StageStatusPropagationListener(PipelineStore pipelineStore) {
+    this.pipelineStore = pipelineStore
+  }
 
   @Override
   void beforeStep(StepExecution stepExecution) {
@@ -45,8 +54,16 @@ class StageStatusPropagationListener extends StepExecutionListenerSupport {
     super.afterStep(stepExecution)
   }
 
+  private Pipeline currentPipeline(StepExecution stepExecution) {
+    String id = stepExecution.jobParameters.getString("pipeline")
+    pipelineStore.retrieve(id)
+  }
+
   private PipelineStage currentStage(StepExecution stepExecution) {
-    def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
-    (PipelineStage) stepExecution.jobExecution.executionContext.get(stageName)
+    currentPipeline(stepExecution).namedStage(stageName(stepExecution))
+  }
+
+  private static String stageName(StepExecution stepExecution) {
+    stepExecution.stepName.tokenize(".").first()
   }
 }

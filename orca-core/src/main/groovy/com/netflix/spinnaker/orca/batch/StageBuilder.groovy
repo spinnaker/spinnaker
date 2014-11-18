@@ -41,6 +41,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
 
   private StepBuilderFactory steps
   private TaskTaskletAdapter taskTaskletAdapter
+  private StageStatusPropagationListener stageStatusPropagationListener
 
   StageBuilder(String type) {
     this.type = type
@@ -66,7 +67,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    */
   protected Step buildStep(String taskName, Class<? extends Task> taskType) {
     steps.get(stepName(taskName))
-         .listener(StageStatusPropagationListener.instance)
+         .listener(stageStatusPropagationListener)
          .tasklet(buildTask(taskType))
          .build()
   }
@@ -81,7 +82,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    */
   protected Step buildStep(String taskName, Task task) {
     steps.get(stepName(taskName))
-         .listener(StageStatusPropagationListener.instance)
+         .listener(stageStatusPropagationListener)
          .tasklet(taskTaskletAdapter.decorate(task))
          .build()
   }
@@ -111,5 +112,10 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   @Autowired
   void setTaskTaskletAdapter(TaskTaskletAdapter taskTaskletAdapter) {
     this.taskTaskletAdapter = taskTaskletAdapter
+  }
+
+  @Autowired
+  void setStageStatusPropagationListener(StageStatusPropagationListener stageStatusPropagationListener) {
+    this.stageStatusPropagationListener = stageStatusPropagationListener
   }
 }
