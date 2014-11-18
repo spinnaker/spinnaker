@@ -90,6 +90,7 @@ dependencies:
   bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
   eurekaClient: "com.netflix.eureka:eureka-client:${versions.eureka}"
   kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
+  korkCassandra: "com.netflix.spinnaker.kork:kork-cassandra:${versions.kork}"
   groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}"
   astyanaxCql: "com.netflix.astyanax:astyanax-cql:${versions.astyanax}"
   astyanaxCassandra: "com.netflix.astyanax:astyanax-cassandra:${versions.astyanax}"
