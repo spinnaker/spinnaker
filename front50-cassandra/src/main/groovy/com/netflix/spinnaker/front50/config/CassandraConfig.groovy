@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration
 import javax.annotation.PostConstruct
 
 @Configuration
-@ConditionalOnExpression('${global.cassandra.enabled}')
+@ConditionalOnExpression('${global.cassandra.enabled:false}')
 @ConfigurationProperties(prefix = "global.cassandra")
 class CassandraConfig {
   String name
