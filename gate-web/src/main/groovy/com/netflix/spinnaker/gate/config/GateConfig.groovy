@@ -111,6 +111,12 @@ class GateConfig {
   }
 
   @Bean
+  KatoService katoService(ServiceConfiguration serviceConfiguration,
+                          Client retrofitClient) {
+    createClient "kato", KatoService, serviceConfiguration, retrofitClient
+  }
+
+  @Bean
   MayoService mayoService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "mayo", MayoService, serviceConfiguration, retrofitClient

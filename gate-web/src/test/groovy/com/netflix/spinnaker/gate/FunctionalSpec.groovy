@@ -43,6 +43,7 @@ class FunctionalSpec extends Specification {
   static TagService tagService
   static CredentialsService credentialsService
   static MayoService mayoService
+  static KatoService katoService
 
   void setup() {
     applicationService = Mock(ApplicationService)
@@ -54,6 +55,7 @@ class FunctionalSpec extends Specification {
     tagService = Mock(TagService)
     credentialsService = Mock(CredentialsService)
     mayoService = Mock(MayoService)
+    katoService = Mock(KatoService)
 
     def sock = new ServerSocket(0)
     def localPort = sock.localPort
@@ -168,6 +170,11 @@ class FunctionalSpec extends Specification {
     @Bean
     MayoService mayoService() {
       mayoService
+    }
+
+    @Bean
+    KatoService katoService() {
+      katoService
     }
 
     @Bean

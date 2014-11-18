@@ -27,7 +27,7 @@ class CredentialsService {
   private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
 
   @Autowired
-  MortService mortService
+  KatoService katoService
 
   Observable<List> getAccountNames() {
     new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
@@ -35,7 +35,7 @@ class CredentialsService {
 
       @Override
       protected Observable<List> run() {
-        Observable.from(mortService.accountNames)
+        Observable.from(katoService.accountNames)
       }
 
       @Override
@@ -56,7 +56,7 @@ class CredentialsService {
 
       @Override
       protected Observable<Map> run() {
-        Observable.from(mortService.getAccount(account))
+        Observable.from(katoService.getAccount(account))
       }
 
       @Override
