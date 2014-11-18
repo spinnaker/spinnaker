@@ -59,7 +59,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       credentials: account,
       region     : region,
       name       : groupName

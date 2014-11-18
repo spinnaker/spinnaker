@@ -67,7 +67,7 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "asgActionWaitForDownInstances", context: [
+    def stage = new Stage("asgActionWaitForDownInstances", [
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"

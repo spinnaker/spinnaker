@@ -45,7 +45,7 @@ class CreateBakeTaskSpec extends Specification {
   def setup() {
     task.mapper = mapper
 
-    stage = new Stage(type: "bake", context: bakeConfig)
+    stage = new Stage("bake", bakeConfig)
   }
 
   def "creates a bake for the correct region"() {

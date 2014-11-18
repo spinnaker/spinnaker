@@ -93,7 +93,7 @@ class DeployStageSpec extends Specification {
     setup:
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
-    def stage = new Stage(type: config.remove("type"), context: config)
+    def stage = new Stage(config.remove("type"), config)
     def disableAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
@@ -119,7 +119,7 @@ class DeployStageSpec extends Specification {
     setup:
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "highlander"
-    def stage = new Stage(type: config.remove("type"), context: config)
+    def stage = new Stage(config.remove("type"), config)
     def destroyAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
@@ -146,7 +146,7 @@ class DeployStageSpec extends Specification {
   void "should create basicDeploy tasks when no strategy is chosen"() {
     setup:
     def config = mapper.readValue(configJson, Map)
-    def stage = new Stage(type: config.remove("type"), context: config)
+    def stage = new Stage(config.remove("type"), config)
 
     when:
     def steps = deployStage.buildSteps(stage)

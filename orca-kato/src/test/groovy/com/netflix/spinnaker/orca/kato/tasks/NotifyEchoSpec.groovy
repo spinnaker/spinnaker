@@ -14,7 +14,7 @@ class NotifyEchoSpec extends Specification {
     setup:
     task.echo = Mock(EchoService)
 
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       application        : "myapp",
       "notification.type": "testtype",
       "randomAttr"       : 'random'

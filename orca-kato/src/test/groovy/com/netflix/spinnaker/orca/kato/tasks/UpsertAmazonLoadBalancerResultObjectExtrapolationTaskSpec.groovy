@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.Stage
 import spock.lang.Specification
@@ -46,10 +45,7 @@ class UpsertAmazonLoadBalancerResultObjectExtrapolationTaskSpec extends Specific
 
   void "should put extrapolate resulting DNS name from resultObjects"() {
     setup:
-    def stage = Mock(Stage)
-    stage.getContext() >> {
-      ImmutableMap.copyOf(["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
-    }
+    def stage = new Stage("whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
 
     when:
     def result = task.execute(stage)

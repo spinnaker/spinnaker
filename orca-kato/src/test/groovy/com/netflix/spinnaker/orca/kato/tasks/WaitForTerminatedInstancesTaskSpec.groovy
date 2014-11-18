@@ -54,7 +54,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "instance.ids": [instanceId]
     ])
 
@@ -79,7 +79,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "instance.ids": [instanceId]
     ])
 
@@ -106,7 +106,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "instance.ids": [instanceId]
     ])
 
@@ -139,7 +139,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "instance.ids": instanceIds
     ])
 
@@ -168,7 +168,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "instance.ids": instanceIds
     ])
 

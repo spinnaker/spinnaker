@@ -26,7 +26,7 @@ class ApplicationForceCacheRefreshTaskSpec extends Specification {
   def config = [
     account: "fzlem"
   ]
-  def stage = new Stage(type: "forceRefresh", context: config)
+  def stage = new Stage("forceRefresh", config)
 
   void "should force cache refresh applications via oort"() {
     setup:

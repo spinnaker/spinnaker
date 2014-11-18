@@ -30,7 +30,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Stage>> {
   @Override
   protected List<Stage> createSubject(Map<String, Object> config) {
     def stageCollectionReference = []
-    for (Map<String, Serializable> context in ((List<Map<String, Serializable>>) config.stages)) {
+    for (context in ((List<Map<String, Object>>) config.stages)) {
       def type = context.remove("type").toString()
 
       if (context.providerType) {
@@ -38,7 +38,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Stage>> {
       }
 
       if (stages.containsKey(type)) {
-        def stage = new Stage(type: type, context: context)
+        def stage = new Stage(type, context)
         stageCollectionReference << stage
       } else {
         throw new NoSuchStageException(type)

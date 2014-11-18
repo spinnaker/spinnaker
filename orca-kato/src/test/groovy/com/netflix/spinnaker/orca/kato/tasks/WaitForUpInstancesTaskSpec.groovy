@@ -104,7 +104,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "account.name": "test"
     ])
 

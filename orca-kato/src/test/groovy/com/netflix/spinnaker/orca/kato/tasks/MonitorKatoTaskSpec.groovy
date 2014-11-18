@@ -38,7 +38,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       "kato.last.task.id": new TaskId(taskId)
     ])
 

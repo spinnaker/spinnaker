@@ -47,7 +47,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage(type: "whatever", context: [
+    def stage = new Stage("whatever", [
       account: account,
       region : region,
       name   : groupName

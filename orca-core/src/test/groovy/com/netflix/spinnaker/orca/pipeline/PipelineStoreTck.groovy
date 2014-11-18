@@ -59,7 +59,10 @@ abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
     def pipeline = Pipeline.builder()
                            .withApplication("orca")
                            .withName("dummy-pipeline")
-                           .withStages("one", "two", "three")
+                           .withTrigger(name: "some-jenkins-job", lastBuildLabel: 1)
+                           .withStage("one", [foo: "foo"])
+                           .withStage("two", [bar: "bar"])
+                           .withStage("three", [baz: "baz"])
                            .build()
 
     and:
@@ -70,9 +73,13 @@ abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
       id == pipeline.id
       application == pipeline.application
       name == pipeline.name
+      trigger == pipeline.trigger
       stages.type == pipeline.stages.type
       stages.pipeline.every {
         it.id == pipeline.id
+      }
+      stages.every {
+        it.context == pipeline.namedStage(it.type).context
       }
     }
   }

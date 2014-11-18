@@ -19,19 +19,40 @@ package com.netflix.spinnaker.orca.pipeline
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
+import static java.util.Collections.EMPTY_MAP
 
 /**
  * A _stage_ of an Orca _pipeline_.
  */
-class Stage implements Serializable {
+class Stage {
 
   /**
-   * @return the type that corresponds to Mayo config.
+   * The type that corresponds to Mayo config.
    */
   String type
   @JsonBackReference Pipeline pipeline
   PipelineStatus status = NOT_STARTED
-  Map<String, Serializable> context = [:]
+  final Map<String, Object> context = [:]
+
+  Stage() {}
+
+  Stage(String type) {
+    this(null, type, EMPTY_MAP)
+  }
+
+  Stage(String type, Map<String, Object> context) {
+    this(null, type, context)
+  }
+
+  Stage(Pipeline pipeline, String type) {
+    this(pipeline, type, EMPTY_MAP)
+  }
+
+  Stage(Pipeline pipeline, String type, Map<String, Object> context) {
+    this.pipeline = pipeline
+    this.type = type
+    this.context.putAll(context)
+  }
 
   /**
    * Gets the last stage preceding this stage that has the specified type.

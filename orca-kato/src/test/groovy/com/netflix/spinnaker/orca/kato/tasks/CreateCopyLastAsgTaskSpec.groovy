@@ -126,7 +126,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    def bakeStage = new Stage(pipeline: stage.pipeline, type: "bake", context: [ami: amiName])
+    def bakeStage = new Stage(stage.pipeline, "bake", [ami: amiName])
     stage.pipeline.@stages.removeAll()
     stage.pipeline.@stages.addAll([bakeStage, stage])
 

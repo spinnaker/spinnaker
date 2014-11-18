@@ -18,17 +18,18 @@ package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 
 @CompileStatic
-class Pipeline implements Serializable {
+class Pipeline {
 
   String application
   String name
   String id
-  final Map<String, Serializable> trigger = [:]
-  final List<Stage> stages = []
+  final Map<String, Object> trigger = [:]
+  @JsonManagedReference final List<Stage> stages = []
 
   Stage namedStage(String type) {
     stages.find {
@@ -59,7 +60,7 @@ class Pipeline implements Serializable {
 
     private final Pipeline pipeline = new Pipeline()
 
-    Builder withTrigger(Map<String, Serializable> trigger = [:]) {
+    Builder withTrigger(Map<String, Object> trigger = [:]) {
       if (trigger) {
         pipeline.@trigger.clear()
         pipeline.@trigger.putAll(trigger)
@@ -67,16 +68,16 @@ class Pipeline implements Serializable {
       return this
     }
 
-    Builder withStage(String type, Map<String, Serializable> context = [:]) {
+    Builder withStage(String type, Map<String, Object> context = [:]) {
       if (context.providerType) {
         type += "_$context.providerType"
       }
 
-      pipeline.@stages << new Stage(pipeline: pipeline, type: type, context: context)
+      pipeline.@stages << new Stage(pipeline, type, context)
       return this
     }
 
-    Builder withStages(List<Map<String, Serializable>> stages) {
+    Builder withStages(List<Map<String, Object>> stages) {
       stages.each {
         withStage(it.remove("type").toString(), it)
       }
