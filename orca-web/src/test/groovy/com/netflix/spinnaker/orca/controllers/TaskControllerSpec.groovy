@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
-import com.netflix.spinnaker.orca.pipeline.Pipeline
 import com.netflix.spinnaker.orca.pipeline.PipelineFactory
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.JobParameter
@@ -30,8 +30,6 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
-
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 class TaskControllerSpec extends Specification {

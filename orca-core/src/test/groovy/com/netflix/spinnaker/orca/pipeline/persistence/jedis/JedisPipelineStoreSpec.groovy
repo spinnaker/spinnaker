@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.jedis
+package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import com.netflix.spinnaker.orca.pipeline.PipelineStoreTck
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStoreTck
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component

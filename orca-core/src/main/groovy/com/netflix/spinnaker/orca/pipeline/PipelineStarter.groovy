@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder

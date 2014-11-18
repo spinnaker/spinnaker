@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.pipeline.model
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore

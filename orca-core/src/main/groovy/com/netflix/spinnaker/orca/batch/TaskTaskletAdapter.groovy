@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.adapters.RetryableTaskTasklet
 import com.netflix.spinnaker.orca.batch.adapters.TaskTasklet
 import com.netflix.spinnaker.orca.batch.retry.PollingRetryPolicy
-import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 import org.springframework.aop.framework.ProxyFactory
 import org.springframework.aop.target.SingletonTargetSource
 import org.springframework.batch.core.step.tasklet.Tasklet

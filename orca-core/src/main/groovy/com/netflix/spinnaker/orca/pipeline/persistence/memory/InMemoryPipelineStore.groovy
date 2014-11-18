@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.memory
+package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 
 /**
  * In-memory implementation of {@link PipelineStore} intended for use in testing

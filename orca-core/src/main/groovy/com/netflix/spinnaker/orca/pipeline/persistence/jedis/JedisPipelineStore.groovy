@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.jedis
+package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisCommands
 

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.StepExecution

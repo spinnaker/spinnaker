@@ -25,8 +25,8 @@ import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineFactory
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.PipelineStore
-import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan

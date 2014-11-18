@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.pipeline.persistence
 
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
 
+@Subject(PipelineStore)
 abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
 
   @Subject T pipelineStore

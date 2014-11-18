@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.apache.commons.lang.math.RandomUtils
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer

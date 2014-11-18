@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.scope.context.ChunkContext

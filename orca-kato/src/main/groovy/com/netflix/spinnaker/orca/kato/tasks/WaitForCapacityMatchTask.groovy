@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   @Override

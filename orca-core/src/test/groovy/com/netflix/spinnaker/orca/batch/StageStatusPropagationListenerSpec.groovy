@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.JobExecution
 
 abstract class AbstractBatchLifecycleSpec extends BatchExecutionSpec {

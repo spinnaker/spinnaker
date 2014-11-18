@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.data.jackson
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.orca.pipeline.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 
 interface StageMixins {
   @JsonIgnore

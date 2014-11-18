@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
-interface PipelineStore {
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStoreTck
 
-  /**
-   * @param pipeline a <code>Pipeline</code> instance to store.
-   */
-  void store(Pipeline pipeline)
-
-  Pipeline retrieve(String id)
+class InMemoryPipelineStoreSpec extends PipelineStoreTck<InMemoryPipelineStore> {
+  @Override
+  InMemoryPipelineStore createPipelineStore() {
+    new InMemoryPipelineStore()
+  }
 }

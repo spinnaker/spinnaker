@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.front50.pipeline
 import com.netflix.spinnaker.orca.front50.tasks.ApplicationForceCacheRefreshTask
 import com.netflix.spinnaker.orca.front50.tasks.CreateApplicationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 

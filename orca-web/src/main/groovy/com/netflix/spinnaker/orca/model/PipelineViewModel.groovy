@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.model
 
-import com.netflix.spinnaker.orca.pipeline.Pipeline
-import com.netflix.spinnaker.orca.pipeline.Stage
 import groovy.transform.Immutable
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.JobExecution
 
 @Immutable
