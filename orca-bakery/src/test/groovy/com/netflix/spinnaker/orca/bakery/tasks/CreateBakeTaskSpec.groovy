@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Specification
@@ -30,7 +31,7 @@ import static java.util.UUID.randomUUID
 class CreateBakeTaskSpec extends Specification {
 
   @Subject task = new CreateBakeTask()
-  Stage stage
+  ImmutableStage stage
   def mapper = new ObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
@@ -45,7 +46,7 @@ class CreateBakeTaskSpec extends Specification {
   def setup() {
     task.mapper = mapper
 
-    stage = new Stage("bake", bakeConfig)
+    stage = new Stage("bake", bakeConfig).asImmutable()
   }
 
   def "creates a bake for the correct region"() {

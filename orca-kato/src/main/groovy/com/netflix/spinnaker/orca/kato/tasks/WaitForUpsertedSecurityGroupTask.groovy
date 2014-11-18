@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -41,7 +41,7 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
   ObjectMapper objectMapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     String account = stage.context.account
     String region = stage.context.region
     String name = stage.context.name

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -35,7 +35,7 @@ class DestroyGoogleReplicaPoolTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     def operation = convert(stage)
     def taskId = kato.requestOperations([[deleteGoogleReplicaPoolDescription: operation]])
                      .toBlocking()
@@ -50,7 +50,7 @@ class DestroyGoogleReplicaPoolTask implements Task {
     ])
   }
 
-  DestroyGoogleReplicaPoolOperation convert(Stage stage) {
+  DestroyGoogleReplicaPoolOperation convert(ImmutableStage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName

@@ -59,7 +59,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 3
@@ -83,7 +83,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 3
@@ -112,7 +112,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 3
@@ -140,7 +140,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 3
@@ -169,7 +169,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 3

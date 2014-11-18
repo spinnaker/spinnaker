@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 class WaitForTerminatedInstancesTask implements RetryableTask {
@@ -36,7 +36,7 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
   ObjectMapper objectMapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     List<String> instanceIds = stage.context."instance.ids"
 
     if (!instanceIds || !instanceIds.size()) {

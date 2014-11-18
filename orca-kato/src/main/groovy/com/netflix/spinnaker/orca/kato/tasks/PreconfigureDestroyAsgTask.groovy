@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -34,7 +34,7 @@ class PreconfigureDestroyAsgTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     def op = convert(stage)
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "resizeAsg.credentials"     : op.credentials,
@@ -46,7 +46,7 @@ class PreconfigureDestroyAsgTask implements Task {
     ])
   }
 
-  ResizeAsgOperation convert(Stage stage) {
+  ResizeAsgOperation convert(ImmutableStage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
           .convertValue(stage.context, ResizeAsgOperation)

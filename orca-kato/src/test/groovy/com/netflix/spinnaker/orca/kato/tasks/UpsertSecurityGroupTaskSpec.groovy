@@ -63,7 +63,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
       credentials: account,
       region     : region,
       name       : groupName
-    ])
+    ]).asImmutable()
 
     when:
     def executionContext = task.execute(stage)

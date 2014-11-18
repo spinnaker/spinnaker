@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -160,7 +161,7 @@ class DeployStageSpec extends Specification {
   static class TestTask implements Task {
 
     @Override
-    TaskResult execute(Stage stage) {
+    TaskResult execute(ImmutableStage stage) {
       return null
     }
   }

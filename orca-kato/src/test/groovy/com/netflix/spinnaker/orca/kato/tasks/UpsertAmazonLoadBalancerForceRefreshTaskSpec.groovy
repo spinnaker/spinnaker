@@ -29,7 +29,7 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     1 * task.oort.forceCacheUpdate(UpsertAmazonLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
@@ -46,7 +46,7 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     1 * task.oort.forceCacheUpdate(UpsertAmazonLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

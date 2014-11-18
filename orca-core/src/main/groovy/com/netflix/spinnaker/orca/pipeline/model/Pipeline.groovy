@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.pipeline.model
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.*
 
@@ -103,6 +105,43 @@ class Pipeline {
     Builder withName(String name) {
       pipeline.@name = name
       return this
+    }
+  }
+
+  ImmutablePipeline asImmutable() {
+    def self = this
+    new ImmutablePipeline() {
+      @Override
+      String getId() {
+        self.id
+      }
+
+      @Override
+      String getApplication() {
+        self.application
+      }
+
+      @Override
+      String getName() {
+        self.name
+      }
+
+      @Override
+      ImmutableMap<String, Object> getTrigger() {
+        ImmutableMap.copyOf(self.trigger)
+      }
+
+      @Override
+      ImmutableList<ImmutableStage> getStages() {
+        ImmutableList.copyOf(self.stages.collect {
+          it.asImmutable()
+        })
+      }
+
+      @Override
+      PipelineStatus getStatus() {
+        self.status
+      }
     }
   }
 }

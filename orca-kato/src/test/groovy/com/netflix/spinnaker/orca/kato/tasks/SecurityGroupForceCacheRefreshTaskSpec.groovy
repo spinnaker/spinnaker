@@ -42,7 +42,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
     task.mort = Mock(MortService)
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     1 * task.mort.forceCacheUpdate(SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

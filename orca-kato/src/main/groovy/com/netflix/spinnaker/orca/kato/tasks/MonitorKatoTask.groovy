@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -38,7 +38,7 @@ class MonitorKatoTask implements RetryableTask {
   KatoService kato
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     TaskId taskId = stage.context."kato.last.task.id" as TaskId
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     PipelineStatus status = katoStatusToTaskStatus(katoTask.status)

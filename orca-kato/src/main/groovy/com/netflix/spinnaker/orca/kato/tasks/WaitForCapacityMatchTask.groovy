@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 
 class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   @Override
-  protected Map<String, List<String>> getServerGroups(Stage stage) {
+  protected Map<String, List<String>> getServerGroups(ImmutableStage stage) {
     (Map<String, List<String>>) stage.context."deploy.server.groups"
   }
 

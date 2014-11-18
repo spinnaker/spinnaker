@@ -40,7 +40,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     1 * task.oort.forceCacheUpdate(ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->

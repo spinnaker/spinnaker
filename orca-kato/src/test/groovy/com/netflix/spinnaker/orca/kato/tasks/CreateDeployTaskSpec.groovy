@@ -81,7 +81,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.find {
@@ -103,7 +103,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     with(operations.findAll {
@@ -131,7 +131,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.findAll { it.containsKey("allowLaunchDescription") }.empty
@@ -152,7 +152,7 @@ class CreateDeployTaskSpec extends Specification {
     def expected = [:]
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 2
@@ -190,7 +190,7 @@ class CreateDeployTaskSpec extends Specification {
     stage.pipeline.@stages.addAll([bakeStage, stage])
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.find {
@@ -208,7 +208,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage)
+    def result = task.execute(stage.asImmutable())
 
     then:
     result.status == PipelineStatus.SUCCEEDED

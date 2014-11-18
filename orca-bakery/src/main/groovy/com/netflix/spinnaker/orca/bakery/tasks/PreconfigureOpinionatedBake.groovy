@@ -20,11 +20,11 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 
 class PreconfigureOpinionatedBake implements Task {
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
       "bake.user"     : "orca",
       "bake.baseOs"   : "ubuntu",

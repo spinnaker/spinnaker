@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
@@ -31,7 +31,7 @@ class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
   OortService oort
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     String account = stage.context.credentials
     String name = stage.context.loadBalancerName
     List<String> regions = stage.context.regions

@@ -105,21 +105,19 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
     and:
     def stage = new Stage("whatever", [
-      "account.name": "test"
+      "account.name"                  : "test",
+      "targetop.asg.enableAsg.name"   : "front50-v000",
+      "targetop.asg.enableAsg.regions": ["us-west-1"]
     ])
 
-    when:
-    stage.context."targetop.asg.enableAsg.name" = "front50-v000"
-    stage.context."targetop.asg.enableAsg.regions" = ["us-west-1"]
-
-    then:
-    task.execute(stage).status == PipelineStatus.RUNNING
+    expect:
+    task.execute(stage.asImmutable()).status == PipelineStatus.RUNNING
 
     when:
     stage.context."targetop.asg.enableAsg.name" = "front50-v001"
 
     then:
-    task.execute(stage).status == PipelineStatus.SUCCEEDED
+    task.execute(stage.asImmutable()).status == PipelineStatus.SUCCEEDED
 
   }
 }

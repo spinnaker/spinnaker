@@ -18,7 +18,7 @@ class NotifyEchoSpec extends Specification {
       application        : "myapp",
       "notification.type": "testtype",
       "randomAttr"       : 'random'
-    ])
+    ]).asImmutable()
 
     when:
     task.execute(stage)
@@ -38,7 +38,7 @@ class NotifyEchoSpec extends Specification {
     setup:
     task.echo = null
 
-    def stage = new Stage(type: "whatever")
+    def stage = new Stage(type: "whatever").asImmutable()
 
     when:
     task.execute(stage)

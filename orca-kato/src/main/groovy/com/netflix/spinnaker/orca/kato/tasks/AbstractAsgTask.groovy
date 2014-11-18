@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.EnableOrDisableAsgOperation
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -40,7 +40,7 @@ abstract class AbstractAsgTask implements Task {
   abstract String getAsgAction()
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     EnableOrDisableAsgOperation operation = operationFromContext(stage)
     def taskId = kato.requestOperations([
       [("${asgAction}Description".toString()): operation]
@@ -55,7 +55,7 @@ abstract class AbstractAsgTask implements Task {
     ])
   }
 
-  private EnableOrDisableAsgOperation operationFromContext(Stage stage) {
+  private EnableOrDisableAsgOperation operationFromContext(ImmutableStage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
           .convertValue(stage.context.containsKey(asgAction) ? stage.context[asgAction] : stage.context, EnableOrDisableAsgOperation)

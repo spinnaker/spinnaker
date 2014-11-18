@@ -45,7 +45,7 @@ class UpsertAmazonLoadBalancerResultObjectExtrapolationTaskSpec extends Specific
 
   void "should put extrapolate resulting DNS name from resultObjects"() {
     setup:
-    def stage = new Stage("whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
+    def stage = new Stage("whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")]).asImmutable()
 
     when:
     def result = task.execute(stage)

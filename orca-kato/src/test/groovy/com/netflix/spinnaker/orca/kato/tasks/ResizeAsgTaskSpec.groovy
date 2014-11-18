@@ -62,7 +62,7 @@ class ResizeAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 1
@@ -87,7 +87,7 @@ class ResizeAsgTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage)
+    def result = task.execute(stage.asImmutable())
 
     then:
     result.status == PipelineStatus.SUCCEEDED

@@ -40,7 +40,7 @@ class MonitorKatoTaskSpec extends Specification {
     and:
     def stage = new Stage("whatever", [
       "kato.last.task.id": new TaskId(taskId)
-    ])
+    ]).asImmutable()
 
     expect:
     task.execute(stage).status == expectedResult

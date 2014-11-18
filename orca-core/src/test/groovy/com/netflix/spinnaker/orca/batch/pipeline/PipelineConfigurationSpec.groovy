@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -124,7 +124,7 @@ class PipelineConfigurationSpec extends Specification {
   def "config is serialized to stage context"() {
     given:
     Map context
-    1 * fooTask.execute(_) >> { Stage stage ->
+    1 * fooTask.execute(_) >> { ImmutableStage stage ->
       context = stage.context
       DefaultTaskResult.SUCCEEDED
     }

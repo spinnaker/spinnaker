@@ -57,7 +57,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
     }
 
     expect:
-    task.execute(stage).status == taskStatus
+    task.execute(stage.asImmutable()).status == taskStatus
 
     where:
     old | current || taskStatus

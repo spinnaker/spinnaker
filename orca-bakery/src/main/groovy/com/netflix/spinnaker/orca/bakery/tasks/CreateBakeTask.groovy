@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -35,7 +35,7 @@ class CreateBakeTask implements Task {
   @Autowired ObjectMapper mapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     String region = stage.context.region
     def bake = bakeFromContext(stage)
 
@@ -44,7 +44,7 @@ class CreateBakeTask implements Task {
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, [status: bakeStatus])
   }
 
-  private BakeRequest bakeFromContext(Stage stage) {
+  private BakeRequest bakeFromContext(ImmutableStage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
           .convertValue(stage.context, BakeRequest)

@@ -71,7 +71,7 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"
-    ])
+    ]).asImmutable()
 
     expect:
     task.execute(stage).status == PipelineStatus.SUCCEEDED

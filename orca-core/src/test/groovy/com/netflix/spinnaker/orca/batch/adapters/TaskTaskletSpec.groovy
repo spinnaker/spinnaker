@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch.adapters
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.*
@@ -74,7 +75,7 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    1 * task.execute(stage) >> new DefaultTaskResult(SUCCEEDED)
+    1 * task.execute(_ as ImmutableStage) >> new DefaultTaskResult(SUCCEEDED)
   }
 
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")

@@ -48,7 +48,7 @@ class TaskTasklet implements Tasklet {
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     def stage = currentStage(chunkContext)
 
-    def result = task.execute(stage)
+    def result = task.execute(stage.asImmutable())
 
     if (result.status == PipelineStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.with {

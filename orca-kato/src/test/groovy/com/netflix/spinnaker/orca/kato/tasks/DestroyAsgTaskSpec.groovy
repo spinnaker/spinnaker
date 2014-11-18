@@ -57,7 +57,7 @@ class DestroyAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    task.execute(stage.asImmutable())
 
     then:
     operations.size() == 1
@@ -76,7 +76,7 @@ class DestroyAsgTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage)
+    def result = task.execute(stage.asImmutable())
 
     then:
     result.status == PipelineStatus.SUCCEEDED
@@ -95,7 +95,7 @@ class DestroyAsgTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage)
+    def result = task.execute(stage.asImmutable())
 
     then:
     1 == stage.context.destroyAsgDescriptions.size()

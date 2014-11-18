@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.PipelineStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -34,7 +34,7 @@ public class SecurityGroupForceCacheRefreshTask implements Task {
   MortService mort
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     String account = stage.context."upsert.account"
     String name = stage.context."upsert.name"
     String region = stage.context."upsert.region"

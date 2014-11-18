@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 
 abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTask {
   @Override
-  protected Map<String, List<String>> getServerGroups(Stage stage) {
+  protected Map<String, List<String>> getServerGroups(ImmutableStage stage) {
     def key = "disableAsg"
     Map<String, List<String>> serverGroups = [:]
 

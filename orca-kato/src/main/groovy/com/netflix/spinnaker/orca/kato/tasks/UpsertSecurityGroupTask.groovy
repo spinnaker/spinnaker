@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.UpsertSecurityGroupOperation
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.client.Response
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
@@ -41,7 +41,7 @@ class UpsertSecurityGroupTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     def upsertSecurityGroupOperation = convert(stage)
     def currentSecurityGroupResponse = mortService.getSecurityGroup(upsertSecurityGroupOperation.credentials, 'aws', upsertSecurityGroupOperation.name, upsertSecurityGroupOperation.region)
 
@@ -65,7 +65,7 @@ class UpsertSecurityGroupTask implements Task {
     new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
   }
 
-  UpsertSecurityGroupOperation convert(Stage stage) {
+  UpsertSecurityGroupOperation convert(ImmutableStage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
           .convertValue(stage.context, UpsertSecurityGroupOperation)

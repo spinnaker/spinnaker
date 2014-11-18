@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.PipelineStatus
 import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
 import static java.util.Collections.EMPTY_MAP
@@ -64,6 +65,37 @@ class Stage {
     def i = pipeline.stages.indexOf(this)
     pipeline.stages[i..0].find {
       it.type == type
+    }
+  }
+
+  ImmutableStage asImmutable() {
+    def self = this
+
+    new ImmutableStage() {
+      @Override
+      String getType() {
+        self.type
+      }
+
+      @Override
+      ImmutablePipeline getPipeline() {
+        self.pipeline.asImmutable()
+      }
+
+      @Override
+      PipelineStatus getStatus() {
+        self.status
+      }
+
+      @Override
+      ImmutableMap<String, Object> getContext() {
+        ImmutableMap.copyOf(self.context)
+      }
+
+      @Override
+      ImmutableStage preceding(String type) {
+        self.preceding(type)?.asImmutable()
+      }
     }
   }
 }
