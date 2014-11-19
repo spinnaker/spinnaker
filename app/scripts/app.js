@@ -17,8 +17,6 @@ angular.module('deckApp', [
     'ui.bootstrap',
     'ui.select',
     'restangular',
-    'cluster',
-    'clusters.all',
     'angularSpinner',
     'angular.filter',
     'deckApp.templates',
