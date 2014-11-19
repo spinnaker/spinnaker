@@ -1,6 +1,6 @@
 'use strict';
 
-describe('authenticationProvider', function() {
+describe('authenticationProvider: application startup', function() {
 
   beforeEach(function() {
     loadDeck({
@@ -30,6 +30,7 @@ describe('authenticationProvider', function() {
       this.$http.flush();
 
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('joe!');
+      expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(true);
       expect(this.$modal.open.calls.count()).toBe(1);
       expect(this.modal.dismiss.calls.count()).toBe(1);
     });
@@ -43,7 +44,8 @@ describe('authenticationProvider', function() {
       this.$timeout.flush();
       this.$http.flush();
 
-      expect(this.authenticationService.getAuthenticatedUser().name).toBe(null);
+      expect(this.authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
+      expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(false);
       expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + this.$window.location.origin + '&path=' + this.$location.path());
       expect(this.$modal.open.calls.count()).toBe(1);
       expect(this.modal.dismiss.calls.count()).toBe(1);

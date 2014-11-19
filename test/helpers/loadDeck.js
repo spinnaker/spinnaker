@@ -29,7 +29,7 @@ var loadDeck = function(config) {
         return {
           authenticateUser: angular.noop,
           getAuthenticatedUser: function() {
-            return { name: config.authenticatedUser };
+            return { name: config.authenticatedUser, authenticated: true };
           }
         }
       });

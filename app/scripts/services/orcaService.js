@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -81,7 +81,7 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: 'deckUser',
+            user: authenticationService.getAuthenticatedUser().name,
             providerType: serverGroup.type
           }
         ],
@@ -98,7 +98,7 @@ angular.module('deckApp')
             type: 'disableAsg',
             regions: [serverGroup.region],
             credentials: serverGroup.account,
-            user: 'deckUser'
+            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -114,7 +114,7 @@ angular.module('deckApp')
             type: 'enableAsg',
             regions: [serverGroup.region],
             credentials: serverGroup.account,
-            user: 'deckUser'
+            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -131,7 +131,7 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: 'deckUser',
+            user: authenticationService.getAuthenticatedUser().name,
             capacity: capacity,
             providerType: serverGroup.type
           }
@@ -185,7 +185,7 @@ angular.module('deckApp')
             loadBalancerName: loadBalancer.name,
             regions: [loadBalancer.region],
             credentials: loadBalancer.accountId,
-            user: 'deckUser'
+            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -202,7 +202,7 @@ angular.module('deckApp')
             region: instance.region,
             zone: instance.placement.availabilityZone,
             credentials: instance.account,
-            user: 'deckUser',
+            user: authenticationService.getAuthenticatedUser().name,
             providerType: instance.providerType
           }
         ],
@@ -212,7 +212,7 @@ angular.module('deckApp')
     }
 
     function cloneServerGroup(command, applicationName, description) {
-      command.user = 'deckUser';
+      command.user = authenticationService.getAuthenticatedUser().name;
       return executeTask({
         job: [
           command

@@ -2,10 +2,16 @@
 
 angular.module('deckApp.authentication')
   .factory('authenticationService', function ($http, settings, $location, $window, $modal, redirectService) {
-    var user = { name: null };
+    var user = {
+      name: '[anonymous]',
+      authenticated: false
+    };
 
     function setAuthenticatedUser(authenticatedUser) {
-      user.name = authenticatedUser;
+      if (authenticatedUser) {
+        user.name = authenticatedUser;
+        user.authenticated = true;
+      }
     }
 
     function getAuthenticatedUser() {
