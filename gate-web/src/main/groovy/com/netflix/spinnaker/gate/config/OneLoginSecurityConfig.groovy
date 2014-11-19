@@ -84,13 +84,18 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     RememberMeServices rememberMeServices
 
     @RequestMapping(method = RequestMethod.GET)
-    void get(@RequestParam(value = "callback", required = false) String cb, HttpServletRequest request, HttpServletResponse response) {
+    void get(
+        @RequestParam(value = "callback", required = false) String cb,
+        @RequestParam(value = "path", required = false) String hash,
+        HttpServletRequest request, HttpServletResponse response) {
       def redirect = new URL(request.scheme, request.serverName, request.serverPort, '/auth/signIn')
       def appSettings = new AppSettings(issuer: url, assertionConsumerServiceUrl: redirect)
       def authReq = new AuthRequest(appSettings)
       def samlReq = URLEncoder.encode(authReq.request, 'UTF-8')
 
-      request.session.setAttribute(SPINNAKER_SSO_CALLBACK_KEY, cb)
+      def callback = cb && hash ? cb + '/#' + hash : cb
+
+      request.session.setAttribute(SPINNAKER_SSO_CALLBACK_KEY, callback)
 
       response.status = 302
       response.addHeader("Location", "${url}?SAMLRequest=${samlReq}")
