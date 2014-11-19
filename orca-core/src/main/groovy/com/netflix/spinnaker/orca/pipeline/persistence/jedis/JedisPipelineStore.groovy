@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.InvalidPipelineId
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisCommands
@@ -48,8 +49,12 @@ class JedisPipelineStore implements PipelineStore {
   @Override
   Pipeline retrieve(String id) {
     def key = "pipeline:$id"
-    def json = jedis.hget(key, "config")
-    println mapper.writeValueAsString(mapper.readTree(json))
-    mapper.readValue(json, Pipeline)
+    if (jedis.exists(key)) {
+      def json = jedis.hget(key, "config")
+      println mapper.writeValueAsString(mapper.readTree(json))
+      mapper.readValue(json, Pipeline)
+    } else {
+      throw new InvalidPipelineId(id)
+    }
   }
 }

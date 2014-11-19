@@ -16,19 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import groovy.transform.CompileStatic
 
-interface PipelineStore {
+@CompileStatic
+class InvalidPipelineId extends RuntimeException {
 
-  /**
-   * @param pipeline A <code>Pipeline</code> instance to store.
-   */
-  void store(Pipeline pipeline)
+  InvalidPipelineId(String id) {
+    super("No pipeline with id $id exists in the store")
+  }
 
-  /**
-   * @param id The id of the <code>Pipeline</code> to retrieve.
-   * @return The <code>Pipeline</code> instance.
-   * @throws InvalidPipelineId if <code>id</code> does not exist in the store.
-   */
-  Pipeline retrieve(String id) throws InvalidPipelineId
 }

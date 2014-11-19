@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.InvalidPipelineId
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 
 /**
@@ -38,7 +39,9 @@ class InMemoryPipelineStore implements PipelineStore {
 
   @Override
   Pipeline retrieve(String id) {
-    assert pipelines.containsKey(id) // TODO: introduce an exception class here
+    if (!pipelines.containsKey(id)) {
+      throw new InvalidPipelineId(id)
+    }
     pipelines[id]
   }
 }

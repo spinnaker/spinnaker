@@ -85,4 +85,12 @@ abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
       }
     }
   }
+
+  def "trying to retrieve an invalid id throws an exception"() {
+    when:
+    pipelineStore.retrieve("invalid")
+
+    then:
+    thrown InvalidPipelineId
+  }
 }
