@@ -37,6 +37,7 @@ angular.module('deckApp')
           $scope.instance = angular.extend(details.plain(), instanceSummary);
           extractHealthMetrics(details);
           $scope.instance.account = account;
+          $scope.instance.region = region;
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         });
       }
