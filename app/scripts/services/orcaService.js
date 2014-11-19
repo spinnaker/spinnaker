@@ -211,44 +211,8 @@ angular.module('deckApp')
       });
     }
 
-    function cloneServerGroup(base, applicationName) {
-      var command = angular.copy(base);
+    function cloneServerGroup(command, applicationName, description) {
       command.user = authenticationService.getAuthenticatedUser().name;
-
-      var description;
-      if (command.viewState.mode === 'clone') {
-        description = 'Create Cloned Server Group from ' + command.source.asgName;
-        command.type = 'copyLastAsg';
-      } else {
-        command.type = 'deploy';
-        var asgName = applicationName;
-        if (command.stack) {
-          asgName += '-' + command.stack;
-        }
-        if (!command.stack && command.freeFormDetails) {
-          asgName += '-';
-        }
-        if (command.freeFormDetails) {
-          asgName += '-' + command.freeFormDetails;
-        }
-        description = 'Create New Server Group in cluster ' + asgName;
-      }
-      if (command.viewState.useAllImageSelection) {
-        command.amiName = command.viewState.allImageSelection;
-      }
-      command.availabilityZones = {};
-      command.availabilityZones[command.region] = base.availabilityZones;
-      delete command.region;
-      delete command.viewState;
-      delete command.selectedProvider;
-      delete command.instanceProfile;
-      delete command.vpcId;
-      delete command.usePreferredZones;
-
-      if (!command.subnetType) {
-        delete command.subnetType;
-      }
-
       return executeTask({
         job: [
           command
