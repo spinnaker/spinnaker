@@ -23,6 +23,17 @@ var loadDeck = function(config) {
       });
       $provide.constant('settings', settings);
     }
+
+    if (config.authenticatedUser) {
+      $provide.decorator('authenticationService', function() {
+        return {
+          authenticateUser: angular.noop,
+          getAuthenticatedUser: function() {
+            return { name: config.authenticatedUser };
+          }
+        }
+      });
+    }
   });
 };
 
@@ -30,5 +41,6 @@ var loadDeckWithoutCacheInitializer = function() {
   return loadDeck({
     initializeCache: false,
     generateUrls: true,
+    authenticatedUser: 'kato@example.com'
   });
 };
