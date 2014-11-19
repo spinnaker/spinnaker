@@ -47,11 +47,11 @@ class CassandraApplicationDAOSpec extends Specification {
 
   void setupSpec() {
     System.setProperty('netflix.environment', 'local')
-    System.setProperty('global.cassandra.enabled', 'true')
-    System.setProperty('global.cassandra.embedded', 'true')
-    System.setProperty('global.cassandra.name', 'global')
-    System.setProperty('global.cassandra.cluster', 'spinnaker')
-    System.setProperty('global.cassandra.keyspace', 'front50')
+    System.setProperty('spinnaker.cassandra.enabled', 'true')
+    System.setProperty('spinnaker.cassandra.embedded', 'true')
+    System.setProperty('spinnaker.cassandra.name', 'global')
+    System.setProperty('spinnaker.cassandra.cluster', 'spinnaker')
+    System.setProperty('spinnaker.cassandra.keyspace', 'front50')
   }
 
   void cleanup() {

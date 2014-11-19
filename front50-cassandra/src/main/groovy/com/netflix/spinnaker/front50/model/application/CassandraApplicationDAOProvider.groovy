@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnExpression('${global.cassandra.enabled:false}')
+@ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
 class CassandraApplicationDAOProvider implements ApplicationDAOProvider<CassandraCredentials> {
   @Autowired
   CassandraApplicationDAO cassandraApplicationDAO

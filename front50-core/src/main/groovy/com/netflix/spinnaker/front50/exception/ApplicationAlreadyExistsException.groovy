@@ -22,5 +22,5 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @InheritConstructors
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Application already exists")
+@ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Application already exists")
 class ApplicationAlreadyExistsException extends RuntimeException {}

@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-@ConditionalOnExpression('${global.cassandra.enabled:false}')
+@ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
 class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<ContextRefreshedEvent> {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final Set<String> BUILT_IN_FIELDS = ["name", "description", "email", "updatets", "createts"]

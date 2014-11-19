@@ -32,15 +32,15 @@ import org.springframework.core.env.Environment
 import javax.annotation.PostConstruct
 
 @Configuration
-@ConditionalOnExpression('${global.cassandra.enabled:false}')
+@ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
 class CassandraConfig {
-  @Value('${global.cassandra.name:global}')
+  @Value('${spinnaker.cassandra.name:global}')
   String name
 
-  @Value('${global.cassandra.cluster}')
+  @Value('${spinnaker.cassandra.cluster}')
   String cluster
 
-  @Value('${global.cassandra.keyspace}')
+  @Value('${spinnaker.cassandra.keyspace}')
   String keyspace
 
   @Autowired
