@@ -43,8 +43,8 @@ class OrcaConfiguration {
     return mapper
   }
 
-  @Bean PipelineStore pipelineStore() {
-    new InMemoryPipelineStore()
+  @Bean PipelineStore pipelineStore(ObjectMapper mapper) {
+    new InMemoryPipelineStore(mapper)
   }
 
   @Bean PipelineStarter jobStarter() {

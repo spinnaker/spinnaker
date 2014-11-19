@@ -62,6 +62,10 @@ class TaskTaskletSpec extends Specification {
     chunkContext = new ChunkContext(stepContext)
   }
 
+  void cleanup() {
+    pipelineStore.clear()
+  }
+
   def "should invoke the step when executed"() {
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -125,10 +129,16 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stage.context == outputs
+    with(pipelineStore.retrieve(pipeline.id)) {
+      stages.first().context == outputs
+    }
 
     where:
-    taskStatus << [RUNNING, FAILED, SUCCEEDED]
+    taskStatus | _
+    RUNNING    | _
+    FAILED     | _
+    SUCCEEDED  | _
+
     outputs = [foo: "bar", baz: "qux"]
   }
 
@@ -143,7 +153,9 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stage.context[key] == value.reverse()
+    with(pipelineStore.retrieve(pipeline.id)) {
+      stages.first().context[key] == value.reverse()
+    }
 
     where:
     key = "foo"

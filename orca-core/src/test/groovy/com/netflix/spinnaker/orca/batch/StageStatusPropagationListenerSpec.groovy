@@ -48,7 +48,7 @@ class StageStatusPropagationListenerSpec extends Specification {
     def exitStatus = listener.afterStep stepExecution
 
     then: "it updates the status of the stage"
-    pipeline.stages.first().status == taskStatus
+    pipelineStore.retrieve(pipeline.id).stages.first().status == taskStatus
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null

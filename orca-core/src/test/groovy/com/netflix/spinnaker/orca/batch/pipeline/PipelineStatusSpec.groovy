@@ -92,11 +92,9 @@ class PipelineStatusSpec extends Specification {
   def "can get the status of each stage"() {
     given:
     def pipeline = pipelineStarter.start(configJson)
-    sleep 1000
+
     expect:
-    with(pipeline) {
-      // Pipeline has a getStatus as well as stage – here we want the stage
-      // status. Really should remove the duplication
+    with(pipelineStore.retrieve(pipeline.id)) {
       stages*.status == [PipelineStatus.SUCCEEDED] * 3
     }
 

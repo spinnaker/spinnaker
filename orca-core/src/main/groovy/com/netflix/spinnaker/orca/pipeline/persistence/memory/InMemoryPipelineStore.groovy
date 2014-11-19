@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.InvalidPipelineId
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * In-memory implementation of {@link PipelineStore} intended for use in testing
@@ -27,14 +29,26 @@ import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 @CompileStatic
 class InMemoryPipelineStore implements PipelineStore {
 
-  private final Map<String, Pipeline> pipelines = [:]
+  @Delegate(includes = "clear", interfaces = false)
+  private final Map<String, String> pipelines = [:]
+
+  private final ObjectMapper mapper
+
+  @Autowired
+  InMemoryPipelineStore(ObjectMapper mapper) {
+    this.mapper = mapper
+  }
+
+  InMemoryPipelineStore() {
+    this(new ObjectMapper())
+  }
 
   @Override
   void store(Pipeline pipeline) {
     if (!pipeline.id) {
       pipeline.id = UUID.randomUUID().toString()
     }
-    pipelines[pipeline.id] = pipeline
+    pipelines[pipeline.id] = mapper.writeValueAsString(pipeline)
   }
 
   @Override
@@ -42,6 +56,6 @@ class InMemoryPipelineStore implements PipelineStore {
     if (!pipelines.containsKey(id)) {
       throw new InvalidPipelineId(id)
     }
-    pipelines[id]
+    mapper.readValue(pipelines[id], Pipeline)
   }
 }

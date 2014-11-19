@@ -51,6 +51,9 @@ class StageStatusPropagationListener extends StepExecutionListenerSupport {
     } else {
       stage.status = PipelineStatus.TERMINAL
     }
+
+    pipelineStore.store(stage.pipeline)
+
     super.afterStep(stepExecution)
   }
 

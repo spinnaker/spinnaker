@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -145,11 +147,15 @@ class PipelineConfigurationSpec extends Specification {
   }
 
   def "pipeline is persisted"() {
+    given:
+    def mockPipelineStore = Mock(PipelineStore)
+    pipelineStarter.@pipelineStore = mockPipelineStore
+
     when:
-    def pipeline = pipelineStarter.start(configJson)
+    pipelineStarter.start(configJson)
 
     then:
-    pipelineStore.retrieve(pipeline.id) is pipeline
+    1 * mockPipelineStore.store(_ as Pipeline)
 
     where:
     config = [

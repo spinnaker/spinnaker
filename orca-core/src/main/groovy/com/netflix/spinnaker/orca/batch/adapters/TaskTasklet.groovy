@@ -64,6 +64,8 @@ class TaskTasklet implements Tasklet {
     chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
     contribution.exitStatus = batchStepStatus.exitStatus
 
+    pipelineStore.store(stage.pipeline)
+
     return batchStepStatus.repeatStatus
   }
 
