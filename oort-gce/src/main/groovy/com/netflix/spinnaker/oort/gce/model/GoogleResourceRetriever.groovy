@@ -52,7 +52,6 @@ class GoogleResourceRetriever {
   }
 
   // TODO(duftler): Handle paginated results.
-  // TODO(duftler): Batch calls.
   private static void load(AccountCredentialsProvider accountCredentialsProvider) {
     log.info "Loading GCE resources..."
 
