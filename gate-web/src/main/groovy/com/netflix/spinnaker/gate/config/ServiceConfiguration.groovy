@@ -32,7 +32,7 @@ class ServiceConfiguration {
   @Autowired
   ApplicationContext ctx
 
-  Service getSerivce(String name) {
+  Service getService(String name) {
     services.find { it.name == name }
   }
 }

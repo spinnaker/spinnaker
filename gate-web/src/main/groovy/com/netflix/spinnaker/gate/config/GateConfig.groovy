@@ -127,9 +127,9 @@ class GateConfig {
 
   private
   static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
-    def endpoint = serviceConfiguration.discoveryHosts && !serviceConfiguration.getSerivce(serviceName)?.baseUrl ?
-        newFixedEndpoint("niws://${serviceConfiguration.getSerivce(serviceName).name}")
-        : newFixedEndpoint(serviceConfiguration.getSerivce(serviceName).baseUrl)
+    def endpoint = serviceConfiguration.discoveryHosts && !serviceConfiguration.getService(serviceName)?.baseUrl ?
+        newFixedEndpoint("niws://${serviceConfiguration.getService(serviceName).name}")
+        : newFixedEndpoint(serviceConfiguration.getService(serviceName).baseUrl)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
