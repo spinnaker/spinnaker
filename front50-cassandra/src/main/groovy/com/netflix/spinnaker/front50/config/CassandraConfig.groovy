@@ -23,20 +23,28 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.front50.security.CassandraCredentials
 import com.netflix.spinnaker.kork.astyanax.AstyanaxKeyspaceFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 
 import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnExpression('${global.cassandra.enabled:false}')
-@ConfigurationProperties(prefix = "global.cassandra")
 class CassandraConfig {
+  @Value('${global.cassandra.name:global}')
   String name
+
+  @Value('${global.cassandra.cluster}')
   String cluster
+
+  @Value('${global.cassandra.keyspace}')
   String keyspace
+
+  @Autowired
+  Environment environment
 
   @Autowired
   AstyanaxKeyspaceFactory factory
