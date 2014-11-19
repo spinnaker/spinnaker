@@ -34,9 +34,11 @@ angular.module('deckApp.gce')
       $scope.securityGroups = securityGroups;
     });
 
-    var loadBalancerLoader = oortService.listLoadBalancers().then(function(loadBalancers) {
-      $scope.loadBalancers = loadBalancers;
-    });
+//    var loadBalancerLoader = oortService.listLoadBalancers().then(function(loadBalancers) {
+//      $scope.loadBalancers = loadBalancers;
+//    });
+
+    var loadBalancerLoader = $q.when([]);
 
     var subnetLoader = mortService.listSubnets().then(function(subnets) {
       $scope.subnets = subnets;
