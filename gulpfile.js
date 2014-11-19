@@ -173,7 +173,7 @@ gulp.task('css:application', ['clean:styles:application'], function() {
 gulp.task('css', ['css:application', 'css:vendor']);
 
 gulp.task('jshint', function() {
-  return gulp.src([app, scripts, '**/*.js'].join('/'))
+  return gulp.src([app, scripts, '**/*(!.spec).js'].join('/'))
     .pipe($.if(!development, $.jshint()))
     .pipe($.if(!development, $.jshint.reporter('jshint-stylish')))
     .pipe($.if(!development, $.jshint.reporter('fail')));
@@ -189,14 +189,16 @@ var prepareJs = function(src, out) {
     .pipe(gulp.dest([dist, scripts].join('/')));
 };
 gulp.task('scripts:settings', ['clean:scripts:settings'], function() {
-  return gulp.src([app, 'scripts', 'settings', 'settings.js'].join('/'))
+  return gulp.src([app, 'scripts/settings/settings.js'].join('/'))
     .pipe(gulp.dest([dist, scripts].join('/')));
 });
 gulp.task('scripts:application', ['jshint', 'clean:scripts:application'], function() {
   return prepareJs(gulp.src([
     [app, scripts, 'app.js'].join('/'),
+    [app, scripts, 'modules/**/*.module.js'].join('/'),
     [app, scripts, 'providers/*.js'].join('/'),
     [app, scripts, '**/!(settings).js'].join('/'),
+    '!**/*.spec.js',
   ]), 'application.js');
 });
 gulp.task('scripts:vendor', ['clean:scripts:vendor'], function() {
@@ -204,7 +206,10 @@ gulp.task('scripts:vendor', ['clean:scripts:vendor'], function() {
 });
 
 gulp.task('scripts:templates', ['clean:scripts:templates'], function() {
-  return gulp.src([app, views, '**/*.html'].join('/'))
+  return gulp.src([
+      [app, views, '**/*.html'].join('/'),
+      [app, scripts, '**/*.html'].join('/')
+    ])
     .pipe($.if(release, min))
     .pipe($.html2js({
       outputModuleName: 'deckApp.templates',
@@ -242,7 +247,7 @@ gulp.task('serve', ['serve:prepare', 'connect', 'watch']);
 gulp.task('default', ['serve']);
 
 gulp.task('watch', function() {
-  gulp.watch('./app/views/**/*.html', function() {
+  gulp.watch('./app/**/*.html', function() {
     run('scripts:templates', 'html');
   });
   gulp.watch('./app/styles/**/*.less', function() {
@@ -258,7 +263,7 @@ gulp.task('watch', function() {
     run('css:vendor', 'html');
   });
   if (!development) {
-    gulp.watch('./test/**/*', function() {
+    gulp.watch(['./test/**/*','./app/**/*.spec.js'], function() {
       run('test:karma');
     });
   }
