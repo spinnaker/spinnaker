@@ -37,8 +37,7 @@ import spock.lang.Subject
 class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final NETWORK_NAME = "default"
   private static final INSTANCE_TYPE = "f1-micro"
@@ -59,11 +58,9 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def networksMock = Mock(Compute.Networks)
       def networksListMock = Mock(Compute.Networks.List)
       def instancesMock = Mock(Compute.Instances)
-      def instancesListMock = Mock(Compute.Instances.List)
       def instancesInsertMock = Mock(Compute.Instances.Insert)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new CreateGoogleInstanceDescription(application: APPLICATION,
-                                                            stack: STACK,
+      def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                             image: IMAGE,
                                                             instanceType: INSTANCE_TYPE,
                                                             zone: ZONE,
@@ -85,10 +82,6 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       1 * computeMock.networks() >> networksMock
       1 * networksMock.list(PROJECT_NAME) >> networksListMock
       1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
-      // The instancesMock is needed (at the moment) for the CreateGoogleInstanceAtomicOperation.getNextSequence() routine.
-      1 * computeMock.instances() >> instancesMock
-      1 * instancesMock.list(PROJECT_NAME, ZONE) >> instancesListMock
-      1 * instancesListMock.execute() >> new InstanceList()
       1 * computeMock.instances() >> instancesMock
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
       1 * instancesInsertMock.execute()
@@ -100,13 +93,12 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     def machineTypesMock = Mock(Compute.MachineTypes)
     def machineTypesListMock = Mock(Compute.MachineTypes.List)
     def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-    def description = new CreateGoogleInstanceDescription(application: APPLICATION,
-            stack: STACK,
-            image: IMAGE,
-            instanceType: INSTANCE_TYPE,
-            zone: ZONE,
-            accountName: ACCOUNT_NAME,
-            credentials: credentials)
+    def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
+                                                          image: IMAGE,
+                                                          instanceType: INSTANCE_TYPE,
+                                                          zone: ZONE,
+                                                          accountName: ACCOUNT_NAME,
+                                                          credentials: credentials)
     @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
 
     when:
@@ -127,8 +119,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def imagesMock = Mock(Compute.Images)
       def imagesListMock = Mock(Compute.Images.List)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new CreateGoogleInstanceDescription(application: APPLICATION,
-                                                            stack: STACK,
+      def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                             image: IMAGE,
                                                             instanceType: INSTANCE_TYPE,
                                                             zone: ZONE,

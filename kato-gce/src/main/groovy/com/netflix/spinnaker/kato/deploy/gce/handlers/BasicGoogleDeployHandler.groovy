@@ -62,8 +62,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20141017", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "front50", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20141017", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
    *
    * @param description
    * @param priorOutputs

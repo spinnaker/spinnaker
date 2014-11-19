@@ -40,6 +40,9 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     this.replicaPoolBuilder = replicaPoolBuilder
   }
 
+  /**
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing delete of replica pool $description.replicaPoolName in $description.zone..."

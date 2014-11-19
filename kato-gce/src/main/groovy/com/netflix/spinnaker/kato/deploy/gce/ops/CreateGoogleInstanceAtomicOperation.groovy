@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.ops
 
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Instance
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -46,11 +45,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "application": "front50", "stack": "dev", "image": "debian-7-wheezy-v20140415", "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "gce-test" }} ]' localhost:8501/ops
-   *
-   * @param description
-   * @param priorOutputs
-   * @return
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "debian-7-wheezy-v20141108", "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -68,43 +63,21 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
-    def network = GCEUtil.queryNetwork(project, "default", compute, task, BASE_PHASE)
+    def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Composing instance..."
     def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, diskSizeGb, diskType)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
-    def clusterName = "${description.application}-${description.stack}"
-    task.updateStatus BASE_PHASE, "Looking up next sequence..."
-    def nextSequence = getNextSequence(clusterName, project, zone, compute)
-    task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
-    def instanceName = "${clusterName}-v${nextSequence}-instance1".toString()
-    task.updateStatus BASE_PHASE, "Produced instance name: $instanceName"
-
-    def instance = new Instance(name: instanceName,
+    def instance = new Instance(name: description.instanceName,
                                 machineType: machineType.getSelfLink(),
                                 disks: [rootDrive],
                                 networkInterfaces: [networkInterface])
 
-    task.updateStatus BASE_PHASE, "Creating instance $instanceName..."
+    task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
     compute.instances().insert(project, zone, instance).execute()
     task.updateStatus BASE_PHASE, "Done."
-    new DeploymentResult(serverGroupNames: ["${clusterName}-v${nextSequence}".toString()])
-  }
-
-  static def getNextSequence(String clusterName, String project, String zone, Compute compute) {
-    def instance = compute.instances().list(project, zone).execute().getItems().find {
-      def parts = it.getName().split('-')
-      def cluster = "${parts[0]}-${parts[1]}"
-      cluster == clusterName
-    }
-    if (instance) {
-      def parts = instance.getName().split('-')
-      def seq = Integer.valueOf(parts[2].replaceAll("v", ""))
-      String.format("%03d", ++seq)
-    } else {
-      "000"
-    }
+    new DeploymentResult(serverGroupNames: [description.instanceName])
   }
 }

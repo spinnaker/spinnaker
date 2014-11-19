@@ -43,12 +43,8 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
       }
     }
 
-    if (!description.application) {
-      errors.rejectValue "application", "createGoogleInstanceDescription.application.empty"
-    }
-
-    if (!description.stack) {
-      errors.rejectValue "stack", "createGoogleInstanceDescription.stack.empty"
+    if (!description.instanceName) {
+      errors.rejectValue "instanceName", "createGoogleInstanceDescription.instanceName"
     }
 
     // TODO(duftler): Also validate against set of supported GCE images.

@@ -26,8 +26,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
@@ -49,8 +48,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-    def description = new CreateGoogleInstanceDescription(application: APPLICATION,
-                                                          stack: STACK,
+    def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                           image: IMAGE,
                                                           instanceType: INSTANCE_TYPE,
                                                           zone: ZONE,
@@ -74,8 +72,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('credentials', _)
-      1 * errors.rejectValue('application', _)
-      1 * errors.rejectValue('stack', _)
+      1 * errors.rejectValue('instanceName', _)
       1 * errors.rejectValue('image', _)
       1 * errors.rejectValue('instanceType', _)
       1 * errors.rejectValue('zone', _)
