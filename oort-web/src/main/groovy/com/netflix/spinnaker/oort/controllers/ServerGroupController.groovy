@@ -87,6 +87,7 @@ class ServerGroupController {
     String region
     String cluster
     String vpcId
+    String instanceType
     Boolean isDisabled
     Map buildInfo
     Long createdTime
@@ -106,6 +107,9 @@ class ServerGroupController {
       instanceCounts = serverGroup.getInstanceCounts()
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
+      if (serverGroup.launchConfig) {
+        instanceType = serverGroup.launchConfig.instanceType
+      }
       if (serverGroup.hasProperty("buildInfo")) {
         buildInfo = serverGroup.buildInfo
       }
