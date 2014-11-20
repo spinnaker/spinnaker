@@ -12,7 +12,7 @@ repositories {
   maven { url "http://dl.bintray.com/spinnaker/spinnaker" }
 }
 dependencies {
-  compile "com.netflix.spinnaker.client:spinnaker:0.3"
+  compile "com.netflix.spinnaker.client:spinnaker-client:0.3"
 }
 ```
 
@@ -31,7 +31,7 @@ buildscript {
 > via Groovy script
 ```groovy
 @GrabResolver(name='spinnaker', root='http://dl.bintray.com/spinnaker/spinnaker')
-@Grab('com.netflix.spinnaker.client:spinnaker-client:0.2')
+@Grab('com.netflix.spinnaker.client:spinnaker-client:0.3')
 
 import com.netflix.spinnaker.client.Spinnaker
 // rest of script
