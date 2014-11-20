@@ -64,3 +64,5 @@ ospackage {
 tasks.build.dependsOn = [buildDeb]
 
 tasks.bootRepackage.enabled = false
+
+applicationDefaultJvmArgs = ["-Dspring.config.location=classpath:/application.properties"]
