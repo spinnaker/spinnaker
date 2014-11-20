@@ -66,15 +66,19 @@ interface OortService {
                                @Path("type") String type)
 
   @Headers("Accept: application/json")
+  @GET("/{provider}/loadBalancers")
+  List<Map> getLoadBalancers(@Path("provider") String provider)
+
+  @Headers("Accept: application/json")
   @GET("/{provider}/loadBalancers/{name}")
   Map getLoadBalancer(@Path("provider") String provider,
                       @Path("name") String name)
 
   @Headers("Accept: application/json")
   @GET("/search")
-  Map search(@Query("q") String query,
-             @Query("type") String type,
-             @Query("platform") String platform,
-             @Query("pageSize") Integer size,
-             @Query("page") Integer offset)
+  List<Map> search(@Query("q") String query,
+                   @Query("type") String type,
+                   @Query("platform") String platform,
+                   @Query("pageSize") Integer size,
+                   @Query("page") Integer offset)
 }

@@ -16,60 +16,28 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.hystrix.*
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import rx.Observable
 
 @CompileStatic
 @Component
 class EventService {
-  private static final String SERVICE = "events"
-  private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
+  private static final String GROUP = "events"
 
   @Autowired
   EchoService echoService
 
-  Observable<Map> getAll(int offset, int size) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getForApp"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(echoService.getAllEvents(offset, size, true))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "events-all"
-      }
-    }.toObservable()
+  Map getAll(int offset, int size) {
+    HystrixFactory.newMapCommand(GROUP, "events-all", true) {
+      echoService.getAllEvents(offset, size, true)
+    } execute()
   }
 
-  Observable<Map> getForApplication(String app) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getForApp"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(echoService.getEvents(app, 0, Integer.MAX_VALUE, true))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.from([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "events-${app}"
-      }
-    }.toObservable()
+  Map getForApplication(String app) {
+    HystrixFactory.newMapCommand(GROUP, "events-${app}".toString(), true) {
+      echoService.getEvents(app, 0, Integer.MAX_VALUE, true)
+    } execute()
   }
 }

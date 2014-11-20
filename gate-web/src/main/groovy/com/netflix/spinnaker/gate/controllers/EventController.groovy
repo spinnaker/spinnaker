@@ -22,10 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
-
-
-import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
 
 @CompileStatic
 @RestController
@@ -35,22 +31,18 @@ class EventController {
   EventService eventService
 
   @RequestMapping(value = "/events", method = RequestMethod.GET)
-  DeferredResult<HttpEntity> all(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
-                                 @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
-    def obs = eventService.getAll(offset, size).map({
-      def headers = new HttpHeaders()
-      headers.add("X-Result-Total", Integer.valueOf(it.total as String).toString())
-      headers.add("X-Result-Offset", offset.toString())
-      headers.add("X-Result-Size", Integer.valueOf(it.paginationSize as String).toString())
-      new HttpEntity(it.hits, headers)
-    }).doOnError({ Throwable t ->
-      t.printStackTrace()
-    })
-    defer obs
+  HttpEntity<List<Map>> all(@RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset,
+                            @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
+    def events = eventService.getAll(offset, size)
+    def headers = new HttpHeaders()
+    headers.add("X-Result-Total", Integer.valueOf(events.total as String).toString())
+    headers.add("X-Result-Offset", offset.toString())
+    headers.add("X-Result-Size", Integer.valueOf(events.paginationSize as String).toString())
+    new HttpEntity(events.hits, headers)
   }
 
   @RequestMapping(value = "/applications/{app}/events", method = RequestMethod.GET)
-  DeferredResult<List> getForApp(@PathVariable("app") String app) {
-    defer eventService.getForApplication(app).map({ it.hits }).toList()
+  List getForApp(@PathVariable("app") String app) {
+    eventService.getForApplication(app)?.hits as List<Map>
   }
 }

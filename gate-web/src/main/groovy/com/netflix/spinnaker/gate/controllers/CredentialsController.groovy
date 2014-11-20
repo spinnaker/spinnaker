@@ -19,10 +19,6 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.CredentialsService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
-
-
-import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
 
 @RestController
 @RequestMapping("/credentials")
@@ -32,12 +28,12 @@ class CredentialsController {
   CredentialsService credentialsService
 
   @RequestMapping(method = RequestMethod.GET)
-  DeferredResult<List<String>> getAccountNames() {
-    defer credentialsService.accountNames.toList()
+  List<String> getAccountNames() {
+    credentialsService.accountNames
   }
 
   @RequestMapping(value = '/{account}', method = RequestMethod.GET)
-  DeferredResult<Map> getAccount(@PathVariable("account") String account) {
-    defer credentialsService.getAccount(account)
+  Map getAccount(@PathVariable("account") String account) {
+    credentialsService.getAccount(account)
   }
 }

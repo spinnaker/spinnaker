@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-rootProject.name="gate"
+rootProject.name = "gate"
 
 include "gate-web", "gate-manual"
 

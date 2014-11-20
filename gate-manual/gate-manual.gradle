@@ -29,12 +29,12 @@ apply plugin: 'org.asciidoctor.gradle.asciidoctor'
 
 asciidoctor {
   options = [
-    attributes: [
-      icons               : 'font',
-      'source-highlighter': 'prettify',
-      experimental        : true,
-      copycss             : true
-    ]
+      attributes: [
+          icons               : 'font',
+          'source-highlighter': 'prettify',
+          experimental        : true,
+          copycss             : true
+      ]
   ]
 }
 

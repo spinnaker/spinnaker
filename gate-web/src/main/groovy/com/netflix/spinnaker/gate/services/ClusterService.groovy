@@ -17,17 +17,15 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.frigga.Names
-import com.netflix.hystrix.*
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import rx.Observable
 
 @CompileStatic
 @Component
 class ClusterService {
-  private static final String SERVICE = "clusters"
-  private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
+  private static final String GROUP = "clusters"
 
   @Autowired
   OortService oortService
@@ -35,101 +33,37 @@ class ClusterService {
   @Autowired
   FlapJackService flapJackService
 
-  Observable<Map> getClusters(String app) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getClusters"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.from(oortService.getClusters(app))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.from([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "clusters-${app}"
-      }
-    }.toObservable()
+  Map getClusters(String app) {
+    HystrixFactory.newMapCommand(GROUP, "getClusters-${app}".toString(), true) {
+      oortService.getClusters(app)
+    } execute()
   }
 
-  Observable<Map> getClustersForAccount(String app, String account) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getClustersForAccount"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(oortService.getClustersForAccount(app, account))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "clusters-${app}-${account}"
-      }
-    }.toObservable()
+  List<Map> getClustersForAccount(String app, String account) {
+    HystrixFactory.newListCommand(GROUP, "clusters-${app}-${account}".toString(), true) {
+      oortService.getClustersForAccount(app, account)
+    } execute()
   }
 
-  Observable<Map> getCluster(String app, String account, String clusterName) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getCluster"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(oortService.getCluster(app, account, clusterName)?.getAt(0))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "clusters-${app}-${account}-${clusterName}"
-      }
-    }.toObservable()
+  Map getCluster(String app, String account, String clusterName) {
+    HystrixFactory.newMapCommand(GROUP, "clusters-${app}-${account}-${clusterName}".toString(), true) {
+      oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
+    } execute()
   }
 
-  Observable<List> getClusterServerGroups(String app, String account, String clusterName) {
-    getCluster(app, account, clusterName).map {
-      it.serverGroups
-    }
+  List<Map> getClusterServerGroups(String app, String account, String clusterName) {
+    getCluster(app, account, clusterName).serverGroups as List<Map>
   }
 
-  Observable<List<String>> getClusterTags(String clusterName) {
+  List<String> getClusterTags(String clusterName) {
     def names = Names.parseName(clusterName)
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getClusterTags"))) {
 
-      @Override
-      protected Observable<Map> run() {
-        Observable.from(flapJackService.getTags(names.app))
+    HystrixFactory.newListCommand(GROUP, "cluster-tags-${clusterName}".toString(), true) {
+      flapJackService.getTags(names.app).findAll {
+        it.item == "cluster" && (it.name as String).toLowerCase() == clusterName.toLowerCase()
+      }.collect {
+        it.tags
       }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "cluster-tags-${clusterName}"
-      }
-    }.toObservable().filter({
-      it.item == "cluster" && (it.name as String).toLowerCase() == clusterName.toLowerCase()
-    }).flatMap({
-      Observable.just(it.tags)
-    }).reduce(new HashSet(), { Set objs, obj ->
-      objs.addAll(obj)
-      objs
-    })
+    } execute()
   }
 }

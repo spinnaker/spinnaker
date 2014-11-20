@@ -22,5 +22,5 @@ interface FlapJackService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{application}")
-  List getTags(@Path("application") String application)
+  List<Map> getTags(@Path("application") String application)
 }

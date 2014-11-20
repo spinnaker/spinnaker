@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.gate.security.onelogin.saml
 
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-
-import org.apache.commons.codec.binary.Base64;
+import java.security.cert.*
+import org.apache.commons.codec.binary.Base64
 
 class Certificate {
   X509Certificate x509Cert;
@@ -31,7 +28,7 @@ class Certificate {
   public void loadCertificate(String certificate) throws CertificateException {
     CertificateFactory fty = CertificateFactory.getInstance("X.509");
     ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decodeBase64(certificate.getBytes()));
-    x509Cert = (X509Certificate)fty.generateCertificate(bais);
+    x509Cert = (X509Certificate) fty.generateCertificate(bais);
   }
 
   /**
@@ -42,6 +39,6 @@ class Certificate {
   public void loadCertificate(byte[] certificate) throws CertificateException {
     CertificateFactory fty = CertificateFactory.getInstance("X.509");
     ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decodeBase64(certificate));
-    x509Cert = (X509Certificate)fty.generateCertificate(bais);
+    x509Cert = (X509Certificate) fty.generateCertificate(bais);
   }
 }

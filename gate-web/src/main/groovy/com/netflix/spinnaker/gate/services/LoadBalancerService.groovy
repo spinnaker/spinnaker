@@ -16,81 +16,43 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.hystrix.*
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import rx.Observable
 
 @CompileStatic
 @Component
 class LoadBalancerService {
-  private static final String SERVICE = "loadBalancers"
-  private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
+  private static final String GROUP = "loadBalancers"
 
   @Autowired
   OortService oortService
 
-  Observable<Map> getAll(Integer offset, Integer size, String provider = "aws") {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getAll"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(oortService.search("", "loadBalancers", provider, offset, size))
+  List<Map> getAll(String provider = "aws") {
+    HystrixFactory.newListCommand(GROUP, "loadbalancers-${provider}-all".toString(), true) {
+      try {
+        oortService.getLoadBalancers(provider)
+      } catch (Exception e) {
+        throw e
       }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "loadBalancers-all"
-      }
-    }.toObservable()
+    } execute()
   }
 
-  Observable<Map> get(String name, String provider = "aws") {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("get"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(oortService.getLoadBalancer(provider, name))
+  Map get(String name, String provider = "aws") {
+    HystrixFactory.newMapCommand(GROUP, "loadBalancers-${provider}-${name}".toString(), true) {
+      try {
+        oortService.getLoadBalancer(provider, name)
+      } catch (Exception e) {
+        throw e
       }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "loadBalancers-${provider}-${name}"
-      }
-    }.toObservable()
+    } execute()
   }
 
-  Observable<List> getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
-    new HystrixObservableCommand<List>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getLoadBalancersForCluster"))) {
-
-      @Override
-      protected Observable<List> run() {
-        Observable.just(oortService.getClusterLoadBalancers(appName, account, clusterName, provider))
-      }
-
-      @Override
-      protected Observable<List> getFallback() {
-        Observable.just([])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "clusterloadBalancers-${provider}-${appName}-${account}-${clusterName}"
-      }
-    }.toObservable()
+  List getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
+    HystrixFactory.newListCommand(GROUP,
+        "clusterloadBalancers-${provider}-${appName}-${account}-${clusterName}".toString(), true) {
+      oortService.getClusterLoadBalancers(appName, account, clusterName, provider)
+    } execute()
   }
 }

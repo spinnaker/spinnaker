@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.*
+import java.util.concurrent.ExecutorService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
@@ -35,6 +36,7 @@ class FunctionalSpec extends Specification {
 
   static ApplicationService applicationService
   static FlapJackService flapJackService
+  static ExecutorService executorService
   static Front50Service front50Service
   static MortService mortService
   static TaskService taskService
@@ -48,6 +50,7 @@ class FunctionalSpec extends Specification {
   void setup() {
     applicationService = Mock(ApplicationService)
     flapJackService = Mock(FlapJackService)
+    executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     oortService = Mock(OortService)
     orcaService = Mock(OrcaService)
@@ -81,7 +84,7 @@ class FunctionalSpec extends Specification {
       api.applications
 
     then:
-      1 * applicationService.getAll() >> Observable.just([])
+      1 * applicationService.getAll() >> []
   }
 
   void "should call ApplicationService for a single application"() {
@@ -89,7 +92,7 @@ class FunctionalSpec extends Specification {
       api.getApplication(name)
 
     then:
-      1 * applicationService.get(name) >> Observable.just([:])
+      1 * applicationService.get(name) >> [:]
 
     where:
       name = "foo"
@@ -100,7 +103,7 @@ class FunctionalSpec extends Specification {
       api.getTasks(name)
 
     then:
-      1 * applicationService.getTasks(name) >> Observable.just([])
+      1 * applicationService.getTasks(name) >> []
 
     where:
       name = "foo"
@@ -111,7 +114,7 @@ class FunctionalSpec extends Specification {
       api.createTask("foo", task)
 
     then:
-      1 * taskService.create(task) >> Observable.just([:])
+      1 * taskService.create(task) >> [:]
 
     where:
       name = "foo"
@@ -175,6 +178,11 @@ class FunctionalSpec extends Specification {
     @Bean
     KatoService katoService() {
       katoService
+    }
+
+    @Bean
+    ExecutorService executorService() {
+      executorService
     }
 
     @Bean

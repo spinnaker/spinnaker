@@ -131,7 +131,7 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
         response.sendError 401
         null
       } else {
-        (User)whoami
+        (User) whoami
       }
     }
 

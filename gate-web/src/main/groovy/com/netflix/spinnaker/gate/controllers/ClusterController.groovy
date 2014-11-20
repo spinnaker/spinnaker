@@ -22,10 +22,6 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
-
-
-import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
 
 @CompileStatic
 @RequestMapping("/applications/{application}/clusters")
@@ -39,50 +35,43 @@ class ClusterController {
   LoadBalancerService loadBalancerService
 
   @RequestMapping(method = RequestMethod.GET)
-  DeferredResult<Map> getClusters(@PathVariable("application") String app) {
-    defer clusterService.getClusters(app)
+  Map getClusters(@PathVariable("application") String app) {
+    clusterService.getClusters(app)
   }
 
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
-  DeferredResult<List<Map>> getClusters(
-      @PathVariable("application") String app, @PathVariable("account") String account) {
-    defer clusterService.getClustersForAccount(app, account).toList()
+  List<Map> getClusters(@PathVariable("application") String app, @PathVariable("account") String account) {
+    clusterService.getClustersForAccount(app, account)
   }
 
   @RequestMapping(value = "/{account}/{clusterName}", method = RequestMethod.GET)
-  DeferredResult<Map> getClusters(@PathVariable("application") String app,
-                                  @PathVariable("account") String account,
-                                  @PathVariable("clusterName") String clusterName) {
-    defer clusterService.getCluster(app, account, clusterName)
+  Map getClusters(@PathVariable("application") String app,
+                  @PathVariable("account") String account,
+                  @PathVariable("clusterName") String clusterName) {
+    clusterService.getCluster(app, account, clusterName)
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups", method = RequestMethod.GET)
-  DeferredResult<List> getServerGroups(@PathVariable("application") String app,
-                                       @PathVariable("account") String account,
-                                       @PathVariable("clusterName") String clusterName) {
-    defer clusterService.getClusterServerGroups(app, account, clusterName)
+  List<Map> getServerGroups(@PathVariable("application") String app,
+                            @PathVariable("account") String account,
+                            @PathVariable("clusterName") String clusterName) {
+    clusterService.getClusterServerGroups(app, account, clusterName)
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
-  DeferredResult<List<Map>> getServerGroups(@PathVariable("application") String app,
-                                      @PathVariable("account") String account,
-                                      @PathVariable("clusterName") String clusterName,
-                                      @PathVariable("serverGroupName") String serverGroupName) {
-    DeferredResult<List<Map>> q = new DeferredResult<>()
+  List<Map> getServerGroups(@PathVariable("application") String app,
+                            @PathVariable("account") String account,
+                            @PathVariable("clusterName") String clusterName,
+                            @PathVariable("serverGroupName") String serverGroupName) {
     // TODO this crappy logic needs to be here until the "type" field is removed in Oort
-    clusterService.getClusterServerGroups(app, account, clusterName).subscribe({ serverGroups ->
-      q.setResult(serverGroups.findAll {
-        it.name == serverGroupName
-      })
-    }, { Throwable t ->
-      q.setErrorResult(t)
-    })
-    q
+    clusterService.getClusterServerGroups(app, account, clusterName).findAll {
+      it.name == serverGroupName
+    }
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/tags", method = RequestMethod.GET)
-  DeferredResult<List<String>> getClusterTags(@PathVariable("clusterName") String clusterName) {
-    defer clusterService.getClusterTags(clusterName)
+  List<String> getClusterTags(@PathVariable("clusterName") String clusterName) {
+    clusterService.getClusterTags(clusterName)
   }
 }
