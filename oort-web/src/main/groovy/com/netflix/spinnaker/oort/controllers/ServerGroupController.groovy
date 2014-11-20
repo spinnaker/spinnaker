@@ -87,6 +87,7 @@ class ServerGroupController {
     String region
     String cluster
     String vpcId
+    String type
     String instanceType
     Boolean isDisabled
     Map buildInfo
@@ -98,6 +99,7 @@ class ServerGroupController {
 
     ServerGroupViewModel(ServerGroup serverGroup, Cluster cluster) {
       this.cluster = cluster.name
+      type = serverGroup.type
       name = serverGroup.name
       account = cluster.accountName
       region = serverGroup.region

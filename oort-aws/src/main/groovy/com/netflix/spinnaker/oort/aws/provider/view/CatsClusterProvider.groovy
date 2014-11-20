@@ -65,10 +65,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     }
     Collection<CacheData> launchConfigs = resolveRelationshipData(serverGroupData, LAUNCH_CONFIGS.ns)
     def asg = serverGroupData.attributes["asg"]
-    def serverGroup = new AmazonServerGroup()
+    def serverGroup = new AmazonServerGroup(name, "aws", region)
     serverGroup.accountName = account
-    serverGroup.name = name
-    serverGroup.region = region
     serverGroup.zones = serverGroupData.attributes["zones"]
     serverGroup.launchConfig = launchConfigs ? launchConfigs[0].attributes : null
     serverGroup.asg = asg
