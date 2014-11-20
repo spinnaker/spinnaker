@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.SecurityGroupService
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -28,8 +30,17 @@ class SecurityGroupController {
   SecurityGroupService securityGroupService
 
   @RequestMapping(method = RequestMethod.GET)
-  Map all() {
-    securityGroupService.all
+  Map all(@RequestParam(value = "id", required = false) String id) {
+    if (id) {
+      def result = securityGroupService.getById(id)
+      if (result) {
+        result
+      } else {
+        throw new SecurityGroupNotFoundException(id)
+      }
+    } else {
+      securityGroupService.all
+    }
   }
 
   @RequestMapping(value = "/{account}")
@@ -48,4 +59,8 @@ class SecurityGroupController {
       @RequestParam(value = "region", required = false) String region) {
     securityGroupService.getSecurityGroup(account, provider, name, region)
   }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @InheritConstructors
+  static class SecurityGroupNotFoundException extends RuntimeException {}
 }

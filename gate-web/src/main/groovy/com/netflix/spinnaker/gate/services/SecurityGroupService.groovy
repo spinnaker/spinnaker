@@ -44,6 +44,32 @@ class SecurityGroupService {
   }
 
   /**
+   * Looks for a security group by its id (uses mort's search api)
+   *
+   * @param id
+   * @return
+   */
+  Map getById(String id) {
+    HystrixFactory.newMapCommand(GROUP, "securityGroups-${id}".toString(), false) {
+      def result = mortService.getSecurityGroupById(id)[0]
+      if (result.results) {
+        String uriString = ((List<Map>)result.results)[0].url
+        def uri = new URI(uriString)
+        def path = uri.path
+        def query = uri.query
+        def region = query.split('=')[1]
+        def pathParts = path.split('/')
+        def account = pathParts[2]
+        def provider = pathParts[3]
+        def sgName = pathParts[-1]
+        return getSecurityGroup(account, provider, sgName, region)
+      } else {
+        [:]
+      }
+    } execute()
+  }
+
+  /**
    * @param account account name
    * @param provider provider name (aws, gce, docker)
    * @param region optional. nullable
