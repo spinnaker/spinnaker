@@ -26,7 +26,7 @@ interface OortService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}")
-  rx.Observable<Map> getApplication(@Path("name") String name)
+  Map getApplication(@Path("name") String name)
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters")

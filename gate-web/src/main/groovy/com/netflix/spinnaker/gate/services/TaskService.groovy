@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import rx.Observable
 
 @CompileStatic
 @Service
@@ -29,14 +28,12 @@ class TaskService {
   @Autowired
   OrcaService orcaService
 
-  Observable<Map> create(Map body) {
-    orcaService.doOperation(body).map({
-      it
-    })
+  Map create(Map body) {
+    orcaService.doOperation(body)
   }
 
   // TODO Hystrix fallback?
-  Observable<Map> getTask(String id) {
+  Map getTask(String id) {
     Preconditions.checkNotNull(id)
     orcaService.getTask(id)
   }

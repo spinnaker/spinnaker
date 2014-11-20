@@ -17,27 +17,26 @@
 package com.netflix.spinnaker.gate.services
 
 import retrofit.http.*
-import rx.Observable
 
 interface OrcaService {
 
   @Headers("Content-type: application/context+json")
   @POST("/ops")
-  Observable<Map> doOperation(@Body Map<String, ? extends Object> body)
+  Map doOperation(@Body Map<String, ? extends Object> body)
 
   @Headers("Accept: application/json")
   @GET("/applications/{application}/tasks")
-  Observable<List> getTasks(@Path("application") String app)
+  List getTasks(@Path("application") String app)
 
   @Headers("Accept: application/json")
   @GET("/applications/{application}/pipelines")
-  Observable<List> getPipelines(@Path("application") String app)
+  List getPipelines(@Path("application") String app)
 
   @Headers("Accept: application/json")
   @GET("/tasks/{id}")
-  Observable<Map> getTask(@Path("id") String id)
+  Map getTask(@Path("id") String id)
 
   @Headers("Accept: application/json")
   @GET("/tasks")
-  Observable<Map> all()
+  Map all()
 }

@@ -22,8 +22,8 @@ import retrofit.http.Path
 interface MayoService {
 
   @GET('/pipelines/{app}')
-  rx.Observable<List<Map>> getPipelineConfigs(@Path("app") String app)
+  List<Map> getPipelineConfigs(@Path("app") String app)
 
   @GET('/pipelines/{app}/{name}')
-  rx.Observable<Map> getPipelineConfig(@Path("app") String app, @Path("name") String name)
+  Map getPipelineConfig(@Path("app") String app, @Path("name") String name)
 }

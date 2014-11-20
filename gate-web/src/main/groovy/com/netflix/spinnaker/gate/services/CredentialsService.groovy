@@ -16,58 +16,26 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.hystrix.*
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import rx.Observable
 
 @Service
 class CredentialsService {
-  private static final String SERVICE = "credentials"
-  private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
+  private static final String GROUP = "credentials"
 
   @Autowired
   KatoService katoService
 
-  Observable<List> getAccountNames() {
-    new HystrixObservableCommand<List>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getAccountNames"))) {
-
-      @Override
-      protected Observable<List> run() {
-        Observable.just(katoService.accountNames)
-      }
-
-      @Override
-      protected Observable<List> getFallback() {
-        Observable.just([])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "accountNames-all"
-      }
-    }.toObservable()
+  List<String> getAccountNames() {
+    HystrixFactory.newListCommand(GROUP, "getAccountNames", true) {
+      katoService.accountNames
+    } execute()
   }
 
-  Observable<Map> getAccount(String account) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getAccount"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(katoService.getAccount(account))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.just([:])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "account-${account}"
-      }
-    }.toObservable()
+  Map getAccount(String account) {
+    HystrixFactory.newMapCommand(GROUP, "getAccount", true) {
+      katoService.getAccount(account)
+    } execute()
   }
 }

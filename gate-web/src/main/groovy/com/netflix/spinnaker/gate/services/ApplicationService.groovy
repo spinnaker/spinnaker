@@ -15,21 +15,20 @@
  */
 
 package com.netflix.spinnaker.gate.services
+
 import com.google.common.base.Preconditions
-import com.netflix.hystrix.HystrixCommandGroupKey
-import com.netflix.hystrix.HystrixCommandKey
-import com.netflix.hystrix.HystrixCommandProperties
-import com.netflix.hystrix.HystrixObservableCommand
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
+import groovy.transform.CompileStatic
+import java.util.concurrent.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import rx.Observable
-import rx.schedulers.Schedulers
+import retrofit.converter.ConversionException
 
+@CompileStatic
 @Component
 class ApplicationService {
-  private static final String SERVICE = "applications"
-  private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
+  private static final String GROUP = "applications"
 
   @Autowired
   OortService oortService
@@ -46,188 +45,159 @@ class ApplicationService {
   @Autowired
   CredentialsService credentialsService
 
-  static HystrixCommandProperties.Setter createHystrixCommandPropertiesSetter() {
-    HystrixCommandProperties.invokeMethod("Setter", null)
+  @Autowired
+  ExecutorService executorService
+
+  List<Map> getAll() {
+    def applicationListRetrievers = (credentialsService.accountNames.collect {
+      new ApplicationListRetriever(it, front50Service)
+    } as Collection<Callable<List<Map>>>)
+
+    HystrixFactory.newListCommand(GROUP, "getAll", true) {
+      List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
+      List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
+      List<Map> flat = (List<Map>) all?.flatten()?.toList()
+      flat
+    } execute()
   }
 
-  Observable<List<Map>> getAll() {
-    new HystrixObservableCommand<List<Map>>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getAll"))
-        .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
-        .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
-      @Override
-      protected Observable<List<Map>> run() {
-        credentialsService.getAccountNames().flatMap { List<String> accounts ->
-            Observable.from(accounts).flatMap { String account ->
-                Observable.from(front50Service.getAll(account)).subscribeOn(Schedulers.io())
+  Map get(String name) {
+    def applicationRetrievers = (credentialsService.accountNames.collectMany {
+      [new Front50ApplicationRetriever(it, name, front50Service), new OortApplicationRetriever(name, oortService)]
+    } as Collection<Callable<Map>>)
+
+    HystrixFactory.newMapCommand(GROUP, "getApp-${name}".toString(), true) {
+      def futures = executorService.invokeAll(applicationRetrievers)
+      List<Map> applications = (List<Map>) futures.collect { it.get() }
+      applications.inject([:]) { LinkedHashMap result, Map app ->
+        if (app) {
+          if (app.containsKey("clusters")) {
+            result.putAll(app)
+          } else {
+            if (!result.containsKey("attributes")) {
+              result.attributes = [:]
             }
-        }.observeOn(Schedulers.io()).toList()
-      }
-
-      @Override
-      protected Observable<List<Map>> getFallback() {
-        Observable.empty()
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "applications-all"
-      }
-    }.observe()
+            for (Map.Entry<String, String> entry in ((Map<String, String>) app).entrySet()) {
+              if (entry.value) {
+                result.attributes[entry.key] = entry.value
+              }
+            }
+          }
+        }
+        result
+      } as Map
+    } execute()
   }
 
-    Observable<Map> get(String name) {
-        new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-                                                                  .andCommandKey(HystrixCommandKey.Factory.asKey("getApp-${name}"))
-                                                                  .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
-                .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
-            @Override
-            protected Observable<Map> run() {
-                Observable<Map> perAccount = credentialsService.accountNames.flatMap { List<String> accounts ->
-                    Observable.from(accounts).flatMap { String account ->
-                        front50Service.getMetaData(account, name).subscribeOn(Schedulers.io()).onErrorResumeNext({ t ->
-                            if (t instanceof RetrofitError) {
-                                def re = (RetrofitError) t
-                                if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
-                                    return Observable.empty()
-                                } else {
-                                    return Observable.error(t)
-                                }
-                            }
-                        })
-                    }
-                }
-
-                def oortApp = oortService.getApplication(name).subscribeOn(Schedulers.io()).onErrorResumeNext({ t ->
-                    if (t instanceof RetrofitError) {
-                        def re = (RetrofitError) t
-                        if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
-                            return Observable.empty()
-                        } else {
-                            return Observable.error(t)
-                        }
-                    }
-                })
-
-                def o = perAccount.mergeWith(oortApp)
-
-                o.reduce([:], { Map app, Map data ->
-                    if (data) {
-                        if (data.containsKey("clusters")) {
-                            app.putAll data
-                        } else {
-                            if (!app.containsKey("attributes")) {
-                                app.attributes = [:]
-                            }
-                            app.attributes.putAll(data)
-                        }
-                    }
-                    app
-                })
-            }
-
-            @Override
-            protected Observable<Map> getFallback() {
-                Observable.empty()
-            }
-
-            @Override
-            protected String getCacheKey() {
-                "applications-${name}"
-            }
-        }.observe()
-    }
-
-  // TODO Hystrix fallback?
-  Observable<List> getTasks(String app) {
+  List getTasks(String app) {
     Preconditions.checkNotNull(app)
     orcaService.getTasks(app)
   }
-  // TODO Hystrix fallback?
-  Observable<List> getPipelines(String app) {
+
+  List getPipelines(String app) {
     Preconditions.checkNotNull(app)
     orcaService.getPipelines(app)
   }
 
-  Observable<List<Map>> getPipelineConfigs(String app) {
-    new PipelineConfigsCommand(app, mayoService).observe()
+  List<Map> getPipelineConfigs(String app) {
+    HystrixFactory.newListCommand(GROUP, "getPipelineConfigs-${app}".toString(), true) {
+      mayoService.getPipelineConfigs(app)
+    } execute()
   }
 
-  Observable<Map> getPipelineConfig(String app, String pipelineName) {
-    new PipelineConfigCommand(app, pipelineName, mayoService).observe()
+  Map getPipelineConfig(String app, String pipelineName) {
+    HystrixFactory.newMapCommand(GROUP, "getPipelineConfig-${app}-${pipelineName}".toString(), true) {
+      mayoService.getPipelineConfig(app, pipelineName)
+    } execute()
   }
 
-  Observable<Map> bake(String application, String pkg, String baseOs, String baseLabel, String region) {
+  Map bake(String application, String pkg, String baseOs, String baseLabel, String region) {
     orcaService.doOperation([application: application, description: "Bake (Gate)",
                              job        : [[type  : "bake", "package": pkg, baseOs: baseOs, baseLabel: baseLabel,
                                             region: region, user: "gate"]]])
   }
 
-  Observable<Map> delete(String account, String name) {
+  Map delete(String account, String name) {
     front50Service.delete(account, name)
   }
 
-  Observable<Map> create(Map<String, String> app) {
+  Map create(Map<String, String> app) {
     def account = app.remove("account")
     orcaService.doOperation([application: app.name, description: "Create application (Gate)",
                              job        : [[type: "createApplication", application: app, account: account]]])
   }
 
-  static class PipelineConfigsCommand extends HystrixObservableCommand<List<Map>> {
-    final String app
-    final MayoService mayoService
+  static class ApplicationListRetriever implements Callable<List<Map>> {
+    private final String account
+    private final Front50Service front50
 
-    static List<Map> last = []
-
-    PipelineConfigsCommand(String app, MayoService mayoService) {
-      super(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-          .andCommandKey(HystrixCommandKey.Factory.asKey("getPipelineConfigs-${app}"))
-          .andCommandPropertiesDefaults(ApplicationService.createHystrixCommandPropertiesSetter()
-          .withExecutionIsolationThreadTimeoutInMilliseconds(30000)))
-      this.app = app
-      this.mayoService = mayoService
+    ApplicationListRetriever(String account, Front50Service front50) {
+      this.account = account
+      this.front50 = front50
     }
 
     @Override
-    protected Observable<List<Map>> run() {
-      mayoService.getPipelineConfigs(app).map {
-        last = it
+    List<Map> call() throws Exception {
+      try {
+        return front50.getAll(account)
+      } catch (RetrofitError e) {
+        if (e.response.status == 404) {
+          return []
+        } else {
+          throw e
+        }
       }
-    }
-
-    @Override
-    protected Observable<List<Map>> getFallback() {
-      Observable.just(last)
     }
   }
 
-  static class PipelineConfigCommand extends HystrixObservableCommand<Map> {
-    final String app
-    final String pipelineName
-    final MayoService mayoService
+  static class Front50ApplicationRetriever implements Callable<Map> {
+    private final String account
+    private final String name
+    private final Front50Service front50
 
-    static Map last = [:]
-
-    PipelineConfigCommand(String app, String pipelineName, MayoService mayoService) {
-      super(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-          .andCommandKey(HystrixCommandKey.Factory.asKey("getPipelineConfig-${app}-${pipelineName}"))
-          .andCommandPropertiesDefaults(ApplicationService.createHystrixCommandPropertiesSetter()
-          .withExecutionIsolationThreadTimeoutInMilliseconds(30000)))
-      this.app = app
-      this.pipelineName = pipelineName
-      this.mayoService = mayoService
+    Front50ApplicationRetriever(String account, String name, Front50Service front50) {
+      this.account = account
+      this.name = name
+      this.front50 = front50
     }
 
     @Override
-    protected Observable<Map> run() {
-      mayoService.getPipelineConfig(app, pipelineName).map {
-        last = it
+    Map call() throws Exception {
+      try {
+        def metadata = front50.getMetaData(account, name)
+        metadata ?: [:]
+      } catch (ConversionException e) {
+        return [:]
+      } catch (RetrofitError e) {
+        if ((e.cause instanceof ConversionException) || e.response.status == 404) {
+          return [:]
+        } else {
+          throw e
+        }
       }
     }
+  }
+
+  static class OortApplicationRetriever implements Callable<Map> {
+    private final String name
+    private final OortService oort
+
+    OortApplicationRetriever(String name, OortService oort) {
+      this.name = name
+      this.oort = oort
+    }
 
     @Override
-    protected Observable<Map> getFallback() {
-      Observable.just(last)
+    Map call() throws Exception {
+      try {
+        return oort.getApplication(name)
+      } catch (RetrofitError e) {
+        if (e.response.status == 404) {
+          return [:]
+        } else {
+          throw e
+        }
+      }
     }
   }
 }

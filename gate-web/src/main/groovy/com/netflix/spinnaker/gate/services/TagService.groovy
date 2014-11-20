@@ -16,39 +16,22 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.hystrix.*
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import rx.Observable
 
 @CompileStatic
 @Component
 class TagService {
-  private static final String SERVICE = "tags"
-  private static final HystrixCommandGroupKey HYSTRIX_KEY = HystrixCommandGroupKey.Factory.asKey(SERVICE)
+  private static final String GROUP = "tags"
 
   @Autowired
   FlapJackService flapJackService
 
-  Observable<List> getTags(String application) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getTags"))) {
-
-      @Override
-      protected Observable<Map> run() {
-        Observable.just(flapJackService.getTags(application))
-      }
-
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.from([])
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "application"
-      }
-    }.toObservable()
+  List getTags(String application) {
+    HystrixFactory.newListCommand(GROUP, "getTags-${application}", true) {
+      flapJackService.getTags(application)
+    } execute()
   }
 }

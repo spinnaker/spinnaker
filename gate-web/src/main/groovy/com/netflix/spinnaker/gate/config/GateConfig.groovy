@@ -20,6 +20,8 @@ import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.services.*
 import groovy.transform.CompileStatic
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -53,28 +55,13 @@ class GateConfig {
   }
 
   @Bean
+  ExecutorService executorService() {
+    Executors.newCachedThreadPool()
+  }
+
+  @Bean
   Client retrofitClient(ServiceConfiguration serviceConfiguration) {
     serviceConfiguration.discoveryHosts ? new EurekaOkClient() : new OkClient()
-  }
-
-  @Bean
-  CacheManager cacheManager(Set<Cache> caches) {
-    new SimpleCacheManager(caches: caches)
-  }
-
-  @Bean
-  Cache applicationsCache() {
-    new ConcurrentMapCache("applications")
-  }
-
-  @Bean
-  Cache clustersCache() {
-    new ConcurrentMapCache("clusters")
-  }
-
-  @Bean
-  Cache applicationCache() {
-    new ConcurrentMapCache("application")
   }
 
   @Bean

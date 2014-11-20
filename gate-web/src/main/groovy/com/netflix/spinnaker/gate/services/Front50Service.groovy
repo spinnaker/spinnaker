@@ -23,11 +23,11 @@ interface Front50Service {
   List<Map> getAll(@Path("account") String account)
 
   @GET('/{account}/applications/name/{name}')
-  rx.Observable<Map> getMetaData(@Path('account') String account, @Path('name') String name)
+  Map getMetaData(@Path('account') String account, @Path('name') String name)
 
   @DELETE('/{account}/applications/name/{name}')
-  rx.Observable<Map> delete(@Path('account') String account, @Path('name') String name)
+  Map delete(@Path('account') String account, @Path('name') String name)
 
   @POST('/{account}/applications/name/{name}')
-  rx.Observable<Map> create(@Path('account') String account, @Path('name') String name, @Body Map<String, String> app)
+  Map create(@Path('account') String account, @Path('name') String name, @Body Map<String, String> app)
 }

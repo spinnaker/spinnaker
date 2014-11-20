@@ -15,17 +15,13 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
-import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.TagService
-import com.netflix.spinnaker.gate.services.TaskService
+
+import com.netflix.spinnaker.gate.services.*
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
-
-import static com.netflix.spinnaker.gate.controllers.AsyncControllerSupport.defer
 
 @CompileStatic
 @RequestMapping("/applications")
@@ -42,78 +38,74 @@ class ApplicationController {
   TagService tagService
 
   @RequestMapping(method = RequestMethod.GET)
-  DeferredResult<List<Map>> get() {
-    defer applicationService.all
+  List<Map> all() {
+    applicationService.all
   }
 
   @RequestMapping(method = RequestMethod.POST)
-  DeferredResult<Map> create(@RequestBody Map<String, String> app) {
-    defer applicationService.create(app)
+  Map create(@RequestBody Map<String, String> app) {
+    applicationService.create(app)
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
-  DeferredResult<Map> show(@PathVariable("name") String name) {
-    defer applicationService.get(name).flatMap { if (!it) {
-      rx.Observable.error(new ApplicationNotFoundException("Application ${name} not found"))
-    } else {
-      rx.Observable.just(it)
-    }}
+  Map show(@PathVariable("name") String name) {
+    def result = applicationService.get(name)
+    if (!result) {
+      new ApplicationNotFoundException("Application ${name} not found")
+    }
+    result
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class ApplicationNotFoundException extends RuntimeException {}
-
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-  DeferredResult<Map> delete(@RequestParam String account, @PathVariable String name) {
-    defer applicationService.delete(account, name)
+  Map delete(@RequestParam String account, @PathVariable String name) {
+    applicationService.delete(account, name)
   }
 
   @RequestMapping(value = "/{name}/bake", method = RequestMethod.POST)
-  DeferredResult<Map> bake(@PathVariable("name") String name, @RequestBody(required = false) BakeCommand bakeCommand) {
+  Map bake(@PathVariable("name") String name, @RequestBody(required = false) BakeCommand bakeCommand) {
     if (!bakeCommand) {
       bakeCommand = new BakeCommand(pkg: name)
     }
     if (!bakeCommand.pkg) {
       bakeCommand.pkg = name
     }
-    defer applicationService.bake(name, bakeCommand.pkg, bakeCommand.baseOs, bakeCommand.baseLabel, bakeCommand.region)
+    applicationService.bake(name, bakeCommand.pkg, bakeCommand.baseOs, bakeCommand.baseLabel, bakeCommand.region)
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.GET)
-  DeferredResult<List> getTasks(@PathVariable("name") String name) {
-    defer applicationService.getTasks(name)
+  List getTasks(@PathVariable("name") String name) {
+    applicationService.getTasks(name)
   }
 
   @RequestMapping(value = "/{name}/pipelines", method = RequestMethod.GET)
-  DeferredResult<List> getPiplines(@PathVariable("name") String name) {
-    defer applicationService.getPipelines(name)
+  List getPiplines(@PathVariable("name") String name) {
+    applicationService.getPipelines(name)
   }
 
   @RequestMapping(value = "/{name}/pipelineConfigs", method = RequestMethod.GET)
-  DeferredResult<List> getPiplineConfigs(@PathVariable("name") String name) {
-    defer applicationService.getPipelineConfigs(name)
+  List getPiplineConfigs(@PathVariable("name") String name) {
+    applicationService.getPipelineConfigs(name)
   }
 
   @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.GET)
-  DeferredResult<List> getPiplineConfig(
+  Map getPiplineConfig(
       @PathVariable("name") String name, @PathVariable("pipelineName") String pipelineName) {
-    defer applicationService.getPipelineConfig(name, pipelineName)
+    applicationService.getPipelineConfig(name, pipelineName)
   }
 
   @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
-  DeferredResult<Map> getTask(@PathVariable("id") String id) {
-    defer taskService.getTask(id)
+  Map getTask(@PathVariable("id") String id) {
+    taskService.getTask(id)
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
-  DeferredResult<Map> task(@RequestBody Map map) {
-    defer taskService.create(map)
+  Map task(@RequestBody Map map) {
+    taskService.create(map)
   }
 
   @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
-  DeferredResult<List<String>> getTags(@PathVariable("name") String name) {
-    defer tagService.getTags(name)
+  List<String> getTags(@PathVariable("name") String name) {
+    tagService.getTags(name)
   }
 
   static class BakeCommand {
@@ -122,4 +114,8 @@ class ApplicationController {
     String baseLabel = "release"
     String region = "us-east-1"
   }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @InheritConstructors
+  static class ApplicationNotFoundException extends RuntimeException {}
 }
