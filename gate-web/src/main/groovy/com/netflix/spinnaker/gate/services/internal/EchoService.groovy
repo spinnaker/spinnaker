@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.http.GET
-import retrofit.http.Path
+import retrofit.http.*
 
-interface MayoService {
+interface EchoService {
 
-  @GET('/pipelines/{app}')
-  List<Map> getPipelineConfigs(@Path("app") String app)
+  @Headers("Accept: application/json")
+  @GET("/search/events/0")
+  Map getAllEvents(@Query("from") int offset,
+                   @Query("size") int size,
+                   @Query("full") boolean full)
 
-  @GET('/pipelines/{app}/{name}')
-  Map getPipelineConfig(@Path("app") String app, @Path("name") String name)
+  @Headers("Accept: application/json")
+  @GET("/search/events/0")
+  Map getEvents(@Query("application") String application,
+                @Query("from") int offset,
+                @Query("size") int size,
+                @Query("full") boolean full)
 }

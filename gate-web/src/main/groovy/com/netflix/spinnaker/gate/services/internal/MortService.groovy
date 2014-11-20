@@ -14,16 +14,39 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
 import retrofit.http.GET
 import retrofit.http.Path
+import retrofit.http.Query
 
-interface KatoService {
+interface MortService {
 
   @GET('/credentials')
   List<String> getAccountNames()
 
   @GET('/credentials/{account}')
   Map getAccount(@Path("account") String account)
+
+  @GET('/securityGroups')
+  Map getSecurityGroups()
+
+  @GET('/securityGroups/{account}/{type}')
+  Map getSecurityGroups(@Path("account") String account, @Path("type") String type, @Query("region") String region)
+
+  @GET('/securityGroups/{account}/{type}/{name}')
+  Map getSecurityGroup(@Path("account") String account, @Path("type") String type, @Path("name") String name,
+                       @Query("region") String region)
+
+  @GET('/instanceTypes')
+  List<Map> getInstanceTypes()
+
+  @GET('/keyPairs')
+  List<Map> getKeyPairs()
+
+  @GET('/subnets')
+  List<Map> getSubnets()
+
+  @GET('/vpcs')
+  List<Map> getVpcs()
 }

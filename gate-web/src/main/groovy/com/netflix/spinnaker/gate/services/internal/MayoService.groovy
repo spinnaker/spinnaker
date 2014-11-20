@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.http.*
+import retrofit.http.GET
+import retrofit.http.Path
 
-interface FlapJackService {
+interface MayoService {
 
-  @Headers("Accept: application/json")
-  @GET("/applications/{application}")
-  List<Map> getTags(@Path("application") String application)
+  @GET('/pipelines/{app}')
+  List<Map> getPipelineConfigs(@Path("app") String app)
+
+  @GET('/pipelines/{app}/{name}')
+  Map getPipelineConfig(@Path("app") String app, @Path("name") String name)
 }

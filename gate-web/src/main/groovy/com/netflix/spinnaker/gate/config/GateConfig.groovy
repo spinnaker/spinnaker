@@ -18,7 +18,14 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
-import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.gate.services.internal.FlapJackService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.MayoService
+import com.netflix.spinnaker.gate.services.internal.MortService
+import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

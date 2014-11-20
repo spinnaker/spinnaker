@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
 import retrofit.http.GET
 import retrofit.http.Path
 
-interface MortService {
+interface KatoService {
 
   @GET('/credentials')
   List<String> getAccountNames()

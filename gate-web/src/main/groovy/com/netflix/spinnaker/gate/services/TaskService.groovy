@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.google.common.base.Preconditions
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service

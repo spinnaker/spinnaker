@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
 import retrofit.http.*
 
-interface EchoService {
+interface Front50Service {
+  @GET('/{account}/applications')
+  List<Map> getAll(@Path("account") String account)
 
-  @Headers("Accept: application/json")
-  @GET("/search/events/0")
-  Map getAllEvents(@Query("from") int offset,
-                   @Query("size") int size,
-                   @Query("full") boolean full)
+  @GET('/{account}/applications/name/{name}')
+  Map getMetaData(@Path('account') String account, @Path('name') String name)
 
-  @Headers("Accept: application/json")
-  @GET("/search/events/0")
-  Map getEvents(@Query("application") String application,
-                @Query("from") int offset,
-                @Query("size") int size,
-                @Query("full") boolean full)
+  @DELETE('/{account}/applications/name/{name}')
+  Map delete(@Path('account') String account, @Path('name') String name)
+
+  @POST('/{account}/applications/name/{name}')
+  Map create(@Path('account') String account, @Path('name') String name, @Body Map<String, String> app)
 }

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
+import com.netflix.spinnaker.gate.services.internal.FlapJackService
+import com.netflix.spinnaker.gate.services.internal.OortService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

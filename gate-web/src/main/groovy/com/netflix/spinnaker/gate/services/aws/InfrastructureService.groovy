@@ -14,31 +14,49 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.aws
 
+import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.gate.services.internal.MortService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @CompileStatic
 @Component
-class EventService {
-  private static final String GROUP = "events"
+class InfrastructureService {
+
+  private static final String GROUP = "infrastructure"
 
   @Autowired
-  EchoService echoService
+  MortService mortService
 
-  Map getAll(int offset, int size) {
-    HystrixFactory.newMapCommand(GROUP, "events-all", true) {
-      echoService.getAllEvents(offset, size, true)
+  private static <T extends List> HystrixCommand<T> command(String type, Closure<T> work) {
+    (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, true, work)
+  }
+
+  List<Map> getInstanceTypes() {
+    command("instanceTypes") {
+      mortService.instanceTypes
     } execute()
   }
 
-  Map getForApplication(String app) {
-    HystrixFactory.newMapCommand(GROUP, "events-${app}".toString(), true) {
-      echoService.getEvents(app, 0, Integer.MAX_VALUE, true)
+  List<Map> getKeyPairs() {
+    command("keyPairs") {
+      mortService.keyPairs
+    } execute()
+  }
+
+  List<Map> getSubnets() {
+    command("subnets") {
+      mortService.subnets
+    } execute()
+  }
+
+  List<Map> getVpcs() {
+    command("vpcs") {
+      mortService.vpcs
     } execute()
   }
 }

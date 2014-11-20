@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import retrofit.http.*

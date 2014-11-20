@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.internal
 
 import retrofit.http.*
 
-interface Front50Service {
-  @GET('/{account}/applications')
-  List<Map> getAll(@Path("account") String account)
+interface FlapJackService {
 
-  @GET('/{account}/applications/name/{name}')
-  Map getMetaData(@Path('account') String account, @Path('name') String name)
+  @Headers("Accept: application/json")
+  @GET("/applications/{application}")
+  List<Map> getTags(@Path("application") String application)
 
-  @DELETE('/{account}/applications/name/{name}')
-  Map delete(@Path('account') String account, @Path('name') String name)
-
-  @POST('/{account}/applications/name/{name}')
-  Map create(@Path('account') String account, @Path('name') String name, @Body Map<String, String> app)
+  @POST("/applications/{application}")
+  Map createApplicationTags(@Path("application") String application, @Body Map body)
 }

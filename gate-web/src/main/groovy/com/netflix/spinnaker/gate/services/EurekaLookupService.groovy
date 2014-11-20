@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
+import com.netflix.spinnaker.gate.services.internal.EurekaService
 import groovy.transform.Immutable
 import java.util.concurrent.*
 import javax.annotation.PostConstruct

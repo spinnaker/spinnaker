@@ -18,6 +18,8 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.OortService
 import spock.lang.Specification
 
 class ApplicationServiceSpec extends Specification {

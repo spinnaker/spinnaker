@@ -18,6 +18,13 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.internal.FlapJackService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.MayoService
+import com.netflix.spinnaker.gate.services.internal.MortService
+import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import java.util.concurrent.ExecutorService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -25,7 +32,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.RestAdapter
 import retrofit.client.OkClient
-import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 
