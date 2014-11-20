@@ -28,7 +28,13 @@ class DeployGoogleServerGroupOperation extends Operation {
   String image
   String instanceType
   String zone
+  Source source = new Source()
   String credentials
+
+  static class Source {
+    String zone
+    String serverGroupName
+  }
 }
 
 
