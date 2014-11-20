@@ -57,14 +57,16 @@ class ApplicationService {
         .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
       @Override
       protected Observable<List<Map>> run() {
-        credentialsService.getAccountNames().flatMap { String name ->
-          rx.Observable.from(front50Service.getAll(name))
-        }.toList()
+        credentialsService.getAccountNames().flatMap { List<String> accounts ->
+            Observable.from(accounts).flatMap { String account ->
+                Observable.from(front50Service.getAll(account))
+            }
+        }.observeOn(Schedulers.io()).toList()
       }
 
       @Override
       protected Observable<List<Map>> getFallback() {
-        Observable.from([])
+        Observable.empty()
       }
 
       @Override
