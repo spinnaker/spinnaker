@@ -18,6 +18,9 @@ allprojects {
 
   group = "com.netflix.spinnaker.oort"
 
+  sourceCompatibility = 1.7
+  targetCompatibility = 1.7
+
   configurations.all {
     resolutionStrategy {
       force 'org.apache.httpcomponents:httpclient:4.3.5'
