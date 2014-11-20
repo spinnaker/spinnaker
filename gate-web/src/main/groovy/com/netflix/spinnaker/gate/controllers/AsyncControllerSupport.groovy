@@ -27,6 +27,10 @@ class AsyncControllerSupport {
       q.result = it
     }, { Throwable t ->
       q.errorResult = t
+    }, {
+      if (!q.isSetOrExpired()) {
+        q.result = null
+      }
     })
     q
   }

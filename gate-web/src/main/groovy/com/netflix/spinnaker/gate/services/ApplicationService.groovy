@@ -59,7 +59,7 @@ class ApplicationService {
       protected Observable<List<Map>> run() {
         credentialsService.getAccountNames().flatMap { List<String> accounts ->
             Observable.from(accounts).flatMap { String account ->
-                Observable.from(front50Service.getAll(account))
+                Observable.from(front50Service.getAll(account)).subscribeOn(Schedulers.io())
             }
         }.observeOn(Schedulers.io()).toList()
       }
@@ -85,7 +85,7 @@ class ApplicationService {
             protected Observable<Map> run() {
                 Observable<Map> perAccount = credentialsService.accountNames.flatMap { List<String> accounts ->
                     Observable.from(accounts).flatMap { String account ->
-                        front50Service.getMetaData(account, name).onErrorResumeNext({ t ->
+                        front50Service.getMetaData(account, name).subscribeOn(Schedulers.io()).onErrorResumeNext({ t ->
                             if (t instanceof RetrofitError) {
                                 def re = (RetrofitError) t
                                 if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
@@ -98,7 +98,7 @@ class ApplicationService {
                     }
                 }
 
-                def oortApp = oortService.getApplication(name).onErrorResumeNext({ t ->
+                def oortApp = oortService.getApplication(name).subscribeOn(Schedulers.io()).onErrorResumeNext({ t ->
                     if (t instanceof RetrofitError) {
                         def re = (RetrofitError) t
                         if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
@@ -110,7 +110,6 @@ class ApplicationService {
                 })
 
                 def o = perAccount.mergeWith(oortApp)
-                                  .observeOn(Schedulers.io())
 
                 o.reduce([:], { Map app, Map data ->
                     if (data) {
