@@ -15,13 +15,15 @@
  */
 
 package com.netflix.spinnaker.gate.services
-
 import com.google.common.base.Preconditions
-import com.netflix.hystrix.*
+import com.netflix.hystrix.HystrixCommandGroupKey
+import com.netflix.hystrix.HystrixCommandKey
+import com.netflix.hystrix.HystrixCommandProperties
+import com.netflix.hystrix.HystrixObservableCommand
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 import rx.Observable
-import rx.functions.Func1
 import rx.schedulers.Schedulers
 
 @Component
@@ -72,52 +74,68 @@ class ApplicationService {
     }.observe()
   }
 
-  Observable<Map> get(String name) {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
-        .andCommandKey(HystrixCommandKey.Factory.asKey("getApp-${name}"))
-        .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
-        .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
-      @Override
-      protected Observable<Map> run() {
-        Observable<Map> perAccount = credentialsService.accountNames.flatMap({ List<String> accounts ->
-          Observable.from(accounts).flatMap({ String account ->
-            Observable.just(front50Service.getMetaData(account, name))
-          } as Func1<String, Observable<Map>>)
-        } as Func1<List<String>, Observable<Map>>)
+    Observable<Map> get(String name) {
+        new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+                                                                  .andCommandKey(HystrixCommandKey.Factory.asKey("getApp-${name}"))
+                                                                  .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
+                .withExecutionIsolationThreadTimeoutInMilliseconds(30000))) {
+            @Override
+            protected Observable<Map> run() {
+                Observable<Map> perAccount = credentialsService.accountNames.flatMap { List<String> accounts ->
+                    Observable.from(accounts).flatMap { String account ->
+                        front50Service.getMetaData(account, name).onErrorResumeNext({ t ->
+                            if (t instanceof RetrofitError) {
+                                def re = (RetrofitError) t
+                                if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+                                    return Observable.empty()
+                                } else {
+                                    return Observable.error(t)
+                                }
+                            }
+                        })
+                    }
+                }
 
-        Observable<Map> o = Observable.mergeDelayError(
-                oortService.getApplication(name),
-                perAccount).onErrorReturn { t -> [:] }
+                def oortApp = oortService.getApplication(name).onErrorResumeNext({ t ->
+                    if (t instanceof RetrofitError) {
+                        def re = (RetrofitError) t
+                        if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+                            return Observable.empty()
+                        } else {
+                            return Observable.error(t)
+                        }
+                    }
+                })
 
-        o.observeOn(Schedulers.io()).reduce([:], { Map app, Map data ->
-          if (data) {
-            if (data.containsKey("clusters")) {
-              app.putAll data
-            } else {
-              if (!app.containsKey("attributes")) {
-                app.attributes = [:]
-              }
-              app.attributes.putAll(data)
+                def o = perAccount.mergeWith(oortApp)
+                                  .observeOn(Schedulers.io())
+
+                o.reduce([:], { Map app, Map data ->
+                    if (data) {
+                        if (data.containsKey("clusters")) {
+                            app.putAll data
+                        } else {
+                            if (!app.containsKey("attributes")) {
+                                app.attributes = [:]
+                            }
+                            app.attributes.putAll(data)
+                        }
+                    }
+                    app
+                })
             }
-          }
-          app
-        })
 
-        o
-      }
+            @Override
+            protected Observable<Map> getFallback() {
+                Observable.empty()
+            }
 
-      @Override
-      protected Observable<Map> getFallback() {
-        Observable.empty()
-      }
-
-      @Override
-      protected String getCacheKey() {
-        "applications-${name}"
-      }
-    }.observe()
-
-  }
+            @Override
+            protected String getCacheKey() {
+                "applications-${name}"
+            }
+        }.observe()
+    }
 
   // TODO Hystrix fallback?
   Observable<List> getTasks(String app) {

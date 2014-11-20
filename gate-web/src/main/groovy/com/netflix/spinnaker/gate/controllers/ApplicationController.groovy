@@ -53,10 +53,10 @@ class ApplicationController {
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   DeferredResult<Map> show(@PathVariable("name") String name) {
-    defer applicationService.get(name).map { if (!it) {
-      throw new ApplicationNotFoundException("Application ${name} not found")
+    defer applicationService.get(name).flatMap { if (!it) {
+      rx.Observable.error(new ApplicationNotFoundException("Application ${name} not found"))
     } else {
-      it
+      rx.Observable.just(it)
     }}
   }
 

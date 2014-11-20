@@ -30,17 +30,17 @@ class CredentialsService {
   KatoService katoService
 
   Observable<List> getAccountNames() {
-    new HystrixObservableCommand<Map>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
+    new HystrixObservableCommand<List>(HystrixObservableCommand.Setter.withGroupKey(HYSTRIX_KEY)
         .andCommandKey(HystrixCommandKey.Factory.asKey("getAccountNames"))) {
 
       @Override
       protected Observable<List> run() {
-        Observable.from(katoService.accountNames)
+        Observable.just(katoService.accountNames)
       }
 
       @Override
       protected Observable<List> getFallback() {
-        Observable.from([])
+        Observable.just([])
       }
 
       @Override
@@ -56,12 +56,12 @@ class CredentialsService {
 
       @Override
       protected Observable<Map> run() {
-        Observable.from(katoService.getAccount(account))
+        Observable.just(katoService.getAccount(account))
       }
 
       @Override
       protected Observable<Map> getFallback() {
-        Observable.from([:])
+        Observable.just([:])
       }
 
       @Override
