@@ -20,7 +20,11 @@ angular.module('deckApp.authentication')
 
     function authenticateUser() {
       var modal = $modal.open({
-        templateUrl: 'scripts/modules/authentication/authenticating.html'
+        templateUrl: 'scripts/modules/authentication/authenticating.html',
+        windowClass: 'modal fade in',
+        backdropClass: 'modal-backdrop-no-animate',
+        backdrop: 'static',
+        keyboard: false
       });
       $http.get(settings.gateUrl + '/auth/info')
         .success(function (data) {
