@@ -377,7 +377,8 @@ angular.module('deckApp.gce')
         command.source = {
           'account': serverGroup.account,
           'region': serverGroup.region,
-          'asgName': serverGroup.asg.autoScalingGroupName
+          'zone': serverGroup.zones[0],
+          'serverGroupName': serverGroup.name
         };
       } else {
         command.type = 'deploy';
