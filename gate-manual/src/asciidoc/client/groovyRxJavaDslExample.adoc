@@ -1,6 +1,6 @@
 ```groovy
 @GrabResolver(name='spinnaker', root='http://dl.bintray.com/spinnaker/spinnaker')
-@Grab('com.netflix.spinnaker.client:spinnaker-client:0.2')
+@Grab('com.netflix.spinnaker.client:spinnaker-client:0.4')
 @Grab('io.reactivex:rxjava:1.0.0-rc.10')
 
 import com.netflix.spinnaker.client.Spinnaker
