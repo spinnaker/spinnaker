@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.orca.web.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.data.jackson.StageMixins
-import com.netflix.spinnaker.orca.pipeline.Stage
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -28,7 +27,9 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
-import org.springframework.context.annotation.*
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')

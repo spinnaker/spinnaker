@@ -23,10 +23,8 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.pipeline.Stage
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
-
-
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class DeleteApplicationTask implements Task {
@@ -38,18 +36,20 @@ class DeleteApplicationTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(Stage stage) {
+  TaskResult execute(ImmutableStage stage) {
     def application = mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(stage.context.application, Application)
+                            .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+                            .convertValue(stage.context.application, Application)
 
     def resp = front50Service.delete(stage.context.account as String,
       application.name)
     if (resp.status != 200) {
       new DefaultTaskResult(PipelineStatus.TERMINAL)
     } else {
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["application.name": application.name,
-                                                       "account": stage.context.account])
+      new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+        "application.name": application.name,
+        "account"         : stage.context.account
+      ])
     }
   }
 }
