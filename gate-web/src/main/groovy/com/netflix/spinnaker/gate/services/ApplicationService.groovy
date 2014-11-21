@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.google.common.base.Preconditions
+import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.MayoService
@@ -53,10 +54,11 @@ class ApplicationService {
   @Autowired
   ExecutorService executorService
 
+  @Autowired
+  ServiceConfiguration serviceConfiguration
+
   List<Map> getAll() {
-    def applicationListRetrievers = (credentialsService.accountNames.collect {
-      new ApplicationListRetriever(it, front50Service)
-    } as Collection<Callable<List<Map>>>)
+    def applicationListRetrievers = buildApplicationListRetrievers()
 
     HystrixFactory.newListCommand(GROUP, "getAll", true) {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
@@ -67,9 +69,7 @@ class ApplicationService {
   }
 
   Map get(String name) {
-    def applicationRetrievers = (credentialsService.accountNames.collectMany {
-      [new Front50ApplicationRetriever(it, name, front50Service), new OortApplicationRetriever(name, oortService)]
-    } as Collection<Callable<Map>>)
+    def applicationRetrievers = buildApplicationRetrievers(name)
 
     HystrixFactory.newMapCommand(GROUP, "getApp-${name}".toString(), true) {
       def futures = executorService.invokeAll(applicationRetrievers)
@@ -130,6 +130,34 @@ class ApplicationService {
     def account = app.remove("account")
     orcaService.doOperation([application: app.name, description: "Create application (Gate)",
                              job        : [[type: "createApplication", application: app, account: account]]])
+  }
+
+  private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
+    def accountOverride = serviceConfiguration?.getService("front50")?.config?.readAccountOverride as String
+    if (accountOverride) {
+      return [new ApplicationListRetriever(accountOverride, front50Service)]
+    }
+
+    return (credentialsService.accountNames.collect {
+      new ApplicationListRetriever(it, front50Service)
+    } as Collection<Callable<List<Map>>>)
+  }
+
+  private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
+    def accountOverride = serviceConfiguration?.getService("front50")?.config?.readAccountOverride as String
+    if (accountOverride) {
+      return [
+          new Front50ApplicationRetriever(accountOverride, applicationName, front50Service),
+          new OortApplicationRetriever(applicationName, oortService)
+      ]
+    }
+
+    return (credentialsService.accountNames.collectMany {
+      [
+          new Front50ApplicationRetriever(it, applicationName, front50Service),
+          new OortApplicationRetriever(applicationName, oortService)
+      ]
+    } as Collection<Callable<Map>>)
   }
 
   static class ApplicationListRetriever implements Callable<List<Map>> {

@@ -24,6 +24,8 @@ class Service {
   String name
   String baseUrl
 
+  Map<String, Object> config = [:]
+
   void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl
   }
