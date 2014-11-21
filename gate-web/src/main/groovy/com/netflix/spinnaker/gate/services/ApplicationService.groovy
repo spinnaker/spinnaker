@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.converter.ConversionException
+import rx.schedulers.Schedulers
 
 @CompileStatic
 @Component
@@ -143,7 +144,16 @@ class ApplicationService {
     @Override
     List<Map> call() throws Exception {
       try {
-        return front50.getAll(account)
+        def apps = front50.getAll(account)
+        rx.Observable.from(apps).flatMap {
+          rx.Observable.just(it).observeOn(Schedulers.io())
+        } map {
+          it.account = account
+          it
+        } reduce([], { List objs, Map obj ->
+          objs << obj
+          objs
+        }) toBlocking() first()
       } catch (RetrofitError e) {
         if (e.response.status == 404) {
           return []
@@ -169,6 +179,9 @@ class ApplicationService {
     Map call() throws Exception {
       try {
         def metadata = front50.getMetaData(account, name)
+        if (metadata) {
+          metadata.account = account
+        }
         metadata ?: [:]
       } catch (ConversionException e) {
         return [:]
