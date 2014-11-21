@@ -39,7 +39,7 @@ class AccountHostnameFilter implements Filter {
     def host = request.requestURL.toURL().host
 
     // in the format: front50.<account>.netflix.netac
-    if (host.startsWith("${front50Prefix}.") && host.endsWith(front50Domain)) {
+    if (host.startsWith("${front50Prefix}") && host.endsWith(front50Domain)) {
       def hostParts = host.tokenize('.')
       def account = hostParts[1]
       def reqParts = request.requestURI.tokenize('/')

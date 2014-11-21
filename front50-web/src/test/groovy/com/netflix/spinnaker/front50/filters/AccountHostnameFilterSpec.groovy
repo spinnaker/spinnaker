@@ -41,6 +41,23 @@ class AccountHostnameFilterSpec extends Specification {
     1 * req.getRequestDispatcher("/test/applications") >> Mock(RequestDispatcher)
   }
 
+  void "front50-*.<account>.netflix.net should match default vip pattern and forward"() {
+    setup:
+    def req = Mock(HttpServletRequest)
+    def res = Mock(HttpServletResponse)
+    def chain = Mock(FilterChain)
+    def filter = new AccountHostnameFilter(front50Domain: "netflix.net", front50Prefix: "front50")
+
+    when:
+    filter.doFilter(req, res, chain)
+
+    then:
+    1 * req.getRequestURL() >> new StringBuffer("http://front50-prestaging.test.netflix.net")
+    1 * req.getRequestURI() >> "/applications"
+    1 * req.getRequestDispatcher("/test/applications") >> Mock(RequestDispatcher)
+
+  }
+
   void "hostname matches that already have the account partner don't forward"() {
     setup:
     def req = Mock(HttpServletRequest)
