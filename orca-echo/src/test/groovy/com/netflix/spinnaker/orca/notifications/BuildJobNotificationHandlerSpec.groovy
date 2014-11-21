@@ -123,7 +123,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     then:
     1 * pipelineStarter.start({
       new JsonSlurper().parseText(it).trigger.master == master
-    }) >> rx.Observable.from(pipeline1)
+    }) >> new Pipeline()
 
     where:
     master << ['master1', 'master2']
