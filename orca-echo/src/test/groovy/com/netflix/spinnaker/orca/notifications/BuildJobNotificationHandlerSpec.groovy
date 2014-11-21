@@ -30,25 +30,35 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   def pipeline1 = [
     name    : "pipeline1",
-    triggers: [[type: "jenkins",
-                job : "SPINNAKER-package-pond"]],
+    triggers: [[type  : "jenkins",
+                job   : "SPINNAKER-package-pond",
+                master: "master1"]],
     stages  : [[type: "bake"],
                [type: "deploy", cluster: [name: "bar"]]]
   ]
 
   def pipeline2 = [
     name    : "pipeline2",
-    triggers: [[type: "jenkins",
-                job : "SPINNAKER-package-pond"]],
+    triggers: [[type  : "jenkins",
+                job   : "SPINNAKER-package-pond",
+                master: "master1"]],
     stages  : [[type: "bake"],
                [type: "deploy", cluster: [name: "foo"]]]
+  ]
+
+  def pipeline3 = [
+    name    : "pipeline3",
+    triggers: [[type  : "jenkins",
+                job   : "SPINNAKER-package-pond",
+                master: "master2"]],
+    stages  : []
   ]
 
   void "should pick up stages subsequent to build job completing"() {
     setup:
     PipelineStarter pipelineStarter = Mock(PipelineStarter)
     def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
-    handler.interestingPipelines["SPINNAKER-package-pond"] = [pipeline1]
+    handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
 
     when:
     handler.handle(input)
@@ -67,7 +77,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     }
 
     where:
-    input = [name: "SPINNAKER-package-pond", lastBuildStatus: "Success"]
+    input = [name: "SPINNAKER-package-pond", master: "master1", lastBuildStatus: "Success"]
   }
 
   void "should add multiple pipeline targets to single trigger type"() {
@@ -90,10 +100,35 @@ class BuildJobNotificationHandlerSpec extends Specification {
       response.getBody() >> typedInput
       response
     }
-    2 == handler.interestingPipelines[job].size()
-    handler.interestingPipelines[job].name == ["pipeline1", "pipeline2"]
+    2 == handler.interestingPipelines[key].size()
+    handler.interestingPipelines[key].name == ["pipeline1", "pipeline2"]
 
     where:
-    job = "SPINNAKER-package-pond"
+    key = "master1:SPINNAKER-package-pond"
   }
+
+  void "should only trigger targets from the same master "() {
+    given:
+    PipelineStarter pipelineStarter = Mock(PipelineStarter)
+    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
+    handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
+    handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
+
+    expect:
+    pipeline1.triggers.master != pipeline3.triggers.master
+
+    when:
+    handler.handle(input)
+
+    then:
+    1 * pipelineStarter.start({
+      new JsonSlurper().parseText(it).trigger.master == master
+    }) >> rx.Observable.from(pipeline1)
+
+    where:
+    master << ['master1', 'master2']
+    input = [name: "SPINNAKER-package-pond", master: master, lastBuildStatus: "Success"]
+
+  }
+
 }

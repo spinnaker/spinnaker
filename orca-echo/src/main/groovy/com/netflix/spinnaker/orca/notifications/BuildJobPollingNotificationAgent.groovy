@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
+
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
@@ -61,9 +62,11 @@ class BuildJobPollingNotificationAgent implements Runnable {
       lastCheck = System.currentTimeMillis()
       def resp = objectMapper.readValue(response.body.in().text, Map)
       for (event in resp.hits) {
-        if (event.containsKey("project")) {
+        if (event.containsKey("project") && event.containsKey("master")) {
           for (handler in buildNotificationHandlers) {
-            handler.handle(event.project as Map)
+            Map input = event.project as Map
+            input.master = event.master
+            handler.handle(input)
           }
         }
       }
