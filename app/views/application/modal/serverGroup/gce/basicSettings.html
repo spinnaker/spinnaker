@@ -37,10 +37,9 @@
     <!-- TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project. -->
     <select class="form-control input-sm"
             ng-model="command.image"
-            ng-options="option as option for option in ['debian-7-wheezy-v20141017', 'centos-7-v20141016']"
             ng-change="onChange()"
             required>
-      <option value=""></option>
+      <option ng-repeat="option in ['debian-7-wheezy-v20141108', 'centos-7-v20141108']" value="{{option}}">{{option}}</option>
     </select>
   </div>
 <!--

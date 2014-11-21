@@ -6,10 +6,9 @@
     <select class="form-control input-sm"
             ng-if="account"
             ng-model="component.zone"
-            ng-options="option as option for option in ['us-central1-a', 'us-central1-b']"
             ng-change="onChange()"
             required>
-      <option value=""></option>
+      <option ng-repeat="option in ['us-central1-a', 'us-central1-b']" value="{{option}}">{{option}}</option>
     </select>
   </div>
 </div>
