@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-rush",
-  "orca-web"
 
-rootProject.name = "orca"
+package com.netflix.spinnaker.orca.rush.api
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
-rootProject.children.each {
-  setBuildFile it
+/**
+ * The details of a completed bake.
+ *
+ * @see RushService#lookupBake
+ */
+@CompileStatic
+@EqualsAndHashCode(includes = "id")
+@ToString(includeNames = true)
+class ScriptExecution {
+  String id
+  String status
+  String command
+  String image
+  String credentials
+  String container
+  String statusCode
+  String logs
+  Date created
+  Date lastUpdate
 }

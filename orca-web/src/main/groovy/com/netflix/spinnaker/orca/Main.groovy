@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.rush.config.RushConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
@@ -48,6 +49,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   KatoConfiguration,
   MortConfiguration,
   OortConfiguration,
+  RushConfiguration,
   WebConfiguration,
   MayoConfiguration
 ])

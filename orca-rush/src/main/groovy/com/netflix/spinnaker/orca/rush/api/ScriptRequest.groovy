@@ -14,30 +14,21 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-rush",
-  "orca-web"
+package com.netflix.spinnaker.orca.rush.api
 
-rootProject.name = "orca"
+import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+/**
+ * A request to bake a new AMI.
+ *
+ * @see RushService#createBake
+ */
+@Immutable(copyWith = true)
+@CompileStatic
+class ScriptRequest {
+  String command
+  String image
+  String credentials
 }
 
-rootProject.children.each {
-  setBuildFile it
-}
