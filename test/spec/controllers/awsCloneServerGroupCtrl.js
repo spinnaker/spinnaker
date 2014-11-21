@@ -530,6 +530,33 @@ describe('Controller: awsCloneServerGroup', function () {
       expect(this.submitted.command.type).toBe('copyLastAsg');
       expect(this.submitted.description).toBe('Create Cloned Server Group from testasg-v002');
     });
+
+    it('updates vpcId when subnetType changes, ignoring subnets without a purpose', function() {
+      var $scope = this.$scope,
+        serverGroup = this.buildBaseClone();
+
+      setupMocks.bind(this).call();
+
+      initController(serverGroup);
+
+      $scope.$digest();
+
+      $scope.subnets = [
+        { vpcId: 'vpc-1', account: 'prod', region: 'us-west-1' },
+        { vpcId: 'vpc-2', account: 'prod', region: 'us-west-1', purpose: 'magic' }
+      ];
+
+      expect($scope.command.vpcId).toBe(null);
+
+      $scope.command.subnetType = 'magic';
+      $scope.$digest();
+      expect($scope.command.vpcId).toBe('vpc-2');
+
+      $scope.command.subnetType = '';
+      $scope.$digest();
+      expect($scope.command.vpcId).toBe(null);
+
+    });
   });
 
 });
