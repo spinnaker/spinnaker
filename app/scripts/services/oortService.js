@@ -71,7 +71,7 @@ angular.module('deckApp')
           return matches.length ? matches[0] : null;
         };
 
-        if (application.fromServer) {
+        if (application.fromServer && application.clusters) {
           application.accounts = Object.keys(application.clusters);
         }
         return application;

@@ -221,9 +221,13 @@ angular.module('deckApp.aws')
     }
 
     function subnetChanged() {
-      var subnet = _($scope.subnets)
-        .find({'purpose': $scope.command.subnetType, 'account': $scope.command.credentials, 'region': $scope.command.region});
-      $scope.command.vpcId = subnet ? subnet.vpcId : null;
+      if (!$scope.command.subnetType) {
+        $scope.command.vpcId = null;
+      } else {
+        var subnet = _($scope.subnets)
+          .find({'purpose': $scope.command.subnetType, 'account': $scope.command.credentials, 'region': $scope.command.region});
+        $scope.command.vpcId = subnet ? subnet.vpcId : null;
+      }
       configureSecurityGroupOptions();
       configureLoadBalancerOptions();
     }
