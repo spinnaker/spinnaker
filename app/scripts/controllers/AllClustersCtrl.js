@@ -155,11 +155,15 @@ angular.module('deckApp')
     this.createServerGroup = function createServerGroup() {
       var provider = $q.when('aws');
 
-      if (settings.providers && settings.providers.length && settings.providers.length > 1) {
-        provider = $modal.open({
-          templateUrl: 'views/modal/providerSelection.html',
-          controller: 'ProviderSelectCtrl as ctrl'
-        }).result;
+      if (settings.providers && settings.providers.length) {
+        if (settings.providers.length > 1) {
+          provider = $modal.open({
+            templateUrl: 'views/modal/providerSelection.html',
+            controller: 'ProviderSelectCtrl as ctrl'
+          }).result;
+        } else {
+          provider = $q.when(settings.providers[0]);
+        }
       }
 
       provider.then(function(selectedProvider) {
