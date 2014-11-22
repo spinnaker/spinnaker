@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
@@ -36,7 +36,7 @@ class PreconfigureDestroyAsgTask implements Task {
   @Override
   TaskResult execute(ImmutableStage stage) {
     def op = convert(stage)
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "resizeAsg.credentials"     : op.credentials,
       "resizeAsg.regions"         : op.regions,
       "resizeAsg.asgName"         : op.asgName,

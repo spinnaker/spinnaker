@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
@@ -41,6 +41,6 @@ public class SecurityGroupForceCacheRefreshTask implements Task {
 
     mort.forceCacheUpdate(REFRESH_TYPE, [account: account, securityGroupName: name, region: region])
 
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

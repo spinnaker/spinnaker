@@ -18,17 +18,18 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DestroyAsgTaskSpec extends Specification {
   @Subject task = new DestroyAsgTask()
-  def stage = new Stage(type: "whatever")
+  def stage = new PipelineStage(new Pipeline(), "whatever")
   def mapper = new ObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -43,7 +44,7 @@ class DestroyAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.context.putAll(destroyASGConfig)
+    stage.context = destroyASGConfig
   }
 
   def "creates a destroy ASG task based on job parameters"() {
@@ -79,7 +80,7 @@ class DestroyAsgTaskSpec extends Specification {
     def result = task.execute(stage.asImmutable())
 
     then:
-    result.status == PipelineStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
     result.outputs."deploy.account.name" == destroyASGConfig.credentials
   }

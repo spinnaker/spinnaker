@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 
 interface ImmutablePipeline {
   String getId()
@@ -31,5 +31,5 @@ interface ImmutablePipeline {
 
   ImmutableList<ImmutableStage> getStages()
 
-  PipelineStatus getStatus()
+  ExecutionStatus getStatus()
 }

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonDNSTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -36,7 +36,7 @@ class UpsertAmazonDNSStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(PipelineStage stage) {
     def step1 = buildStep("upsertAmazonDNS", UpsertAmazonDNSTask)
     def step2 = buildStep("monitorUpsertDNS", MonitorKatoTask)
     def step3 = buildStep("sendNotification", NotifyEchoTask)

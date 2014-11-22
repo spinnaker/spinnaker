@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
@@ -63,7 +63,7 @@ class Main {
 
   @Bean
   StockMappingJackson2HttpMessageConverter customJacksonConverter(ObjectMapper objectMapper) {
-    objectMapper.addMixInAnnotations(Stage, StageMixins)
+    objectMapper.addMixInAnnotations(PipelineStage, StageMixins)
     new StockMappingJackson2HttpMessageConverter(objectMapper: objectMapper)
   }
 }

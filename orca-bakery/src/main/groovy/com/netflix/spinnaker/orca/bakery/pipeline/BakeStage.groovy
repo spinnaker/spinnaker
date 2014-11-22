@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -36,7 +36,7 @@ class BakeStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(PipelineStage stage) {
     def step1 = buildStep("createBake", CreateBakeTask)
     def step2 = buildStep("monitorBake", MonitorBakeTask)
     def step3 = buildStep("completedBake", CompletedBakeTask)

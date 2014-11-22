@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
@@ -40,7 +40,7 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
     List<String> instanceIds = stage.context."instance.ids"
 
     if (!instanceIds || !instanceIds.size()) {
-      return new DefaultTaskResult(PipelineStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
     def notAllTerminated = instanceIds.find { String instanceId ->
       def response = oortService.getSearchResults(instanceId, "serverGroupInstances", "aws")
@@ -58,7 +58,7 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
       return false
     }
 
-    def status = notAllTerminated ? PipelineStatus.RUNNING : PipelineStatus.SUCCEEDED
+    def status = notAllTerminated ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED
 
     new DefaultTaskResult(status)
   }

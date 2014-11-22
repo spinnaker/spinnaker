@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -40,7 +40,7 @@ class DeleteAmazonLoadBalancerStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(PipelineStage stage) {
     def step1 = buildStep("deleteAmazonLoadBalancer", DeleteAmazonLoadBalancerTask)
     def step2 = buildStep("forceCacheRefresh", DeleteAmazonLoadBalancerForceRefreshTask)
     def step3 = buildStep("monitorDelete", MonitorKatoTask)

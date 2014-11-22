@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
@@ -40,6 +40,6 @@ class ServerGroupCacheForceRefreshTask implements Task {
         oort.forceCacheUpdate(REFRESH_TYPE, model)
       }
     }
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

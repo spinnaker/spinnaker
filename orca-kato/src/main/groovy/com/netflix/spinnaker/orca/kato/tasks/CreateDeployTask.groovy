@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
@@ -46,7 +46,7 @@ class CreateDeployTask implements Task {
   TaskResult execute(ImmutableStage stage) {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type": "createdeploy",
             "kato.last.task.id"  : taskId,
             "kato.task.id"       : taskId, // TODO retire this.

@@ -23,7 +23,11 @@ import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
@@ -69,7 +73,10 @@ class DeployStageSpec extends Specification {
   """.stripIndent()
 
   def mapper = new ObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore()
+  def objectMapper = new ObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore(objectMapper)
+  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
+  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
 
   @Subject DeployStage deployStage
 
@@ -85,16 +92,17 @@ class DeployStageSpec extends Specification {
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
       mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    deployStage.taskTaskletAdapter = new TaskTaskletAdapter(pipelineStore)
-    deployStage.stageStatusPropagationListener = new StageStatusPropagationListener(pipelineStore)
+    deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
+    deployStage.stageStatusPropagationListener = new StageStatusPropagationListener(executionRepository)
     deployStage.applicationContext = Stub(ApplicationContext)
   }
 
   void "should create tasks of basicDeploy and disableAsg when strategy is redblack"() {
     setup:
+    def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
-    def stage = new Stage(config.remove("type"), config)
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
     def disableAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
@@ -118,9 +126,10 @@ class DeployStageSpec extends Specification {
 
   void "should create tasks of basicDeploy and destroyAsg when strategy is highlander"() {
     setup:
+    def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "highlander"
-    def stage = new Stage(config.remove("type"), config)
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
     def destroyAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
@@ -146,8 +155,9 @@ class DeployStageSpec extends Specification {
 
   void "should create basicDeploy tasks when no strategy is chosen"() {
     setup:
+    def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
-    def stage = new Stage(config.remove("type"), config)
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
 
     when:
     def steps = deployStage.buildSteps(stage)

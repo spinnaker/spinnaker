@@ -21,8 +21,10 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
@@ -35,6 +37,8 @@ class CreateBakeTaskSpec extends Specification {
   def mapper = new ObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
+  @Shared Pipeline pipeline = new Pipeline()
+
   def bakeConfig = [
     region   : "us-west-1",
     package  : "hodor",
@@ -46,7 +50,7 @@ class CreateBakeTaskSpec extends Specification {
   def setup() {
     task.mapper = mapper
 
-    stage = new Stage("bake", bakeConfig).asImmutable()
+    stage = new PipelineStage(pipeline, "bake", bakeConfig).asImmutable()
   }
 
   def "creates a bake for the correct region"() {

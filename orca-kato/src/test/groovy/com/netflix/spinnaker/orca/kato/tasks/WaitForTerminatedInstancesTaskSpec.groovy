@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -35,6 +36,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
   @Unroll
   void "should return #taskStatus status when #matches found via oort search"() {
     given:
+    def pipeline = new Pipeline()
     def instanceId = 'i-123456'
     task.objectMapper = mapper
     def response = GroovyMock(Response)
@@ -54,7 +56,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       "instance.ids": [instanceId]
     ]).asImmutable()
 
@@ -63,12 +65,13 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     where:
     matches || taskStatus
-    0 || PipelineStatus.SUCCEEDED
-    1 || PipelineStatus.RUNNING
+    0 || ExecutionStatus.SUCCEEDED
+    1 || ExecutionStatus.RUNNING
   }
 
   void "should return RUNNING status when search returns error"() {
     given:
+    def pipeline = new Pipeline()
     def instanceId = 'i-123456'
     task.objectMapper = mapper
     def response = GroovyMock(Response)
@@ -79,16 +82,17 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       "instance.ids": [instanceId]
     ]).asImmutable()
 
     expect:
-    task.execute(stage).status == PipelineStatus.RUNNING
+    task.execute(stage).status == ExecutionStatus.RUNNING
   }
 
   void "should return RUNNING status when search returns multiple result sets"() {
     given:
+    def pipeline = new Pipeline()
     def instanceId = 'i-123456'
     task.objectMapper = mapper
     def response = GroovyMock(Response)
@@ -106,16 +110,17 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       "instance.ids": [instanceId]
     ]).asImmutable()
 
     expect:
-    task.execute(stage).status == PipelineStatus.RUNNING
+    task.execute(stage).status == ExecutionStatus.RUNNING
   }
 
   void "should search all instanceIds"() {
     given:
+    def pipeline = new Pipeline()
     def instanceIds = ['i-123456', 'i-654321']
     task.objectMapper = mapper
     def responses = instanceIds.collect {
@@ -139,16 +144,17 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       "instance.ids": instanceIds
     ]).asImmutable()
 
     expect:
-    task.execute(stage).status == PipelineStatus.SUCCEEDED
+    task.execute(stage).status == ExecutionStatus.SUCCEEDED
   }
 
   void "should return running if any instance found via search"() {
     given:
+    def pipeline = new Pipeline()
     def instanceIds = ['i-123456', 'i-654321']
     task.objectMapper = mapper
     def response = GroovyMock(Response)
@@ -168,11 +174,11 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       "instance.ids": instanceIds
     ]).asImmutable()
 
     expect:
-    task.execute(stage).status == PipelineStatus.RUNNING
+    task.execute(stage).status == ExecutionStatus.RUNNING
   }
 }

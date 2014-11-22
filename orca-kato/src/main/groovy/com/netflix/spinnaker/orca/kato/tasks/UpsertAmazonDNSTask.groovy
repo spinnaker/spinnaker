@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
@@ -51,6 +51,6 @@ class UpsertAmazonDNSTask implements Task {
       "kato.last.task.id": taskId
     ]
 
-    return new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
+    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

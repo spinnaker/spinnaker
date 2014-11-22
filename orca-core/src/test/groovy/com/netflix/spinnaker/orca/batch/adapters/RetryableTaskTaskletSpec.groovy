@@ -16,20 +16,24 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.retry.backoff.Sleeper
 import spock.lang.Shared
-import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
-import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
@@ -40,8 +44,11 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   }
 
   def sleeper = Mock(Sleeper)
-  def pipelineStore = new InMemoryPipelineStore()
-  def taskFactory = new TaskTaskletAdapter(pipelineStore, sleeper)
+  def objectMapper = new ObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore(objectMapper)
+  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
+  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def taskFactory = new TaskTaskletAdapter(executionRepository, sleeper)
   Pipeline pipeline
 
   @Override
@@ -49,7 +56,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline = Pipeline.builder().withStage("retryable").build()
     pipelineStore.store(pipeline)
     def step = steps.get("retryable.task1")
-                    .listener(new StageStatusPropagationListener(pipelineStore))
+                    .listener(new StageStatusPropagationListener(executionRepository))
                     .tasklet(taskFactory.decorate(task))
                     .build()
     jobBuilder.start(step).build()

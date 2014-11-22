@@ -18,15 +18,15 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.batch.retry.PollRequiresRetry
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
 
 class RetryableTaskTasklet extends TaskTasklet {
 
-  RetryableTaskTasklet(RetryableTask task, PipelineStore pipelineStore) {
-    super(task, pipelineStore)
+  RetryableTaskTasklet(RetryableTask task, ExecutionRepository executionRepository) {
+    super(task, executionRepository)
   }
 
   @Override

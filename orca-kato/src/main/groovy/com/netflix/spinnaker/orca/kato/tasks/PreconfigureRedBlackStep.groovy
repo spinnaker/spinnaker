@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
@@ -42,7 +42,7 @@ class PreconfigureRedBlackStep implements Task {
     def availabilityZones = [:]
     availabilityZones[lastAsg.region] = lastAsg.asg?.availabilityZones
     if (!lastAsg) {
-      new DefaultTaskResult(PipelineStatus.TERMINAL)
+      new DefaultTaskResult(ExecutionStatus.TERMINAL)
     } else {
       def outputs = [
         "disableAsg.asgName"           : lastAsg.name,
@@ -55,7 +55,7 @@ class PreconfigureRedBlackStep implements Task {
       if (names.stack) {
         outputs."copyLastAsg.stack" = names.stack
       }
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
     }
   }
 

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
@@ -54,17 +54,17 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
     Map<String, List<String>> serverGroups = getServerGroups(stage)
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
-      return new DefaultTaskResult(PipelineStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
     try {
       def response = oortService.getCluster(names.app, account, names.cluster)
       if (response.status != 200) {
-        return new DefaultTaskResult(PipelineStatus.RUNNING)
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
       def cluster = objectMapper.readValue(response.body.in().text, Map)
       if (!cluster || !cluster.serverGroups) {
-        return new DefaultTaskResult(PipelineStatus.RUNNING)
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
       Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
       for (Map serverGroup in cluster.serverGroups) {
@@ -82,17 +82,17 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         seenServerGroup[name] = true
         def isComplete = hasSucceeded(instances)
         if (!isComplete) {
-          return new DefaultTaskResult(PipelineStatus.RUNNING)
+          return new DefaultTaskResult(ExecutionStatus.RUNNING)
         }
       }
       if (seenServerGroup.values().contains(false)) {
-        new DefaultTaskResult(PipelineStatus.RUNNING)
+        new DefaultTaskResult(ExecutionStatus.RUNNING)
       } else {
-        new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+        new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       }
     } catch (RetrofitError e) {
       if (e.response.status == 404) {
-        new DefaultTaskResult(PipelineStatus.RUNNING)
+        new DefaultTaskResult(ExecutionStatus.RUNNING)
       } else {
         throw e
       }

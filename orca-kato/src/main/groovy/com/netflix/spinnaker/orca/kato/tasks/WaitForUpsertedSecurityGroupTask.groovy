@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
@@ -48,7 +48,7 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
     String oldValue = stage.context."pre.response" ?: null
 
     if (!account || !region || !name) {
-      return new DefaultTaskResult(PipelineStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
 
     def mortResponse = mortService.getSecurityGroup(account, 'aws', name, region)
@@ -57,7 +57,7 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
 
     def changeDetected = currentValue != oldValue
 
-    def status = changeDetected ? PipelineStatus.SUCCEEDED : PipelineStatus.RUNNING
+    def status = changeDetected ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
 
     new DefaultTaskResult(status)
   }

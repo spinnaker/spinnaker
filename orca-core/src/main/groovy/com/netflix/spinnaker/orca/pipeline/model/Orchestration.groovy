@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.pipeline.model
 
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import org.springframework.batch.core.explore.JobExplorer
 
 @CompileStatic
-class PipelineFactory {
-
-  private final JobExplorer jobExplorer
-
-  PipelineFactory(JobExplorer jobExplorer) {
-    this.jobExplorer = jobExplorer
-  }
-
-  Pipeline retrieve(String id) {
-    jobExplorer.getJobExecution(id.toLong()).executionContext.get("pipeline") as Pipeline
-  }
+class Orchestration extends Execution {
 }

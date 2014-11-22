@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.TaskId
@@ -32,14 +32,14 @@ class UpsertAmazonLoadBalancerResultObjectExtrapolationTask implements Task {
     def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }
 
     if (!lastKatoTask) {
-      return new DefaultTaskResult(PipelineStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
 
     def resultObjects = lastKatoTask.resultObjects as List<Map>
     def resultObjectMap = resultObjects?.getAt(0) as Map
     def dnsName = resultObjectMap.loadBalancers.entrySet().getAt(0).value.dnsName
 
-    return new DefaultTaskResult(PipelineStatus.SUCCEEDED, [dnsName: dnsName])
+    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [dnsName: dnsName])
   }
 
 }

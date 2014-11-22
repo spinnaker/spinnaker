@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static org.hamcrest.Matchers.not
 import static org.hamcrest.Matchers.sameInstance
 import static spock.util.matcher.HamcrestSupport.that

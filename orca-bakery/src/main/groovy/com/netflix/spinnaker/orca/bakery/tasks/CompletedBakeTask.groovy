@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
@@ -38,10 +38,10 @@ class CompletedBakeTask implements Task {
     def bakeStatus = stage.context.status as BakeStatus
     try {
       def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED, [ami: bake.ami])
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [ami: bake.ami])
     } catch (RetrofitError e) {
       // TODO: attach some reporting info here
-      new DefaultTaskResult(PipelineStatus.FAILED)
+      new DefaultTaskResult(ExecutionStatus.FAILED)
     }
   }
 }

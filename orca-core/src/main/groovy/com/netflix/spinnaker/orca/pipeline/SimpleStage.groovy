@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Step
 
 @CompileStatic
@@ -32,7 +32,7 @@ class SimpleStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildSteps(PipelineStage stage) {
     [buildStep("task", task)]
   }
 }

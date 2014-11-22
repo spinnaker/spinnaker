@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -30,11 +32,13 @@ class MonitorBakeTaskSpec extends Specification {
 
   @Subject task = new MonitorBakeTask()
 
+  @Shared Pipeline pipeline = new Pipeline()
+
   @Unroll
   def "should return #taskStatus if bake is #bakeState"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage("bake", [region: "us-west-1", status: previousStatus]).asImmutable()
+    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus]).asImmutable()
 
     and:
     task.bakery = Stub(BakeryService) {
@@ -46,11 +50,11 @@ class MonitorBakeTaskSpec extends Specification {
 
     where:
     bakeState                  | taskStatus
-    BakeStatus.State.PENDING   | PipelineStatus.RUNNING
-    BakeStatus.State.RUNNING   | PipelineStatus.RUNNING
-    BakeStatus.State.COMPLETED | PipelineStatus.SUCCEEDED
-    BakeStatus.State.CANCELLED | PipelineStatus.FAILED
-    BakeStatus.State.SUSPENDED | PipelineStatus.RUNNING
+    BakeStatus.State.PENDING   | ExecutionStatus.RUNNING
+    BakeStatus.State.RUNNING   | ExecutionStatus.RUNNING
+    BakeStatus.State.COMPLETED | ExecutionStatus.SUCCEEDED
+    BakeStatus.State.CANCELLED | ExecutionStatus.FAILED
+    BakeStatus.State.SUSPENDED | ExecutionStatus.RUNNING
 
     id = randomUUID().toString()
   }
@@ -58,7 +62,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "outputs the updated bake status"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new Stage("bake", [region: "us-west-1", status: previousStatus]).asImmutable()
+    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus]).asImmutable()
 
     and:
     task.bakery = Stub(BakeryService) {

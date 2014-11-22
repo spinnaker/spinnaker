@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
@@ -24,6 +25,7 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
@@ -31,10 +33,16 @@ import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initia
 @CompileStatic
 class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
+  @Autowired ExecutionRepository executionRepository
+
+  PipelineStarter() {
+    super("pipeline")
+  }
+
   @Override
-  protected Pipeline createSubject(Map<String, Object> config) {
+  protected Pipeline create(Map<String, Object> config) {
     def pipeline = parseConfig(config)
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
     return pipeline
   }
 

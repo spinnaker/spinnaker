@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -29,20 +33,22 @@ import org.springframework.batch.repeat.RepeatStatus
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static PipelineStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.PipelineStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createJobExecution
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskTaskletSpec extends Specification {
 
-  def pipelineStore = new InMemoryPipelineStore()
+  def objectMapper = new ObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore(objectMapper)
+  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
+  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
   def pipeline = Pipeline.builder().withStage("stage").build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
-  @Subject tasklet = new TaskTasklet(task, pipelineStore)
+  @Subject tasklet = new TaskTasklet(task, executionRepository)
 
   JobExecution jobExecution
   StepExecution stepExecution

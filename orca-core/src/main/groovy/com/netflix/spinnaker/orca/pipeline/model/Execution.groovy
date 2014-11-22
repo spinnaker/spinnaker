@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.persistence
+package com.netflix.spinnaker.orca.pipeline.model
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class InvalidPipelineId extends RuntimeException {
+abstract class Execution {
+  String id
+  @JsonManagedReference List<PipelineStage> stages = []
 
-  InvalidPipelineId(String id) {
-    super("No pipeline with id $id exists in the store")
+  Stage namedStage(String type) {
+    stages.find {
+      it.type == type
+    }
   }
-
 }

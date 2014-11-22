@@ -16,19 +16,15 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
 import com.netflix.spinnaker.orca.model.JobViewModel
 import com.netflix.spinnaker.orca.model.PipelineViewModel
-import com.netflix.spinnaker.orca.pipeline.PipelineFactory
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 class TaskController {
@@ -36,14 +32,14 @@ class TaskController {
   JobExplorer jobExplorer
 
   @Autowired
-  PipelineFactory pipelineFactory
+  ExecutionRepository executionRepository
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   def list(@PathVariable String application) {
     ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).findAll {
-          it.jobParameters.parameters?.application?.parameter == application
+          !it.jobParameters.parameters.containsKey("pipeline")
         }.collect {
           TaskController.convert it
         }
@@ -53,13 +49,18 @@ class TaskController {
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<JobViewModel> list() {
-    ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
+    def tasks = ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).collect {
+          if (it.jobParameters.parameters.containsKey("pipeline")) {
+            return
+          }
           TaskController.convert it
         }
       }
-    }).sort { it.id }
+    })
+    tasks.removeAll([null])
+    tasks.sort { it.id }
   }
 
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
@@ -67,25 +68,14 @@ class TaskController {
     convert jobExplorer.getJobExecution(id)
   }
 
-  @RequestMapping(value = "/pipeline/{id}", method = RequestMethod.GET)
+  @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   Pipeline getPipeline(@PathVariable String id) {
-    pipelineFactory.retrieve(id)
+    executionRepository.retrievePipeline(id)
   }
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
-  List<PipelineViewModel> getPipelines() {
-    def pipelines = []
-    jobExplorer.jobNames.each { name ->
-      jobExplorer.getJobInstances(name, 0, Integer.MAX_VALUE).each { jobInstance ->
-        jobExplorer.getJobExecutions(jobInstance).findAll { execution ->
-          execution.executionContext.containsKey(PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY)
-        }.each { execution ->
-          pipelines <<
-            PipelineViewModel.fromPipelineAndExecution(pipelineFactory.retrieve(execution.id.toString()), execution)
-        }
-      }
-    }
-    return pipelines
+  List<Pipeline> getPipelines() {
+    executionRepository.retrievePipelines()
   }
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)

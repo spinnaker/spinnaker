@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
@@ -41,7 +41,7 @@ class CreateBakeTask implements Task {
 
     def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [status: bakeStatus])
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: bakeStatus])
   }
 
   private BakeRequest bakeFromContext(ImmutableStage stage) {

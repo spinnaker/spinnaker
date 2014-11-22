@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -44,9 +44,9 @@ class CreateApplicationTask implements Task {
     def resp = front50Service.create(stage.context.account as String,
                                      application.name, application)
     if (resp.status != 200) {
-      new DefaultTaskResult(PipelineStatus.TERMINAL)
+      new DefaultTaskResult(ExecutionStatus.TERMINAL)
     } else {
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED, ["application.name": application.name,
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ["application.name": application.name,
                                                        "account": stage.context.account])
     }
   }

@@ -52,7 +52,7 @@ class WebConfiguration {
   @Bean
   ObjectMapper objectMapper() {
     def mapper = new ObjectMapper()
-    mapper.addMixInAnnotations(Stage, StageMixins)
+    mapper.addMixInAnnotations(PipelineStage, StageMixins)
     mapper
   }
 

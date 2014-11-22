@@ -16,20 +16,34 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+
 import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
 import static java.util.UUID.randomUUID
 
 @Component
 @CompileStatic
-class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Stage>> {
+class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration> {
+
+  @Autowired
+  ExecutionRepository executionRepository
+
+  OrchestrationStarter() {
+    super("orchestration")
+  }
 
   @Override
-  protected List<Stage> createSubject(Map<String, Object> config) {
+  protected Orchestration create(Map<String, Object> config) {
+    def orchestration = new Orchestration()
+
     def stageCollectionReference = []
     for (context in ((List<Map<String, Object>>) config.stages)) {
       def type = context.remove("type").toString()
@@ -39,21 +53,23 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<List<Stage>> {
       }
 
       if (stages.containsKey(type)) {
-        def stage = new Stage(type, context)
+        def stage = new OrchestrationStage(orchestration, type, context)
         stageCollectionReference << stage
       } else {
         throw new NoSuchStageException(type)
       }
     }
-    return stageCollectionReference
+
+    executionRepository.store(orchestration)
+
+    return orchestration
   }
 
   @Override
-  protected Job build(Map<String, Object> config, List<Stage> subject) {
-    // this is less-than-ideal
+  protected Job build(Map<String, Object> config, Orchestration orchestration) {
     def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
-                         .flow(createTasklet(steps, subject)) as JobFlowBuilder
-    subject.each { stage ->
+      .flow(createTasklet(steps, orchestration)) as JobFlowBuilder
+    orchestration.stages.each { stage ->
       stages.get(stage.type).build(jobBuilder, stage)
     }
 

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -55,7 +55,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    * @param stage the stage configuration.
    * @return the resulting builder after any steps are appended.
    */
-  abstract JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage)
+  abstract JobFlowBuilder build(JobFlowBuilder jobBuilder, PipelineStage stage)
 
   /**
    * Builds a Spring Batch +Step+ from an Orca +Task+ using required naming

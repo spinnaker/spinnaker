@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 
 interface ImmutableStage {
   String getType()
 
   ImmutablePipeline getPipeline()
 
-  PipelineStatus getStatus()
+  ExecutionStatus getStatus()
 
   ImmutableMap<String, Object> getContext()
 

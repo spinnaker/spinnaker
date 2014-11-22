@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,85 +17,37 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.PipelineStatus
-import static com.netflix.spinnaker.orca.PipelineStatus.NOT_STARTED
-import static java.util.Collections.EMPTY_MAP
+import com.netflix.spinnaker.orca.ExecutionStatus
+import groovy.transform.CompileStatic
 
-/**
- * A _stage_ of an Orca _pipeline_.
- */
-class Stage {
+@CompileStatic
+interface Stage<T extends Execution> {
+  /**
+   * The type as it corresponds to the Mayo configuration
+   */
+  String getType()
 
   /**
-   * The type that corresponds to Mayo config.
+   * Gets the execution object for this stage
    */
-  String type
-  @JsonBackReference Pipeline pipeline
-  PipelineStatus status = NOT_STARTED
-  final Map<String, Object> context = [:]
+  T getExecution()
 
-  Stage() {}
+  /**
+   * The execution status for this stage
+   */
+  ExecutionStatus getStatus()
 
-  Stage(String type) {
-    this(null, type, EMPTY_MAP)
-  }
-
-  Stage(String type, Map<String, Object> context) {
-    this(null, type, context)
-  }
-
-  Stage(Pipeline pipeline, String type) {
-    this(pipeline, type, EMPTY_MAP)
-  }
-
-  Stage(Pipeline pipeline, String type, Map<String, Object> context) {
-    this.pipeline = pipeline
-    this.type = type
-    this.context.putAll(context)
-  }
+  /**
+   * sets the execution status for this stage
+   */
+  void setStatus(ExecutionStatus status)
 
   /**
    * Gets the last stage preceding this stage that has the specified type.
    */
-  Stage preceding(String type) {
-    if (!pipeline) {
-      return null
-    }
-    def i = pipeline.stages.indexOf(this)
-    pipeline.stages[i..0].find {
-      it.type == type
-    }
-  }
+  Stage preceding(String type)
 
-  ImmutableStage asImmutable() {
-    def self = this
+  Map<String, Object> getContext()
 
-    new ImmutableStage() {
-      @Override
-      String getType() {
-        self.type
-      }
-
-      @Override
-      ImmutablePipeline getPipeline() {
-        self.pipeline.asImmutable()
-      }
-
-      @Override
-      PipelineStatus getStatus() {
-        self.status
-      }
-
-      @Override
-      ImmutableMap<String, Object> getContext() {
-        ImmutableMap.copyOf(self.context)
-      }
-
-      @Override
-      ImmutableStage preceding(String type) {
-        self.preceding(type)?.asImmutable()
-      }
-    }
-  }
+  ImmutableStage asImmutable()
 }

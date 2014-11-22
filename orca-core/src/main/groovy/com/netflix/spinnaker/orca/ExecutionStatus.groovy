@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca
 import groovy.transform.CompileStatic
 
 @CompileStatic
-enum PipelineStatus {
+enum ExecutionStatus {
 
   /**
    * The task has yet to start.
@@ -58,7 +58,7 @@ enum PipelineStatus {
 
   final boolean complete
 
-  PipelineStatus(boolean complete) {
+  ExecutionStatus(boolean complete) {
     this.complete = complete
   }
 }

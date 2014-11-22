@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
@@ -44,7 +44,7 @@ class TerminateGoogleInstancesTask implements Task {
                      .first()
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"     : "terminategoogleinstances",
       "terminate.account.name": operation.credentials,
       "terminate.region"      : operation.zone,

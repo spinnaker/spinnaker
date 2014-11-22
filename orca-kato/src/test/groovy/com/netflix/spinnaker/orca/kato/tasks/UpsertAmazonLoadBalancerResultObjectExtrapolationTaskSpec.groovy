@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -45,7 +46,8 @@ class UpsertAmazonLoadBalancerResultObjectExtrapolationTaskSpec extends Specific
 
   void "should put extrapolate resulting DNS name from resultObjects"() {
     setup:
-    def stage = new Stage("whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")]).asImmutable()
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, "whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")]).asImmutable()
 
     when:
     def result = task.execute(stage)

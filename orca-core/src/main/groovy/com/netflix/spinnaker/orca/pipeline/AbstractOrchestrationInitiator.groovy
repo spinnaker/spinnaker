@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -31,14 +34,20 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
-abstract class AbstractOrchestrationInitiator<T> {
+@CompileStatic
+abstract class AbstractOrchestrationInitiator<T extends Execution> {
+
+  private final String type
+
+  AbstractOrchestrationInitiator(String type) {
+    this.type = type
+  }
 
   @Autowired protected ApplicationContext applicationContext
   @Autowired protected JobLauncher launcher
   @Autowired protected JobBuilderFactory jobs
   @Autowired protected StepBuilderFactory steps
   @Autowired protected ObjectMapper mapper
-  @Autowired protected PipelineStore pipelineStore
 
   protected final Map<String, StageBuilder> stages = [:]
 
@@ -57,21 +66,24 @@ abstract class AbstractOrchestrationInitiator<T> {
 
   T start(String configJson) {
     Map<String, Object> config = mapper.readValue(configJson, Map)
-    def subject = createSubject(config)
+    def subject = create(config)
     def job = build(config, subject)
-    launcher.run job, createJobParameters(subject, config)
+    JobExecution execution = launcher.run job, createJobParameters(subject, config)
+    if (subject instanceof Orchestration) {
+      subject.id = execution.jobId.toString()
+    }
     subject
   }
 
-  protected abstract T createSubject(Map<String, Object> config)
+  protected abstract T create(Map<String, Object> config)
 
   protected abstract Job build(Map<String, Object> config, T subject)
 
-  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage stage) {
+  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, PipelineStage stage) {
     builderFor(stage).build(jobBuilder, stage)
   }
 
-  protected StageBuilder builderFor(Stage stage) {
+  protected StageBuilder builderFor(PipelineStage stage) {
     if (stages.containsKey(stage.type)) {
       stages.get(stage.type)
     } else {
@@ -81,6 +93,7 @@ abstract class AbstractOrchestrationInitiator<T> {
 
   protected JobParameters createJobParameters(T subject, Map<String, Object> config) {
     def params = new JobParametersBuilder()
+    params.addString(type, subject.id)
     if (config.containsKey("application")) {
       params.addString("application", config.application as String)
     }
