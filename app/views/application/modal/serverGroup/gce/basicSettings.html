@@ -13,7 +13,8 @@
     <region-select-field component="command" field="region" account="command.credentials" regions="regions"></region-select-field>
     <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
 -->
-    <zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="zones"></zone-select-field>
+    <gce-region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="regions"></gce-region-select-field>
+    <gce-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="zones"></gce-zone-select-field>
     <div class="form-group">
       <div class="col-md-2 sm-label-left">
         <b>Stack</b>
@@ -39,7 +40,9 @@
             ng-model="command.image"
             ng-change="onChange()"
             required>
-      <option ng-repeat="option in ['debian-7-wheezy-v20141108', 'centos-7-v20141108']" value="{{option}}">{{option}}</option>
+      <option ng-repeat="image in ['debian-7-wheezy-v20141108', 'centos-7-v20141108']"
+              value="{{image}}"
+              ng-selected="command.image === image">{{image}}</option>
     </select>
   </div>
 <!--
