@@ -37,6 +37,8 @@ class AccountHostnameFilter implements Filter {
   @Value('${front50.domain:netflix.net}')
   private String front50Domain
 
+  private List<String> validEndpoints = ["applications"]
+
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository
 
@@ -49,13 +51,14 @@ class AccountHostnameFilter implements Filter {
       def hostParts = host.tokenize('.')
       def account = hostParts[1]
       def reqParts = request.requestURI.tokenize('/')
-      def reqAccount = reqParts.remove(0)
-
-      if (!accountCredentialsRepository.getOne(reqAccount.toLowerCase())) {
-        // if the first bit of the request does not correspond to a valid 'account', insert the extracted host account.
-        req.setAttribute(FORWARDED, true)
-        req.getRequestDispatcher("/${account}/${reqAccount}/${reqParts.join('/')}").forward(req, res)
-        return
+      if (reqParts) {
+        def reqAccount = reqParts.remove(0).toLowerCase()
+        if (!accountCredentialsRepository.getOne(reqAccount) && validEndpoints.contains(reqAccount)) {
+          // if the first bit of the request does not correspond to a valid 'account', insert the extracted host account.
+          req.setAttribute(FORWARDED, true)
+          req.getRequestDispatcher("/${account}/${reqAccount}/${reqParts.join('/')}").forward(req, res)
+          return
+        }
       }
     }
     chain.doFilter(req, res)
