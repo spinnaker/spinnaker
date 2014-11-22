@@ -471,6 +471,7 @@ angular.module('deckApp.aws')
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       delete command.region;
       delete command.allImageSelection;
+      delete command.selectedProvider;
       delete command.instanceProfile;
       delete command.vpcId;
       delete command.usePreferredZones;
