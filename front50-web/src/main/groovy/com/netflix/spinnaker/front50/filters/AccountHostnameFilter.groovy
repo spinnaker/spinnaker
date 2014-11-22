@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.filters
 
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.core.annotation.Order
@@ -27,6 +29,7 @@ import javax.servlet.http.HttpServletRequest
 @Component
 @Order(Integer.MAX_VALUE)
 class AccountHostnameFilter implements Filter {
+  private static final String FORWARDED = "com.netflix.spinnaker.front50.FORWARDED"
 
   @Value('${front50.prefix:front50}')
   private String front50Prefix
@@ -34,18 +37,24 @@ class AccountHostnameFilter implements Filter {
   @Value('${front50.domain:netflix.net}')
   private String front50Domain
 
+  @Autowired
+  AccountCredentialsRepository accountCredentialsRepository
+
   void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
     HttpServletRequest request = (HttpServletRequest) req
     def host = request.requestURL.toURL().host
 
-    // in the format: front50.<account>.netflix.netac
-    if (host.startsWith("${front50Prefix}") && host.endsWith(front50Domain)) {
+    // in the format: front50.<account>.netflix.net
+    if (host.startsWith("${front50Prefix}") && host.endsWith(front50Domain) && !req.getAttribute(FORWARDED)) {
       def hostParts = host.tokenize('.')
       def account = hostParts[1]
       def reqParts = request.requestURI.tokenize('/')
-      def reqAccount = reqParts[0]
-      if (account != reqAccount) {
-        req.getRequestDispatcher("/${account}/${reqParts.join('/')}").forward(req, res)
+      def reqAccount = reqParts.remove(0)
+
+      if (!accountCredentialsRepository.getOne(reqAccount.toLowerCase())) {
+        // if the first bit of the request does not correspond to a valid 'account', insert the extracted host account.
+        req.setAttribute(FORWARDED, true)
+        req.getRequestDispatcher("/${account}/${reqAccount}/${reqParts.join('/')}").forward(req, res)
         return
       }
     }
