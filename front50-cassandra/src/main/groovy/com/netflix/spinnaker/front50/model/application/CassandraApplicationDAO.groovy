@@ -24,13 +24,13 @@ import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.model.ColumnList
 import com.netflix.astyanax.model.Row
 import com.netflix.astyanax.serializers.IntegerSerializer
+import com.netflix.astyanax.serializers.ListSerializer
 import com.netflix.astyanax.serializers.MapSerializer
 import com.netflix.astyanax.serializers.StringSerializer
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.apache.cassandra.db.marshal.UTF8Type
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
 class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<ContextRefreshedEvent> {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
+  private static final ListSerializer<String> listSerializer = new ListSerializer(UTF8Type.instance)
   private static final Set<String> BUILT_IN_FIELDS = ["name", "description", "email", "updatets", "createts"]
 
   private static final String CF_NAME = 'application'
@@ -64,9 +65,17 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
                 email varchar,
                 updatets varchar,
                 createts varchar,
+                accounts list<text>,
                 details map<text,text>,
                 PRIMARY KEY (name)
              ) with compression={};''').execute()
+    }
+
+    try {
+      // migrate schema on the fly, will be removed once all environments are done.
+      runQuery("select accounts from application")
+    } catch (BadRequestException ignored) {
+      runQuery("ALTER TABLE application ADD accounts list<text>")
     }
   }
 
@@ -125,8 +134,23 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
 
   @Override
   Set<Application> search(Map<String, String> attributes) {
+    def searchableApplications = all()
+    attributes = attributes.collect { k,v -> [k.toLowerCase(), v] }.collectEntries()
+
+    if (attributes["accounts"]) {
+      // CQL 3.0/Cassandra 1.2 doesn't support the filtering of collections (3.1/2.0+ do)
+      def accounts = attributes["accounts"].split(",").collect { it.trim().toLowerCase() }
+      searchableApplications = searchableApplications.findAll {
+        def applicationAccounts = (it.accounts ?: "").split(",").collect { it.trim().toLowerCase() }
+        return applicationAccounts.containsAll(accounts)
+      }
+
+      // remove the 'accounts' search attribute so it's not picked up again in the field-level filtering below
+      attributes.remove("accounts")
+    }
+
     // filtering vs. querying to achieve case-insensitivity without using an additional column (small data set)
-    def items = all().findAll { app ->
+    def items = searchableApplications.findAll { app ->
       def result = true
       attributes.each { k, v ->
         if (app.hasProperty(k) && (!app[k] || ((String) app[k]).toLowerCase() != v?.toLowerCase())) {
@@ -162,6 +186,12 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
         details.putAll(detailsColumn.getValue(mapSerializer))
       }
 
+      def accountsColumn = columns.getColumnByName("accounts")
+      def accounts = []
+      if (accountsColumn?.hasValue()) {
+        accounts.addAll(accountsColumn.getValue(listSerializer))
+      }
+
       return new Application(
           name: getStringValue('name'),
           description: getStringValue('description'),
@@ -173,8 +203,9 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
           pdApiKey: details.pdApiKey,
           tags: details.tags,
           regions: details.regions,
+          accounts: accounts ? accounts.join(",") : null,
           updateTs: getStringValue('updatets'),
-          createTs: getStringValue('createts'),
+          createTs: getStringValue('createts')
       )
     }
   }
@@ -190,6 +221,8 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
         preparedQuery = preparedQuery.withStringValue(it)
       } else if (it instanceof Map) {
         preparedQuery = preparedQuery.withValue(mapSerializer.toByteBuffer(it))
+      } else if (it instanceof List) {
+        preparedQuery = preparedQuery.withValue(listSerializer.toByteBuffer(it))
       }
     }
 
@@ -197,10 +230,18 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   }
 
   private static Query buildInsertQuery(Map<String, String> attributes) {
-    def fields = attributes.keySet().findAll { BUILT_IN_FIELDS.contains(it.toLowerCase()) }
+    def insertAttributes = new HashMap<String, String>(attributes)
+
+    def fields = insertAttributes.keySet().findAll { BUILT_IN_FIELDS.contains(it.toLowerCase()) }
     def values = fields.collect { attributes[it] ?: '' } as List<Object>
 
-    def detailFields = attributes.keySet() - fields
+    def accounts = insertAttributes.remove("accounts")
+    if (accounts) {
+      fields << "accounts"
+      values << accounts.split(",").collect { it.trim().toLowerCase() }
+    }
+
+    def detailFields = insertAttributes.keySet() - fields
     if (detailFields) {
       fields << "details"
       values << attributes.subMap(detailFields)

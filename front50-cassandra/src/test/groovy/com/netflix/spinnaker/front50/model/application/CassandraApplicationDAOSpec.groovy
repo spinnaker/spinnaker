@@ -26,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @WebAppConfiguration
 @ContextConfiguration(classes = [CassandraSetup])
@@ -42,7 +43,7 @@ class CassandraApplicationDAOSpec extends Specification {
 
   @Shared
   Map<String, String> newApplicationAttrs = [
-      name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey"
+      name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey", accounts: "prod,test"
   ]
 
   void setupSpec() {
@@ -94,11 +95,6 @@ class CassandraApplicationDAOSpec extends Specification {
   void "applications can be deleted"() {
     when:
     cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
-
-    then:
-    cassandraApplicationDAO.all().size() == 1
-
-    when:
     cassandraApplicationDAO.delete(newApplicationAttrs.name)
     cassandraApplicationDAO.findByName(newApplicationAttrs.name)
 
@@ -129,32 +125,46 @@ class CassandraApplicationDAOSpec extends Specification {
     thrown(NotFoundException)
   }
 
-  void "applications can be updated"() {
+  @Unroll
+  void "applications can be searched for by account"() {
+    given:
+    cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
+    cassandraApplicationDAO.create("another-app", [
+        name: "another-app", email: "another@netflix.com", accounts: "prod,test,extra"
+    ])
+
+    when:
+    def foundApplications = cassandraApplicationDAO.search([accounts: searchAccounts])
+
+    then:
+    foundApplications.size() == size
+
+    where:
+    searchAccounts    | size
+    "prod"            | 2
+    "test"            | 2
+    "prod, test  "    | 2
+    "prod,test,extra" | 1
+  }
+
+  @Unroll
+  void "application '#attribute' can be updated"() {
     given:
     def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
 
     when:
-    newApplication.email = "updated@netflix.com"
-    cassandraApplicationDAO.update(newApplicationAttrs.name, newApplication.allSetColumnProperties())
+    newApplication."${attribute}" = value
+    cassandraApplicationDAO.update(newApplicationAttrs.name, [(attribute): value])
 
     then:
     def foundApplication = cassandraApplicationDAO.findByName(newApplicationAttrs.name)
-    foundApplication.email == newApplication.email
-    foundApplication.updateTs != null
+    foundApplication."${attribute}" == value
 
-    when:
-    newApplication.description = null
-    cassandraApplicationDAO.update(newApplicationAttrs.name, [description: null])
-
-    then:
-    cassandraApplicationDAO.findByName(newApplicationAttrs.name).description == null
-
-    when:
-    newApplication.pdApiKey = "another pdApiKey"
-    cassandraApplicationDAO.update(newApplicationAttrs.name, [pdApiKey: newApplication.pdApiKey])
-
-    then:
-    cassandraApplicationDAO.findByName(newApplicationAttrs.name).pdApiKey == newApplication.pdApiKey
+    where:
+    attribute     | value
+    "email"       | "updated@netflix.com"
+    "description" | null
+    "pdApiKey"    | "another pdApiKey"
   }
 }
 

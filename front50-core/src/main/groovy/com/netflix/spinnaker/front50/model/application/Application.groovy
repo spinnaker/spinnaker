@@ -48,6 +48,7 @@ class Application {
   String createTs
   String tags
   String regions
+  String accounts
 
   @JsonIgnore
   ApplicationDAO dao
@@ -68,6 +69,7 @@ class Application {
               @JsonProperty("pdApiKey") String pdApiKey,
               @JsonProperty("regions") String regions,
               @JsonProperty("tags") String tags,
+              @JsonProperty("accounts") String accounts,
               @JsonProperty("createTs") String createdAt,
               @JsonProperty("updateTs") String updatedAt
   ) {
@@ -79,8 +81,9 @@ class Application {
     this.email = email
     this.owner = owner
     this.type = type
-    this.tags = tags
     this.regions = regions
+    this.tags = tags
+    this.accounts = accounts
     this.createTs = createdAt
     this.updateTs = updatedAt
   }

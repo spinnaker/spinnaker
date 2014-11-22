@@ -113,7 +113,7 @@ public class ApplicationsController extends SpringBootServletInitializer {
     }
 
     if (!dao) {
-      throw new NotFoundException("Not account provider found")
+      throw new NotFoundException("No account provider found")
     }
 
     return new Application(dao: dao, validators: applicationValidators)
