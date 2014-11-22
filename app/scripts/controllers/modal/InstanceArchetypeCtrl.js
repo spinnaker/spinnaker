@@ -6,7 +6,7 @@ angular.module('deckApp')
 
     var wizard = modalWizardService.getWizard();
 
-    instanceTypeService.getCategories().then(function(categories) {
+    instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
     });
 

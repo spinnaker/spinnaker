@@ -56,7 +56,7 @@ describe('Service: InstanceType', function() {
 
 
   function testAvailableTypes(regions, expected) {
-    service.getAvailableTypesForRegions(regions).then( function(result) {
+    service.getAvailableTypesForRegions('aws', regions).then( function(result) {
       expect(result).toEqual(expected);
     });
   }

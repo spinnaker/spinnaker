@@ -108,6 +108,11 @@ angular.module('deckApp.aws')
       $scope.command = buildCommandFromExisting(serverGroup);
     } else {
       $scope.command = createCommandTemplate();
+
+      // If we used the attribute name 'providerType' it would trigger the stage-decorating logic in orca.
+      // Would be cleaner to change that logic in orca to expect providerType and always identify stages using that
+      // parameter. Then we could change this to providerType.
+      $scope.command.selectedProvider = 'aws';
     }
 
     var imageLoader = oortService.findImages(application.name, $scope.command.region, $scope.command.credentials).then(function(images) {
@@ -320,7 +325,7 @@ angular.module('deckApp.aws')
 
     function configureInstanceTypes() {
       if ($scope.command.region) {
-        instanceTypeService.getAvailableTypesForRegions([$scope.command.region]).then(function (result) {
+        instanceTypeService.getAvailableTypesForRegions($scope.command.selectedProvider, [$scope.command.region]).then(function (result) {
           $scope.regionalInstanceTypes = result;
           if ($scope.command.instanceType && result.indexOf($scope.command.instanceType) === -1) {
             $scope.regionalInstanceTypes.push($scope.command.instanceType);
