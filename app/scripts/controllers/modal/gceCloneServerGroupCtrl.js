@@ -234,7 +234,7 @@ angular.module('deckApp.gce')
 
     function configureInstanceTypes() {
       if ($scope.command.region) {
-        instanceTypeService.getAvailableTypesForRegions([$scope.command.region]).then(function (result) {
+        instanceTypeService.getAvailableTypesForRegions($scope.command.selectedProvider, [$scope.command.region]).then(function (result) {
           $scope.regionalInstanceTypes = result;
           if ($scope.command.instanceType && result.indexOf($scope.command.instanceType) === -1) {
             $scope.regionalInstanceTypes.push($scope.command.instanceType);
@@ -326,6 +326,11 @@ angular.module('deckApp.gce')
       } else {
         $scope.command = createCommandTemplate();
       }
+
+      // If we used the attribute name 'providerType' it would trigger the stage-decorating logic in orca.
+      // Would be cleaner to change that logic in orca to expect providerType and always identify stages using that
+      // parameter. Then we could change this to providerType.
+      $scope.command.selectedProvider = 'gce';
     }
 
     this.isValid = function () {
@@ -373,7 +378,7 @@ angular.module('deckApp.gce')
       if (serverGroup) {
         description = 'Create Cloned Server Group from ' + serverGroup.name;
         command.type = 'copyLastAsg';
-        command.providerType = 'gce';
+        command.providerType = $scope.command.selectedProvider;
         command.source = {
           'account': serverGroup.account,
           'region': serverGroup.region,
@@ -384,7 +389,7 @@ angular.module('deckApp.gce')
         command.type = 'deploy';
         // TODO(duftler): This value should come from the choice made on the Instance Profile page (and that page should first be made Google-specific).
         command.instanceType = 'f1-micro';
-        command.providerType = 'gce';
+        command.providerType = $scope.command.selectedProvider;
         var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;
@@ -401,6 +406,7 @@ angular.module('deckApp.gce')
       command.availabilityZones[command.region] = $scope.command.availabilityZones;
       delete command.region;
       delete command.allImageSelection;
+      delete command.selectedProvider;
       delete command.instanceProfile;
       delete command.vpcId;
 

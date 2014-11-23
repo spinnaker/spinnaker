@@ -5,7 +5,7 @@ angular.module('deckApp')
     return {
       initialize: function() {
         accountService.getRegionsKeyedByAccount();
-        instanceTypeService.getAllTypesByRegion();
+        instanceTypeService.getAllTypesByRegion('aws');
       }
     };
   });
