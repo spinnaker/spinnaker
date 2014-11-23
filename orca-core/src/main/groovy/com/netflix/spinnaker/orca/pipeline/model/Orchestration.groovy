@@ -19,5 +19,5 @@ package com.netflix.spinnaker.orca.pipeline.model
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class Orchestration extends Execution {
+class Orchestration extends Execution<Orchestration> {
 }

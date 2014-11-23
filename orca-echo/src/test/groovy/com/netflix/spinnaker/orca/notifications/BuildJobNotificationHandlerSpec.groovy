@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.json.JsonSlurper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
@@ -57,7 +58,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
   void "should pick up stages subsequent to build job completing"() {
     setup:
     PipelineStarter pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
+    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
 
     when:
@@ -84,7 +85,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     setup:
     def mayo = Mock(MayoService)
     def pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper(), mayoService: mayo)
+    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), mayoService: mayo)
 
     when:
     handler.run()
@@ -94,7 +95,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
       def response = GroovyMock(Response)
       def typedInput = Mock(TypedInput)
       typedInput.in() >> {
-        def json = new ObjectMapper().writeValueAsString([pipeline1, pipeline2])
+        def json = new OrcaObjectMapper().writeValueAsString([pipeline1, pipeline2])
         new ByteArrayInputStream(json.bytes)
       }
       response.getBody() >> typedInput
@@ -110,7 +111,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
   void "should only trigger targets from the same master "() {
     given:
     PipelineStarter pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new ObjectMapper())
+    def handler = new BuildJobNotificationHandler(pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
 

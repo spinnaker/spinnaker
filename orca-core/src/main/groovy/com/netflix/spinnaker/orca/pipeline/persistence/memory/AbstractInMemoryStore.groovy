@@ -18,9 +18,11 @@ package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -51,6 +53,7 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
     executions[execution.id] = mapper.writeValueAsString(execution)
   }
 
+  @CompileStatic(TypeCheckingMode.SKIP)
   @Override
   T retrieve(String id) {
     if (!executions.containsKey(id)) {
@@ -58,7 +61,7 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
     }
     T execution = (T)mapper.readValue(executions[id], executionClass)
     for (stage in execution.stages) {
-      stage.execution = execution
+      ((Stage<T>)stage).execution = execution
     }
     execution
   }

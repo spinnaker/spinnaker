@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class PreconfigureRedBlackStep implements Task {
@@ -34,7 +34,7 @@ class PreconfigureRedBlackStep implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def account = stage.context.account as String
     def cluster = stage.context.cluster as String
     def names = Names.parseName(cluster)

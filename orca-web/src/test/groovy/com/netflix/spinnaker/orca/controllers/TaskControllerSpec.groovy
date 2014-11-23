@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
@@ -60,7 +61,7 @@ class TaskControllerSpec extends Specification {
     jobExplorer.findJobInstancesByJobName(jobs[0].name, _, _) >> [jobs[0].instance]
     jobExplorer.findJobInstancesByJobName(jobs[1].name, _, _) >> [jobs[1].instance]
     jobExplorer.getJobExecutions(_) >> { args -> [new JobExecution(args[0], null)] }
-    List tasks = new ObjectMapper().readValue(response.contentAsString, List)
+    List tasks = new OrcaObjectMapper().readValue(response.contentAsString, List)
     tasks.name == ['jobOne', 'jobTwo'] // make sure they are ordered; they are.
     tasks.size() == 2
   }

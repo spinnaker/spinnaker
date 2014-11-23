@@ -16,17 +16,53 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 
 @CompileStatic
-abstract class Execution {
+abstract class Execution<T> implements Serializable {
   String id
-  @JsonManagedReference List<PipelineStage> stages = []
+  List<Stage<T>> stages = []
 
   Stage namedStage(String type) {
     stages.find {
       it.type == type
+    }
+  }
+
+  Execution<T> asImmutable() {
+    def self = this
+
+    new Execution<T>() {
+      @Override
+      String getId() {
+        self.id
+      }
+
+      @Override
+      void setId(String id) {
+
+      }
+
+      @Override
+      List<Stage> getStages() {
+        ImmutableList.copyOf(self.stages)
+      }
+
+      @Override
+      void setStages(List<Stage<T>> stages) {
+
+      }
+
+      @Override
+      Stage namedStage(String type) {
+        self.namedStage(type).asImmutable()
+      }
+
+      @Override
+      Execution asImmutable() {
+        this
+      }
     }
   }
 }

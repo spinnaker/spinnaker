@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.JobInstance
@@ -37,7 +38,7 @@ class OperationsControllerSpec extends Specification {
   void setup() {
     pipelineStarter = Mock(PipelineStarter)
     mockMvc = MockMvcBuilders.standaloneSetup(
-      new OperationsController(objectMapper: new ObjectMapper(), pipelineStarter: pipelineStarter)
+      new OperationsController(objectMapper: new OrcaObjectMapper(), pipelineStarter: pipelineStarter)
     ).build()
     jobs = [
       [instance: new JobInstance(0, 'jobOne'), name: 'jobOne', id: 0],

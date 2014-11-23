@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -25,7 +26,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -38,7 +38,7 @@ class MonitorKatoTask implements RetryableTask {
   KatoService kato
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     TaskId taskId = stage.context."kato.last.task.id" as TaskId
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     ExecutionStatus status = katoStatusToTaskStatus(katoTask.status)

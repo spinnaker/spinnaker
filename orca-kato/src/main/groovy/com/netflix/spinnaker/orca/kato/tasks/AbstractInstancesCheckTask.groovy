@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
@@ -38,12 +38,12 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
   ObjectMapper objectMapper
 
   abstract
-  protected Map<String, List<String>> getServerGroups(ImmutableStage stage)
+  protected Map<String, List<String>> getServerGroups(Stage stage)
 
   abstract protected boolean hasSucceeded(List instances)
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     String account = stage.context."account.name"
     if (stage.context.account && !account) {
       account = stage.context.account

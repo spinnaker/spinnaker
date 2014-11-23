@@ -24,8 +24,8 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -38,7 +38,7 @@ class CreateGoogleServerGroupTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def operation = convert(stage)
     def taskId = deploy(operation)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
@@ -51,7 +51,7 @@ class CreateGoogleServerGroupTask implements Task {
     )
   }
 
-  DeployGoogleServerGroupOperation convert(PipelineStage stage) {
+  DeployGoogleServerGroupOperation convert(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.initialNumReplicas = operation.capacity.desired

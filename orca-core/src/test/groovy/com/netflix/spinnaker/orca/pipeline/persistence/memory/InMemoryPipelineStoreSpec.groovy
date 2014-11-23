@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStoreTck
 
 class InMemoryPipelineStoreSpec extends PipelineStoreTck<AbstractInMemoryStore> {
   @Override
   InMemoryPipelineStore createPipelineStore() {
-    new InMemoryPipelineStore(new ObjectMapper())
+    new InMemoryPipelineStore(new OrcaObjectMapper())
   }
 }

@@ -24,24 +24,19 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class PipelineStage extends AbstractStage<Pipeline> {
-
-  @JsonBackReference("pipeline")
-  Pipeline pipeline
-
   PipelineStage() {
 
   }
 
   PipelineStage(Pipeline pipeline, String type) {
     super(pipeline, type)
-    this.pipeline = pipeline
   }
 
   PipelineStage(Pipeline pipeline, String type, Map<String, Object> context) {
     super(pipeline, type, context)
-    this.pipeline = pipeline
   }
 
+  @JsonBackReference
   public Pipeline getPipeline() {
     (Pipeline)execution
   }

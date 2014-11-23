@@ -22,7 +22,6 @@ import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
@@ -78,18 +77,6 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
   protected abstract T create(Map<String, Object> config)
 
   protected abstract Job build(Map<String, Object> config, T subject)
-
-  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, PipelineStage stage) {
-    builderFor(stage).build(jobBuilder, stage)
-  }
-
-  protected StageBuilder builderFor(PipelineStage stage) {
-    if (stages.containsKey(stage.type)) {
-      stages.get(stage.type)
-    } else {
-      throw new NoSuchStageException(stage.type)
-    }
-  }
 
   protected JobParameters createJobParameters(T subject, Map<String, Object> config) {
     def params = new JobParametersBuilder()

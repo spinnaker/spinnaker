@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Immutable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -49,7 +49,7 @@ class DeployStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(PipelineStage stage) {
+  protected List<Step> buildSteps(Stage stage) {
     Map cluster = stage.context.cluster as Map
 
     def stages = basicStages()
@@ -76,7 +76,7 @@ class DeployStage extends LinearStage {
   }
 
   @VisibleForTesting
-  private List<Step> redBlackStages(PipelineStage stage) {
+  private List<Step> redBlackStages(Stage stage) {
     def steps = basicStages()
 
     def clusterConfig = ClusterConfig.fromContext(stage.context)
@@ -91,7 +91,7 @@ class DeployStage extends LinearStage {
   }
 
   @VisibleForTesting
-  private List<Step> highlanderStages(PipelineStage stage) {
+  private List<Step> highlanderStages(Stage stage) {
     def steps = basicStages()
 
     def clusterConfig = ClusterConfig.fromContext(stage.context)

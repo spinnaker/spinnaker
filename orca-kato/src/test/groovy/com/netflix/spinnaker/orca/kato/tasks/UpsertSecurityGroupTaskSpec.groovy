@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.mort.MortService
@@ -43,7 +44,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
         rx.Observable.from(new TaskId(UUID.randomUUID().toString()))
       }
     }
-    task.mapper = new ObjectMapper()
+    task.mapper = new OrcaObjectMapper()
     def groupName = 'group'
     def account = 'account'
     def region = 'region'

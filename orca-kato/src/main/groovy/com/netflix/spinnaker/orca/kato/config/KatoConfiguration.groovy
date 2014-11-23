@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.config
 
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
@@ -45,7 +46,7 @@ class KatoConfiguration {
   @Autowired LogLevel retrofitLogLevel
 
   @ConditionalOnMissingBean(ObjectMapper) @Bean ObjectMapper mapper() {
-    new ObjectMapper()
+    new OrcaObjectMapper()
   }
 
   @Bean Endpoint katoEndpoint(@Value('${kato.baseUrl:http://kato.prod.netflix.net}') String katoBaseUrl) {

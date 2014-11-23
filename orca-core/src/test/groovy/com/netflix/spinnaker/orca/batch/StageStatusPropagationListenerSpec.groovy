@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.batch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.JobExecution
@@ -33,7 +33,7 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class StageStatusPropagationListenerSpec extends Specification {
 
-  def mapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
   def pipelineStore = new InMemoryPipelineStore(mapper)
   def orchestrationStore = new InMemoryOrchestrationStore(mapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)

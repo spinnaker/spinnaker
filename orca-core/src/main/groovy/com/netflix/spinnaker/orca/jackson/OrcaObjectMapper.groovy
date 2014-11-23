@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch.lifecycle
+package com.netflix.spinnaker.orca.jackson
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import org.springframework.batch.core.Step
 
-@CompileStatic
-class StartAndMonitorStage extends LinearStage {
+class OrcaObjectMapper extends ObjectMapper {
+  private static final SimpleModule simpleModule = new SimpleModule().addSerializer(Stage, new StageSerializer())
+    .addDeserializer(Stage, new StageDeserializer())
 
-  Task startTask, monitorTask
-
-  StartAndMonitorStage() {
-    super("startAndMonitor")
+  OrcaObjectMapper() {
+    super()
+    registerModule(simpleModule)
+    registerModule(new GuavaModule())
   }
 
-  @Override
-  protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("start", startTask)
-    def step2 = buildStep("monitor", monitorTask)
-    [step1, step2]
+  OrcaObjectMapper copy() {
+    new OrcaObjectMapper()
   }
 }

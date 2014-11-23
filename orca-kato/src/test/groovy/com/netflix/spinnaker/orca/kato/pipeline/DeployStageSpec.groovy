@@ -21,12 +21,12 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -72,8 +72,8 @@ class DeployStageSpec extends Specification {
           }
   """.stripIndent()
 
-  def mapper = new ObjectMapper()
-  def objectMapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
+  def objectMapper = new OrcaObjectMapper()
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
@@ -171,7 +171,7 @@ class DeployStageSpec extends Specification {
   static class TestTask implements Task {
 
     @Override
-    TaskResult execute(ImmutableStage stage) {
+    TaskResult execute(Stage stage) {
       return null
     }
   }

@@ -20,10 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
@@ -60,7 +61,7 @@ class PipelineConfigurationSpec extends Specification {
   def barTask = Mock(Task)
   def bazTask = Mock(Task)
 
-  @Shared mapper = new ObjectMapper()
+  @Shared mapper = new OrcaObjectMapper()
   def pipelineStore = new InMemoryPipelineStore(mapper)
   def orchestrationStore = new InMemoryOrchestrationStore(mapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
@@ -132,7 +133,7 @@ class PipelineConfigurationSpec extends Specification {
   def "config is serialized to stage context"() {
     given:
     Map context
-    1 * fooTask.execute(_) >> { ImmutableStage stage ->
+    1 * fooTask.execute(_) >> { Stage stage ->
       context = stage.context
       DefaultTaskResult.SUCCEEDED
     }

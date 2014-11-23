@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
@@ -55,7 +56,7 @@ class PipelineStatusSpec extends Specification {
 
   @Autowired @Subject PipelineStarter pipelineStarter
 
-  static mapper = new ObjectMapper()
+  static mapper = new OrcaObjectMapper()
   static def pipelineStore = new InMemoryPipelineStore(mapper)
   static def orchestrationStore = new InMemoryOrchestrationStore(mapper)
   static def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)

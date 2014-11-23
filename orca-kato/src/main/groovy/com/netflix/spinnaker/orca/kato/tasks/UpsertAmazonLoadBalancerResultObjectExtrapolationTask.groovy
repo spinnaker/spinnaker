@@ -21,12 +21,12 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class UpsertAmazonLoadBalancerResultObjectExtrapolationTask implements Task {
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     TaskId lastTaskId = stage.context."kato.last.task.id" as TaskId
     def katoTasks = stage.context."kato.tasks" as List<Map>
     def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }

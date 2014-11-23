@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
@@ -29,7 +30,7 @@ import spock.lang.Subject
 class ResizeAsgTaskSpec extends Specification {
   @Subject task = new ResizeAsgTask()
   def stage = new PipelineStage(type: "pipeline")
-  def mapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [

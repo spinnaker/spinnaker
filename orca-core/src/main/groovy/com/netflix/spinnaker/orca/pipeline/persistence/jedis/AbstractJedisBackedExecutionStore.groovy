@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import redis.clients.jedis.JedisCommands
@@ -52,9 +53,9 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
       def json = jedis.hget(key, "config")
       println mapper.writeValueAsString(mapper.readTree(json))
       Execution execution = mapper.readValue(json, executionClass)
-      if (executionClass instanceof PipelineStage) {
+      if (executionClass.isAssignableFrom(Pipeline)) {
         for (stage in execution.stages) {
-          stage.pipeline = execution
+          stage.execution = execution
         }
       }
       execution

@@ -18,12 +18,11 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.*
@@ -40,7 +39,7 @@ import static org.springframework.batch.test.MetaDataInstanceFactory.createStepE
 
 class TaskTaskletSpec extends Specification {
 
-  def objectMapper = new ObjectMapper()
+  def objectMapper = new OrcaObjectMapper()
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
@@ -85,7 +84,7 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    1 * task.execute(_ as ImmutableStage) >> new DefaultTaskResult(SUCCEEDED)
+    1 * task.execute(_ as Stage) >> new DefaultTaskResult(SUCCEEDED)
   }
 
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")

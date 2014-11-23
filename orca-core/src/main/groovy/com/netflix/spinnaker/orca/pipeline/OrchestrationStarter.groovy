@@ -44,7 +44,6 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   protected Orchestration create(Map<String, Object> config) {
     def orchestration = new Orchestration()
 
-    def stageCollectionReference = []
     for (context in ((List<Map<String, Object>>) config.stages)) {
       def type = context.remove("type").toString()
 
@@ -54,7 +53,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
 
       if (stages.containsKey(type)) {
         def stage = new OrchestrationStage(orchestration, type, context)
-        stageCollectionReference << stage
+        orchestration.stages << stage
       } else {
         throw new NoSuchStageException(type)
       }

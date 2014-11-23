@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.jackson.StageDeserializer
+import com.netflix.spinnaker.orca.jackson.StageSerializer
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
@@ -34,7 +39,6 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.orca.pipeline")
@@ -42,9 +46,7 @@ import org.springframework.context.annotation.Scope
 class OrcaConfiguration {
 
   @Bean ObjectMapper mapper() {
-    def mapper = new ObjectMapper()
-    mapper.registerModule(new GuavaModule())
-    return mapper
+    new OrcaObjectMapper()
   }
 
   @Bean ExecutionStore<Orchestration> orchestrationStore(ObjectMapper mapper) {

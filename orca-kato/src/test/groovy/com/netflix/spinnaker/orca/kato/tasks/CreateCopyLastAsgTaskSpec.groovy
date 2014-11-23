@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -29,7 +30,7 @@ import spock.lang.Subject
 class CreateCopyLastAsgTaskSpec extends Specification {
   @Subject task = new CreateCopyLastAsgTask()
   def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
-  def mapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   //The minimum required fields to copyLastAsg

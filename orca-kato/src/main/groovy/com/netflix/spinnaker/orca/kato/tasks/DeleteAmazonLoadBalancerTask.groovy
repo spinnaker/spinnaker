@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAmazonLoadBalancerOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -38,7 +38,7 @@ class DeleteAmazonLoadBalancerTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def deleteAmazonLoadBalancerOperation = convert(stage)
 
     def taskId = kato.requestOperations([[deleteAmazonLoadBalancerDescription: deleteAmazonLoadBalancerOperation]])
@@ -55,7 +55,7 @@ class DeleteAmazonLoadBalancerTask implements Task {
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
-  DeleteAmazonLoadBalancerOperation convert(ImmutableStage stage) {
+  DeleteAmazonLoadBalancerOperation convert(Stage stage) {
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
           .convertValue(stage.context, DeleteAmazonLoadBalancerOperation)

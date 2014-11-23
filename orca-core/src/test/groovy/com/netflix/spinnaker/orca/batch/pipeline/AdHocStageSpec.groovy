@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -52,7 +53,7 @@ class AdHocStageSpec extends Specification {
   @Autowired @Subject PipelineStarter jobStarter
   @Autowired ExecutionRepository executionRepository
 
-  @Shared mapper = new ObjectMapper()
+  @Shared mapper = new OrcaObjectMapper()
 
   def "an unknown stage is interpreted as an ad-hoc task"() {
     given:

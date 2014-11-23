@@ -17,19 +17,21 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.ExecutionStatus
+import groovy.transform.CompileStatic
 
 
 import static ExecutionStatus.NOT_STARTED
 import static java.util.Collections.EMPTY_MAP
 
-class AbstractStage<T extends Execution> implements Stage<T> {
+@CompileStatic
+abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializable {
   String type
   ExecutionStatus status = NOT_STARTED
   @JsonBackReference
   Execution execution
   Map<String, Object> context = [:]
+  boolean immutable = false
 
   /**
    * yolo
@@ -48,6 +50,7 @@ class AbstractStage<T extends Execution> implements Stage<T> {
     this(execution, type, EMPTY_MAP)
   }
 
+  @Override
   Stage preceding(String type) {
     def i = execution.stages.indexOf(this)
     execution.stages[i..0].find {
@@ -55,34 +58,12 @@ class AbstractStage<T extends Execution> implements Stage<T> {
     }
   }
 
-  ImmutableStage asImmutable() {
-    def self = this
-
-    new ImmutableStage() {
-      @Override
-      String getType() {
-        self.type
-      }
-
-      @Override
-      ImmutablePipeline getPipeline() {
-        self.pipeline.asImmutable()
-      }
-
-      @Override
-      ExecutionStatus getStatus() {
-        self.status
-      }
-
-      @Override
-      ImmutableMap<String, Object> getContext() {
-        ImmutableMap.copyOf(self.context)
-      }
-
-      @Override
-      ImmutableStage preceding(String type) {
-        self.preceding(type)?.asImmutable()
-      }
-    }
+  Stage<T> asImmutable() {
+    ImmutableStageSupport.toImmutable(this)
   }
+
+  Stage<T> getSelf() {
+    this
+  }
+
 }

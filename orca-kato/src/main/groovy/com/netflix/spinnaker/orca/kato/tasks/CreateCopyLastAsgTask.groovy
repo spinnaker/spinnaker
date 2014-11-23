@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
@@ -39,7 +39,7 @@ class CreateCopyLastAsgTask implements Task {
   String defaultBakeAccount
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 
@@ -32,10 +32,10 @@ abstract class LinearStage extends StageBuilder {
     super(name)
   }
 
-  protected abstract List<Step> buildSteps(PipelineStage stage)
+  protected abstract List<Step> buildSteps(Stage stage)
 
   @Override
-  JobFlowBuilder build(JobFlowBuilder jobBuilder, PipelineStage stage) {
+  JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
     wireSteps jobBuilder, buildSteps(stage)
   }
 

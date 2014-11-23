@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
@@ -44,7 +45,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   }
 
   def sleeper = Mock(Sleeper)
-  def objectMapper = new ObjectMapper()
+  def objectMapper = new OrcaObjectMapper()
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)

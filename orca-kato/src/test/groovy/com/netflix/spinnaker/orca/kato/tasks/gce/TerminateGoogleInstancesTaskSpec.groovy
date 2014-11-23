@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
@@ -30,7 +31,7 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
   @Subject task = new TerminateGoogleInstancesTask()
   def stage = new PipelineStage(type: "whatever")
-  def mapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def terminateInstancesConfig = [
