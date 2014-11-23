@@ -36,12 +36,13 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   def list(@PathVariable String application) {
+    def self = this
     ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).findAll {
           it.jobParameters.parameters.application?.value == application
         }.collect {
-          TaskController.convert it
+          self.convert it
         }
       }
     }).sort { it.id }
@@ -49,10 +50,11 @@ class TaskController {
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<JobViewModel> list() {
+    def self = this
     def tasks = ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).collect {
-          TaskController.convert it
+          self.convert it
         }
       }
     })
@@ -82,7 +84,7 @@ class TaskController {
     }
   }
 
-  private static JobViewModel convert(JobExecution jobExecution) {
+  private JobViewModel convert(JobExecution jobExecution) {
     def steps = jobExecution.stepExecutions.collect {
       def stepName = it.stepName.contains('.') ? it.stepName.tokenize('.')[1] : it.stepName
       [name: stepName, status: it.exitStatus.exitCode, startTime: it.startTime?.time, endTime: it.endTime?.time]
@@ -94,12 +96,23 @@ class TaskController {
     if (jobExecution.jobParameters.parameters.containsKey("name")) {
       variables.description = jobExecution.jobParameters.getString("name")
     }
-    for (stepExecution in jobExecution.stepExecutions) {
-      def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
-      if (!stageName) continue
-      Stage stage = (Stage) stepExecution.jobExecution.executionContext.get(stageName)
-      for (entry in stage.context.entrySet()) {
-        variables[entry.key] = entry.value
+    if (jobExecution.jobParameters.parameters.containsKey("pipeline")) {
+      String pipelineId = jobExecution.jobParameters.parameters.get("pipeline")
+      Pipeline pipeline = executionRepository.retrievePipeline(pipelineId)
+      for (stage in pipeline.stages) {
+        for (entry in stage.context.entrySet()) {
+          def key = "${stage.type}.${entry.key}"
+          variables[key] = entry.value
+        }
+      }
+    } else {
+      for (stepExecution in jobExecution.stepExecutions) {
+        def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
+        if (!stageName) continue
+        Stage stage = (Stage) stepExecution.jobExecution.executionContext.get(stageName)
+        for (entry in stage.context.entrySet()) {
+          variables[entry.key] = entry.value
+        }
       }
     }
     new JobViewModel(id: jobExecution.id, name: jobExecution.jobInstance.jobName, status: jobExecution.status,
