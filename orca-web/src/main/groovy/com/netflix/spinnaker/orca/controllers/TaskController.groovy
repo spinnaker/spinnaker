@@ -39,7 +39,7 @@ class TaskController {
     ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).findAll {
-          !it.jobParameters.parameters.containsKey("pipeline")
+          it.jobParameters.parameters.application?.value == application
         }.collect {
           TaskController.convert it
         }
@@ -52,9 +52,6 @@ class TaskController {
     def tasks = ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
       jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
         jobExplorer.getJobExecutions(it).collect {
-          if (it.jobParameters.parameters.containsKey("pipeline")) {
-            return
-          }
           TaskController.convert it
         }
       }
