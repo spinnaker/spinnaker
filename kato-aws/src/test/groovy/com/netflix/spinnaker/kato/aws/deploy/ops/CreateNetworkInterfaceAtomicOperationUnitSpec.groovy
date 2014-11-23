@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
 import com.amazonaws.services.ec2.model.NetworkInterface
 import com.google.common.collect.Iterables
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.AwsNetworkInterface
 import com.netflix.spinnaker.kato.aws.model.ResultByZone
 import com.netflix.spinnaker.kato.aws.model.TagsNotCreatedException
 import com.netflix.spinnaker.kato.aws.services.NetworkInterfaceService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
@@ -59,7 +58,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz")
+      credentials: TestCredential.named('baz')
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
@@ -104,7 +103,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz")
+      credentials: TestCredential.named('baz')
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory
@@ -145,7 +144,7 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
         primaryPrivateIpAddress: "127.0.0.1",
         secondaryPrivateIpAddresses: ["127.0.0.2", "127.0.0.3"]
       ),
-      credentials: new NetflixAssumeRoleAmazonCredentials(name: "baz")
+      credentials: TestCredential.named('baz')
     )
     def operation = new CreateNetworkInterfaceAtomicOperation(description)
     operation.regionScopedProviderFactory = mockRegionScopedProviderFactory

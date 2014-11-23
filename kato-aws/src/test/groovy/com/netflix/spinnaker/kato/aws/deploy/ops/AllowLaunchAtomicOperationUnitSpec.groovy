@@ -30,6 +30,7 @@ import com.amazonaws.services.ec2.model.TagDescription
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
@@ -99,8 +100,8 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
   }
 
   void "should replicate tags"() {
-    def prodCredentials = new NetflixAssumeRoleAmazonCredentials(name: "prod")
-    def testCredentials = new NetflixAssumeRoleAmazonCredentials(name: "test")
+    def prodCredentials = TestCredential.named('prod')
+    def testCredentials = TestCredential.named('test')
 
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)
@@ -134,7 +135,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
   }
 
   void "should replicate tags from the same account"() {
-    def testCredentials = new NetflixAssumeRoleAmazonCredentials(name: "test")
+    def testCredentials = TestCredential.named('test')
 
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)

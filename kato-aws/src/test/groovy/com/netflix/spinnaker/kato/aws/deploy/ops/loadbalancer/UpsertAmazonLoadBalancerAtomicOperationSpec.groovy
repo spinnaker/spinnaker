@@ -16,26 +16,16 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer
-
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancing.model.Listener
-import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -68,7 +58,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
         )
       ],
       securityGroups: ["foo"],
-      credentials: new NetflixAssumeRoleAmazonCredentials(name: "bar"),
+      credentials: TestCredential.named('bar'),
       healthCheck: "HTTP:7001/health"
     )
     operation = new UpsertAmazonLoadBalancerAtomicOperation(description)

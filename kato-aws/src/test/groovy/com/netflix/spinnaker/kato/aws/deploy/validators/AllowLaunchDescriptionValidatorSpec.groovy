@@ -16,9 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import org.springframework.validation.Errors
 import spock.lang.Specification
@@ -52,7 +51,7 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * credentialsHolder.getAll() >> { [new NetflixAmazonCredentials(name: "prod")] }
+    1 * credentialsHolder.getAll() >> { [TestCredential.named('prod')] }
     1 * errors.rejectValue("account", _)
   }
 }

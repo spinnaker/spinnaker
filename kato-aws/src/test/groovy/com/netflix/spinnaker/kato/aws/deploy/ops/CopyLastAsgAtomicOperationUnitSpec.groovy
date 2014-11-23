@@ -23,15 +23,15 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.AmazonDeploymentResult
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
+import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {
@@ -45,7 +45,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def deployHandler = Mock(BasicAmazonDeployHandler)
     def description = new BasicAmazonDeployDescription(application: "asgard", stack: "stack")
     description.availabilityZones = ['us-east-1': [], 'us-west-1': []]
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
     description.securityGroups = ['someGroupName', 'sg-12345a']
     description.capacity = new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5)
     def mockEC2 = Mock(AmazonEC2)

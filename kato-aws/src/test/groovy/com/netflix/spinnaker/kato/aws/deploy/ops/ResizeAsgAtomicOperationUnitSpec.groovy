@@ -16,14 +16,13 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.ResizeAsgDescription
 import spock.lang.Specification
 
 class ResizeAsgAtomicOperationUnitSpec extends Specification {
@@ -38,7 +37,7 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
     mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
     def description = new ResizeAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
     description.capacity.min = 1
     description.capacity.max = 2
     description.capacity.desired = 5

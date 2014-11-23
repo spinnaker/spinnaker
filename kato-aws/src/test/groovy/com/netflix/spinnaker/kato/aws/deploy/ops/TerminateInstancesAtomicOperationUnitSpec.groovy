@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstancesDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstancesDescription
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -37,7 +36,7 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should terminate instances"() {
     def description = new TerminateInstancesDescription(region: "us-west-1", instanceIds: ["i-123", "i-456"])
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
     @Subject def operation = new TerminateInstancesAtomicOperation(description)
     operation.amazonClientProvider = mockAmazonClientProvider
 

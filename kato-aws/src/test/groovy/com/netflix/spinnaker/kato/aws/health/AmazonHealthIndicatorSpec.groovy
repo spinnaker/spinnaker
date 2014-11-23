@@ -16,13 +16,12 @@
 
 
 package com.netflix.spinnaker.kato.aws.health
-
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Specification
 
@@ -45,7 +44,7 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health fails when amazon appears unreachable"() {
     setup:
-    def creds = [new NetflixAmazonCredentials(name: "foo")]
+    def creds = [TestCredential.named('foo')]
     def holder = Stub(AccountCredentialsProvider) {
         getAll() >> creds
         getCredentials("foo") >> creds[0]
@@ -68,7 +67,7 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health succeeds when amazon is reachable"() {
     setup:
-    def creds = [new NetflixAmazonCredentials(name: "foo")]
+    def creds = [TestCredential.named('foo')]
     def holder = Stub(AccountCredentialsProvider) {
         getAll() >> creds
         getCredentials("foo") >> creds[0]

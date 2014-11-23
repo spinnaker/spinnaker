@@ -22,7 +22,7 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -50,8 +50,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
       getAmazonEC2(_, _) >> amazonEC2
     }
-    def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole', instanceClassBlockDevices: [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)])
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
+    def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole', instanceClassBlockDevices: [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)])
     this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, deployDefaults: defaults,
       regionScopedProviderFactory: Mock(RegionScopedProviderFactory))
     handler.regionScopedProviderFactory.forRegion(_, _) >> Mock(RegionScopedProviderFactory.RegionScopedProvider)
@@ -75,7 +75,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
 
     when:
     def results = handler.handle(description, [])
@@ -92,7 +92,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.setLoadBalancers = { setlbCalls++ }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.availabilityZones = ["us-east-1": []]
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
 
     when:
     handler.handle(description, [new UpsertAmazonLoadBalancerResult(loadBalancers: ["us-east-1": new UpsertAmazonLoadBalancerResult.LoadBalancer("lb", "lb1.nflx")])])
@@ -112,7 +112,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
     description.instanceType = "m3.medium"
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
 
     when:
     def results = handler.handle(description, [])
@@ -135,7 +135,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     description.instanceType = "m3.medium"
     description.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
     description.availabilityZones = ["us-west-1": [], "us-east-1": []]
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
 
     when:
     def results = handler.handle(description, [])
@@ -153,7 +153,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
 
     def description = new BasicAmazonDeployDescription(amiName: "the-greatest-ami-in-the-world", availabilityZones: ['us-west-1':[]])
-    description.credentials = new NetflixAssumeRoleAmazonCredentials(name: "baz")
+    description.credentials = TestCredential.named('baz')
 
     when:
     def results = handler.handle(description, [])
