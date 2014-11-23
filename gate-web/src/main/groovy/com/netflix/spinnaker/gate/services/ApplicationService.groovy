@@ -176,7 +176,9 @@ class ApplicationService {
         rx.Observable.from(apps).flatMap {
           rx.Observable.just(it).observeOn(Schedulers.io())
         } map {
-          it.account = account
+          if (!it.accounts) {
+            it.accounts = account
+          }
           it
         } reduce([], { List objs, Map obj ->
           objs << obj
@@ -207,8 +209,8 @@ class ApplicationService {
     Map call() throws Exception {
       try {
         def metadata = front50.getMetaData(account, name)
-        if (metadata) {
-          metadata.account = account
+        if (metadata && !metadata.accounts) {
+          metadata.accounts = account
         }
         metadata ?: [:]
       } catch (ConversionException e) {

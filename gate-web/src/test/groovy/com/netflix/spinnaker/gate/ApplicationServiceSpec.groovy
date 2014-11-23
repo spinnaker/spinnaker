@@ -53,7 +53,7 @@ class ApplicationServiceSpec extends Specification {
       1 * credentialsService.getAccountNames() >> { [account] }
       1 * front50.getAll(account) >> [meta]
       1 == results.size()
-      results.first() == [name: name, email: email, owner: owner]
+      results.first() == [name: name, email: email, owner: owner, accounts: "test"]
 
     where:
       name = "foo"
