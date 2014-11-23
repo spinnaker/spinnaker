@@ -67,7 +67,7 @@ class ImmutableStageSupport {
 
     @Override
     Stage preceding(String type) {
-      self.preceding(type).asImmutable()
+      self.preceding(type)?.asImmutable()
     }
 
     @Override
