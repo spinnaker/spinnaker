@@ -24,6 +24,8 @@ services:
   - name: front50
     group: metadata
     baseUrl: http://front50.prod.netflix.net
+    config:
+      readAccountOverride: global
   - name: mort
     group: credentials
     baseUrl: http://mort.prod.netflix.net
