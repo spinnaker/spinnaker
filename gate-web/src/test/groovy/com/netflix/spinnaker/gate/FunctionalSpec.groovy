@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate
 
+import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.*
 import com.netflix.spinnaker.gate.services.internal.FlapJackService
@@ -52,6 +53,7 @@ class FunctionalSpec extends Specification {
   static CredentialsService credentialsService
   static MayoService mayoService
   static KatoService katoService
+  static ServiceConfiguration serviceConfiguration
 
   void setup() {
     applicationService = Mock(ApplicationService)
@@ -65,6 +67,7 @@ class FunctionalSpec extends Specification {
     credentialsService = Mock(CredentialsService)
     mayoService = Mock(MayoService)
     katoService = Mock(KatoService)
+    serviceConfiguration = new ServiceConfiguration()
 
     def sock = new ServerSocket(0)
     def localPort = sock.localPort
@@ -189,6 +192,11 @@ class FunctionalSpec extends Specification {
     @Bean
     ExecutorService executorService() {
       executorService
+    }
+
+    @Bean
+    ServiceConfiguration serviceConfiguration() {
+      serviceConfiguration
     }
 
     @Bean
