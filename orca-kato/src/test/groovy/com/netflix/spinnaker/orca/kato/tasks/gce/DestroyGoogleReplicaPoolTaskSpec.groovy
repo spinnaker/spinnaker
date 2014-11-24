@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DestroyGoogleReplicaPoolTaskSpec extends Specification {
   @Subject task = new DestroyGoogleReplicaPoolTask()
-  def stage = new OrchestrationStage(type: "whatever")
+  def stage = new PipelineStage(new Pipeline(), "whatever")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -44,7 +44,7 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.context.putAll(destroyASGConfig)
+    stage.context = destroyASGConfig
   }
 
   def "creates a destroy google replica pool task based on job parameters"() {

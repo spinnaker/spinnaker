@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
-import com.netflix.spinnaker.orca.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
   @Subject task = new CreateCopyLastGoogleServerGroupTask()
-  def stage = new PipelineStage("whatever")
-  def mapper = new ObjectMapper()
+  def stage = new PipelineStage(new Pipeline(), "copyLastAsg_gce")
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def copyLastAsgConfig = [
@@ -55,7 +56,8 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.updateContext(copyLastAsgConfig)
+    stage.pipeline.stages.add(stage)
+    stage.context = copyLastAsgConfig
   }
 
   def "creates a create copy google server group task based on job parameters"() {
@@ -97,7 +99,7 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.status == PipelineStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
     result.outputs."deploy.account.name" == copyLastAsgConfig.credentials
   }

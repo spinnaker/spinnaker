@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.kato.tasks.gce.CreateCopyLastGoogleServerGroupTask
-import com.netflix.spinnaker.orca.pipeline.ConfigurableStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
@@ -35,7 +35,7 @@ class CopyLastGoogleServerGroupStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(ConfigurableStage stage) {
+  protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("createCopyLastAsg", CreateCopyLastGoogleServerGroupTask)
     def step2 = buildStep("monitorDeploy", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
