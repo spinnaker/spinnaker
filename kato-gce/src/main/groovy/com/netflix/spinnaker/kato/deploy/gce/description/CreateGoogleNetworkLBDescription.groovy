@@ -20,7 +20,21 @@ import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class CreateGoogleNetworkLBDescription {
   String networkLBName
+  HealthCheck healthCheck
+  // The URLs of the instances.
+  List<String> instances
+  String ipAddress
+  String portRange
   String zone
   String accountName
   GoogleCredentials credentials
+
+  static class HealthCheck {
+    Integer checkIntervalSec
+    Integer healthyThreshold
+    Integer unhealthyThreshold
+    Integer port
+    Integer timeoutSec
+    String requestPath
+  }
 }

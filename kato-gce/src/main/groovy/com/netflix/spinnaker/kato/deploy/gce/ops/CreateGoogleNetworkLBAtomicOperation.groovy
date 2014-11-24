@@ -16,13 +16,22 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.ops
 
+import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.ForwardingRule
+import com.google.api.services.compute.model.HttpHealthCheck
+import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.gce.GCEUtil
 import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLBDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class CreateGoogleNetworkLBAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "CREATE_NETWORK_LB"
+  private static final String HEALTH_CHECK_NAME_PREFIX = "health-check"
+  private static final String TARGET_POOL_NAME_PREFIX = "target-pool"
+  private static final String IP_PROTOCOL = "TCP"
+  private static final String PORT_NUMBER = "80"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -36,8 +45,51 @@ class CreateGoogleNetworkLBAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing create of network load balancer $description.networkLBName in $description.zone..."
-    task.updateStatus BASE_PHASE, "Done Creating network load balancer $description.networkLBName in $description.zone."
+    task.updateStatus BASE_PHASE, "Initializing create of network load balancer $description.networkLBName in " +
+      "$description.zone..."
+
+    if (!description.credentials) {
+      throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
+    }
+
+    def compute = description.credentials.compute
+    def project = description.credentials.project
+    def zone = description.zone
+    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+
+    def health_check_name = String.format("%s-healthcheck-%d", description.networkLBName, System.currentTimeMillis())
+    task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
+
+    def httpHealthChecksResourceLinks = new ArrayList<String>();
+    if (description.healthCheck) {
+      task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
+      def httpHealthCheck = GCEUtil.buildHttpHealthCheck(health_check_name, description.healthCheck)
+      def httpHealthCheckResourceLink =
+          compute.httpHealthChecks().insert(project, httpHealthCheck).execute().getTargetLink()
+      httpHealthChecksResourceLinks.add(httpHealthCheckResourceLink)
+    }
+
+    def target_pool_name = String.format("%s-%d", TARGET_POOL_NAME_PREFIX, System.currentTimeMillis())
+    task.updateStatus BASE_PHASE, "Creating target pool $target_pool_name in $region..."
+
+    def targetPool = new TargetPool(
+        name: target_pool_name,
+        healthChecks: httpHealthChecksResourceLinks,
+        instances: description.instances
+    )
+    def targetPoolResourceLink = compute.targetPools().insert(project, region, targetPool).execute().getTargetLink()
+
+    task.updateStatus BASE_PHASE, "Creating forwarding rule $description.networkLBName with port $PORT_NUMBER to " +
+        "$target_pool_name in $region..."
+
+    def forwarding_rule = new ForwardingRule(name: description.networkLBName,
+                                             target: targetPoolResourceLink,
+                                             IPProtocol: IP_PROTOCOL,
+                                             IPAddress: description.ipAddress,
+                                             portRange: description.portRange)
+    compute.forwardingRules().insert(project, region, forwarding_rule).execute()
+
+    task.updateStatus BASE_PHASE, "Done Creating network load balancer $description.networkLBName in $region."
     null
   }
 }

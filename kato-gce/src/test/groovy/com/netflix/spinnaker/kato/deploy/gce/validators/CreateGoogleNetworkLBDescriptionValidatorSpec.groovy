@@ -29,6 +29,7 @@ class CreateGoogleNetworkLBDescriptionValidatorSpec extends Specification {
   private static final NETWORK_LB_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
+  private static final INSTANCE = "inst"
 
   @Shared
   CreateGoogleNetworkLBDescriptionValidator validator
@@ -46,9 +47,37 @@ class CreateGoogleNetworkLBDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-    def description = new CreateGoogleNetworkLBDescription(networkLBName: NETWORK_LB_NAME,
+      def description = new CreateGoogleNetworkLBDescription(
+          networkLBName: NETWORK_LB_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME,
+          instances: [INSTANCE],
+          healthCheck: [
+              port: 8080,
+              checkIntervalSec: 5,
+              healthyThreshold: 2,
+              unhealthyThreshold: 2,
+              timeoutSec: 5,
+              requestPath: "/"
+          ],
+          ipAddress: "1.1.1.1",
+          portRange: "80-82")
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "pass validation without health checks"() {
+    setup:
+    def description = new CreateGoogleNetworkLBDescription(
+        networkLBName: NETWORK_LB_NAME,
         zone: ZONE,
-        accountName: ACCOUNT_NAME)
+        accountName: ACCOUNT_NAME,
+        instances: [INSTANCE])
     def errors = Mock(Errors)
 
     when:
@@ -60,15 +89,15 @@ class CreateGoogleNetworkLBDescriptionValidatorSpec extends Specification {
 
   void "null input fails validation"() {
     setup:
-    def description = new CreateGoogleNetworkLBDescription()
-    def errors = Mock(Errors)
+      def description = new CreateGoogleNetworkLBDescription()
+      def errors = Mock(Errors)
 
     when:
-    validator.validate([], description, errors)
+      validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('credentials', _)
-    1 * errors.rejectValue('networkLBName', _)
-    1 * errors.rejectValue('zone', _)
+      1 * errors.rejectValue('credentials', _)
+      1 * errors.rejectValue('networkLBName', _)
+      1 * errors.rejectValue('zone', _)
   }
 }

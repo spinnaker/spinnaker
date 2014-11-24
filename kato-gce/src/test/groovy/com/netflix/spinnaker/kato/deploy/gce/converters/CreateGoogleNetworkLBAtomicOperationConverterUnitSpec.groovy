@@ -28,6 +28,10 @@ class CreateGoogleNetworkLBAtomicOperationConverterUnitSpec extends Specificatio
   private static final NETWORK_LB_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
+  private static final CHECK_INTERVAL_SEC = 7
+  private static final INSTANCE = "inst"
+  private static final IP_ADDRESS = "1.1.1.1"
+  private static final PORT_RANGE = "80-82"
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
@@ -45,20 +49,33 @@ class CreateGoogleNetworkLBAtomicOperationConverterUnitSpec extends Specificatio
 
   void "createGoogleNetworkLBDescription type returns CreateGoogleNetworkLBDescription and CreateGoogleNetworkLBAtomicOperation"() {
     setup:
-    def input = [networkLBName: NETWORK_LB_NAME,
-                 zone: ZONE,
-                 accountName: ACCOUNT_NAME]
+      def input = [
+          networkLBName: NETWORK_LB_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME,
+          healthCheck: [checkIntervalSec: CHECK_INTERVAL_SEC],
+          instances: [INSTANCE],
+          ipAddress: IP_ADDRESS,
+          portRange: PORT_RANGE
+      ]
 
     when:
-    def description = converter.convertDescription(input)
+      def description = converter.convertDescription(input)
 
     then:
-    description instanceof CreateGoogleNetworkLBDescription
+      description instanceof CreateGoogleNetworkLBDescription
+      description.networkLBName == NETWORK_LB_NAME
+      description.healthCheck.checkIntervalSec == 7
+      description.healthCheck.timeoutSec == null
+      description.instances.size() == 1
+      description.instances.get(0) == INSTANCE
+      description.ipAddress == IP_ADDRESS
+      description.portRange == PORT_RANGE
 
     when:
-    def operation = converter.convertOperation(input)
+      def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof CreateGoogleNetworkLBAtomicOperation
+      operation instanceof CreateGoogleNetworkLBAtomicOperation
   }
 }
