@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 abstract class Execution<T> implements Serializable {
   String id
+  String application
   List<Stage<T>> stages = []
 
   Stage namedStage(String type) {

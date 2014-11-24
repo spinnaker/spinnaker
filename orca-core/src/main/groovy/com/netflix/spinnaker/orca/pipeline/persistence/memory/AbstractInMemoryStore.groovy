@@ -33,6 +33,7 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
 
   @Delegate(includes = "clear", interfaces = false)
   protected final Map<String, String> executions = [:]
+  protected final Map<String, List<String>> executionsForApps = [:]
 
   String prefix
   Class<T> executionClass
@@ -47,10 +48,18 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
 
   @Override
   void store(T execution) {
+    def executionJson
     if (!execution.id) {
       execution.id = UUID.randomUUID().toString()
+      executionJson = mapper.writeValueAsString(execution)
+      if (!executionsForApps.containsKey(execution.application)) {
+        executionsForApps[execution.application] = []
+      }
+      ((List)executionsForApps[execution.application]) << executionJson
+    } else {
+      executionJson = mapper.writeValueAsString(execution)
     }
-    executions[execution.id] = mapper.writeValueAsString(execution)
+    executions[execution.id] = executionJson
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
@@ -70,6 +79,17 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
   List<T> all() {
     executions.values().collect {
       mapper.readValue(it, executionClass)
+    }
+  }
+
+  @Override
+  List<T> allForApplication(String app) {
+    if (executionsForApps.containsKey(app)) {
+      executionsForApps[app].collect {
+        mapper.readValue(it, executionClass)
+      }
+    } else {
+      []
     }
   }
 }

@@ -36,4 +36,6 @@ interface ExecutionStore<T extends Execution> {
   T retrieve(String id) throws ExecutionNotFoundException
 
   List<T> all()
+
+  List<T> allForApplication(String application)
 }

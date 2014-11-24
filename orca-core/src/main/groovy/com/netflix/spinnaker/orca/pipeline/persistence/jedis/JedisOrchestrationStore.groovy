@@ -16,22 +16,28 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisCommands
 
-@CompileStatic
 class JedisOrchestrationStore extends AbstractJedisBackedExecutionStore<Orchestration> {
-  @Autowired
   JedisOrchestrationStore(JedisCommands jedis, ObjectMapper mapper) {
     super(ExecutionStore.ORCHESTRATION, Orchestration, jedis, mapper)
   }
 
   @Override
-  List<Orchestration> all() {
-    []
+  List<Orchestration> allForApplication(String application) {
+    def appKey = getAppKey(application)
+    if (jedis.exists(appKey)) {
+      def len = jedis.llen(getAppKey(appKey))
+      def pipelineJsons = jedis.lrange(appKey, 0, len)
+      mapper.readValue(pipelineJsons, new TypeReference<List<Orchestration>>() {})
+    } else {
+      []
+    }
   }
 }

@@ -27,6 +27,8 @@ import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.task.TaskExecutor
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
 import redis.clients.jedis.JedisCommands
@@ -81,6 +83,7 @@ class JedisBatchConfigurer implements BatchConfigurer {
   private JobLauncher createJobLauncher() {
     def jobLauncher = new SimpleJobLauncher()
     jobLauncher.jobRepository = jobRepository
+    jobLauncher.taskExecutor = getTaskExecutor()
     jobLauncher.afterPropertiesSet()
     return jobLauncher
   }
@@ -96,5 +99,13 @@ class JedisBatchConfigurer implements BatchConfigurer {
     def factory = new JedisJobExplorerFactoryBean(repositoryFactory)
     factory.afterPropertiesSet()
     factory.object
+  }
+
+  private static TaskExecutor getTaskExecutor() {
+    def executor = new ThreadPoolTaskExecutor()
+    executor.maxPoolSize = 10
+    executor.corePoolSize = 10
+    executor.afterPropertiesSet()
+    executor
   }
 }

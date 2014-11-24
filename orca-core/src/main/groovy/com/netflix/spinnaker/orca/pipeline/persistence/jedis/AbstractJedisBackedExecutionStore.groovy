@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import redis.clients.jedis.JedisCommands
 
@@ -36,14 +35,36 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     this.mapper = mapper
   }
 
-  @Override
-  void store(T pipeline) {
-    if (!pipeline.id) {
-      pipeline.id = UUID.randomUUID().toString()
-    }
+  protected String getAlljobsKey() {
+    "allJobs:${prefix}"
+  }
 
-    def key = "${prefix}:$pipeline.id"
-    jedis.hset(key, "config", mapper.writeValueAsString(pipeline))
+  protected String getAppKey(String app) {
+    "${prefix}:app:${app}"
+  }
+
+  @Override
+  List<T> all() {
+    retrieveList(alljobsKey)
+  }
+
+  @Override
+  List<T> allForApplication(String application) {
+    retrieveList(getAppKey(application))
+  }
+
+  @Override
+  void store(T execution) {
+    if (!execution.id) {
+      execution.id = UUID.randomUUID().toString()
+      jedis.sadd(alljobsKey, execution.id)
+      def appKey = getAppKey(execution.application)
+      jedis.sadd(appKey, execution.id)
+    }
+    def json = mapper.writeValueAsString(execution)
+
+    def key = "${prefix}:$execution.id"
+    jedis.hset(key, "config", json)
   }
 
   @Override
@@ -53,14 +74,26 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
       def json = jedis.hget(key, "config")
       println mapper.writeValueAsString(mapper.readTree(json))
       Execution execution = mapper.readValue(json, executionClass)
-      if (executionClass.isAssignableFrom(Pipeline)) {
-        for (stage in execution.stages) {
-          stage.execution = execution
-        }
+      for (stage in execution.stages) {
+        stage.execution = execution
       }
       execution
     } else {
       throw new ExecutionNotFoundException("No ${prefix} execution found for $id")
     }
+  }
+
+  private List<T> retrieveList(String lookupKey) {
+    def results = []
+    if (jedis.exists(lookupKey)) {
+      def keys = jedis.smembers(lookupKey)
+      for (id in keys) {
+        def key = "${prefix}:${id}"
+        if (jedis.exists(key)) {
+          results << mapper.readValue(jedis.hget(key, "config"), executionClass)
+        }
+      }
+    }
+    results
   }
 }

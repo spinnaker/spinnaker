@@ -16,16 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
-//@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "__type__")
-//@JsonSubTypes([@JsonSubTypes.Type(value = PipelineStage), @JsonSubTypes.Type(value = OrchestrationStage)])
 @CompileStatic
 interface Stage<T extends Execution> {
   /**

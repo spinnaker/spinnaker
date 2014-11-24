@@ -21,15 +21,19 @@ import com.netflix.spinnaker.kork.jedis.JedisConfig
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.core.configuration.annotation.JedisBatchConfigurer
 import org.springframework.batch.core.configuration.ListableJobLocator
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer
+import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
+import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.*
+import org.springframework.transaction.PlatformTransactionManager
 
 /**
  * This is a bare-bones configuration for running end-to-end Spring batch tests.
@@ -43,6 +47,20 @@ class BatchTestConfiguration {
   @Bean
   PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
     new PropertyPlaceholderConfigurer()
+  }
+
+  // Single-threaded mode
+  @Bean
+  BatchConfigurer batchConfigurer() {
+    new DefaultBatchConfigurer() {
+      @Override
+      public JobLauncher getJobLauncher() {
+        def launcher = new SimpleJobLauncher()
+        launcher.jobRepository = jobRepository
+        launcher.afterPropertiesSet()
+        launcher
+      }
+    }
   }
 
   @Bean

@@ -79,9 +79,7 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<PipelineViewModel> getApplicationPipelines(@PathVariable String application) {
-    pipelines.findAll {
-      it.application == application
-    }
+    executionRepository.retrievePipelinesForApplication(application)
   }
 
   private JobViewModel convert(JobExecution jobExecution) {
