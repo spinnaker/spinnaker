@@ -31,16 +31,15 @@ class CreateGoogleNetworkLBAtomicOperation implements AtomicOperation<Void> {
   private static final String HEALTH_CHECK_NAME_PREFIX = "health-check"
   private static final String TARGET_POOL_NAME_PREFIX = "target-pool"
   private static final String IP_PROTOCOL = "TCP"
-  private static final String PORT_NUMBER = "80"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  private final CreateGoogleNetworkLBDescription description;
+  private final CreateGoogleNetworkLBDescription description
 
   CreateGoogleNetworkLBAtomicOperation(CreateGoogleNetworkLBDescription description) {
-    this.description = description;
+    this.description = description
   }
 
   @Override
@@ -57,10 +56,11 @@ class CreateGoogleNetworkLBAtomicOperation implements AtomicOperation<Void> {
     def zone = description.zone
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
-    def health_check_name = String.format("%s-healthcheck-%d", description.networkLBName, System.currentTimeMillis())
+    def health_check_name = String.format("%s-%s-%d", description.networkLBName, HEALTH_CHECK_NAME_PREFIX,
+        System.currentTimeMillis())
     task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
 
-    def httpHealthChecksResourceLinks = new ArrayList<String>();
+    def httpHealthChecksResourceLinks = new ArrayList<String>()
     if (description.healthCheck) {
       task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
       def httpHealthCheck = GCEUtil.buildHttpHealthCheck(health_check_name, description.healthCheck)
@@ -69,18 +69,21 @@ class CreateGoogleNetworkLBAtomicOperation implements AtomicOperation<Void> {
       httpHealthChecksResourceLinks.add(httpHealthCheckResourceLink)
     }
 
-    def target_pool_name = String.format("%s-%d", TARGET_POOL_NAME_PREFIX, System.currentTimeMillis())
+    def target_pool_name = String.format("%s-%s-%d", description.networkLBName, TARGET_POOL_NAME_PREFIX,
+        System.currentTimeMillis())
     task.updateStatus BASE_PHASE, "Creating target pool $target_pool_name in $region..."
 
     def targetPool = new TargetPool(
         name: target_pool_name,
         healthChecks: httpHealthChecksResourceLinks,
+        // TODO(odedmeri): We expect the instances in the description to be URLs but we should accept local names
+        // and query them.to get the URLs.
         instances: description.instances
     )
     def targetPoolResourceLink = compute.targetPools().insert(project, region, targetPool).execute().getTargetLink()
 
-    task.updateStatus BASE_PHASE, "Creating forwarding rule $description.networkLBName with port $PORT_NUMBER to " +
-        "$target_pool_name in $region..."
+    task.updateStatus BASE_PHASE, "Creating forwarding rule $description.networkLBName to $target_pool_name in " +
+        "$region..."
 
     def forwarding_rule = new ForwardingRule(name: description.networkLBName,
                                              target: targetPoolResourceLink,
@@ -89,7 +92,7 @@ class CreateGoogleNetworkLBAtomicOperation implements AtomicOperation<Void> {
                                              portRange: description.portRange)
     compute.forwardingRules().insert(project, region, forwarding_rule).execute()
 
-    task.updateStatus BASE_PHASE, "Done Creating network load balancer $description.networkLBName in $region."
+    task.updateStatus BASE_PHASE, "Done creating network load balancer $description.networkLBName in $region."
     null
   }
 }

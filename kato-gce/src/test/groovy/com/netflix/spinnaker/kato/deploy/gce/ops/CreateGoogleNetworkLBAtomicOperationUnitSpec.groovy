@@ -81,24 +81,24 @@ class CreateGoogleNetworkLBAtomicOperationUnitSpec extends Specification {
 
   void "should create a Network Load Balancer without health checks if non are specified"() {
     setup:
-    def computeMock = Mock(Compute)
-    def zones = Mock(Compute.Zones)
-    def getZoneRequest = Mock(Compute.Zones.Get)
-    def targetPools = Mock(Compute.TargetPools)
-    def targetPoolsInsert = Mock(Compute.TargetPools.Insert)
-    def forwardingRules = Mock(Compute.ForwardingRules)
-    def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
-    def insertOp = new com.google.api.services.compute.model.Operation(targetLink: "link")
-    def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-    def description = new CreateGoogleNetworkLBDescription(
-        networkLBName: NETWORK_LB_NAME,
-        zone: ZONE,
-        accountName: ACCOUNT_NAME,
-        credentials: credentials)
-    @Subject def operation = new CreateGoogleNetworkLBAtomicOperation(description)
+      def computeMock = Mock(Compute)
+      def zones = Mock(Compute.Zones)
+      def getZoneRequest = Mock(Compute.Zones.Get)
+      def targetPools = Mock(Compute.TargetPools)
+      def targetPoolsInsert = Mock(Compute.TargetPools.Insert)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+      def insertOp = new com.google.api.services.compute.model.Operation(targetLink: "link")
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new CreateGoogleNetworkLBDescription(
+          networkLBName: NETWORK_LB_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      @Subject def operation = new CreateGoogleNetworkLBAtomicOperation(description)
 
     when:
-    operation.operate([])
+      operation.operate([])
 
     then:
       0 * computeMock.httpHealthChecks()

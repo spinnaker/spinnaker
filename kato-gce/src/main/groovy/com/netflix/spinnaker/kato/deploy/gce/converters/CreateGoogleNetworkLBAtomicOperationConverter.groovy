@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSu
 import org.springframework.stereotype.Component
 
 @Component("createGoogleNetworkLBDescription")
-class CreateGoogleNetworkLBAtomicOperationConverter  extends AbstractAtomicOperationsCredentialsSupport {
+class CreateGoogleNetworkLBAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
     new CreateGoogleNetworkLBAtomicOperation(convertDescription(input))
   }

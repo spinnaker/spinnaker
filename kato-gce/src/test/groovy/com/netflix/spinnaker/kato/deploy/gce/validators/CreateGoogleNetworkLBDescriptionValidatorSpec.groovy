@@ -73,18 +73,18 @@ class CreateGoogleNetworkLBDescriptionValidatorSpec extends Specification {
 
   void "pass validation without health checks"() {
     setup:
-    def description = new CreateGoogleNetworkLBDescription(
-        networkLBName: NETWORK_LB_NAME,
-        zone: ZONE,
-        accountName: ACCOUNT_NAME,
-        instances: [INSTANCE])
-    def errors = Mock(Errors)
+      def description = new CreateGoogleNetworkLBDescription(
+          networkLBName: NETWORK_LB_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME,
+          instances: [INSTANCE])
+      def errors = Mock(Errors)
 
     when:
-    validator.validate([], description, errors)
+      validator.validate([], description, errors)
 
     then:
-    0 * errors._
+      0 * errors._
   }
 
   void "null input fails validation"() {

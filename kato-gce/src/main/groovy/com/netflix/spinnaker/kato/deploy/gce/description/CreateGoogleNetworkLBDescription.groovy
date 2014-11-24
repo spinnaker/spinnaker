@@ -22,6 +22,7 @@ class CreateGoogleNetworkLBDescription {
   String networkLBName
   HealthCheck healthCheck
   // The URLs of the instances.
+  // TODO(odedmeri): change the instances to local names and not URLs.
   List<String> instances
   String ipAddress
   String portRange
