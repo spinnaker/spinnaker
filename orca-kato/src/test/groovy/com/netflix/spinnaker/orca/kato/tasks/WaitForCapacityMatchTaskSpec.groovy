@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -85,60 +86,8 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       ]
   }
 
+  @Ignore("this should fail, but always succeeds because the logic here only works for scale-up")
   void "should properly wait for a scale down operation"() {
-    setup:
-    oort = Stub(OortService)
-    oort.getCluster("kato", "test", "kato-main") >> {
-      def response = GroovyMock(Response)
-      response.getStatus() >> 200
-      response.getBody() >> {
-        def input = Mock(TypedInput)
-        input.in() >> new ByteArrayInputStream(mapper.writeValueAsBytes(cluster))
-        input
-      }
-      response
-    }
-    task.oortService = oort
-    def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
-    def stage = new OrchestrationStage(new Orchestration(), "resizeAsg", context)
-
-    when:
-    def result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.RUNNING
-
-    when:
-    cluster.serverGroups[0].instances = [[instanceId:"i-0000"]]
-
-    and:
-    result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-
-    where:
-    cluster = [
-      name: "kato-main",
-      account: "test",
-      serverGroups: [
-        [
-          name: "kato-main-v000",
-          region: "us-east-1",
-          instances: [
-            [instanceId: "i-1234"],
-            [instanceId: "i-5678"],
-            [instanceId: "i-0000"]
-          ],
-          asg: [
-            minSize: 1
-          ]
-        ]
-      ]
-    ]
-  }
-
-  void "should not break if "() {
     setup:
     oort = Stub(OortService)
     oort.getCluster("kato", "test", "kato-main") >> {
