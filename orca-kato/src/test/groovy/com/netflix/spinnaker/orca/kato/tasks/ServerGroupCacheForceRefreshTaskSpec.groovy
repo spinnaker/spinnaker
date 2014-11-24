@@ -28,7 +28,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
   def deployConfig = [
     "account.name" : "fzlem",
-    "server.groups": ["us-east-1": ["kato-main-v000"]]
+    "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]
   ]
 
   def setup() {
