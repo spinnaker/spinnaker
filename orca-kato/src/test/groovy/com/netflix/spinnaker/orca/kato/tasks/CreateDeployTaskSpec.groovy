@@ -19,12 +19,13 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.google.common.collect.Maps
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,8 +33,8 @@ import spock.lang.Subject
 class CreateDeployTaskSpec extends Specification {
 
   @Subject task = new CreateDeployTask()
-  def stage = new Stage(pipeline: new Pipeline(), type: "deploy")
-  def mapper = new ObjectMapper()
+  def stage = new PipelineStage(new Pipeline(), "deploy")
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deployConfig = [
@@ -56,13 +57,13 @@ class CreateDeployTaskSpec extends Specification {
     task.mapper = mapper
     task.defaultBakeAccount = "test"
 
-    stage.pipeline.@stages.add(stage)
-    stage.context.putAll(deployConfig)
+    stage.pipeline.stages.add(stage)
+    stage.context = deployConfig
   }
 
   def cleanup() {
-    stage.pipeline.@stages.clear()
-    stage.pipeline.@stages.add(stage)
+    stage.pipeline.stages.clear()
+    stage.pipeline.stages.add(stage)
   }
 
   def "creates a deployment based on job parameters"() {
@@ -185,9 +186,9 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
-    def bakeStage = new Stage(stage.pipeline, "bake", [ami: amiName])
-    stage.pipeline.@stages.clear()
-    stage.pipeline.@stages.addAll([bakeStage, stage])
+    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
+    stage.pipeline.stages.clear()
+    stage.pipeline.stages.addAll([bakeStage, stage])
 
     when:
     task.execute(stage.asImmutable())
@@ -211,7 +212,7 @@ class CreateDeployTaskSpec extends Specification {
     def result = task.execute(stage.asImmutable())
 
     then:
-    result.status == PipelineStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
   }
 }

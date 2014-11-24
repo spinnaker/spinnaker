@@ -22,5 +22,6 @@ dependencies {
   compile commonDependencies.jacksonGuava
   compile commonDependencies.rxJava
   compile commonDependencies.korkJedis
+  compile commonDependencies.cglib
   testCompile project(":orca-test")
 }

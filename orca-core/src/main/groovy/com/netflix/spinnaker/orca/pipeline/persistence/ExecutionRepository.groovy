@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 
-@CompileStatic
-class InvalidPipelineId extends RuntimeException {
+interface ExecutionRepository {
+  void store(Orchestration orchestration)
+  void store(Pipeline pipeline)
 
-  InvalidPipelineId(String id) {
-    super("No pipeline with id $id exists in the store")
-  }
+  Pipeline retrievePipeline(String id)
+  List<Pipeline> retrievePipelines()
 
+  Orchestration retrieveOrchestration(String id)
+  List<Orchestration> retrieveOrchestrations()
 }

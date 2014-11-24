@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -71,7 +72,7 @@ class PipelineConfigParsingSpec extends Specification {
   "version": "1.0"
 }"""
 
-  @Shared mapper = new ObjectMapper()
+  @Shared mapper = new OrcaObjectMapper()
 
   def "parses Pipeline object from JSON"() {
     when:

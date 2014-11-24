@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -32,6 +33,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
   @Unroll
   void "should return #taskStatus status when group was #old and is now '#current' per Mort"() {
     given:
+    def pipeline = new Pipeline()
     def groupName = 'group'
     def account = 'account'
     def region = 'region'
@@ -47,7 +49,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       account: account,
       region : region,
       name   : groupName
@@ -61,10 +63,10 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
 
     where:
     old | current || taskStatus
-    null       | ''         || PipelineStatus.RUNNING
-    null       | 'changed'  || PipelineStatus.SUCCEEDED
-    'original' | 'original' || PipelineStatus.RUNNING
-    'original' | 'changed'  || PipelineStatus.SUCCEEDED
+    null       | ''         || ExecutionStatus.RUNNING
+    null       | 'changed'  || ExecutionStatus.SUCCEEDED
+    'original' | 'original' || ExecutionStatus.RUNNING
+    'original' | 'changed'  || ExecutionStatus.SUCCEEDED
   }
 
 }

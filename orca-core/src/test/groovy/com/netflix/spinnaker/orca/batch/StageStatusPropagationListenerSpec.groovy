@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
@@ -29,8 +33,11 @@ import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class StageStatusPropagationListenerSpec extends Specification {
 
-  def pipelineStore = new InMemoryPipelineStore()
-  @Subject listener = new StageStatusPropagationListener(pipelineStore)
+  def mapper = new OrcaObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore(mapper)
+  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
+  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  @Subject listener = new StageStatusPropagationListener(executionRepository)
 
   def "updates the stage status when a task execution completes"() {
     given: "a pipeline model"
@@ -55,7 +62,7 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     where:
     taskStatus               | _
-    PipelineStatus.SUCCEEDED | _
+    ExecutionStatus.SUCCEEDED | _
 
     id = nextLong()
     stageType = "foo"
@@ -68,7 +75,7 @@ class StageStatusPropagationListenerSpec extends Specification {
    * @param taskStatus the status the task should return.
    * @param stepExecution the batch execution context we want to update.
    */
-  private void executeTaskReturning(PipelineStatus taskStatus, StepExecution stepExecution) {
+  private void executeTaskReturning(ExecutionStatus taskStatus, StepExecution stepExecution) {
     stepExecution.executionContext.put("orcaTaskStatus", taskStatus)
   }
 }

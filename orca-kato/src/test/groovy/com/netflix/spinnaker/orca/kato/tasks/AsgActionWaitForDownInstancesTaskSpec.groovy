@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -31,10 +33,11 @@ import spock.lang.Subject
 class AsgActionWaitForDownInstancesTaskSpec extends Specification {
   @Subject task = new WaitForDownInstancesTask()
 
-  def mapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
 
   void "should check cluster to get server groups"() {
     given:
+    def pipeline = new Pipeline()
     task.objectMapper = mapper
     def response = GroovyMock(Response)
     response.getStatus() >> 200
@@ -67,14 +70,14 @@ class AsgActionWaitForDownInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("asgActionWaitForDownInstances", [
+    def stage = new PipelineStage(pipeline, "asgActionWaitForDownInstances", [
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"
     ]).asImmutable()
 
     expect:
-    task.execute(stage).status == PipelineStatus.SUCCEEDED
+    task.execute(stage).status == ExecutionStatus.SUCCEEDED
 
   }
 }

@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.PipelineStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.StepExecutionListenerSupport
@@ -29,37 +28,46 @@ import org.springframework.beans.factory.annotation.Autowired
 @CompileStatic
 class StageStatusPropagationListener extends StepExecutionListenerSupport {
 
-  private final PipelineStore pipelineStore
+  private final ExecutionRepository executionRepository
 
   @Autowired
-  StageStatusPropagationListener(PipelineStore pipelineStore) {
-    this.pipelineStore = pipelineStore
+  StageStatusPropagationListener(ExecutionRepository executionRepository) {
+    this.executionRepository = executionRepository
   }
 
   @Override
   void beforeStep(StepExecution stepExecution) {
-    currentStage(stepExecution).status = PipelineStatus.RUNNING
+    currentStage(stepExecution).status = ExecutionStatus.RUNNING
   }
 
   @Override
   ExitStatus afterStep(StepExecution stepExecution) {
     def stage = currentStage(stepExecution)
 
-    def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as PipelineStatus
+    def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     if (orcaTaskStatus) {
       stage.status = orcaTaskStatus
     } else {
-      stage.status = PipelineStatus.TERMINAL
+      stage.status = ExecutionStatus.TERMINAL
     }
 
-    pipelineStore.store(stage.pipeline)
+    if (stage.execution instanceof Pipeline) {
+      executionRepository.store(stage.execution as Pipeline)
+    } else {
+      executionRepository.store(stage.execution as Orchestration)
+    }
 
     super.afterStep(stepExecution)
   }
 
-  private Pipeline currentPipeline(StepExecution stepExecution) {
-    String id = stepExecution.jobParameters.getString("pipeline")
-    pipelineStore.retrieve(id)
+  private Execution currentPipeline(StepExecution stepExecution) {
+    if (stepExecution.jobParameters.parameters.containsKey("pipeline")) {
+      String id = stepExecution.jobParameters.getString("pipeline")
+      executionRepository.retrievePipeline(id)
+    } else {
+      String id = stepExecution.jobParameters.getString("orchestration")
+      executionRepository.retrieveOrchestration(id)
+    }
   }
 
   private Stage currentStage(StepExecution stepExecution) {

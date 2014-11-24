@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.persistence
+package com.netflix.spinnaker.orca.pipeline.model
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.fasterxml.jackson.annotation.JsonBackReference
+import groovy.transform.CompileStatic
 
-interface PipelineStore {
+/**
+ * A _stage_ of an Orca _pipeline_.
+ */
+@CompileStatic
+class PipelineStage extends AbstractStage<Pipeline> {
+  PipelineStage() {
 
-  /**
-   * @param pipeline A <code>Pipeline</code> instance to store.
-   */
-  void store(Pipeline pipeline)
+  }
 
-  /**
-   * @param id The id of the <code>Pipeline</code> to retrieve.
-   * @return The <code>Pipeline</code> instance.
-   * @throws InvalidPipelineId if <code>id</code> does not exist in the store.
-   */
-  Pipeline retrieve(String id) throws InvalidPipelineId
+  PipelineStage(Pipeline pipeline, String type) {
+    super(pipeline, type)
+  }
+
+  PipelineStage(Pipeline pipeline, String type, Map<String, Object> context) {
+    super(pipeline, type, context)
+  }
+
+  @JsonBackReference
+  public Pipeline getPipeline() {
+    (Pipeline)execution
+  }
 }

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory

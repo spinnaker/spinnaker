@@ -18,12 +18,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
@@ -39,14 +39,14 @@ class CreateCopyLastAsgTask implements Task {
   String defaultBakeAccount
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
     def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"  : "createcopylastasg",
       "kato.last.task.id"  : taskId,
       "kato.task.id"       : taskId, // TODO retire this.

@@ -19,11 +19,11 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class PreconfigureRedBlackStep implements Task {
@@ -34,7 +34,7 @@ class PreconfigureRedBlackStep implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def account = stage.context.account as String
     def cluster = stage.context.cluster as String
     def names = Names.parseName(cluster)
@@ -42,7 +42,7 @@ class PreconfigureRedBlackStep implements Task {
     def availabilityZones = [:]
     availabilityZones[lastAsg.region] = lastAsg.asg?.availabilityZones
     if (!lastAsg) {
-      new DefaultTaskResult(PipelineStatus.TERMINAL)
+      new DefaultTaskResult(ExecutionStatus.TERMINAL)
     } else {
       def outputs = [
         "disableAsg.asgName"           : lastAsg.name,
@@ -55,7 +55,7 @@ class PreconfigureRedBlackStep implements Task {
       if (names.stack) {
         outputs."copyLastAsg.stack" = names.stack
       }
-      new DefaultTaskResult(PipelineStatus.SUCCEEDED, outputs)
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
     }
   }
 

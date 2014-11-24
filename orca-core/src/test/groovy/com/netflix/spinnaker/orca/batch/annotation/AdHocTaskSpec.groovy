@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.orca.batch.annotation
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.annotation.AdHocTask
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static org.hamcrest.Matchers.not
 import static org.hamcrest.Matchers.sameInstance
 import static spock.util.matcher.HamcrestSupport.that
@@ -46,7 +46,7 @@ class AdHocTaskSpec extends Specification {
 @AdHocTask
 class TestTask implements Task {
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     new DefaultTaskResult(SUCCEEDED)
   }
 }

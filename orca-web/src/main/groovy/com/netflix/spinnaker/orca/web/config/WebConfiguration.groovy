@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -51,9 +52,7 @@ class WebConfiguration {
 
   @Bean
   ObjectMapper objectMapper() {
-    def mapper = new ObjectMapper()
-    mapper.addMixInAnnotations(Stage, StageMixins)
-    mapper
+    new OrcaObjectMapper()
   }
 
   @Bean

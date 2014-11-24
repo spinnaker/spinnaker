@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.PipelineStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Unroll
 class PipelineSpec extends Specification {

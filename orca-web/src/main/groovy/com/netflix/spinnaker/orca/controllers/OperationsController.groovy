@@ -36,17 +36,17 @@ class OperationsController {
   ObjectMapper objectMapper
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
-  DeferredResult<Map<String, String>> orchestrate(@RequestBody Map pipeline) {
+  Map<String, String> orchestrate(@RequestBody Map pipeline) {
     startPipeline(pipeline)
   }
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
-  DeferredResult<Map<String, String>> ops(@RequestBody List<Map> input) {
+  Map<String, String> ops(@RequestBody List<Map> input) {
     startTask([application: null, name: null, stages: input])
   }
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
-  DeferredResult<Map<String, String>> ops(@RequestBody Map input) {
+  Map<String, String> ops(@RequestBody Map input) {
     startTask([application: input.application, name: input.description, stages: input.job])
   }
 
@@ -55,23 +55,15 @@ class OperationsController {
     true
   }
 
-  private DeferredResult<Map<String, String>> startPipeline(Map config) {
+  private Map<String, String> startPipeline(Map config) {
     def json = objectMapper.writeValueAsString(config)
-    def pipelineObservable = pipelineStarter.start(json)
-    def q = new DeferredResult<Map>()
-    pipelineObservable.doOnNext({ pipeline ->
-      q.setResult([ref: "/tasks/${pipeline.id}".toString()])
-    }).subscribe()
-    q
+    def pipeline = pipelineStarter.start(json)
+    [ref: "/pipelines/${pipeline.id}".toString()]
   }
 
-  private DeferredResult<Map<String, String>> startTask(Map config) {
+  private Map<String, String> startTask(Map config) {
     def json = objectMapper.writeValueAsString(config)
-    def observable = orchestrationStarter.start(json)
-    def q = new DeferredResult<Map>()
-    observable.doOnNext({ id ->
-      q.setResult([ref: "/tasks/${id}".toString()])
-    }).subscribe()
-    q
+    def pipeline = orchestrationStarter.start(json)
+    [ref: "/tasks/${pipeline.id}".toString()]
   }
 }

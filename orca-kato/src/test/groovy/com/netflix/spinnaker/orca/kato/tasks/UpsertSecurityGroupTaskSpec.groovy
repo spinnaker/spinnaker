@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -34,6 +36,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
   @Unroll
   void "should #includeLabel current value ('#current') when Mort returns it"() {
     given:
+    def pipeline = new Pipeline()
     def operations
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
@@ -41,7 +44,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
         rx.Observable.from(new TaskId(UUID.randomUUID().toString()))
       }
     }
-    task.mapper = new ObjectMapper()
+    task.mapper = new OrcaObjectMapper()
     def groupName = 'group'
     def account = 'account'
     def region = 'region'
@@ -59,7 +62,7 @@ class UpsertSecurityGroupTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       credentials: account,
       region     : region,
       name       : groupName

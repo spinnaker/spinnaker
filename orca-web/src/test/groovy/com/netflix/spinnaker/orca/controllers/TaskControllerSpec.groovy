@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet
-import com.netflix.spinnaker.orca.pipeline.PipelineFactory
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.JobParameter
@@ -36,14 +36,14 @@ class TaskControllerSpec extends Specification {
 
   MockMvc mockMvc
   JobExplorer jobExplorer
-  PipelineFactory pipelineFactory
+  ExecutionRepository executionRepository
   List jobs
 
   void setup() {
     jobExplorer = Mock(JobExplorer)
-    pipelineFactory = Stub(PipelineFactory)
+    executionRepository = Stub(ExecutionRepository)
     mockMvc = MockMvcBuilders.standaloneSetup(
-      new TaskController(jobExplorer: jobExplorer, pipelineFactory: pipelineFactory)
+      new TaskController(jobExplorer: jobExplorer, executionRepository: executionRepository)
     ).build()
     jobs = [
       [instance: new JobInstance(0, 'jobOne'), name: 'jobOne', id: 0],
@@ -60,7 +60,7 @@ class TaskControllerSpec extends Specification {
     jobExplorer.findJobInstancesByJobName(jobs[0].name, _, _) >> [jobs[0].instance]
     jobExplorer.findJobInstancesByJobName(jobs[1].name, _, _) >> [jobs[1].instance]
     jobExplorer.getJobExecutions(_) >> { args -> [new JobExecution(args[0], null)] }
-    List tasks = new ObjectMapper().readValue(response.contentAsString, List)
+    List tasks = new OrcaObjectMapper().readValue(response.contentAsString, List)
     tasks.name == ['jobOne', 'jobTwo'] // make sure they are ordered; they are.
     tasks.size() == 2
   }
@@ -117,7 +117,7 @@ class TaskControllerSpec extends Specification {
       if (jobInstance.id == 1) {
         execution.getJobParameters() >> {
           def parameters = Mock(JobParameters)
-          parameters.getParameters() >> [application: new JobParameter(application, true)]
+          parameters.getParameters() >> [:]
           parameters
         }
         execution.getExecutionContext() >> {
@@ -128,7 +128,7 @@ class TaskControllerSpec extends Specification {
       } else {
         execution.getJobParameters() >> {
           def parameters = Mock(JobParameters)
-          parameters.getParameters() >> [:]
+          parameters.getParameters() >> [application: new JobParameter(application, true)]
           parameters
         }
         execution.getExecutionContext() >> new ExecutionContext()
@@ -147,69 +147,8 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get("/pipelines")).andReturn().response
 
     then:
-    jobExplorer.jobNames >> [jobs[0].name, jobs[1].name]
-    jobExplorer.getJobInstances(jobs[0].name, _, _) >> [jobs[0].instance]
-    jobExplorer.getJobInstances(jobs[1].name, _, _) >> [jobs[1].instance]
-    jobExplorer.getJobExecutions(_) >> { JobInstance jobInstance ->
-      def execution = Mock(JobExecution)
-      execution.getJobInstance() >> jobInstance
-      def pipeline = new Pipeline()
-      pipelineFactory.retrieve(jobs[0].id.toString()) >> pipeline
-      execution.getJobParameters() >> {
-        new JobParameters()
-      }
-      execution.getExecutionContext() >> {
-        def context = new ExecutionContext()
-        context.put(PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY, pipeline)
-        context
-      }
-      [execution]
-    }
+    executionRepository.retrievePipelines() >> [new Pipeline(), new Pipeline()]
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.size() == 2
-  }
-
-  void 'a pipeline should be differentiated from a task'() {
-    setup:
-    def pipeline = new Pipeline()
-    pipeline.application = application
-
-    when:
-    def response = mockMvc.perform(get("/applications/${application}/pipelines")).andReturn().response
-
-    then:
-    "pipelines are differentiated by having the PIPELINE_CONTEXT_KEY in the executionContext"
-    jobExplorer.jobNames >> [jobs[0].name, jobs[1].name]
-    jobExplorer.getJobInstances(jobs[0].name, _, _) >> [jobs[0].instance]
-    jobExplorer.getJobInstances(jobs[1].name, _, _) >> [jobs[1].instance]
-    pipelineFactory.retrieve(jobs[0].id.toString()) >> pipeline
-    jobExplorer.getJobExecutions(_) >> { JobInstance jobInstance ->
-      def execution = Mock(JobExecution)
-      execution.getId() >> jobInstance.instanceId
-      execution.getJobInstance() >> jobInstance
-      execution.getJobParameters() >> {
-        def parameters = Mock(JobParameters)
-        parameters.getParameters() >> [application: new JobParameter(application, true)]
-        parameters
-      }
-      if (jobInstance.id == jobs[0].id) {
-        execution.getExecutionContext() >> {
-          def context = new ExecutionContext()
-          context.put(PipelineInitializerTasklet.PIPELINE_CONTEXT_KEY, pipeline)
-          context
-        }
-      } else {
-        execution.getExecutionContext() >> {
-          new ExecutionContext()
-        }
-      }
-      [execution]
-    }
-    List tasks = new ObjectMapper().readValue(response.contentAsString, List)
-    tasks.size() == 1
-    tasks.first().application == application // ensure the pipeline serialized properly
-
-    where:
-    application = "test"
   }
 }

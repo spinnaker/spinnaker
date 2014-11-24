@@ -26,7 +26,7 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
 import spock.lang.Ignore
-import static com.netflix.spinnaker.orca.PipelineStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
@@ -121,8 +121,8 @@ class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
       preInterventionTask: preInterventionTask,
       postInterventionTask: postInterventionTask,
       finalTask: finalTask,
-      taskTaskletAdapter: new TaskTaskletAdapter(pipelineStore),
-      stageStatusPropagationListener: new StageStatusPropagationListener(pipelineStore)
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository),
+      stageStatusPropagationListener: new StageStatusPropagationListener(executionRepository)
     ).build(builder, pipeline.namedStage("manualIntervention"))
      .build()
      .build()

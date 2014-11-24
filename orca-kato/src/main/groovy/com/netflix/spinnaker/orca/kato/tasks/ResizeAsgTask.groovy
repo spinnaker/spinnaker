@@ -18,12 +18,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -36,12 +36,12 @@ class ResizeAsgTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def resizeAsgOperation = convert(stage)
     def taskId = kato.requestOperations([[resizeAsgDescription: resizeAsgOperation]])
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : "resizeasg",
       "deploy.account.name" : resizeAsgOperation.credentials,
       "kato.last.task.id"   : taskId,
@@ -50,7 +50,7 @@ class ResizeAsgTask implements Task {
     ])
   }
 
-  ResizeAsgOperation convert(ImmutableStage stage) {
+  ResizeAsgOperation convert(Stage stage) {
     def input = stage.context
     if (stage.context.containsKey("resizeAsg")) {
       input = stage.context.resizeAsg

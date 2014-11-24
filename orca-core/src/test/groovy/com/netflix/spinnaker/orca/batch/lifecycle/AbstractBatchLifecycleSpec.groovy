@@ -16,13 +16,19 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.JobExecution
 
 abstract class AbstractBatchLifecycleSpec extends BatchExecutionSpec {
 
-  def pipelineStore = new InMemoryPipelineStore()
+  def objectMapper = new OrcaObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore(objectMapper)
+  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
+  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
   def pipeline = createPipeline()
 
   void setup() {

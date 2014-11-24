@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.PipelineStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
@@ -93,8 +93,8 @@ class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
       startTask: startTask,
       recoveryTask: recoveryTask,
       endTask: endTask,
-      taskTaskletAdapter: new TaskTaskletAdapter(pipelineStore),
-      stageStatusPropagationListener: new StageStatusPropagationListener(pipelineStore)
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository),
+      stageStatusPropagationListener: new StageStatusPropagationListener(executionRepository)
     ).build(builder, pipeline.namedStage("failureRecovery"))
      .build()
      .build()

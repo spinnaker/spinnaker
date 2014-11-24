@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class ServerGroupCacheForceRefreshTask implements Task {
@@ -31,7 +31,7 @@ class ServerGroupCacheForceRefreshTask implements Task {
   OortService oort
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     String account = stage.context."account.name"
     Map<String, List<String>> capturedServerGroups = (Map<String, List<String>>) stage.context."server.groups"
     capturedServerGroups.each { region, serverGroups ->
@@ -40,6 +40,6 @@ class ServerGroupCacheForceRefreshTask implements Task {
         oort.forceCacheUpdate(REFRESH_TYPE, model)
       }
     }
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }
