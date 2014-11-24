@@ -25,7 +25,8 @@ interface ExecutionRepository {
 
   Pipeline retrievePipeline(String id)
   List<Pipeline> retrievePipelines()
-
+  List<Pipeline> retrievePipelinesForApplication(String application)
   Orchestration retrieveOrchestration(String id)
   List<Orchestration> retrieveOrchestrations()
+  List<Orchestration> retrieveOrchestrationsForApplication(String application)
 }

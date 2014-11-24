@@ -54,6 +54,11 @@ class DefaultExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  List<Pipeline> retrievePipelinesForApplication(String application) {
+    this.pipelineStore.allForApplication(application)
+  }
+
+  @Override
   Orchestration retrieveOrchestration(String id) {
     this.orchestrationStore.retrieve(id)
   }
@@ -61,5 +66,10 @@ class DefaultExecutionRepository implements ExecutionRepository {
   @Override
   List<Orchestration> retrieveOrchestrations() {
     this.orchestrationStore.all()
+  }
+
+  @Override
+  List<Orchestration> retrieveOrchestrationsForApplication(String application) {
+    this.orchestrationStore.allForApplication(application)
   }
 }

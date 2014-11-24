@@ -16,43 +16,32 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.data.jackson.StageMixins
-import org.springframework.batch.core.configuration.ListableJobLocator
-import org.springframework.batch.core.configuration.annotation.BatchConfigurer
-import org.springframework.batch.core.explore.JobExplorer
-import org.springframework.batch.core.launch.JobLauncher
-import org.springframework.batch.core.launch.JobOperator
-import org.springframework.batch.core.launch.support.SimpleJobOperator
-import org.springframework.batch.core.repository.JobRepository
+import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.JedisCommands
 
 @Configuration
 @ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')
 class WebConfiguration {
-  @Bean
-  BatchConfigurer batchConfigurer() {
-    new MultiThreadedBatchConfigurer()
-  }
 
-  @Bean
-  JobOperator jobOperator(JobLauncher jobLauncher, JobRepository jobRepository, JobExplorer jobExplorer, ListableJobLocator jobRegistry) {
-    def jobOperator = new SimpleJobOperator()
-    jobOperator.jobLauncher = jobLauncher
-    jobOperator.jobRepository = jobRepository
-    jobOperator.jobExplorer = jobExplorer
-    jobOperator.jobRegistry = jobRegistry
-    return jobOperator
-  }
-
-  @Bean
-  ObjectMapper objectMapper() {
+  @Bean(name = "objectMapper", autowire = Autowire.BY_TYPE) OrcaObjectMapper orcaObjectMapper() {
     new OrcaObjectMapper()
+  }
+
+  @Bean JedisOrchestrationStore orchestrationStore(JedisCommands jedisCommands) {
+    new JedisOrchestrationStore(jedisCommands, new OrcaObjectMapper())
+  }
+
+  @Bean JedisPipelineStore pipelineStore(JedisCommands jedisCommands) {
+    new JedisPipelineStore(jedisCommands, new OrcaObjectMapper())
   }
 
   @Bean
