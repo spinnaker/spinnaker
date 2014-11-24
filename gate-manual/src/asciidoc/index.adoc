@@ -206,6 +206,8 @@ include::enableAsgStage.adoc[]
 - - -
 include::resizeAsgStage.adoc[]
 - - -
+include::scriptStage.adoc[]
+- - -
 include::terminateInstancesStage.adoc[]
 - - -
 include::updateApplicationStage.adoc[]
