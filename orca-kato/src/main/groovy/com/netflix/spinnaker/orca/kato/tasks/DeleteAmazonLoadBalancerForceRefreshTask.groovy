@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
@@ -31,7 +31,7 @@ class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
   OortService oort
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     String account = stage.context.credentials
     String name = stage.context.loadBalancerName
     List<String> regions = stage.context.regions
@@ -40,6 +40,6 @@ class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
       def model = [loadBalancerName: name, region: region, account: account, evict: true]
       oort.forceCacheUpdate(REFRESH_TYPE, model)
     }
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

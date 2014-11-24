@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.mort.MortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   @Subject task = new SecurityGroupForceCacheRefreshTask()
-  def stage = new Stage(type: "whatever")
+  def stage = new PipelineStage(type: "whatever")
 
   def config = [
     name   : "sg-12345a",

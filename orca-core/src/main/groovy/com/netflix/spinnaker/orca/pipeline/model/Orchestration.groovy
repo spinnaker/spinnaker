@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,20 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.PipelineStatus
+import groovy.transform.CompileStatic
 
-interface ImmutablePipeline {
-  String getId()
-
-  String getApplication()
-
-  String getName()
-
-  ImmutableMap<String, Object> getTrigger()
-
-  ImmutableList<ImmutableStage> getStages()
-
-  PipelineStatus getStatus()
+@CompileStatic
+class Orchestration extends Execution<Orchestration> {
 }

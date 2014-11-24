@@ -18,18 +18,19 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
 class CreateCopyLastAsgTaskSpec extends Specification {
   @Subject task = new CreateCopyLastAsgTask()
-  def stage = new Stage(pipeline: new Pipeline(), type: "copyLastAsg")
-  def mapper = new ObjectMapper()
+  def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   //The minimum required fields to copyLastAsg
@@ -44,8 +45,8 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.pipeline.@stages.add(stage)
-    stage.context.putAll(copyLastAsgConfig)
+    stage.pipeline.stages.add(stage)
+    stage.context = copyLastAsgConfig
   }
 
   def "creates a deployment based on job parameters"() {
@@ -126,9 +127,9 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    def bakeStage = new Stage(stage.pipeline, "bake", [ami: amiName])
-    stage.pipeline.@stages.removeAll()
-    stage.pipeline.@stages.addAll([bakeStage, stage])
+    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
+    stage.pipeline.stages.removeAll()
+    stage.pipeline.stages.addAll([bakeStage, stage])
 
 
     def operations

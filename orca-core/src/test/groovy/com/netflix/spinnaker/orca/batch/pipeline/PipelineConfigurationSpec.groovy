@@ -20,11 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -58,16 +61,20 @@ class PipelineConfigurationSpec extends Specification {
   def barTask = Mock(Task)
   def bazTask = Mock(Task)
 
-  @Shared mapper = new ObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore()
+  @Shared mapper = new OrcaObjectMapper()
+  def pipelineStore = new InMemoryPipelineStore(mapper)
+  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
+  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
 
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
       registerSingleton "pipelineStore", pipelineStore
-      registerSingleton "fooStage", new TestStage("foo", steps, pipelineStore, fooTask)
-      registerSingleton "barStage", new TestStage("bar", steps, pipelineStore, barTask)
-      registerSingleton "bazStage", new TestStage("baz", steps, pipelineStore, bazTask)
+      registerSingleton "orchestrationStore", orchestrationStore
+      registerSingleton "executionRepository", executionRepository
+      registerSingleton "fooStage", new TestStage("foo", steps, executionRepository, fooTask)
+      registerSingleton "barStage", new TestStage("bar", steps, executionRepository, barTask)
+      registerSingleton "bazStage", new TestStage("baz", steps, executionRepository, bazTask)
 
       autowireBean pipelineStarter
     }
@@ -126,7 +133,7 @@ class PipelineConfigurationSpec extends Specification {
   def "config is serialized to stage context"() {
     given:
     Map context
-    1 * fooTask.execute(_) >> { ImmutableStage stage ->
+    1 * fooTask.execute(_) >> { Stage stage ->
       context = stage.context
       DefaultTaskResult.SUCCEEDED
     }
@@ -148,14 +155,14 @@ class PipelineConfigurationSpec extends Specification {
 
   def "pipeline is persisted"() {
     given:
-    def mockPipelineStore = Mock(PipelineStore)
-    pipelineStarter.@pipelineStore = mockPipelineStore
+    def mockExecutionRepo = Mock(ExecutionRepository)
+    pipelineStarter.@executionRepository = mockExecutionRepo
 
     when:
     pipelineStarter.start(configJson)
 
     then:
-    1 * mockPipelineStore.store(_ as Pipeline)
+    1 * mockExecutionRepo.store(_ as Pipeline)
 
     where:
     config = [

@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
@@ -43,10 +43,10 @@ class CreateDeployTask implements Task {
   String defaultBakeAccount
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type": "createdeploy",
             "kato.last.task.id"  : taskId,
             "kato.task.id"       : taskId, // TODO retire this.
@@ -54,7 +54,7 @@ class CreateDeployTask implements Task {
     ])
   }
 
-  private Map deployOperationFromContext(ImmutableStage stage) {
+  private Map deployOperationFromContext(Stage stage) {
     def operation = [:]
     if (stage.context.containsKey("cluster")) {
       operation.putAll(stage.context.cluster as Map)

@@ -20,8 +20,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Subject(PipelineStore)
-abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
+@Subject(ExecutionStore)
+abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification {
 
   @Subject T pipelineStore
 
@@ -71,7 +71,7 @@ abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
     pipelineStore.store(pipeline)
 
     expect:
-    with(pipelineStore.retrieve(pipeline.id)) {
+    with(((Pipeline)pipelineStore.retrieve(pipeline.id))) {
       id == pipeline.id
       application == pipeline.application
       name == pipeline.name
@@ -91,6 +91,6 @@ abstract class PipelineStoreTck<T extends PipelineStore> extends Specification {
     pipelineStore.retrieve("invalid")
 
     then:
-    thrown InvalidPipelineId
+    thrown ExecutionNotFoundException
   }
 }

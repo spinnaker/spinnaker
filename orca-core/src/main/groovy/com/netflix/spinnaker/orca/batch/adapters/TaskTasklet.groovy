@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -33,11 +32,11 @@ import org.springframework.batch.repeat.RepeatStatus
 class TaskTasklet implements Tasklet {
 
   private final Task task
-  private final PipelineStore pipelineStore
+  private final ExecutionRepository executionRepository
 
-  TaskTasklet(Task task, PipelineStore pipelineStore) {
+  TaskTasklet(Task task, ExecutionRepository executionRepository) {
     this.task = task
-    this.pipelineStore = pipelineStore
+    this.executionRepository = executionRepository
   }
 
   Class<? extends Task> getTaskType() {
@@ -50,7 +49,7 @@ class TaskTasklet implements Tasklet {
 
     def result = task.execute(stage.asImmutable())
 
-    if (result.status == PipelineStatus.TERMINAL) {
+    if (result.status == ExecutionStatus.TERMINAL) {
       chunkContext.stepContext.stepExecution.with {
         setTerminateOnly()
         executionContext.put("orcaTaskStatus", result.status)
@@ -64,18 +63,29 @@ class TaskTasklet implements Tasklet {
     chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
     contribution.exitStatus = batchStepStatus.exitStatus
 
-    pipelineStore.store(stage.pipeline)
+    // because groovy...
+    def execution = stage.execution
+    if (execution instanceof Orchestration) {
+      executionRepository.store(execution)
+    } else if (execution instanceof Pipeline) {
+      executionRepository.store(execution)
+    }
 
     return batchStepStatus.repeatStatus
   }
 
-  private Pipeline currentPipeline(ChunkContext chunkContext) {
-    String id = chunkContext.stepContext.jobParameters.pipeline
-    pipelineStore.retrieve(id)
+  private Execution currentExecution(ChunkContext chunkContext) {
+    if (chunkContext.stepContext.jobParameters.containsKey("pipeline")) {
+      String id = chunkContext.stepContext.jobParameters.pipeline
+      executionRepository.retrievePipeline(id)
+    } else {
+      String id = chunkContext.stepContext.jobParameters.orchestration
+      executionRepository.retrieveOrchestration(id)
+    }
   }
 
   private Stage currentStage(ChunkContext chunkContext) {
-    currentPipeline(chunkContext).namedStage(stageName(chunkContext))
+    currentExecution(chunkContext).namedStage(stageName(chunkContext))
   }
 
   private static String stageName(ChunkContext chunkContext) {

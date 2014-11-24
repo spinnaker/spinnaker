@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.model
 
 import groovy.transform.Immutable
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.JobExecution
 
 @Immutable
@@ -73,8 +73,8 @@ class PipelineViewModel {
       }
     }
     for (stage in stages.values()) {
-      if (jobExecution.executionContext.get(stage.name) instanceof Stage) {
-        stage.context = ((Stage)jobExecution.executionContext.get(stage.name)).context
+      if (jobExecution.executionContext.get(stage.name) instanceof PipelineStage) {
+        stage.context = ((PipelineStage)jobExecution.executionContext.get(stage.name)).context
       }
       stage.startTime = stage.steps?.getAt(0)?.startTime
       stage.status = PENDING_STAGE_STATUS_VAL

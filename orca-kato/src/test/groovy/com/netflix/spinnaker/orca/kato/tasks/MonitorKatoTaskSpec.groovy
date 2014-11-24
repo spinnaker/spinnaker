@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,7 +39,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(new Pipeline(), "whatever", [
       "kato.last.task.id": new TaskId(taskId)
     ]).asImmutable()
 
@@ -47,9 +48,9 @@ class MonitorKatoTaskSpec extends Specification {
 
     where:
     completed | failed | expectedResult
-    true  | false | PipelineStatus.SUCCEEDED
-    false | false | PipelineStatus.RUNNING
-    true  | true  | PipelineStatus.TERMINAL
+    true  | false | ExecutionStatus.SUCCEEDED
+    false | false | ExecutionStatus.RUNNING
+    true  | true  | ExecutionStatus.TERMINAL
 
     taskId = "kato-task-id"
     katoStatus = completed ? "completed" : "incomplete"

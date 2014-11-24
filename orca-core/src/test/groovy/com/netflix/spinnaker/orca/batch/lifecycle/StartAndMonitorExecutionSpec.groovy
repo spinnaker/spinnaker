@@ -24,8 +24,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
-import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
-import static com.netflix.spinnaker.orca.PipelineStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
@@ -91,8 +91,8 @@ class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
       steps: steps,
       startTask: startTask,
       monitorTask: monitorTask,
-      taskTaskletAdapter: new TaskTaskletAdapter(pipelineStore),
-      stageStatusPropagationListener: new StageStatusPropagationListener(pipelineStore)
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository),
+      stageStatusPropagationListener: new StageStatusPropagationListener(executionRepository)
     ).build(builder, pipeline.namedStage("startAndMonitor"))
      .build()
      .build()

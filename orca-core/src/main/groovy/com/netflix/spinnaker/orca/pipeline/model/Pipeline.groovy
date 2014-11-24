@@ -16,31 +16,22 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.PipelineStatus
-import static com.netflix.spinnaker.orca.PipelineStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus
+import groovy.transform.CompileStatic
+
+
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @CompileStatic
-class Pipeline {
+class Pipeline extends Execution<Pipeline> {
 
   String application
   String name
-  String id
   final Map<String, Object> trigger = [:]
-  @JsonManagedReference final List<Stage> stages = []
-
-  Stage namedStage(String type) {
-    stages.find {
-      it.type == type
-    }
-  }
 
   @JsonIgnore
-  PipelineStatus getStatus() {
+  ExecutionStatus getStatus() {
     def status = stages.status.reverse().find {
       it != NOT_STARTED
     }
@@ -75,7 +66,7 @@ class Pipeline {
         type += "_$context.providerType"
       }
 
-      pipeline.@stages << new Stage(pipeline, type, context)
+      pipeline.stages << new PipelineStage(pipeline, type, context)
       return this
     }
 
@@ -105,43 +96,6 @@ class Pipeline {
     Builder withName(String name) {
       pipeline.@name = name
       return this
-    }
-  }
-
-  ImmutablePipeline asImmutable() {
-    def self = this
-    new ImmutablePipeline() {
-      @Override
-      String getId() {
-        self.id
-      }
-
-      @Override
-      String getApplication() {
-        self.application
-      }
-
-      @Override
-      String getName() {
-        self.name
-      }
-
-      @Override
-      ImmutableMap<String, Object> getTrigger() {
-        ImmutableMap.copyOf(self.trigger)
-      }
-
-      @Override
-      ImmutableList<ImmutableStage> getStages() {
-        ImmutableList.copyOf(self.stages.collect {
-          it.asImmutable()
-        })
-      }
-
-      @Override
-      PipelineStatus getStatus() {
-        self.status
-      }
     }
   }
 }

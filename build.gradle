@@ -61,7 +61,8 @@ ext {
     springBatchTest: dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
     springTest     : dependencies.create("org.springframework:spring-test:$versions.spring"),
     springWeb      : dependencies.create("org.springframework:spring-web:$versions.spring"),
-    objenesis      : dependencies.create("org.objenesis:objenesis:2.1")
+    objenesis      : dependencies.create("org.objenesis:objenesis:2.1"),
+    cglib          : dependencies.create("cglib:cglib-nodep:3.1")
   ]
 }
 

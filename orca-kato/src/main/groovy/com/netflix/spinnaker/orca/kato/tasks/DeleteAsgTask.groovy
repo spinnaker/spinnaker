@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAsgOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -38,12 +38,12 @@ class DeleteAsgTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def operation = convert(stage)
     def taskId = kato.requestOperations([[deleteAsgDescription: operation]])
       .toBlocking()
       .first()
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED,
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
       ["deploy.account.name" : operation.credentials,
        "kato.last.task.id"   : taskId,
        "kato.task.id"        : taskId, // TODO retire this.
@@ -51,7 +51,7 @@ class DeleteAsgTask implements Task {
       ])
   }
 
-  DeleteAsgOperation convert(ImmutableStage stage) {
+  DeleteAsgOperation convert(Stage stage) {
     mapper.copy()
       .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(stage.context, DeleteAsgOperation)

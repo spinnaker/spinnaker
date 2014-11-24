@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -38,20 +38,20 @@ class MonitorKatoTask implements RetryableTask {
   KatoService kato
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     TaskId taskId = stage.context."kato.last.task.id" as TaskId
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
-    PipelineStatus status = katoStatusToTaskStatus(katoTask.status)
+    ExecutionStatus status = katoStatusToTaskStatus(katoTask.status)
 
-    if (status != PipelineStatus.TERMINAL && status != PipelineStatus.SUCCEEDED) {
-      status = PipelineStatus.RUNNING
+    if (status != ExecutionStatus.TERMINAL && status != ExecutionStatus.SUCCEEDED) {
+      status = ExecutionStatus.RUNNING
     }
 
     Map<String, ? extends Object> outputs = [:]
-    if (status == PipelineStatus.SUCCEEDED) {
+    if (status == ExecutionStatus.SUCCEEDED && !stage.context.containsKey("deploy.server.groups")) {
       outputs["deploy.server.groups"] = getServerGroupNames(katoTask)
     }
-    if (status == PipelineStatus.SUCCEEDED || status == PipelineStatus.TERMINAL) {
+    if (status == ExecutionStatus.SUCCEEDED || status == ExecutionStatus.TERMINAL) {
       List<Map<String, Object>> katoTasks = []
       if (stage.context.containsKey("kato.tasks")) {
         katoTasks = stage.context."kato.tasks" as List<Map<String, Object>>
@@ -70,13 +70,13 @@ class MonitorKatoTask implements RetryableTask {
     new DefaultTaskResult(status, outputs)
   }
 
-  private static PipelineStatus katoStatusToTaskStatus(Task.Status katoStatus) {
+  private static ExecutionStatus katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
-      return PipelineStatus.TERMINAL
+      return ExecutionStatus.TERMINAL
     } else if (katoStatus.completed) {
-      return PipelineStatus.SUCCEEDED
+      return ExecutionStatus.SUCCEEDED
     } else {
-      return PipelineStatus.RUNNING
+      return ExecutionStatus.RUNNING
     }
   }
 

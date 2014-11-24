@@ -17,7 +17,11 @@
 package com.netflix.spinnaker.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.jedis.JedisConfig
+import com.netflix.spinnaker.kork.jedis.JedisConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.batch.config.JedisConfiguration
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
@@ -25,8 +29,7 @@ import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.rush.config.RushConfiguration
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
@@ -43,15 +46,18 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration)
 @EnableBatchProcessing(modular = true)
 @Import([
+  OrcaConfiguration,
+  JedisConfig,
+  JedisConfiguration,
   BakeryConfiguration,
   EchoConfiguration,
   Front50Configuration,
   KatoConfiguration,
   MortConfiguration,
   OortConfiguration,
-  RushConfiguration,
   WebConfiguration,
-  MayoConfiguration
+  MayoConfiguration,
+  RushConfiguration
 ])
 class Main {
 
@@ -65,7 +71,7 @@ class Main {
 
   @Bean
   StockMappingJackson2HttpMessageConverter customJacksonConverter(ObjectMapper objectMapper) {
-    objectMapper.addMixInAnnotations(Stage, StageMixins)
+    objectMapper.addMixInAnnotations(Pipeline    objectMapper.addMixInAnnotations(PipelineStage, StageMixins)
     new StockMappingJackson2HttpMessageConverter(objectMapper: objectMapper)
   }
 }

@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca
 
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 interface Task {
 
-  TaskResult execute(ImmutableStage stage)
+  TaskResult execute(Stage stage)
 
 }

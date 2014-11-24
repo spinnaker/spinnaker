@@ -16,33 +16,35 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
+
+
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
 @CompileStatic
 @TupleConstructor(includeFields = true)
 class OrchestrationInitializerTasklet implements Tasklet {
 
-  static Step createTasklet(StepBuilderFactory steps, List<Stage> stages) {
+  static Step createTasklet(StepBuilderFactory steps, Orchestration orchestration) {
     steps.get("orca-init-step")
-         .tasklet(new OrchestrationInitializerTasklet(stages))
-         .build()
+      .tasklet(new OrchestrationInitializerTasklet(orchestration))
+      .build()
   }
 
-  private final List<Stage> stages
+  private final Orchestration orchestration
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     chunkContext.stepContext.stepExecution.jobExecution.with {
-      for (stage in stages) {
+      for (stage in orchestration.stages) {
         executionContext.put(stage.type, stage)
       }
     }

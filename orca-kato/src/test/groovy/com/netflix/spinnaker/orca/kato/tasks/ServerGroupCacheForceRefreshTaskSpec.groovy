@@ -17,18 +17,18 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
   @Subject task = new ServerGroupCacheForceRefreshTask()
-  def stage = new Stage(type: "whatever")
+  def stage = new PipelineStage(type: "whatever")
 
   def deployConfig = [
     "account.name" : "fzlem",
-    "server.groups": ["us-east-1": ["kato-main-v000"]]
+    "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]
   ]
 
   def setup() {

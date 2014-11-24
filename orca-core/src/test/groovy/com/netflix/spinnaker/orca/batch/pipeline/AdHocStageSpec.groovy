@@ -21,9 +21,10 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -34,7 +35,7 @@ import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.*
-import static com.netflix.spinnaker.orca.PipelineStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @Narrative("Orca should support the addition of ad-hoc stages (i.e. those with no pre-defined stage that just consist of a single task) to a pipeline")
@@ -50,9 +51,9 @@ class AdHocStageSpec extends Specification {
   @Autowired JobRepository jobRepository
 
   @Autowired @Subject PipelineStarter jobStarter
-  @Autowired PipelineStore pipelineStore
+  @Autowired ExecutionRepository executionRepository
 
-  @Shared mapper = new ObjectMapper()
+  @Shared mapper = new OrcaObjectMapper()
 
   def "an unknown stage is interpreted as an ad-hoc task"() {
     given:
@@ -61,7 +62,7 @@ class AdHocStageSpec extends Specification {
       getType() >> "bar"
     }
     applicationContext.beanFactory.with {
-      registerSingleton "fooStage", new TestStage("foo", steps, pipelineStore, fooTask)
+      registerSingleton "fooStage", new TestStage("foo", steps, executionRepository, fooTask)
       registerSingleton "barTask", barTask
     }
     jobStarter.initialize()

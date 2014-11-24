@@ -17,11 +17,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAmazonLoadBalancerOperation
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -30,8 +31,8 @@ import spock.lang.Subject
  */
 class DeleteAmazonLoadBalancerTaskSpec extends Specification {
   @Subject task = new DeleteAmazonLoadBalancerTask()
-  def stage = new Stage(type: "whatever")
-  def mapper = new ObjectMapper()
+  def stage = new PipelineStage(type: "whatever")
+  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deleteAmazonLoadBalancerConfig = [
@@ -81,7 +82,7 @@ class DeleteAmazonLoadBalancerTaskSpec extends Specification {
     def result = task.execute(stage.asImmutable())
 
     then:
-    result.status == PipelineStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
     result.outputs."delete.account.name" == deleteAmazonLoadBalancerConfig.credentials
   }

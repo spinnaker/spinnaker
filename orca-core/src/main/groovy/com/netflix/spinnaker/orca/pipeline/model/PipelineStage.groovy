@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.persistence
+package com.netflix.spinnaker.orca.pipeline.model
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import groovy.transform.CompileStatic
 
+/**
+ * A _stage_ of an Orca _pipeline_.
+ */
 @CompileStatic
-class InvalidPipelineId extends RuntimeException {
+class PipelineStage extends AbstractStage<Pipeline> {
+  PipelineStage() {
 
-  InvalidPipelineId(String id) {
-    super("No pipeline with id $id exists in the store")
   }
 
+  PipelineStage(Pipeline pipeline, String type) {
+    super(pipeline, type)
+  }
+
+  PipelineStage(Pipeline pipeline, String type, Map<String, Object> context) {
+    super(pipeline, type, context)
+  }
+
+  @JsonBackReference
+  public Pipeline getPipeline() {
+    (Pipeline)execution
+  }
 }

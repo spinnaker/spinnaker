@@ -16,45 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import groovy.transform.CompileStatic
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.InvalidPipelineId
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStore
-import org.springframework.beans.factory.annotation.Autowired
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import redis.clients.jedis.JedisCommands
 
-@CompileStatic
-class JedisPipelineStore implements PipelineStore {
-
-  private final JedisCommands jedis
-  private final ObjectMapper mapper
-
-  @Autowired
+class JedisPipelineStore extends AbstractJedisBackedExecutionStore<Pipeline> {
   JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper) {
-    this.jedis = jedis
-    this.mapper = mapper
+    super(ExecutionStore.PIPELINE, Pipeline, jedis, mapper)
   }
 
-  @Override
-  void store(Pipeline pipeline) {
-    if (!pipeline.id) {
-      pipeline.id = UUID.randomUUID().toString()
-    }
-
-    def key = "pipeline:$pipeline.id"
-    jedis.hset(key, "config", mapper.writeValueAsString(pipeline))
-  }
-
-  @Override
-  Pipeline retrieve(String id) {
-    def key = "pipeline:$id"
-    if (jedis.exists(key)) {
-      def json = jedis.hget(key, "config")
-      println mapper.writeValueAsString(mapper.readTree(json))
-      mapper.readValue(json, Pipeline)
-    } else {
-      throw new InvalidPipelineId(id)
-    }
-  }
 }

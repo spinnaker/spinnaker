@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -35,7 +35,7 @@ class MonitorBakeTask implements RetryableTask {
   @Autowired BakeryService bakery
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def region = stage.context.region as String
     def previousStatus = stage.context.status as BakeStatus
 
@@ -46,14 +46,14 @@ class MonitorBakeTask implements RetryableTask {
     new DefaultTaskResult(mapStatus(newStatus), [status: newStatus])
   }
 
-  private PipelineStatus mapStatus(BakeStatus newStatus) {
+  private ExecutionStatus mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
-        return PipelineStatus.SUCCEEDED
+        return ExecutionStatus.SUCCEEDED
       case BakeStatus.State.CANCELLED:
-        return PipelineStatus.FAILED
+        return ExecutionStatus.FAILED
       default:
-        return PipelineStatus.RUNNING
+        return ExecutionStatus.RUNNING
     }
   }
 }

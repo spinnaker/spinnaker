@@ -18,12 +18,12 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
-import com.netflix.spinnaker.orca.pipeline.model.ImmutableStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
@@ -35,12 +35,12 @@ class ResizeGoogleReplicaPoolTask implements Task {
   ObjectMapper mapper
 
   @Override
-  TaskResult execute(ImmutableStage stage) {
+  TaskResult execute(Stage stage) {
     def resizeGoogleReplicaPoolOperation = convert(stage)
     def taskId = kato.requestOperations([[resizeGoogleReplicaPoolDescription: resizeGoogleReplicaPoolOperation]])
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(PipelineStatus.SUCCEEDED, [
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : "resizegooglereplicapool",
       "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
       "kato.last.task.id"   : taskId,
@@ -49,7 +49,7 @@ class ResizeGoogleReplicaPoolTask implements Task {
     ])
   }
 
-  ResizeGoogleReplicaPoolOperation convert(ImmutableStage stage) {
+  ResizeGoogleReplicaPoolOperation convert(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName

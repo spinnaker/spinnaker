@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.PipelineStatus
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import spock.lang.Specification
@@ -29,10 +31,11 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   @Subject task = new WaitForUpInstancesTask()
 
-  def mapper = new ObjectMapper()
+  def mapper = new OrcaObjectMapper()
 
   void "should check cluster to get server groups"() {
     given:
+    def pipeline = new Pipeline()
     task.objectMapper = mapper
     def response = GroovyMock(Response)
     response.getStatus() >> 200
@@ -104,20 +107,20 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
 
     and:
-    def stage = new Stage("whatever", [
+    def stage = new PipelineStage(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"]
     ])
 
     expect:
-    task.execute(stage.asImmutable()).status == PipelineStatus.RUNNING
+    task.execute(stage.asImmutable()).status == ExecutionStatus.RUNNING
 
     when:
     stage.context."targetop.asg.enableAsg.name" = "front50-v001"
 
     then:
-    task.execute(stage.asImmutable()).status == PipelineStatus.SUCCEEDED
+    task.execute(stage.asImmutable()).status == ExecutionStatus.SUCCEEDED
 
   }
 }

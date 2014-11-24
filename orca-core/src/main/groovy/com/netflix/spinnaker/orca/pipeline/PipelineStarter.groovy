@@ -16,14 +16,19 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import groovy.transform.TypeCheckingMode
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
@@ -31,10 +36,16 @@ import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initia
 @CompileStatic
 class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
+  @Autowired ExecutionRepository executionRepository
+
+  PipelineStarter() {
+    super("pipeline")
+  }
+
   @Override
-  protected Pipeline createSubject(Map<String, Object> config) {
+  protected Pipeline create(Map<String, Object> config) {
     def pipeline = parseConfig(config)
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
     return pipeline
   }
 
@@ -65,8 +76,22 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     buildFlow(jobBuilder, pipeline).build().build()
   }
 
+  // static compiler doesn't seem to know what to do here anymore...
+  @CompileStatic(TypeCheckingMode.SKIP)
   private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
-    (JobFlowBuilder) pipeline.stages.inject(jobBuilder, this.&createStage)
+    pipeline.stages.inject(jobBuilder, this.&createStage)
+  }
+
+  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {
+    builderFor(stage).build(jobBuilder, stage)
+  }
+
+  protected StageBuilder builderFor(Stage<Pipeline> stage) {
+    if (stages.containsKey(stage.type)) {
+      stages.get(stage.type)
+    } else {
+      throw new NoSuchStageException(stage.type)
+    }
   }
 
   @Override
