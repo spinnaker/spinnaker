@@ -33,13 +33,26 @@ class ServerGroupCacheForceRefreshTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     String account = stage.context."account.name"
-    Map<String, List<String>> capturedServerGroups = (Map<String, List<String>>) stage.context."server.groups"
+    if (stage.context.account && !account) {
+      account = stage.context.account
+    } else if (stage.context.credentials && !account) {
+      account = stage.context.credentials
+    }
+    Map<String, List<String>> capturedServerGroups = (Map<String, List<String>>) stage.context."deploy.server.groups"
+    def outputs = [:]
     capturedServerGroups.each { region, serverGroups ->
       for (serverGroup in serverGroups) {
         def model = [asgName: serverGroup, region: region, account: account]
-        oort.forceCacheUpdate(REFRESH_TYPE, model)
+        try {
+          oort.forceCacheUpdate(REFRESH_TYPE, model)
+        } catch (e) {
+          if (!outputs.containsKey("force.cache.refresh.errors")) {
+            outputs["force.cache.refresh.errors"] = []
+          }
+          outputs["force.cache.refresh.errors"] << e.message
+        }
       }
     }
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

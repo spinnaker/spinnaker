@@ -46,7 +46,7 @@ class ResizeAsgTask implements Task {
       "deploy.account.name" : resizeAsgOperation.credentials,
       "kato.last.task.id"   : taskId,
       "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": resizeAsgOperation.regions.collectEntries { [(it): resizeAsgOperation.asgName] }
+      "deploy.server.groups": resizeAsgOperation.regions.collectEntries { [(it): [resizeAsgOperation.asgName]] }
     ])
   }
 
