@@ -245,7 +245,7 @@ angular.module('deckApp.gce')
 
     function buildCommandFromExisting(serverGroup) {
       var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
-      var match = asgNameRegex.exec(serverGroup.asg.autoScalingGroupName);
+      var match = asgNameRegex.exec(serverGroup.cluster);
       var command = {
         'application': application.name,
         'stack': match[4],
@@ -257,6 +257,7 @@ angular.module('deckApp.gce')
         'terminationPolicies': serverGroup.asg.terminationPolicies,
         'loadBalancers': serverGroup.asg.loadBalancerNames,
         'region': serverGroup.region,
+        'zone': serverGroup.zones[0],
         'availabilityZones': serverGroup.asg.availabilityZones,
         'capacity': {
           'min': serverGroup.asg.minSize,
@@ -296,13 +297,13 @@ angular.module('deckApp.gce')
     function createCommandTemplate() {
       return {
         'application': application.name,
-        'credentials': 'test',
-        'region': 'us-east-1',
+        'credentials': 'my-account-name',
+        'region': 'us-central1',
         'availabilityZones': [],
         'capacity': {
           'min': 0,
           'max': 0,
-          'desired': 0
+          'desired': 1
         },
         'cooldown': 10,
         'healthCheckType': 'EC2',
