@@ -218,6 +218,11 @@ angular.module('deckApp')
         families: [ n1highmem ]
       },
       {
+        type: 'cpu',
+        label: 'High CPU',
+        families: [ n1highcpu ]
+      },
+      {
         type: 'micro',
         label: 'Micro Utility',
         families: [f1micro]
