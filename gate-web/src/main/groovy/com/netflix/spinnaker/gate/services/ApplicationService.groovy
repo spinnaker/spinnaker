@@ -173,17 +173,12 @@ class ApplicationService {
     List<Map> call() throws Exception {
       try {
         def apps = front50.getAll(account)
-        rx.Observable.from(apps).flatMap {
-          rx.Observable.just(it).observeOn(Schedulers.io())
-        } map {
+        return apps.collect {
           if (!it.accounts) {
             it.accounts = account
           }
           it
-        } reduce([], { List objs, Map obj ->
-          objs << obj
-          objs
-        }) toBlocking() first()
+        }
       } catch (RetrofitError e) {
         if (e.response.status == 404) {
           return []
