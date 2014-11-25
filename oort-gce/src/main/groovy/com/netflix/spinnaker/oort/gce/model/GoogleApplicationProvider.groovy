@@ -15,46 +15,50 @@
  */
 
 package com.netflix.spinnaker.oort.gce.model
-
-import com.codahale.metrics.Timer
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.model.ApplicationProvider
-import com.ryantenney.metrics.annotation.Metric
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+import java.util.concurrent.Callable
 
 @Component
 class GoogleApplicationProvider implements ApplicationProvider {
+
+  @Autowired
+  ExtendedRegistry extendedRegistry
+
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
-  @Metric
-  Timer applications
-
-  @Metric
-  Timer applicationsByName
-
   GoogleResourceRetriever googleResourceRetriever
+
+  Timer applications
+  Timer applicationByName
 
   @PostConstruct
   void init() {
+    String[] tags = ['className', this.class.simpleName]
+    applications = extendedRegistry.timer('applications', tags)
+    applicationByName = extendedRegistry.timer('applicationByName', tags)
     googleResourceRetriever = new GoogleResourceRetriever()
     googleResourceRetriever.init(accountCredentialsProvider)
   }
 
   @Override
   Set<GoogleApplication> getApplications() {
-    applications.time {
+    applications.record({
       Collections.unmodifiableSet(googleResourceRetriever.getApplicationsMap().values() as Set)
-    }
+    } as Callable<Set<GoogleApplication>>)
   }
 
   @Override
   GoogleApplication getApplication(String name) {
-    applicationsByName.time {
+    applicationByName.record({
       googleResourceRetriever.getApplicationsMap()[name]
-    }
+    } as Callable<GoogleApplication>)
   }
 }

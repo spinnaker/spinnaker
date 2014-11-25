@@ -25,6 +25,9 @@ allprojects {
     resolutionStrategy {
       force 'org.apache.httpcomponents:httpclient:4.3.5'
       force 'org.apache.httpcomponents:httpcore:4.3.2'
+      force 'com.netflix.spinnaker.kork:kork-core:1.25-SNAPSHOT'
+      force 'com.netflix.servo:servo-core:0.7.9'
+      force 'com.netflix.servo:servo-internal:0.7.9'
     }
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: "org.slf4j", module: "slf4j-log4j12"
@@ -32,6 +35,7 @@ allprojects {
   }
 
   repositories {
+    mavenLocal()
     maven { url "http://repo.spring.io/repo" }
     maven { url 'http://oss.sonatype.org/content/repositories/staging' }
   }

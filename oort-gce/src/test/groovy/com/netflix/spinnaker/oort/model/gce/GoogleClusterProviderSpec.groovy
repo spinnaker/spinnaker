@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.oort.model.gce
 
-import com.codahale.metrics.Timer
+import com.netflix.spectator.api.Spectator
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
 import com.netflix.spinnaker.oort.gce.model.GoogleClusterProvider
@@ -28,7 +29,7 @@ class GoogleClusterProviderSpec extends Specification {
 
   GoogleClusterProvider clusterProvider
 
-  Timer timer = new Timer()
+  Timer timer = Spectator.registry().timer('spec')
 
   def setup() {
     clusterProvider = new GoogleClusterProvider()

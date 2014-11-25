@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.oort.aws.provider.instrumentation
 
-import com.codahale.metrics.MetricRegistry
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import org.slf4j.Logger
@@ -39,11 +40,16 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     }
   }
 
-  private final MetricRegistry metricRegistry
+  private final ExtendedRegistry extendedRegistry
+
+  private final Id timingId
+  private final Id counterId
 
   @Autowired
-  public MetricInstrumentation(MetricRegistry metricRegistry) {
-    this.metricRegistry = metricRegistry
+  public MetricInstrumentation(ExtendedRegistry extendedRegistry) {
+    this.extendedRegistry = extendedRegistry
+    timingId = extendedRegistry.createId('executionTime').withTag('className', MetricInstrumentation.simpleName)
+    counterId = extendedRegistry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
   }
 
 
@@ -63,14 +69,14 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   void executionCompleted(CachingAgent agent) {
     Long startTime = timingsMap.get().remove(agentName(agent))
     if (startTime != null) {
-      metricRegistry.timer(agentName(agent)).update(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
+      extendedRegistry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
     }
-    metricRegistry.counter(agentName(agent) + ".success").inc()
+    extendedRegistry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
   }
 
   @Override
   void executionFailed(CachingAgent agent, Throwable cause) {
     timingsMap.get().remove(agentName(agent))
-    metricRegistry.counter(agentName(agent) + ".failure").inc()
+    extendedRegistry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
   }
 }
