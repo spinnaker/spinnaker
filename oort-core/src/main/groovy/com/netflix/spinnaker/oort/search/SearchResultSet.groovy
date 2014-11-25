@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.oort.search
 
+import groovy.transform.Canonical
+
+@Canonical
 class SearchResultSet {
 
   /**

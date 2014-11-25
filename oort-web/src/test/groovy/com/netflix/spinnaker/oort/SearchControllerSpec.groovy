@@ -15,21 +15,14 @@
  */
 
 package com.netflix.spinnaker.oort
-
 import com.netflix.spinnaker.oort.controllers.SearchController
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
-import spock.lang.Shared
 import spock.lang.Specification
-
-import java.lang.Void as Should
 
 class SearchControllerSpec extends Specification {
 
-  @Shared
   SearchController searchController
-
-  @Shared
   SearchProvider searchProviderA
   SearchProvider searchProviderB
 
@@ -39,26 +32,27 @@ class SearchControllerSpec extends Specification {
     searchController = new SearchController(searchProviders: [searchProviderA, searchProviderB])
   }
 
-  Should 'query all search providers'() {
+   def 'query all search providers'() {
     given:
-    SearchResultSet resultSetA = Mock(SearchResultSet)
-    SearchResultSet resultSetB = Mock(SearchResultSet)
+    SearchResultSet rsA = new SearchResultSet(platform: 'a', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item1: 'foo']])
+    SearchResultSet rsB = new SearchResultSet(platform: 'b', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item2: 'bar']])
+    SearchResultSet expected = new SearchResultSet(platform: 'aws', totalMatches: 2, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item1: 'foo'],[item2: 'bar']])
 
     when:
     SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
     List searchResultSets = searchController.search(q)
 
     then:
-    1 * searchProviderA.search('aBC', 1, 10, null) >> resultSetA
-    1 * searchProviderB.search('aBC', 1, 10, null) >> resultSetB
+    1 * searchProviderA.search('aBC', 1, 10, null) >> rsA
+    1 * searchProviderB.search('aBC', 1, 10, null) >> rsB
     0 * _
 
-    searchResultSets == [resultSetA, resultSetB]
+    searchResultSets == [expected]
   }
 
-  Should 'filter search providers by platform'() {
+  def 'filter search providers by platform'() {
     given:
-    SearchResultSet resultSetA = Mock(SearchResultSet)
+    SearchResultSet resultSetA = Stub(SearchResultSet)
 
     when:
     SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'a', platform: 'aws', page: 1, pageSize: 10)
@@ -73,10 +67,10 @@ class SearchControllerSpec extends Specification {
     searchResultSets == [resultSetA]
   }
 
-  Should 'search on type if provided'() {
+  def 'search on type if provided'() {
     setup:
-    SearchResultSet resultSetA = Mock(SearchResultSet)
-    SearchResultSet resultSetB = Mock(SearchResultSet)
+    SearchResultSet resultSetA = Stub(SearchResultSet)
+    searchController = new SearchController(searchProviders: [searchProviderA])
 
     when:
     SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', type: ['applications'], page: 1, pageSize: 10)
@@ -84,10 +78,26 @@ class SearchControllerSpec extends Specification {
 
     then:
     1 * searchProviderA.search('aBC', ['applications'], 1, 10, null) >> resultSetA
-    1 * searchProviderB.search('aBC', ['applications'], 1, 10, null) >> resultSetB
     0 * _
 
-    searchResultSets == [resultSetA, resultSetB]
+    searchResultSets == [resultSetA]
   }
+
+  def "if only one search provider, don't aggregate into an aws result"() {
+    SearchResultSet rsA = Stub(SearchResultSet)
+    searchController = new SearchController(searchProviders: [searchProviderA])
+
+    when:
+    SearchController.SearchQueryCommand q = new SearchController.SearchQueryCommand(q:'aBC', page: 1, pageSize: 10)
+    List searchResultSets = searchController.search(q)
+
+    then:
+    1 * searchProviderA.search('aBC', 1, 10, null) >> rsA
+    0 * _
+
+    searchResultSets == [rsA]
+  }
+
+
 }
 
