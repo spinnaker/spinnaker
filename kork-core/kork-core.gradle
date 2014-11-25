@@ -1,5 +1,7 @@
 dependencies {
+    compile 'com.netflix.spectator:spectator-api:0.14.2'
     compile spinnaker.dependency('bootAutoConfigure')
+    compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('eurekaClient')
     compile spinnaker.dependency('awsCore')
     testCompile 'junit:junit:4.11'
