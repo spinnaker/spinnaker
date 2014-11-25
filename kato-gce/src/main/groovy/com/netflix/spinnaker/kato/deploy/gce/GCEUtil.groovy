@@ -20,11 +20,15 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.frigga.NameValidation
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class GCEUtil {
+  public static final String APPLICATION_NAME = "Spinnaker"
+
   // TODO(duftler): Add support for ubuntu image project.
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
@@ -75,6 +79,22 @@ class GCEUtil {
     }
   }
 
+  static InstanceTemplate queryInstanceTemplate(String projectName, String instanceTemplateName, Compute compute) {
+    compute.instanceTemplates().get(projectName, instanceTemplateName).execute()
+  }
+
+  static InstanceGroupManager queryManagedInstanceGroup(String projectName,
+                                                        String zone,
+                                                        String serverGroupName,
+                                                        GoogleCredentials credentials,
+                                                        ReplicaPoolBuilder replicaPoolBuilder,
+                                                        String applicationName) {
+    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
+
+    replicapool.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
+  }
+
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
                                                                String region,
                                                                GoogleCredentials credentials,
@@ -117,12 +137,52 @@ class GCEUtil {
     return new NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
   }
 
+  static def getNextSequence(String clusterName,
+                             String project,
+                             String region,
+                             GoogleCredentials credentials,
+                             ReplicaPoolBuilder replicaPoolBuilder) {
+    def maxSeqNumber = -1
+    def managedInstanceGroups = GCEUtil.queryManagedInstanceGroups(project,
+                                                                   region,
+                                                                   credentials,
+                                                                   replicaPoolBuilder,
+                                                                   APPLICATION_NAME)
+
+    for (def managedInstanceGroup : managedInstanceGroups) {
+      def names = Names.parseName(managedInstanceGroup.getName())
+
+      if (names.cluster == clusterName) {
+        maxSeqNumber = Math.max(maxSeqNumber, names.sequence)
+      }
+    }
+
+    String.format("%03d", ++maxSeqNumber)
+  }
+
+  static def combineAppStackDetail(String appName, String stack, String detail) {
+    NameValidation.notEmpty(appName, "appName");
+
+    // Use empty strings, not null references that output "null"
+    stack = stack != null ? stack : "";
+
+    if (detail != null && !detail.isEmpty()) {
+      return appName + "-" + stack + "-" + detail;
+    }
+
+    if (!stack.isEmpty()) {
+      return appName + "-" + stack;
+    }
+
+    return appName;
+  }
+
   private static void updateStatusAndThrowException(String errorMsg, Task task, String phase) {
     task.updateStatus phase, errorMsg
     throw new GCEResourceNotFoundException(errorMsg)
   }
 
-  private static String getLocalName(String fullUrl) {
+  public static String getLocalName(String fullUrl) {
     def urlParts = fullUrl.split("/")
 
     return urlParts[urlParts.length - 1]

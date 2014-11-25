@@ -18,7 +18,12 @@ package com.netflix.spinnaker.kato.deploy.gce.description
 
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
+import groovy.transform.AutoClone
+import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
 
+@AutoClone
+@EqualsAndHashCode
 class BasicGoogleDeployDescription implements DeployDescription {
   String application
   String stack
@@ -27,6 +32,13 @@ class BasicGoogleDeployDescription implements DeployDescription {
   String image
   String instanceType
   String zone
+  Source source = new Source()
   String accountName
   GoogleCredentials credentials
+
+  @Canonical
+  static class Source {
+    String zone
+    String serverGroupName
+  }
 }

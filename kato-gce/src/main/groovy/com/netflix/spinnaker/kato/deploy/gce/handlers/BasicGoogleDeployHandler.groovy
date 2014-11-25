@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component
 @Component
 class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescription> {
   // TODO(duftler): This should move to a common location.
-  private static final String APPLICATION_NAME = "Spinnaker"
   private static final String BASE_PHASE = "DEPLOY"
 
   // TODO(duftler): These should be exposed/configurable.
@@ -71,7 +70,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
    */
   @Override
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
-    def clusterName = combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
+    def clusterName = GCEUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName..."
 
@@ -83,7 +82,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
-    def nextSequence = getNextSequence(clusterName, project, region, description.credentials, replicaPoolBuilder)
+    def nextSequence = GCEUtil.getNextSequence(clusterName, project, region, description.credentials, replicaPoolBuilder)
     task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
 
     def serverGroupName = "${clusterName}-v${nextSequence}".toString()
@@ -109,7 +108,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
 
     replicapool.instanceGroupManagers().insert(project,
                                                zone,
@@ -121,45 +120,5 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
     new DeploymentResult(serverGroupNames: ["$region:$serverGroupName".toString()])
-  }
-
-  static def getNextSequence(String clusterName,
-                             String project,
-                             String region,
-                             GoogleCredentials credentials,
-                             ReplicaPoolBuilder replicaPoolBuilder) {
-    def maxSeqNumber = -1
-    def managedInstanceGroups = GCEUtil.queryManagedInstanceGroups(project,
-                                                                   region,
-                                                                   credentials,
-                                                                   replicaPoolBuilder,
-                                                                   APPLICATION_NAME)
-
-    for (def managedInstanceGroup : managedInstanceGroups) {
-      def names = Names.parseName(managedInstanceGroup.getName())
-
-      if (names.cluster == clusterName) {
-        maxSeqNumber = Math.max(maxSeqNumber, names.sequence)
-      }
-    }
-
-    String.format("%03d", ++maxSeqNumber)
-  }
-
-  static def combineAppStackDetail(String appName, String stack, String detail) {
-    NameValidation.notEmpty(appName, "appName");
-
-    // Use empty strings, not null references that output "null"
-    stack = stack != null ? stack : "";
-
-    if (detail != null && !detail.isEmpty()) {
-      return appName + "-" + stack + "-" + detail;
-    }
-
-    if (!stack.isEmpty()) {
-      return appName + "-" + stack;
-    }
-
-    return appName;
   }
 }

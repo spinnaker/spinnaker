@@ -19,12 +19,12 @@ package com.netflix.spinnaker.kato.deploy.gce.ops
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.gce.GCEUtil
 import com.netflix.spinnaker.kato.deploy.gce.description.ResizeGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   // TODO(duftler): This should move to a common location.
-  private static final String APPLICATION_NAME = "Spinnaker"
   private static final String BASE_PHASE = "RESIZE_REPLICA_POOL"
 
   private static Task getTask() {
@@ -51,7 +51,7 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
 
     replicapool.instanceGroupManagers().resize(project,
                                                description.zone,
