@@ -6,7 +6,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(function() {
     inject(function ($controller, $rootScope, accountService, orcaService, mortService, oortService, imageService, settings,
-                     searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService, $q) {
+                     searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService, serverGroupService, $q) {
 
       this.$scope = $rootScope.$new();
       this.accountService = accountService;
@@ -18,6 +18,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.instanceTypeService = instanceTypeService;
       this.modalWizardService = modalWizardService;
       this.securityGroupService = securityGroupService;
+      this.serverGroupService = serverGroupService;
       this.taskMonitorService = taskMonitorService;
       this.settings = settings;
       this.$q = $q;
@@ -36,26 +37,39 @@ describe('Controller: awsCloneServerGroup', function () {
 
     this.buildBaseClone = function() {
       return {
-        account: 'prod',
+        credentials: 'prod',
         region: 'us-west-1',
-        asg: {
-          availabilityZones: ['g','h','i'],
-          autoScalingGroupName: 'testasg-v002',
-          vpczoneIdentifier: ''
+        availabilityZones: ['g','h','i'],
+        instanceMonitoring: true,
+        securityGroups: [],
+        source: {
+          asgName: 'testasg-v002'
         },
-        launchConfig: {
+        viewState: {
+          mode: 'clone',
           imageId: 'ami-123',
-          instanceMonitoring: {
-            enabled: true
-          },
-          securityGroups: []
+          usePreferredZones: true,
         }
       };
-    }
+    };
+
+    this.buildBaseNew = function() {
+      return {
+        credentials: 'test',
+        region: 'us-east-1',
+        availabilityZones: AccountServiceFixture.regionsKeyedByAccount['test'].regions[0].availabilityZones,
+        securityGroups: [],
+        instanceMonitoring: true,
+        viewState: {
+          mode: 'create',
+          usePreferredZones: true,
+        }
+      };
+    };
   });
 
   describe('preferred zone handling', function() {
-    function initController(serverGroup) {
+    function initController(serverGroupCommand) {
       inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
@@ -70,8 +84,9 @@ describe('Controller: awsCloneServerGroup', function () {
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
           securityGroupService: this.securityGroupService,
+          serverGroupService: this.serverGroupService,
           taskMonitorService: this.taskMonitorService,
-          serverGroup: serverGroup,
+          serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
           title: 'n/a'
         });
@@ -96,46 +111,11 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
-    it('initializes to default values, setting usePreferredZone flag to true', function () {
-      var $scope = this.$scope;
-      setupMocks.bind(this).call();
-
-      initController();
-
-      $scope.$digest();
-
-      expect($scope.command.usePreferredZones).toBe(true);
-      expect($scope.command.availabilityZones).toEqual(['a', 'b', 'c']);
-    });
-
-    it('sets usePreferredZones flag based on initial value', function() {
-      var $scope = this.$scope;
-      setupMocks.bind(this).call();
-
-      var serverGroup = this.buildBaseClone();
-
-      initController(serverGroup);
-
-      $scope.$digest();
-
-      expect($scope.command.usePreferredZones).toBe(true);
-      expect($scope.command.availabilityZones).toEqual(['g', 'h', 'i']);
-
-      serverGroup.asg.availabilityZones = ['g'];
-      initController(serverGroup);
-
-      $scope.$digest();
-
-      expect($scope.command.usePreferredZones).toBe(false);
-      expect($scope.command.availabilityZones).toEqual(['g']);
-
-    });
-
     it('updates to default values when credentials changed', function() {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
@@ -149,14 +129,14 @@ describe('Controller: awsCloneServerGroup', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
       $scope.command.region = 'us-west-1';
       $scope.$digest();
 
-      expect($scope.command.usePreferredZones).toBe(true);
+      expect($scope.command.viewState.usePreferredZones).toBe(true);
       expect($scope.command.availabilityZones).toEqual(['c', 'd']);
       expect(this.wizard.markDirty.calls.count()).toBe(0);
     });
@@ -165,17 +145,17 @@ describe('Controller: awsCloneServerGroup', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
       expect($scope.command.availabilityZones).toEqual(['a','b','c']);
 
       $scope.command.region = 'us-west-1';
-      $scope.command.usePreferredZones = false;
+      $scope.command.viewState.usePreferredZones = false;
       $scope.$digest();
 
-      expect($scope.command.usePreferredZones).toBe(false);
+      expect($scope.command.viewState.usePreferredZones).toBe(false);
       expect($scope.command.availabilityZones).toEqual(['b','c']);
       expect(this.wizard.markDirty.calls.count()).toBe(1);
     });
@@ -184,31 +164,31 @@ describe('Controller: awsCloneServerGroup', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
       expect($scope.command.availabilityZones).toEqual(['a','b','c']);
-      expect($scope.command.usePreferredZones).toBe(true);
+      expect($scope.command.viewState.usePreferredZones).toBe(true);
 
-      $scope.command.usePreferredZones = false;
+      $scope.command.viewState.usePreferredZones = false;
       $scope.$digest();
 
       expect($scope.command.availabilityZones).toEqual(['a','b','c']);
-      expect($scope.command.usePreferredZones).toBe(false);
+      expect($scope.command.viewState.usePreferredZones).toBe(false);
 
       $scope.command.availabilityZones = [];
-      $scope.command.usePreferredZones = true;
+      $scope.command.viewState.usePreferredZones = true;
 
       $scope.$digest();
 
       expect($scope.command.availabilityZones).toEqual(['a','b','c']);
-      expect($scope.command.usePreferredZones).toBe(true);
+      expect($scope.command.viewState.usePreferredZones).toBe(true);
     });
   });
 
   describe('image loading', function() {
-    function initController(serverGroup) {
+    function initController(serverGroupCommand) {
       inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
@@ -224,7 +204,7 @@ describe('Controller: awsCloneServerGroup', function () {
           modalWizardService: this.modalWizardService,
           securityGroupService: this.securityGroupService,
           taskMonitorService: this.taskMonitorService,
-          serverGroup: serverGroup,
+          serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
           title: 'n/a'
         });
@@ -248,57 +228,49 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
-    it('sets state flags for imagesLoaded and queryAllImages when none found and no server group provided', function() {
+    it('sets state flags for imagesLoaded and useAllImageSelection when none found and no server group provided', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
       spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
       expect($scope.state.imagesLoaded).toBe(true);
-      expect($scope.state.queryAllImages).toBe(true);
+      expect($scope.command.viewState.useAllImageSelection).toBe(true);
     });
 
-    it('sets state flag for imagesLoaded and puts found images on scope when found', function() {
+    it('sets state flag for imagesLoaded and puts found images on scope when found', function () {
       var $scope = this.$scope,
-          regionalImages = [{amis: {'us-east-1': []}}];
+        regionalImages = [
+          {amis: {'us-east-1': []}}
+        ];
       setupMocks.bind(this).call();
 
       spyOn(this.imageService, 'findImages').and.callFake(this.resolve(regionalImages));
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
       expect($scope.state.imagesLoaded).toBe(true);
-      expect($scope.state.queryAllImages).toBe(false);
+      expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
       expect($scope.regionalImages).toEqual(regionalImages);
     });
 
-    it('queries based on existing ami when none found for the application', function() {
+    it('queries based on existing ami when none found for the application', function () {
       var context = this,
-          $scope = this.$scope,
-          amiBasedImage = {imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}},
-          packageBasedImages = [{imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}}],
-          serverGroup = {
-            launchConfig: {
-              imageId: 'ami-1234',
-              securityGroups: [],
-              instanceMonitoring: {}
-            },
-            region: 'us-east-1',
-            account: 'test',
-            asg: {
-              availabilityZones: [],
-              vpczoneIdentifier: ''
-            }
-          };
+        $scope = this.$scope,
+        amiBasedImage = {imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}},
+        packageBasedImages = [amiBasedImage],
+        serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
 
-      spyOn(this.imageService, 'findImages').and.callFake(function(query) {
+      serverGroup.region = 'us-east-1';
+
+      spyOn(this.imageService, 'findImages').and.callFake(function (query) {
         if (query === 'something') {
           return context.resolve(packageBasedImages).call();
         } else {
@@ -313,16 +285,16 @@ describe('Controller: awsCloneServerGroup', function () {
       $scope.$digest();
 
       expect($scope.state.imagesLoaded).toBe(true);
-      expect($scope.state.queryAllImages).toBe(false);
-      expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.launchConfig.imageId, serverGroup.region, serverGroup.account);
-      expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.account);
-      expect(this.imageService.findImages).toHaveBeenCalledWith('something', serverGroup.region, serverGroup.account);
+      expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
+      expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
+      expect(this.imageService.findImages).toHaveBeenCalledWith('something', serverGroup.region, serverGroup.credentials);
       expect($scope.regionalImages).toEqual(packageBasedImages);
     });
 
-    it('adds no regional images to the scope when the one provided does not match any results', function() {
+    it('adds no regional images to the scope when the one provided does not match any results', function () {
       var $scope = this.$scope,
-          serverGroup = this.buildBaseClone();
+        serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
 
       spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
@@ -333,13 +305,13 @@ describe('Controller: awsCloneServerGroup', function () {
       $scope.$digest();
 
       expect($scope.state.imagesLoaded).toBe(true);
-      expect($scope.state.queryAllImages).toBe(true);
-      expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.launchConfig.imageId, serverGroup.region, serverGroup.account);
-      expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.account);
+      expect($scope.command.viewState.useAllImageSelection).toBe(true);
+      expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
       expect($scope.regionalImages).toEqual([]);
     });
 
-    it('queries all images for ami when no regional images present', function() {
+    it('queries all images for ami when no regional images present', function () {
       var $scope = this.$scope;
 
       setupMocks.bind(this).call();
@@ -347,36 +319,12 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
       spyOn(this.imageService, 'getAmi').and.callFake(this.resolve(null));
 
-      initController();
+      initController(this.buildBaseNew());
 
       $scope.$digest();
 
       expect($scope.state.imagesLoaded).toBe(true);
-      expect(this.ctrl.useAllImageSelection()).toBe(true);
-    });
-
-    it('queries all images for ami when specified by user', function() {
-      var $scope = this.$scope;
-
-      setupMocks.bind(this).call();
-
-      spyOn(this.imageService, 'findImages').and.callFake(this.resolve([{imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}}]));
-      spyOn(this.imageService, 'getAmi').and.callFake(this.resolve(null));
-
-      initController();
-
-      $scope.$digest();
-      expect($scope.state.imagesLoaded).toBe(true);
-      expect(this.ctrl.useAllImageSelection()).toBe(false);
-
-      $scope.state.queryAllImages = true;
-      $scope.$digest();
-      expect(this.ctrl.useAllImageSelection()).toBe(true);
-
-      $scope.state.queryAllImages = false;
-      $scope.$digest();
-      expect(this.ctrl.useAllImageSelection()).toBe(false);
-
+      expect($scope.command.viewState.useAllImageSelection).toBe(true);
     });
   });
 
@@ -397,7 +345,7 @@ describe('Controller: awsCloneServerGroup', function () {
           modalWizardService: this.modalWizardService,
           securityGroupService: this.securityGroupService,
           taskMonitorService: this.taskMonitorService,
-          serverGroup: serverGroup,
+          serverGroupCommand: serverGroup,
           application: {name: 'x'},
           title: 'n/a'
         });
@@ -432,108 +380,6 @@ describe('Controller: awsCloneServerGroup', function () {
       });
 
     }
-
-    it('sets amiName from allImageSelection', function() {
-      var $scope = this.$scope;
-
-      setupMocks.bind(this).call();
-
-      initController();
-
-      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
-        method.call();
-      });
-
-      $scope.command.allImageSelection = 'something-packagebase';
-
-      this.ctrl.clone();
-      $scope.$digest();
-
-      var command = this.submitted.command;
-
-      expect(command.amiName).toBe('something-packagebase');
-
-    });
-
-    it('removes subnetType property when null', function() {
-      var $scope = this.$scope;
-
-      setupMocks.bind(this).call();
-
-      initController();
-
-      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
-        method.call();
-      });
-
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.command.subnetType).toBe(undefined);
-
-      $scope.command.subnetType = 'internal';
-
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.command.subnetType).toBe('internal');
-    });
-
-    it('sets action type and description appropriately when creating new', function() {
-      var $scope = this.$scope,
-          command = $scope.command;
-
-      setupMocks.bind(this).call();
-
-      initController();
-
-      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
-        method.call();
-      });
-
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.command.type).toBe('deploy');
-      expect(this.submitted.description).toBe('Create New Server Group in cluster x');
-
-      $scope.command.stack = 'main';
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.description).toBe('Create New Server Group in cluster x-main');
-
-      $scope.command.freeFormDetails = 'details';
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.description).toBe('Create New Server Group in cluster x-main-details');
-
-      delete $scope.command.stack;
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.description).toBe('Create New Server Group in cluster x--details');
-    });
-
-    it('sets action type and description appropriately when cloning', function() {
-      var $scope = this.$scope,
-          serverGroup = this.buildBaseClone();
-
-      setupMocks.bind(this).call();
-
-      initController(serverGroup);
-
-      spyOn(this.$scope.taskMonitor, 'submit').and.callFake(function(method) {
-        method.call();
-      });
-
-      this.ctrl.clone();
-      $scope.$digest();
-
-      expect(this.submitted.command.type).toBe('copyLastAsg');
-      expect(this.submitted.description).toBe('Create Cloned Server Group from testasg-v002');
-    });
 
     it('updates vpcId when subnetType changes, ignoring subnets without a purpose', function() {
       var $scope = this.$scope,

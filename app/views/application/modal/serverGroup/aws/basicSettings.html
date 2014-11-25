@@ -32,8 +32,8 @@
         <help-field key="aws.serverGroup.imageName"></help-field>
       </div>
       <div class="col-md-7" ng-if="!state.imagesLoaded"><h5 class="loader"> finding images...</h5></div>
-      <div class="col-md-10" ng-if="state.imagesLoaded && ctrl.useAllImageSelection()">
-        <ui-select ng-model="command.allImageSelection"
+      <div class="col-md-10" ng-if="state.imagesLoaded && command.viewState.useAllImageSelection">
+        <ui-select ng-model="command.viewState.allImageSelection"
                    class="form-control input-sm"
                    required>
           <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || $select.selected}}</ui-select-match>
@@ -48,11 +48,11 @@
           </ui-select-choices>
         </ui-select>
         <span ng-if="regionalImages.length > 0">
-          <a href ng-click="state.queryAllImages = false">Only show images matching "{{packageBase || applicationName}}"</a>
+          <a href ng-click="command.viewState.useAllImageSelection = false">Only show images matching "{{packageBase || applicationName}}"</a>
           <help-field key="aws.serverGroup.filterImages"></help-field>
         </span>
       </div>
-      <div class="col-md-10" ng-if="state.imagesLoaded && !ctrl.useAllImageSelection()">
+      <div class="col-md-10" ng-if="state.imagesLoaded && !command.viewState.useAllImageSelection">
         <ui-select ng-model="command.amiName" class="form-control input-sm" required>
           <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
           <ui-select-choices repeat="image.imageName as image in regionalImages | filter: $select.search | orderBy: '-imageName'">
@@ -60,7 +60,7 @@
             (<span ng-bind-html="image.amis[command.region][0] | highlight: $select.search"></span>)
           </ui-select-choices>
         </ui-select>
-        <a href ng-click="state.queryAllImages = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
+        <a href ng-click="command.viewState.useAllImageSelection = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
       </div>
     </div>
   </div>
