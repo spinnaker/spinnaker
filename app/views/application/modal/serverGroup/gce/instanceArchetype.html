@@ -6,7 +6,7 @@
       <h4 class="col-md-12">My application is:</h4>
     </div>
     <div class="row">
-      <div class="col-md-3 col-narrow" ng-repeat="instanceProfile in instanceProfiles">
+      <div class="col-md-4 col-narrow" ng-repeat="instanceProfile in instanceProfiles">
         <button class="panel panel-default instance-profile"
                 ng-class="{active: command.instanceProfile === instanceProfile.type}"
                 ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type, $event)">
@@ -17,7 +17,7 @@
           </div>
         </button>
       </div>
-      <div class="col-md-3 col-narrow">
+      <div class="col-md-4 col-narrow">
         <button class="panel panel-default instance-profile"
                 ng-class="{active: command.instanceProfile === 'custom'}"
                 ng-click="instanceArchetypeCtrl.selectInstanceType('custom', $event)">
