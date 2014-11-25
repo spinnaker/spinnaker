@@ -58,7 +58,7 @@ class RushConfiguration {
   }
 
   @Bean
-  RushService bakery(Endpoint rushEndpoint) {
+  RushService rushService(Endpoint rushEndpoint) {
     def gson = new GsonBuilder()
       .registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
         Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
