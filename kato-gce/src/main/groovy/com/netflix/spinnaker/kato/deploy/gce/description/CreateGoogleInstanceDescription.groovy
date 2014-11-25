@@ -20,8 +20,7 @@ import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
 class CreateGoogleInstanceDescription implements DeployDescription {
-  String application
-  String stack
+  String instanceName
   String image
   String instanceType
   String zone

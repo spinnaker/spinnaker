@@ -40,6 +40,9 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     this.replicaPoolBuilder = replicaPoolBuilder
   }
 
+  /**
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "numReplicas": 2, "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing resize of replica pool $description.replicaPoolName in $description.zone..."
