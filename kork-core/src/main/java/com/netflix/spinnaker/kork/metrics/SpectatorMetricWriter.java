@@ -25,6 +25,7 @@ import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SpectatorMetricWriter implements MetricWriter {
@@ -55,7 +56,7 @@ public class SpectatorMetricWriter implements MetricWriter {
     if (value.getName().startsWith("histogram.")) {
       registry.distributionSummary(value.getName()).record(value.getValue().longValue());
     } else if (value.getName().startsWith("timer.")) {
-      registry.longTaskTimer(value.getName()).duration(value.getValue().longValue());
+      registry.timer(value.getName()).record(value.getValue().longValue(), TimeUnit.MILLISECONDS);
     } else {
       final Id id = registry.createId(value.getName());
       final AtomicDouble gauge = getGaugeStorage(id);
