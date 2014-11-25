@@ -6,13 +6,13 @@ angular.module('deckApp')
 
     var cachedResult = null;
 
-    var m3 = {
-      type: 'M3',
-      description: 'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+    var n1standard = {
+      type: 'n1-standard',
+      description: '(TODO: UPDATE THIS DESCRIPTION) This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
-          name: 'm3.medium',
-          label: 'Medium',
+          name: 'n1-standard-1',
+          label: 'Small',
           cpu: 1,
           memory: 3.75,
           storage: {
@@ -23,8 +23,8 @@ angular.module('deckApp')
           costFactor: 1
         },
         {
-          name: 'm3.large',
-          label: 'Large',
+          name: 'n1-standard-2',
+          label: 'Medium',
           cpu: 2,
           memory: 7.5,
           storage: {
@@ -35,8 +35,8 @@ angular.module('deckApp')
           costFactor: 2
         },
         {
-          name: 'm3.xlarge',
-          label: 'XLarge',
+          name: 'n1-standard-4',
+          label: 'Large',
           cpu: 4,
           memory: 15,
           storage: {
@@ -47,10 +47,22 @@ angular.module('deckApp')
           costFactor: 2
         },
         {
-          name: 'm3.2xlarge',
-          label: '2XLarge',
+          name: 'n1-standard-8',
+          label: 'XLarge',
           cpu: 8,
           memory: 30,
+          storage: {
+            type: 'SSD',
+            size: 80,
+            count: 2
+          },
+          costFactor: 3
+        },
+        {
+          name: 'n1-standard-16',
+          label: '2XLarge',
+          cpu: 16,
+          memory: 60,
           storage: {
             type: 'SSD',
             size: 80,
@@ -61,57 +73,38 @@ angular.module('deckApp')
       ]
     };
 
-    var t2 = {
-      type: 'T2',
-      description: 'T2 instances are a good choice for workloads that don’t use the full CPU o!en or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+    var f1micro = {
+      type: 'f1-micro bursting',
+      description: '(TODO: UPDATE THIS DESCRIPTION) T2 instances are a good choice for workloads that don’t use the full CPU o!en or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
-          name: 't2.small',
-          label: 'Small',
+          name: 'f1-micro',
+          label: 'Micro',
           cpu: 1,
-          memory: 2,
+          memory: 0.60,
           storage: { type: 'EBS' },
           costFactor: 1
         },
         {
-          name: 't2.medium',
-          label: 'Medium',
-          cpu: 2,
-          memory: 4,
-          storage: { type: 'EBS' },
-          costFactor: 2
-        }
-      ]
-    };
-
-    var m3micro = {
-      type: 'M3',
-      description: 'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
-      instanceTypes: [
-        {
-          name: 'm3.medium',
-          label: 'Medium',
+          name: 'g1-small',
+          label: 'Small',
           cpu: 1,
-          memory: 3.75,
-          storage: {
-            type: 'SSD',
-            size: 4,
-            count: 1
-          },
+          memory: 1.70,
+          storage: { type: 'EBS' },
           costFactor: 1
         }
       ]
     };
 
-    var r3 = {
-      type: 'R3',
-      description: 'R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+    var n1highmem = {
+      type: 'n1-highmem',
+      description: '(TODO: UPDATE THIS DESCRIPTION) R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
       instanceTypes: [
         {
-          name: 'r3.large',
-          label: 'Large',
+          name: 'n1-highmem-2',
+          label: 'Medium',
           cpu: 2,
-          memory: 15.25,
+          memory: 13,
           storage: {
             type: 'SSD',
             size: 32,
@@ -120,10 +113,10 @@ angular.module('deckApp')
           costFactor: 1
         },
         {
-          name: 'r3.xlarge',
-          label: 'XLarge',
+          name: 'n1-highmem-4',
+          label: 'Large',
           cpu: 4,
-          memory: 30.5,
+          memory: 26,
           storage: {
             type: 'SSD',
             size: 80,
@@ -132,10 +125,10 @@ angular.module('deckApp')
           costFactor: 2
         },
         {
-          name: 'r3.2xlarge',
-          label: '2XLarge',
+          name: 'n1-highmem-8',
+          label: 'XLarge',
           cpu: 8,
-          memory: 61,
+          memory: 52,
           storage: {
             type: 'SSD',
             size: 160,
@@ -144,10 +137,65 @@ angular.module('deckApp')
           costFactor: 3
         },
         {
-          name: 'r3.4xlarge',
-          label: '4XLarge',
+          name: 'n1-highmem-16',
+          label: '2XLarge',
           cpu: 16,
-          memory: 122,
+          memory: 104,
+          storage: {
+            type: 'SSD',
+            size: 320,
+            count: 1
+          },
+          costFactor: 4
+        }
+      ]
+    };
+
+    var n1highcpu = {
+      type: 'n1-highcpu',
+      description: '(TODO: UPDATE THIS DESCRIPTION AND INCLUDE THIS GROUP IN UI AS A CHOICE) R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+      instanceTypes: [
+        {
+          name: 'n1-highcpu-2',
+          label: 'Medium',
+          cpu: 2,
+          memory: 1.80,
+          storage: {
+            type: 'SSD',
+            size: 32,
+            count: 1
+          },
+          costFactor: 1
+        },
+        {
+          name: 'n1-highcpu-4',
+          label: 'Large',
+          cpu: 4,
+          memory: 3.60,
+          storage: {
+            type: 'SSD',
+            size: 80,
+            count: 1
+          },
+          costFactor: 2
+        },
+        {
+          name: 'n1-highcpu-8',
+          label: 'XLarge',
+          cpu: 8,
+          memory: 7.20,
+          storage: {
+            type: 'SSD',
+            size: 160,
+            count: 1
+          },
+          costFactor: 3
+        },
+        {
+          name: 'n1-highcpu-16',
+          label: '2XLarge',
+          cpu: 16,
+          memory: 14.4,
           storage: {
             type: 'SSD',
             size: 320,
@@ -161,18 +209,18 @@ angular.module('deckApp')
     var categories = [
       {
         type: 'general',
-        label: '(GCE) General Purpose',
-        families: [ m3 ]
+        label: 'General Purpose',
+        families: [ n1standard ]
       },
       {
         type: 'memory',
-        label: '(GCE) High Memory',
-        families: [ r3 ]
+        label: 'High Memory',
+        families: [ n1highmem ]
       },
       {
         type: 'micro',
-        label: '(GCE) Micro Utility',
-        families: [t2, m3micro]
+        label: 'Micro Utility',
+        families: [f1micro]
       }
     ];
 

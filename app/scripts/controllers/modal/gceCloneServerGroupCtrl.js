@@ -388,8 +388,6 @@ angular.module('deckApp.gce')
         };
       } else {
         command.type = 'deploy';
-        // TODO(duftler): This value should come from the choice made on the Instance Profile page (and that page should first be made Google-specific).
-        command.instanceType = 'f1-micro';
         command.providerType = $scope.command.selectedProvider;
         var asgName = application.name;
         if (command.stack) {
