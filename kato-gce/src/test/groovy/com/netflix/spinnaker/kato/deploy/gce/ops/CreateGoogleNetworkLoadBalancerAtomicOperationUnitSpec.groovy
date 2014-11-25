@@ -19,15 +19,15 @@ package com.netflix.spinnaker.kato.deploy.gce.ops
 import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLBDescription
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CreateGoogleNetworkLBAtomicOperationUnitSpec extends Specification {
+class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final NETWORK_LB_NAME = "default"
+  private static final NETWORK_LOAD_BALANCER_NAME = "default"
   private static final ZONE = "us-central1-b"
   private static final REGION = "us-central1"
   private static final HEALTH_CHECK_PORT = 80
@@ -51,15 +51,15 @@ class CreateGoogleNetworkLBAtomicOperationUnitSpec extends Specification {
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new com.google.api.services.compute.model.Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new CreateGoogleNetworkLBDescription(
-          networkLBName: NETWORK_LB_NAME,
+      def description = new CreateGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           healthCheck: [port: HEALTH_CHECK_PORT],
           instances: [INSTANCE],
           ipAddress: IP_ADDRESS,
           zone: ZONE,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
-      @Subject def operation = new CreateGoogleNetworkLBAtomicOperation(description)
+      @Subject def operation = new CreateGoogleNetworkLoadBalancerAtomicOperation(description)
 
     when:
       operation.operate([])
@@ -90,12 +90,12 @@ class CreateGoogleNetworkLBAtomicOperationUnitSpec extends Specification {
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new com.google.api.services.compute.model.Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new CreateGoogleNetworkLBDescription(
-          networkLBName: NETWORK_LB_NAME,
+      def description = new CreateGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           zone: ZONE,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
-      @Subject def operation = new CreateGoogleNetworkLBAtomicOperation(description)
+      @Subject def operation = new CreateGoogleNetworkLoadBalancerAtomicOperation(description)
 
     when:
       operation.operate([])

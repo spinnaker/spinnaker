@@ -18,14 +18,14 @@ package com.netflix.spinnaker.kato.deploy.gce.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLBDescription
-import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleNetworkLBAtomicOperation
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.security.gce.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateGoogleNetworkLBAtomicOperationConverterUnitSpec extends Specification {
-  private static final NETWORK_LB_NAME = "spinnaker-test-v000"
+class CreateGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
+  private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
   private static final CHECK_INTERVAL_SEC = 7
@@ -37,20 +37,20 @@ class CreateGoogleNetworkLBAtomicOperationConverterUnitSpec extends Specificatio
   ObjectMapper mapper = new ObjectMapper()
 
   @Shared
-  CreateGoogleNetworkLBAtomicOperationConverter converter
+  CreateGoogleNetworkLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new CreateGoogleNetworkLBAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new CreateGoogleNetworkLoadBalancerAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
     converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
-  void "createGoogleNetworkLBDescription type returns CreateGoogleNetworkLBDescription and CreateGoogleNetworkLBAtomicOperation"() {
+  void "createGoogleNetworkLoadBalancerDescription type returns CreateGoogleNetworkLoadBalancerDescription and CreateGoogleNetworkLoadBalancerAtomicOperation"() {
     setup:
       def input = [
-          networkLBName: NETWORK_LB_NAME,
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           zone: ZONE,
           accountName: ACCOUNT_NAME,
           healthCheck: [checkIntervalSec: CHECK_INTERVAL_SEC],
@@ -63,8 +63,8 @@ class CreateGoogleNetworkLBAtomicOperationConverterUnitSpec extends Specificatio
       def description = converter.convertDescription(input)
 
     then:
-      description instanceof CreateGoogleNetworkLBDescription
-      description.networkLBName == NETWORK_LB_NAME
+      description instanceof CreateGoogleNetworkLoadBalancerDescription
+      description.networkLoadBalancerName == NETWORK_LOAD_BALANCER_NAME
       description.healthCheck.checkIntervalSec == 7
       description.healthCheck.timeoutSec == null
       description.instances.size() == 1
@@ -76,6 +76,6 @@ class CreateGoogleNetworkLBAtomicOperationConverterUnitSpec extends Specificatio
       def operation = converter.convertOperation(input)
 
     then:
-      operation instanceof CreateGoogleNetworkLBAtomicOperation
+      operation instanceof CreateGoogleNetworkLoadBalancerAtomicOperation
   }
 }

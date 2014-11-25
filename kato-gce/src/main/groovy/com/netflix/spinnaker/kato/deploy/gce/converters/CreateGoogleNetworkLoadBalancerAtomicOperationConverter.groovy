@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.kato.deploy.gce.converters
 
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLBDescription
-import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleNetworkLBAtomicOperation
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.deploy.gce.ops.CreateGoogleNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("createGoogleNetworkLBDescription")
-class CreateGoogleNetworkLBAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("createGoogleNetworkLoadBalancerDescription")
+class CreateGoogleNetworkLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new CreateGoogleNetworkLBAtomicOperation(convertDescription(input))
+    new CreateGoogleNetworkLoadBalancerAtomicOperation(convertDescription(input))
   }
 
-  CreateGoogleNetworkLBDescription convertDescription(Map input) {
-    GoogleAtomicOperationConverterHelper.convertDescription(input, this, CreateGoogleNetworkLBDescription)
+  CreateGoogleNetworkLoadBalancerDescription convertDescription(Map input) {
+    GoogleAtomicOperationConverterHelper.convertDescription(input, this, CreateGoogleNetworkLoadBalancerDescription)
   }
 }

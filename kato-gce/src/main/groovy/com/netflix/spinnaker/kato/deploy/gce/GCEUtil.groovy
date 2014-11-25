@@ -21,7 +21,7 @@ import com.google.api.services.compute.model.*
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLBDescription
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 
@@ -129,7 +129,7 @@ class GCEUtil {
     return urlParts[urlParts.length - 1]
   }
 
-  static def buildHttpHealthCheck(String name, CreateGoogleNetworkLBDescription.HealthCheck healthCheckDescription) {
+  static def buildHttpHealthCheck(String name, CreateGoogleNetworkLoadBalancerDescription.HealthCheck healthCheckDescription) {
     return new HttpHealthCheck(
         name: name,
         checkIntervalSec: healthCheckDescription.checkIntervalSec,

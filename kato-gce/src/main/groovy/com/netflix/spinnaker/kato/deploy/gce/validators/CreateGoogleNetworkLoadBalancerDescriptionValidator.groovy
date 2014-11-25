@@ -18,39 +18,41 @@ package com.netflix.spinnaker.kato.deploy.gce.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLBDescription
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("createGoogleNetworkLBDescriptionValidator")
-class CreateGoogleNetworkLBDescriptionValidator extends DescriptionValidator<CreateGoogleNetworkLBDescription> {
+@Component("createGoogleNetworkLoadBalancerDescriptionValidator")
+class CreateGoogleNetworkLoadBalancerDescriptionValidator extends
+    DescriptionValidator<CreateGoogleNetworkLoadBalancerDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, CreateGoogleNetworkLBDescription description, Errors errors) {
+  void validate(List priorDescriptions, CreateGoogleNetworkLoadBalancerDescription description, Errors errors) {
     def credentials = null
 
     // TODO(duftler): Once we're happy with this routine, move it to a common base class.
     if (!description.accountName) {
-      errors.rejectValue "credentials", "createGoogleNetworkLBDescription.credentials.empty"
+      errors.rejectValue "credentials", "createGoogleNetworkLoadBalancerDescription.credentials.empty"
     } else {
       credentials = accountCredentialsProvider.getCredentials(description.accountName)
 
       if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "createGoogleNetworkLBDescription.credentials.invalid")
+        errors.rejectValue("credentials", "createGoogleNetworkLoadBalancerDescription.credentials.invalid")
       }
     }
 
-    if (!description.networkLBName) {
-      errors.rejectValue "networkLBName", "createGoogleNetworkLBDescription.networkLBName.empty"
+    if (!description.networkLoadBalancerName) {
+      errors.rejectValue("networkLoadBalancerName",
+          "createGoogleNetworkLoadBalancerDescription.networkLoadBalancerName.empty")
     }
 
     // TODO(duftler): Also validate against set of supported GCE zones.
     if (!description.zone) {
-      errors.rejectValue "zone", "createGoogleNetworkLBDescription.zone.empty"
+      errors.rejectValue "zone", "createGoogleNetworkLoadBalancerDescription.zone.empty"
     }
   }
 }
