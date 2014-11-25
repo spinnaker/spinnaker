@@ -25,8 +25,7 @@ class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   }
 
   @Override
-  protected boolean hasSucceeded(List instances) {
-    // By here, we will have already passed the minSize > # instances check in the super class
-    true
+  protected boolean hasSucceeded(Map asg, List instances) {
+    asg.desiredCapacity == instances.size()
   }
 }
