@@ -265,7 +265,6 @@ angular.module('deckApp.gce')
           'desired': serverGroup.asg.desiredCapacity
         },
         'allImageSelection': null,
-        'instanceProfile': 'custom'
       };
       if (serverGroup.launchConfig) {
         var amiName = null;
@@ -285,6 +284,7 @@ angular.module('deckApp.gce')
           'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
           'amiName': amiName
         });
+        determineInstanceCategoryFromInstanceType(command);
       }
       command.subnetType = '';
       command.vpcId = null;
@@ -332,6 +332,23 @@ angular.module('deckApp.gce')
       // Would be cleaner to change that logic in orca to expect providerType and always identify stages using that
       // parameter. Then we could change this to providerType.
       $scope.command.selectedProvider = 'gce';
+    }
+
+    // Two assumptions here:
+    //   1) All GCE machine types are represented in the tree of choices.
+    //   2) Each machine type appears in exactly one category.
+    function determineInstanceCategoryFromInstanceType(command) {
+      instanceTypeService.getCategories('gce').then(function(categories) {
+        categories.forEach(function(category) {
+          category.families.forEach(function(family) {
+            family.instanceTypes.forEach(function(instanceType) {
+              if (instanceType.name === command.instanceType) {
+                command.instanceProfile = category.type;
+              }
+            });
+          });
+        });
+      });
     }
 
     this.isValid = function () {
