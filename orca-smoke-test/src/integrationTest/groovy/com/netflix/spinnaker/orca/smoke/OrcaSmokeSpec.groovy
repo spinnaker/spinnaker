@@ -47,14 +47,20 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipelineObservable = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
+    def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:
-    with(pipelineObservable.toBlocking().first()) {
-      with(jobExplorer.getJobExecution(id.toLong())) {
-        status == BatchStatus.COMPLETED
-        exitStatus == ExitStatus.COMPLETED
-      }
+    jobExplorer.getJobInstanceCount(jobName) == 1
+
+    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
+    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+
+    jobExecutions.size == 1
+
+    with (jobExecutions[0]) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
     }
 
     where:
@@ -62,6 +68,7 @@ class OrcaSmokeSpec extends Specification {
     region = "us-west-1"
     config = [
       application: app,
+      name       : "my-pipeline",
       stages     : [
         [
           type     : "bake",
@@ -89,19 +96,26 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipelineObservable = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
+    def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:
-    with(pipelineObservable.toBlocking().first()) {
-      with(jobExplorer.getJobExecution(id.toLong())) {
-        status == BatchStatus.COMPLETED
-        exitStatus == ExitStatus.COMPLETED
-      }
+    jobExplorer.getJobInstanceCount(jobName) == 1
+
+    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
+    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+
+    jobExecutions.size == 1
+
+    with (jobExecutions[0]) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
     }
 
     where:
     config = [
       application: "mimirdemo",
+      name       : "my-pipeline",
       stages     : [
         [
           type             : "copyLastAsg",

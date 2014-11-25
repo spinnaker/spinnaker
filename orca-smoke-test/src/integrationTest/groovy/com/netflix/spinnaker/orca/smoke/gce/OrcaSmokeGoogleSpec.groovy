@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.smoke.OrcaSmokeUtils
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Requires
+import spock.lang.Shared
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.net.Network.isReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
@@ -41,10 +43,14 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeGoogleSpec extends Specification {
 
+  @Shared String applicationName
+
   def setupSpec() {
     System.setProperty("kato.baseUrl", "http://localhost:8501")
     System.setProperty("oort.baseUrl", "http://localhost:8081")
     System.setProperty("front50.baseUrl", "http://localhost:8080")
+
+    applicationName = "googletest${System.currentTimeMillis()}"
   }
 
   @Autowired PipelineStarter jobStarter
@@ -55,26 +61,33 @@ class OrcaSmokeGoogleSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipelineObservable = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
+    def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:
-    with(pipelineObservable.toBlocking().first()) {
-      with(jobExplorer.getJobExecution(id.toLong())) {
-        status == BatchStatus.COMPLETED
-        exitStatus == ExitStatus.COMPLETED
-      }
+    jobExplorer.getJobInstanceCount(jobName) == 1
+
+    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
+    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+
+    jobExecutions.size == 1
+
+    with (jobExecutions[0]) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
     }
 
     where:
     config = [
-      application: "googletest",
+      application: applicationName,
+      name       : "my-pipeline",
       stages     : [
         [
           type         : "createApplication",
           account      : "my-account-name",
           application  :
             [
-              name        : "googletest",
+              name        : applicationName,
               description : "A test Google application.",
               email       : "some-email-addr@gmail.com",
               pdApiKey    : "Some pager key."
@@ -89,19 +102,26 @@ class OrcaSmokeGoogleSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipelineObservable = jobStarter.start(configJson)
+    def pipeline = jobStarter.start(configJson)
+    def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:
-    with(pipelineObservable.toBlocking().first()) {
-      with(jobExplorer.getJobExecution(id.toLong())) {
-        status == BatchStatus.COMPLETED
-        exitStatus == ExitStatus.COMPLETED
-      }
+    jobExplorer.getJobInstanceCount(jobName) == 1
+
+    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
+    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+
+    jobExecutions.size == 1
+
+    with (jobExecutions[0]) {
+      status == BatchStatus.COMPLETED
+      exitStatus == ExitStatus.COMPLETED
     }
 
     where:
     config = [
-      application: "googletest",
+      application: applicationName,
+      name       : "my-pipeline",
       stages     : [
         [
           type         : "deploy",
@@ -110,7 +130,7 @@ class OrcaSmokeGoogleSpec extends Specification {
           image        : "debian-7-wheezy-v20141021",
           instanceType : "f1-micro",
           capacity     : [ desired : 2 ],
-          application  : "googletest",
+          application  : applicationName,
           stack        : "test",
           credentials  : "my-account-name",
           user         : "smoke-test-user",
