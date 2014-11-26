@@ -1,6 +1,6 @@
 versions:
   springBoot: "1.1.9.RELEASE"
-  kork: "1.24"
+  kork: "1.25"
   groovy: "2.3.7"
   astyanax: "2.0.2"
   rxJava: "0.20.4"
@@ -18,6 +18,7 @@ versions:
   jedis: "2.6.0"
   guava: "18.0"
   slf4j: "1.7.7"
+  spectator: "0.14.2"
   okHttp: "2.1.0"
   objenesis: "2.1"
   googleCompute: "v1-rev40-1.19.0"
@@ -96,6 +97,7 @@ dependencies:
   astyanaxCassandra: "com.netflix.astyanax:astyanax-cassandra:${versions.astyanax}"
   astyanaxThrift: "com.netflix.astyanax:astyanax-thrift:${versions.astyanax}"
   rxJava: "com.netflix.rxjava:rxjava-core:${versions.rxJava}"
+  spectatorApi: "com.netflix.spectator:spectator-api:${versions.spectator}"
   spock: "org.spockframework:spock-core:${versions.spock}"
   spockSpring: "org.spockframework:spock-spring:${versions.spock}"
   batch: "org.springframework.batch:spring-batch-core:${versions.batch}"
