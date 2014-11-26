@@ -250,10 +250,17 @@ angular.module('deckApp.aws')
 
     function configureImages() {
       if ($scope.command.region) {
-        $scope.regionalImages = $scope.packageImages.filter(function(image) { return image.amis && image.amis[$scope.command.region]; });
-        if ($scope.command.amiName &&
-            !$scope.regionalImages.some(function(image) { return image.imageName === $scope.command.amiName; } )) {
-              $scope.command.amiName = null;
+        $scope.regionalImages = $scope.packageImages.
+          filter(function (image) {
+            return image.amis && image.amis[$scope.command.region];
+          }).
+          map(function (image) {
+            return { imageName: image.imageName, ami: image.amis ? image.amis[$scope.command.region][0] : null }
+          });
+        if ($scope.command.amiName && !$scope.regionalImages.some(function (image) {
+          return image.imageName === $scope.command.amiName;
+        })) {
+          $scope.command.amiName = null;
         }
       } else {
         $scope.regionalImages = null;

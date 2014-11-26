@@ -245,7 +245,7 @@ describe('Controller: awsCloneServerGroup', function () {
     it('sets state flag for imagesLoaded and puts found images on scope when found', function () {
       var $scope = this.$scope,
         regionalImages = [
-          {amis: {'us-east-1': []}}
+          {imageName: 'someImage', amis: {'us-east-1': ['ami-1']}}
         ];
       setupMocks.bind(this).call();
 
@@ -257,7 +257,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
-      expect($scope.regionalImages).toEqual(regionalImages);
+      expect($scope.regionalImages.length).toBe(1);
+      expect($scope.regionalImages[0]).toEqual({imageName: 'someImage', ami: 'ami-1'});
     });
 
     it('queries based on existing ami when none found for the application', function () {
@@ -289,7 +290,8 @@ describe('Controller: awsCloneServerGroup', function () {
       expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
       expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
       expect(this.imageService.findImages).toHaveBeenCalledWith('something', serverGroup.region, serverGroup.credentials);
-      expect($scope.regionalImages).toEqual(packageBasedImages);
+      expect($scope.regionalImages.length).toBe(1);
+      expect($scope.regionalImages[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});
     });
 
     it('adds no regional images to the scope when the one provided does not match any results', function () {
