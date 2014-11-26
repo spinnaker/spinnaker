@@ -103,6 +103,11 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                                 instanceGroupManager.name).queue(resourceViewsBatch,
                                                                                  resourceViewsCallback)
 
+        def localInstanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
+        def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup)
+        compute.instanceTemplates().get(project,
+                                        localInstanceTemplateName).queue(resourceViewsBatch,
+                                                                         instanceTemplatesCallback)
 
         // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
         googleServerGroup.setProperty("asg", [minSize        : instanceGroupManager.targetSize,
