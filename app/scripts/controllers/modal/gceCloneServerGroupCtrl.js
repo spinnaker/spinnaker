@@ -3,9 +3,9 @@
 
 angular.module('deckApp.gce')
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
-                                                  accountService, orcaService, mortService, oortService, searchService,
+                                                  accountService, orcaService, mortService, oortService,
                                                   instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
-                                                  serverGroup, application, title) {
+                                                  serverGroupCommand, application, title) {
     $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
@@ -14,7 +14,7 @@ angular.module('deckApp.gce')
 
     $scope.state = {
       loaded: false,
-      queryAllImages: false
+      imagesLoaded: false
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -44,28 +44,12 @@ angular.module('deckApp.gce')
       $scope.subnets = subnets;
     });
 
-    var imageLoader = searchService.search('oort', {q: application.name, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
-      $scope.packageImages = searchResults.results;
-      if ($scope.packageImages.length === 0) {
-        if (serverGroup) {
-          searchService.search('oort', {q: serverGroup.launchConfig.imageId, type: 'namedImages'}).then(function (searchResults) {
-            if (searchResults.results.length > 0) {
-              var packageRegex = /(\w+)-?\w+/;
-              $scope.imageName = searchResults.results[0].imageName;
-              var match = packageRegex.exec($scope.imageName);
-              $scope.applicationName = match[1];
-              searchService.search('oort', {q: $scope.applicationName, type: 'namedImages', pageSize: 100000000}).then(function(searchResults) {
-                $scope.packageImages = searchResults.results;
-              });
-            }
-          });
-        } else {
-          $scope.state.queryAllImages = true;
-        }
-      }
-    });
+    $scope.command = serverGroupCommand;
 
-    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
+    // TODO(duftler): Populate images dynamically instead of using hard-coded list.
+    //var imageLoader = imageService.findImages(application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {...}
+
+    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
       initializeWizardState();
@@ -74,7 +58,7 @@ angular.module('deckApp.gce')
     });
 
     function initializeWizardState() {
-      if (serverGroup) {
+      if (serverGroupCommand.viewState.mode === 'clone') {
         modalWizardService.getWizard().markComplete('location');
         modalWizardService.getWizard().markComplete('load-balancers');
         modalWizardService.getWizard().markComplete('security-groups');
@@ -139,7 +123,7 @@ angular.module('deckApp.gce')
       if (true) { return; }
 
       var subnet = _($scope.subnets)
-        .find({'purpose': $scope.command.subnetType, 'account': $scope.command.credentials, 'region': $scope.command.region});
+        .find({purpose: $scope.command.subnetType, account: $scope.command.credentials, region: $scope.command.region});
       $scope.command.vpcId = subnet ? subnet.vpcId : null;
       configureSecurityGroupOptions();
       configureLoadBalancerOptions();
@@ -147,7 +131,7 @@ angular.module('deckApp.gce')
 
     function configureAvailabilityZones() {
       $scope.regionalAvailabilityZones = _.find($scope.regionsKeyedByAccount[$scope.command.credentials].regions,
-        {'name': $scope.command.region}).availabilityZones;
+        {name: $scope.command.region}).availabilityZones;
     }
 
     function configureSubnetPurposes() {
@@ -157,7 +141,7 @@ angular.module('deckApp.gce')
         $scope.regionSubnetPurposes = null;
       }
       $scope.regionSubnetPurposes = _($scope.subnets)
-        .filter({'account': $scope.command.credentials, 'region': $scope.command.region, 'target': 'ec2'})
+        .filter({account: $scope.command.credentials, region: $scope.command.region, target: 'ec2'})
         .pluck('purpose')
         .uniq()
         .map(function(purpose) { return { purpose: purpose, label: purpose };})
@@ -168,7 +152,7 @@ angular.module('deckApp.gce')
       if (true) { return; }
 
       var newRegionalSecurityGroups = _($scope.securityGroups[$scope.command.credentials].aws[$scope.command.region])
-        .filter({'vpcId': $scope.command.vpcId || null})
+        .filter({vpcId: $scope.command.vpcId || null})
         .valueOf();
       if ($scope.regionalSecurityGroups && $scope.command.securityGroups) {
         var previousCount = $scope.command.securityGroups.length;
@@ -196,15 +180,15 @@ angular.module('deckApp.gce')
       var newLoadBalancers = _($scope.loadBalancers)
         .pluck('accounts')
         .flatten(true)
-        .filter({'name': $scope.command.credentials})
+        .filter({name: $scope.command.credentials})
         .pluck('regions')
         .flatten(true)
-        .filter({'name': $scope.command.region})
+        .filter({name: $scope.command.region})
         .pluck('loadBalancers')
         .flatten(true)
         .pluck('elb')
         .remove(undefined)
-        .filter({'vpcid': $scope.command.vpcId})
+        .filter({vpcid: $scope.command.vpcId})
         .pluck('loadBalancerName')
         .unique()
         .valueOf();
@@ -322,35 +306,12 @@ angular.module('deckApp.gce')
     }
 
     function initializeCommand() {
-      if (serverGroup) {
-        $scope.command = buildCommandFromExisting(serverGroup);
-      } else {
-        $scope.command = createCommandTemplate();
+      if (serverGroupCommand.viewState.imageId) {
+        serverGroupCommand.image = serverGroupCommand.viewState.imageId;
       }
-
-      // If we used the attribute name 'providerType' it would trigger the stage-decorating logic in orca.
-      // Would be cleaner to change that logic in orca to expect providerType and always identify stages using that
-      // parameter. Then we could change this to providerType.
-      $scope.command.selectedProvider = 'gce';
     }
 
-    // Two assumptions here:
-    //   1) All GCE machine types are represented in the tree of choices.
-    //   2) Each machine type appears in exactly one category.
-    function determineInstanceCategoryFromInstanceType(command) {
-      instanceTypeService.getCategories('gce').then(function(categories) {
-        categories.forEach(function(category) {
-          category.families.forEach(function(family) {
-            family.instanceTypes.forEach(function(instanceType) {
-              if (instanceType.name === command.instanceType) {
-                command.instanceProfile = category.type;
-              }
-            });
-          });
-        });
-      });
-    }
-
+    // TODO(duftler): Update this to reflect current fields defined on dialog.
     this.isValid = function () {
       return $scope.command && ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
@@ -390,45 +351,9 @@ angular.module('deckApp.gce')
     };
 
     this.clone = function () {
-
-      var command = angular.copy($scope.command);
-      var description;
-      if (serverGroup) {
-        description = 'Create Cloned Server Group from ' + serverGroup.name;
-        command.type = 'copyLastAsg';
-        command.providerType = $scope.command.selectedProvider;
-        command.source = {
-          'account': serverGroup.account,
-          'region': serverGroup.region,
-          'zone': serverGroup.zones[0],
-          'serverGroupName': serverGroup.name
-        };
-      } else {
-        command.type = 'deploy';
-        command.providerType = $scope.command.selectedProvider;
-        var asgName = application.name;
-        if (command.stack) {
-          asgName += '-' + command.stack;
-        }
-        if (!command.stack && command.freeFormDetails) {
-          asgName += '-';
-        }
-        if (command.freeFormDetails) {
-          asgName += '-' + command.freeFormDetails;
-        }
-        description = 'Create New Server Group in cluster ' + asgName;
-      }
-      command.availabilityZones = {};
-      command.availabilityZones[command.region] = $scope.command.availabilityZones;
-      delete command.region;
-      delete command.allImageSelection;
-      delete command.selectedProvider;
-      delete command.instanceProfile;
-      delete command.vpcId;
-
       $scope.taskMonitor.submit(
         function() {
-          return orcaService.cloneServerGroup(command, application.name, description);
+          return orcaService.cloneServerGroup($scope.command, application.name);
         }
       );
     };

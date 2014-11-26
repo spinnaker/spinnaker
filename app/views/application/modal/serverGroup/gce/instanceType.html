@@ -44,7 +44,7 @@
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
                    submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
     <button class="btn btn-primary"
-            ng-disabled="!command.instanceProfile || form.$invalid"
+            ng-disabled="!command.viewState.instanceProfile || form.$invalid"
             ng-click="wizard.nextPage(form.$valid)">
       Next <span class="glyphicon glyphicon-chevron-right"></span>
     </button>
