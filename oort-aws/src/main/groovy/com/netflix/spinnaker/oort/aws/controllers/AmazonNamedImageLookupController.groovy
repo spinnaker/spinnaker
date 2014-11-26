@@ -62,15 +62,16 @@ class AmazonNamedImageLookupController {
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<NamedImage> list(LookupOptions lookupOptions) {
-    if (lookupOptions.imageName == null || lookupOptions.imageName.length() < MIN_NAME_FILTER) {
+    if (lookupOptions.q == null || lookupOptions.q.length() < MIN_NAME_FILTER) {
       throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
     }
 
-    Collection<String> identifiers = cacheView.getIdentifiers(NAMED_IMAGES.ns)
-    Collection<String> filtered = identifiers.findAll {
+    Collection<String> namedImageIdentifiers = cacheView.getIdentifiers(NAMED_IMAGES.ns)
+    Collection<String> imageIdentifiers = cacheView.getIdentifiers(IMAGES.ns)
+    Collection<String> namedFiltered = namedImageIdentifiers.findAll {
       def parts = Keys.parse(it)
-      if (lookupOptions.imageName) {
-        if (parts.imageName.indexOf(lookupOptions.imageName) == -1) {
+      if (lookupOptions.q) {
+        if (parts.imageName.indexOf(lookupOptions.q) == -1) {
           return false
         }
       }
@@ -84,13 +85,32 @@ class AmazonNamedImageLookupController {
       true
     }
 
-    Collection<CacheData> namedImages = cacheView.getAll(NAMED_IMAGES.ns, filtered)
+    Collection<String> imageFiltered = imageIdentifiers.findAll {
+      def parts = Keys.parse(it)
+      if (lookupOptions.q) {
+        if (parts.imageId.indexOf(lookupOptions.q) == -1) {
+          return false
+        }
+      }
 
-    render(namedImages, lookupOptions.imageName, lookupOptions.region)
+      if (lookupOptions.account) {
+        if (parts.account != lookupOptions.account) {
+          return false
+        }
+      }
+
+      true
+    }
+
+    Collection<CacheData> matchesByName = cacheView.getAll(NAMED_IMAGES.ns, namedFiltered)
+
+    Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageFiltered)
+
+    render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region)
   }
 
-  private List<NamedImage> render(Collection<CacheData> namedImages, String requestedName = null, String requiredRegion = null) {
-    if (!namedImages) {
+  private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, String requestedName = null, String requiredRegion = null) {
+    if (!namedImages && !images) {
       throw new ImageNotFoundException('Not found')
     }
     Map<String, NamedImage> byImageName = [:].withDefault { new NamedImage(imageName: it) }
@@ -102,6 +122,14 @@ class AmazonNamedImageLookupController {
         Map<String, String> imageParts = Keys.parse(imageKey)
         thisImage.amis[imageParts.region].add(imageParts.imageId)
       }
+    }
+
+    for (CacheData data : images ) {
+      Map<String, String> amiKeyParts = Keys.parse(data.id)
+      Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
+      NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
+      thisImage.accounts.add(namedImageKeyParts.account)
+      thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
     }
 
     List<NamedImage> results = byImageName.values().findAll { requiredRegion ? it.amis.containsKey(requiredRegion) : true }
@@ -143,7 +171,7 @@ class AmazonNamedImageLookupController {
   }
 
   private static class LookupOptions {
-    String imageName
+    String q
     String account
     String region
   }
