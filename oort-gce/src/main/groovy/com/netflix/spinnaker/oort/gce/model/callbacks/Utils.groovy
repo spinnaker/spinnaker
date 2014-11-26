@@ -23,11 +23,11 @@ class Utils {
 
   private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 
-  private static long getTimeFromTimestamp(String timestamp) {
+  static long getTimeFromTimestamp(String timestamp) {
     return simpleDateFormat.parse(timestamp).getTime()
   }
 
-  private static String getLocalName(String fullUrl) {
+  static String getLocalName(String fullUrl) {
     int lastIndex = fullUrl.lastIndexOf('/')
 
     return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl

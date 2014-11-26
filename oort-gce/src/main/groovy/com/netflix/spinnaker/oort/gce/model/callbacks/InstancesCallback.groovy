@@ -45,8 +45,9 @@ class InstancesCallback<Instance> extends JsonBatchCallback<Instance> {
     boolean instanceIsHealthy = instance.status == "RUNNING"
 
     // Use earliest replica launchTime as createdTime of instance group for now.
-    def earliestReplicaTimestamp = Math.min(googleServerGroup.getProperty("launchConfig").createdTime, instanceTimestamp)
-    googleServerGroup.setProperty("launchConfig", [createdTime: earliestReplicaTimestamp])
+    def launchConfig = googleServerGroup.getProperty("launchConfig")
+    def earliestReplicaTimestamp = Math.min(launchConfig.createdTime, instanceTimestamp)
+    launchConfig.createdTime = earliestReplicaTimestamp
 
     def googleInstance = new GoogleInstance(instance.name)
     googleInstance.setProperty("isHealthy", instanceIsHealthy)
@@ -58,8 +59,6 @@ class InstancesCallback<Instance> extends JsonBatchCallback<Instance> {
     googleInstance.setProperty("health", [[type : "GCE",
                                            state: instanceIsHealthy ? "Up" : "Down"]])
     googleServerGroup.instances << googleInstance
-
-    googleServerGroup.launchConfig.instanceType = googleInstance.instanceType
   }
 
   @Override
