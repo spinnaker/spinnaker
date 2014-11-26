@@ -2,9 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('awsInstanceTypeService', function ($http, $q, settings, _, $window) {
-
-    var cachedResult = null;
+  .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular) {
 
     var m3 = {
       type: 'M3',
@@ -182,34 +180,16 @@ angular.module('deckApp')
 
     function getAllTypesByRegion() {
 
-      // TODO: This mostly goes away when we serve up instance types via mort
-      if (cachedResult) {
-        return $q.when(cachedResult);
-      }
+      var instanceTypesEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
+        RestangularConfigurer.setBaseUrl(settings.gateUrl);
+        RestangularConfigurer.setDefaultHttpFields({cache: true});
+      });
 
       var deferred = $q.defer();
 
-      $window.callback = function(data) {
-        var regions = data.config.regions;
-        var typesByRegion = [];
-        regions.forEach(function(region) {
-          var sizes = [];
-          region.instanceTypes.forEach(function(instanceType) {
-            instanceType.sizes.forEach(function(size) {
-              sizes.push(size.size);
-            });
-          });
-          var regionName = region.region;
-          if (regionName.search(/-[1-9]/) === -1) {
-            regionName = regionName + '-1';
-          }
-          typesByRegion.push({region: regionName, sizes: sizes});
-        });
-        cachedResult = typesByRegion;
-        deferred.resolve(typesByRegion);
-      };
-
-      $http.jsonp('http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js');
+      instanceTypesEndpoint.all('instanceTypes').getList().then(function (types) {
+        deferred.resolve(_.groupBy(types, 'region'));
+      });
 
       return deferred.promise;
 
@@ -217,18 +197,19 @@ angular.module('deckApp')
 
     function getAvailableTypesForRegions(selectedRegions) {
       selectedRegions = selectedRegions || [];
-      return getAllTypesByRegion().then(function(availableRegions) {
+      return getAllTypesByRegion().then(function (availableRegions) {
         var availableTypes = [];
 
-        var regions = availableRegions.filter(function(region) {
-          return selectedRegions.indexOf(region.region) !== -1;
-        });
-        if (regions.length) {
-          availableTypes = regions[0].sizes;
+        // prime the list of available types
+        if (selectedRegions && selectedRegions.length) {
+          availableTypes = _.pluck(availableRegions[selectedRegions[0]], 'name');
         }
 
-        regions.forEach(function(region) {
-          availableTypes = _.intersection(availableTypes, region.sizes);
+        // this will perform an unnecessary intersection with the first region, which is fine
+        selectedRegions.forEach(function(selectedRegion) {
+          if (availableRegions[selectedRegion]) {
+            availableTypes = _.intersection(availableTypes, _.pluck(availableRegions[selectedRegion], 'name'));
+          }
         });
 
         return availableTypes.sort();
