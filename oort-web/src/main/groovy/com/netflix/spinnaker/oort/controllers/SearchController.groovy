@@ -15,16 +15,13 @@
  */
 
 package com.netflix.spinnaker.oort.controllers
-
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
-import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@CompileStatic
 @RestController
 class SearchController {
 
@@ -52,12 +49,30 @@ class SearchController {
       searchProviders.findAll { it.platform == q.platform } :
       searchProviders
 
-    providers.collect {
+    List<SearchResultSet> results = providers.collect {
       if (q.type && !q.type.isEmpty()) {
         it.search(q.q, q.type, q.page, q.pageSize, q.filter)
       } else {
         it.search(q.q, q.page, q.pageSize, q.filter)
       }
+    }
+
+    if (results.size() == 1) {
+      results
+    } else {
+
+      int total = results.inject(0) { acc, item -> acc + item.totalMatches }
+      List<Map<String, String>> allResults = results.inject([]) { acc, item -> acc.addAll(item.results); acc }
+
+
+      //TODO-cfieber: this is a temporary workaround to https://github.com/spinnaker/deck/issues/128
+      [new SearchResultSet(
+        totalMatches: total,
+        pageNumber: q.page,
+        pageSize: q.pageSize,
+        platform: 'aws', //TODO-cfieber: hardcoding this for now...
+        query: q.q,
+        results: allResults)]
     }
   }
 

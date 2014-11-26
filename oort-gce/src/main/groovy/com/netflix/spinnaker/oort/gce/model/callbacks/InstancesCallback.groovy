@@ -58,6 +58,8 @@ class InstancesCallback<Instance> extends JsonBatchCallback<Instance> {
     googleInstance.setProperty("health", [[type : "GCE",
                                            state: instanceIsHealthy ? "Up" : "Down"]])
     googleServerGroup.instances << googleInstance
+
+    googleServerGroup.launchConfig.instanceType = googleInstance.instanceType
   }
 
   @Override
