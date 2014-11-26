@@ -21,22 +21,34 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
+import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DestroyGoogleReplicaPoolTaskSpec extends Specification {
-  @Subject task = new DestroyGoogleReplicaPoolTask()
-  def stage = new PipelineStage(new Pipeline(), "whatever")
+class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
+  @Subject task = new CreateCopyLastGoogleServerGroupTask()
+  def stage = new PipelineStage(new Pipeline(), "copyLastAsg_gce")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  def destroyASGConfig = [
-    asgName    : "test-asg",
-    zones      : ["us-central1-b"],
-    credentials: "fzlem"
+  def copyLastAsgConfig = [
+    application        : "myapp",
+    stack              : "test",
+    capacity           : [
+            min    : 6,
+            max    : 6,
+            desired: 6
+    ],
+    image              : "some-base-image",
+    instanceType       : "f1-micro",
+    zone               : "us-central1-b",
+    source             : [
+            zone            : "us-central1-a",
+            serverGroupName : "myapp-test-v000"
+    ],
+    credentials        : "fzlem"
   ]
 
   def setup() {
@@ -44,10 +56,11 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.context = destroyASGConfig
+    stage.pipeline.stages.add(stage)
+    stage.context = copyLastAsgConfig
   }
 
-  def "creates a destroy google replica pool task based on job parameters"() {
+  def "creates a create copy google server group task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
@@ -58,15 +71,21 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.size() == 1
-    with(operations[0].deleteGoogleReplicaPoolDescription) {
-      it instanceof DestroyGoogleReplicaPoolOperation
-      replicaPoolName == destroyASGConfig.asgName
-      zone == destroyASGConfig.zones[0]
-      credentials == destroyASGConfig.credentials
+    with (operations[0].copyLastGoogleServerGroupDescription) {
+      it instanceof DeployGoogleServerGroupOperation
+      application == copyLastAsgConfig.application
+      stack == copyLastAsgConfig.stack
+      initialNumReplicas == copyLastAsgConfig.capacity.desired
+      image == copyLastAsgConfig.image
+      instanceType == copyLastAsgConfig.instanceType
+      zone == copyLastAsgConfig.zone
+      source.zone == copyLastAsgConfig.source.zone
+      source.serverGroupName == copyLastAsgConfig.source.serverGroupName
+      credentials == copyLastAsgConfig.credentials
     }
   }
 
@@ -77,11 +96,11 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
-    result.outputs."deploy.account.name" == destroyASGConfig.credentials
+    result.outputs."deploy.account.name" == copyLastAsgConfig.credentials
   }
 }
