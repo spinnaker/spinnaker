@@ -41,7 +41,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleNetworkLoadBalancerDescription": { "zone": "us-central1-f", "credentials" : "my-account-name", "networkLBName" : "testlb" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleNetworkLoadBalancerDescription": { "zone": "us-central1-f", "credentials" : "my-account-name", "networkLoadBalancerName" : "testlb" }} ]' localhost:8501/ops
    *
    * @param priorOutputs
    * @return
@@ -81,7 +81,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         name: target_pool_name,
         healthChecks: httpHealthChecksResourceLinks,
         // TODO(odedmeri): We expect the instances in the description to be URLs but we should accept local names
-        // and query them.to get the URLs.
+        // and query them to get the URLs.
         instances: description.instances
     )
     def targetPoolResourceLink = compute.targetPools().insert(project, region, targetPool).execute().getTargetLink()
