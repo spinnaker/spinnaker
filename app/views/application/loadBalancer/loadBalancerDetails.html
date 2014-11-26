@@ -1,9 +1,9 @@
 <div class="details-panel">
-  <h4 ng-if="!loadBalancer" class="text-center">
+  <h4 ng-if="state.loading" class="text-center">
     <span us-spinner="{radius:20, width:6, length: 12}"></span>
   </h4>
 
-  <div ng-if="loadBalancer" class="header">
+  <div ng-if="!state.loading" class="header">
     <div class="close-button">
       <a class="btn btn-link"
          ui-sref="^">
@@ -33,7 +33,7 @@
       </div>
     </div>
   </div>
-  <div ng-if="loadBalancer" class="content">
+  <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
         <dl class="dl-horizontal dl-narrow">
           <dt>Created:</dt>
