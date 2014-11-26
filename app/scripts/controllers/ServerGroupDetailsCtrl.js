@@ -4,7 +4,6 @@
 
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notifications,
-                                                  mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
 
@@ -150,7 +149,8 @@ angular.module('deckApp')
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
-          serverGroup: function() { return serverGroup; }
+          serverGroup: function() { return serverGroup; },
+          serverGroupCommand: function() { return serverGroupService.buildServerGroupCommandFromExisting(application, serverGroup); },
         }
       });
     };

@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .controller('AllClustersCtrl', function($scope, application, $modal, mortService,
-                                          securityGroupService, accountService, oortService,
+                                          securityGroupService, accountService, oortService, serverGroupService,
                                           _, $stateParams, $location, settings, $q, $window) {
     var defPrimary = 'account', defSecondary = 'region';
     $scope.sortFilter.allowSorting = true;
@@ -174,6 +174,7 @@ angular.module('deckApp')
             title: function() { return 'Create New Server Group'; },
             application: function() { return application; },
             serverGroup: function() { return null; },
+            serverGroupCommand: function() { return serverGroupService.buildNewServerGroupCommand(application, selectedProvider); },
             provider: function() { return selectedProvider; }
           }
         });
