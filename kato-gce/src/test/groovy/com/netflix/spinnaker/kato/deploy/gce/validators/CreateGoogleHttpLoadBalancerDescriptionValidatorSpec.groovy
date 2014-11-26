@@ -24,19 +24,9 @@ import com.netflix.spinnaker.kato.security.gce.GoogleNamedAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import static com.netflix.spinnaker.kato.deploy.gce.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class CreateGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification {
-  private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ACCOUNT_NAME = "auto"
-  private static final INSTANCE_GROUP = "group"
-  private static final BALANCING_MODE = "super_balanced"
-  private static final IP_ADDRESS = "1.1.1.1"
-  private static final PORT_RANGE = "80-82"
-  private static final SERVICE = "service"
-  private static final PATH = "/path"
-  private static final HOST = "*"
-  private static final MATCHER = "matcher"
-
   @Shared
   CreateGoogleHttpLoadBalancerDescriptionValidator validator
 

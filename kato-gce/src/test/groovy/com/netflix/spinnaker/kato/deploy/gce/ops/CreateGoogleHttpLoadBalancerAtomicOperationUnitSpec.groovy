@@ -23,20 +23,10 @@ import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleHttpLoadBal
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.kato.deploy.gce.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final PROJECT_NAME = "my_project"
-  private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ACCOUNT_NAME = "auto"
-  private static final CHECK_INTERVAL_SEC = 7
-  private static final INSTANCE_GROUP = "group"
-  private static final IP_ADDRESS = "1.1.1.1"
-  private static final PORT_RANGE = "80-82"
-  private static final SERVICE = "service"
-  private static final PATH = "/path"
-  private static final HOST = "*"
-  private static final MATCHER = "matcher"
-
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
