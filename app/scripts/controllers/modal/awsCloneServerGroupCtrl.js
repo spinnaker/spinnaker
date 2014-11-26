@@ -5,6 +5,7 @@ angular.module('deckApp.aws')
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state, settings,
                                                accountService, orcaService, mortService, oortService, searchService, serverGroupService,
                                                instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
+                                               imageService,
                                                serverGroup, application, title) {
     $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
@@ -115,17 +116,17 @@ angular.module('deckApp.aws')
       $scope.command.selectedProvider = 'aws';
     }
 
-    var imageLoader = oortService.findImages(application.name, $scope.command.region, $scope.command.credentials).then(function(images) {
+    var imageLoader = imageService.findImages(application.name, $scope.command.region, $scope.command.credentials).then(function(images) {
       $scope.packageImages = images;
       if (images.length === 0) {
         if (serverGroup) {
-          oortService.getAmi(serverGroup.launchConfig.imageId, serverGroup.region, serverGroup.account).then(function (namedImage) {
+          imageService.getAmi(serverGroup.launchConfig.imageId, serverGroup.region, serverGroup.account).then(function (namedImage) {
             if (namedImage) {
               var packageRegex = /(\w+)-?\w+/;
               $scope.command.amiName = namedImage.imageName;
               var match = packageRegex.exec(namedImage.imageName);
               $scope.packageBase = match[1];
-              oortService.findImages($scope.packageBase, $scope.command.region, $scope.command.credentials).then(function(searchResults) {
+              imageService.findImages($scope.packageBase, $scope.command.region, $scope.command.credentials).then(function(searchResults) {
                 $scope.packageImages = searchResults;
                 $scope.state.imagesLoaded = true;
                 configureImages();
