@@ -5,6 +5,10 @@ angular.module('deckApp')
   .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, notifications, loadBalancer, application,
                                                    securityGroupService, $modal, _, confirmationModalService, orcaService, loadBalancerService) {
 
+    $scope.state = {
+      loading: true
+    };
+
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && test.vpcId === loadBalancer.vpcId;
@@ -13,6 +17,7 @@ angular.module('deckApp')
       if ($scope.loadBalancer) {
         var detailsLoader = loadBalancerService.getLoadBalancerDetails('aws', loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
         detailsLoader.then(function(details) {
+          $scope.state.loading = false;
           var securityGroups = [];
           var filtered = details.filter(function(test) {
             return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);

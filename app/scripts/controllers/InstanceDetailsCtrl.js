@@ -5,6 +5,10 @@ angular.module('deckApp')
   .controller('InstanceDetailsCtrl', function ($scope, $state, notifications, instance, application,
                                                orcaService, oortService, confirmationModalService) {
 
+    $scope.state = {
+      loading: true
+    };
+
     function extractHealthMetrics(instance) {
       if (!instance.health) {
         $scope.healthMetrics = [];
@@ -34,11 +38,17 @@ angular.module('deckApp')
 
       if (instanceSummary && account && region) {
         oortService.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+          $scope.state.loading = false;
           $scope.instance = angular.extend(details.plain(), instanceSummary);
           extractHealthMetrics(details);
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
+        },
+        function() {
+          // When an instance is first starting up, we may not have the details cached in oort yet, but we still
+          // want to let the user see what details we have
+          $scope.state.loading = false;
         });
       }
       if (!instanceSummary) {
@@ -49,9 +59,6 @@ angular.module('deckApp')
           strong: true
         });
         $state.go('^');
-        instance.notFound = true;
-        instance.healthStatus = 'Unhealthy';
-        $scope.instance = instance;
       }
     }
 

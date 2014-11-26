@@ -7,6 +7,9 @@ angular.module('deckApp')
                                                   mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
+    $scope.state = {
+      loading: true
+    };
 
     function extractServerGroupSummary() {
       var found = application.serverGroups.filter(function (toCheck) {
@@ -18,6 +21,7 @@ angular.module('deckApp')
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
       serverGroupService.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+        $scope.state.loading = false;
         angular.extend(details, summary);
         $scope.serverGroup = details;
         if (details.launchConfig && details.launchConfig.securityGroups) {

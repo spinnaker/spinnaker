@@ -4,11 +4,13 @@
 angular.module('deckApp')
   .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notifications, securityGroup, application, securityGroupService, $modal) {
 
-    $scope.loading = true;
+    $scope.state = {
+      loading: true
+    };
 
     function extractSecurityGroup() {
       securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.name).then(function (details) {
-        $scope.loading = false;
+        $scope.state.loading = false;
         $scope.securityGroup = details;
         if (!details) {
           fourOhFour();
