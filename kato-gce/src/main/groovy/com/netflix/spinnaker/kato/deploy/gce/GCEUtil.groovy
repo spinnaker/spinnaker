@@ -23,6 +23,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.gce.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.deploy.gce.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
@@ -198,5 +199,24 @@ class GCEUtil {
         unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
         port: healthCheckDescription.port,
         requestPath: healthCheckDescription.requestPath)
+  }
+
+  // I know this is painfully similar to the method above. I will soon make a cleanup change to remove this ugliness.
+  // TODO(bklingher): Clean this up.
+  static def makeHttpHealthCheck(String name, CreateGoogleHttpLoadBalancerDescription.HealthCheck healthCheckDescription) {
+    if (healthCheckDescription) {
+      return new HttpHealthCheck(
+          name: name,
+          checkIntervalSec: healthCheckDescription.checkIntervalSec,
+          timeoutSec: healthCheckDescription.timeoutSec,
+          healthyThreshold: healthCheckDescription.healthyThreshold,
+          unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
+          port: healthCheckDescription.port,
+          requestPath: healthCheckDescription.requestPath)
+    } else {
+      return new HttpHealthCheck(
+          name: name
+      )
+    }
   }
 }
