@@ -74,23 +74,31 @@ class ApplicationService {
     HystrixFactory.newMapCommand(GROUP, "getApp-${name}".toString(), true) {
       def futures = executorService.invokeAll(applicationRetrievers)
       List<Map> applications = (List<Map>) futures.collect { it.get() }
-      applications.inject([:]) { LinkedHashMap result, Map app ->
-        if (app) {
-          if (app.containsKey("clusters")) {
-            result.putAll(app)
-          } else {
-            if (!result.containsKey("attributes")) {
-              result.attributes = [:]
+
+      def attributes = [:]
+      def clusters = [:]
+      applications.findAll { it }.each { Map app ->
+        if (app.containsKey("clusters")) {
+          // Oort
+          clusters.putAll(app.clusters as Map)
+
+          (app["attributes"] as Map).entrySet().each {
+            if (it.value && !attributes[it.key]) {
+              // don't overwrite existing attributes with metadata from oort
+              attributes[it.key] = it.value
             }
-            for (Map.Entry<String, String> entry in ((Map<String, String>) app).entrySet()) {
-              if (entry.value) {
-                result.attributes[entry.key] = entry.value
-              }
+          }
+        } else {
+          // Front50
+          app.entrySet().each {
+            if (it.value) {
+              attributes[it.key] = it.value
             }
           }
         }
-        result
-      } as Map
+      }
+
+      return [name: name, attributes: attributes, clusters: clusters]
     } execute()
   }
 

@@ -28,7 +28,7 @@ import java.util.concurrent.Executors
 
 class ApplicationServiceSpec extends Specification {
 
-  void "should properly aggregated application metadata and application data"() {
+  void "should properly aggregate application data from Front50 and Oort"() {
     setup:
       HystrixRequestContext.initializeContext()
 
@@ -43,17 +43,18 @@ class ApplicationServiceSpec extends Specification {
       service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-      def testApp = [name: name, attributes: [:], clusters: [prod: [cluster]]]
-      def meta = [name: name, email: email, owner: owner]
+      def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [prod: [cluster]]]
+      def front50App = [name: name, email: email, owner: owner]
 
     when:
-      def results = service.all
+      def app = service.get(name)
 
     then:
       1 * credentialsService.getAccountNames() >> { [account] }
-      1 * front50.getAll(account) >> [meta]
-      1 == results.size()
-      results.first() == [name: name, email: email, owner: owner, accounts: "test"]
+      1 * oort.getApplication(name) >> oortApp
+      1 * front50.getMetaData(account, name) >> front50App
+
+      app == [name: name, attributes: (oortApp.attributes + front50App), clusters: oortApp.clusters]
 
     where:
       name = "foo"
