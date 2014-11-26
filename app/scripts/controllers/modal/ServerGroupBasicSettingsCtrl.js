@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService, oortService, RxService) {
+  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService, imageService, RxService) {
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
@@ -19,7 +19,7 @@ angular.module('deckApp')
         }
       ];
       return new RxService.Observable.fromPromise(
-        oortService.findImages(q, $scope.command.region, $scope.command.credentials)
+        imageService.findImages(q, $scope.command.region, $scope.command.credentials)
       );
     }
 
