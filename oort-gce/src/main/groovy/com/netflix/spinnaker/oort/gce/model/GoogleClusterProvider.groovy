@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
-import com.codahale.metrics.Timer
 import com.netflix.frigga.Names
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-
-import com.netflix.spinnaker.oort.model.*
-import com.ryantenney.metrics.annotation.Metric
+import com.netflix.spinnaker.oort.model.ClusterProvider
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+import java.util.concurrent.Callable
 
 @Component
 @CompileStatic
@@ -34,29 +34,34 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
-  @Metric
+  @Autowired
+  ExtendedRegistry extendedRegistry
+
   Timer allClusters
 
-  @Metric
   Timer clustersByApplication
 
-  @Metric
   Timer clustersByApplicationAndAccount
 
-  @Metric
   Timer clustersById
 
   GoogleResourceRetriever googleResourceRetriever
 
   @PostConstruct
   void init() {
+    String[] tags = ['className', this.class.simpleName]
+    allClusters = extendedRegistry.timer('allClusters', tags)
+    clustersByApplication = extendedRegistry.timer('clustersByApplications', tags)
+    clustersByApplicationAndAccount = extendedRegistry.timer('clustersByApplicationAndAccount', tags)
+    clustersById = extendedRegistry.timer('clustersById', tags)
+
     googleResourceRetriever = new GoogleResourceRetriever()
     googleResourceRetriever.init(accountCredentialsProvider)
   }
 
   @Override
   Map<String, Set<GoogleCluster>> getClusters() {
-    allClusters.time {
+    allClusters.record({
       def clusterMap = new HashMap<String, Set<GoogleCluster>>()
 
       for (def mapEntry : googleResourceRetriever.getApplicationsMap().entrySet()) {
@@ -64,7 +69,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
       }
 
       clusterMap
-    }
+    } as Callable<Map<String, Set<GoogleCluster>>>)
   }
 
   @Override
@@ -74,37 +79,37 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
 
   @Override
   Map<String, Set<GoogleCluster>> getClusterDetails(String application) {
-    clustersByApplication.time {
+    clustersByApplication.record({
       def googleApplication = (googleResourceRetriever.getApplicationsMap())[application]
       def clusterMap = new HashMap<String, Set<GoogleCluster>>()
 
       populateClusterMapFromApplication(googleApplication, clusterMap)
 
       clusterMap
-    }
+    } as Callable<Map<String, Set<GoogleCluster>>>)
   }
 
   @Override
   Set<GoogleCluster> getClusters(String application, String accountName) {
-    clustersByApplicationAndAccount.time {
+    clustersByApplicationAndAccount.record({
       def clusters = getClusterDetails(application)
 
       clusters[accountName]
-    }
+    } as Callable<Set<GoogleCluster>>)
   }
 
   @Override
   GoogleCluster getCluster(String application, String account, String name) {
-    clustersById.time {
+    clustersById.record({
       def clusters = getClusterDetails(application)
-      def cluster
+      def cluster = null
 
       if (clusters && clusters[account]) {
         cluster = clusters[account].find { it.name == name }
       }
 
       cluster
-    }
+    } as Callable<GoogleCluster>)
   }
 
   @Override

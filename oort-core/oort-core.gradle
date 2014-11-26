@@ -1,4 +1,3 @@
 dependencies {
   compile spinnaker.dependency("kork")
-  compile 'com.codahale.metrics:metrics-core:3.0.2'
 }
