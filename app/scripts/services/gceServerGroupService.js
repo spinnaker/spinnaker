@@ -107,8 +107,7 @@ angular.module('deckApp')
           instanceMonitoring: serverGroup.launchConfig.instanceMonitoring && serverGroup.launchConfig.instanceMonitoring.enabled,
           ebsOptimized: serverGroup.launchConfig.ebsOptimized,
         });
-        //command.viewState.imageId = serverGroup.launchConfig.imageId;
-        command.viewState.imageId = 'debian-7-wheezy-v20141108';
+        command.viewState.imageId = serverGroup.launchConfig.imageId;
         determineInstanceCategoryFromInstanceType(command);
       }
 
