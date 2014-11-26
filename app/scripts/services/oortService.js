@@ -156,27 +156,6 @@ angular.module('deckApp')
         });
     }
 
-    function findImages(query, region, credentials) {
-      if (query.length < 3) {
-        return $q.when([{message: 'Please enter at least 3 characters...'}]);
-      }
-      return oortEndpoint.all('aws/images/find').getList({imageName: query, region: region, credentials: credentials}, {}).then(function(results) {
-        return results;
-      },
-      function() {
-        return [];
-      });
-    }
-
-    function getAmi(amiName, region, credentials) {
-      return oortEndpoint.all('aws/images').one(credentials).one(region).all(amiName).getList().then(function(results) {
-        return results && results.length ? results[0] : null;
-      },
-      function() {
-        return null;
-      });
-    }
-
     function listLoadBalancers() {
       return oortEndpoint
         .all('aws/loadBalancers')
@@ -191,8 +170,6 @@ angular.module('deckApp')
     return {
       listApplications: listApplications,
       getApplication: getApplication,
-      findImages: findImages,
-      getAmi: getAmi,
       getInstanceDetails: getInstanceDetails,
       listLoadBalancers: listLoadBalancers,
       getApplicationWithoutAppendages: getApplicationEndpoint,

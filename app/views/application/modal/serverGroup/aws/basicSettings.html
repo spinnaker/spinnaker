@@ -44,6 +44,7 @@
                              refresh-delay="0">
             <span ng-bind-html="result.message"></span>
             <span ng-bind-html="result.imageName | highlight: $select.search"></span>
+            <span ng-if="result.amis[command.region][0]">(<span ng-bind-html="result.amis[command.region][0] | highlight: $select.search"></span>)</span>
           </ui-select-choices>
         </ui-select>
         <span ng-if="regionalImages.length > 0">
@@ -56,6 +57,7 @@
           <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
           <ui-select-choices repeat="image.imageName as image in regionalImages | filter: $select.search | orderBy: '-imageName'">
             <span ng-bind-html="image.imageName | highlight: $select.search"></span>
+            (<span ng-bind-html="image.amis[command.region][0] | highlight: $select.search"></span>)
           </ui-select-choices>
         </ui-select>
         <a href ng-click="state.queryAllImages = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
