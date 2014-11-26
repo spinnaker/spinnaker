@@ -32,5 +32,6 @@ class Application {
   String updateTs
   String createTs
   String tags
+  String accounts
   String regions
 }
