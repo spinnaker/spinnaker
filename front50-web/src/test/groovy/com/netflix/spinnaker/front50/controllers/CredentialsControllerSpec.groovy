@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.front50.security.CassandraCredentials
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -50,11 +51,15 @@ class CredentialsControllerSpec extends Specification {
 
     then:
     1 * accountCredentialsProvider.getAll() >> {
-      def mock = Mock(AccountCredentials)
-      mock.getName() >> "test"
-      [mock]
+      def nonGlobalMock = Mock(AccountCredentials)
+      nonGlobalMock.getName() >> "test"
+
+      def globalMock = Mock(CassandraCredentials)
+      globalMock.getName() >> "global"
+
+      [nonGlobalMock, globalMock]
     }
     result.response.status == 200
-    result.response.contentAsString == '["test"]'
+    result.response.contentAsString == '[{"name":"test","global":false},{"name":"global","global":true}]'
   }
 }

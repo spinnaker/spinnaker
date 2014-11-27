@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.front50.model.application.GlobalAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -30,7 +31,7 @@ class CredentialsController {
   AccountCredentialsProvider accountCredentialsProvider
 
   @RequestMapping(method = RequestMethod.GET)
-  List<String> list() {
-    accountCredentialsProvider.all.collect { it.name }
+  List<Map> list() {
+    accountCredentialsProvider.all.collect { [name: it.name, global: it instanceof GlobalAccountCredentials] }
   }
 }

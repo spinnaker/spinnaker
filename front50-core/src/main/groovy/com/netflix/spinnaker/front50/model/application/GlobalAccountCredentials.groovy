@@ -15,18 +15,6 @@
  */
 
 
-package com.netflix.spinnaker.front50.security
+package com.netflix.spinnaker.front50.model.application
 
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.front50.model.application.GlobalAccountCredentials
-import groovy.transform.Canonical
-
-@Canonical
-class CassandraCredentials implements AccountCredentials<Map>, GlobalAccountCredentials {
-  String name
-
-  @Override
-  Map getCredentials() {
-    return [:]
-  }
-}
+interface GlobalAccountCredentials { }
