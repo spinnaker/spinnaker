@@ -8,7 +8,7 @@ angular.module('deckApp')
 
     var n1standard = {
       type: 'n1-standard',
-      description: '(TODO: UPDATE THIS DESCRIPTION) This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      description: 'This family provides a balance of compute, memory, and network resources, and it is a good choice for general purpose applications.',
       instanceTypes: [
         {
           name: 'n1-standard-1',
@@ -75,7 +75,7 @@ angular.module('deckApp')
 
     var f1micro = {
       type: 'f1-micro bursting',
-      description: '(TODO: UPDATE THIS DESCRIPTION) T2 instances are a good choice for workloads that don’t use the full CPU o!en or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      description: 'This family of machine types is a good choice for small, non-resource intensive workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
           name: 'f1-micro',
@@ -98,7 +98,7 @@ angular.module('deckApp')
 
     var n1highmem = {
       type: 'n1-highmem',
-      description: '(TODO: UPDATE THIS DESCRIPTION) R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+      description: 'High memory machine types are ideal for tasks that require more memory relative to virtual cores. High memory machine types have 6.50GB of RAM per virtual core.',
       instanceTypes: [
         {
           name: 'n1-highmem-2',
@@ -110,7 +110,7 @@ angular.module('deckApp')
             size: 32,
             count: 1
           },
-          costFactor: 1
+          costFactor: 2
         },
         {
           name: 'n1-highmem-4',
@@ -146,14 +146,14 @@ angular.module('deckApp')
             size: 320,
             count: 1
           },
-          costFactor: 4
+          costFactor: 3
         }
       ]
     };
 
     var n1highcpu = {
       type: 'n1-highcpu',
-      description: '(TODO: UPDATE THIS DESCRIPTION AND INCLUDE THIS GROUP IN UI AS A CHOICE) R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+      description: 'High CPU machine types are ideal for tasks that require more virtual cores relative to memory. High CPU machine types have one virtual core for every 0.90GB of RAM.',
       instanceTypes: [
         {
           name: 'n1-highcpu-2',
@@ -189,7 +189,7 @@ angular.module('deckApp')
             size: 160,
             count: 1
           },
-          costFactor: 3
+          costFactor: 2
         },
         {
           name: 'n1-highcpu-16',
@@ -201,7 +201,7 @@ angular.module('deckApp')
             size: 320,
             count: 1
           },
-          costFactor: 4
+          costFactor: 3
         }
       ]
     };
