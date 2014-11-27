@@ -34,32 +34,17 @@
     </div>
     <div class="form-group">
       <div class="col-md-2 sm-label-left"><b>Image</b></div>
-  <div class="col-md-7">
-    <!-- TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project. -->
-    <select class="form-control input-sm"
-            ng-model="command.image"
-            ng-change="onChange()"
-            required>
-      <option ng-repeat="image in ['debian-7-wheezy-v20141108', 'centos-7-v20141108']"
-              value="{{image}}"
-              ng-selected="command.image === image">{{image}}</option>
-    </select>
-  </div>
-<!--
-      <div class="col-md-9" ng-if="state.queryAllImages || regionalImages.length === 0">
-        <input type="hidden" class="form-control input-sm" required
-               ng-model="command.allImageSelection"
-               ng-change="command.amiName = command.allImageSelection.id"
-               ui-select2="select2Params"/>
-        <a ng-if="regionalImages.length > 0" href ng-click="state.queryAllImages = false">Only show images matching "{{applicationName}}"</a>
-      </div>
-      <div class="col-md-9" ng-if="!state.queryAllImages &&  regionalImages.length > 0">
-        <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an image" required>
-          <option ng-repeat="image in regionalImages" value="{{image.imageName}}">{{image.imageName}}</option>
+      <div class="col-md-7">
+        <!-- TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project. -->
+        <select class="form-control input-sm"
+                ng-model="command.image"
+                ng-change="onChange()"
+                required>
+          <option ng-repeat="image in ['debian-7-wheezy-v20141108', 'centos-7-v20141108']"
+                  value="{{image}}"
+                  ng-selected="command.image === image">{{image}}</option>
         </select>
-        <a href ng-click="state.queryAllImages = true">Search All Images</a>
       </div>
--->
     </div>
   </div>
 
