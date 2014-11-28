@@ -38,6 +38,7 @@ angular.module('deckApp')
       healthCheckGracePeriod: 600,
       instanceMonitoring: false,
       ebsOptimized: false,
+      providerType: 'gce',
       selectedProvider: 'gce',
       iamRole: 'BaseIAMRole',       // should not be hard coded here
 
@@ -81,6 +82,7 @@ angular.module('deckApp')
         },
         zone: serverGroup.zones[0],
         availabilityZones: serverGroup.asg.availabilityZones,
+        providerType: 'gce',
         selectedProvider: 'gce',
         source: {
           account: serverGroup.account,
