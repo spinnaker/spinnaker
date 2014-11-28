@@ -5,7 +5,7 @@ describe('Controller: awsCloneServerGroup', function () {
   beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(function() {
-    inject(function ($controller, $rootScope, accountService, orcaService, mortService, oortService, imageService, settings,
+    inject(function ($controller, $rootScope, accountService, orcaService, mortService, oortService, awsImageService, imageService, settings,
                      searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService, serverGroupService, $q) {
 
       this.$scope = $rootScope.$new();
@@ -13,6 +13,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.orcaService = orcaService;
       this.mortService = mortService;
       this.oortService = oortService;
+      this.awsImageService = awsImageService;
       this.imageService = imageService;
       this.searchService = searchService;
       this.instanceTypeService = instanceTypeService;
@@ -103,7 +104,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
       spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
-      spyOn(this.imageService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
+      spyOn(this.awsImageService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
@@ -232,7 +233,7 @@ describe('Controller: awsCloneServerGroup', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
 
       initController(this.buildBaseNew());
 
@@ -249,7 +250,7 @@ describe('Controller: awsCloneServerGroup', function () {
         ];
       setupMocks.bind(this).call();
 
-      spyOn(this.imageService, 'findImages').and.callFake(this.resolve(regionalImages));
+      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve(regionalImages));
 
       initController(this.buildBaseNew());
 
@@ -271,7 +272,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       serverGroup.region = 'us-east-1';
 
-      spyOn(this.imageService, 'findImages').and.callFake(function (query) {
+      spyOn(this.awsImageService, 'findImages').and.callFake(function (query) {
         if (query === 'something') {
           return context.resolve(packageBasedImages).call();
         } else {
@@ -279,7 +280,7 @@ describe('Controller: awsCloneServerGroup', function () {
         }
       });
 
-      spyOn(this.imageService, 'getAmi').and.callFake(this.resolve(amiBasedImage));
+      spyOn(this.awsImageService, 'getAmi').and.callFake(this.resolve(amiBasedImage));
 
       initController(serverGroup);
 
@@ -287,9 +288,9 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
-      expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
-      expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
-      expect(this.imageService.findImages).toHaveBeenCalledWith('something', serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageService.findImages).toHaveBeenCalledWith('something', serverGroup.region, serverGroup.credentials);
       expect($scope.regionalImages.length).toBe(1);
       expect($scope.regionalImages[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});
     });
@@ -299,8 +300,8 @@ describe('Controller: awsCloneServerGroup', function () {
         serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
 
-      spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
-      spyOn(this.imageService, 'getAmi').and.callFake(this.resolve(null));
+      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageService, 'getAmi').and.callFake(this.resolve(null));
 
       initController(serverGroup);
 
@@ -308,8 +309,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
-      expect(this.imageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
-      expect(this.imageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageService.findImages).toHaveBeenCalledWith($scope.applicationName, serverGroup.region, serverGroup.credentials);
       expect($scope.regionalImages).toEqual([]);
     });
 
@@ -318,8 +319,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       setupMocks.bind(this).call();
 
-      spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
-      spyOn(this.imageService, 'getAmi').and.callFake(this.resolve(null));
+      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageService, 'getAmi').and.callFake(this.resolve(null));
 
       initController(this.buildBaseNew());
 

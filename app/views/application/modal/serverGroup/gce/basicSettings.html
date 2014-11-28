@@ -40,7 +40,7 @@
                 ng-model="command.image"
                 ng-change="onChange()"
                 required>
-          <option ng-repeat="image in ['debian-7-wheezy-v20141108', 'centos-7-v20141108']"
+          <option ng-repeat="image in gceImages"
                   value="{{image}}"
                   ng-selected="command.image === image">{{image}}</option>
         </select>

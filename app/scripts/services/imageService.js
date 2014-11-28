@@ -2,31 +2,18 @@
 
 
 angular.module('deckApp')
-  .factory('imageService', function (settings, $q, Restangular) {
+  .factory('imageService', function (awsImageService, gceImageService) {
 
-    var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
-    });
-
-    function findImages(query, region, account) {
-      if (query.length < 3) {
-        return $q.when([{message: 'Please enter at least 3 characters...'}]);
-      }
-      return oortEndpoint.all('aws/images/find').getList({q: query, region: region, account: account}, {}).then(function(results) {
-          return results;
-        },
-        function() {
-          return [];
-        });
+    function getDelegate(provider) {
+      return (!provider || provider === 'aws') ? awsImageService : gceImageService;
     }
 
-    function getAmi(amiName, region, credentials) {
-      return oortEndpoint.all('aws/images').one(credentials).one(region).all(amiName).getList().then(function(results) {
-          return results && results.length ? results[0] : null;
-        },
-        function() {
-          return null;
-        });
+    function findImages(selectedProvider, query, region, account) {
+      return getDelegate(selectedProvider).findImages(query, region, account);
+    }
+
+    function getAmi(selectedProvider, amiName, region, credentials) {
+      return getDelegate(selectedProvider).getAmi(amiName, region, credentials);
     }
 
     return {
