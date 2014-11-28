@@ -52,9 +52,11 @@ angular.module('deckApp.gce')
     });
 
     // TODO(duftler): Populate images dynamically instead of using hard-coded list.
-    //var imageLoader = imageService.findImages(application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {...}
+    var imageLoader = imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
+      $scope.gceImages = images;
+    });
 
-    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader]).then(function() {
+    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
       initializeWizardState();
