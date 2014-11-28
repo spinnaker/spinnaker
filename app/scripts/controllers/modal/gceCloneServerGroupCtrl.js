@@ -61,10 +61,11 @@ angular.module('deckApp.gce')
       if (serverGroupCommand.viewState.mode === 'clone') {
         modalWizardService.getWizard().markComplete('location');
         modalWizardService.getWizard().markComplete('load-balancers');
-        modalWizardService.getWizard().markComplete('security-groups');
+        //modalWizardService.getWizard().markComplete('security-groups');
         modalWizardService.getWizard().markComplete('instance-profile');
+        modalWizardService.getWizard().markComplete('instance-type');
         modalWizardService.getWizard().markComplete('capacity');
-        modalWizardService.getWizard().markComplete('advanced');
+        //modalWizardService.getWizard().markComplete('advanced');
       }
     }
 
@@ -225,84 +226,6 @@ angular.module('deckApp.gce')
           }
         });
       }
-    }
-
-    function buildCommandFromExisting(serverGroup) {
-      var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
-      var match = asgNameRegex.exec(serverGroup.cluster);
-      var command = {
-        'application': application.name,
-        'stack': match[4],
-        'freeFormDetails': match[7],
-        'credentials': serverGroup.account,
-        'cooldown': serverGroup.asg.defaultCooldown,
-        'healthCheckGracePeriod': serverGroup.asg.healthCheckGracePeriod,
-        'healthCheckType': serverGroup.asg.healthCheckType,
-        'terminationPolicies': serverGroup.asg.terminationPolicies,
-        'loadBalancers': serverGroup.asg.loadBalancerNames,
-        'region': serverGroup.region,
-        'zone': serverGroup.zones[0],
-        'availabilityZones': serverGroup.asg.availabilityZones,
-        'capacity': {
-          'min': serverGroup.asg.minSize,
-          'max': serverGroup.asg.maxSize,
-          'desired': serverGroup.asg.desiredCapacity
-        },
-        'allImageSelection': null,
-      };
-      if (serverGroup.launchConfig) {
-        var amiName = null;
-        if (serverGroup.launchConfig.imageId) {
-          var foundImage = _($scope.packageImages).find({'imageId': serverGroup.launchConfig.imageId});
-          if (foundImage) {
-            amiName = foundImage.imageName;
-          }
-        }
-        angular.extend(command, {
-          'instanceType': serverGroup.launchConfig.instanceType,
-          'iamRole': serverGroup.launchConfig.iamInstanceProfile,
-          'keyPair': serverGroup.launchConfig.keyName,
-          'associatePublicIpAddress': serverGroup.launchConfig.associatePublicIpAddress,
-          'ramdiskId': serverGroup.launchConfig.ramdiskId,
-          'instanceMonitoring': serverGroup.launchConfig.instanceMonitoring && serverGroup.launchConfig.instanceMonitoring.enabled,
-          'ebsOptimized': serverGroup.launchConfig.ebsOptimized,
-          'amiName': amiName
-        });
-        determineInstanceCategoryFromInstanceType(command);
-      }
-      command.subnetType = '';
-      command.vpcId = null;
-      if (serverGroup.launchConfig && serverGroup.launchConfig.securityGroups && serverGroup.launchConfig.securityGroups.length) {
-        command.securityGroups = serverGroup.launchConfig.securityGroups;
-      }
-      return command;
-    }
-
-    function createCommandTemplate() {
-      return {
-        'application': application.name,
-        'credentials': 'my-account-name',
-        'region': 'us-central1',
-        'availabilityZones': [],
-        'capacity': {
-          'min': 0,
-          'max': 0,
-          'desired': 1
-        },
-        'cooldown': 10,
-        'healthCheckType': 'EC2',
-        'healthCheckGracePeriod': 600,
-        'instanceMonitoring': false,
-        'ebsOptimized': false,
-
-        //These two should not be hard coded here, and keyPair options should be loaded from AWS
-        'iamRole': 'BaseIAMRole',
-        'keyPair': 'nf-test-keypair-a',
-
-        'terminationPolicies': ['Default'],
-        'vpcId': null,
-        allImageSelection: null
-      };
     }
 
     function initializeCommand() {
