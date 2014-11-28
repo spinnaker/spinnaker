@@ -61,10 +61,11 @@ angular.module('deckApp.gce')
       if (serverGroupCommand.viewState.mode === 'clone') {
         modalWizardService.getWizard().markComplete('location');
         modalWizardService.getWizard().markComplete('load-balancers');
-        modalWizardService.getWizard().markComplete('security-groups');
+        //modalWizardService.getWizard().markComplete('security-groups');
         modalWizardService.getWizard().markComplete('instance-profile');
+        modalWizardService.getWizard().markComplete('instance-type');
         modalWizardService.getWizard().markComplete('capacity');
-        modalWizardService.getWizard().markComplete('advanced');
+        //modalWizardService.getWizard().markComplete('advanced');
       }
     }
 
