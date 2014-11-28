@@ -51,7 +51,7 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -66,7 +66,7 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -81,7 +81,7 @@ describe('Service: NamedImage', function() {
 
       var result = null;
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -97,7 +97,7 @@ describe('Service: NamedImage', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -119,7 +119,7 @@ describe('Service: NamedImage', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.getAmi(imageName, region, credentials).then(function(results) {
+      service.getAmi('aws', imageName, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -131,7 +131,7 @@ describe('Service: NamedImage', function() {
 
       $http.when('GET', buildQueryString()).respond(200, []);
 
-      service.getAmi(imageName, region, credentials).then(function(results) {
+      service.getAmi('aws', imageName, region, credentials).then(function(results) {
         result = results;
       });
 

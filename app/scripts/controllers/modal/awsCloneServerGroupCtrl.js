@@ -53,17 +53,17 @@ angular.module('deckApp.aws')
 
     $scope.command = serverGroupCommand;
 
-    var imageLoader = imageService.findImages(application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
+    var imageLoader = imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
       $scope.packageImages = images;
       if (images.length === 0) {
         if (serverGroupCommand.viewState.mode === 'clone') {
-          imageService.getAmi(serverGroupCommand.viewState.imageId, serverGroupCommand.region, serverGroupCommand.credentials).then(function (namedImage) {
+          imageService.getAmi($scope.command.selectedProvider, serverGroupCommand.viewState.imageId, serverGroupCommand.region, serverGroupCommand.credentials).then(function (namedImage) {
             if (namedImage) {
               var packageRegex = /(\w+)-?\w+/;
               $scope.command.amiName = namedImage.imageName;
               var match = packageRegex.exec(namedImage.imageName);
               $scope.packageBase = match[1];
-              imageService.findImages($scope.packageBase, serverGroupCommand.region, serverGroupCommand.credentials).then(function(searchResults) {
+              imageService.findImages($scope.command.selectedProvider, $scope.packageBase, serverGroupCommand.region, serverGroupCommand.credentials).then(function(searchResults) {
                 $scope.packageImages = searchResults;
                 $scope.state.imagesLoaded = true;
                 configureImages();

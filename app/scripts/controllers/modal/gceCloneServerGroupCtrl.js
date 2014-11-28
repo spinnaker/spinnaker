@@ -5,7 +5,7 @@ angular.module('deckApp.gce')
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   accountService, orcaService, mortService, oortService,
                                                   instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
-                                                  serverGroupCommand, application, title) {
+                                                  imageService, serverGroupCommand, application, title) {
     $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
@@ -47,9 +47,11 @@ angular.module('deckApp.gce')
     $scope.command = serverGroupCommand;
 
     // TODO(duftler): Populate images dynamically instead of using hard-coded list.
-    //var imageLoader = imageService.findImages(application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {...}
+    var imageLoader = imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
+      $scope.gceImages = images;
+    });
 
-    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader]).then(function() {
+    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
       initializeWizardState();
@@ -59,7 +61,9 @@ angular.module('deckApp.gce')
 
     function initializeWizardState() {
       if (serverGroupCommand.viewState.mode === 'clone') {
-        modalWizardService.getWizard().markComplete('location');
+        if ($scope.command.image) {
+          modalWizardService.getWizard().markComplete('location');
+        }
         modalWizardService.getWizard().markComplete('load-balancers');
         //modalWizardService.getWizard().markComplete('security-groups');
         modalWizardService.getWizard().markComplete('instance-profile');
@@ -229,8 +233,8 @@ angular.module('deckApp.gce')
     }
 
     function initializeCommand() {
-      if (serverGroupCommand.viewState.imageId) {
-        serverGroupCommand.image = serverGroupCommand.viewState.imageId;
+      if (serverGroupCommand.viewState.imageId && $scope.gceImages.indexOf(serverGroupCommand.viewState.imageId) > -1) {
+        $scope.command.image = serverGroupCommand.viewState.imageId;
       }
     }
 
