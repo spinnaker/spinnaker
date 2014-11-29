@@ -51,7 +51,7 @@ class ApplicationController {
   Map show(@PathVariable("name") String name) {
     def result = applicationService.get(name)
     if (!result) {
-      new ApplicationNotFoundException("Application ${name} not found")
+      throw new ApplicationNotFoundException("Application ${name} not found")
     } else if (!result.name) {
       // applicationService.get() doesn't set the name unless clusters are found. Deck requires the name.
       result.name = name

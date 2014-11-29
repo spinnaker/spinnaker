@@ -64,6 +64,35 @@ class ApplicationServiceSpec extends Specification {
       account = "test"
   }
 
+  void "should return null when no application attributes are available"() {
+    setup:
+    HystrixRequestContext.initializeContext()
+
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def credentialsService = Mock(CredentialsService)
+    def oort = Mock(OortService)
+
+    service.front50Service = front50
+    service.oortService = oort
+    service.credentialsService = credentialsService
+    service.executorService = Executors.newFixedThreadPool(1)
+
+    when:
+    def app = service.get(name)
+
+    then:
+    1 * credentialsService.getAccountNames() >> { [account] }
+    1 * oort.getApplication(name) >> null
+    1 * front50.getMetaData(account, name) >> null
+
+    app == null
+
+    where:
+    name = "foo"
+    account = "test"
+  }
+
   void "should obey readAccountOverride when building application list retrievers"() {
     setup:
       def credentialsService = Mock(CredentialsService)

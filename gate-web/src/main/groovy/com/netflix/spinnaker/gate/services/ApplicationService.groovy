@@ -98,7 +98,8 @@ class ApplicationService {
         }
       }
 
-      return [name: name, attributes: attributes, clusters: clusters]
+      // application doesn't exist if no attributes were found
+      return attributes ? [name: name, attributes: attributes, clusters: clusters] : null
     } execute()
   }
 

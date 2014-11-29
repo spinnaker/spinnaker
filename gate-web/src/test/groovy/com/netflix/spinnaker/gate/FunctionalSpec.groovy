@@ -26,6 +26,8 @@ import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.MortService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import retrofit.RetrofitError
+
 import java.util.concurrent.ExecutorService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -101,7 +103,21 @@ class FunctionalSpec extends Specification {
       api.getApplication(name)
 
     then:
-      1 * applicationService.get(name) >> [:]
+      1 * applicationService.get(name) >> [name: name]
+
+    where:
+      name = "foo"
+  }
+
+  void "should 404 if ApplicationService does not return an application"() {
+    when:
+      api.getApplication(name)
+
+    then:
+      1 * applicationService.get(name) >> null
+
+      RetrofitError exception = thrown()
+      exception.response.status == 404
 
     where:
       name = "foo"
