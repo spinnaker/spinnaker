@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import org.apache.log4j.Logger
@@ -31,8 +32,10 @@ import java.util.concurrent.TimeUnit
 class GoogleResourceRetriever {
   protected static final Logger log = Logger.getLogger(this)
 
-  // The value of this field is always assigned atomically and the map is never modified after assignment.
+  // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private static appMap = new HashMap<String, GoogleApplication>()
+  private static imageMap = new HashMap<String, List<String>>()
+
   private static AtomicBoolean initialized = new AtomicBoolean(false)
 
   static void init(AccountCredentialsProvider accountCredentialsProvider) {
@@ -56,6 +59,7 @@ class GoogleResourceRetriever {
     log.info "Loading GCE resources..."
 
     def tempAppMap = new HashMap<String, GoogleApplication>()
+    def tempImageMap = new HashMap<String, List<String>>()
 
     getAllGoogleCredentialsObjects(accountCredentialsProvider).each {
       def accountName = it.key
@@ -87,6 +91,21 @@ class GoogleResourceRetriever {
           compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
         }
 
+        // Image lists are keyed by account in imageMap.
+        if (!tempImageMap[accountName]) {
+          tempImageMap[accountName] = new ArrayList<String>()
+        }
+
+        // Retrieve all available images for this project.
+        compute.images().list(project).queue(regionsBatch, new ImagesCallback(tempImageMap[accountName], false))
+
+        // Retrieve pruned list of available images for known public image projects.
+        def imagesCallback = new ImagesCallback(tempImageMap[accountName], true)
+
+        Utils.baseImageProjects.each { imageProject ->
+          compute.images().list(imageProject).queue(regionsBatch, imagesCallback)
+        }
+
         regionsBatch.execute()
         migsBatch.execute()
         resourceViewsBatch.execute()
@@ -95,6 +114,7 @@ class GoogleResourceRetriever {
     }
 
     appMap = tempAppMap
+    imageMap = tempImageMap
 
     log.info "Finished loading GCE resources."
   }
@@ -123,5 +143,9 @@ class GoogleResourceRetriever {
 
   Map<String, GoogleApplication> getApplicationsMap() {
     return appMap
+  }
+
+  Map<String, List<String>> getImageMap() {
+    return imageMap
   }
 }
