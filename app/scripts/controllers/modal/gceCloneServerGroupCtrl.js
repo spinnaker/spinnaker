@@ -46,9 +46,9 @@ angular.module('deckApp.gce')
 
     $scope.command = serverGroupCommand;
 
-    // TODO(duftler): Populate images dynamically instead of using hard-coded list.
     var imageLoader = imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
       $scope.gceImages = images;
+      $scope.lastImageAccount = serverGroupCommand.credentials;
     });
 
     $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
@@ -107,6 +107,8 @@ angular.module('deckApp.gce')
       } else {
         $scope.command.region = null;
       }
+
+      configureImages();
     }
 
     function regionChanged() {
@@ -203,14 +205,16 @@ angular.module('deckApp.gce')
     }
 
     function configureImages() {
-      if ($scope.command.region) {
-        $scope.regionalImages = _.filter($scope.packageImages, {region: $scope.command.region});
-        if ($scope.command.amiName && !_($scope.regionalImages).some({imageName: $scope.command.amiName})) {
-          $scope.command.amiName = null;
-        }
-      } else {
-        $scope.regionalImages = null;
-        $scope.command.amiName = null;
+      if ($scope.command.credentials != $scope.lastImageAccount) {
+        imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, $scope.command.credentials).then(function(images) {
+          $scope.gceImages = images;
+
+          if ($scope.gceImages.indexOf($scope.command.image) === -1) {
+            $scope.command.image = null;
+          }
+        });
+
+        $scope.lastImageAccount = serverGroupCommand.credentials;
       }
     }
 

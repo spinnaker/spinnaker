@@ -58,8 +58,6 @@ angular.module('deckApp')
   }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode, parseServerGroupName) {
-      // TODO(duftler): Load regions, zones, ...
-
       mode = mode || 'clone';
 
       var serverGroupName = parseServerGroupName(serverGroup.name);
@@ -88,7 +86,8 @@ angular.module('deckApp')
           account: serverGroup.account,
           region: serverGroup.region,
           zone: serverGroup.zones[0],
-          serverGroupName: serverGroup.name
+          serverGroupName: serverGroup.name,
+          asgName: serverGroup.name
         },
         viewState: {
           allImageSelection: null,
