@@ -8,7 +8,7 @@
             ng-model="component.region"
             ng-change="onChange()"
             required>
-      <option ng-repeat="region in ['us-central1', 'europe-west1', 'asia-east1']"
+      <option ng-repeat="region in regions"
               value="{{region}}"
               ng-selected="component[field] === region">{{region}}</option>
     </select>

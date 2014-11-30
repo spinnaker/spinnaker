@@ -87,14 +87,22 @@ angular.module('deckApp.gce')
     }
 
     function credentialsChanged() {
-      if (true) { return; }
-
       if ($scope.command.credentials) {
-        $scope.regions = $scope.regionsKeyedByAccount[$scope.command.credentials].regions;
-        if (!_($scope.regions).some({name: $scope.command.region})) {
+        $scope.regionToZonesMap = $scope.regionsKeyedByAccount[$scope.command.credentials].regions;
+
+        if (!$scope.regionToZonesMap) {
+          // TODO(duftler): Move these default values to settings.js and/or accountService.js.
+          $scope.regionToZonesMap = {
+            'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-f'],
+            'europe-west1': ['europe-west1-a', 'europe-west1-b', 'europe-west1-c'],
+            'asia-east1': ['asia-east1-a', 'asia-east1-b', 'asia-east1-c']
+          };
+        }
+
+        $scope.regions = _.keys($scope.regionToZonesMap);
+
+        if ($scope.regions.indexOf($scope.command.region) === -1) {
           $scope.command.region = null;
-        } else {
-          regionChanged();
         }
       } else {
         $scope.command.region = null;
@@ -102,25 +110,15 @@ angular.module('deckApp.gce')
     }
 
     function regionChanged() {
-      if (true) { return; }
+      if ($scope.regionToZonesMap) {
+        $scope.zones = $scope.regionToZonesMap[$scope.command.region];
 
-      configureSubnetPurposes();
-      var currentZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
-      if ($scope.command.region) {
-        if (!_($scope.regionSubnetPurposes).some({purpose: $scope.command.subnetType})) {
-          $scope.command.subnetType = null;
+        if (!$scope.command.region || $scope.zones.indexOf($scope.command.zone) === -1) {
+          $scope.command.zone = null;
         }
-        subnetChanged();
-        configureInstanceTypes();
-        configureAvailabilityZones();
-        configureImages();
       } else {
-        $scope.regionalAvailabilityZones = null;
-      }
-      $scope.command.availabilityZones = _.intersection($scope.command.availabilityZones, $scope.regionalAvailabilityZones);
-      var newZoneCount = $scope.command.availabilityZones ? $scope.command.availabilityZones.length : 0;
-      if (currentZoneCount !== newZoneCount) {
-        modalWizardService.getWizard().markDirty('capacity');
+        $scope.zones = null;
+        $scope.command.zone = null;
       }
     }
 
@@ -132,11 +130,6 @@ angular.module('deckApp.gce')
       $scope.command.vpcId = subnet ? subnet.vpcId : null;
       configureSecurityGroupOptions();
       configureLoadBalancerOptions();
-    }
-
-    function configureAvailabilityZones() {
-      $scope.regionalAvailabilityZones = _.find($scope.regionsKeyedByAccount[$scope.command.credentials].regions,
-        {name: $scope.command.region}).availabilityZones;
     }
 
     function configureSubnetPurposes() {
