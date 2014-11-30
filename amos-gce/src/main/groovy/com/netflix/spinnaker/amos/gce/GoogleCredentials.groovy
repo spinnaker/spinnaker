@@ -35,7 +35,6 @@ class GoogleCredentials {
   private final String email
   private final PrivateKey privateKey
 
-  // This is used to gain access to the "limited preview" capabilities like Replica Pools.
   GoogleCredential.Builder createCredentialBuilder(String... serviceAccountScopes) {
     new GoogleCredential.Builder().setTransport(httpTransport)
             .setJsonFactory(jsonFactory)
