@@ -214,7 +214,7 @@ angular.module('deckApp.gce')
           }
         });
 
-        $scope.lastImageAccount = serverGroupCommand.credentials;
+        $scope.lastImageAccount = $scope.command.credentials;
       }
     }
 
