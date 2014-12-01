@@ -53,8 +53,10 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  protected Job build(Map<String, Object> config, Pipeline subject) {
-    createJobFrom(subject)
+  protected Job build(Map<String, Object> config, Pipeline pipeline) {
+    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+                         .flow(initializationStep(steps, pipeline)) as JobFlowBuilder
+    buildFlow(jobBuilder, pipeline).build().build()
   }
 
   @Override
@@ -71,12 +73,6 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
             .withTrigger((Map<String, Object>) config.trigger)
             .withStages((List<Map<String, Object>>) config.stages)
             .build()
-  }
-
-  private Job createJobFrom(Pipeline pipeline) {
-    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
-                         .flow(initializationStep(steps, pipeline)) as JobFlowBuilder
-    buildFlow(jobBuilder, pipeline).build().build()
   }
 
   // static compiler doesn't seem to know what to do here anymore...

@@ -65,6 +65,7 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
   T start(String configJson) {
     Map<String, Object> config = mapper.readValue(configJson, Map)
     def subject = create(config)
+    persistExecution(subject)
     def job = build(config, subject)
     persistExecution(subject)
     JobExecution execution = launcher.run job, createJobParameters(subject, config)
