@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.kato.deploy.gce
 
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.api.services.replicapool.ReplicapoolScopes
@@ -31,10 +34,9 @@ import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
 class GCEUtil {
   public static final String APPLICATION_NAME = "Spinnaker"
 
-  // TODO(duftler): Add support for ubuntu image project.
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
-                                                 "opensuse-cloud", "rhel-cloud", "suse-cloud"]
+                                                 "opensuse-cloud", "rhel-cloud", "suse-cloud", "ubuntu-os-cloud"]
 
   static MachineType queryMachineType(String projectName, String zone, String machineTypeName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $machineTypeName..."
@@ -55,17 +57,34 @@ class GCEUtil {
     def imageProjects = [projectName] + baseImageProjects
     def sourceImage = null
 
-    for (imageProject in imageProjects) {
-      sourceImage = compute.images().list(imageProject).execute().getItems().find {
-        it.getName() == sourceImageName
+    def imageListBatch = compute.batch()
+    def imageListCallback = new JsonBatchCallback<ImageList>() {
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        updateStatusAndThrowException("Error locating $sourceImageName in these projects: $imageProjects: $e.message", task, phase)
       }
 
-      if (sourceImage != null) {
-        return sourceImage;
+      @Override
+      void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
+        for (def image : imageList.items) {
+          if (image.name == sourceImageName) {
+            sourceImage = image
+          }
+        }
       }
     }
 
-    updateStatusAndThrowException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
+    for (imageProject in imageProjects) {
+      compute.images().list(imageProject).queue(imageListBatch, imageListCallback)
+    }
+
+    imageListBatch.execute()
+
+    if (sourceImage) {
+      return sourceImage
+    } else {
+      updateStatusAndThrowException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
+    }
   }
 
   static Network queryNetwork(String projectName, String networkName, Compute compute, Task task, String phase) {
