@@ -18,14 +18,8 @@ package com.netflix.spinnaker.cats.provider
 
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
-import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.CacheSpec
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.cache.WriteableCache
+import com.netflix.spinnaker.cats.cache.*
 import com.netflix.spinnaker.cats.mem.InMemoryCache
-import spock.lang.Specification
-import spock.lang.Subject
 
 class DefaultProviderCacheSpec extends CacheSpec {
 
@@ -110,16 +104,16 @@ class DefaultProviderCacheSpec extends CacheSpec {
 
     private CacheResult buildCacheResult(String account, String region, String sgVersion = 'v001') {
         String serverGroup = "$account/$region/testapp-test-$sgVersion"
-        String cluster =  "$account/testapp-test"
+        String cluster = "$account/testapp-test"
         String application = 'testapp'
         String loadbalancer = "$account/$region/testapp--frontend"
         Map<String, Object> serverGroupAtts = [
-                name : 'testapp-test-v001',
+                name   : 'testapp-test-v001',
                 account: account,
-                region: region
+                region : region
         ]
 
-        CacheData app = new DefaultCacheData(application, [accountName: account], [serverGroup:[serverGroup], cluster:[cluster]])
+        CacheData app = new DefaultCacheData(application, [accountName: account], [serverGroup: [serverGroup], cluster: [cluster]])
         CacheData sg = new DefaultCacheData(serverGroup, serverGroupAtts, [application: [application], cluster: [cluster], loadBalancer: [loadbalancer]])
         CacheData clu = new DefaultCacheData(cluster, [:], [application: [application], serverGroup: [serverGroup]])
         CacheData lb = new DefaultCacheData(loadbalancer, [:], [serverGroup: [serverGroup]])

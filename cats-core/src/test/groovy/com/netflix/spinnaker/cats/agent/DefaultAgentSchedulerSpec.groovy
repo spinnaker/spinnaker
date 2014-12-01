@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit
 
 class DefaultAgentSchedulerSpec extends Specification {
 
-    @Subject DefaultAgentScheduler scheduler
+    @Subject
+    DefaultAgentScheduler scheduler
     ManualRunnableScheduler runnableScheduler
 
     def 'executionInstrumentation is informed of agent execution'() {

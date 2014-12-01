@@ -18,7 +18,11 @@ package com.netflix.spinnaker.cats.redis.cluster;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.TimeUnit;

@@ -16,14 +16,7 @@
 
 package com.netflix.spinnaker.cats.test
 
-import java.util.concurrent.Callable
-import java.util.concurrent.Delayed
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Future
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 
 class ManualRunnableScheduler implements ScheduledExecutorService {
     private final Collection<Callable<?>> callables = new LinkedList<>()

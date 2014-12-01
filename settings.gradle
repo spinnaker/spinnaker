@@ -1,14 +1,14 @@
-rootProject.name='cats'
+rootProject.name = 'cats'
 
 include 'cats-core', 'cats-redis'
 
 def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+    project.buildFileName = "${project.name}.gradle"
+    project.children.each {
+        setBuildFile(it)
+    }
 }
 
 rootProject.children.each {
-  setBuildFile(it)
+    setBuildFile(it)
 }

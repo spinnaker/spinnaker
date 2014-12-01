@@ -31,7 +31,8 @@ class CatsSpec extends Specification {
     private static final String SG = 'serverGroup'
     private static final String APP = 'application'
 
-    @Subject CatsModule module
+    @Subject
+    CatsModule module
     TestScheduler scheduler
     TestAgent sgAgent
     TestAgent appAgent

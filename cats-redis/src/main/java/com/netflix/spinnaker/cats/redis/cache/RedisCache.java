@@ -25,15 +25,31 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RedisCache implements WriteableCache {
 
-    private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {};
-    private static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {};
+    private static final int DEFAULT_SCAN_SIZE = 10000;
+
+    private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
+    };
+    private static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {
+    };
 
     private final String prefix;
     private final JedisSource source;
@@ -156,7 +172,7 @@ public class RedisCache implements WriteableCache {
         Collection<CacheData> results = new ArrayList<>(ids.size());
         Iterator<String> idIterator = identifiers.iterator();
         for (int ofs = 0; ofs < keyResult.size(); ofs += singleResultSize) {
-            CacheData item = extractItem(idIterator.next(), keyResult.subList(ofs, ofs+singleResultSize), knownRels);
+            CacheData item = extractItem(idIterator.next(), keyResult.subList(ofs, ofs + singleResultSize), knownRels);
             if (item != null) {
                 results.add(item);
             }
@@ -182,6 +198,24 @@ public class RedisCache implements WriteableCache {
     public Collection<String> getIdentifiers(String type) {
         try (Jedis jedis = source.getJedis()) {
             return jedis.smembers(allOfTypeId(type));
+        }
+    }
+
+    @Override
+    public Collection<String> filterIdentifiers(String type, String glob) {
+        try (Jedis jedis = source.getJedis()) {
+            final Set<String> matches = new HashSet<>();
+            final ScanParams scanParams = new ScanParams().match(glob).count(DEFAULT_SCAN_SIZE);
+            final String allIdentifiersKey = allOfTypeId(type);
+            String cursor = "0";
+            while (true) {
+                final ScanResult<String> scanResult = jedis.sscan(allIdentifiersKey, cursor, scanParams);
+                matches.addAll(scanResult.getResult());
+                cursor = scanResult.getStringCursor();
+                if ("0".equals(cursor)) {
+                    return matches;
+                }
+            }
         }
     }
 

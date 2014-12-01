@@ -26,6 +26,7 @@ import java.util.Map;
  */
 public interface CacheData {
     String getId();
+
     Map<String, Object> getAttributes();
 
     /**

@@ -23,5 +23,6 @@ import java.util.Collection;
 
 public interface ProviderCache extends Cache {
     void putCacheResult(String source, Collection<String> authoritativeTypes, CacheResult cacheResult);
+
     void evictDeletedItems(String type, Collection<String> ids);
 }
