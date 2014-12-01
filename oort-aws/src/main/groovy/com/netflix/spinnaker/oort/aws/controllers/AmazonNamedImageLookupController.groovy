@@ -66,45 +66,17 @@ class AmazonNamedImageLookupController {
       throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
     }
 
-    Collection<String> namedImageIdentifiers = cacheView.getIdentifiers(NAMED_IMAGES.ns, lookupOptions.q)
-    Collection<String> imageIdentifiers = cacheView.getIdentifiers(IMAGES.ns, lookupOptions.q)
-    Collection<String> namedFiltered = namedImageIdentifiers.findAll {
-      def parts = Keys.parse(it)
-      if (lookupOptions.q) {
-        if (parts.imageName.indexOf(lookupOptions.q) == -1) {
-          return false
-        }
-      }
+    String glob = "*${lookupOptions.q}*"
 
-      if (lookupOptions.account) {
-        if (parts.account != lookupOptions.account) {
-          return false
-        }
-      }
+    def namedImageSearch = Keys.getNamedImageKey(lookupOptions.account ?: '*', glob)
+    def imageSearch = Keys.getImageKey(glob, lookupOptions.account ?: '*', lookupOptions.region ?: '*')
 
-      true
-    }
+    Collection<String> namedImageIdentifiers = cacheView.filterIdentifiers(NAMED_IMAGES.ns, namedImageSearch)
+    Collection<String> imageIdentifiers = cacheView.filterIdentifiers(IMAGES.ns, imageSearch)
 
-    Collection<String> imageFiltered = imageIdentifiers.findAll {
-      def parts = Keys.parse(it)
-      if (lookupOptions.q) {
-        if (parts.imageId.indexOf(lookupOptions.q) == -1) {
-          return false
-        }
-      }
+    Collection<CacheData> matchesByName = cacheView.getAll(NAMED_IMAGES.ns, namedImageIdentifiers)
 
-      if (lookupOptions.account) {
-        if (parts.account != lookupOptions.account) {
-          return false
-        }
-      }
-
-      true
-    }
-
-    Collection<CacheData> matchesByName = cacheView.getAll(NAMED_IMAGES.ns, namedFiltered)
-
-    Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageFiltered)
+    Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageIdentifiers)
 
     render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region)
   }
