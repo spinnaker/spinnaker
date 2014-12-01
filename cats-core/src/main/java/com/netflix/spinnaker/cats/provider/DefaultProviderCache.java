@@ -92,9 +92,9 @@ public class DefaultProviderCache implements ProviderCache {
     }
 
     @Override
-    public Collection<String> getIdentifiers(String type, String filter) {
+    public Collection<String> filterIdentifiers(String type, String glob) {
         validateTypes(type);
-        Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type, filter));
+        Set<String> identifiers = new HashSet<>(backingStore.filterIdentifiers(type, glob));
         identifiers.remove(ALL_ID);
 
         return identifiers;

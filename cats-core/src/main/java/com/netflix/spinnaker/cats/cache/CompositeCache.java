@@ -69,10 +69,10 @@ public class CompositeCache implements Cache {
     }
 
     @Override
-    public Collection<String> getIdentifiers(String type, String filter) {
+    public Collection<String> filterIdentifiers(String type, String glob) {
         HashSet<String> identifiers = new HashSet<>();
         for (Cache cache : caches) {
-            identifiers.addAll(cache.getIdentifiers(type, filter));
+            identifiers.addAll(cache.filterIdentifiers(type, glob));
         }
         return identifiers;
     }

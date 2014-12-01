@@ -22,15 +22,49 @@ import java.util.Collection;
  * Cache provides view access to data keyed by type and identifier.
  */
 public interface Cache {
+    /**
+     * Gets a single item from the cache by type and id
+     * @param type the type of the item
+     * @param id the id of the item
+     * @return the item matching the type and id
+     */
     CacheData get(String type, String id);
 
+    /**
+     * Retrieves all the identifiers for a type
+     * @param type the type for which to retrieve identifiers
+     * @return the identifiers for the type
+     */
     Collection<String> getIdentifiers(String type);
 
-    Collection<String> getIdentifiers(String type, String filter);
+    /**
+     * Returns the identifiers for the specified type that match the provided glob.
+     * @param type The type for which to retrieve identifiers
+     * @param glob The glob to match against the identifiers
+     * @return the identifiers for the type that match the glob
+     */
+    Collection<String> filterIdentifiers(String type, String glob);
 
+    /**
+     * Retrieves all the items for the specified type
+     * @param type the type for which to retrieve items
+     * @return all the items for the type
+     */
     Collection<CacheData> getAll(String type);
 
+    /**
+     * Retrieves the items for the specified type matching the provided identifiers
+     * @param type the type for which to retrieve items
+     * @param identifiers the identifiers
+     * @return the items matching the type and identifiers
+     */
     Collection<CacheData> getAll(String type, Collection<String> identifiers);
 
+    /**
+     * Retrieves the items for the specified type matching the provided identifiers
+     * @param type the type for which to retrieve items
+     * @param identifiers the identifiers
+     * @return the items matching the type and identifiers
+     */
     Collection<CacheData> getAll(String type, String... identifiers);
 }

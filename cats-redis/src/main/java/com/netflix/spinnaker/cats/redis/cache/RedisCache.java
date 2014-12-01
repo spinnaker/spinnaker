@@ -200,18 +200,20 @@ public class RedisCache implements WriteableCache {
     }
 
     @Override
-    public Collection<String> getIdentifiers(String type, String filter) {
+    public Collection<String> filterIdentifiers(String type, String glob) {
         try (Jedis jedis = source.getJedis()) {
-            Set<String> matches = new HashSet<>();
-            ScanParams scanParams = new ScanParams().match("*" + filter + "*").count(10000);
+            final Set<String> matches = new HashSet<>();
+            final ScanParams scanParams = new ScanParams().match(glob).count(10000);
+            final String allIdentifiersKey = allOfTypeId(type);
             String cursor = "0";
-            do {
-                ScanResult<String> scanResult = jedis.sscan(allOfTypeId(type), cursor, scanParams);
+            while (true) {
+                final ScanResult<String> scanResult = jedis.sscan(allIdentifiersKey, cursor, scanParams);
                 matches.addAll(scanResult.getResult());
                 cursor = scanResult.getStringCursor();
+                if ("0".equals(cursor)) {
+                    return matches;
+                }
             }
-            while (!"0".equals(cursor));
-            return matches;
         }
     }
 

@@ -29,8 +29,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Pattern;
 
 /**
  * A WriteableCache that stores objects in an in-memory map.
@@ -107,10 +109,11 @@ public class InMemoryCache implements WriteableCache {
         return new HashSet<>(getTypeMap(type).keySet());
     }
 
-    public Collection<String> getIdentifiers(String type, String filter) {
-        HashSet<String> matches = new HashSet<>();
+    public Collection<String> filterIdentifiers(String type, String glob) {
+        final Pattern pattern = new Glob(glob).toPattern();
+        final HashSet<String> matches = new HashSet<>();
         for (String key : getTypeMap(type).keySet()) {
-            if (key.contains(filter)) {
+            if (pattern.matcher(key).matches()) {
                 matches.add(key);
             }
         }
@@ -213,5 +216,126 @@ public class InMemoryCache implements WriteableCache {
         public Map<String, Collection<String>> getRelationships() {
             return relationships;
         }
+    }
+
+    static class Glob {
+        private static final String TOKENS = "*?[]\\";
+
+        private static enum State {
+            INIT, ESCAPING, CAPTURING, CAPTURING_ESCAPE
+        }
+
+        private final StringTokenizer globTokenizer;
+        private final StringBuilder regex = new StringBuilder();
+        private final StringBuilder capture = new StringBuilder();
+
+        private State state = State.INIT;
+
+        private final Pattern pattern;
+
+        public Glob(String globString) {
+            globTokenizer = new StringTokenizer(globString, TOKENS, true);
+            toInit();
+            pattern = buildPattern();
+        }
+
+        public Pattern toPattern() {
+            return pattern;
+        }
+
+
+        private void toInit() {
+            state = State.INIT;
+            capture.setLength(0);
+        }
+
+        private void toEscaping() {
+            state = State.ESCAPING;
+        }
+
+        private void toCapturing() {
+            state = State.CAPTURING;
+        }
+
+        private void toCapturingEscape() {
+            state = State.CAPTURING_ESCAPE;
+        }
+
+
+        private void handleDelim(String s) {
+            switch (state) {
+                case ESCAPING:
+                    regex.append(Pattern.quote(s));
+                    toInit();
+                    break;
+                case CAPTURING_ESCAPE:
+                    capture.append(Pattern.quote(s));
+                    toCapturing();
+                    break;
+                case CAPTURING:
+                    if ("\\".equals(s)) {
+                        toCapturingEscape();
+                    } else if ("]".equals(s)) {
+                        regex.append("[").append(capture).append("]");
+                        toInit();
+                    } else {
+                        capture.append(Pattern.quote(s));
+                        toCapturing();
+                    }
+                    break;
+                default:
+                    switch (s) {
+                        case "\\":
+                            toEscaping();
+                            break;
+                        case "*":
+                            regex.append(".*");
+                            toInit();
+                            break;
+                        case "?":
+                            regex.append(".");
+                            toInit();
+                            break;
+                        case "[":
+                            toCapturing();
+                            break;
+                        case "]":
+                            regex.append(Pattern.quote("]"));
+                            toInit();
+                            break;
+                        default:
+                            throw new IllegalStateException("Unhandled delimiter in init state: " + s);
+                    }
+            }
+        }
+
+        private void handleStr(String s) {
+            switch (state) {
+                case CAPTURING:
+                    capture.append(Pattern.quote(s));
+                    toCapturing();
+                    break;
+                default:
+                    regex.append(Pattern.quote(s));
+                    toInit();
+            }
+        }
+
+        private Pattern buildPattern() {
+            while (globTokenizer.hasMoreTokens()) {
+                String token = globTokenizer.nextToken();
+                if (token.length() == 1 && TOKENS.indexOf(token.charAt(0)) != -1) {
+                    handleDelim(token);
+                } else {
+                    handleStr(token);
+                }
+            }
+            if (state == State.CAPTURING || state == State.CAPTURING_ESCAPE) {
+                regex.append(Pattern.quote("["));
+                regex.append(capture);
+            }
+            return Pattern.compile(regex.toString());
+        }
+
     }
 }

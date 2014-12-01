@@ -64,6 +64,26 @@ abstract class CacheSpec extends Specification {
         cache.getIdentifiers('foo').sort() == ['bar', 'baz']
     }
 
+    def 'filterIdentifiers behaviour'() {
+        setup:
+        for (String id : identifiers) {
+            populateOne('foo', id)
+        }
+
+        expect:
+        cache.filterIdentifiers('foo', filter).toSet() == expected as Set
+
+        where:
+        filter                  | expected
+        '*TEST*'                | ['blaTEST', 'blaTESTbla', 'TESTbla']
+        'bla*'                  | ['blaTEST', 'blaTESTbla', 'blaPest', 'blaFEST']
+        'bla[TF]EST'            | ['blaTEST', 'blaFEST']
+        'bla?EST'               | ['blaTEST', 'blaFEST']
+        '??a[FTP][Ee][Ss][Tt]*' | ['blaTEST', 'blaTESTbla', 'blaPest', 'blaFEST']
+
+        identifiers = ['blaTEST', 'TESTbla', 'blaTESTbla', 'blaPest', 'blaFEST']
+    }
+
     def 'a cached value does not exist until it has attributes'() {
         setup:
         populateOne('foo', 'bar', createData('bar', [:]))
