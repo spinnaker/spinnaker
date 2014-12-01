@@ -42,6 +42,7 @@ dependencies {
   compile project(":orca-echo")
   compile project(":orca-mayo")
   compile project(":orca-jedis")
+  compile project(":orca-rush")
   testCompile commonDependencies.springBatchTest
   testCompile commonDependencies.spockSpring
   testCompile commonDependencies.springTest

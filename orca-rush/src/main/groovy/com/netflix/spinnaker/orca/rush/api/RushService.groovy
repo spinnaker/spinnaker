@@ -14,30 +14,20 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-rush",
-  "orca-web"
+package com.netflix.spinnaker.orca.rush.api
 
-rootProject.name = "orca"
+import retrofit.http.Body
+import retrofit.http.GET
+import retrofit.http.POST
+import retrofit.http.Path
+import rx.Observable
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+interface RushService {
 
-rootProject.children.each {
-  setBuildFile it
+  @POST("/ops")
+  Observable<ScriptId> runScript(@Body ScriptRequest scriptRequest)
+
+  @GET("/tasks/{scriptId}")
+  Observable<ScriptExecution> scriptDetails(@Path("scriptId") String scriptId)
+
 }

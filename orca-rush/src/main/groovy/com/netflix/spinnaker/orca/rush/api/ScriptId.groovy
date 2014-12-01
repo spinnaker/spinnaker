@@ -14,30 +14,10 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-jedis",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-rush",
-  "orca-web"
+package com.netflix.spinnaker.orca.rush.api
 
-rootProject.name = "orca"
+class ScriptId {
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+  String id
 
-rootProject.children.each {
-  setBuildFile it
 }
