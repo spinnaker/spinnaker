@@ -30,6 +30,8 @@ class Pipeline extends Execution<Pipeline> {
   String name
   final Map<String, Object> trigger = [:]
 
+  final Map<String, Serializable> appConfig = [:]
+
   @JsonIgnore
   ExecutionStatus getStatus() {
     def status = stages.status.reverse().find {

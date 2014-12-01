@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.front50.tasks
+package com.netflix.spinnaker.orca.smoke
 
-import com.netflix.spinnaker.orca.front50.model.Application
+class OrcaSmokeUtils  {
 
-class CreateApplicationTask extends AbstractFront50Task {
-  @Override
-  void performRequest(String account, Application application) {
-    front50Service.create(account, application.name, application)
+  // TODO: Expose string-work in PipelineStarter.createJobFrom() and use that directly from this method's call-sites?
+  static String buildJobName(String applicationName, String pipelineName, String pipelineId) {
+    return "Pipeline:$applicationName:$pipelineName:$pipelineId".toString()
   }
+
 }
+

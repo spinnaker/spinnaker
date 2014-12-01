@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.model.JobViewModel
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
@@ -89,6 +92,27 @@ class TaskControllerSpec extends Specification {
     jobExplorer.getJobExecutions(_) >> { args -> [new JobExecution(args[0], args[0].id, null, null)] }
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.name == ['jobOne', 'jobTwo']
+  }
+
+  void 'stage contexts are included for orchestrated tasks'() {
+    setup:
+    def orchestration = new Orchestration(id: "1")
+    orchestration.stages = [
+      new OrchestrationStage(orchestration, "OrchestratedType", ["customOutput": "variable"])
+    ]
+
+    when:
+    def response = mockMvc.perform(get('/tasks/1')).andReturn().response
+
+    then:
+    jobExplorer.getJobExecution(_) >> { args ->
+      [new JobExecution(jobs[0].instance, args[0], new JobParameters(["orchestration": orchestration.id]), null)]
+    }
+    executionRepository.retrieveOrchestration(orchestration.id) >> orchestration
+
+    new ObjectMapper().readValue(response.contentAsString, JobViewModel).variables == [
+      [key: "OrchestratedType.customOutput", value: "variable"]
+    ]
   }
 
   void '/tasks returns [] when there are no tasks'() {

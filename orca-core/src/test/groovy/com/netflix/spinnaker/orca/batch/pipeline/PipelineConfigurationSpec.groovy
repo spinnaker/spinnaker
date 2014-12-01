@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
@@ -162,7 +161,7 @@ class PipelineConfigurationSpec extends Specification {
     pipelineStarter.start(configJson)
 
     then:
-    1 * mockExecutionRepo.store(_ as Pipeline)
+    2 * mockExecutionRepo.store(_ as Pipeline)
 
     where:
     config = [

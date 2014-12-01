@@ -40,4 +40,12 @@ class PipelineStage extends AbstractStage<Pipeline> {
   public Pipeline getPipeline() {
     (Pipeline)execution
   }
+
+  @Override
+  Stage<Pipeline> asImmutable() {
+    if (pipeline?.appConfig) {
+      context.appConfig = pipeline.appConfig
+    }
+    super.asImmutable()
+  }
 }

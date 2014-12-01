@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-
 import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
 import static java.util.UUID.randomUUID
 
@@ -59,8 +57,6 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
       }
     }
 
-    executionRepository.store(orchestration)
-
     return orchestration
   }
 
@@ -73,5 +69,10 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
     }
 
     jobBuilder.build().build()
+  }
+
+  @Override
+  protected void persistExecution(Orchestration orchestration) {
+    executionRepository.store(orchestration)
   }
 }

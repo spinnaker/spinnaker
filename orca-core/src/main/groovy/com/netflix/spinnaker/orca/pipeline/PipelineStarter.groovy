@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.TypeCheckingMode
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
@@ -44,9 +44,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
   @Override
   protected Pipeline create(Map<String, Object> config) {
-    def pipeline = parseConfig(config)
-    executionRepository.store(pipeline)
-    return pipeline
+    return parseConfig(config)
   }
 
   /**
@@ -55,8 +53,15 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
-  protected Job build(Map<String, Object> config, Pipeline subject) {
-    createJobFrom(subject)
+  protected Job build(Map<String, Object> config, Pipeline pipeline) {
+    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+                         .flow(initializationStep(steps, pipeline)) as JobFlowBuilder
+    buildFlow(jobBuilder, pipeline).build().build()
+  }
+
+  @Override
+  protected void persistExecution(Pipeline pipeline) {
+    executionRepository.store(pipeline)
   }
 
   @VisibleForTesting
@@ -68,12 +73,6 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
             .withTrigger((Map<String, Object>) config.trigger)
             .withStages((List<Map<String, Object>>) config.stages)
             .build()
-  }
-
-  private Job createJobFrom(Pipeline pipeline) {
-    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
-                         .flow(initializationStep(steps, pipeline)) as JobFlowBuilder
-    buildFlow(jobBuilder, pipeline).build().build()
   }
 
   // static compiler doesn't seem to know what to do here anymore...

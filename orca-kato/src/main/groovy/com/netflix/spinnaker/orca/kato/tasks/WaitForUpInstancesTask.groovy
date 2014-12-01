@@ -20,8 +20,18 @@ package com.netflix.spinnaker.orca.kato.tasks
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
-  protected boolean hasSucceeded(List instances) {
-    !instances.find { !it.isHealthy }
+  protected boolean hasSucceeded(Map asg, List instances, Collection<String> interestingHealthProviderNames) {
+    if (asg.minSize > instances.size()) {
+      return false
+    }
+    instances.every {
+      def healths = interestingHealthProviderNames ? it.health.findAll { health ->
+        health.type in interestingHealthProviderNames
+      } : it.health
+      boolean someAreUp = healths.any { it.state == 'Up' }
+      boolean noneAreDown = !healths.any { it.state == 'Down' }
+      someAreUp && noneAreDown
+    }
   }
 
 }
