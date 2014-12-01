@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.cats.module;
 
-import com.netflix.spinnaker.cats.cache.CompositeCache;
 import com.netflix.spinnaker.cats.agent.AgentController;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.cache.CompositeCache;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry;
 import com.netflix.spinnaker.cats.provider.Provider;

@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.cats.agent
 
-import com.netflix.spinnaker.cats.test.TestAgent
-import com.netflix.spinnaker.cats.test.TestProvider
-import com.netflix.spinnaker.cats.test.TestProviderRegistry
-import com.netflix.spinnaker.cats.test.TestScheduler
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
+import com.netflix.spinnaker.cats.test.TestAgent
+import com.netflix.spinnaker.cats.test.TestProvider
+import com.netflix.spinnaker.cats.test.TestProviderRegistry
+import com.netflix.spinnaker.cats.test.TestScheduler
 import spock.lang.Specification
 
 class AgentControllerSpec extends Specification {

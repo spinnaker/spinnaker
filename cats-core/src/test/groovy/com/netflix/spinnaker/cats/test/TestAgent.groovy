@@ -22,7 +22,8 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 class TestAgent implements CachingAgent {
 
@@ -43,7 +44,9 @@ class TestAgent implements CachingAgent {
 
     @Override
     Collection<AgentDataType> getProvidedDataTypes() {
-        (types + authoritative).collect { authoritative.contains(it) ? AUTHORITATIVE.forType(it) : INFORMATIVE.forType(it)}
+        (types + authoritative).collect {
+            authoritative.contains(it) ? AUTHORITATIVE.forType(it) : INFORMATIVE.forType(it)
+        }
     }
 
     @Override

@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.cats.cache;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * A cache that provides a unified view of multiples, merging items from each
@@ -65,11 +70,11 @@ public class CompositeCache implements Cache {
 
     @Override
     public Collection<String> getIdentifiers(String type, String filter) {
-      HashSet<String> identifiers = new HashSet<>();
-      for (Cache cache : caches) {
-        identifiers.addAll(cache.getIdentifiers(type, filter));
-      }
-      return identifiers;
+        HashSet<String> identifiers = new HashSet<>();
+        for (Cache cache : caches) {
+            identifiers.addAll(cache.getIdentifiers(type, filter));
+        }
+        return identifiers;
     }
 
     @Override

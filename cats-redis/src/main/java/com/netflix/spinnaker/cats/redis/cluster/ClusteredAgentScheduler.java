@@ -16,13 +16,24 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
-import com.netflix.spinnaker.cats.agent.*;
+import com.netflix.spinnaker.cats.agent.AgentExecution;
+import com.netflix.spinnaker.cats.agent.AgentScheduler;
+import com.netflix.spinnaker.cats.agent.CachingAgent;
+import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import redis.clients.jedis.Jedis;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
     private final JedisSource jedisSource;

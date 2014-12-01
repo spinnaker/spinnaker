@@ -20,7 +20,15 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -100,13 +108,13 @@ public class InMemoryCache implements WriteableCache {
     }
 
     public Collection<String> getIdentifiers(String type, String filter) {
-      HashSet<String> matches = new HashSet<>();
-      for (String key : getTypeMap(type).keySet()) {
-        if (key.contains(filter)) {
-          matches.add(key);
+        HashSet<String> matches = new HashSet<>();
+        for (String key : getTypeMap(type).keySet()) {
+            if (key.contains(filter)) {
+                matches.add(key);
+            }
         }
-      }
-      return matches;
+        return matches;
     }
 
     private CacheData getOrCreate(String type, String id) {
@@ -154,6 +162,7 @@ public class InMemoryCache implements WriteableCache {
     /**
      * ConcurrentHashMap doesn't support null values, this translates a sourceMap into
      * a combination of non-null update values and a set of keys to remove
+     *
      * @param <K> the key type
      * @param <V> the value type
      */

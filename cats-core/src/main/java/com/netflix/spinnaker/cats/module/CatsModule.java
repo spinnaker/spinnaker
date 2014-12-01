@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.cats.module;
 
-import com.netflix.spinnaker.cats.agent.*;
+import com.netflix.spinnaker.cats.agent.AgentScheduler;
+import com.netflix.spinnaker.cats.agent.CompositeExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler;
+import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory;
@@ -36,8 +40,11 @@ import java.util.concurrent.TimeUnit;
 public interface CatsModule {
 
     NamedCacheFactory getNamedCacheFactory();
+
     ProviderRegistry getProviderRegistry();
+
     AgentScheduler getAgentScheduler();
+
     Cache getView();
 
     public static class Builder {
@@ -65,6 +72,7 @@ public interface CatsModule {
             instrumentations.addAll(instrumentation);
             return this;
         }
+
         public Builder instrumentation(ExecutionInstrumentation... instrumentation) {
             return instrumentation(Arrays.asList(instrumentation));
         }

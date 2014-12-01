@@ -29,12 +29,25 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RedisCache implements WriteableCache {
 
-    private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {};
-    private static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {};
+    private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
+    };
+    private static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {
+    };
 
     private final String prefix;
     private final JedisSource source;
@@ -157,7 +170,7 @@ public class RedisCache implements WriteableCache {
         Collection<CacheData> results = new ArrayList<>(ids.size());
         Iterator<String> idIterator = identifiers.iterator();
         for (int ofs = 0; ofs < keyResult.size(); ofs += singleResultSize) {
-            CacheData item = extractItem(idIterator.next(), keyResult.subList(ofs, ofs+singleResultSize), knownRels);
+            CacheData item = extractItem(idIterator.next(), keyResult.subList(ofs, ofs + singleResultSize), knownRels);
             if (item != null) {
                 results.add(item);
             }
@@ -188,18 +201,18 @@ public class RedisCache implements WriteableCache {
 
     @Override
     public Collection<String> getIdentifiers(String type, String filter) {
-      try (Jedis jedis = source.getJedis()) {
-        Set<String> matches = new HashSet<>();
-        ScanParams scanParams = new ScanParams().match("*"+filter+"*").count(10000);
-        String cursor = "0";
-        do {
-          ScanResult<String> scanResult = jedis.sscan(allOfTypeId(type), cursor, scanParams);
-          matches.addAll(scanResult.getResult());
-          cursor = scanResult.getStringCursor();
+        try (Jedis jedis = source.getJedis()) {
+            Set<String> matches = new HashSet<>();
+            ScanParams scanParams = new ScanParams().match("*" + filter + "*").count(10000);
+            String cursor = "0";
+            do {
+                ScanResult<String> scanResult = jedis.sscan(allOfTypeId(type), cursor, scanParams);
+                matches.addAll(scanResult.getResult());
+                cursor = scanResult.getStringCursor();
+            }
+            while (!"0".equals(cursor));
+            return matches;
         }
-        while (!"0".equals(cursor));
-        return matches;
-      }
     }
 
     private static class MergeOp {

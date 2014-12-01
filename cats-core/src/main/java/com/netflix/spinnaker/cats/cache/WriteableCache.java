@@ -23,7 +23,10 @@ import java.util.Collection;
  */
 public interface WriteableCache extends Cache {
     void merge(String type, CacheData cacheData);
+
     void mergeAll(String type, Collection<CacheData> items);
+
     void evict(String type, String id);
+
     void evictAll(String type, Collection<String> ids);
 }

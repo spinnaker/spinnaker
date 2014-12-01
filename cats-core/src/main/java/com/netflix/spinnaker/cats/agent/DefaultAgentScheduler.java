@@ -24,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * An AgentScheduler that executes on a fixed interval.
- *
+ * <p/>
  * This AgentScheduler will capture any exceptions thrown by the AgentExecution and
  * report them to the provided ExecutionInstrumentation.
- *
+ * <p/>
  * An exception thrown while reporting executionFailure will abort the schedule for
  * the CachingAgent.
  */

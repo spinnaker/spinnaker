@@ -21,12 +21,19 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An implementation of ProviderCache that writes through to a provided backing
  * WriteableCache.
- *
+ * <p/>
  * This implementation will handle aggregating results from multiple sources, and
  * the view methods will merge relationships from all sources into a single relationship.
  */
@@ -86,11 +93,11 @@ public class DefaultProviderCache implements ProviderCache {
 
     @Override
     public Collection<String> getIdentifiers(String type, String filter) {
-      validateTypes(type);
-      Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type, filter));
-      identifiers.remove(ALL_ID);
+        validateTypes(type);
+        Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type, filter));
+        identifiers.remove(ALL_ID);
 
-      return identifiers;
+        return identifiers;
     }
 
     @Override

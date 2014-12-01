@@ -21,7 +21,8 @@ import spock.lang.Subject
 
 abstract class CacheSpec extends Specification {
 
-    @Subject Cache cache
+    @Subject
+    Cache cache
 
     def setup() {
         cache = getSubject()

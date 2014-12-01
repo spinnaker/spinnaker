@@ -18,7 +18,7 @@ package com.netflix.spinnaker.cats.agent;
 
 /**
  * Describes both the type name as well as authority for an Agent's provided data.
- *
+ * <p/>
  * If an agent is an Authoritative source of data, then it's resulting data set will be
  * considered the current complete set for that data source. If an agent is an Informative
  * source of data, its results will contribute to the data set for that type, but is never
