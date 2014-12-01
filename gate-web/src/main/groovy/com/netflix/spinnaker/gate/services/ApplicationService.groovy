@@ -24,6 +24,8 @@ import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
 import java.util.concurrent.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,6 +35,7 @@ import rx.schedulers.Schedulers
 
 @CompileStatic
 @Component
+@Slf4j
 class ApplicationService {
   private static final String GROUP = "applications"
 
@@ -142,9 +145,11 @@ class ApplicationService {
   }
 
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
-    def accountOverride = serviceConfiguration?.getService("front50")?.config?.readAccountOverride as String
-    if (accountOverride) {
-      return [new ApplicationListRetriever(accountOverride, front50Service)]
+    def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
+    if (globalAccounts) {
+      return globalAccounts.collectMany { String globalAccount ->
+        [ new ApplicationListRetriever(globalAccount, front50Service) ]
+      } as Collection<Callable<List<Map>>>
     }
 
     return (credentialsService.accountNames.collect {
@@ -153,12 +158,14 @@ class ApplicationService {
   }
 
   private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
-    def accountOverride = serviceConfiguration?.getService("front50")?.config?.readAccountOverride as String
-    if (accountOverride) {
-      return [
-          new Front50ApplicationRetriever(accountOverride, applicationName, front50Service),
-          new OortApplicationRetriever(applicationName, oortService)
-      ]
+    def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
+    if (globalAccounts) {
+      return globalAccounts.collectMany { String globalAccount ->
+        [
+            new Front50ApplicationRetriever(globalAccount, applicationName, front50Service),
+            new OortApplicationRetriever(applicationName, oortService)
+        ]
+      } as Collection<Callable<Map>>
     }
 
     return (credentialsService.accountNames.collectMany {

@@ -19,6 +19,9 @@ package com.netflix.spinnaker.gate.services.internal
 import retrofit.http.*
 
 interface Front50Service {
+  @GET("/credentials")
+  List<Map> getCredentials()
+
   @GET('/{account}/applications')
   List<Map> getAll(@Path("account") String account)
 
