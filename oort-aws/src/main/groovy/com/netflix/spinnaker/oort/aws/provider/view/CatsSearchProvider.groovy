@@ -121,7 +121,7 @@ class CatsSearchProvider implements SearchProvider {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      matches.addAll(cacheView.getIdentifiers(cache).findAll { String key ->
+      matches.addAll(cacheView.getIdentifiers(cache, normalizedWord).findAll { String key ->
         try {
           if (key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0) {
             if (!filters) {

@@ -66,8 +66,8 @@ class AmazonNamedImageLookupController {
       throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
     }
 
-    Collection<String> namedImageIdentifiers = cacheView.getIdentifiers(NAMED_IMAGES.ns)
-    Collection<String> imageIdentifiers = cacheView.getIdentifiers(IMAGES.ns)
+    Collection<String> namedImageIdentifiers = cacheView.getIdentifiers(NAMED_IMAGES.ns, lookupOptions.q)
+    Collection<String> imageIdentifiers = cacheView.getIdentifiers(IMAGES.ns, lookupOptions.q)
     Collection<String> namedFiltered = namedImageIdentifiers.findAll {
       def parts = Keys.parse(it)
       if (lookupOptions.q) {

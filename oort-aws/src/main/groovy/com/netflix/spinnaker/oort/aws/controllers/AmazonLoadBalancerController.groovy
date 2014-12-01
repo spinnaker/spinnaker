@@ -47,7 +47,7 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AmazonLoadBalancerSummary get(@PathVariable String name) {
-    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns, name).findAll {
       def key = Keys.parse(it)
       key.loadBalancer == name
     }
@@ -56,7 +56,7 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> getInAccountAndRegion(@PathVariable String account, @PathVariable String region) {
-    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns, "$account:$region").findAll {
       def key = Keys.parse(it)
       key.account == account && key.region == region
     }
@@ -65,7 +65,7 @@ class AmazonLoadBalancerController {
 
   @RequestMapping(value = "/{account}/{region}/{name}", method = RequestMethod.GET)
   List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
-    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+    Collection<String> identifiers = cacheView.getIdentifiers(LOAD_BALANCERS.ns, name).findAll {
       def key = Keys.parse(it)
       key.account == account && key.region == region && key.loadBalancer == name
     }
@@ -73,7 +73,7 @@ class AmazonLoadBalancerController {
     cacheView.getAll(LOAD_BALANCERS.ns, identifiers).attributes
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name}/{vpcId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{name}/{vpcId:.*}", method = RequestMethod.GET)
   Map getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name, @PathVariable String vpcId) {
     def key = Keys.getLoadBalancerKey(name, account, region, vpcId)
     cacheView.get(LOAD_BALANCERS.ns, key)?.attributes

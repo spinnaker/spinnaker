@@ -69,7 +69,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account) {
-    def filteredIds = cacheView.getIdentifiers(LOAD_BALANCERS.ns).findAll {
+    def filteredIds = cacheView.getIdentifiers(LOAD_BALANCERS.ns, account).findAll {
       def parts = Keys.parse(it)
       parts.account == account
     }
@@ -96,7 +96,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   @Override
   AmazonLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    def lbs = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
+    def lbs = cacheView.getIdentifiers(LOAD_BALANCERS.ns, loadBalancerName)
     def keys = lbs.findAll {
       def keyParts = Keys.parse(it)
       (keyParts.account == account && keyParts.region == region && keyParts.loadBalancer == loadBalancerName)
