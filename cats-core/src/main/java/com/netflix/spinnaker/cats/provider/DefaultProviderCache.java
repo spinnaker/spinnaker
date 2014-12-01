@@ -85,6 +85,15 @@ public class DefaultProviderCache implements ProviderCache {
     }
 
     @Override
+    public Collection<String> getIdentifiers(String type, String filter) {
+      validateTypes(type);
+      Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type, filter));
+      identifiers.remove(ALL_ID);
+
+      return identifiers;
+    }
+
+    @Override
     public void putCacheResult(String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
         Set<String> allTypes = new HashSet<>(cacheResult.getCacheResults().keySet());
         allTypes.addAll(authoritativeTypes);

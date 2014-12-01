@@ -24,6 +24,7 @@ import java.util.Collection;
 public interface Cache {
     CacheData get(String type, String id);
     Collection<String> getIdentifiers(String type);
+    Collection<String> getIdentifiers(String type, String filter);
     Collection<CacheData> getAll(String type);
     Collection<CacheData> getAll(String type, Collection<String> identifiers);
     Collection<CacheData> getAll(String type, String... identifiers);

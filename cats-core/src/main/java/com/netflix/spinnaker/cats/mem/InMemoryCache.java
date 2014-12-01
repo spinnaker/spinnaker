@@ -99,6 +99,16 @@ public class InMemoryCache implements WriteableCache {
         return new HashSet<>(getTypeMap(type).keySet());
     }
 
+    public Collection<String> getIdentifiers(String type, String filter) {
+      HashSet<String> matches = new HashSet<>();
+      for (String key : getTypeMap(type).keySet()) {
+        if (key.contains(filter)) {
+          matches.add(key);
+        }
+      }
+      return matches;
+    }
+
     private CacheData getOrCreate(String type, String id) {
         return getCacheData(getTypeMap(type), id);
     }

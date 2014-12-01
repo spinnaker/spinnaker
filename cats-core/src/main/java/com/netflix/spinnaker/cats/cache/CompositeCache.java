@@ -64,6 +64,15 @@ public class CompositeCache implements Cache {
     }
 
     @Override
+    public Collection<String> getIdentifiers(String type, String filter) {
+      HashSet<String> identifiers = new HashSet<>();
+      for (Cache cache : caches) {
+        identifiers.addAll(cache.getIdentifiers(type, filter));
+      }
+      return identifiers;
+    }
+
+    @Override
     public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
         Map<String, CacheData> allItems = new HashMap<>();
         for (Cache cache : caches) {

@@ -25,7 +25,8 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Transaction;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 
 import java.io.IOException;
 import java.util.*;
@@ -183,6 +184,22 @@ public class RedisCache implements WriteableCache {
         try (Jedis jedis = source.getJedis()) {
             return jedis.smembers(allOfTypeId(type));
         }
+    }
+
+    @Override
+    public Collection<String> getIdentifiers(String type, String filter) {
+      try (Jedis jedis = source.getJedis()) {
+        Set<String> matches = new HashSet<>();
+        ScanParams scanParams = new ScanParams().match("*"+filter+"*").count(10000);
+        String cursor = "0";
+        do {
+          ScanResult<String> scanResult = jedis.sscan(allOfTypeId(type), cursor, scanParams);
+          matches.addAll(scanResult.getResult());
+          cursor = scanResult.getStringCursor();
+        }
+        while (!"0".equals(cursor));
+        return matches;
+      }
     }
 
     private static class MergeOp {
