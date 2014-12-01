@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.TypeCheckingMode
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
@@ -44,9 +44,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
   @Override
   protected Pipeline create(Map<String, Object> config) {
-    def pipeline = parseConfig(config)
-    executionRepository.store(pipeline)
-    return pipeline
+    return parseConfig(config)
   }
 
   /**
@@ -57,6 +55,11 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    */
   protected Job build(Map<String, Object> config, Pipeline subject) {
     createJobFrom(subject)
+  }
+
+  @Override
+  protected void persistExecution(Pipeline pipeline) {
+    executionRepository.store(pipeline)
   }
 
   @VisibleForTesting
