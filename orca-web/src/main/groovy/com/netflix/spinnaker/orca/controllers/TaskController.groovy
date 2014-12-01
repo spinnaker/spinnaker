@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.model.JobViewModel
 import com.netflix.spinnaker.orca.model.PipelineViewModel
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -98,6 +99,15 @@ class TaskController {
       String pipelineId = jobExecution.jobParameters.parameters.get("pipeline")
       Pipeline pipeline = executionRepository.retrievePipeline(pipelineId)
       for (stage in pipeline.stages) {
+        for (entry in stage.context.entrySet()) {
+          def key = "${stage.type}.${entry.key}"
+          variables[key] = entry.value
+        }
+      }
+    } else if (jobExecution.jobParameters.parameters.containsKey("orchestration")) {
+      String orchestrationId = jobExecution.jobParameters.parameters.get("orchestration")
+      Orchestration orchestration = executionRepository.retrieveOrchestration(orchestrationId)
+      for (stage in orchestration.stages) {
         for (entry in stage.context.entrySet()) {
           def key = "${stage.type}.${entry.key}"
           variables[key] = entry.value

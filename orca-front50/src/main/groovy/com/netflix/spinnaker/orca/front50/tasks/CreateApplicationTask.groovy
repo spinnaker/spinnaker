@@ -16,38 +16,11 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
-class CreateApplicationTask implements Task {
-
-  @Autowired
-  Front50Service front50Service
-
-  @Autowired
-  ObjectMapper mapper
-
+class CreateApplicationTask extends AbstractFront50Task {
   @Override
-  TaskResult execute(Stage stage) {
-    def application = mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(stage.context.application, Application)
-
-    def resp = front50Service.create(stage.context.account as String,
-                                     application.name, application)
-    if (resp.status != 200) {
-      new DefaultTaskResult(ExecutionStatus.TERMINAL)
-    } else {
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ["application.name": application.name,
-                                                       "account": stage.context.account])
-    }
+  void performRequest(String account, Application application) {
+    front50Service.create(account, application.name, application)
   }
 }
