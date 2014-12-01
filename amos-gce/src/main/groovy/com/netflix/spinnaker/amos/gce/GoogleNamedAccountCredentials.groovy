@@ -24,6 +24,8 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.SecurityUtils
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeScopes
+import com.google.api.services.compute.model.Region
+import com.google.api.services.compute.model.RegionList
 import com.netflix.spinnaker.amos.AccountCredentials
 import org.apache.commons.codec.binary.Base64
 import org.springframework.web.client.RestTemplate
@@ -35,6 +37,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
   private final String kmsServer
   private final String pkcs12Password
+  private final Map<String, List<String>> regionToZonesMap
 
   final String accountName
   final String projectName
@@ -46,10 +49,15 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     this.accountName = accountName
     this.projectName = projectName
     this.credentials = buildCredentials()
+    this.regionToZonesMap = queryRegions(credentials.compute, projectName)
   }
 
   String getName() {
     return accountName
+  }
+
+  Map<String, List<String>> getRegions() {
+    return regionToZonesMap
   }
 
   GoogleCredentials getCredentials() {
@@ -84,5 +92,24 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                  JSON_FACTORY,
                                  map.email as String,
                                  privateKey)
+  }
+
+  private static Map<String, List<String>> queryRegions(Compute compute, String projectName) {
+    Map<String, List<String>> regionToZonesMap = new HashMap<String, List<String>>()
+    RegionList regionList = compute.regions().list(projectName).execute()
+
+    regionList.getItems().each { Region region ->
+      regionToZonesMap[region.getName()] = region.getZones().collect { zoneUrl ->
+        getLocalName(zoneUrl)
+      }
+    }
+
+    return regionToZonesMap
+  }
+
+  private static String getLocalName(String fullUrl) {
+    def urlParts = fullUrl.split("/")
+
+    return urlParts[urlParts.length - 1]
   }
 }
