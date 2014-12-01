@@ -46,9 +46,10 @@ abstract class AbstractFront50Task implements Task {
       .convertValue(stage.context.application, Application)
 
     try {
-      performRequest(stage.context.account as String, application)
+      def account = (stage.context.account as String).toLowerCase()
+      performRequest(account, application)
       return new DefaultTaskResult(
-        ExecutionStatus.SUCCEEDED, ["application.name": application.name, "account": stage.context.account]
+        ExecutionStatus.SUCCEEDED, ["application.name": application.name, "account": account]
       )
     } catch (RetrofitError e) {
       def response = e.response
