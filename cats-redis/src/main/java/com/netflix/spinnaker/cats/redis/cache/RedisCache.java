@@ -44,6 +44,8 @@ import java.util.Set;
 
 public class RedisCache implements WriteableCache {
 
+    private static final int DEFAULT_SCAN_SIZE = 10000;
+
     private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
     };
     private static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {
@@ -203,7 +205,7 @@ public class RedisCache implements WriteableCache {
     public Collection<String> filterIdentifiers(String type, String glob) {
         try (Jedis jedis = source.getJedis()) {
             final Set<String> matches = new HashSet<>();
-            final ScanParams scanParams = new ScanParams().match(glob).count(10000);
+            final ScanParams scanParams = new ScanParams().match(glob).count(DEFAULT_SCAN_SIZE);
             final String allIdentifiersKey = allOfTypeId(type);
             String cursor = "0";
             while (true) {
