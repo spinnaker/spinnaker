@@ -17,10 +17,26 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.model.Application
+import retrofit.RetrofitError
 
 class UpdateApplicationTask extends AbstractFront50Task {
   @Override
   void performRequest(String account, Application application) {
     front50Service.update(account, application)
+
+    front50Service.credentials.findAll { it.global }.collect { it.name }.each { String globalAccountName ->
+      try {
+        def globalApplication = front50Service.get(globalAccountName, application.name)
+        if (globalApplication.listAccounts().contains(account)) {
+          // application exists in global registry and is already associated with target account, should be updated.
+          application.updateAccounts((globalApplication.listAccounts() << account) as Set)
+          front50Service.update(globalAccountName, application)
+        }
+      } catch (RetrofitError e) {
+        if (e.response.status != 404) {
+          throw e
+        }
+      }
+    }
   }
 }

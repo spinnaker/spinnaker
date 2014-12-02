@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.front50.tasks.UpdateApplicationTask
+import com.netflix.spinnaker.orca.front50.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
@@ -33,6 +34,7 @@ class UpdateApplicationStage extends LinearStage {
   @Override
   protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("updateApplication", UpdateApplicationTask)
-    [step1]
+    def step2 = buildStep("waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
+    [step1, step2]
   }
 }

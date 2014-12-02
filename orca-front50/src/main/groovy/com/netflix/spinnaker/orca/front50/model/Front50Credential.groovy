@@ -15,36 +15,9 @@
  */
 
 
-
 package com.netflix.spinnaker.orca.front50.model
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-
-class Application {
+class Front50Credential {
   String name
-  String description
-  String email
-  String owner
-  String type
-  String group
-  String monitorBucketType
-  String pdApiKey
-  String updateTs
-  String createTs
-  String tags
-  String accounts
-  String regions
-
-  @JsonIgnore
-  Set<String> listAccounts() {
-    if (!accounts?.trim()) {
-      return []
-    }
-    return accounts.split(",").collect { it.toLowerCase() } as Set<String>
-  }
-
-  @JsonIgnore
-  void updateAccounts(Set<String> accounts) {
-    this.accounts = accounts ? accounts.collect { it.trim().toLowerCase() }.join(",") : null
-  }
+  boolean global
 }

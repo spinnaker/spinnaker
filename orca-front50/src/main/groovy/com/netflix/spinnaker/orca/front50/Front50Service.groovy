@@ -20,10 +20,16 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.netflix.spinnaker.orca.front50.model.Application
+import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import retrofit.client.Response
 import retrofit.http.*
 
 interface Front50Service {
+  @GET("/credentials")
+  List<Front50Credential> getCredentials()
+
+  @GET("/{account}/applications/name/{name}")
+  Application get(@Path("account") String account, @Path("name") String name)
 
   @POST("/{account}/applications/name/{name}")
   Response create(@Path("account") String account, @Path("name") String name, @Body Application application)
