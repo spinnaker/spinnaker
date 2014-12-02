@@ -109,8 +109,7 @@ class TaskController {
       Orchestration orchestration = executionRepository.retrieveOrchestration(orchestrationId)
       for (stage in orchestration.stages) {
         for (entry in stage.context.entrySet()) {
-          def key = "${stage.type}.${entry.key}"
-          variables[key] = entry.value
+          variables[entry.key] = entry.value
         }
       }
     } else {
