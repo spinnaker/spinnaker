@@ -39,7 +39,7 @@ describe('scheduler', function() {
       this.cycles = 2;
     });
 
-    describe('#subscribe', function() {
+    xdescribe('#subscribe', function() {
       it('it takes a callback that is invoked at each iteration of the scheduler', function(done) {
 
         spyOn(this.test, 'call');
@@ -56,7 +56,7 @@ describe('scheduler', function() {
       });
     });
 
-    describe('#subscribeEveryN', function() {
+    xdescribe('#subscribeEveryN', function() {
       it('it takes an int N, a callback that is invoked every N scheduler iterations', function(done) {
         spyOn(this.test, 'call');
         this.pre = this.test.call.calls.count();
