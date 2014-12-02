@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.googleapis.batch.BatchRequest
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
@@ -30,12 +35,13 @@ import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject
 
 class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
-  private static final PROJECT_NAME = "my_project"
+  private static final PROJECT_NAME = "my-project"
   private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final NETWORK_NAME = "default"
@@ -49,39 +55,72 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
 
   void "should create instance"() {
     setup:
-      def computeMock = Mock(Compute)
+      def computeMock = new MockFor(Compute)
+      def batchMock = new MockFor(BatchRequest)
+      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def listMock = new MockFor(Compute.Images.List)
+
       def machineTypesMock = Mock(Compute.MachineTypes)
       def machineTypesListMock = Mock(Compute.MachineTypes.List)
-      def imagesMock = Mock(Compute.Images)
-      def imagesListMock = Mock(Compute.Images.List)
       def networksMock = Mock(Compute.Networks)
       def networksListMock = Mock(Compute.Networks.List)
       def instancesMock = Mock(Compute.Instances)
       def instancesInsertMock = Mock(Compute.Instances.Insert)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
-                                                            image: IMAGE,
-                                                            instanceType: INSTANCE_TYPE,
-                                                            zone: ZONE,
-                                                            accountName: ACCOUNT_NAME,
-                                                            credentials: credentials)
-      @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+
+      def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+      def jsonFactory = JacksonFactory.defaultInstance
+      def httpRequestInitializer =
+              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def images = new Compute.Builder(
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+
+      computeMock.demand.machineTypes { machineTypesMock }
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
+      JsonBatchCallback<ImageList> callback = null
+
+      for (def imageProject : imageProjects) {
+        computeMock.demand.images { return images }
+        listMock.demand.queue { imageListBatch, imageListCallback ->
+          callback = imageListCallback
+        }
+      }
+
+      batchMock.demand.execute {
+        def imageList = new ImageList()
+        imageList.setItems([new Image(name: IMAGE)])
+        callback.onSuccess(imageList, null)
+      }
+
+      computeMock.demand.networks { networksMock }
+      computeMock.demand.instances { instancesMock }
 
     when:
-      operation.operate([])
+      batchMock.use {
+        computeMock.use {
+          listMock.use {
+            def compute = new Compute.Builder(
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
+
+            def credentials = new GoogleCredentials(PROJECT_NAME, compute)
+            def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
+                                                                  image: IMAGE,
+                                                                  instanceType: INSTANCE_TYPE,
+                                                                  zone: ZONE,
+                                                                  accountName: ACCOUNT_NAME,
+                                                                  credentials: credentials)
+            @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.operate([])
+          }
+        }
+      }
 
     then:
-      1 * computeMock.machineTypes() >> machineTypesMock
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
       1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
                                                                                         selfLink: MACHINE_TYPE_LINK)])
-      1 * computeMock.images() >> imagesMock
-      1 * imagesMock.list(PROJECT_NAME) >> imagesListMock
-      1 * imagesListMock.execute() >> new ImageList(items: [new Image(name: IMAGE)])
-      1 * computeMock.networks() >> networksMock
       1 * networksMock.list(PROJECT_NAME) >> networksListMock
       1 * networksListMock.execute() >> new NetworkList(items: [new Network(name: NETWORK_NAME)])
-      1 * computeMock.instances() >> instancesMock
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
       1 * instancesInsertMock.execute()
   }
@@ -112,33 +151,63 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
 
   void "should fail to create instance because image is invalid"() {
     setup:
-      def computeMock = Mock(Compute)
+      def computeMock = new MockFor(Compute)
+      def batchMock = new MockFor(BatchRequest)
+      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def listMock = new MockFor(Compute.Images.List)
+
       def machineTypesMock = Mock(Compute.MachineTypes)
       def machineTypesListMock = Mock(Compute.MachineTypes.List)
-      def imagesMock = Mock(Compute.Images)
-      def imagesListMock = Mock(Compute.Images.List)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-      def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
-                                                            image: IMAGE,
-                                                            instanceType: INSTANCE_TYPE,
-                                                            zone: ZONE,
-                                                            accountName: ACCOUNT_NAME,
-                                                            credentials: credentials)
-      @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+
+      def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+      def jsonFactory = JacksonFactory.defaultInstance
+      def httpRequestInitializer =
+              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def images = new Compute.Builder(
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+
+      computeMock.demand.machineTypes { machineTypesMock }
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
+      JsonBatchCallback<ImageList> callback = null
+
+      for (def imageProject : imageProjects) {
+        computeMock.demand.images { return images }
+        listMock.demand.queue { imageListBatch, imageListCallback ->
+          callback = imageListCallback
+        }
+      }
+
+      batchMock.demand.execute {
+        def imageList = new ImageList()
+        imageList.setItems([new Image(name: IMAGE + "-WRONG")])
+        callback.onSuccess(imageList, null)
+      }
 
     when:
-      operation.operate([])
+      batchMock.use {
+        computeMock.use {
+          listMock.use {
+            def compute = new Compute.Builder(
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
+
+            def credentials = new GoogleCredentials(PROJECT_NAME, compute)
+            def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
+                                                                  image: IMAGE,
+                                                                  instanceType: INSTANCE_TYPE,
+                                                                  zone: ZONE,
+                                                                  accountName: ACCOUNT_NAME,
+                                                                  credentials: credentials)
+            @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.operate([])
+          }
+        }
+      }
 
     then:
-      1 * computeMock.machineTypes() >> machineTypesMock
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
       1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
                                                                                         selfLink: MACHINE_TYPE_LINK)])
-      ([PROJECT_NAME] + GCEUtil.baseImageProjects).each {
-        1 * computeMock.images() >> imagesMock
-        1 * imagesMock.list(it) >> imagesListMock
-        1 * imagesListMock.execute() >> new ImageList(items: [])
-      }
       thrown GCEResourceNotFoundException
   }
 }
