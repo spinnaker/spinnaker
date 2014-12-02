@@ -13,12 +13,6 @@ ext {
 }
 
 allprojects {
-  repositories {
-    mavenLocal()
-    maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
-    jcenter()
-  }
-
   apply plugin: "spinnaker-gradle-project"
   apply plugin: "groovy"
 
