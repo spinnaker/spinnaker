@@ -11,14 +11,19 @@ angular.module('deckApp')
         container: '='
       },
       link: function(scope) {
-        var container = scope.container,
+
+        function calculateHealthPercent() {
+          var container = scope.container,
             up = container.upCount,
             down = container.downCount,
             unknown = container.unknownCount,
             total = up + down + unknown;
 
-        scope.healthPercent = total ? parseInt(up*100/total) : 'n/a';
-        scope.healthPercentLabel = total ? '%' : '';
+          scope.healthPercent = total ? parseInt(up*100/total) : 'n/a';
+          scope.healthPercentLabel = total ? '%' : '';
+        }
+
+        scope.$watch('container', calculateHealthPercent);
       }
     };
   }
