@@ -21,6 +21,10 @@ import java.text.SimpleDateFormat
 class Utils {
   public static final String APPLICATION_NAME = "Spinnaker"
 
+  // TODO(duftler): This list should be configurable.
+  public static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
+                                                        "opensuse-cloud", "rhel-cloud", "suse-cloud", "ubuntu-os-cloud"]
+
   private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 
   static long getTimeFromTimestamp(String timestamp) {
