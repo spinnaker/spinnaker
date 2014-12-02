@@ -93,6 +93,7 @@ angular.module('deckApp')
     function deepCopyApplication(original, newApplication) {
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
+      original.serverGroups = newApplication.serverGroups;
       original.loadBalancers = newApplication.loadBalancers;
       original.tasks = newApplication.tasks;
       original.securityGroups = newApplication.securityGroups;
