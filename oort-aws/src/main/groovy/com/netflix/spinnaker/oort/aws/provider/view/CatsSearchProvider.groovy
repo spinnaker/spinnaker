@@ -121,19 +121,17 @@ class CatsSearchProvider implements SearchProvider {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      matches.addAll(cacheView.getIdentifiers(cache).findAll { String key ->
+      matches.addAll(cacheView.filterIdentifiers(cache, "${cache}:*${normalizedWord}*").findAll { String key ->
         try {
-          if (key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0) {
-            if (!filters) {
-              return true
-            }
-            def item = cacheView.get(cache, key)
-            filters.entrySet().every { filter ->
-              if (item.relationships[filter.key]) {
-                item.relationships[filter.key].find { it.indexOf(filter.value) != -1 }
-              } else {
-                item.attributes[filter.key] == filter.value
-              }
+          if (!filters) {
+            return true
+          }
+          def item = cacheView.get(cache, key)
+          filters.entrySet().every { filter ->
+            if (item.relationships[filter.key]) {
+              item.relationships[filter.key].find { it.indexOf(filter.value) != -1 }
+            } else {
+              item.attributes[filter.key] == filter.value
             }
           }
         } catch (Exception e) {
