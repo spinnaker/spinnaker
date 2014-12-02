@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.test.batch
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisConfig
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.batch.core.configuration.annotation.JedisBatchConfigurer
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer
@@ -32,8 +31,9 @@ import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.context.annotation.*
-import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 
 /**
  * This is a bare-bones configuration for running end-to-end Spring batch tests.

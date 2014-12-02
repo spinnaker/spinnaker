@@ -15,9 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.batch.adapters
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -30,8 +28,11 @@ import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static org.apache.commons.lang.math.RandomUtils.nextLong
 import static org.springframework.batch.test.MetaDataInstanceFactory.createJobExecution
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
@@ -41,7 +42,7 @@ class TaskTaskletSpec extends Specification {
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
-  def pipeline = Pipeline.builder().withStage("stage").build()
+  def pipeline = Pipeline.builder().withStage("stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
@@ -53,13 +54,15 @@ class TaskTaskletSpec extends Specification {
   StepContribution stepContribution
   ChunkContext chunkContext
 
+  @Shared random = Random.newInstance()
+
   void setup() {
     pipelineStore.store(pipeline)
     jobExecution = createJobExecution(
-      "whatever", nextLong(), nextLong(),
+      "whatever", random.nextLong(), random.nextLong(),
       new JobParametersBuilder().addString("pipeline", pipeline.id).toJobParameters()
     )
-    stepExecution = createStepExecution(jobExecution, "${stage.type}.task1", nextLong())
+    stepExecution = createStepExecution(jobExecution, "${stage.type}.task1", random.nextLong())
     stepContext = new StepContext(stepExecution)
     stepContribution = new StepContribution(stepExecution)
     chunkContext = new ChunkContext(stepContext)
@@ -78,11 +81,20 @@ class TaskTaskletSpec extends Specification {
   }
 
   def "should pass the correct stage to the task"() {
+    given:
+    Stage stageArgument = null
+    task.execute(_ as Stage) >> {
+      stageArgument = it[0]
+      return new DefaultTaskResult(SUCCEEDED)
+    }
+
     when:
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    1 * task.execute(_ as Stage) >> new DefaultTaskResult(SUCCEEDED)
+    stageArgument.immutable
+    stageArgument.type == stage.type
+    stageArgument.context == stage.context
   }
 
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")

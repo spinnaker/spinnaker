@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -27,9 +26,9 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepExecution
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import static org.apache.commons.lang.math.RandomUtils.nextLong
 
 class StageStatusPropagationListenerSpec extends Specification {
 
@@ -38,6 +37,7 @@ class StageStatusPropagationListenerSpec extends Specification {
   def orchestrationStore = new InMemoryOrchestrationStore(mapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
   @Subject listener = new StageStatusPropagationListener(executionRepository)
+  @Shared random = Random.newInstance()
 
   def "updates the stage status when a task execution completes"() {
     given: "a pipeline model"
@@ -64,7 +64,7 @@ class StageStatusPropagationListenerSpec extends Specification {
     taskStatus               | _
     ExecutionStatus.SUCCEEDED | _
 
-    id = nextLong()
+    id = random.nextLong()
     stageType = "foo"
   }
 

@@ -22,6 +22,6 @@ dependencies {
   compile commonDependencies.korkJedisTest
   compile commonDependencies.springTest
   compile commonDependencies.springBatchTest
+  compile commonDependencies.redbatch
   runtime commonDependencies.spockSpring
-  compile project(":orca-jedis")
 }

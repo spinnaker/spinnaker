@@ -33,7 +33,7 @@ springBoot {
 dependencies {
   spinnaker.group("bootWeb")
 
-  testCompile project(":orca-test")
+  compile commonDependencies.redbatch
   compile project(":orca-bakery")
   compile project(":orca-kato")
   compile project(":orca-oort")
@@ -41,11 +41,12 @@ dependencies {
   compile project(":orca-front50")
   compile project(":orca-echo")
   compile project(":orca-mayo")
-  compile project(":orca-jedis")
   compile project(":orca-rush")
+
   testCompile commonDependencies.springBatchTest
   testCompile commonDependencies.spockSpring
   testCompile commonDependencies.springTest
+  testCompile project(":orca-test")
 }
 
 applicationDefaultJvmArgs = ["-Dserver.port=8083"]
