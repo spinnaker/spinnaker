@@ -4,9 +4,11 @@
 
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notifications,
-                                                  mortService, oortService, accountService, securityGroupService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
+    $scope.state = {
+      loading: true
+    };
 
     function extractServerGroupSummary() {
       var found = application.serverGroups.filter(function (toCheck) {
@@ -18,6 +20,7 @@ angular.module('deckApp')
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
       serverGroupService.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+        $scope.state.loading = false;
         angular.extend(details, summary);
         $scope.serverGroup = details;
         if (details.launchConfig && details.launchConfig.securityGroups) {
@@ -145,12 +148,13 @@ angular.module('deckApp')
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/aws/serverGroupWizard.html',
-        controller: 'awsCloneServerGroupCtrl as ctrl',
+        templateUrl: 'views/application/modal/serverGroup/' + serverGroup.type + '/serverGroupWizard.html',
+        controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
-          serverGroup: function() { return serverGroup; }
+          serverGroup: function() { return serverGroup; },
+          serverGroupCommand: function() { return serverGroupService.buildServerGroupCommandFromExisting(application, serverGroup); },
         }
       });
     };

@@ -6,8 +6,8 @@
     <div class="modal-body">
       <select
         class="form-control input"
-        ng-model="command.provider"
-        ng-options="provider as provider for provider in providerOptions">
+        ng-model="command.provider">
+        <option ng-repeat="provider in providerOptions" value="{{provider}}">{{provider}}</option>
       </select>
     </div>
     <div class="modal-footer">

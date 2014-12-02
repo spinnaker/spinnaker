@@ -13,6 +13,17 @@ angular.module('deckApp')
       {
         label: 'Account',
         key: 'account',
+        clusterKey: 'accountName',
+        getDisplayValue: function(cluster) {
+          return cluster.accountName || '';
+        },
+        getDisplayLabel: function(cluster) {
+          return cluster.accountName || '';
+        }
+      },
+      {
+        label: 'Account',
+        key: 'account',
         clusterKey: 'account',
         getDisplayValue: function(cluster) {
           return cluster.account || '';

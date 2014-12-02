@@ -16,15 +16,15 @@
 
 'use strict';
 
-describe('Service: Oort', function() {
+describe('Service: NamedImage', function() {
 
   var service, $http, config, scope, timeout;
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function (settings, oortService, $httpBackend, $rootScope, $timeout) {
+  beforeEach(inject(function (settings, imageService, $httpBackend, $rootScope, $timeout) {
 
-    service = oortService;
+    service = imageService;
     config = settings;
     $http = $httpBackend;
     timeout = $timeout;
@@ -41,7 +41,7 @@ describe('Service: Oort', function() {
     var query = 'abc', region = 'us-west-1', credentials = 'test';
 
     function buildQueryString() {
-      return config.oortUrl + '/aws/images/find?credentials='+ credentials + '&imageName='+query + '&region=' + region;
+      return config.oortUrl + '/aws/images/find?account='+ credentials + '&q='+query + '&region=' + region;
     }
 
     it('queries oort when 3 or more characters are supplied', function() {
@@ -51,7 +51,7 @@ describe('Service: Oort', function() {
         {success: true}
       ]);
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -66,7 +66,7 @@ describe('Service: Oort', function() {
         {success: true}
       ]);
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -81,7 +81,7 @@ describe('Service: Oort', function() {
 
       var result = null;
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -97,7 +97,7 @@ describe('Service: Oort', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.findImages(query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -119,7 +119,7 @@ describe('Service: Oort', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.getAmi(imageName, region, credentials).then(function(results) {
+      service.getAmi('aws', imageName, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -131,7 +131,7 @@ describe('Service: Oort', function() {
 
       $http.when('GET', buildQueryString()).respond(200, []);
 
-      service.getAmi(imageName, region, credentials).then(function(results) {
+      service.getAmi('aws', imageName, region, credentials).then(function(results) {
         result = results;
       });
 

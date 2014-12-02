@@ -18,11 +18,11 @@
 
 .secondary-panel {
   .nav, .nav-content {
-    min-height: 600px;
+    min-height: 300px;
   }
   .nav {
     padding: 0 0 0 10px;
-    background-color: #f1f1f1;
+    background-color: @secondary_panel_grey;
     border: 1px solid @mid_light_grey;
     border-radius: 5px;
 
@@ -41,6 +41,10 @@
       &.active {
         font-weight: 700;
       }
+    }
+
+    .nav-search {
+      margin-top: 10px;
     }
 
     .sub-nav {

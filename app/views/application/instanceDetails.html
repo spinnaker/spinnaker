@@ -1,5 +1,8 @@
 <div class="details-panel">
-  <div class="header">
+  <h4 ng-if="state.loading" class="text-center">
+    <span us-spinner="{radius:20, width:6, length: 12}"></span>
+  </h4>
+  <div class="header" ng-if="!state.loading">
     <div class="close-button">
       <a class="btn btn-link"
          ui-sref="^">
@@ -25,7 +28,7 @@
       </div>
     </div>
   </div>
-  <div class="content">
+  <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl>
         <dt>Launched:</dt>

@@ -26,13 +26,13 @@
 <div class="row">
   <div class="col-md-12">
     <h2 ng-if="!applicationsLoaded" class="text-center" style="margin-bottom: 250px">
-      <span us-spinner="{radius:30, width:8, length: 16}"></span>
+      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </h2>
     <table ng-if="applicationsLoaded" class="table table-striped">
       <thead ng-if="partiallyLoaded">
         <tr>
           <th sort-toggle key="name" label="Name" default="true"></th>
-          <th class="loading-header"><div us-spinner="{left: '-4px', radius:4, width:2, length: 3}"></div> Loading: Created, Updated, Owner</th>
+          <th class="loading-header"><span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Loading: Created, Updated, Owner</th>
         </tr>
       </thead>
       <tbody ng-if="partiallyLoaded">
@@ -55,18 +55,18 @@
       <tbody ng-if="fullyLoaded">
         <tr ng-repeat="application in ctrl.resultPage()">
           <td>
-            <a ui-sref=".application({ application: application.name })">
-              {{ application.name }}
+            <a ui-sref=".application({ application: application.name.toLowerCase() })">
+              {{ application.name.toLowerCase() }}
             </a>
           </td>
           <td>
-            {{ application.attributes.createTs | relativeTime }}
+            {{ application.createTs | relativeTime }}
           </td>
           <td>
-            {{ application.attributes.updateTs | relativeTime }}
+            {{ application.updateTs | relativeTime }}
           </td>
           <td>
-            {{ application.attributes.email }}
+            {{ application.email }}
           </td>
         </tr>
       </tbody>

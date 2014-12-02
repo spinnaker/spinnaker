@@ -1,0 +1,91 @@
+<h3>
+  Filters
+</h3>
+<ng-filter-toggle-all>
+    <nf-filter-section heading="Search" expanded="{{sortFilter.filter.length > 0}}">
+        <form role="form">
+            <div class="form-group nav-search">
+                <div class="input-group">
+                    <input type="search" class="form-control" ng-model="sortFilter.filter" ng-change="clustersFilters.updateClusterGroups()">
+                </div>
+            </div>
+        </form>
+    </nf-filter-section>
+
+    <nf-filter-section heading="Account" expanded="{{sortFilter.account !== undefined}}">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.getAccountHeadings() | orderBy:'toString()'  ">
+            <label>
+                <input type="checkbox" ng-model="sortFilter.account[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
+            </label>
+        </div>
+    </nf-filter-section>
+
+    <nf-filter-section heading="Region" expanded="{{sortFilter.region !== undefined}}">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.getRegionHeadings() | orderBy: 'toString()' ">
+            <label>
+                <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
+            </label>
+        </div>
+    </nf-filter-section>
+
+
+    <nf-filter-section heading="Status" expanded="{{sortFilter.status !== undefined}}">
+        <div class="form">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"
+                           ng-model="sortFilter.status.healthy"
+                           ng-change="clustersFilters.updateClusterGroups()"/>
+                    Healthy
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"
+                           ng-model="sortFilter.status.unhealthy"
+                           ng-change="clustersFilters.updateClusterGroups()"/>
+                    Unhealthy
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"
+                           ng-model="sortFilter.status.disabled"
+                           ng-change="clustersFilters.updateClusterGroups()"/>
+                    Disabled
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"
+                           ng-model="sortFilter.status.unknown"
+                           ng-change="clustersFilters.updateClusterGroups()"/>
+                    Unknown
+                </label>
+            </div>
+        </div>
+    </nf-filter-section>
+
+
+    <nf-filter-section heading="Instance Types" expanded="{{sortFilter.instanceType !== undefined}}">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.getInstanceTypes() | orderBy: 'toString()' ">
+            <label>
+                <input type="checkbox" ng-model="sortFilter.instanceType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
+            </label>
+        </div>
+    </nf-filter-section>
+
+    <nf-filter-section heading="Availability Zones" expanded="false">
+    </nf-filter-section>
+
+    <nf-filter-section heading="Load Balanced" expanded="false">
+    </nf-filter-section>
+
+    <nf-filter-section heading="Provider" expanded="{{sortFilter.providerType !== undefined}}">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.getProviderType() | orderBy: 'toString()' ">
+            <label>
+                <input type="checkbox" ng-model="sortFilter.providerType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
+            </label>
+        </div>
+    </nf-filter-section>
+</ng-filter-toggle-all>

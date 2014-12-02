@@ -2,18 +2,21 @@
 
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.pondUrl);
-      RestangularConfigurer.setDefaultHeaders( {'Content-Type':'application/context+json'} );
-    }).all('ops');
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
+    }).all('applications');
+
+    function getEndpoint(application) {
+      return endpoint.all(application).all('tasks');
+    }
 
     function executeTask(taskCommand) {
       if (taskCommand.job[0].providerType === 'aws') {
         delete taskCommand.job[0].providerType;
       }
-      var op = endpoint.post(taskCommand).then(
+      var op = getEndpoint(taskCommand.application).post(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
           notifications.create({
@@ -25,7 +28,7 @@ angular.module('deckApp')
               taskId: taskId
             })
           });
-          return pond.one('tasks', taskId).get();
+          return pond.one('applications', taskCommand.application).one('tasks', taskId).get();
         },
         function(response) {
           var error = {
@@ -78,7 +81,7 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: 'deckUser',
+            user: authenticationService.getAuthenticatedUser().name,
             providerType: serverGroup.type
           }
         ],
@@ -95,7 +98,7 @@ angular.module('deckApp')
             type: 'disableAsg',
             regions: [serverGroup.region],
             credentials: serverGroup.account,
-            user: 'deckUser'
+            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -111,7 +114,7 @@ angular.module('deckApp')
             type: 'enableAsg',
             regions: [serverGroup.region],
             credentials: serverGroup.account,
-            user: 'deckUser'
+            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -128,7 +131,7 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: 'deckUser',
+            user: authenticationService.getAuthenticatedUser().name,
             capacity: capacity,
             providerType: serverGroup.type
           }
@@ -182,7 +185,7 @@ angular.module('deckApp')
             loadBalancerName: loadBalancer.name,
             regions: [loadBalancer.region],
             credentials: loadBalancer.accountId,
-            user: 'deckUser'
+            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -199,7 +202,7 @@ angular.module('deckApp')
             region: instance.region,
             zone: instance.placement.availabilityZone,
             credentials: instance.account,
-            user: 'deckUser',
+            user: authenticationService.getAuthenticatedUser().name,
             providerType: instance.providerType
           }
         ],
@@ -208,8 +211,44 @@ angular.module('deckApp')
       });
     }
 
-    function cloneServerGroup(command, applicationName, description) {
-      command.user = 'deckUser';
+    function cloneServerGroup(base, applicationName) {
+      var command = angular.copy(base);
+      command.user = authenticationService.getAuthenticatedUser().name;
+
+      var description;
+      if (command.viewState.mode === 'clone') {
+        description = 'Create Cloned Server Group from ' + command.source.asgName;
+        command.type = 'copyLastAsg';
+      } else {
+        command.type = 'deploy';
+        var asgName = applicationName;
+        if (command.stack) {
+          asgName += '-' + command.stack;
+        }
+        if (!command.stack && command.freeFormDetails) {
+          asgName += '-';
+        }
+        if (command.freeFormDetails) {
+          asgName += '-' + command.freeFormDetails;
+        }
+        description = 'Create New Server Group in cluster ' + asgName;
+      }
+      if (command.viewState.useAllImageSelection) {
+        command.amiName = command.viewState.allImageSelection;
+      }
+      command.availabilityZones = {};
+      command.availabilityZones[command.region] = base.availabilityZones;
+      delete command.region;
+      delete command.viewState;
+      delete command.selectedProvider;
+      delete command.instanceProfile;
+      delete command.vpcId;
+      delete command.usePreferredZones;
+
+      if (!command.subnetType) {
+        delete command.subnetType;
+      }
+
       return executeTask({
         job: [
           command

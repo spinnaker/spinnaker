@@ -5,7 +5,7 @@ angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {
 
     var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
@@ -13,7 +13,7 @@ angular.module('deckApp')
     });
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
@@ -71,7 +71,7 @@ angular.module('deckApp')
           return matches.length ? matches[0] : null;
         };
 
-        if (application.fromServer) {
+        if (application.fromServer && application.clusters) {
           application.accounts = Object.keys(application.clusters);
         }
         return application;
@@ -93,6 +93,7 @@ angular.module('deckApp')
     function deepCopyApplication(original, newApplication) {
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
+      original.serverGroups = newApplication.serverGroups;
       original.loadBalancers = newApplication.loadBalancers;
       original.tasks = newApplication.tasks;
       original.securityGroups = newApplication.securityGroups;
@@ -156,27 +157,6 @@ angular.module('deckApp')
         });
     }
 
-    function findImages(query, region, credentials) {
-      if (query.length < 3) {
-        return $q.when([{message: 'Please enter at least 3 characters...'}]);
-      }
-      return oortEndpoint.all('aws/images/find').getList({imageName: query, region: region, credentials: credentials}, {}).then(function(results) {
-        return results;
-      },
-      function() {
-        return [];
-      });
-    }
-
-    function getAmi(amiName, region, credentials) {
-      return oortEndpoint.all('aws/images').one(credentials).one(region).all(amiName).getList().then(function(results) {
-        return results && results.length ? results[0] : null;
-      },
-      function() {
-        return null;
-      });
-    }
-
     function listLoadBalancers() {
       return oortEndpoint
         .all('aws/loadBalancers')
@@ -191,8 +171,6 @@ angular.module('deckApp')
     return {
       listApplications: listApplications,
       getApplication: getApplication,
-      findImages: findImages,
-      getAmi: getAmi,
       getInstanceDetails: getInstanceDetails,
       listLoadBalancers: listLoadBalancers,
       getApplicationWithoutAppendages: getApplicationEndpoint,

@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .directive('zoneSelectField', function () {
+  .directive('gceZoneSelectField', function () {
     return {
       restrict: 'E',
       templateUrl: 'views/directives/gce/zoneSelectField.html',
@@ -11,7 +11,8 @@ angular.module('deckApp')
         component: '=',
         field: '@',
         account: '=',
-        onChange: '&'
+        onChange: '&',
+        labelColumns: '@'
       }
     };
   }

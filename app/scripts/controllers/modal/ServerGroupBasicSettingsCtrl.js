@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService, oortService, RxService) {
+  .controller('ServerGroupBasicSettingsCtrl', function($scope, modalWizardService, settings, serverGroupService, imageService, RxService) {
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
@@ -19,7 +19,7 @@ angular.module('deckApp')
         }
       ];
       return new RxService.Observable.fromPromise(
-        oortService.findImages(q, $scope.command.region, $scope.command.credentials)
+        imageService.findImages($scope.command.selectedProvider, q, $scope.command.region, $scope.command.credentials)
       );
     }
 
@@ -29,7 +29,12 @@ angular.module('deckApp')
       .throttle(250)
       .flatMapLatest(searchImages)
       .subscribe(function (data) {
-        $scope.allImageSearchResults = data;
+        $scope.allImageSearchResults = data.map(function(image) {
+          return {
+            imageName: image.imageName,
+            ami: image.amis ? image.amis[$scope.command.region][0] : null
+          };
+        });
       });
 
     this.searchImages = function(q) {

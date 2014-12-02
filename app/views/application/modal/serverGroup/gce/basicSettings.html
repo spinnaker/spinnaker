@@ -1,50 +1,50 @@
 <form name="form" class="container-fluid form-horizontal" ng-controller="ServerGroupBasicSettingsCtrl as basicSettingsCtrl" novalidate>
   <div class="modal-body">
+    <div class="form-group">
+      <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
+        <strong>Your server group will be in the cluster:</strong>
+        <span>{{basicSettingsCtrl.getNamePreview()}}</span>
+      </div>
+    </div>
     <kato-error task-status="taskStatus" title="We could not create your server group."></kato-error>
     <kato-progress task-status="taskStatus" title="Creating your server group."></kato-progress>
-    <account-select-field component="command" field="credentials" accounts="accounts" loading="false"></account-select-field>
+    <account-select-field label-columns="2" component="command" field="credentials" accounts="accounts" loading="false"></account-select-field>
 <!--
     <region-select-field component="command" field="region" account="command.credentials" regions="regions"></region-select-field>
     <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
 -->
-    <zone-select-field component="command" field="zone" account="command.credentials" zones="zones"></zone-select-field>
+    <gce-region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="regions"></gce-region-select-field>
+    <gce-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="zones"></gce-zone-select-field>
     <div class="form-group">
-      <div class="col-md-3 sm-label-left"><b>Stack</b></div>
+      <div class="col-md-2 sm-label-left">
+        <b>Stack</b>
+        <help-field key="aws.serverGroup.stack"></help-field>
+      </div>
       <div class="col-md-3"><input type="text"
                                    class="form-control input-sm"
                                    ng-model="command.stack"/></div>
 
-      <div class="col-md-1 sm-label-left"><b>Detail</b></div>
+      <div class="col-md-2 sm-label-right">
+        <b>Detail</b>
+        <help-field key="aws.serverGroup.detail"></help-field>
+      </div>
       <div class="col-md-3"><input type="text"
                                    class="form-control input-sm"
                                    ng-model="command.freeFormDetails"/></div>
     </div>
     <div class="form-group">
-      <div class="col-md-3 sm-label-left"><b>Image</b></div>
-  <div class="col-md-7">
-    <!-- TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project. -->
-    <select class="form-control input-sm"
-            ng-model="command.image"
-            ng-options="option as option for option in ['debian-7-wheezy-v20141017', 'centos-7-v20141016']"
-            ng-change="onChange()"
-            required>
-    </select>
-  </div>
-<!--
-      <div class="col-md-9" ng-if="state.queryAllImages || regionalImages.length === 0">
-        <input type="hidden" class="form-control input-sm" required
-               ng-model="command.allImageSelection"
-               ng-change="command.amiName = command.allImageSelection.id"
-               ui-select2="select2Params"/>
-        <a ng-if="regionalImages.length > 0" href ng-click="state.queryAllImages = false">Only show images matching "{{applicationName}}"</a>
-      </div>
-      <div class="col-md-9" ng-if="!state.queryAllImages &&  regionalImages.length > 0">
-        <select ui-select2 class="form-control input-sm" ng-model="command.amiName" data-placeholder="Pick an image" required>
-          <option ng-repeat="image in regionalImages" value="{{image.imageName}}">{{image.imageName}}</option>
+      <div class="col-md-2 sm-label-left"><b>Image</b></div>
+      <div class="col-md-7">
+        <!-- TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project. -->
+        <select class="form-control input-sm"
+                ng-model="command.image"
+                ng-change="onChange()"
+                required>
+          <option ng-repeat="image in gceImages"
+                  value="{{image}}"
+                  ng-selected="command.image === image">{{image}}</option>
         </select>
-        <a href ng-click="state.queryAllImages = true">Search All Images</a>
       </div>
--->
     </div>
   </div>
 

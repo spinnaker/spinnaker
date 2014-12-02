@@ -1,14 +1,16 @@
 <div class="form-group">
-  <div class="col-md-3 sm-label-left">Zone</div>
+  <div class="col-md-{{labelColumns}} sm-label-left">Zone</div>
   <div class="col-md-7" ng-if="!account">(Select an account)</div>
   <div class="col-md-7">
-    <!-- TODO(duftler): Once GoogleResourceRetriever or whatever replaces it queries all zones, this should be dynamically populated with the full list of zones. -->
+    <!-- TODO(duftler): Once GoogleResourceRetriever or whatever replaces it queries all zones, this should be dynamically populated with the full list of zones for the selected project. -->
     <select class="form-control input-sm"
             ng-if="account"
             ng-model="component.zone"
-            ng-options="option as option for option in ['us-central1-b']"
             ng-change="onChange()"
             required>
+      <option ng-repeat="zone in zones"
+              value="{{zone}}"
+              ng-selected="component[field] === zone">{{zone}}</option>
     </select>
   </div>
 </div>

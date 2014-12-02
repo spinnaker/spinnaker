@@ -9,9 +9,9 @@ angular.module('deckApp')
 
     $scope.instanceTypeCtrl = this;
 
-    instanceTypeService.getCategories().then(function(categories) {
+    instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       categories.forEach(function(profile) {
-        if (profile.type === $scope.command.instanceProfile) {
+        if (profile.type === $scope.command.viewState.instanceProfile) {
           $scope.selectedInstanceProfile = profile;
         }
       });

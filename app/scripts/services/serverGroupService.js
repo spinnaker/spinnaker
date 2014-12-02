@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('serverGroupService', function (settings, Restangular, $exceptionHandler) {
+  .factory('serverGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, mortService, awsServerGroupService, gceServerGroupService) {
 
     var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
@@ -27,13 +27,31 @@ angular.module('deckApp')
     }
 
     function parseServerGroupName(serverGroupName) {
-      var asgNameRegex = /(\w+)(-v\d{3})?(-(\w+)?(-v\d{3})?(-(\w+))?)?(-v\d{3})?/;
-      var match = asgNameRegex.exec(serverGroupName);
-      return {
-        application: match[1],
-        stack: match[4] || '',
-        freeFormDetails: match[7] || ''
-      };
+      var versionPattern = /(v\d{3})/;
+      if (!serverGroupName) {
+        return {};
+      }
+      var split = serverGroupName.split('-'),
+          isVersioned = versionPattern.test(split[split.length - 1]),
+          result = {
+            application: split[0],
+            stack: '',
+            freeFormDetails: ''
+          };
+
+      // get rid of version, since we are not returning it
+      if (isVersioned) {
+        split.pop();
+      }
+
+      if (split.length > 1) {
+        result.stack = split[1];
+      }
+      if (split.length > 2) {
+        result.freeFormDetails = split.slice(2, split.length).join('-');
+      }
+
+      return result;
     }
 
     function getClusterName(app, cluster, detail) {
@@ -50,11 +68,25 @@ angular.module('deckApp')
       return clusterName;
     }
 
+    function getDelegate(provider) {
+      return (!provider || provider === 'aws') ? awsServerGroupService : gceServerGroupService;
+    }
+
+    function buildNewServerGroupCommand(application, provider) {
+      return getDelegate(provider).buildNewServerGroupCommand(application);
+    }
+
+    function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
+      return getDelegate(serverGroup.type).buildServerGroupCommandFromExisting(application, serverGroup, mode, parseServerGroupName);
+    }
+
     return {
       getScalingActivities: getScalingActivities,
       parseServerGroupName: parseServerGroupName,
       getClusterName: getClusterName,
-      getServerGroup: getServerGroup
+      getServerGroup: getServerGroup,
+      buildNewServerGroupCommand: buildNewServerGroupCommand,
+      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting
     };
 });
 

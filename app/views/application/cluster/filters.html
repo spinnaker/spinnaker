@@ -5,8 +5,8 @@
         Sort by
         <select class="form-control input-sm"
                 ng-model="sortFilter.sortPrimary"
-                ng-change="ctrl.updateSorting()"
-                ng-options="option.key as option.label for option in ctrl.getSortOptions()">
+                ng-change="allClusters.updateSorting()"
+                ng-options="option.key as option.label for option in allClusters.getSortOptions()">
         </select>
       </label>
     </div>
@@ -15,19 +15,9 @@
         then
         <select class="form-control input-sm"
                 ng-model="sortFilter.sortSecondary"
-                ng-change="ctrl.updateSorting()"
-                ng-options="option.key as option.label for option in ctrl.getSortOptions(sortFilter.sortPrimary)">
+                ng-change="allClusters.updateSorting()"
+                ng-options="option.key as option.label for option in allClusters.getSortOptions(sortFilter.sortPrimary)">
         </select>
-      </label>
-    </div>
-    <div class="form-group has-feedback all-clusters-filter">
-      <label>
-        Filter
-        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, Server Groups"
-               set-focus
-               ng-model="sortFilter.filter"
-               ng-change="ctrl.updateClusterGroups()"/>
-        <span class="glyphicon glyphicon-search form-control-feedback"></span>
       </label>
     </div>
   </div>
@@ -38,7 +28,7 @@
       <label>
         <input type="checkbox"
                ng-model="sortFilter.showAllInstances"
-               ng-change="ctrl.updateClusterGroups()"/>
+               ng-change="allClusters.updateClusterGroups()"/>
         Instances
       </label>
     </div>
@@ -46,7 +36,7 @@
       <label>
         <input type="checkbox"
                ng-model="sortFilter.hideHealthy"
-               ng-change="ctrl.updateClusterGroups()"/>
+               ng-change="allClusters.updateClusterGroups()"/>
         Only Unhealthy
       </label>
     </div>
@@ -54,7 +44,7 @@
       <label>
         <input type="checkbox"
                ng-model="sortFilter.hideDisabled"
-               ng-change="ctrl.updateClusterGroups()"/>
+               ng-change="allClusters.updateClusterGroups()"/>
          Only enabled
       </label>
     </div>

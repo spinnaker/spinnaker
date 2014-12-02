@@ -6,10 +6,10 @@
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
-    <div ng-if="loading">
+    <div ng-if="state.loading">
       <h3 us-spinner="{radius:20, width:6, length: 12}"></h3>
     </div>
-    <div class="header-text" ng-if="!loading">
+    <div class="header-text" ng-if="!state.loading">
       <span class="glyphicon glyphicon-transfer"></span>
       <h3>
         {{securityGroup.name || '(not found)'}}
@@ -26,7 +26,7 @@
       </div>
     </div>
   </div>
-  <div class="content" ng-if="securityGroup">
+  <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Security Group Details" expanded="true">
       <dl class="dl-horizontal dl-narrow">
         <dt>ID:</dt>

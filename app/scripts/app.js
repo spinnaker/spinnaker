@@ -17,11 +17,15 @@ angular.module('deckApp', [
     'ui.bootstrap',
     'ui.select',
     'restangular',
+    'cluster',
+    'clusters.all',
     'angularSpinner',
     'angular.filter',
     'deckApp.templates',
     'deckApp.aws',
-    'deckApp.gce'
+    'deckApp.gce',
+    'deckApp.cluster',
+    'deckApp.authentication'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
