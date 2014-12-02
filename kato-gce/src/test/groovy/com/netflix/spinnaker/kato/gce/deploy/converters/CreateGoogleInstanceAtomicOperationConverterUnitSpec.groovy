@@ -25,8 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class CreateGoogleInstanceAtomicOperationConverterUnitSpec extends Specification {
-  private static final APPLICATION = "spinnaker"
-  private static final STACK = "spinnaker-test"
+  private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
@@ -48,8 +47,7 @@ class CreateGoogleInstanceAtomicOperationConverterUnitSpec extends Specification
 
   void "createGoogleInstanceDescription type returns CreateGoogleInstanceDescription and CreateGoogleInstanceAtomicOperation"() {
     setup:
-      def input = [application: APPLICATION,
-                   stack: STACK,
+      def input = [instanceName: INSTANCE_NAME,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,

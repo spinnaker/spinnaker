@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.gce.deploy.ops
+
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
@@ -32,6 +33,9 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
     this.description = description
   }
 
+  /**
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateGoogleInstancesDescription": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")})."

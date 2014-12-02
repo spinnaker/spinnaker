@@ -18,48 +18,30 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("createGoogleInstanceDescriptionValidator")
-class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<CreateGoogleInstanceDescription> {
+@Component("copyLastGoogleServerGroupDescriptionValidator")
+class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator<BasicGoogleDeployDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, CreateGoogleInstanceDescription description, Errors errors) {
+  void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
     def credentials = null
 
+    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
     if (!description.accountName) {
-      errors.rejectValue "credentials", "createGoogleInstanceDescription.credentials.empty"
+      errors.rejectValue "credentials", "basicGoogleDeployDescription.credentials.empty"
     } else {
       credentials = accountCredentialsProvider.getCredentials(description.accountName)
 
       if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "createGoogleInstanceDescription.credentials.invalid")
+        errors.rejectValue("credentials", "basicGoogleDeployDescription.credentials.invalid")
       }
-    }
-
-    if (!description.instanceName) {
-      errors.rejectValue "instanceName", "createGoogleInstanceDescription.instanceName"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE images.
-    if (!description.image) {
-      errors.rejectValue "image", "createGoogleInstanceDescription.image.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE types.
-    if (!description.instanceType) {
-      errors.rejectValue "instanceType", "createGoogleInstanceDescription.instanceType.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "createGoogleInstanceDescription.zone.empty"
     }
   }
 }

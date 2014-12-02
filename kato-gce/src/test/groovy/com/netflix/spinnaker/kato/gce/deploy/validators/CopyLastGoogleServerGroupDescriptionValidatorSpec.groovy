@@ -18,25 +18,28 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
-  private static final INSTANCE_NAME = "my-app-v000"
-  private static final IMAGE = "debian-7-wheezy-v20140415"
+class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
+  private static final APPLICATION = "spinnaker"
+  private static final STACK = "spinnaker-test"
+  private static final ANCESTOR_SERVER_GROUP_NAME = "$APPLICATION-$STACK-v000"
+  private static final INITIAL_NUM_REPLICAS = 3
+  private static final IMAGE = "debian-7-wheezy-v20141108"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
-  CreateGoogleInstanceDescriptionValidator validator
+  CopyLastGoogleServerGroupDescriptionValidator validator
 
   void setupSpec() {
-    validator = new CreateGoogleInstanceDescriptionValidator()
+    validator = new CopyLastGoogleServerGroupDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
@@ -46,14 +49,32 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
     validator.accountCredentialsProvider = credentialsProvider
   }
 
-  void "pass validation with proper description inputs"() {
+  void "pass validation with minimal description inputs"() {
     setup:
-    def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
-                                                          image: IMAGE,
-                                                          instanceType: INSTANCE_TYPE,
-                                                          zone: ZONE,
-                                                          accountName: ACCOUNT_NAME)
+      def description = new BasicGoogleDeployDescription(source: [zone: ZONE,
+                                                                  serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "pass validation with full description inputs"() {
+    setup:
+      def description = new BasicGoogleDeployDescription(application: APPLICATION,
+                                                         stack: STACK,
+                                                         initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                         image: IMAGE,
+                                                         instanceType: INSTANCE_TYPE,
+                                                         zone: ZONE,
+                                                         source: [zone: ZONE,
+                                                                  serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         accountName: ACCOUNT_NAME)
+        def errors = Mock(Errors)
 
     when:
       validator.validate([], description, errors)
@@ -64,7 +85,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
   void "null input fails validation"() {
     setup:
-      def description = new CreateGoogleInstanceDescription()
+      def description = new BasicGoogleDeployDescription()
       def errors = Mock(Errors)
 
     when:
@@ -72,9 +93,5 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('credentials', _)
-      1 * errors.rejectValue('instanceName', _)
-      1 * errors.rejectValue('image', _)
-      1 * errors.rejectValue('instanceType', _)
-      1 * errors.rejectValue('zone', _)
   }
 }

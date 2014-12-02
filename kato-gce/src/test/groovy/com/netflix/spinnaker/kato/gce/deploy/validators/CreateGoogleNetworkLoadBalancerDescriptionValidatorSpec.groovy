@@ -18,25 +18,24 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
-  private static final INSTANCE_NAME = "my-app-v000"
-  private static final IMAGE = "debian-7-wheezy-v20140415"
-  private static final INSTANCE_TYPE = "f1-micro"
+class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specification {
+  private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
+  private static final INSTANCE = "inst"
 
   @Shared
-  CreateGoogleInstanceDescriptionValidator validator
+  CreateGoogleNetworkLoadBalancerDescriptionValidator validator
 
   void setupSpec() {
-    validator = new CreateGoogleInstanceDescriptionValidator()
+    validator = new CreateGoogleNetworkLoadBalancerDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
@@ -48,11 +47,37 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-    def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
-                                                          image: IMAGE,
-                                                          instanceType: INSTANCE_TYPE,
-                                                          zone: ZONE,
-                                                          accountName: ACCOUNT_NAME)
+      def description = new CreateGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME,
+          instances: [INSTANCE],
+          healthCheck: [
+              port: 8080,
+              checkIntervalSec: 5,
+              healthyThreshold: 2,
+              unhealthyThreshold: 2,
+              timeoutSec: 5,
+              requestPath: "/"
+          ],
+          ipAddress: "1.1.1.1",
+          portRange: "80-82")
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "pass validation without health checks"() {
+    setup:
+      def description = new CreateGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME,
+          instances: [INSTANCE])
       def errors = Mock(Errors)
 
     when:
@@ -64,7 +89,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
   void "null input fails validation"() {
     setup:
-      def description = new CreateGoogleInstanceDescription()
+      def description = new CreateGoogleNetworkLoadBalancerDescription()
       def errors = Mock(Errors)
 
     when:
@@ -72,9 +97,7 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('credentials', _)
-      1 * errors.rejectValue('instanceName', _)
-      1 * errors.rejectValue('image', _)
-      1 * errors.rejectValue('instanceType', _)
+      1 * errors.rejectValue('networkLoadBalancerName', _)
       1 * errors.rejectValue('zone', _)
   }
 }

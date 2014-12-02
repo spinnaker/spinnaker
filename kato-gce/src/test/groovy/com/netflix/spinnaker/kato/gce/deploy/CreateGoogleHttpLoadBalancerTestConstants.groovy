@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.deploy.description
+package com.netflix.spinnaker.kato.gce.deploy
 
-import com.netflix.spinnaker.kato.deploy.DeployDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
-
-class CreateGoogleInstanceDescription implements DeployDescription {
-  String instanceName
-  String image
-  String instanceType
-  String zone
-  String accountName
-  GoogleCredentials credentials
+class CreateGoogleHttpLoadBalancerTestConstants {
+  static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
+  static final ACCOUNT_NAME = "auto"
+  static final CHECK_INTERVAL_SEC = 7
+  static final INSTANCE_GROUP = "group"
+  static final IP_ADDRESS = "1.1.1.1"
+  static final PORT_RANGE = "80-82"
+  static final BALANCING_MODE = "super_balanced"
+  static final SERVICE = "service"
+  static final PATH = "/path"
+  static final HOST = "*"
+  static final MATCHER = "matcher"
 }

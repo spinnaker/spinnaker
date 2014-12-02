@@ -16,19 +16,27 @@
 
 package com.netflix.spinnaker.kato.gce.deploy
 
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.frigga.NameValidation
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
+import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 
 class GCEUtil {
-  // TODO(duftler): Add support for ubuntu image project.
+  public static final String APPLICATION_NAME = "Spinnaker"
+
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
-                                                 "opensuse-cloud", "rhel-cloud", "suse-cloud"]
+                                                 "opensuse-cloud", "rhel-cloud", "suse-cloud", "ubuntu-os-cloud"]
 
   static MachineType queryMachineType(String projectName, String zone, String machineTypeName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $machineTypeName..."
@@ -49,17 +57,34 @@ class GCEUtil {
     def imageProjects = [projectName] + baseImageProjects
     def sourceImage = null
 
-    for (imageProject in imageProjects) {
-      sourceImage = compute.images().list(imageProject).execute().getItems().find {
-        it.getName() == sourceImageName
+    def imageListBatch = compute.batch()
+    def imageListCallback = new JsonBatchCallback<ImageList>() {
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        updateStatusAndThrowException("Error locating $sourceImageName in these projects: $imageProjects: $e.message", task, phase)
       }
 
-      if (sourceImage != null) {
-        return sourceImage;
+      @Override
+      void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
+        for (def image : imageList.items) {
+          if (image.name == sourceImageName) {
+            sourceImage = image
+          }
+        }
       }
     }
 
-    updateStatusAndThrowException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
+    for (imageProject in imageProjects) {
+      compute.images().list(imageProject).queue(imageListBatch, imageListCallback)
+    }
+
+    imageListBatch.execute()
+
+    if (sourceImage) {
+      return sourceImage
+    } else {
+      updateStatusAndThrowException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
+    }
   }
 
   static Network queryNetwork(String projectName, String networkName, Compute compute, Task task, String phase) {
@@ -73,6 +98,22 @@ class GCEUtil {
     } else {
       updateStatusAndThrowException("Network $networkName not found.", task, phase)
     }
+  }
+
+  static InstanceTemplate queryInstanceTemplate(String projectName, String instanceTemplateName, Compute compute) {
+    compute.instanceTemplates().get(projectName, instanceTemplateName).execute()
+  }
+
+  static InstanceGroupManager queryManagedInstanceGroup(String projectName,
+                                                        String zone,
+                                                        String serverGroupName,
+                                                        GoogleCredentials credentials,
+                                                        ReplicaPoolBuilder replicaPoolBuilder,
+                                                        String applicationName) {
+    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
+
+    replicapool.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
   }
 
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
@@ -117,14 +158,84 @@ class GCEUtil {
     return new NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
   }
 
+  static def getNextSequence(String clusterName,
+                             String project,
+                             String region,
+                             GoogleCredentials credentials,
+                             ReplicaPoolBuilder replicaPoolBuilder) {
+    def maxSeqNumber = -1
+    def managedInstanceGroups = GCEUtil.queryManagedInstanceGroups(project,
+                                                                   region,
+                                                                   credentials,
+                                                                   replicaPoolBuilder,
+                                                                   APPLICATION_NAME)
+
+    for (def managedInstanceGroup : managedInstanceGroups) {
+      def names = Names.parseName(managedInstanceGroup.getName())
+
+      if (names.cluster == clusterName) {
+        maxSeqNumber = Math.max(maxSeqNumber, names.sequence)
+      }
+    }
+
+    String.format("%03d", ++maxSeqNumber)
+  }
+
+  static def combineAppStackDetail(String appName, String stack, String detail) {
+    NameValidation.notEmpty(appName, "appName");
+
+    // Use empty strings, not null references that output "null"
+    stack = stack != null ? stack : "";
+
+    if (detail != null && !detail.isEmpty()) {
+      return appName + "-" + stack + "-" + detail;
+    }
+
+    if (!stack.isEmpty()) {
+      return appName + "-" + stack;
+    }
+
+    return appName;
+  }
+
   private static void updateStatusAndThrowException(String errorMsg, Task task, String phase) {
     task.updateStatus phase, errorMsg
     throw new GCEResourceNotFoundException(errorMsg)
   }
 
-  private static String getLocalName(String fullUrl) {
+  public static String getLocalName(String fullUrl) {
     def urlParts = fullUrl.split("/")
 
     return urlParts[urlParts.length - 1]
+  }
+
+  static def buildHttpHealthCheck(String name, CreateGoogleNetworkLoadBalancerDescription.HealthCheck healthCheckDescription) {
+    return new HttpHealthCheck(
+        name: name,
+        checkIntervalSec: healthCheckDescription.checkIntervalSec,
+        timeoutSec: healthCheckDescription.timeoutSec,
+        healthyThreshold: healthCheckDescription.healthyThreshold,
+        unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
+        port: healthCheckDescription.port,
+        requestPath: healthCheckDescription.requestPath)
+  }
+
+  // I know this is painfully similar to the method above. I will soon make a cleanup change to remove this ugliness.
+  // TODO(bklingher): Clean this up.
+  static def makeHttpHealthCheck(String name, CreateGoogleHttpLoadBalancerDescription.HealthCheck healthCheckDescription) {
+    if (healthCheckDescription) {
+      return new HttpHealthCheck(
+          name: name,
+          checkIntervalSec: healthCheckDescription.checkIntervalSec,
+          timeoutSec: healthCheckDescription.timeoutSec,
+          healthyThreshold: healthCheckDescription.healthyThreshold,
+          unhealthyThreshold: healthCheckDescription.unhealthyThreshold,
+          port: healthCheckDescription.port,
+          requestPath: healthCheckDescription.requestPath)
+    } else {
+      return new HttpHealthCheck(
+          name: name
+      )
+    }
   }
 }

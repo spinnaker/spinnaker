@@ -20,11 +20,11 @@ import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
+import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   // TODO(duftler): This should move to a common location.
-  private static final String APPLICATION_NAME = "Spinnaker"
   private static final String BASE_PHASE = "DELETE_REPLICA_POOL"
 
   private static Task getTask() {
@@ -40,6 +40,9 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     this.replicaPoolBuilder = replicaPoolBuilder
   }
 
+  /**
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing delete of replica pool $description.replicaPoolName in $description.zone..."
@@ -50,7 +53,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     def replicaPoolName = description.replicaPoolName
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
 
     def instanceGroupManager = replicapool.instanceGroupManagers().get(project, zone, replicaPoolName).execute()
 

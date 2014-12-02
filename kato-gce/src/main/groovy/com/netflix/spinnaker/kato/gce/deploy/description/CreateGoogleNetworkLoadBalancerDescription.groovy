@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,26 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
-import groovy.transform.AutoClone
-import groovy.transform.Canonical
-import groovy.transform.EqualsAndHashCode
 
-@AutoClone
-@EqualsAndHashCode
-class BasicGoogleDeployDescription implements DeployDescription {
-  String application
-  String stack
-  String freeFormDetails
-  int initialNumReplicas
-  String image
-  String instanceType
+class CreateGoogleNetworkLoadBalancerDescription {
+  String networkLoadBalancerName
+  HealthCheck healthCheck
+  // The URLs of the instances.
+  // TODO(odedmeri): change the instances to local names and not URLs.
+  List<String> instances
+  String ipAddress
+  String portRange
   String zone
-  Source source = new Source()
   String accountName
   GoogleCredentials credentials
 
-  @Canonical
-  static class Source {
-    // TODO(duftler): Add accountName/credentials to support cloning from one account to another.
-    String zone
-    String serverGroupName
+  static class HealthCheck {
+    Integer checkIntervalSec
+    Integer healthyThreshold
+    Integer unhealthyThreshold
+    Integer port
+    Integer timeoutSec
+    String requestPath
   }
 }
