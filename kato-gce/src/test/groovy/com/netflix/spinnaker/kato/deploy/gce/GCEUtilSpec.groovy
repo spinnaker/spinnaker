@@ -16,19 +16,22 @@
 
 package com.netflix.spinnaker.kato.deploy.gce
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.googleapis.batch.BatchRequest
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.gce.description.TerminateGoogleInstancesDescription
-import com.netflix.spinnaker.kato.security.gce.GoogleCredentials
+import groovy.mock.interceptor.MockFor
 import spock.lang.Shared
 import spock.lang.Specification
 
 class GCEUtilSpec extends Specification {
-  private static final ACCOUNT_NAME = "auto"
-  private static final PROJECT_NAME = "my_project"
+  private static final PROJECT_NAME = "my-project"
   private static final IMAGE_NAME = "some-image-name"
   private static final PHASE = "SOME-PHASE"
 
@@ -42,40 +45,101 @@ class GCEUtilSpec extends Specification {
 
   void "query source images should succeed"() {
     setup:
-      def computeMock = Mock(Compute)
-      def imagesMock = Mock(Compute.Images)
-      def listMock = Mock(Compute.Images.List)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def computeMock = new MockFor(Compute)
+      def batchMock = new MockFor(BatchRequest)
+      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def listMock = new MockFor(Compute.Images.List)
+
+      def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+      def jsonFactory = JacksonFactory.defaultInstance
+      def httpRequestInitializer =
+              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def images = new Compute.Builder(
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
+      JsonBatchCallback<ImageList> callback = null
+
+      for (def imageProject : imageProjects) {
+        computeMock.demand.images { return images }
+        listMock.demand.queue { imageListBatch, imageListCallback ->
+          callback = imageListCallback
+        }
+      }
+
       def soughtImage = new Image(name: IMAGE_NAME)
 
+      batchMock.demand.execute {
+        def imageList = new ImageList()
+        imageList.setItems([soughtImage])
+        callback.onSuccess(imageList, null)
+      }
+
     when:
-      def sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, computeMock, taskMock, PHASE)
+      def sourceImage = null
+
+      batchMock.use {
+        computeMock.use {
+          listMock.use {
+            def compute = new Compute.Builder(
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
+
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE)
+          }
+        }
+      }
 
     then:
-      0 * computeMock._
-      1 * computeMock.images() >> imagesMock
-      1 * imagesMock.list(PROJECT_NAME) >> listMock
-      1 * listMock.execute() >> new ImageList(items: [soughtImage])
       sourceImage == soughtImage
   }
 
   void "query source images should fail"() {
     setup:
-      def computeMock = Mock(Compute)
-      def imagesMock = Mock(Compute.Images)
-      def listMock = Mock(Compute.Images.List)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def computeMock = new MockFor(Compute)
+      def batchMock = new MockFor(BatchRequest)
+      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def listMock = new MockFor(Compute.Images.List)
+
+      def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+      def jsonFactory = JacksonFactory.defaultInstance
+      def httpRequestInitializer =
+              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def images = new Compute.Builder(
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
+      JsonBatchCallback<ImageList> callback = null
+
+      for (def imageProject : imageProjects) {
+        computeMock.demand.images { return images }
+        listMock.demand.queue { imageListBatch, imageListCallback ->
+          callback = imageListCallback
+        }
+      }
+
+      batchMock.demand.execute {
+        def imageList = new ImageList()
+        imageList.setItems([new Image(name: IMAGE_NAME + "-WRONG")])
+        callback.onSuccess(imageList, null)
+      }
 
     when:
-      def sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, computeMock, taskMock, PHASE)
+      def sourceImage = null
+
+      batchMock.use {
+        computeMock.use {
+          listMock.use {
+            def compute = new Compute.Builder(
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
+
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE)
+          }
+        }
+      }
 
     then:
-      0 * computeMock._
-      ([PROJECT_NAME] + GCEUtil.baseImageProjects).each {
-        1 * computeMock.images() >> imagesMock
-        1 * imagesMock.list(it) >> listMock
-        1 * listMock.execute() >> new ImageList(items: [])
-      }
       thrown GCEResourceNotFoundException
   }
 }
