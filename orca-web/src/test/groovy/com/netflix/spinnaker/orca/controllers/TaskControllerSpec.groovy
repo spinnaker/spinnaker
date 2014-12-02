@@ -111,7 +111,7 @@ class TaskControllerSpec extends Specification {
     executionRepository.retrieveOrchestration(orchestration.id) >> orchestration
 
     new ObjectMapper().readValue(response.contentAsString, JobViewModel).variables == [
-      [key: "OrchestratedType.customOutput", value: "variable"]
+      [key: "customOutput", value: "variable"]
     ]
   }
 
