@@ -74,6 +74,9 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
       if (appName) {
         if (!tempAppMap[appName]) {
           tempAppMap[appName] = new GoogleApplication(name: appName)
+        }
+
+        if (!tempAppMap[appName].clusterNames[accountName]) {
           tempAppMap[appName].clusterNames[accountName] = new HashSet<String>()
           tempAppMap[appName].clusters[accountName] = new HashMap<String, GoogleCluster>()
         }
