@@ -1,8 +1,8 @@
 <h3>
   Filters
 </h3>
-<ng-filter-toggle-all>
-    <nf-filter-section heading="Search" expanded="{{sortFilter.filter.length > 0}}">
+<filter-toggle-all>
+    <filter-section heading="Search" expanded="{{sortFilter.filter.length > 0}}">
         <form role="form">
             <div class="form-group nav-search">
                 <div class="input-group">
@@ -10,26 +10,26 @@
                 </div>
             </div>
         </form>
-    </nf-filter-section>
+    </filter-section>
 
-    <nf-filter-section heading="Account" expanded="{{sortFilter.account !== undefined}}">
+    <filter-section heading="Account" expanded="{{sortFilter.account !== undefined}}">
         <div class="checkbox" ng-repeat="heading in clustersFilters.getAccountHeadings() | orderBy:'toString()'  ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.account[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
             </label>
         </div>
-    </nf-filter-section>
+    </filter-section>
 
-    <nf-filter-section heading="Region" expanded="{{sortFilter.region !== undefined}}">
+    <filter-section heading="Region" expanded="{{sortFilter.region !== undefined}}">
         <div class="checkbox" ng-repeat="heading in clustersFilters.getRegionHeadings() | orderBy: 'toString()' ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
             </label>
         </div>
-    </nf-filter-section>
+    </filter-section>
 
 
-    <nf-filter-section heading="Status" expanded="{{sortFilter.status !== undefined}}">
+    <filter-section heading="Status" expanded="{{sortFilter.status !== undefined}}">
         <div class="form">
             <div class="checkbox">
                 <label>
@@ -64,28 +64,28 @@
                 </label>
             </div>
         </div>
-    </nf-filter-section>
+    </filter-section>
 
 
-    <nf-filter-section heading="Instance Types" expanded="{{sortFilter.instanceType !== undefined}}">
+    <filter-section heading="Instance Types" expanded="{{sortFilter.instanceType !== undefined}}">
         <div class="checkbox" ng-repeat="heading in clustersFilters.getInstanceTypes() | orderBy: 'toString()' ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.instanceType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
             </label>
         </div>
-    </nf-filter-section>
+    </filter-section>
 
-    <nf-filter-section heading="Availability Zones" expanded="false">
-    </nf-filter-section>
+    <filter-section heading="Availability Zones" expanded="false">
+    </filter-section>
 
-    <nf-filter-section heading="Load Balanced" expanded="false">
-    </nf-filter-section>
+    <filter-section heading="Load Balanced" expanded="false">
+    </filter-section>
 
-    <nf-filter-section heading="Provider" expanded="{{sortFilter.providerType !== undefined}}">
+    <filter-section heading="Provider" expanded="{{sortFilter.providerType !== undefined}}">
         <div class="checkbox" ng-repeat="heading in clustersFilters.getProviderType() | orderBy: 'toString()' ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.providerType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
             </label>
         </div>
-    </nf-filter-section>
+    </filter-section>
 </ng-filter-toggle-all>

@@ -34,7 +34,7 @@ angular.module('deckApp')
     };
 
     this.instanceTypeSelected = function() {
-      if ($scope.command.viewState.instanceType) {
+      if ($scope.command.instanceType) {
         wizard.markClean('instance-profile');
         wizard.markComplete('instance-profile');
       }

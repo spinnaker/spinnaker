@@ -1,15 +1,14 @@
 angular
   .module('cluster.filter.collapse', [])
-  .directive('nfFilterSection', function ($timeout) {
+  .directive('filterSection', function ($timeout) {
     return {
       restrict: 'E',
-      replace: true,
       transclude: true,
       scope: {
         heading: '@',
         expanded: '@?'
       },
-      require: '^ngFilterToggleAll',
+      require: '^filterToggleAll',
       templateUrl: 'scripts/modules/clusterFilter/collapsibleFilterSection.html',
       link:  function (scope, elem, attrs, toggleController) {
         var expanded = (scope.expanded === 'true');
@@ -39,10 +38,9 @@ angular
       }
     }
   })
-  .directive('ngFilterToggleAll', function () {
+  .directive('filterToggleAll', function () {
     return {
       restrict: 'E',
-      replace: true,
       transclude: true,
       template: [
         '<div>',
