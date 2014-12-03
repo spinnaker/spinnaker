@@ -112,7 +112,6 @@ class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {
     ResultByZone<NetworkInterface> result = operation.operate([])
 
     then:
-    println result
     result.successfulResults == [
       "us-west-1b": new NetworkInterface(networkInterfaceId: "2")
     ]

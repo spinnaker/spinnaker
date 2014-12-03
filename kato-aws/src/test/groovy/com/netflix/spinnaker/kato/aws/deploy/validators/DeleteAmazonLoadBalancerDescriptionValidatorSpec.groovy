@@ -19,8 +19,8 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -63,9 +63,7 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "region is validates against configuration"() {
     setup:
-    def creds = Stub(NetflixAmazonCredentials) {
-      getName() >> "test"
-    }
+    def creds = TestCredential.named('test')
     def description = new DeleteAmazonLoadBalancerDescription(loadBalancerName: "foo--frontend", credentials: creds)
     description.regions = ["us-east-5"]
     def errors = Mock(Errors)
@@ -91,8 +89,8 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
     0 * errors.rejectValue("regions", _)
 
     and:
-    1 * amazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
-    1 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req ->
+    2 * amazonClientProvider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req ->
       assert req.loadBalancerNames[0] == description.loadBalancerName
       new DescribeLoadBalancersResult(loadBalancerDescriptions: [])
     }

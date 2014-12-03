@@ -18,6 +18,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstancesDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -46,7 +48,7 @@ class TerminateInstancesDescriptionValidatorSpec extends Specification {
 
   void "unconfigured region fails validation"() {
     setup:
-    def description = new TerminateInstancesDescription()
+    def description = new TerminateInstancesDescription(credentials: TestCredential.named('test'))
     description.region = "us-west-5"
     def errors = Mock(Errors)
 
@@ -57,7 +59,7 @@ class TerminateInstancesDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue("region", "TerminateInstancesDescription.region.not.configured")
 
     when:
-    description.region = validator.awsConfigurationProperties.regions.first()
+    description.region = 'us-east-1'
     validator.validate([], description, errors)
 
     then:

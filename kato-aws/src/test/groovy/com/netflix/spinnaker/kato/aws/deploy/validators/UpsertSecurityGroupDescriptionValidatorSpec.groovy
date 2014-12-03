@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
 import com.netflix.spinnaker.kato.aws.model.SecurityGroupNotFoundException
@@ -36,6 +38,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
   Errors errors
 
   def description = new UpsertSecurityGroupDescription().with {
+    credentials = TestCredential.named('test')
     name = "foo"
     description = "desc"
     securityGroupIngress = [
@@ -94,7 +97,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue("regions", _)
 
     when:
-    description.region = validator.awsConfigurationProperties.regions[0]
+    description.region = 'us-east-1'
     validator.validate([], description, errors)
 
     then:

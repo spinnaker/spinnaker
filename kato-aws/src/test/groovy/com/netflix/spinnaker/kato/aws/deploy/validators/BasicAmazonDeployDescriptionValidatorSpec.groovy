@@ -18,12 +18,10 @@
 package com.netflix.spinnaker.kato.aws.deploy.validators
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AssumeRoleAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.kato.aws.model.AwsRegion
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -42,16 +40,13 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     validator = new BasicAmazonDeployDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
-    def credentials = Mock(AssumeRoleAmazonCredentials)
-    credentials.getName() >> ACCOUNT_NAME
-    credentials.getRegions() >> [new AwsRegion("us-west-1", ["us-west-1a", "us-west-1b"])]
-    credentialsRepo.save(ACCOUNT_NAME, credentials)
+    credentialsRepo.save(ACCOUNT_NAME, amazonCredentials)
     validator.accountCredentialsProvider = credentialsProvider
   }
 
   void "pass validation with proper description inputs"() {
     setup:
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], subnetType: "internal")
     def errors = Mock(Errors)
 
@@ -64,7 +59,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
 
   void "should fail validation if public IP address without subnet"() {
     setup:
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], associatePublicIpAddress: true)
     def errors = Mock(Errors)
 
@@ -100,7 +95,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
 
   void "invalid capacity fails validation"() {
     setup:
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []])
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []])
     description.capacity.min = 5
     description.capacity.max = 3
     def errors = Mock(Errors)
@@ -148,7 +143,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   @Unroll
   void "invalid block device fails validation"(AmazonBlockDevice blockDevice, String rejection) {
     setup:
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: [blockDevice])
     def errors = Mock(Errors)
 
@@ -172,7 +167,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
       new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral0'),
       new AmazonBlockDevice(deviceName: '/dev/sdb', size: 69)
     ]
-    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-west-1": []],
+    def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []],
       capacity: [min: 1, max: 1, desired: 1], subnetType: "internal", blockDevices: blockDevices)
     def errors = Mock(Errors)
 

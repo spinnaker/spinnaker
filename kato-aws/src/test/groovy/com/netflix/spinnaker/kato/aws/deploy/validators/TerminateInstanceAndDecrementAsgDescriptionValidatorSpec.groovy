@@ -16,6 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstanceAndDecrementAsgDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -46,7 +48,7 @@ class TerminateInstanceAndDecrementAsgDescriptionValidatorSpec extends Specifica
 
   void "unconfigured region fails validation"() {
     setup:
-    def description = new TerminateInstanceAndDecrementAsgDescription()
+    def description = new TerminateInstanceAndDecrementAsgDescription(credentials: TestCredential.named('test'))
     description.region = "us-west-5"
     def errors = Mock(Errors)
 

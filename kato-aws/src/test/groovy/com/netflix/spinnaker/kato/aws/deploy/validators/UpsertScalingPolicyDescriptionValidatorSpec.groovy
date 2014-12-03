@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertScalingPolicyDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -26,6 +28,7 @@ class UpsertScalingPolicyDescriptionValidatorSpec extends Specification {
   @Subject validator = new UpsertScalingPolicyDescriptionValidator()
 
   def description = new UpsertScalingPolicyDescription(
+    credentials: TestCredential.named('test'),
     name: "dansScalingPolicy",
     asgName: "kato-main-v000",
     region: "us-west-1",
@@ -67,7 +70,7 @@ class UpsertScalingPolicyDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue("regions", _)
 
     when:
-    description.region = validator.awsConfigurationProperties.regions[0]
+    description.region = 'us-east-1'
     validator.validate([], description, errors)
 
     then:

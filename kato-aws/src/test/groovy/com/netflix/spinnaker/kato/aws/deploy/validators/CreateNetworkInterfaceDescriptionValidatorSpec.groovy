@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
+import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.AwsNetworkInterface
 import org.springframework.validation.Errors
+import spock.lang.Shared
 import spock.lang.Specification
 
 class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
 
   CreateNetworkInterfaceDescriptionValidator validator = new CreateNetworkInterfaceDescriptionValidator()
 
+  @Shared
+  NetflixAssumeRoleAmazonCredentials credentials = TestCredential.named('test')
+
   void "pass validation with proper description inputs"() {
     setup:
     def description = new CreateNetworkInterfaceDescription(
+      credentials: credentials,
       availabilityZonesGroupedByRegion: [
         "us-west-1": ["us-west-1a", "us-west-1b"],
         "us-east-1": ["us-east-1b", "us-east-1c"]
@@ -50,7 +58,7 @@ class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
 
   void "null input fails validation"() {
     setup:
-    def description = new CreateNetworkInterfaceDescription()
+    def description = new CreateNetworkInterfaceDescription(credentials: credentials)
     def errors = Mock(Errors)
 
     when:
@@ -65,7 +73,7 @@ class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
 
   void "unconfigured region fails validation"() {
     setup:
-    def description = new CreateNetworkInterfaceDescription(availabilityZonesGroupedByRegion: ["eu-west-5": []])
+    def description = new CreateNetworkInterfaceDescription(credentials: credentials, availabilityZonesGroupedByRegion: ["eu-west-5": []])
     def errors = Mock(Errors)
 
     when:

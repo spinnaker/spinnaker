@@ -16,6 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.ShrinkClusterDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -45,7 +47,7 @@ class ShrinkClusterDescriptionValidatorSpec extends Specification {
 
   void "region is validates against configuration"() {
     setup:
-    def description = new ShrinkClusterDescription()
+    def description = new ShrinkClusterDescription(credentials: TestCredential.named('test'))
     description.regions = ["us-east-5"]
     def errors = Mock(Errors)
 
@@ -56,7 +58,7 @@ class ShrinkClusterDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue("regions", _)
 
     when:
-    description.regions = validator.awsConfigurationProperties.regions
+    description.regions = description.credentials.regions.collect { it.name }
     validator.validate([], description, errors)
 
     then:

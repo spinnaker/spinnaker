@@ -45,7 +45,7 @@ public abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazo
   }
 
   void validateRegion(T description, String regionName, String errorKey, Errors errors) {
-    validateRegions(description, [regionName], errorKey, errors, "region")
+    validateRegions(description, regionName ? [regionName] : [], errorKey, errors, "region")
   }
 
   void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {

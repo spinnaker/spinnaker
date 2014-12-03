@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
+import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -29,11 +31,12 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
 
   abstract DescriptionValidator getDescriptionValidator()
 
-  abstract Object getDescription()
+  abstract AbstractAmazonCredentialsDescription  getDescription()
 
   void "empty description fails validation"() {
     setup:
     def description = getDescription()
+    description.credentials = TestCredential.named('test')
     def errors = Mock(Errors)
 
     when:
@@ -44,9 +47,10 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     1 * errors.rejectValue("regions", _)
   }
 
-  void "region is validates against configuration"() {
+  void "region is validated against configuration"() {
     setup:
     def description = getDescription()
+    description.credentials = TestCredential.named('test')
     description.regions = ["us-east-5"]
     def errors = Mock(Errors)
 
@@ -57,7 +61,7 @@ abstract class AbstractConfiguredRegionsValidatorSpec extends Specification {
     1 * errors.rejectValue("regions", _)
 
     when:
-    description.regions = validator.awsConfigurationProperties.regions
+    description.regions = description.credentials.regions.collect { it.name }
     validator.validate([], description, errors)
 
     then:
