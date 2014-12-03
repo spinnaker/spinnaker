@@ -24,6 +24,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
+import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import groovy.mock.interceptor.MockFor
@@ -141,5 +142,38 @@ class GCEUtilSpec extends Specification {
 
     then:
       thrown GCEResourceNotFoundException
+  }
+
+  void "waitForOperation should query the operation at least once"() {
+    expect:
+      GCEUtil.waitForOperation({return new Operation(status: "DONE")}, 0,
+          new GCEUtil.Clock()) == new Operation(status: "DONE")
+  }
+
+  void "waitForOperation should return null on timeout"() {
+    expect:
+      GCEUtil.waitForOperation({return new Operation(status: "PENDING")}, 0,
+          new GCEUtil.Clock()) == null
+  }
+
+  void "waitForOperation should retry until timeout"() {
+    setup:
+      def getOperationMock = Mock(Closure)
+      def clockMock = Mock(GCEUtil.Clock)
+
+    when:
+      GCEUtil.waitForOperation(getOperationMock, 5000, clockMock)
+
+    then:
+      1 * clockMock.currentTimeMillis() >> 0
+      1 * getOperationMock.call() >> new Operation(status: "PENDING")
+
+    then:
+      1 * clockMock.currentTimeMillis() >> 2500
+      1 * getOperationMock.call() >> new Operation(status: "PENDING")
+
+    then:
+      1 * clockMock.currentTimeMillis() >> 5000
+      0 * getOperationMock.call()
   }
 }

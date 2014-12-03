@@ -25,6 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DeleteGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
+  private static final Long TIMEOUT_SECONDS = 5
   private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
@@ -45,7 +46,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Sp
 
   void "deleteGoogleNetworkLoadBalancerDescription type returns DeleteGoogleNetworkLoadBalancerDescription and DeleteGoogleNetworkLoadBalancerAtomicOperation"() {
     setup:
-      def input = [networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+      def input = [deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+                   networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
                    zone: ZONE,
                    accountName: ACCOUNT_NAME]
 
