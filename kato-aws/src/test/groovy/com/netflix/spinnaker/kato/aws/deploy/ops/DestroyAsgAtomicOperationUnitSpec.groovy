@@ -54,7 +54,7 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    2 * mockAutoScaling.describeAutoScalingGroups(_) >>> [describeResult1, describeResult2]
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >>> [describeResult1, describeResult2]
     1 * mockAutoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest request ->
       assert !request.desiredCapacity
       assert !request.minSize

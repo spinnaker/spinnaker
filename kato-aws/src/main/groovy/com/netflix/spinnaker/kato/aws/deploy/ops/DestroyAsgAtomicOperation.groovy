@@ -16,20 +16,16 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
-
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.ForkJoinPool
 
 class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DESTROY_ASG"
@@ -42,7 +38,6 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
   AmazonClientProvider amazonClientProvider
 
   private final DestroyAsgDescription description
-  private final ExecutorService executorService = new ForkJoinPool()
 
   DestroyAsgAtomicOperation(DestroyAsgDescription description) {
     this.description = description
@@ -61,18 +56,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
         client.terminateInstanceInAutoScalingGroup(new TerminateInstanceInAutoScalingGroupRequest().withInstanceId(instanceId).withShouldDecrementDesiredCapacity(true))
       }
     }
-    def c = { String region ->
-      while (true) {
-        def instances = getInstanceIds(region, description.asgName)
-        if (!instances) {
-          break
-        }
-        Thread.sleep 1000
-      }
-    }
-    def callables = description.regions.collect { c.curry(it) }
     task.updateStatus BASE_PHASE, "Waiting for instances to go away."
-    executorService.invokeAll(callables)*.get()
 
     for (region in description.regions) {
       def client = amazonClientProvider.getAutoScaling(description.credentials, region)
