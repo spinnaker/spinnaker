@@ -24,6 +24,8 @@ import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
   void setupSpec() {
+    def cred = TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
+    description.credentials = cred
     op = new DisableAsgAtomicOperation(description)
   }
 
@@ -49,7 +51,6 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
   void 'should disable instances for asg in discovery'() {
     setup:
-    op.discoveryHostFormat = "http://us-west-1.discovery.ENV.netflix.net"
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getInstances() >> [new Instance().withInstanceId("i1")]
@@ -59,7 +60,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * restTemplate.put("http://us-west-1.discovery.ENV.netflix.net/v2/apps/asg1/i1/status?value=OUT_OF_SERVICE", [:])
+    1 * restTemplate.put("http://us-west-1.discovery.netflix.net/v2/apps/asg1/i1/status?value=OUT_OF_SERVICE", [:])
   }
 
   void 'should skip discovery if not enabled for account'() {
@@ -67,13 +68,12 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
       def noDiscovery =  new EnableDisableAsgDescription([
               asgName: "kato-main-v000",
               regions: ["us-west-1"],
-              credentials: TestCredential.named('foo', [edda: 'edda'])
+              credentials: TestCredential.named('foo')
       ])
 
       def noDiscoveryOp = new DisableAsgAtomicOperation(noDiscovery)
       wireOpMocks(noDiscoveryOp)
 
-      noDiscoveryOp.discoveryHostFormat = "http://us-west-1.discovery.ENV.netflix.net"
       def asg = Mock(AutoScalingGroup)
       asg.getAutoScalingGroupName() >> "asg1"
       asg.getInstances() >> [new Instance().withInstanceId("i1")]
