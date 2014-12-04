@@ -24,7 +24,9 @@ import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.data.task.InMemoryTaskRepository
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DefaultDeployHandlerRegistry
+import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeployHandlerRegistry
+import com.netflix.spinnaker.kato.deploy.NullOpDeployHandler
 import com.netflix.spinnaker.kato.orchestration.DefaultOrchestrationProcessor
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -61,5 +63,11 @@ class CoreConfiguration {
   @ConditionalOnMissingBean(OrchestrationProcessor)
   OrchestrationProcessor orchestrationProcessor() {
     new DefaultOrchestrationProcessor()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(DeployHandler)
+  DeployHandler nullOpDeployHandler() {
+    new NullOpDeployHandler()
   }
 }
