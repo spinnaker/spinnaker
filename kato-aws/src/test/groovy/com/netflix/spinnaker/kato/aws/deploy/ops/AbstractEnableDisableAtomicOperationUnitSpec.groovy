@@ -17,30 +17,12 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
 
 class AbstractEnableDisableAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
   def setupSpec() {
     op = new EnableAsgAtomicOperation(description)
-  }
-
-  void 'should log failure without a discoveryHostFormat'() {
-    setup:
-    def asg = Mock(AutoScalingGroup)
-    asg.getAutoScalingGroupName() >> "asg1"
-    asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
-
-    when:
-    op.operate([])
-
-    then:
-    1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * loadBalancing.registerInstancesWithLoadBalancer(_)
-    1 * task.updateStatus(_, 'Could not Enable ASG \'kato-main-v000\' in region us-west-1! Failure Type: DiscoveryNotConfiguredException; Message: null')
   }
 
   void 'should log unknown asgs'() {

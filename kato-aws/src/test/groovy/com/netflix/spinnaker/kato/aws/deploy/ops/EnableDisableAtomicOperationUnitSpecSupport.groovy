@@ -32,7 +32,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   def description = new EnableDisableAsgDescription([
     asgName: "kato-main-v000",
     regions: ["us-west-1"],
-    credentials: TestCredential.named('foo', [discovery: "http://%s.discovery.ENV.netflix.net"])
+    credentials: TestCredential.named('foo')
   ])
 
   @Shared

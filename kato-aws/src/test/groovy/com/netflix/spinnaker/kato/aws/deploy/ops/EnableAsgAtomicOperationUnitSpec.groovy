@@ -24,7 +24,10 @@ import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
   def setupSpec() {
+    def cred = TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
+    description.credentials = cred
     op = new EnableAsgAtomicOperation(description)
+
   }
 
   void 'should register instances from load balancers and resume scaling processes'() {
@@ -48,7 +51,6 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
   void 'should enable instances for asg in discovery'() {
     setup:
-    op.discoveryHostFormat = "http://us-west-1.discovery.ENV.netflix.net"
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getInstances() >> [new Instance().withInstanceId("i1")]
@@ -58,7 +60,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * restTemplate.put("http://us-west-1.discovery.ENV.netflix.net/v2/apps/asg1/i1/status?value=UP", [:])
+    1 * restTemplate.put("http://us-west-1.discovery.netflix.net/v2/apps/asg1/i1/status?value=UP", [:])
   }
 
   void 'should skip discovery if not enabled for account'() {
@@ -66,13 +68,12 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     def noDiscovery = new EnableDisableAsgDescription([
       asgName    : "kato-main-v000",
       regions    : ["us-west-1"],
-      credentials: TestCredential.named('foo', [edda: 'edda'])
+      credentials: TestCredential.named('foo')
     ])
 
     def noDiscoveryOp = new EnableAsgAtomicOperation(noDiscovery)
     wireOpMocks(noDiscoveryOp)
 
-    noDiscoveryOp.discoveryHostFormat = "http://us-west-1.discovery.ENV.netflix.net"
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getInstances() >> [new Instance().withInstanceId("i1")]
