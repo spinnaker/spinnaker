@@ -38,10 +38,10 @@ describe('Service: NamedImage', function() {
 
   describe('findImages', function () {
 
-    var query = 'abc', region = 'us-west-1', credentials = 'test';
+    var query = 'abc', region = 'us-west-1';
 
     function buildQueryString() {
-      return config.oortUrl + '/aws/images/find?account='+ credentials + '&q='+query + '&region=' + region;
+      return config.oortUrl + '/aws/images/find?q='+query + '&region=' + region;
     }
 
     it('queries oort when 3 or more characters are supplied', function() {
@@ -51,7 +51,7 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages('aws', query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region).then(function(results) {
         result = results;
       });
 
@@ -66,7 +66,7 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages('aws', query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region).then(function(results) {
         result = results;
       });
 
@@ -81,7 +81,7 @@ describe('Service: NamedImage', function() {
 
       var result = null;
 
-      service.findImages('aws', query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region).then(function(results) {
         result = results;
       });
 
@@ -97,7 +97,7 @@ describe('Service: NamedImage', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.findImages('aws', query, region, credentials).then(function(results) {
+      service.findImages('aws', query, region).then(function(results) {
         result = results;
       });
 

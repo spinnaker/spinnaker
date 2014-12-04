@@ -12,7 +12,7 @@ angular.module('deckApp')
       if (query.length < 3) {
         return $q.when([{message: 'Please enter at least 3 characters...'}]);
       }
-      return oortEndpoint.all('aws/images/find').getList({q: query, region: region, account: account}, {}).then(function(results) {
+      return oortEndpoint.all('aws/images/find').getList({q: query, region: region}, {}).then(function(results) {
           return results;
         },
         function() {
