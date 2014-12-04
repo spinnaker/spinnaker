@@ -47,18 +47,18 @@ class DeleteGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
 
   void "pass validation with full description input"() {
     setup:
-    def description = new DeleteGoogleNetworkLoadBalancerDescription(
-        deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
-        networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        zone: ZONE,
-        accountName: ACCOUNT_NAME)
-    def errors = Mock(Errors)
+      def description = new DeleteGoogleNetworkLoadBalancerDescription(
+          deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME)
+      def errors = Mock(Errors)
 
     when:
-    validator.validate([], description, errors)
+      validator.validate([], description, errors)
 
     then:
-    0 * errors._
+      0 * errors._
   }
 
   void "pass validation with proper minimal description input"() {
