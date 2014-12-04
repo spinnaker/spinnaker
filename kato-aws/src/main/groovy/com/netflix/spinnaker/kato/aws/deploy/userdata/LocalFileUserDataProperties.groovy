@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kato.aws.deploy.userdata
 
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
-dependencies {
-  compile spinnaker.dependency('groovy')
-  compile spinnaker.dependency('frigga')
-  compile project(":kato-aws")
-  compile 'com.perforce:p4java:2010.1.269249'
+@Component
+@ConfigurationProperties("udf")
+class LocalFileUserDataProperties {
+  String udfRoot = '/apps/nflx-udf'
 }

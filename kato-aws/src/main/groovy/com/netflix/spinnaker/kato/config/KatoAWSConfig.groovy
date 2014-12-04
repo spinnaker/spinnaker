@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.kato.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.kato.aws.deploy.userdata.NullOpUserDataProvider
+import com.netflix.spinnaker.kato.aws.deploy.userdata.LocalFileUserDataProvider
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -38,7 +38,7 @@ class KatoAWSConfig {
   @Bean
   @ConditionalOnMissingBean(UserDataProvider)
   UserDataProvider userDataProvider() {
-    new NullOpUserDataProvider()
+    new LocalFileUserDataProvider()
   }
 
   @Bean
