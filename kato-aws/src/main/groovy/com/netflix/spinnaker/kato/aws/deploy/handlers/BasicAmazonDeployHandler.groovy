@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.handlers
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AmazonDeploymentResult
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
@@ -30,10 +31,7 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
-@Component
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
 
@@ -41,20 +39,19 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     TaskRepository.threadLocalTask.get()
   }
 
-  @Autowired
-  List<UserDataProvider> userDataProviders
+  private final List<UserDataProvider> userDataProviders
+  private final AmazonClientProvider amazonClientProvider
+  private final RegionScopedProviderFactory regionScopedProviderFactory
+  private final AccountCredentialsRepository accountCredentialsRepository
+  private final KatoAWSConfig.DeployDefaults deployDefaults
 
-  @Autowired
-  AmazonClientProvider amazonClientProvider
-
-  @Autowired
-  RegionScopedProviderFactory regionScopedProviderFactory
-
-  @Autowired
-  List<? extends NetflixAmazonCredentials> netflixAmazonCredentials
-
-  @Autowired
-  KatoAWSConfig.DeployDefaults deployDefaults
+  BasicAmazonDeployHandler(List<UserDataProvider> userDataProviders, AmazonClientProvider amazonClientProvider, RegionScopedProviderFactory regionScopedProviderFactory, AccountCredentialsRepository accountCredentialsRepository, KatoAWSConfig.DeployDefaults deployDefaults) {
+    this.userDataProviders = userDataProviders
+    this.amazonClientProvider = amazonClientProvider
+    this.regionScopedProviderFactory = regionScopedProviderFactory
+    this.accountCredentialsRepository = accountCredentialsRepository
+    this.deployDefaults = deployDefaults
+  }
 
   @Override
   boolean handles(DeployDescription description) {
@@ -99,7 +96,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
       }
 
-      def account = netflixAmazonCredentials.find { it.name == description.credentials.name }
+      def account = accountCredentialsRepository.getOne(description.credentials.name)
+      if (!(account instanceof NetflixAmazonCredentials)) {
+        throw new IllegalArgumentException("Unsupported account type ${account.class.simpleName} for this operation")
+      }
 
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
