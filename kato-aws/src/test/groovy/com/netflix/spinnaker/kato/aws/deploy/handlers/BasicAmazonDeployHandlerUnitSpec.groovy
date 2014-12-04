@@ -22,6 +22,7 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
@@ -51,10 +52,13 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       getAmazonEC2(_, _) >> amazonEC2
     }
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
+    def rspf = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider)
+    }
     def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole', instanceClassBlockDevices: [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)])
-    this.handler = new BasicAmazonDeployHandler(amazonClientProvider: mockAmazonClientProvider, deployDefaults: defaults,
-      regionScopedProviderFactory: Mock(RegionScopedProviderFactory))
-    handler.regionScopedProviderFactory.forRegion(_, _) >> Mock(RegionScopedProviderFactory.RegionScopedProvider)
+    def credsRepo = new MapBackedAccountCredentialsRepository()
+    credsRepo.save('baz', TestCredential.named('baz'))
+    this.handler = new BasicAmazonDeployHandler([], mockAmazonClientProvider, rspf, credsRepo, defaults)
     Task task = Stub(Task) {
         getResultObjects() >> []
     }
