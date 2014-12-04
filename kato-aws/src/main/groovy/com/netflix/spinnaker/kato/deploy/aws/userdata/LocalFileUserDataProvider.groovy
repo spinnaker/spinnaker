@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.kato.deploy.aws.userdata
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.kato.config.PerforceProperties
-import com.perforce.p4java.core.file.FileSpecBuilder
-import com.perforce.p4java.core.file.IFileSpec
-import com.perforce.p4java.exception.P4JavaError
-import com.perforce.p4java.option.server.GetDepotFilesOptions
-import com.perforce.p4java.server.IOptionsServer
 import org.springframework.beans.factory.annotation.Autowired
 
-class PerforceUserDataProvider implements UserDataProvider {
+class LocalFileUserDataProvider implements UserDataProvider {
   private static final INSERTION_MARKER = '\nexport EC2_REGION='
 
   @Autowired
-  PerforceProperties perforceProperties
-
-  @Autowired
-  IOptionsServer p4server
+  LocalFileUserDataProperties localFileUserDataProperties
 
   @Override
   String getUserData(String asgName, String launchConfigName, String region, String environment) {
@@ -43,7 +32,7 @@ class PerforceUserDataProvider implements UserDataProvider {
   }
 
   String assembleUserData(Names names, String region, String environment) {
-    def udfRoot = perforceProperties.udfRoot
+    def udfRoot = localFileUserDataProperties.udfRoot
 
     String cluster = names.cluster
     String stack = names.stack
@@ -106,22 +95,16 @@ class PerforceUserDataProvider implements UserDataProvider {
     result
   }
 
-
-  String getContents(String depotFilePath) {
+  private String getContents(String filePath) {
     try {
-      List<IFileSpec> fileSpecs = FileSpecBuilder.makeFileSpecList(depotFilePath)
-      GetDepotFilesOptions options = new GetDepotFilesOptions()
-      List<IFileSpec> depotFileSpecs = p4server.getDepotFiles(fileSpecs, options)
-      IFileSpec fileSpec = depotFileSpecs[0]
-      InputStream fileSpecInputStream = fileSpec.getContents(true)
-      String contents = fileSpecInputStream.getText('UTF-8')
-      if (contents.length() && !contents.endsWith("\n")) {
-        contents = contents + '\n'
-      }
-      contents
-    } catch (P4JavaError IGNORE) {
+      File file = new File(filePath)
+      String contents = file.getText('UTF-8')
+      if (contents.length() && !contents.endsWith("\n")) { contents = contents + '\n' }
+      return contents
+    } catch (IOException ignore) {
       // This normal case happens if the requested file is not found.
-      ''
+      return ''
     }
   }
+
 }
