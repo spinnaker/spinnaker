@@ -47,7 +47,7 @@ class ApplicationController {
     applicationService.create(app)
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   Map show(@PathVariable("name") String name) {
     def result = applicationService.get(name)
     if (!result) {
@@ -59,7 +59,7 @@ class ApplicationController {
     result
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.DELETE)
   Map delete(@RequestParam String account, @PathVariable String name) {
     applicationService.delete(account, name)
   }
@@ -81,17 +81,17 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{name}/pipelines", method = RequestMethod.GET)
-  List getPiplines(@PathVariable("name") String name) {
+  List getPipelines(@PathVariable("name") String name) {
     applicationService.getPipelines(name)
   }
 
   @RequestMapping(value = "/{name}/pipelineConfigs", method = RequestMethod.GET)
-  List getPiplineConfigs(@PathVariable("name") String name) {
+  List getPipelineConfigs(@PathVariable("name") String name) {
     applicationService.getPipelineConfigs(name)
   }
 
   @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.GET)
-  Map getPiplineConfig(
+  Map getPipelineConfig(
       @PathVariable("name") String name, @PathVariable("pipelineName") String pipelineName) {
     applicationService.getPipelineConfig(name, pipelineName)
   }
