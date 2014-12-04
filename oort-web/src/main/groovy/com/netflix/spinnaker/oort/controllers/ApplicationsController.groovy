@@ -50,7 +50,7 @@ class ApplicationsController {
     results.sort { a, b -> a?.name?.toLowerCase() <=> b?.name?.toLowerCase() }
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   ApplicationViewModel get(@PathVariable String name) {
     try {
       def apps = applicationProviders.collect {
