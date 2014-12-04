@@ -22,9 +22,10 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.deploy.aws.userdata.NullOpUserDataProvider
+import com.netflix.spinnaker.kato.deploy.aws.userdata.LocalFileUserDataProvider
 import com.netflix.spinnaker.kato.deploy.aws.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.security.aws.BastionCredentialsProvider
+import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -34,15 +35,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 @Configuration
 class KatoAWSConfig {
 
   @Bean
   @ConditionalOnMissingBean(UserDataProvider)
   UserDataProvider userDataProvider() {
-    new NullOpUserDataProvider()
+    new LocalFileUserDataProvider()
   }
 
   @Bean
