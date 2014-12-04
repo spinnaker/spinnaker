@@ -69,18 +69,18 @@ public class ApplicationsController extends SpringBootServletInitializer {
     return application
   }
 
-  @RequestMapping(method = RequestMethod.POST, value = "/name/{name}")
+  @RequestMapping(method = RequestMethod.POST, value = "/name/{name:.+}")
   Application post(@PathVariable String account, @RequestBody final Application app) {
     return getApplication(account).initialize(app).withName(app.getName()).save()
   }
 
-  @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name}")
+  @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name:.+}")
   void delete(@PathVariable String account, @PathVariable String name, HttpServletResponse response) {
     getApplication(account).initialize(new Application().withName(name)).delete()
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/name/{name}")
+  @RequestMapping(method = RequestMethod.GET, value = "/name/{name:.+}")
   Application getByName(@PathVariable String account, @PathVariable final String name) {
     return getApplication(account).findByName(name)
   }
