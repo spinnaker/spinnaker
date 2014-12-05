@@ -83,8 +83,8 @@ angular.module('deckApp')
           cpu: 1,
           memory: 0.60,
           storage: {
-	    type: 'Standard',
-	    size: 10,
+            type: 'Standard',
+            size: 10,
             count: 1
           },
           costFactor: 1
@@ -95,8 +95,8 @@ angular.module('deckApp')
           cpu: 1,
           memory: 1.70,
           storage: {
-	    type: 'Standard',
-	    size: 10,
+            type: 'Standard',
+            size: 10,
             count: 1
           },
           costFactor: 1
