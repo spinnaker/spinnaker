@@ -60,12 +60,10 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     def zone = description.zone
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
-    def health_check_name = String.format("%s-%s-%d", description.networkLoadBalancerName, HEALTH_CHECK_NAME_PREFIX,
-        System.currentTimeMillis())
-    task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
-
     def httpHealthChecksResourceLinks = new ArrayList<String>()
     if (description.healthCheck) {
+      def health_check_name = String.format("%s-%s-%d", description.networkLoadBalancerName, HEALTH_CHECK_NAME_PREFIX,
+          System.currentTimeMillis())
       task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
       def httpHealthCheck = GCEUtil.buildHttpHealthCheck(health_check_name, description.healthCheck)
       def httpHealthCheckResourceLink =
