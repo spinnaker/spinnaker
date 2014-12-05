@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.*
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopyLastAsgStage extends LinearStage {
+class CopyLastAsgStage extends DeployStrategyStage {
 
   public static final String MAYO_CONFIG_TYPE = "copyLastAsg"
 
@@ -34,7 +32,7 @@ class CopyLastAsgStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  List<Step> basicSteps() {
     def step1 = buildStep("createCopyLastAsg", CreateCopyLastAsgTask)
     def step2 = buildStep("monitorDeploy", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
@@ -43,5 +41,4 @@ class CopyLastAsgStage extends LinearStage {
     def step6 = buildStep("sendNotification", NotifyEchoTask)
     [step1, step2, step3, step4, step5, step6]
   }
-
 }
