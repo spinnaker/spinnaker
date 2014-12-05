@@ -17,7 +17,7 @@ angular.module('deckApp')
           memory: 3.75,
           storage: {
             type: 'SSD',
-            size: 4,
+            size: 20,
             count: 1
           },
           costFactor: 1
@@ -29,7 +29,7 @@ angular.module('deckApp')
           memory: 7.5,
           storage: {
             type: 'SSD',
-            size: 32,
+            size: 40,
             count: 1
           },
           costFactor: 2
@@ -65,7 +65,7 @@ angular.module('deckApp')
           memory: 60,
           storage: {
             type: 'SSD',
-            size: 80,
+            size: 160,
             count: 2
           },
           costFactor: 3
@@ -82,7 +82,11 @@ angular.module('deckApp')
           label: 'Micro',
           cpu: 1,
           memory: 0.60,
-          storage: { type: 'EBS' },
+          storage: {
+            type: 'Standard',
+            size: 10,
+            count: 1
+          },
           costFactor: 1
         },
         {
@@ -90,7 +94,11 @@ angular.module('deckApp')
           label: 'Small',
           cpu: 1,
           memory: 1.70,
-          storage: { type: 'EBS' },
+          storage: {
+            type: 'Standard',
+            size: 10,
+            count: 1
+          },
           costFactor: 1
         }
       ]
@@ -107,7 +115,7 @@ angular.module('deckApp')
           memory: 13,
           storage: {
             type: 'SSD',
-            size: 32,
+            size: 40,
             count: 1
           },
           costFactor: 2
@@ -162,8 +170,8 @@ angular.module('deckApp')
           memory: 1.80,
           storage: {
             type: 'SSD',
-            size: 32,
-            count: 1
+            size: 20,
+            count: 2
           },
           costFactor: 1
         },
@@ -174,8 +182,8 @@ angular.module('deckApp')
           memory: 3.60,
           storage: {
             type: 'SSD',
-            size: 80,
-            count: 1
+            size: 40,
+            count: 2
           },
           costFactor: 2
         },
@@ -186,8 +194,8 @@ angular.module('deckApp')
           memory: 7.20,
           storage: {
             type: 'SSD',
-            size: 160,
-            count: 1
+            size: 80,
+            count: 2
           },
           costFactor: 2
         },
@@ -198,8 +206,8 @@ angular.module('deckApp')
           memory: 14.4,
           storage: {
             type: 'SSD',
-            size: 320,
-            count: 1
+            size: 160,
+            count: 2
           },
           costFactor: 3
         }
