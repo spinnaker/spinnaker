@@ -112,22 +112,6 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
     this.regionHeadings = getRegionHeadings();
     this.instanceTypeHeadings = getInstanceType();
     this.providerTypeHeadings = getProviderType();
-=======
-
-    this.getRegionHeadings = function getRegionHeadings() {
-      return getHeadingsForOption(regionOption);
-    };
-
-    this.getProviderType = function getProviderType() {
-      return getHeadingsForOption(providerType);
-    };
-
-    this.getInstanceTypes = function getInstanceType() {
-      return getHeadingsForOption(instanceType);
-    };
-
->>>>>>> Squashing all the work done on the New Cluster Filtering spike.
-
 
     this.getClustersFor = function getClustersFor(value) {
       return application.clusters.filter(function (cluster) {
