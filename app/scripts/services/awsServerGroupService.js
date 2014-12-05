@@ -37,6 +37,7 @@ angular.module('deckApp')
           vpcId: null,
           availabilityZones: availabilityZones,
           keyPair: keyPair,
+          suspendedProcesses: [],
           viewState: {
             instanceProfile: null,
             allImageSelection: null,
@@ -85,6 +86,7 @@ angular.module('deckApp')
             region: serverGroup.region,
             asgName: serverGroup.asg.autoScalingGroupName,
           },
+          suspendedProcesses: _.pluck(serverGroup.asg.suspendedProcesses, 'processName'),
           viewState: {
             instanceProfile: 'custom',
             allImageSelection: null,
