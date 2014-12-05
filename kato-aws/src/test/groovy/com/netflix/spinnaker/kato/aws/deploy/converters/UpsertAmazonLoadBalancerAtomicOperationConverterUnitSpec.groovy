@@ -30,11 +30,10 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
   UpsertAmazonLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper())
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
-    def mockCredentials = Mock(NetflixAmazonCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
+      getCredentials('test') >> Stub(NetflixAmazonCredentials)
+    }
+    this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper(), accountCredentialsProvider: accountCredentialsProvider)
   }
 
   void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {
@@ -59,7 +58,7 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
 
   void "should coerce types properly in nested structures"() {
     setup:
-    def input = [listeners: [[externalPort: "7001", internalPort: "7001"], [externalPort: 80, internalPort: "25"]]]
+    def input = [credentials: 'test', listeners: [[externalPort: "7001", internalPort: "7001"], [externalPort: 80, internalPort: "25"]]]
 
     when:
     def description = converter.convertDescription(input)

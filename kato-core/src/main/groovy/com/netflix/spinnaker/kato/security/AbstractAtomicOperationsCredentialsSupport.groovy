@@ -48,11 +48,18 @@ abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOpera
     if (name == null) {
       throw new CredentialsNotFoundException("credential name is required")
     }
+    T credential
     try {
-      accountCredentialsProvider.getCredentials(name)
+      def repoCredential = accountCredentialsProvider.getCredentials(name)
+      if (repoCredential == null) {
+        throw new NullPointerException()
+      }
+      credential = (T) repoCredential
     } catch (Exception e) {
       throw new CredentialsNotFoundException(name)
     }
+
+    return credential
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Credentials not found.")
