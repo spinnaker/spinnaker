@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.aws.deploy.description.ShrinkClusterDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.ShrinkClusterAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -31,9 +30,7 @@ class ShrinkClusterAtomicOperationConverter extends AbstractAtomicOperationsCred
   }
 
   ShrinkClusterDescription convertDescription(Map input) {
-    def converted = objectMapper.copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(input, ShrinkClusterDescription)
+    def converted = objectMapper.convertValue(input, ShrinkClusterDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

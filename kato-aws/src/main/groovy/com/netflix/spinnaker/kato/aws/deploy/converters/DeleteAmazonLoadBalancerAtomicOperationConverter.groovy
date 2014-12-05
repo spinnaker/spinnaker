@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
@@ -32,9 +31,7 @@ class DeleteAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
 
   @Override
   DeleteAmazonLoadBalancerDescription convertDescription(Map input) {
-    def converted = objectMapper.copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(input, DeleteAmazonLoadBalancerDescription)
+    def converted = objectMapper.convertValue(input, DeleteAmazonLoadBalancerDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }
