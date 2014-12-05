@@ -84,29 +84,34 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
       return _.compact(_.unique(_.flatten(allValues))).sort();
     };
 
+
+    function getAccountHeadings() {
+      var accountNameList = getHeadingsForOption(accountOption);
+      return accountNameList;
+    };
+
+    function getRegionHeadings() {
+      return getHeadingsForOption(regionOption);
+    };
+
+    function getProviderType() {
+      return getHeadingsForOption(providerType);
+    };
+
+    function getInstanceType() {
+      return getHeadingsForOption(instanceType);
+    };
+
     function getHeadingsForOption(option) {
       var allValues = application.clusters.map(option.getDisplayValue);
       return _.compact(_.unique(_.flatten(allValues))).sort();
     }
 
-    this.getAccountHeadings = function getAccountHeadings() {
-      var accountNameList = getHeadingsForOption(accountOption);
-      return accountNameList;
-    };
 
-
-    this.getRegionHeadings = function getRegionHeadings() {
-      return getHeadingsForOption(regionOption);
-    };
-
-    this.getProviderType = function getProviderType() {
-      return getHeadingsForOption(providerType);
-    };
-
-    this.getInstanceTypes = function getInstanceType() {
-      return getHeadingsForOption(instanceType);
-    };
-
+    this.accountHeadings = getAccountHeadings();
+    this.regionHeadings = getRegionHeadings();
+    this.instanceTypeHeadings = getInstanceType();
+    this.providerTypeHeadings = getProviderType();
 
 
     this.getClustersFor = function getClustersFor(value) {
