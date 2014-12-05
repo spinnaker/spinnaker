@@ -92,8 +92,9 @@ class UpsertApplicationTaskSpec extends Specification {
         it.properties == new Application(config.application + [accounts: "prod,test"]).properties
       })
       1 * create(config.account, config.application.name, {
-        // assert that the new application properties override whatever existed in the global registry
-        it.properties == (existingGlobalApplication.properties + config.application)
+        // assert that the new application properties override whatever existed in the global registry, 'accounts'
+        // should never be propagated to non-global applications
+        it.properties == (existingGlobalApplication.properties + config.application + [accounts: null])
       })
       0 * _._
     }

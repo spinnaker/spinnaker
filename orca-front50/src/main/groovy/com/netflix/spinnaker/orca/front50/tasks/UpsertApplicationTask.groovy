@@ -44,9 +44,9 @@ class UpsertApplicationTask extends AbstractFront50Task {
      *
      * If the application does not exist, create it using details from the global registry where available.
      */
-    application.accounts = null
     def existingApplication = fetchApplication(account, application.name)
     if (existingApplication) {
+      application.accounts = null
       front50Service.update(account, application)
     } else {
       if (existingGlobalApplication) {
@@ -57,6 +57,8 @@ class UpsertApplicationTask extends AbstractFront50Task {
           }
         }
       }
+
+      application.accounts = null
       front50Service.create(account, application.name, application)
     }
   }
