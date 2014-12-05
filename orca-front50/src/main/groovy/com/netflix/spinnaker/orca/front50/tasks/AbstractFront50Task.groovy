@@ -61,4 +61,16 @@ abstract class AbstractFront50Task implements Task {
       return new DefaultTaskResult(ExecutionStatus.TERMINAL, [exception: exception])
     }
   }
+
+  Application fetchApplication(String account, String applicationName) {
+    try {
+      return front50Service.get(account, applicationName)
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        return null
+      }
+
+      throw e
+    }
+  }
 }

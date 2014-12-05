@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.pipeline.CreateApplicationStage
 import com.netflix.spinnaker.orca.front50.pipeline.DeleteApplicationStage
 import com.netflix.spinnaker.orca.front50.pipeline.UpdateApplicationStage
+import com.netflix.spinnaker.orca.front50.pipeline.UpsertApplicationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
@@ -54,8 +55,9 @@ class WaitForMultiAccountPropagationTask implements RetryableTask {
     def isCreate = stage.execution.stages.find { it.type == CreateApplicationStage.MAYO_CONFIG_TYPE } != null
     def isUpdate = stage.execution.stages.find { it.type == UpdateApplicationStage.MAYO_CONFIG_TYPE } != null
     def isDelete = stage.execution.stages.find { it.type == DeleteApplicationStage.MAYO_CONFIG_TYPE } != null
+    def isUpsert = stage.execution.stages.find { it.type == UpsertApplicationStage.MAYO_CONFIG_TYPE } != null
 
-    if (isCreate || isUpdate) {
+    if (isCreate || isUpdate || isUpsert) {
       allAccounts.each {
         def applicationInAccount = fetchApplication(it, applicationName)
         if (!applicationInAccount) {
