@@ -65,12 +65,12 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
     ];
 
 
-    this.updateClusterGroups = function updateClusterGroups() {
+    this.updateClusterGroups = _.debounce(function updateClusterGroups() {
       clusterFilterService.updateQueryParams();
       $scope.$evalAsync(
         clusterFilterService.updateClusterGroups(application)
       );
-    };
+    }, 300);
 
     function getSelectedSortOption() {
       return $scope.sortOptions.filter(function(option) {
