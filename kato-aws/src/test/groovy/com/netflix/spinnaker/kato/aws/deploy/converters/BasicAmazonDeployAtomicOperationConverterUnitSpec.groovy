@@ -34,11 +34,10 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
   BasicAmazonDeployAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new BasicAmazonDeployAtomicOperationConverter(objectMapper: mapper)
-    def accountCredentialsProvider = Mock(AccountCredentialsProvider)
-    def mockCredentials = Mock(NetflixAmazonCredentials)
-    accountCredentialsProvider.getCredentials(_) >> mockCredentials
-    converter.accountCredentialsProvider = accountCredentialsProvider
+    def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
+      getCredentials('test') >> Stub(NetflixAmazonCredentials)
+    }
+    this.converter = new BasicAmazonDeployAtomicOperationConverter(objectMapper: mapper, accountCredentialsProvider: accountCredentialsProvider)
   }
 
   void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {
@@ -62,7 +61,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
   void "should not fail to serialize unknown properties"() {
     setup:
-    def input = [application: application, unknownProp: "this"]
+    def input = [application: application, unknownProp: "this", credentials: 'test']
 
     when:
     def description = converter.convertDescription(input)
@@ -76,7 +75,7 @@ class BasicAmazonDeployAtomicOperationConverterUnitSpec extends Specification {
 
   void "should probably convert capacity to ints"() {
     setup:
-    def input = [application: "app", capacity: [min: min, max: max, desired: desired]]
+    def input = [application: "app", credentials: 'test', capacity: [min: min, max: max, desired: desired]]
 
     when:
     def description = converter.convertDescription(input)

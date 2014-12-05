@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.kato.aws.deploy.description.SuspendAsgProcessesDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.SuspendAsgProcessesAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -31,9 +30,7 @@ class SuspendAsgProcessesAtomicOperationConverter extends AbstractAtomicOperatio
 
   @Override
   SuspendAsgProcessesDescription convertDescription(Map input) {
-    def converted = objectMapper.copy()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(input, SuspendAsgProcessesDescription)
+    def converted = objectMapper.convertValue(input, SuspendAsgProcessesDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

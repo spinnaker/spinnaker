@@ -16,7 +16,6 @@
 
 
 package com.netflix.spinnaker.kato.security
-
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -28,27 +27,36 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
-import javax.annotation.PostConstruct
-
 abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
-  @Autowired
   ObjectMapper objectMapper
 
-  @PostConstruct
-  void init() {
-    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  @Autowired
+  public void setObjectMapper(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
   }
 
   def <T extends AccountCredentials> T getCredentialsObject(String name) {
+    if (name == null) {
+      throw new CredentialsNotFoundException("credential name is required")
+    }
+    T credential
     try {
-      accountCredentialsProvider.getCredentials(name)
+      def repoCredential = accountCredentialsProvider.getCredentials(name)
+      if (repoCredential == null) {
+        throw new NullPointerException()
+      }
+      credential = (T) repoCredential
     } catch (Exception e) {
       throw new CredentialsNotFoundException(name)
     }
+
+    return credential
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Credentials not found.")
