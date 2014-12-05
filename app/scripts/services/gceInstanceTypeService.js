@@ -9,6 +9,7 @@ angular.module('deckApp')
     var n1standard = {
       type: 'n1-standard',
       description: 'This family provides a balance of compute, memory, and network resources, and it is a good choice for general purpose applications.',
+      storageType: 'SSD',
       instanceTypes: [
         {
           name: 'n1-standard-1',
@@ -16,7 +17,6 @@ angular.module('deckApp')
           cpu: 1,
           memory: 3.75,
           storage: {
-            type: 'SSD',
             size: 20,
             count: 1
           },
@@ -28,7 +28,6 @@ angular.module('deckApp')
           cpu: 2,
           memory: 7.5,
           storage: {
-            type: 'SSD',
             size: 40,
             count: 1
           },
@@ -40,7 +39,6 @@ angular.module('deckApp')
           cpu: 4,
           memory: 15,
           storage: {
-            type: 'SSD',
             size: 40,
             count: 2
           },
@@ -52,7 +50,6 @@ angular.module('deckApp')
           cpu: 8,
           memory: 30,
           storage: {
-            type: 'SSD',
             size: 80,
             count: 2
           },
@@ -64,7 +61,6 @@ angular.module('deckApp')
           cpu: 16,
           memory: 60,
           storage: {
-            type: 'SSD',
             size: 160,
             count: 2
           },
@@ -76,6 +72,7 @@ angular.module('deckApp')
     var f1micro = {
       type: 'f1-micro bursting',
       description: 'This family of machine types is a good choice for small, non-resource intensive workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      storageType: 'Std',
       instanceTypes: [
         {
           name: 'f1-micro',
@@ -83,7 +80,6 @@ angular.module('deckApp')
           cpu: 1,
           memory: 0.60,
           storage: {
-            type: 'Standard',
             size: 10,
             count: 1
           },
@@ -95,7 +91,6 @@ angular.module('deckApp')
           cpu: 1,
           memory: 1.70,
           storage: {
-            type: 'Standard',
             size: 10,
             count: 1
           },
@@ -107,6 +102,7 @@ angular.module('deckApp')
     var n1highmem = {
       type: 'n1-highmem',
       description: 'High memory machine types are ideal for tasks that require more memory relative to virtual cores. High memory machine types have 6.50GB of RAM per virtual core.',
+      storageType: 'SSD',
       instanceTypes: [
         {
           name: 'n1-highmem-2',
@@ -114,7 +110,6 @@ angular.module('deckApp')
           cpu: 2,
           memory: 13,
           storage: {
-            type: 'SSD',
             size: 40,
             count: 1
           },
@@ -126,7 +121,6 @@ angular.module('deckApp')
           cpu: 4,
           memory: 26,
           storage: {
-            type: 'SSD',
             size: 80,
             count: 1
           },
@@ -138,7 +132,6 @@ angular.module('deckApp')
           cpu: 8,
           memory: 52,
           storage: {
-            type: 'SSD',
             size: 160,
             count: 1
           },
@@ -150,7 +143,6 @@ angular.module('deckApp')
           cpu: 16,
           memory: 104,
           storage: {
-            type: 'SSD',
             size: 320,
             count: 1
           },
@@ -162,6 +154,7 @@ angular.module('deckApp')
     var n1highcpu = {
       type: 'n1-highcpu',
       description: 'High CPU machine types are ideal for tasks that require more virtual cores relative to memory. High CPU machine types have one virtual core for every 0.90GB of RAM.',
+      storageType: 'SSD',
       instanceTypes: [
         {
           name: 'n1-highcpu-2',
@@ -169,7 +162,6 @@ angular.module('deckApp')
           cpu: 2,
           memory: 1.80,
           storage: {
-            type: 'SSD',
             size: 20,
             count: 2
           },
@@ -181,7 +173,6 @@ angular.module('deckApp')
           cpu: 4,
           memory: 3.60,
           storage: {
-            type: 'SSD',
             size: 40,
             count: 2
           },
@@ -193,7 +184,6 @@ angular.module('deckApp')
           cpu: 8,
           memory: 7.20,
           storage: {
-            type: 'SSD',
             size: 80,
             count: 2
           },
@@ -205,7 +195,6 @@ angular.module('deckApp')
           cpu: 16,
           memory: 14.4,
           storage: {
-            type: 'SSD',
             size: 160,
             count: 2
           },
