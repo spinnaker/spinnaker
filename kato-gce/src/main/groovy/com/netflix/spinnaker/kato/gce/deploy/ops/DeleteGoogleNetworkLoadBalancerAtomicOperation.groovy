@@ -60,7 +60,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerName": "myapp-dev-v000", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleNetworkLoadBalancerDescription": { "zone": "us-central1-f", "credentials": "my-account-name", "networkLoadBalancerName": "testlb" }} ]' localhost:8501/ops
    */
   @Override
   Void operate(List priorOutputs) {

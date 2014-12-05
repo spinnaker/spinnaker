@@ -39,7 +39,7 @@ class GCEUtil {
     }
   }
   public static final String APPLICATION_NAME = "Spinnaker"
-  public static OPERATIONS_POLLING_INTERVAL_FRACTION = 5
+  public static final long OPERATIONS_POLLING_INTERVAL_FRACTION = 5
 
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",

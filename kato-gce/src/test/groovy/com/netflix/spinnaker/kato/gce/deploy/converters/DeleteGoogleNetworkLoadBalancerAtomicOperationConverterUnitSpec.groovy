@@ -25,7 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DeleteGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
-  private static final Long TIMEOUT_SECONDS = 5
+  private static final long TIMEOUT_SECONDS = 5
   private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
@@ -56,6 +56,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Sp
 
     then:
       description instanceof DeleteGoogleNetworkLoadBalancerDescription
+      description.deleteOperationTimeoutSeconds == TIMEOUT_SECONDS
+      description.networkLoadBalancerName == NETWORK_LOAD_BALANCER_NAME
 
     when:
       def operation = converter.convertOperation(input)
