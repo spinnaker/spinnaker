@@ -39,11 +39,15 @@ abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOpera
 
   @PostConstruct
   void init() {
+    //TODO-cfieber: these lines do nothing, what happens when we actually turn them on?...
     objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
 
   def <T extends AccountCredentials> T getCredentialsObject(String name) {
+    if (name == null) {
+      throw new CredentialsNotFoundException("credential name is required")
+    }
     try {
       accountCredentialsProvider.getCredentials(name)
     } catch (Exception e) {
