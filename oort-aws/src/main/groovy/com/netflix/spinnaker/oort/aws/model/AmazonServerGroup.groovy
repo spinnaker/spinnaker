@@ -54,7 +54,7 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
     def asg = getAsg()
     if (asg) {
       List<Map> suspendedProcesses = asg.suspendedProcesses
-      return suspendedProcesses.processName.containsAll(['AddToLoadBalancer', 'Launch', 'Terminate'])
+      return suspendedProcesses.processName.contains('AddToLoadBalancer')
     }
     return false
   }
