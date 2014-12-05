@@ -21,7 +21,7 @@ angular.module('deckApp')
     ];
 
     $scope.$watch('command.capacity.desired', function(newVal) {
-      if ($scope.state.useSimpleCapacity) {
+      if ($scope.command.viewState.useSimpleCapacity) {
         $scope.command.capacity.min = newVal;
         $scope.command.capacity.max = newVal;
       }
