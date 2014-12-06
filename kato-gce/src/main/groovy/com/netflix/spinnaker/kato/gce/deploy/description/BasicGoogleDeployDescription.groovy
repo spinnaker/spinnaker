@@ -33,7 +33,7 @@ class BasicGoogleDeployDescription implements DeployDescription {
   String instanceType
   String zone
   Map<String, String> instanceMetadata = [:]
-  List<String> networkLoadBalancers = []
+  List<String> networkLoadBalancers
   Source source = new Source()
   String accountName
   GoogleCredentials credentials

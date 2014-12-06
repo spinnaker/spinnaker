@@ -73,8 +73,9 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
         // Override any ancestor values that were specified directly on the call.
         newDescription.zone = description.zone ?: description.source.zone
         newDescription.networkLoadBalancers =
-                description.networkLoadBalancers ?:
-                        GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(ancestorServerGroup.getTargetPools())
+                description.networkLoadBalancers != null
+                ? description.networkLoadBalancers
+                : GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(ancestorServerGroup.getTargetPools())
         newDescription.application = description.application ?: ancestorNames.app
         newDescription.stack = description.stack ?: ancestorNames.stack
         newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
