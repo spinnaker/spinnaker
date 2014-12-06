@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
+import com.google.api.services.compute.model.Metadata
+
 import java.text.SimpleDateFormat
 
 class Utils {
   public static final String APPLICATION_NAME = "Spinnaker"
+  public static final String TARGET_POOL_NAME_PREFIX = "target-pool"
 
   // TODO(duftler): This list should be configurable.
   public static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
@@ -35,5 +38,25 @@ class Utils {
     int lastIndex = fullUrl.lastIndexOf('/')
 
     return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
+  }
+
+  // TODO(duftler): Consolidate this method with the same one from kato/GCEUtil and move to a common library.
+  static Map<String, String> buildMapFromMetadata(Metadata metadata) {
+    metadata.items?.collectEntries { Metadata.Items metadataItems ->
+      [(metadataItems.key): metadataItems.value]
+    }
+  }
+
+  // TODO(duftler): Consolidate this method with the same one from kato/GCEUtil and move to a common library.
+  static List<String> deriveNetworkLoadBalancerNamesFromTargetPoolUrls(List<String> targetPoolUrls) {
+    if (targetPoolUrls) {
+      return targetPoolUrls.collect { targetPoolUrl ->
+        def targetPoolLocalName = getLocalName(targetPoolUrl)
+
+        targetPoolLocalName.split("-$TARGET_POOL_NAME_PREFIX-")[0]
+      }
+    } else {
+      return []
+    }
   }
 }
