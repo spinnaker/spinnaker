@@ -28,6 +28,8 @@ class DeployGoogleServerGroupOperation extends Operation {
   String image
   String instanceType
   String zone
+  Map<String, String> instanceMetadata = [:]
+  List<String> networkLoadBalancers
   Source source = new Source()
   String credentials
 
