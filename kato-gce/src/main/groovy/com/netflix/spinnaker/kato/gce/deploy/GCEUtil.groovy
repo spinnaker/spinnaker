@@ -38,8 +38,10 @@ class GCEUtil {
       return System.currentTimeMillis()
     }
   }
+
   public static final String APPLICATION_NAME = "Spinnaker"
   public static final long OPERATIONS_POLLING_INTERVAL_FRACTION = 5
+  public static final String TARGET_POOL_NAME_PREFIX = "target-pool"
 
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
@@ -104,6 +106,23 @@ class GCEUtil {
       return network
     } else {
       updateStatusAndThrowException("Network $networkName not found.", task, phase)
+    }
+  }
+
+  static List<ForwardingRule> queryForwardingRules(
+          String projectName, String region, List<String> forwardingRuleNames, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Looking up network load balancers $forwardingRuleNames..."
+
+    def foundForwardingRules = compute.forwardingRules().list(projectName, region).execute().items.findAll {
+      it.name in forwardingRuleNames
+    }
+
+    if (foundForwardingRules.size == forwardingRuleNames.size) {
+      return foundForwardingRules
+    } else {
+      def foundNames = foundForwardingRules.collect { it.name }
+
+      updateStatusAndThrowException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
     }
   }
 
@@ -199,6 +218,33 @@ class GCEUtil {
     def accessConfig = new AccessConfig(name: accessConfigName, type: accessConfigType)
 
     return new NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
+  }
+
+  static Metadata buildMetadataFromMap(Map<String, String> instanceMetadata) {
+    def itemsList = instanceMetadata.collect { key, value ->
+      new Metadata.Items(key: key, value: value)
+    }
+
+    return new Metadata(items: itemsList)
+  }
+
+  static Map<String, String> buildMapFromMetadata(Metadata metadata) {
+    metadata.items.collectEntries { Metadata.Items metadataItems ->
+      [(metadataItems.key): metadataItems.value]
+    }
+  }
+
+  // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.
+  static List<String> deriveNetworkLoadBalancerNamesFromTargetPoolUrls(List<String> targetPoolUrls) {
+    if (targetPoolUrls) {
+      return targetPoolUrls.collect { targetPoolUrl ->
+        def targetPoolLocalName = getLocalName(targetPoolUrl)
+
+        targetPoolLocalName.split("-$TARGET_POOL_NAME_PREFIX-")[0]
+      }
+    } else {
+      return []
+    }
   }
 
   static def getNextSequence(String clusterName,

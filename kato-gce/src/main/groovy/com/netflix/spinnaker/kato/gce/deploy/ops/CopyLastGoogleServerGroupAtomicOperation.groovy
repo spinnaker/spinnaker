@@ -72,6 +72,9 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
         // Override any ancestor values that were specified directly on the call.
         newDescription.zone = description.zone ?: description.source.zone
+        newDescription.networkLoadBalancers =
+                description.networkLoadBalancers ?:
+                        GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(ancestorServerGroup.getTargetPools())
         newDescription.application = description.application ?: ancestorNames.app
         newDescription.stack = description.stack ?: ancestorNames.stack
         newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
@@ -92,6 +95,12 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
           if (attachedDisks) {
             newDescription.image = description.image ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.sourceImage)
+          }
+
+          def instanceMetadata = ancestorInstanceProperties.metadata
+
+          if (instanceMetadata) {
+            newDescription.instanceMetadata = description.instanceMetadata ?: GCEUtil.buildMapFromMetadata(instanceMetadata)
           }
         }
       }

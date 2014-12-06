@@ -32,6 +32,10 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
+  private static final INSTANCE_METADATA =
+          ["startup-script": "apt-get update && apt-get install -y apache2 && hostname > /var/www/index.html",
+           "testKey": "testValue"]
+  private static final NETWORK_LOAD_BALANCERS = ["testlb1", "testlb2"]
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -84,6 +88,56 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
 
     when:
       def description = converter.convertDescription(input)
+
+    then:
+      description instanceof BasicGoogleDeployDescription
+
+    when:
+      def operation = converter.convertOperation(input)
+
+    then:
+      operation instanceof DeployAtomicOperation
+  }
+
+  void "basicGoogleDeployDescription type with instance metadata returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
+    setup:
+      def input = [application: APPLICATION,
+                   stack: STACK,
+                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   image: IMAGE,
+                   instanceType: INSTANCE_TYPE,
+                   zone: ZONE,
+                   instanceMetadata: INSTANCE_METADATA,
+                   credentials: ACCOUNT_NAME]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description instanceof BasicGoogleDeployDescription
+      description.instanceMetadata == INSTANCE_METADATA
+
+    when:
+      def operation = converter.convertOperation(input)
+
+    then:
+      operation instanceof DeployAtomicOperation
+  }
+
+  void "basicGoogleDeployDescription type with network load balancers returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
+    setup:
+      def input = [application: APPLICATION,
+                   stack: STACK,
+                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   image: IMAGE,
+                   instanceType: INSTANCE_TYPE,
+                   zone: ZONE,
+                   networkLoadBalancers: NETWORK_LOAD_BALANCERS,
+                   credentials: ACCOUNT_NAME]
+
+    when:
+      def description = converter.convertDescription(input)
+      description.networkLoadBalancers == NETWORK_LOAD_BALANCERS
 
     then:
       description instanceof BasicGoogleDeployDescription
