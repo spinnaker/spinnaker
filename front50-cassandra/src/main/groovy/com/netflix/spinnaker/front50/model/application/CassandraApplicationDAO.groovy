@@ -106,6 +106,7 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
       attributes.createTs = System.currentTimeMillis() as String
     }
 
+    attributes.name = id
     runQuery(buildInsertQuery(attributes))
     return new Application(attributes)
   }

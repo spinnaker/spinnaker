@@ -59,6 +59,15 @@ class CassandraApplicationDAOSpec extends Specification {
     cassandraApplicationDAO.truncate()
   }
 
+  void "application name should be based on the 'id' rather than the 'name' attribute"() {
+    when:
+    def newApplication = cassandraApplicationDAO.create("MY-APP", newApplicationAttrs)
+
+    then:
+    def foundApplication = cassandraApplicationDAO.findByName("MY-APP")
+    foundApplication.allSetColumnProperties() == newApplication.allSetColumnProperties()
+  }
+
   void "find application by name returns a single application"() {
     when:
     def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
