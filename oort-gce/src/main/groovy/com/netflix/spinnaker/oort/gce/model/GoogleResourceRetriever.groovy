@@ -21,6 +21,7 @@ import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
+import com.netflix.spinnaker.oort.gce.model.callbacks.NetworkLoadBalancersCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import org.apache.log4j.Logger
@@ -35,6 +36,7 @@ class GoogleResourceRetriever {
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private static appMap = new HashMap<String, GoogleApplication>()
   private static imageMap = new HashMap<String, List<String>>()
+  private static networkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
 
   private static AtomicBoolean initialized = new AtomicBoolean(false)
 
@@ -106,6 +108,15 @@ class GoogleResourceRetriever {
           compute.images().list(imageProject).queue(regionsBatch, imagesCallback)
         }
 
+        // Network load balancer maps are keyed by account in networkLoadBalancerMap.
+        if (!networkLoadBalancerMap[accountName]) {
+          networkLoadBalancerMap[accountName] = new HashMap<String, List<String>>()
+        }
+
+        // Retrieve all available network load balancers for this project.
+        compute.forwardingRules().aggregatedList(project).queue(
+          regionsBatch, new NetworkLoadBalancersCallback(networkLoadBalancerMap[accountName]))
+
         regionsBatch.execute()
         migsBatch.execute()
         resourceViewsBatch.execute()
@@ -147,5 +158,9 @@ class GoogleResourceRetriever {
 
   Map<String, List<String>> getImageMap() {
     return imageMap
+  }
+
+  Map<String, Map<String, List<String>>> getNetworkLoadBalancerMap() {
+    return networkLoadBalancerMap
   }
 }
