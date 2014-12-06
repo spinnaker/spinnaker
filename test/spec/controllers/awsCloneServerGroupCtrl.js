@@ -103,7 +103,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
-      spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.oortService, 'listAWSLoadBalancers').and.callFake(resolve([]));
       spyOn(this.awsImageService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
@@ -221,7 +221,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
-      spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.oortService, 'listAWSLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
@@ -365,7 +365,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
-      spyOn(this.oortService, 'listLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.oortService, 'listAWSLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
