@@ -55,6 +55,7 @@ class CreateGoogleServerGroupTask implements Task {
     def operation = [:]
     operation.putAll(stage.context)
     operation.initialNumReplicas = operation.capacity.desired
+    operation.networkLoadBalancers = operation.loadBalancers
 
     mapper.copy()
           .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)

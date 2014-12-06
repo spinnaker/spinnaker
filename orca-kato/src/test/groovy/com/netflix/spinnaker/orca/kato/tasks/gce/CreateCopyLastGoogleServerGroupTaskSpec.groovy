@@ -44,6 +44,7 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
     image              : "some-base-image",
     instanceType       : "f1-micro",
     zone               : "us-central1-b",
+    loadBalancers      : ["testlb"],
     source             : [
             zone            : "us-central1-a",
             serverGroupName : "myapp-test-v000"
@@ -75,6 +76,7 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 1
+
     with (operations[0].copyLastGoogleServerGroupDescription) {
       it instanceof DeployGoogleServerGroupOperation
       application == copyLastAsgConfig.application
@@ -82,6 +84,7 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
       initialNumReplicas == copyLastAsgConfig.capacity.desired
       image == copyLastAsgConfig.image
       instanceType == copyLastAsgConfig.instanceType
+      networkLoadBalancers == copyLastAsgConfig.loadBalancers
       zone == copyLastAsgConfig.zone
       source.zone == copyLastAsgConfig.source.zone
       source.serverGroupName == copyLastAsgConfig.source.serverGroupName
