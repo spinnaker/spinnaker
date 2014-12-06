@@ -44,6 +44,10 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
     image              : "some-base-image",
     instanceType       : "f1-micro",
     zone               : "us-central1-b",
+    instanceMetadata   : [
+            someKey    : 'someValue',
+            anotherKey : 'anotherValue',
+    ],
     loadBalancers      : ["testlb"],
     source             : [
             zone            : "us-central1-a",
@@ -84,6 +88,7 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
       initialNumReplicas == copyLastAsgConfig.capacity.desired
       image == copyLastAsgConfig.image
       instanceType == copyLastAsgConfig.instanceType
+      instanceMetadata == copyLastAsgConfig.instanceMetadata
       networkLoadBalancers == copyLastAsgConfig.loadBalancers
       zone == copyLastAsgConfig.zone
       source.zone == copyLastAsgConfig.source.zone
