@@ -221,8 +221,12 @@ class GCEUtil {
   }
 
   static Metadata buildMetadataFromMap(Map<String, String> instanceMetadata) {
-    def itemsList = instanceMetadata.collect { key, value ->
-      new Metadata.Items(key: key, value: value)
+    def itemsList = []
+
+    if (instanceMetadata != null) {
+      itemsList = instanceMetadata.collect { key, value ->
+        new Metadata.Items(key: key, value: value)
+      }
     }
 
     return new Metadata(items: itemsList)
