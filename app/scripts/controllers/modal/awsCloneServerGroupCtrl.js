@@ -35,7 +35,7 @@ angular.module('deckApp.aws')
       $scope.securityGroups = securityGroups;
     });
 
-    var loadBalancerLoader = oortService.listLoadBalancers().then(function(loadBalancers) {
+    var loadBalancerLoader = oortService.listAWSLoadBalancers().then(function(loadBalancers) {
       $scope.loadBalancers = loadBalancers;
     });
 
