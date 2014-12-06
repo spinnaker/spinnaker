@@ -32,7 +32,6 @@ angular
       controller: function($scope){
         $scope.$on('parent::toggle', function(event, isShow) {
           $scope.state = {expanded: isShow };
-          console.log($scope.state);
         });
 
       }
