@@ -20,8 +20,6 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.netflix.frigga.NameValidation
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
@@ -30,7 +28,6 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 import org.springframework.stereotype.Component
 
 @Component
@@ -63,6 +60,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "networkLoadBalancers": ["testlb"], "credentials": "my-account-name" }} ]' localhost:8501/ops
    *
    * @param description
    * @param priorOutputs
@@ -92,15 +90,28 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
 
+    def networkLoadBalancers = []
+
+    // We need the full url for each referenced network load balancer.
+    if (description.networkLoadBalancers) {
+      def forwardingRules =
+              GCEUtil.queryForwardingRules(project, region, description.networkLoadBalancers, compute, task, BASE_PHASE)
+
+      networkLoadBalancers = forwardingRules.collect { it.target }
+    }
+
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
     def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, diskSizeGb, diskType)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
+    def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
+
     def instanceProperties = new InstanceProperties(machineType: description.instanceType,
                                                     disks: [attachedDisk],
-                                                    networkInterfaces: [networkInterface])
+                                                    networkInterfaces: [networkInterface],
+                                                    metadata: metadata)
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
                                                 properties: instanceProperties)
@@ -116,7 +127,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                new InstanceGroupManager()
                                                        .setName(serverGroupName)
                                                        .setBaseInstanceName(serverGroupName)
-                                                       .setInstanceTemplate(instanceTemplateUrl)).execute()
+                                                       .setInstanceTemplate(instanceTemplateUrl)
+                                                       .setTargetPools(networkLoadBalancers)).execute()
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
     new DeploymentResult(serverGroupNames: ["$region:$serverGroupName".toString()])

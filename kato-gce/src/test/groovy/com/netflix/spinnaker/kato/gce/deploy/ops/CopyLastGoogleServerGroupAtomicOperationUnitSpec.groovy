@@ -44,6 +44,10 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String INSTANCE_TYPE = "f1-micro"
   private static final String INSTANCE_TEMPLATE_NAME = "myapp-dev-v000-${System.currentTimeMillis()}"
   private static final String REGION = "us-central1"
+  private static final Map<String, String> INSTANCE_METADATA =
+          ["startup-script": "apt-get update && apt-get install -y apache2 && hostname > /var/www/index.html",
+           "testKey": "testValue"]
+  private static final List<String> NETWORK_LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
   private static final String ZONE = "us-central1-b"
 
   private static final long DISK_SIZE_GB = 100
@@ -66,6 +70,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def network
   private def attachedDisk
   private def networkInterface
+  private def instanceMetadata
   private def instanceProperties
   private def instanceTemplate
   private def instanceGroupManager
@@ -89,14 +94,17 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     network = new Network(selfLink: NETWORK_NAME)
     attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, DISK_SIZE_GB, DISK_TYPE)
     networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
+    instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
                                                 disks: [attachedDisk],
-                                                networkInterfaces: [networkInterface])
+                                                networkInterfaces: [networkInterface],
+                                                metadata: instanceMetadata)
     instanceTemplate = new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                                             properties: instanceProperties)
     instanceGroupManager = new InstanceGroupManager(name: ANCESTOR_SERVER_GROUP_NAME,
                                                     instanceTemplate: INSTANCE_TEMPLATE_NAME,
-                                                    targetSize: 2)
+                                                    targetSize: 2,
+                                                    targetPools: NETWORK_LOAD_BALANCERS)
   }
 
   void "operation builds description based on ancestor server group; overrides everything"() {
@@ -107,6 +115,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
                                                          zone: ZONE,
+                                                         instanceMetadata: ["differentKey": "differentValue"],
+                                                         networkLoadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          source: [zone: ZONE,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
                                                          accountName: ACCOUNT_NAME,
@@ -146,6 +156,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
       newDescription.zone = ZONE
+      newDescription.instanceMetadata = INSTANCE_METADATA
+      newDescription.networkLoadBalancers = NETWORK_LOAD_BALANCERS
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock)
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock

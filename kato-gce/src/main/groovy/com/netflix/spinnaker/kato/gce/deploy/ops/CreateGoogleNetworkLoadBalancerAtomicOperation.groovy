@@ -27,7 +27,6 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "CREATE_NETWORK_LOAD_BALANCER"
   private static final String HEALTH_CHECK_NAME_PREFIX = "health-check"
-  private static final String TARGET_POOL_NAME_PREFIX = "target-pool"
   private static final String IP_PROTOCOL = "TCP"
 
   private static Task getTask() {
@@ -71,7 +70,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       httpHealthChecksResourceLinks.add(httpHealthCheckResourceLink)
     }
 
-    def target_pool_name = String.format("%s-%s-%d", description.networkLoadBalancerName, TARGET_POOL_NAME_PREFIX,
+    def target_pool_name = String.format("%s-%s-%d", description.networkLoadBalancerName, GCEUtil.TARGET_POOL_NAME_PREFIX,
         System.currentTimeMillis())
     task.updateStatus BASE_PHASE, "Creating target pool $target_pool_name in $region..."
 
