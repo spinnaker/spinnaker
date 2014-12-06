@@ -29,30 +29,15 @@
       <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </h2>
     <table ng-if="applicationsLoaded" class="table table-striped">
-      <thead ng-if="partiallyLoaded">
+      <thead>
         <tr>
-          <th sort-toggle key="name" label="Name" default="true"></th>
-          <th class="loading-header"><span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Loading: Created, Updated, Owner</th>
+          <th sort-toggle key="name" label="Name" default="true" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="createTs" label="Created" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="email" label="Owner" on-change="ctrl.filterApplications()"></th>
         </tr>
       </thead>
-      <tbody ng-if="partiallyLoaded">
-        <tr ng-repeat="application in ctrl.resultPage()">
-          <td>
-            <a ui-sref=".application({ application: application.name })">
-              {{ application.name }}
-            </a>
-          </td>
-        </tr>
-      </tbody>
-      <thead ng-if="fullyLoaded">
-        <tr>
-          <th sort-toggle key="name" label="Name" default="true"></th>
-          <th sort-toggle key="attributes.createTs" label="Created"></th>
-          <th sort-toggle key="attributes.updateTs" label="Updated"></th>
-          <th sort-toggle key="attributes.email" label="Owner"></th>
-        </tr>
-      </thead>
-      <tbody ng-if="fullyLoaded">
+      <tbody>
         <tr ng-repeat="application in ctrl.resultPage()">
           <td>
             <a ui-sref=".application({ application: application.name.toLowerCase() })">

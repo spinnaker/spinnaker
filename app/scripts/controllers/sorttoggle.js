@@ -21,6 +21,9 @@ angular.module('deckApp')
     ctrl.setSortKey = function (key) {
       $scope.model.sortKey = key;
       $scope.model.reverse = ctrl.isSortKey(key) ? !$scope.model.reverse : false;
+      if ($scope.onChange) {
+        $scope.onChange();
+      }
     };
 
     ctrl.isSortKey = function (key) {
