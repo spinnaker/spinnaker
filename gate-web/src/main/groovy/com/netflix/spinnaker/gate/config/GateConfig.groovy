@@ -125,7 +125,7 @@ class GateConfig {
         .setEndpoint(endpoint)
         .setClient(client)
         .setConverter(new JacksonConverter())
-        .setLogLevel(RestAdapter.LogLevel.FULL)
+        .setLogLevel(RestAdapter.LogLevel.BASIC)
         .build()
         .create(type)
   }
