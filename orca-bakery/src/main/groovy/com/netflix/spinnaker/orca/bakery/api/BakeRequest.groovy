@@ -33,18 +33,20 @@ import com.google.gson.annotations.SerializedName
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static final Default = new BakeRequest(System.getProperty("user.name"), null, Label.release, OperatingSystem.ubuntu, null, null, null, null, null)
-  
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+
   String user
   @JsonProperty("package") @SerializedName("package") String packageName
   Label baseLabel
   OperatingSystem baseOs
+  String baseName
+  String baseAmi
   VmType vmType
   StoreType storeType
   Boolean enhancedNetworking
   String amiName
   String amiSuffix
-  
+
   enum Label {
     release, candidate, previous, unstable, foundation
   }
@@ -52,7 +54,7 @@ class BakeRequest {
   enum OperatingSystem {
     centos, ubuntu, trusty
   }
-  
+
   enum VmType {
     pv, hvm
   }
