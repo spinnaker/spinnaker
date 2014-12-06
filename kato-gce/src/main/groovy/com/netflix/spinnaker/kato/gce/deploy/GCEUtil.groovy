@@ -233,9 +233,11 @@ class GCEUtil {
   }
 
   static Map<String, String> buildMapFromMetadata(Metadata metadata) {
-    metadata.items.collectEntries { Metadata.Items metadataItems ->
+    def map = metadata?.items?.collectEntries { Metadata.Items metadataItems ->
       [(metadataItems.key): metadataItems.value]
     }
+
+    return map ?: [:]
   }
 
   // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.
