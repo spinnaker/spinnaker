@@ -112,10 +112,14 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                         localInstanceTemplateName).queue(resourceViewsBatch,
                                                                          instanceTemplatesCallback)
 
+        def loadBalancerNames =
+          Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
+
         // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
-        googleServerGroup.setProperty("asg", [minSize        : instanceGroupManager.targetSize,
-                                              maxSize        : instanceGroupManager.targetSize,
-                                              desiredCapacity: instanceGroupManager.targetSize])
+        googleServerGroup.setProperty("asg", [loadBalancerNames: loadBalancerNames,
+                                              minSize          : instanceGroupManager.targetSize,
+                                              maxSize          : instanceGroupManager.targetSize,
+                                              desiredCapacity  : instanceGroupManager.targetSize])
 
         cluster.serverGroups << googleServerGroup
       }

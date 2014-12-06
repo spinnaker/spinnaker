@@ -44,6 +44,18 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
     if (sourceImage) {
       googleServerGroup.launchConfig.imageId = Utils.getLocalName(sourceImage)
     }
+
+    def instanceMetadata = instanceTemplate?.properties?.metadata
+
+    if (instanceMetadata) {
+      def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
+
+      if (metadataMap) {
+        def base64EncodedMap = metadataMap.toString().bytes.encodeBase64().toString()
+
+        googleServerGroup.launchConfig.userData = base64EncodedMap
+      }
+    }
   }
 
   @Override
