@@ -32,7 +32,7 @@ class BasicGoogleDeployDescription implements DeployDescription {
   String image
   String instanceType
   String zone
-  Map<String, String> instanceMetadata = [:]
+  Map<String, String> instanceMetadata
   List<String> networkLoadBalancers
   Source source = new Source()
   String accountName
