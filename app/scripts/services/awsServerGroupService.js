@@ -65,6 +65,7 @@ angular.module('deckApp')
 
         var command = {
           application: application.name,
+          strategy: '',
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
