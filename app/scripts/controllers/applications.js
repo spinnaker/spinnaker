@@ -2,11 +2,13 @@
 
 
 angular.module('deckApp')
-  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, RxService, accountService, front50, notifications, oortService, orcaService, searchService, urlBuilder, $state, $timeout) {
+  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
+                                           notifications, oortService, orcaService, urlBuilder, $state,
+                                           $timeout) {
 
     $scope.applicationsLoaded = false;
 
-    $scope.sorting = {
+    $scope.sortModel = {
       sortKey: 'name',
       reverse: false
     };
@@ -62,20 +64,9 @@ angular.module('deckApp')
       }
     ];
 
-    searchService.search('oort', {q:'', type: 'applications', pageSize:100000}).then(function(searchResults) {
-      if (!$scope.applications) {
-        $scope.applications = searchResults.results.map(function (app) {
-          return {name: app.application};
-        });
-        ctrl.filterApplications();
-        $scope.partiallyLoaded = true;
-        $scope.applicationsLoaded = true;
-      }
-    });
-
     this.filterApplications = function filterApplications() {
-      var filtered = $filter('filter')($scope.applications, {name: $scope.applicationFilter}),
-        sorted = $filter('orderBy')(filtered, $scope.sorting.sortKey, $scope.sorting.reverse);
+      var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.applicationFilter, email: $scope.applicationFilter}),
+        sorted = $filter('orderBy')(filtered, $scope.sortModel.sortKey, $scope.sortModel.reverse);
       $scope.filteredApplications = sorted;
       this.resetPaginator();
     };
@@ -111,8 +102,6 @@ angular.module('deckApp')
       $scope.applications = applications;
       ctrl.filterApplications();
       $scope.applicationsLoaded = true;
-      $scope.partiallyLoaded = false;
-      $scope.fullyLoaded = true;
     });
 
   }
