@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.tasks.*
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopyLastAsgStage extends LinearStage {
+class CopyLastAsgStage extends DeployStrategyStage {
 
   public static final String MAYO_CONFIG_TYPE = "copyLastAsg"
 
@@ -34,7 +35,7 @@ class CopyLastAsgStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  List<Step> basicSteps() {
     def step1 = buildStep("createCopyLastAsg", CreateCopyLastAsgTask)
     def step2 = buildStep("monitorDeploy", MonitorKatoTask)
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
@@ -44,4 +45,10 @@ class CopyLastAsgStage extends LinearStage {
     [step1, step2, step3, step4, step5, step6]
   }
 
+  @CompileDynamic
+  @Override
+  protected ClusterConfig determineClusterForCleanup(Stage stage) {
+    def names = Names.parseName(stage.context.source.asgName)
+    return new ClusterConfig(stage.context.source.account, names.app, names.cluster)
+  }
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
@@ -165,7 +164,7 @@ class DeployStageSpec extends Specification {
     then:
     steps*.name.collect {
       it.tokenize('.')[1]
-    } == deployStage.basicStages()*.name.collect { it.tokenize('.')[1] }
+    } == deployStage.basicSteps()*.name.collect { it.tokenize('.')[1] }
   }
 
   static class TestTask implements Task {
