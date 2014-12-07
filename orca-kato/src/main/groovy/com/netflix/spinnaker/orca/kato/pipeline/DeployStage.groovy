@@ -21,8 +21,10 @@ import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
+import groovy.transform.*
 
 @Component
+@CompileStatic
 class DeployStage extends DeployStrategyStage {
 
   public static final String MAYO_CONFIG_TYPE = "deploy"
@@ -32,6 +34,7 @@ class DeployStage extends DeployStrategyStage {
   }
 
   @VisibleForTesting
+  @Override
   protected List<Step> basicSteps() {
     def step1 = buildStep("createDeploy", CreateDeployTask)
     def step2 = buildStep("monitorDeploy", MonitorKatoTask)
@@ -42,7 +45,14 @@ class DeployStage extends DeployStrategyStage {
     [step1, step2, step3, step4, step5, step6]
   }
 
+  @Override
   protected ClusterConfig determineClusterForCleanup(Stage stage) {
     ClusterConfig.fromContext(stage.context)
+  }
+
+  @Override
+  @CompileDynamic
+  protected String strategy(Stage stage) {
+    stage.context.cluster?.strategy
   }
 }

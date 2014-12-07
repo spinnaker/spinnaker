@@ -68,7 +68,7 @@ class CopyLastAsgStageSpec extends Specification {
         asgName: asgNames.last(),
         region : region
       ],
-      cluster: [strategy: strategy]
+      strategy: strategy
     ]
 
     and:
@@ -116,7 +116,7 @@ class CopyLastAsgStageSpec extends Specification {
         asgName: asgNames.last(),
         region : region
       ],
-      cluster: [strategy: strategy]
+      strategy: strategy
     ]
 
     and:
@@ -166,7 +166,7 @@ class CopyLastAsgStageSpec extends Specification {
         asgName: asgName,
         region : region
       ],
-      cluster: [strategy: strategy]
+      strategy: strategy
     ]
 
     and:

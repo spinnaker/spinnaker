@@ -51,4 +51,10 @@ class CopyLastAsgStage extends DeployStrategyStage {
     def names = Names.parseName(stage.context.source.asgName)
     return new ClusterConfig(stage.context.source.account, names.app, names.cluster)
   }
+
+  @Override
+  @CompileDynamic
+  protected String strategy(Stage stage) {
+    stage.context.strategy
+  }
 }

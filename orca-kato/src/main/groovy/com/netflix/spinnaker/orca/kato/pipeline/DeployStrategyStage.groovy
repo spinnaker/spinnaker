@@ -51,21 +51,31 @@ abstract class DeployStrategyStage extends LinearStage {
    */
   protected abstract ClusterConfig determineClusterForCleanup(Stage stage)
 
+  /**
+   * @param stage the stage configuration.
+   * @return the strategy parameter.
+   */
+  protected abstract String strategy(Stage stage)
+
   @CompileDynamic
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    Map cluster = stage.context.cluster as Map
+    def strategy = strategy(stage)
 
     List<Step> steps
-    if (cluster?.strategy == "redblack") {
-      steps = redBlackSteps(stage)
-    } else if (cluster?.strategy == "highlander") {
-      steps = highlanderStages(stage)
-    } else {
-      steps = basicSteps()
+    switch(strategy) {
+      case "redblack":
+        steps = redBlackSteps(stage)
+        break
+      case "highlander":
+        steps = highlanderStages(stage)
+        break
+      default:
+        steps = basicSteps()
     }
     steps.each {
-      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, type)?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
+      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, type)
+                       ?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
     }
     steps
   }
