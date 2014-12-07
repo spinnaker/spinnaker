@@ -31,7 +31,11 @@ class Utils {
   private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 
   static long getTimeFromTimestamp(String timestamp) {
-    return simpleDateFormat.parse(timestamp).getTime()
+    if (timestamp) {
+      return simpleDateFormat.parse(timestamp).getTime()
+    } else {
+      return System.currentTimeMillis()
+    }
   }
 
   static String getLocalName(String fullUrl) {
