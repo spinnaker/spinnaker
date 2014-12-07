@@ -117,10 +117,11 @@ class GoogleResourceRetriever {
         compute.forwardingRules().aggregatedList(project).queue(
           regionsBatch, new NetworkLoadBalancersCallback(networkLoadBalancerMap[accountName]))
 
-        regionsBatch.execute()
-        migsBatch.execute()
-        resourceViewsBatch.execute()
-        instancesBatch.execute()
+
+        executeIfRequestsAreQueued(regionsBatch)
+        executeIfRequestsAreQueued(migsBatch)
+        executeIfRequestsAreQueued(resourceViewsBatch)
+        executeIfRequestsAreQueued(instancesBatch)
       }
     }
 
@@ -128,6 +129,12 @@ class GoogleResourceRetriever {
     imageMap = tempImageMap
 
     log.info "Finished loading GCE resources."
+  }
+
+  private static executeIfRequestsAreQueued(BatchRequest batch) {
+    if (batch.size()) {
+      batch.execute()
+    }
   }
 
   static Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects(AccountCredentialsProvider accountCredentialsProvider) {
