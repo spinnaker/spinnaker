@@ -8,7 +8,6 @@ angular
         heading: '@',
         expanded: '@?'
       },
-      require: '^filterToggleAll',
       templateUrl: 'scripts/modules/clusterFilter/collapsibleFilterSection.html',
       link:  function (scope, elem, attrs, toggleController) {
         var expanded = (scope.expanded === 'true');
