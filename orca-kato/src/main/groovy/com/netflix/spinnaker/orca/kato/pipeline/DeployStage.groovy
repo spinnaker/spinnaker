@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -41,4 +42,7 @@ class DeployStage extends DeployStrategyStage {
     [step1, step2, step3, step4, step5, step6]
   }
 
+  protected ClusterConfig determineClusterForCleanup(Stage stage) {
+    ClusterConfig.fromContext(stage.context)
+  }
 }

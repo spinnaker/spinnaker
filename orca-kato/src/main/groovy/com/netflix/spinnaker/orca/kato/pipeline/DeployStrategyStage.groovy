@@ -39,7 +39,17 @@ abstract class DeployStrategyStage extends LinearStage {
     super(name)
   }
 
+  /**
+   * @return the steps for the stage excluding whatever cleanup steps will be
+   * handled by the deployment strategy.
+   */
   protected abstract List<Step> basicSteps()
+
+  /**
+   * @param stage the stage configuration.
+   * @return the details of the cluster that you are deploying to.
+   */
+  protected abstract ClusterConfig determineClusterForCleanup(Stage stage)
 
   @CompileDynamic
   @Override
@@ -55,7 +65,7 @@ abstract class DeployStrategyStage extends LinearStage {
       steps = basicSteps()
     }
     steps.each {
-      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, MAYO_CONFIG_TYPE)?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, MAYO_CONFIG_TYPE)
+      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, type)?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
     }
     steps
   }
@@ -64,7 +74,7 @@ abstract class DeployStrategyStage extends LinearStage {
   protected List<Step> redBlackSteps(Stage stage) {
     def steps = basicSteps()
 
-    def clusterConfig = ClusterConfig.fromContext(stage.context)
+    def clusterConfig = determineClusterForCleanup(stage)
     def lastAsg = getLastAsg(clusterConfig.app, clusterConfig.account, clusterConfig.cluster)
     if (lastAsg) {
       def disableInputs = [asgName: lastAsg.name, regions: [lastAsg.region], credentials: clusterConfig.account]
@@ -79,7 +89,7 @@ abstract class DeployStrategyStage extends LinearStage {
   protected List<Step> highlanderStages(Stage stage) {
     def steps = basicSteps()
 
-    def clusterConfig = ClusterConfig.fromContext(stage.context)
+    def clusterConfig = determineClusterForCleanup(stage)
     def existingAsgs = getExistingAsgs(clusterConfig.app, clusterConfig.account, clusterConfig.cluster)
     if (existingAsgs) {
       def destroyAsgDescriptions = []
@@ -111,7 +121,7 @@ abstract class DeployStrategyStage extends LinearStage {
   }
 
   @Immutable
-  private static class ClusterConfig {
+  protected static class ClusterConfig {
     String account
     String app
     String cluster

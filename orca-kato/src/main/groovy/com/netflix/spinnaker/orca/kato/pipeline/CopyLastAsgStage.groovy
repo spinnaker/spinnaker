@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -40,5 +43,12 @@ class CopyLastAsgStage extends DeployStrategyStage {
     def step5 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     def step6 = buildStep("sendNotification", NotifyEchoTask)
     [step1, step2, step3, step4, step5, step6]
+  }
+
+  @CompileDynamic
+  @Override
+  protected ClusterConfig determineClusterForCleanup(Stage stage) {
+    def names = Names.parseName(stage.context.source.asgName)
+    return new ClusterConfig(stage.context.source.account, names.app, names.cluster)
   }
 }
