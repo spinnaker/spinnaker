@@ -157,10 +157,16 @@ angular.module('deckApp')
         });
     }
 
-    function listLoadBalancers() {
+    function listAWSLoadBalancers() {
       return oortEndpoint
         .all('aws/loadBalancers')
 //        .withHttpConfig({cache: scheduledCache })
+        .getList();
+    }
+
+    function listGCELoadBalancers() {
+      return oortEndpoint
+        .all('gce/loadBalancers')
         .getList();
     }
 
@@ -172,7 +178,8 @@ angular.module('deckApp')
       listApplications: listApplications,
       getApplication: getApplication,
       getInstanceDetails: getInstanceDetails,
-      listLoadBalancers: listLoadBalancers,
+      listAWSLoadBalancers: listAWSLoadBalancers,
+      listGCELoadBalancers: listGCELoadBalancers,
       getApplicationWithoutAppendages: getApplicationEndpoint,
     };
   });

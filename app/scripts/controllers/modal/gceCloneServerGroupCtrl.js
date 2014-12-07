@@ -34,11 +34,9 @@ angular.module('deckApp.gce')
       $scope.securityGroups = securityGroups;
     });
 
-//    var loadBalancerLoader = oortService.listLoadBalancers().then(function(loadBalancers) {
-//      $scope.loadBalancers = loadBalancers;
-//    });
-
-    var loadBalancerLoader = $q.when([]);
+    var loadBalancerLoader = oortService.listGCELoadBalancers().then(function(loadBalancers) {
+      $scope.loadBalancers = loadBalancers;
+    });
 
     var subnetLoader = mortService.listSubnets().then(function(subnets) {
       $scope.subnets = subnets;
@@ -122,6 +120,8 @@ angular.module('deckApp.gce')
         $scope.zones = null;
         $scope.command.zone = null;
       }
+
+      configureLoadBalancerOptions();
     }
 
     function subnetChanged() {
@@ -178,18 +178,13 @@ angular.module('deckApp.gce')
 
     function configureLoadBalancerOptions() {
       var newLoadBalancers = _($scope.loadBalancers)
-        .pluck('accounts')
-        .flatten(true)
-        .filter({name: $scope.command.credentials})
+        .filter({account: $scope.command.credentials})
         .pluck('regions')
         .flatten(true)
         .filter({name: $scope.command.region})
         .pluck('loadBalancers')
         .flatten(true)
-        .pluck('elb')
-        .remove(undefined)
-        .filter({vpcid: $scope.command.vpcId})
-        .pluck('loadBalancerName')
+        .pluck('name')
         .unique()
         .valueOf();
 
