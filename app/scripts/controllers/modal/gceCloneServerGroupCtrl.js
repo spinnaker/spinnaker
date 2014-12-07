@@ -67,7 +67,7 @@ angular.module('deckApp.gce')
         modalWizardService.getWizard().markComplete('instance-profile');
         modalWizardService.getWizard().markComplete('instance-type');
         modalWizardService.getWizard().markComplete('capacity');
-        //modalWizardService.getWizard().markComplete('advanced');
+        modalWizardService.getWizard().markComplete('advanced');
       }
     }
 
@@ -230,6 +230,22 @@ angular.module('deckApp.gce')
       }
     }
 
+    function transformInstanceMetadata() {
+      var transformedInstanceMetadata = {};
+
+      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
+      $scope.command.instanceMetadata.forEach(function(metadataPair) {
+        transformedInstanceMetadata[metadataPair['key']] = metadataPair['value'];
+      });
+
+      // We use this list of load balancer names when 'Enabling' a server group.
+      if ($scope.command.loadBalancers.length > 0) {
+        transformedInstanceMetadata['load-balancer-names'] = $scope.command.loadBalancers.toString();
+      }
+
+      $scope.command.instanceMetadata = transformedInstanceMetadata;
+    }
+
     // TODO(duftler): Update this to reflect current fields defined on dialog.
     this.isValid = function () {
       return $scope.command && ($scope.command.amiName !== null) && ($scope.command.application !== null) &&
@@ -272,6 +288,8 @@ angular.module('deckApp.gce')
     this.clone = function () {
       $scope.taskMonitor.submit(
         function() {
+          transformInstanceMetadata();
+
           return orcaService.cloneServerGroup($scope.command, application.name);
         }
       );

@@ -21,8 +21,22 @@ angular.module('deckApp')
       });
     }
 
+    function populateCustomMetadata(userData, command) {
+      if (userData) {
+        // userData is a base64-encoded json object.
+        var userDataObj = JSON.parse(window.atob(userData));
+
+        for (var key in userDataObj) {
+          // Don't show 'load-balancer-names' key/value pair in the wizard.
+          if (key !== 'load-balancer-names') {
+            // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
+            command.instanceMetadata.push({key: key, value: userDataObj[key]});
+          }
+        }
+      }
+    }
+
     function buildNewServerGroupCommand(application) {
-      // TODO(duftler): Load regions, zones, ...
 
     return {
       application: application.name,
@@ -33,6 +47,7 @@ angular.module('deckApp')
         max: 0,
         desired: 1
       },
+      instanceMetadata: [],
       cooldown: 10,
       healthCheckType: 'EC2',
       healthCheckGracePeriod: 600,
@@ -79,6 +94,7 @@ angular.module('deckApp')
           desired: serverGroup.asg.desiredCapacity
         },
         zone: serverGroup.zones[0],
+        instanceMetadata: [],
         availabilityZones: serverGroup.asg.availabilityZones,
         providerType: 'gce',
         selectedProvider: 'gce',
@@ -110,6 +126,7 @@ angular.module('deckApp')
         });
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         determineInstanceCategoryFromInstanceType(command);
+        populateCustomMetadata(serverGroup.launchConfig.userData, command);
       }
 
       return command;

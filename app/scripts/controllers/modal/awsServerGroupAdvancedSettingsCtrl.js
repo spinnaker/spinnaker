@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupAdvancedSettingsCtrl', function($scope, modalWizardService) {
+  .controller('awsServerGroupAdvancedSettingsCtrl', function($scope, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('advanced');
 
