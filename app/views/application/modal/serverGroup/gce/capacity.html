@@ -33,11 +33,11 @@
 <!--
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
                    state="state" on-click="ctrl.clone()" is-new="true"></submit-button>
+-->
     <button class="btn btn-default"
             ng-disabled="form.$invalid"
             ng-click="wizard.nextPage(form.$valid)">
       Advanced Settings <span class="glyphicon glyphicon-chevron-right"></span>
     </button>
--->
   </div>
 </form>

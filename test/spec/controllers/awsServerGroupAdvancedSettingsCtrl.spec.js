@@ -17,7 +17,7 @@ describe('Controller: ServerGroupAdvancedSettings', function () {
 
     spyOn(modalWizardService, 'getWizard').and.returnValue(this.wizard);
 
-    this.ctrl = $controller('ServerGroupAdvancedSettingsCtrl', {
+    this.ctrl = $controller('awsServerGroupAdvancedSettingsCtrl', {
       $scope: this.scope,
       modalWizardService: modalWizardService
     });
