@@ -9,7 +9,7 @@ angular.module('deckApp')
         keyPairsCache = [];
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.mortUrl);
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     function listSubnets() {

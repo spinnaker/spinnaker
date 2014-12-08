@@ -5,7 +5,7 @@ angular.module('deckApp')
   .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler) {
 
     var mortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.mortUrl);
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     function loadSecurityGroups(application) {
@@ -14,7 +14,7 @@ angular.module('deckApp')
 
       application.accounts.forEach(function(account) {
         securityGroupPromises.push(mortEndpoint.all('securityGroups').one(account).get().then(function(groups) {
-          return { account: account, securityGroups: groups.aws };
+          return { account: account, securityGroups: groups.plain() };
         }));
       });
 
