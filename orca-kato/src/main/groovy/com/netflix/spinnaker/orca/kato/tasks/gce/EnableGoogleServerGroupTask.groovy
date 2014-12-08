@@ -32,8 +32,12 @@ class EnableGoogleServerGroupTask implements Task {
   @Autowired
   KatoService kato
 
-  @Autowired
   ObjectMapper mapper
+
+  @Autowired
+  public void setMapper(ObjectMapper mapper) {
+    this.mapper = mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+  }
 
   @Override
   TaskResult execute(Stage stage) {
@@ -57,8 +61,6 @@ class EnableGoogleServerGroupTask implements Task {
     operation.replicaPoolName = operation.asgName
     operation.zone = operation.zones ? operation.zones[0] : null
 
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(operation, EnableGoogleServerGroupOperation)
+    mapper.convertValue(operation, EnableGoogleServerGroupOperation)
   }
 }
