@@ -38,6 +38,7 @@ abstract class AbstractFront50Task implements Task {
   ObjectMapper mapper
 
   abstract void performRequest(String account, Application application)
+  abstract String getNotificationType()
 
   @Override
   TaskResult execute(Stage stage) {
@@ -45,12 +46,16 @@ abstract class AbstractFront50Task implements Task {
       .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(stage.context.application, Application)
 
+    def account = (stage.context.account as String).toLowerCase()
+    def outputs = [
+      "notification.type": getNotificationType(),
+      "application.name": application.name,
+      "account": account
+    ]
+    def executionStatus = ExecutionStatus.SUCCEEDED
+
     try {
-      def account = (stage.context.account as String).toLowerCase()
       performRequest(account, application)
-      return new DefaultTaskResult(
-        ExecutionStatus.SUCCEEDED, ["application.name": application.name, "account": account]
-      )
     } catch (RetrofitError e) {
       def response = e.response
       def exception = [statusCode: response.status, operation: stage.type]
@@ -58,8 +63,11 @@ abstract class AbstractFront50Task implements Task {
         def errorBody = e.getBodyAs(Map) as Map
         exception.details = errorBody
       }
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL, [exception: exception])
+      outputs.exception = exception
+      executionStatus = ExecutionStatus.TERMINAL
     }
+
+    return new DefaultTaskResult(executionStatus, outputs)
   }
 
   Application fetchApplication(String account, String applicationName) {

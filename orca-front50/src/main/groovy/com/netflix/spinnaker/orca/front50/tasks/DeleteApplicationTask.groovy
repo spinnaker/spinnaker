@@ -45,4 +45,9 @@ class DeleteApplicationTask extends AbstractFront50Task {
       }
     }
   }
+
+  @Override
+  String getNotificationType() {
+    return "deleteapplication"
+  }
 }
