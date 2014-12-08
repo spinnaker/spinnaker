@@ -56,7 +56,12 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   Set<String> getLoadBalancers() {
-    (Set<String>) getProperty("loadBalancers")
+    def loadBalancerNames = []
+    def asg = getAsg()
+    if (asg && asg.containsKey("loadBalancerNames")) {
+      loadBalancerNames = asg.loadBalancerNames
+    }
+    return loadBalancerNames
   }
 
   @Override
@@ -75,7 +80,13 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   Boolean isDisabled() {
-    false // TODO fill in
+    def asg = getAsg()
+    if (asg) {
+      return !asg.loadBalancerNames
+    }
+
+    // Something is structurally wrong if there is no asg property here. Not the same thing as being disabled.
+    return false
   }
 
   @Override
@@ -96,4 +107,9 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
   Set<Instance> getInstances() {
     (Set<Instance>) getProperty("instances")
   }
+
+  private Map<String, Object> getAsg() {
+    (Map<String, Object>) getProperty("asg")
+  }
+
 }
