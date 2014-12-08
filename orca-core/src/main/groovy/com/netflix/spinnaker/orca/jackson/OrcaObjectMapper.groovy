@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+
 class OrcaObjectMapper extends ObjectMapper {
   private static final SimpleModule simpleModule = new SimpleModule().addSerializer(Stage, new StageSerializer())
     .addDeserializer(Stage, new StageDeserializer())
@@ -29,9 +31,6 @@ class OrcaObjectMapper extends ObjectMapper {
     super()
     registerModule(simpleModule)
     registerModule(new GuavaModule())
-  }
-
-  OrcaObjectMapper copy() {
-    new OrcaObjectMapper()
+    configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
 }

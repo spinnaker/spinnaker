@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.TerminateInstancesOperation
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
 class TerminateInstancesTask implements Task {
@@ -53,8 +52,6 @@ class TerminateInstancesTask implements Task {
   }
 
   TerminateInstancesOperation convert(Stage stage) {
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, TerminateInstancesOperation)
+    mapper.convertValue(stage.context, TerminateInstancesOperation)
   }
 }

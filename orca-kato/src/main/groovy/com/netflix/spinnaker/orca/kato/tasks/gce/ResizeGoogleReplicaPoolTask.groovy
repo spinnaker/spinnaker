@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class ResizeGoogleReplicaPoolTask implements Task {
   @Autowired
@@ -56,8 +55,6 @@ class ResizeGoogleReplicaPoolTask implements Task {
     operation.numReplicas = operation.capacity.desired
     operation.zone = operation.zones ? operation.zones[0] : null
 
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(operation, ResizeGoogleReplicaPoolOperation)
+    mapper.convertValue(operation, ResizeGoogleReplicaPoolOperation)
   }
 }

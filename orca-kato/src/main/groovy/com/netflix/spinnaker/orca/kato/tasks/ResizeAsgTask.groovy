@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class ResizeAsgTask implements Task {
 
@@ -55,8 +54,6 @@ class ResizeAsgTask implements Task {
     if (stage.context.containsKey("resizeAsg")) {
       input = stage.context.resizeAsg
     }
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(input, ResizeAsgOperation)
+    mapper.convertValue(input, ResizeAsgOperation)
   }
 }
