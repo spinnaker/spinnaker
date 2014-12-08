@@ -97,8 +97,10 @@ angular.module('deckApp')
             asgName: serverGroup.name,
             type: 'disableAsg',
             regions: [serverGroup.region],
+            zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: authenticationService.getAuthenticatedUser().name
+            user: authenticationService.getAuthenticatedUser().name,
+            providerType: serverGroup.type
           }
         ],
         application: applicationName,
@@ -113,8 +115,10 @@ angular.module('deckApp')
             asgName: serverGroup.name,
             type: 'enableAsg',
             regions: [serverGroup.region],
+            zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: authenticationService.getAuthenticatedUser().name
+            user: authenticationService.getAuthenticatedUser().name,
+            providerType: serverGroup.type
           }
         ],
         application: applicationName,
