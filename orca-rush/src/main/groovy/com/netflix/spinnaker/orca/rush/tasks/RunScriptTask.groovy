@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.rush.tasks
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -39,9 +37,7 @@ class RunScriptTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def script = mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(stage.context, ScriptRequest)
+    def script = mapper.convertValue(stage.context, ScriptRequest)
 
     def scriptId = rushService.runScript(script).toBlocking().single()
 

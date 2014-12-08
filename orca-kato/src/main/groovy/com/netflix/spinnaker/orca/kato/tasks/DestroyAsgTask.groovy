@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 @CompileStatic
 class DestroyAsgTask implements Task {
@@ -60,8 +59,6 @@ class DestroyAsgTask implements Task {
       input = ((List)stage.context.destroyAsgDescriptions).pop()
     }
 
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(input, DestroyAsgOperation)
+    mapper.convertValue(input, DestroyAsgOperation)
   }
 }

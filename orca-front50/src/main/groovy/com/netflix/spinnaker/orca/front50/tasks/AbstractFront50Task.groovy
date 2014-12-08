@@ -28,8 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-
 abstract class AbstractFront50Task implements Task {
   @Autowired
   Front50Service front50Service
@@ -41,9 +39,7 @@ abstract class AbstractFront50Task implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def application = mapper.copy()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .convertValue(stage.context.application, Application)
+    def application = mapper.convertValue(stage.context.application, Application)
 
     try {
       def account = (stage.context.account as String).toLowerCase()

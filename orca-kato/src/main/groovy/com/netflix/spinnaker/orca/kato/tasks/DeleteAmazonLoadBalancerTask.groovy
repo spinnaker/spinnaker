@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.ops.DeleteAmazonLoadBalancerOperation
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 /**
  * Created by aglover on 9/26/14.
@@ -56,8 +55,6 @@ class DeleteAmazonLoadBalancerTask implements Task {
   }
 
   DeleteAmazonLoadBalancerOperation convert(Stage stage) {
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, DeleteAmazonLoadBalancerOperation)
+    mapper.convertValue(stage.context, DeleteAmazonLoadBalancerOperation)
   }
 }

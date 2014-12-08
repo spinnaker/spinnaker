@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.client.Response
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class UpsertSecurityGroupTask implements Task {
 
@@ -66,9 +65,7 @@ class UpsertSecurityGroupTask implements Task {
   }
 
   UpsertSecurityGroupOperation convert(Stage stage) {
-    mapper.copy()
-          .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-          .convertValue(stage.context, UpsertSecurityGroupOperation)
+    mapper.convertValue(stage.context, UpsertSecurityGroupOperation)
   }
 
   static String parseCurrentValue(Response response) {
