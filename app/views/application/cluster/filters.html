@@ -20,33 +20,24 @@
         </select>
       </label>
     </div>
-  </div>
 
-  <div class="form-inline">
-    <label>Show</label>
-    <div class="checkbox">
-      <label>
-        <input type="checkbox"
-               ng-model="sortFilter.showAllInstances"
-               ng-change="allClusters.updateClusterGroups()"/>
-        Instances
-      </label>
-    </div>
-    <div class="checkbox">
-      <label>
-        <input type="checkbox"
-               ng-model="sortFilter.hideHealthy"
-               ng-change="allClusters.updateClusterGroups()"/>
-        Only Unhealthy
-      </label>
-    </div>
-    <div class="checkbox">
-      <label>
-        <input type="checkbox"
-               ng-model="sortFilter.hideDisabled"
-               ng-change="allClusters.updateClusterGroups()"/>
-         Only enabled
-      </label>
-    </div>
+      <div class="form-group pull-right-lg">
+          <label>Show</label>
+          <div class="checkbox">
+              <label>
+                  <input type="checkbox"
+                         ng-model="sortFilter.showAllInstances"
+                         ng-change="allClusters.updateClusterGroups()"/>
+                  Instances
+              </label>
+          </div>
+          <div class="checkbox">
+              <lable>
+                  <input type="checkbox"/>
+                  Availability Zones
+              </lable>
+          </div>
+      </div>
+
   </div>
 </div>
