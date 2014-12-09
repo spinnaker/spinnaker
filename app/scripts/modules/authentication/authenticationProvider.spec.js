@@ -9,7 +9,7 @@ describe('authenticationProvider: application startup', function() {
     })
   });
 
-  beforeEach(inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal) {
+  beforeEach(inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal, $rootScope) {
     this.authenticationService = authenticationService;
     this.$timeout = $timeout;
     this.$http = $httpBackend;
@@ -18,6 +18,7 @@ describe('authenticationProvider: application startup', function() {
     this.$window = $window;
     this.$location = $location;
     this.$modal = $modal;
+    this.$rootScope = $rootScope;
     this.modal = jasmine.createSpyObj('modal', ['dismiss']);
     spyOn(this.$modal, 'open').and.returnValue(this.modal);
 
@@ -29,6 +30,7 @@ describe('authenticationProvider: application startup', function() {
       this.$timeout.flush();
       this.$http.flush();
 
+      expect(this.$rootScope.authenticating).toBe(false);
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('joe!');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(true);
       expect(this.$modal.open.calls.count()).toBe(1);
@@ -44,6 +46,7 @@ describe('authenticationProvider: application startup', function() {
       this.$timeout.flush();
       this.$http.flush();
 
+      expect(this.$rootScope.authenticating).toBe(false);
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(false);
       expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + this.$window.location.origin + '&path=' + this.$location.path());

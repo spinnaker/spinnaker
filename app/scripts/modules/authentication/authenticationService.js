@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.authentication')
-  .factory('authenticationService', function ($http, settings, $location, $window, $modal, redirectService) {
+  .factory('authenticationService', function ($http, settings, $location, $window, $modal, redirectService, $rootScope) {
     var user = {
       name: '[anonymous]',
       authenticated: false
@@ -19,6 +19,7 @@ angular.module('deckApp.authentication')
     }
 
     function authenticateUser() {
+      $rootScope.authenticating = true;
       var modal = $modal.open({
         templateUrl: 'scripts/modules/authentication/authenticating.html',
         windowClass: 'modal fade in',
@@ -39,13 +40,16 @@ angular.module('deckApp.authentication')
             redirectService.redirect(settings.gateUrl + redirect + '?callback=' + $window.location.origin + '&path=' + $location.path());
           }
           modal.dismiss();
+        })
+        .finally(function() {
+          $rootScope.authenticating = false;
         });
     }
 
     return {
       setAuthenticatedUser: setAuthenticatedUser,
       getAuthenticatedUser: getAuthenticatedUser,
-      authenticateUser: authenticateUser
+      authenticateUser: authenticateUser,
     };
   })
   .factory('redirectService', function($window) {
