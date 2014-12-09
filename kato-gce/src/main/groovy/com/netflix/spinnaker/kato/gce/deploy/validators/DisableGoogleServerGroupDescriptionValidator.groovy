@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":kato-core")
-  compile spinnaker.dependency("frigga")
+package com.netflix.spinnaker.kato.gce.deploy.validators
 
-  spinnaker.group("google")
+import org.springframework.stereotype.Component
+
+@Component("disableGoogleReplicaPoolDescriptionValidator")
+class DisableGoogleServerGroupDescriptionValidator extends AbstractEnableDisableGoogleServerGroupDescriptionValidator {
 }
