@@ -1,12 +1,15 @@
-===== Create Application Stage
+===== Upsert Application Stage
 
 ====== Type
 
-+createApplication+
++upsertApplication+
 
 ====== Description
 
-This stage will orchestrate the creation of an application within a specified account
+This stage will orchestrate the creation (or update if existing) of an application within a specific account.
+
+If the application existed previously but was not associated with the specified account, it will be both associated and
+updated.
 
 ====== Services Involved
 
@@ -14,24 +17,26 @@ _orca_, _front50_
 
 ====== Steps
 
-_createApplication_, _forceCacheRefresh_
+_upsertApplication_, _waitForMultiAccountPropagation_, _sendNotification_
 
 ====== Example Request Body
 [source,javascript]
 ----
 {
-  "type": "createApplication",
+  "type": "upsertApplication",
   "account": "test",
-  "name": "kato",
-  "description": "Deployment services",
-  "email": "delivery-engineering@netflix.com",
-  "owner": "Delivery Engineering",
-  "type": "Web Service",
-  "group": "Spinnaker",
-  "monitorBucketType": "none",
-  "pdApiKey": null,
-  "regions": null,
-  "tags": null
+  "application": {
+    "name": "KATO",
+    "description": "Deployment services",
+    "email": "delivery-engineering@netflix.com",
+    "owner": "Delivery Engineering",
+    "type": "Web Service",
+    "group": "Spinnaker",
+    "monitorBucketType": "none",
+    "pdApiKey": null,
+    "regions": null,
+    "tags": null
+  }
 }
 ----
 
@@ -47,7 +52,7 @@ _createApplication_, _forceCacheRefresh_
 |owner             | string | true     | The named owner of the application
 |type              | string | true     | The type of application. May be one of: Web Service, Web Application, Standalone Service
 |group             | string | false    | The application group that this belongs to. May be used for correlation purposes
-|monitorBucketType | string | false    | The monitoring bucket that this application should be placed into. Should be one of: cluster, application
+|monitorBucketType | string | false    | The monitoring bucket that this application should be placed into. Should be one of: cluster, application or none
 |pdApiKey          | string | false    | The PagerDuty API key for this application
 |regions           | string | false    | The regions within which this application will run
 |tags              | string | false    | Comma-separated list of tag values. May be used for querying and correlation purposes

@@ -190,8 +190,6 @@ include::bakeStage.adoc[]
 - - -
 include::copyLastAsgStage.adoc[]
 - - -
-include::createApplicationStage.adoc[]
-- - -
 include::deleteAmazonLoadBalancer.adoc[]
 - - -
 include::deleteApplicationStage.adoc[]
@@ -210,7 +208,7 @@ include::scriptStage.adoc[]
 - - -
 include::terminateInstancesStage.adoc[]
 - - -
-include::updateApplicationStage.adoc[]
+include::upsertApplicationStage.adoc[]
 - - -
 include::upsertAmazonDNSStage.adoc[]
 - - -
