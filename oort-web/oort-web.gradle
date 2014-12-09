@@ -42,4 +42,4 @@ buildDeb {
   requires("openjdk-7-jre")
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8081", "-Daws.enabled=${System.getProperty('aws.enabled', 'true'}"]
+applicationDefaultJvmArgs = ["-Dserver.port=8081", "-Daws.enabled=${System.getProperty('aws.enabled', 'true')}"]
