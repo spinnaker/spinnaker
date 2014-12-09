@@ -72,4 +72,8 @@ tasks.build.dependsOn = [buildDeb]
 
 tasks.bootRepackage.enabled = false
 
-applicationDefaultJvmArgs = ["-Dserver.port=8084", "-Dspring.config.location=classpath:/application.properties", "-Dkato.baseUrl=http://localhost:8501", "-Dfront50.baseUrl=http://localhost:8080", "-Doort.baseUrl=http://localhost:8081", "-Dmort.baseUrl=http://localhost:8082", "-Dorca.baseUrl=http://localhost:8083", "-Dmayo.baseUrl=http://localhost:8085", "-Decho.baseUrl=http://localhost:8086", "-Dflapjack.baseUrl=http://localhost:8087"]
+applicationDefaultJvmArgs = ["-Dserver.port=8084", "-Dspring.config.location=classpath:/application.properties", 
+                             "-Dkato.baseUrl=http://localhost/kato", "-Dfront50.baseUrl=http://localhost/front50", 
+                             "-Doort.baseUrl=http://localhost/oort", "-Dmort.baseUrl=http://localhost/mort", 
+                             "-Dorca.baseUrl=http://localhost/orca", "-Dmayo.baseUrl=http://localhost/mayo", 
+                             "-Decho.baseUrl=http://localhost/echo", "-Dflapjack.baseUrl=http://localhost/flapjack"]
