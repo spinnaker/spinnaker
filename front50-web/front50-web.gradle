@@ -31,7 +31,8 @@ ideaConfig {
   mainClassName = 'com.netflix.spinnaker.front50.Main'
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8080"]
+applicationDefaultJvmArgs = ["-Dserver.port=8080", "-Dspinnaker.cassandra.enabled=true", 
+                             "-Dspinnaker.cassandra.cluster=CASS_SPINNAKER", "-Dspinnaker.cassandra.keyspace=front50"]
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'
