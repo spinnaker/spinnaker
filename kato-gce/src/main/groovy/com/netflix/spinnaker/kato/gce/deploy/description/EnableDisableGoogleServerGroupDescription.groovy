@@ -19,11 +19,11 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 
 /**
- * Description for "enabling" a supplied ASG. "Enabling" means Resuming "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
+ * Description for "enabling" a supplied Google Server Group. "Enabling" means setting a network load balancer's target
+ * pool on the server group.
  *
- * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
- * override will also be achieved.
+ * Description for "disabling" a supplied Google Server Group. "Disabling" means removing all target pool associations
+ * from the server group.
  */
 class EnableDisableGoogleServerGroupDescription {
   String replicaPoolName
