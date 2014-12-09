@@ -2,10 +2,17 @@
 
 angular.module('deckApp')
   .controller('InsightCtrl', function($scope, $state) {
+    var self = this;
     $scope.sortFilter = {};
 
-    this.isSideNavHideable = function() {
+    function isSideNavHideable() {
       return  $state.is('home.applications.application.insight.clusters') && $scope.application.serverGroups.length === 0
     }
+
+    $scope.$on('$stateChangeSuccess', function() {
+      console.log('state change');
+      self.isSideNavHideable = isSideNavHideable()
+    });
+
 
   });
