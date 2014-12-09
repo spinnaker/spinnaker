@@ -16,6 +16,7 @@ kato.baseUrl: http://kato.prod.netflix.net
 echo.baseUrl: http://echo.prod.netflix.net
 mort.baseUrl: http://mort.prod.netflix.net
 mayo.baseUrl: http://mayo.prod.netflix.net
+orca.baseUrl: http://orca.prod.netflix.net
 front50.baseUrl: http://front50.prod.netflix.net
 flapjack.baseUrl: http://flapjack.prod.netflix.net
 
@@ -25,7 +26,7 @@ services:
     baseUrl: ${oort.baseUrl}
   - name: pond
     group: orchestration
-    baseUrl: ${pond.baseUrl}
+    baseUrl: ${orca.baseUrl}
   - name: echo
     group: events
     baseUrl: ${echo.baseUrl}
