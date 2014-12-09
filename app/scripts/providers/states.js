@@ -157,7 +157,7 @@ angular.module('deckApp')
           'insight': {
             templateUrl: 'views/insight.html',
             controller: 'InsightCtrl',
-            controllerAs: 'ctrl'
+            controllerAs: 'insight'
           }
         },
         children: [
