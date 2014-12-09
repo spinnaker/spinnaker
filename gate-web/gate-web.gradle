@@ -7,12 +7,12 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    classpath 'com.netflix.nebula:nebula-ospackage-plugin:1.12.+'
+    classpath 'com.netflix.nebula:gradle-ospackage-plugin:1.12.+'
   }
 }
 
 apply plugin: 'spring-boot'
-apply plugin: 'nebula-ospackage-application'
+apply plugin: 'os-package'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
@@ -59,10 +59,17 @@ tasks.startScripts {
 
 ospackage {
   packageName = "gate"
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/opt/${rootProject.name}"
+  from "${project.buildDir}/install/${project.name}"
 }
-
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
+}
 tasks.build.dependsOn = [buildDeb]
 
 tasks.bootRepackage.enabled = false
 
-applicationDefaultJvmArgs = ["-Dspring.config.location=classpath:/application.properties"]
+applicationDefaultJvmArgs = ["-Dserver.port=8084", "-Dspring.config.location=classpath:/application.properties", "-Dkato.baseUrl=http://localhost:8501", "-Dfront50.baseUrl=http://localhost:8080", "-Doort.baseUrl=http://localhost:8081", "-Dmort.baseUrl=http://localhost:8083", "-Dmayo.baseUrl=http://localhost:8085", "-Decho.baseUrl=http://localhost:8086", "-Dflapjack.baseUrl=http://localhost:8087"]

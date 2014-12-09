@@ -8,28 +8,36 @@ security:
   basic:
     enabled: false
 
+oort.baseUrl: http://oort.prod.netflix.net
+kato.baseUrl: http://kato.prod.netflix.net
+echo.baseUrl: http://echo.prod.netflix.net
+mort.baseUrl: http://mort.prod.netflix.net
+mayo.baseUrl: http://mayo.prod.netflix.net
+front50.baseUrl: http://front50.prod.netflix.net
+flapjack.baseUrl: http://flapjack.prod.netflix.net
+
 services:
   - name: oort
     group: applications
-    baseUrl: http://oort.prod.netflix.net
+    baseUrl: ${oort.baseUrl}
   - name: pond
     group: orchestration
-    baseUrl: http://pond.prod.netflix.net
+    baseUrl: ${pond.baseUrl}
   - name: echo
     group: events
-    baseUrl: http://echo.prod.netflix.net
+    baseUrl: ${echo.baseUrl}
   - name: flapjack
     group: tags
-    baseUrl: http://flapjack.prod.netflix.net
+    baseUrl: ${flapjack.baseUrl}
   - name: front50
     group: metadata
-    baseUrl: http://front50.prod.netflix.net
+    baseUrl: ${front50.baseUrl}
   - name: mort
     group: credentials
-    baseUrl: http://mort.prod.netflix.net
+    baseUrl: ${mort.baseUrl}
   - name: kato
     group: credentials
-    baseUrl: http://kato.prod.netflix.net
+    baseUrl: ${kato.baseUrl}
   - name: mayo
     group: config
-    baseUrl: http://mayo.prod.netflix.net
+    baseUrl: ${mayo.baseUrl}
