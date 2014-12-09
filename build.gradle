@@ -62,6 +62,7 @@ ospackage {
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
   into "/var/www"
+  requires "apache2"
   from "dist"
   from("osfiles") {
     into "/"
