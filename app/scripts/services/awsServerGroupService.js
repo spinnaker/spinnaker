@@ -14,7 +14,7 @@ angular.module('deckApp')
 
         var defaultZones = asyncData.preferredZones[defaultCredentials];
         if (!defaultZones) {
-          defaultZones = asyncData.preferredZones["__default__"];
+          defaultZones = asyncData.preferredZones["default"];
         }
         var availabilityZones = defaultZones[defaultRegion];
         var regions = asyncData.regionsKeyedByAccount[defaultCredentials];
