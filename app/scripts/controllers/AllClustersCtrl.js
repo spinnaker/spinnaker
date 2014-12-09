@@ -4,7 +4,7 @@
 angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'])
   .controller('AllClustersCtrl', function($scope, application, $modal, mortService,
                                           securityGroupService, accountService, oortService,
-                                          _, $stateParams, $location, settings, $q, $window, clusterFilterService, ClusterFilterModel) {
+                                          _, $stateParams, $location, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupService) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
@@ -65,19 +65,14 @@ angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'
       $scope.displayOptions = ClusterFilterModel.displayOptions;
     }
 
-
     this.createServerGroup = function createServerGroup() {
       var provider = $q.when('aws');
 
-      if (settings.providers && settings.providers.length) {
-        if (settings.providers.length > 1) {
-          provider = $modal.open({
-            templateUrl: 'views/modal/providerSelection.html',
-            controller: 'ProviderSelectCtrl as ctrl'
-          }).result;
-        } else {
-          provider = $q.when(settings.providers[0]);
-        }
+      if (settings.providers && settings.providers.length && settings.providers.length > 1) {
+        provider = $modal.open({
+          templateUrl: 'views/modal/providerSelection.html',
+          controller: 'ProviderSelectCtrl as ctrl'
+        }).result;
       }
 
       provider.then(function(selectedProvider) {
