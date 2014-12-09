@@ -30,11 +30,12 @@ describe('Directives: helpField', function () {
   });
 
   beforeEach(inject(function ($rootScope, $compile) {
-    this.executeTest = function executeTest(htmlString, expected) {
+    this.executeTest = function executeTest(htmlString, expected, attr) {
+      attr = attr || 'popover';
       var $scope = $rootScope.$new();
       var helpField = $compile(htmlString)($scope);
       $scope.$digest();
-      expect(helpField.find('a').attr('popover')).toBe(expected);
+      expect(helpField.find('a').attr(attr)).toBe(expected);
     };
   }));
 
@@ -58,5 +59,13 @@ describe('Directives: helpField', function () {
   it('ignores key and fallback if content is defined', function() {
     this.executeTest('<help-field key="aws.serverGroup.stack" fallback="will be ignored" content="overridden!"></help-field>', 'overridden!');
   });
+
+  it('defaults position to "top"', function() {
+    this.executeTest('<help-field content="overridden!"></help-field>', 'top', 'popover-placement');
+  });
+
+  it('overrides position to "left"', function() {
+    this.executeTest('<help-field content="some content" placement="left"></help-field>', 'left', 'popover-placement');
+  })
 
 });

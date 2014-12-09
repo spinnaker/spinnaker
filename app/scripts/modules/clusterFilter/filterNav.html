@@ -4,7 +4,8 @@
     <filter-section heading="Search" expanded="true">
         <form class="form-horizontal" role="form">
             <div class="form-group nav-search">
-                <input type="search" class="form-control input-sm" ng-model="sortFilter.filter" ng-change="clustersFilters.updateClusterGroups()" style="width: 85%">
+                <input type="search" autofocus class="form-control input-sm" ng-model="sortFilter.filter" ng-change="clustersFilters.updateClusterGroups()" style="width: 85%; display: inline-block">
+                <help-field key="cluster.search" placement="right"></help-field>
             </div>
         </form>
     </filter-section>

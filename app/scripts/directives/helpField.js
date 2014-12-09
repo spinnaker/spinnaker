@@ -25,7 +25,8 @@ angular.module('deckApp')
       scope: {
         key: '@',
         fallback: '@',
-        content: '@'
+        content: '@',
+        placement: '@'
       },
       link: {
         pre: function (scope) {
@@ -33,7 +34,8 @@ angular.module('deckApp')
             scope.content = helpContents[scope.key] || scope.fallback;
           }
           scope.contents = {
-            content: scope.content
+            content: scope.content,
+            placement: scope.placement || 'top'
           };
         }
       }

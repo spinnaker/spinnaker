@@ -22,4 +22,16 @@ angular.module('deckApp')
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
     'aws.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
+    'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
+      '<ul>' +
+      '<li>Region</li>' +
+      '<li>Account</li>' +
+      '<li>Server Group Name</li>' +
+      '<li>Load Balancer Name</li>' +
+      '<li>Instance ID</li>' +
+      '</ul>' +
+      '<p>You can search for multiple words or word fragments. For instance, to find all server groups in a prod stack with "canary" in the details' +
+      ', enter "prod canary".</p>' +
+      '<p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance ' +
+      'will be highlighted for you.</p>',
   });
