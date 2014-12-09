@@ -31,8 +31,9 @@ ideaConfig {
   mainClassName = 'com.netflix.spinnaker.front50.Main'
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8080", "-Dspinnaker.cassandra.enabled=true", 
-                             "-Dspinnaker.cassandra.cluster=CASS_SPINNAKER", "-Dspinnaker.cassandra.keyspace=front50"]
+applicationDefaultJvmArgs = ["-Dserver.port=8080", "-Dspinnaker.cassandra.enabled=true", "-Daws.enabled=false" /* always use the global registry */,
+                             "-Dspinnaker.cassandra.cluster=CASS_SPINNAKER", "-Dspinnaker.cassandra.keyspace=front50",
+                             "-javaagent:/opt/front50/lib/jamm-0.2.5.jar"]
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'

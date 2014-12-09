@@ -21,8 +21,10 @@ import com.amazonaws.services.simpledb.AmazonSimpleDBClient
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.front50.config.AmazonConfig
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
+@ConditionalOnExpression('${aws.enabled:true}')
 @Component
 class AmazonApplicationDAOProvider implements ApplicationDAOProvider<AmazonCredentials> {
 

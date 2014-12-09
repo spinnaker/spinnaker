@@ -31,13 +31,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
 /**
  * Created by aglover on 4/23/14.
  */
+@ConditionalOnExpression('${aws.enabled:true}')
 @Configuration
 class AmazonConfig {
 
@@ -46,7 +46,28 @@ class AmazonConfig {
     new AmazonSimpleDBClient(awsCredentialsProvider)
   }
 
-  @Component
+  @Bean
+  @ConditionalOnExpression('!${bastion.enabled:false}')
+  AmazonCredentialsInitializer amazonCredentialsInitializer() {
+    new AmazonCredentialsInitializer()
+  }
+
+  @Bean
+  @ConditionalOnExpression('${bastion.enabled:false}')
+  BastionCredentialsInitializer bastionCredentialsInitializer() {
+    new BastionCredentialsInitializer()
+  }
+
+  @Bean
+  BastionConfiguration bastionConfiguration() {
+    new BastionConfiguration()
+  }
+
+  @Bean
+  AwsConfigurationProperties awsConfigurationProperties() {
+    new AwsConfigurationProperties()
+  }
+
   @ConfigurationProperties("bastion")
   static class BastionConfiguration {
     Boolean enabled
@@ -57,8 +78,6 @@ class AmazonConfig {
     String proxyRegion
   }
 
-  @Configuration
-  @ConditionalOnExpression('${bastion.enabled:false}')
   static class BastionCredentialsInitializer {
     @Autowired
     AccountCredentialsRepository accountCredentialsRepository
@@ -81,8 +100,6 @@ class AmazonConfig {
     }
   }
 
-  @Configuration
-  @ConditionalOnExpression('!${bastion.enabled:false}')
   static class AmazonCredentialsInitializer {
     @Autowired
     AWSCredentialsProvider awsCredentialsProvider
@@ -117,7 +134,6 @@ class AmazonConfig {
     }
   }
 
-  @Component
   @ConfigurationProperties("aws")
   static class AwsConfigurationProperties {
     String accountIamRole
