@@ -26,18 +26,12 @@ import com.netflix.spinnaker.orca.kato.api.ops.gce.EnableGoogleServerGroupOperat
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-
 class EnableGoogleServerGroupTask implements Task {
   @Autowired
   KatoService kato
 
-  ObjectMapper mapper
-
   @Autowired
-  public void setMapper(ObjectMapper mapper) {
-    this.mapper = mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-  }
+  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
