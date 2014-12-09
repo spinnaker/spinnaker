@@ -53,34 +53,46 @@ angular.module('deckApp.aws')
 
     $scope.command = serverGroupCommand;
 
-    var imageLoader = imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
-      $scope.packageImages = images;
-      if (images.length === 0) {
-        if (serverGroupCommand.viewState.mode === 'clone') {
-          imageService.getAmi($scope.command.selectedProvider, serverGroupCommand.viewState.imageId, serverGroupCommand.region, serverGroupCommand.credentials).then(function (namedImage) {
-            if (namedImage) {
-              var packageRegex = /(\w+)-?\w+/;
-              $scope.command.amiName = namedImage.imageName;
-              var match = packageRegex.exec(namedImage.imageName);
-              $scope.packageBase = match[1];
-              imageService.findImages($scope.command.selectedProvider, $scope.packageBase, serverGroupCommand.region, serverGroupCommand.credentials).then(function(searchResults) {
-                $scope.packageImages = searchResults;
-                $scope.state.imagesLoaded = true;
-                configureImages();
-              });
-            } else {
-              $scope.command.viewState.useAllImageSelection = true;
-              $scope.state.imagesLoaded = true;
-            }
-          });
+    function loadImagesFromApplicationName() {
+      return imageService.findImages($scope.command.selectedProvider, application.name).then(function (images) {
+        $scope.packageImages = images;
+        if (images.length === 0) {
+          if (serverGroupCommand.viewState.mode === 'clone') {
+            return loadImagesFromAmi();
+          } else {
+            $scope.state.imagesLoaded = true;
+            $scope.command.viewState.useAllImageSelection = true;
+          }
         } else {
           $scope.state.imagesLoaded = true;
-          $scope.command.viewState.useAllImageSelection = true;
         }
-      } else {
-        $scope.state.imagesLoaded = true;
-      }
-    });
+      });
+    }
+
+    function loadImagesFromAmi() {
+      return imageService.getAmi($scope.command.selectedProvider, serverGroupCommand.viewState.imageId, serverGroupCommand.region, serverGroupCommand.credentials).then(
+        function (namedImage) {
+          $scope.command.amiName = namedImage.imageName;
+
+          var packageRegex = /((nflx-)?\w+)-?\w+/;
+          var match = packageRegex.exec(namedImage.imageName);
+          $scope.packageBase = match[1];
+
+          return imageService.findImages($scope.command.selectedProvider, $scope.packageBase).then(function (searchResults) {
+            $scope.packageImages = searchResults;
+            $scope.state.imagesLoaded = true;
+            configureImages();
+          });
+        },
+        function() {
+          $scope.packageImages = [];
+          $scope.command.viewState.useAllImageSelection = true;
+          $scope.state.imagesLoaded = true;
+        }
+      );
+    }
+
+    var imageLoader = serverGroupCommand.viewState.mode === 'clone' ? loadImagesFromAmi() : loadImagesFromApplicationName();
 
     $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader, preferredZonesLoader, keyPairLoader]).then(function() {
       $scope.state.loaded = true;
