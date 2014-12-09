@@ -7,6 +7,9 @@ discoveryHosts:
 security:
   basic:
     enabled: false
+management:
+  security:
+    enabled: false
 
 oort.baseUrl: http://oort.prod.netflix.net
 kato.baseUrl: http://kato.prod.netflix.net

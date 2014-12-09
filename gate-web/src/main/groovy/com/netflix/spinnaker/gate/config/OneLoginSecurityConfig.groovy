@@ -25,9 +25,11 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -42,6 +44,7 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnExpression('${onelogin.enabled:false}')
 @EnableWebSecurity
 @Configuration
+@Import(SecurityAutoConfiguration)
 class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Component
