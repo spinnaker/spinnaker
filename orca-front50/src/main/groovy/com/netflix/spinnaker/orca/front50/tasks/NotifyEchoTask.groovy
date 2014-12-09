@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+
+package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.echo.tasks.AbstractNotifyEchoTask
 import groovy.transform.CompileStatic
@@ -23,11 +24,12 @@ import groovy.transform.CompileStatic
 class NotifyEchoTask extends AbstractNotifyEchoTask {
   @Override
   String getNotificationSource() {
-    return "kato"
+    return "front50"
   }
 
   @Override
   String getApplicationName(Map<String, Object> stageContext) {
-    return stageContext.application as String
+    def application = stageContext.application as Map<String, String>
+    return application.name
   }
 }

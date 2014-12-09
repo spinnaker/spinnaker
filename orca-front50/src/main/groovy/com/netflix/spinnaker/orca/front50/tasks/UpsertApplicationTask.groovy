@@ -62,4 +62,9 @@ class UpsertApplicationTask extends AbstractFront50Task {
       front50Service.create(account, application.name, application)
     }
   }
+
+  @Override
+  String getNotificationType() {
+    return "upsertapplication"
+  }
 }
