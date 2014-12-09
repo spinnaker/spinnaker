@@ -33,7 +33,7 @@ import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 import retrofit.client.Response
-import retrofit.mime.TypedInput
+import retrofit.mime.TypedByteArray
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -114,10 +114,13 @@ class DeployStageSpec extends Specification {
                                       name  : "pond-prestaging-v000",
                                       region: "us-east-1"
                                     ]]]
-      def typedInput = Stub(TypedInput)
-      typedInput.in() >> new ByteArrayInputStream(mapper.writeValueAsString(cluster).bytes)
-      def response = new Response("foo", 200, "ok", [], typedInput)
-      response
+      new Response(
+          "foo", 200, "ok", [],
+          new TypedByteArray(
+              "application/json",
+              objectMapper.writeValueAsBytes(cluster)
+          )
+      )
     }
     1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
     steps[-1] == disableAsgTask
@@ -143,10 +146,13 @@ class DeployStageSpec extends Specification {
                                       name  : "pond-prestaging-v000",
                                       region: "us-east-1"
                                     ]]]
-      def typedInput = Stub(TypedInput)
-      typedInput.in() >> new ByteArrayInputStream(mapper.writeValueAsString(cluster).bytes)
-      def response = new Response("foo", 200, "ok", [], typedInput)
-      response
+      new Response(
+          "foo", 200, "ok", [],
+          new TypedByteArray(
+              "application/json",
+              objectMapper.writeValueAsBytes(cluster)
+          )
+      )
     }
     1 * destroyAsgStage.buildSteps(stage) >> [destroyAsgTask]
     steps[-1] == destroyAsgTask
