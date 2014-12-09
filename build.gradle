@@ -69,5 +69,5 @@ ospackage {
     into "/"
   }
   preInstall "rm -rf /etc/apache2/sites-enabled/*"
-  postInstall "mv /var/www/scripts/local.js /var/www/scripts/settings.js"
+  postInstall "mv /var/www/scripts/local.js /var/www/scripts/settings.js && service apache2 restart"
 }

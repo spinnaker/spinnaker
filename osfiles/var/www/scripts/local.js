@@ -5,7 +5,7 @@ angular.module('deckApp')
     front50Url: '/front50',
     oortUrl: '/oort',
     mortUrl: '/mort',
-    pondUrl: '/pond',
+    pondUrl: '/orca',
     katoUrl: '/kato',
     credentialsUrl: '/kato',
     feedbackUrl: '/hootch',
