@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.AbstractInMemoryStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.BatchStatus
@@ -57,7 +54,6 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline = Pipeline.builder().withStage("retryable").build()
     pipelineStore.store(pipeline)
     def step = steps.get("retryable.task1")
-                    .listener(new StageStatusPropagationListener(executionRepository))
                     .tasklet(taskFactory.decorate(task))
                     .build()
     jobBuilder.start(step).build()
@@ -69,9 +65,9 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     then:
     3 * task.execute(_) >>> [
-      new DefaultTaskResult(RUNNING),
-      new DefaultTaskResult(RUNNING),
-      new DefaultTaskResult(SUCCEEDED)
+        new DefaultTaskResult(RUNNING),
+        new DefaultTaskResult(RUNNING),
+        new DefaultTaskResult(SUCCEEDED)
     ]
 
     and:

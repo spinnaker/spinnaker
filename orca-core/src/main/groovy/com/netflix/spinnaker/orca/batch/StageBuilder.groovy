@@ -16,13 +16,18 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.Step
+import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
 import static java.util.UUID.randomUUID
@@ -41,7 +46,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
 
   private StepBuilderFactory steps
   private TaskTaskletAdapter taskTaskletAdapter
-  private StageStatusPropagationListener stageStatusPropagationListener
+  private List<StepExecutionListener> taskListeners
 
   StageBuilder(String type) {
     this.type = type
@@ -65,11 +70,13 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    * @param taskType The +Task+ implementation class.
    * @return a +Step+ that will execute an instance of the required +Task+.
    */
+  @CompileDynamic
   protected Step buildStep(String taskName, Class<? extends Task> taskType) {
-    steps.get(stepName(taskName))
-         .listener(stageStatusPropagationListener)
-         .tasklet(buildTask(taskType))
-         .build()
+    taskListeners.inject(steps.get(stepName(taskName))) { StepBuilder builder, StepExecutionListener listener ->
+      builder.listener(listener)
+    }
+                 .tasklet(buildTask(taskType))
+                 .build()
   }
 
   /**
@@ -80,11 +87,12 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    * @param task The +Task+ implementation.
    * @return a +Step+ that will execute the specified +Task+.
    */
-  protected Step buildStep(String taskName, Task task) {
-    steps.get(stepName(taskName))
-         .listener(stageStatusPropagationListener)
-         .tasklet(taskTaskletAdapter.decorate(task))
-         .build()
+  @CompileDynamic protected Step buildStep(String taskName, Task task) {
+    taskListeners.inject(steps.get(stepName(taskName))) { StepBuilder builder, StepExecutionListener listener ->
+      builder.listener(listener)
+    }
+                 .tasklet(taskTaskletAdapter.decorate(task))
+                 .build()
   }
 
   /**
@@ -115,7 +123,12 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   }
 
   @Autowired
-  void setStageStatusPropagationListener(StageStatusPropagationListener stageStatusPropagationListener) {
-    this.stageStatusPropagationListener = stageStatusPropagationListener
+  void setTaskListeners(List<StepExecutionListener> taskListeners) {
+    this.taskListeners = taskListeners
+  }
+
+  @VisibleForTesting
+  List<StepExecutionListener> getTaskListeners() {
+    taskListeners == null ? [] : ImmutableList.copyOf(taskListeners)
   }
 }

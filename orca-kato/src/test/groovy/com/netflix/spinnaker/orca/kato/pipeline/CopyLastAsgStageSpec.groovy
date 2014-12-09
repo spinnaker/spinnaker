@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -31,7 +29,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
-import retrofit.mime.TypedInput
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -53,7 +50,6 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.mapper = objectMapper
     copyLastAsgStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     copyLastAsgStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
-    copyLastAsgStage.stageStatusPropagationListener = new StageStatusPropagationListener(executionRepository)
     copyLastAsgStage.oort = oort
     copyLastAsgStage.disableAsgStage = disableAsgStage
     copyLastAsgStage.destroyAsgStage = destroyAsgStage
@@ -63,12 +59,12 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures destroy ASG tasks for all pre-existing clusters if strategy is #strategy"() {
     given:
     def config = [
-      source : [
-        account: account,
-        asgName: asgNames.last(),
-        region : region
-      ],
-      strategy: strategy
+        source  : [
+            account: account,
+            asgName: asgNames.last(),
+            region : region
+        ],
+        strategy: strategy
     ]
 
     and:
@@ -80,16 +76,16 @@ class CopyLastAsgStageSpec extends Specification {
     then:
     1 * oort.getCluster("deck", account, "deck-prestaging") >> {
       def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: region]
-        }
+          serverGroups: asgNames.collect { name ->
+            [name: name, region: region]
+          }
       ]
       new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
+          "foo", 200, "ok", [],
+          new TypedByteArray(
+              "application/json",
+              objectMapper.writeValueAsBytes(responseBody)
+          )
       )
     }
 
@@ -111,12 +107,12 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures disable ASG task for last cluster if strategy is redblack"() {
     given:
     def config = [
-      source : [
-        account: account,
-        asgName: asgNames.last(),
-        region : region
-      ],
-      strategy: strategy
+        source  : [
+            account: account,
+            asgName: asgNames.last(),
+            region : region
+        ],
+        strategy: strategy
     ]
 
     and:
@@ -128,16 +124,16 @@ class CopyLastAsgStageSpec extends Specification {
     then:
     1 * oort.getCluster("deck", account, "deck-prestaging") >> {
       def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: region]
-        }
+          serverGroups: asgNames.collect { name ->
+            [name: name, region: region]
+          }
       ]
       new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
+          "foo", 200, "ok", [],
+          new TypedByteArray(
+              "application/json",
+              objectMapper.writeValueAsBytes(responseBody)
+          )
       )
     }
 
@@ -146,9 +142,9 @@ class CopyLastAsgStageSpec extends Specification {
 
     and:
     stage.context.disableAsg == [
-      asgName: asgNames.last(),
-      credentials: account,
-      regions: [region]
+        asgName    : asgNames.last(),
+        credentials: account,
+        regions    : [region]
     ]
 
     where:
@@ -161,12 +157,12 @@ class CopyLastAsgStageSpec extends Specification {
   def "doesn't configure any cleanup steps if no strategy is specified"() {
     given:
     def config = [
-      source : [
-        account: account,
-        asgName: asgName,
-        region : region
-      ],
-      strategy: strategy
+        source  : [
+            account: account,
+            asgName: asgName,
+            region : region
+        ],
+        strategy: strategy
     ]
 
     and:

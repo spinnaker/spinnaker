@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
@@ -89,10 +88,9 @@ class DeployStageSpec extends Specification {
     destroyAsgStage = Mock(DestroyAsgStage)
 
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
-      mapper: mapper)
+        mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
-    deployStage.stageStatusPropagationListener = new StageStatusPropagationListener(executionRepository)
     deployStage.applicationContext = Stub(ApplicationContext)
   }
 
@@ -111,8 +109,8 @@ class DeployStageSpec extends Specification {
     "should call to oort to get the last ASG so that we know what to disable"
     1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
       def cluster = [serverGroups: [[
-                                      name  : "pond-prestaging-v000",
-                                      region: "us-east-1"
+                                        name  : "pond-prestaging-v000",
+                                        region: "us-east-1"
                                     ]]]
       new Response(
           "foo", 200, "ok", [],
@@ -143,8 +141,8 @@ class DeployStageSpec extends Specification {
     1 == stage.context.destroyAsgDescriptions.size()
     1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
       def cluster = [serverGroups: [[
-                                      name  : "pond-prestaging-v000",
-                                      region: "us-east-1"
+                                        name  : "pond-prestaging-v000",
+                                        region: "us-east-1"
                                     ]]]
       new Response(
           "foo", 200, "ok", [],
