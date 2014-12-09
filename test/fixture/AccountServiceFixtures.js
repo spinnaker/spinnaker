@@ -34,5 +34,9 @@ AccountServiceFixture.preferredZonesByAccount = {
   prod: {
     'us-east-1': ['d','e'],
     'us-west-1': ['g','h','i']
+  },
+  default: {
+    'us-east-1': ['a', 'b', 'c'],
+    'us-west-1': ['c', 'd']
   }
 };
