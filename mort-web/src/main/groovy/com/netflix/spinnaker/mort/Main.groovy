@@ -31,20 +31,9 @@ import javax.servlet.Filter
 @ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnaker.mort.web', 'com.netflix.spinnaker.mort.filters'])
 @EnableAutoConfiguration
 class Main extends SpringBootServletInitializer {
-  static {
-    imposeSpinnakerFileConfig("mort-internal.yml")
-    imposeSpinnakerFileConfig("mort-local.yml")
-  }
 
   static void main(String... args) {
     SpringApplication.run this, args
-  }
-
-  static void imposeSpinnakerFileConfig(String file) {
-    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
-    if (internalConfig.exists()) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
-    }
   }
 
   @Override
