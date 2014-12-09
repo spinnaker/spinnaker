@@ -39,5 +39,8 @@
   },
   "scripts": {
     "test": "gulp test"
+  },
+  "devDependencies": {
+    "karma-mocha-reporter": "^0.3.1"
   }
 }

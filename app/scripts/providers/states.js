@@ -15,7 +15,8 @@ angular.module('deckApp')
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/instanceDetails.html',
-            controller: 'InstanceDetailsCtrl as ctrl'
+            controller: 'InstanceDetailsCtrl',
+            controllerAs: 'ctrl'
           }
         },
         resolve: {
@@ -39,7 +40,8 @@ angular.module('deckApp')
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/serverGroupDetails.html',
-            controller: 'ServerGroupDetailsCtrl as ctrl'
+            controller: 'ServerGroupDetailsCtrl',
+            controllerAs: 'ctrl'
           }
         },
         resolve: {
@@ -67,7 +69,8 @@ angular.module('deckApp')
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/loadBalancer/loadBalancerDetails.html',
-            controller: 'LoadBalancerDetailsCtrl as ctrl'
+            controller: 'LoadBalancerDetailsCtrl',
+            controllerAs: 'ctrl'
           }
         },
         resolve: {
@@ -96,7 +99,8 @@ angular.module('deckApp')
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/connection/securityGroupDetails.html',
-            controller: 'SecurityGroupDetailsCtrl as ctrl'
+            controller: 'SecurityGroupDetailsCtrl',
+            controllerAs: 'ctrl'
           }
         },
         resolve: {
@@ -135,7 +139,8 @@ angular.module('deckApp')
         views: {
           'task-details': {
             templateUrl: 'views/taskdetails.html',
-            controller: 'TaskDetailsCtrl as ctrl',
+            controller: 'TaskDetailsCtrl',
+            controllerAs: 'ctrl'
           }
         },
         resolve: {
@@ -151,22 +156,25 @@ angular.module('deckApp')
         views: {
           'insight': {
             templateUrl: 'views/insight.html',
-            controller: 'InsightCtrl as ctrl',
+            controller: 'InsightCtrl',
+            controllerAs: 'ctrl'
           }
         },
         children: [
           {
           name: 'clusters',
           reloadOnSearch: false,
-          url: '/clusters?q&primary&secondary&hideInstances&hideHealthy&hideDisabled',
+          url: '/clusters?q&primary&secondary&hideInstances&hideHealthy&hideDisabled&acct&reg&status&providerType&instanceType',
           views: {
             'nav': {
-              templateUrl: 'views/application/cluster/navigation.html',
-              controller: 'ClustersNavCtrl as ctrl'
+              templateUrl: 'scripts/modules/clusterFilter/filterNav.html',
+              controller: 'ClusterFilterCtr',
+              controllerAs: 'clustersFilters'
             },
             'master': {
               templateUrl: 'views/application/cluster/all.html',
-              controller: 'AllClustersCtrl as ctrl'
+              controller: 'AllClustersCtrl',
+              controllerAs: 'allClusters'
             }
           },
           data: {
@@ -185,7 +193,8 @@ angular.module('deckApp')
               views: {
                 'master@home.applications.application.insight': {
                   templateUrl: 'views/application/cluster/single.html',
-                  controller: 'ClusterCtrl as ctrl'
+                  controller: 'ClusterCtrl',
+                  controllerAs: 'ctrl'
                 }
               },
               resolve: {
@@ -210,11 +219,13 @@ angular.module('deckApp')
           views: {
             'nav': {
               templateUrl: 'views/application/loadBalancer/navigation.html',
-              controller: 'LoadBalancersNavCtrl as ctrl'
+              controller: 'LoadBalancersNavCtrl',
+              controllerAs: 'ctrl'
             },
             'master': {
               templateUrl: 'views/application/loadBalancer/all.html',
-              controller: 'AllLoadBalancersCtrl as ctrl'
+              controller: 'AllLoadBalancersCtrl',
+              controllerAs: 'ctrl'
             }
           },
           data: {
@@ -233,7 +244,8 @@ angular.module('deckApp')
               views: {
                 'master@home.applications.application.insight': {
                   templateUrl: 'views/application/loadBalancer/single.html',
-                  controller: 'LoadBalancerCtrl as ctrl'
+                  controller: 'LoadBalancerCtrl',
+                  controllerAs: 'ctrl'
                 }
               },
               resolve: {
@@ -262,11 +274,13 @@ angular.module('deckApp')
           views: {
             'nav': {
               templateUrl: 'views/application/connection/navigation.html',
-              controller: 'SecurityGroupsNavCtrl as ctrl'
+              controller: 'SecurityGroupsNavCtrl',
+              controllerAs: 'ctrl'
             },
             'master': {
               templateUrl: 'views/application/connection/all.html',
-              controller: 'AllSecurityGroupsCtrl as ctrl'
+              controller: 'AllSecurityGroupsCtrl',
+              controllerAs: 'ctrl'
             }
           },
           data: {
@@ -284,7 +298,8 @@ angular.module('deckApp')
               views: {
                 'master@home.applications.application.insight': {
                   templateUrl: 'views/application/connection/single.html',
-                  controller: 'SecurityGroupCtrl as ctrl'
+                  controller: 'SecurityGroupCtrl',
+                  controllerAs: 'ctrl'
                 }
               },
               resolve: {
@@ -405,7 +420,8 @@ angular.module('deckApp')
         views: {
           'main@': {
             templateUrl: 'views/application.html',
-            controller: 'ApplicationCtrl as ctrl'
+            controller: 'ApplicationCtrl',
+            controllerAs: 'ctrl'
           },
         },
         resolve: {
@@ -431,7 +447,8 @@ angular.module('deckApp')
         views: {
           'main@': {
             templateUrl: 'views/applications.html',
-            controller: 'ApplicationsCtrl as ctrl'
+            controller: 'ApplicationsCtrl',
+            controllerAs: 'ctrl'
           }
         },
         data: {
@@ -451,7 +468,8 @@ angular.module('deckApp')
         views: {
           'main@': {
             templateUrl: 'views/infrastructure.html',
-            controller: 'InfrastructureCtrl as ctrl',
+            controller: 'InfrastructureCtrl',
+            controllerAs: 'ctrl'
           }
         },
         data: {
@@ -467,7 +485,9 @@ angular.module('deckApp')
         views: {
           'main@': {
             templateUrl: 'views/main.html',
-            controller: 'MainCtrl as ctrl'
+            controller: 'MainCtrl',
+            controllerAs: 'ctrl'
+
           }
         },
         children: [

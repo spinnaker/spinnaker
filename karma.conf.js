@@ -51,6 +51,7 @@ module.exports = function(config) {
       'karma-phantomjs-launcher',
       'karma-chrome-launcher',
       'karma-junit-reporter',
+      'karma-mocha-reporter',
       'karma-jasmine'
     ],
 
@@ -65,7 +66,7 @@ module.exports = function(config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'junit'],
+    reporters: ['progress', 'junit', 'mocha'],
 
     // the default configuration
     junitReporter: {

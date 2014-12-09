@@ -22,6 +22,7 @@ angular.module('deckApp', [
     'deckApp.templates',
     'deckApp.aws',
     'deckApp.gce',
+    'deckApp.cluster',
     'deckApp.authentication'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {

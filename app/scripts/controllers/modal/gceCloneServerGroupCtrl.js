@@ -49,6 +49,7 @@ angular.module('deckApp.gce')
       $scope.lastImageAccount = serverGroupCommand.credentials;
     });
 
+
     $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
