@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort
-
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -23,8 +22,6 @@ import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.annotation.EnableAsync
-import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 
 import javax.servlet.Filter
@@ -32,39 +29,32 @@ import javax.servlet.Filter
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters"])
 @EnableAutoConfiguration
-@EnableScheduling
-@EnableAsync
 class Main extends SpringBootServletInitializer {
 
+  static final Map<String, String> DEFAULT_PROPS = [
+    'netflix.environment': 'test',
+    'netflix.stack': 'test',
+    'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
+    'spring.config.name': 'oort',
+    'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+  ]
+
   static {
-    imposeSpinnakerFileConfig("oort-internal.yml")
-    imposeSpinnakerFileConfig("oort-local.yml")
-    imposeSpinnakerClasspathConfig("oort-internal.yml")
-    imposeSpinnakerClasspathConfig("oort-local.yml")
+    applyDefaults()
+  }
+
+  static void applyDefaults() {
+    DEFAULT_PROPS.each { k, v ->
+      System.setProperty(k, System.getProperty(k, v))
+    }
   }
 
   static void main(String... args) {
-    System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     SpringApplication.run this, args
-  }
-
-  static void imposeSpinnakerFileConfig(String file) {
-    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
-    if (internalConfig.exists()) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
-    }
-  }
-
-  static void imposeSpinnakerClasspathConfig(String resource) {
-    def internalConfig = getClass().getResourceAsStream("/${resource}")
-    if (internalConfig) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/${resource}")
-    }
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    System.setProperty("netflix.environment", System.getProperty("netflix.environment", "test"))
     application.sources Main
   }
 
