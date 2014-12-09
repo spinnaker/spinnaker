@@ -93,7 +93,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
         // instanceGroupManager.name == names.group
         def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, region)
         googleServerGroup.zones << localZoneName
-        googleServerGroup.setProperty("launchConfig", [createdTime: Long.MAX_VALUE])
+        googleServerGroup.setProperty(
+          "launchConfig", [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)])
 
         def resourceViews = new ResourceViewsBuilder().buildResourceViews(credentialBuilder, Utils.APPLICATION_NAME)
         def resourceViewsCallback = new ResourceViewsCallback(localZoneName,

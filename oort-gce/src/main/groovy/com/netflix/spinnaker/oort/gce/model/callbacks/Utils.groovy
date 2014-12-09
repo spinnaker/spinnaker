@@ -23,15 +23,18 @@ import java.text.SimpleDateFormat
 class Utils {
   public static final String APPLICATION_NAME = "Spinnaker"
   public static final String TARGET_POOL_NAME_PREFIX = "target-pool"
+  public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 
   // TODO(duftler): This list should be configurable.
   public static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
                                                         "opensuse-cloud", "rhel-cloud", "suse-cloud", "ubuntu-os-cloud"]
 
-  private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-
   static long getTimeFromTimestamp(String timestamp) {
-    return simpleDateFormat.parse(timestamp).getTime()
+    if (timestamp) {
+      return new SimpleDateFormat(SIMPLE_DATE_FORMAT).parse(timestamp).getTime()
+    } else {
+      return System.currentTimeMillis()
+    }
   }
 
   static String getLocalName(String fullUrl) {
