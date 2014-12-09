@@ -10,7 +10,6 @@ angular.module('deckApp')
     }
 
     $scope.$on('$stateChangeSuccess', function() {
-      console.log('state change');
       self.isSideNavHideable = isSideNavHideable()
     });
 
