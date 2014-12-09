@@ -26,7 +26,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 
 import javax.annotation.PostConstruct
@@ -43,13 +42,21 @@ class KatoDockerConfig {
     new RestTemplate()
   }
 
-  @Component
+  @Bean
+  DockerConfigurationProperties dockerConfigurationProperties() {
+    new DockerConfigurationProperties()
+  }
+
+  @Bean
+  DockerCredentialsInitializer dockerCredentialsInitializer() {
+    new DockerCredentialsInitializer()
+  }
+
   @ConfigurationProperties("docker")
   static class DockerConfigurationProperties {
     List<DockerAccountCredentials> accounts
   }
 
-  @Component
   static class DockerCredentialsInitializer {
     @Autowired
     DockerConfigurationProperties dockerConfigurationProperties
