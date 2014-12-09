@@ -214,6 +214,11 @@ angular
       };
     }
 
+    function clearFilters() {
+      ClusterFilterModel.clearFilters();
+      updateQueryParams();
+    }
+
     return {
       sortFilter: ClusterFilterModel.sortFilter,
       updateQueryParams: updateQueryParams,
@@ -222,7 +227,8 @@ angular
       incrementTotalInstancesDisplayed: incrementTotalInstancesDisplayed,
       checkAgainstActiveFilters: checkAgainstActiveFilters,
       setDisplayOptions: setDisplayOptions,
-      sortGroupsByHeading: sortGroupsByHeading
+      sortGroupsByHeading: sortGroupsByHeading,
+      clearFilters: clearFilters
     };
   }
 );

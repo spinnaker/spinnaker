@@ -329,4 +329,19 @@ describe('Service: clusterFilterService', function () {
     });
   });
 
+
+  describe('clear all filters', function () {
+
+    beforeEach(function () {
+      ClusterFilterModel.sortFilters = undefined;
+    });
+
+    it('should clear set providerType filter', function () {
+      ClusterFilterModel.sortFilter.providerType = {aws: true};
+      expect(ClusterFilterModel.sortFilter.providerType).toBeDefined();
+      service.clearFilters();
+      expect(ClusterFilterModel.sortFilter.providerType).toBeUndefined();
+    });
+
+  });
 });

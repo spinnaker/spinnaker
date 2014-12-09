@@ -107,11 +107,17 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
       return _.compact(_.unique(_.flatten(allValues))).sort();
     }
 
+    function clearFilters() {
+      clusterFilterService.clearFilters();
+      clusterFilterService.updateClusterGroups(application)
+    }
+
 
     this.accountHeadings = getAccountHeadings();
     this.regionHeadings = getRegionHeadings();
     this.instanceTypeHeadings = getInstanceType();
     this.providerTypeHeadings = getProviderType();
+    this.clearFilters = clearFilters;
 
     this.getClustersFor = function getClustersFor(value) {
       return application.clusters.filter(function (cluster) {
@@ -124,23 +130,6 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
           cluster.serverGroups.length > 0 &&
           cluster[getSelectedSortOption().clusterKey] === value;
       });
-    };
-
-    this.getClusterLabel = function getClusterLabel(cluster) {
-      if ($scope.sortFilter.sortPrimary === 'cluster') {
-        return cluster.accountName;
-      }
-      return cluster.name;
-    };
-
-    this.getClusterSublabel = function getClusterSublabel(cluster) {
-      var labelFields = $scope.sortOptions.filter(function(sortOption) {
-        if ($scope.sortFilter.sortPrimary === 'cluster') {
-          return sortOption.key === 'region';
-        }
-        return sortOption.key !== $scope.sortFilter.sortPrimary && sortOption.key !== 'cluster';
-      });
-      return labelFields[0].getDisplayLabel(cluster).toString();
     };
 
     $scope.clusters = application.clusters;

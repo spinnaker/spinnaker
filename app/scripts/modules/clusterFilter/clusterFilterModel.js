@@ -35,6 +35,15 @@ angular
       return convertParamsToObject($stateParams.instanceType);
     }
 
+    function clearSideFilters() {
+      sortFilter.account = undefined;
+      sortFilter.region = undefined;
+      sortFilter.status = undefined;
+      sortFilter.providerType = undefined;
+      sortFilter.instanceType = undefined;
+      sortFilter.filter = '';
+    }
+
     function activate() {
       var defPrimary = 'account', defSecondary = 'region';
 
@@ -65,6 +74,7 @@ angular
 
     return {
       activate: activate,
+      clearFilters: clearSideFilters,
       sortFilter: sortFilter,
       groups: [],
       displayOptions: {}
