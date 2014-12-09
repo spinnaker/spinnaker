@@ -93,7 +93,7 @@ class AmazonConfig {
     @Autowired
     AwsConfigurationProperties awsConfigurationProperties
 
-    @Value('${default.account.env:default}')
+    @Value('${default.account.env:test}')
     String defaultEnv
 
     @PostConstruct
