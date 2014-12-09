@@ -145,8 +145,12 @@ class Application {
     return dao.create(values['name'].toUpperCase(), values)
   }
 
-  Collection<Application> findAll() throws NotFoundException {
-    return dao.all()
+  Collection<Application> findAll() {
+    try {
+      return dao.all() ?: []
+    } catch (NotFoundException ignored) {
+      return []
+    }
   }
 
   Application findByName(String name) throws NotFoundException {
@@ -157,8 +161,12 @@ class Application {
     return dao.findByName(name.toUpperCase())
   }
 
-  Set<Application> search(Map<String, String> params) throws NotFoundException {
-    return dao.search(params)
+  Set<Application> search(Map<String, String> params) {
+    try {
+      return dao.search(params) ?: []
+    } catch (NotFoundException ignored) {
+      return []
+    }
   }
 
   Application withName(String name) {

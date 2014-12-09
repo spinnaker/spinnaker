@@ -211,4 +211,26 @@ class ApplicationModelSpec extends Specification {
     apps != null
     apps.size() == 2
   }
+
+  void 'should return empty collection if no apps exist'() {
+    def dao = Mock(ApplicationDAO) {
+      1 * all() >> { throw new NotFoundException() }
+    }
+
+    def apps = new Application(dao: dao).findAll()
+
+    expect:
+    apps.isEmpty()
+  }
+
+  void 'should return empty collection if no apps match search criteria'() {
+    def dao = Mock(ApplicationDAO) {
+      1 * search(_) >> { throw new NotFoundException() }
+    }
+
+    def apps = new Application(dao: dao).search([:])
+
+    expect:
+    apps.isEmpty()
+  }
 }
