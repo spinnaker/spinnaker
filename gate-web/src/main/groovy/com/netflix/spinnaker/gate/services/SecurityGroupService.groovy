@@ -51,7 +51,7 @@ class SecurityGroupService {
    */
   Map getById(String id) {
     HystrixFactory.newMapCommand(GROUP, "securityGroups-${id}".toString(), false) {
-      def result = mortService.getSecurityGroupById(id)[0]
+      def result = mortService.search(id, "securityGroups", null, 10000, 1)[0]
       if (result.results) {
         String uriString = ((List<Map>)result.results)[0].url
         def uri = new URI(uriString)

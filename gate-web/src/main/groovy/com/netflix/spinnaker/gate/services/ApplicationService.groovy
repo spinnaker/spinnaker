@@ -57,9 +57,6 @@ class ApplicationService {
   @Autowired
   ExecutorService executorService
 
-  @Autowired
-  ServiceConfiguration serviceConfiguration
-
   List<Map> getAll() {
     def applicationListRetrievers = buildApplicationListRetrievers()
 

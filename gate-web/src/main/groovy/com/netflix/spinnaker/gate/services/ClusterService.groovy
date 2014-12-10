@@ -68,4 +68,10 @@ class ClusterService {
       }
     } execute()
   }
+
+  List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region) {
+    HystrixFactory.newListCommand(GROUP, "scalingActivities-${app}-${account}-${clusterName}-${provider}-${serverGroupName}-${region}", true) {
+      oortService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
+    } execute()
+  }
 }

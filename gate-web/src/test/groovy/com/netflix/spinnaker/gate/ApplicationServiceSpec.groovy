@@ -54,6 +54,7 @@ class ApplicationServiceSpec extends Specification {
       1 * credentialsService.getAccountNames() >> { [account] }
       1 * oort.getApplication(name) >> oortApp
       1 * front50.getMetaData(account, name) >> front50App
+      1 * front50.getCredentials() >> []
 
       app == [name: name, attributes: (oortApp.attributes + front50App), clusters: oortApp.clusters]
 
@@ -87,6 +88,7 @@ class ApplicationServiceSpec extends Specification {
     1 * credentialsService.getAccountNames() >> { [account] }
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> null
+    1 * front50.getCredentials() >> []
 
     app == null
 
@@ -95,17 +97,11 @@ class ApplicationServiceSpec extends Specification {
     account = "test"
   }
 
-  void "should obey readAccountOverride when building application list retrievers"() {
+  void "should favor available global registries when building application list retrievers"() {
     setup:
       def credentialsService = Mock(CredentialsService)
       def front50Service = Mock(Front50Service)
-      def serviceConfiguration = new ServiceConfiguration(
-          services: [new Service(name: "front50", config: [readAccountOverride: "global"])]
-      )
-      def service = new ApplicationService(
-          serviceConfiguration: serviceConfiguration, credentialsService: credentialsService,
-          front50Service: front50Service
-      )
+      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service)
 
     when:
       def applicationListRetrievers = service.buildApplicationListRetrievers()
@@ -119,23 +115,18 @@ class ApplicationServiceSpec extends Specification {
       account = "global"
   }
 
-  void "should obey readAccountOverride when building application retrievers"() {
+  void "should favor available global registries when building application retrievers"() {
     setup:
       def credentialsService = Mock(CredentialsService)
       def front50Service = Mock(Front50Service)
-      def serviceConfiguration = new ServiceConfiguration(services: [
-          new Service(name: "front50", config: [readAccountOverride: "global"])
-      ])
-      def service = new ApplicationService(
-          serviceConfiguration: serviceConfiguration, credentialsService: credentialsService,
-          front50Service: front50Service
-      )
+      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service)
 
     when:
       def applicationListRetrievers = service.buildApplicationListRetrievers()
 
     then:
       1 * front50Service.credentials >> [[name: account, global: true]]
+      0 * credentialsService.getAccountNames()
       applicationListRetrievers*.account == [account]
 
     where:
