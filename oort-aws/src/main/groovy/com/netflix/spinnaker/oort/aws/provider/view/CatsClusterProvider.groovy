@@ -177,7 +177,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
             buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
           }
           def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value ?: "http://builds.netflix.com/"
-          if (buildHost) {
+          if (buildHost && buildInfo.containsKey("jenkins")) {
             ((Map) buildInfo.jenkins).host = buildHost
           }
         }
