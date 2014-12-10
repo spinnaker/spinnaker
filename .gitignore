@@ -8,3 +8,4 @@ build/
 out/
 .DS_Store
 /json/
+*.rdb
