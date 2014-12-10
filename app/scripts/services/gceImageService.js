@@ -4,12 +4,12 @@
 angular.module('deckApp')
   .factory('gceImageService', function (settings, $q, Restangular) {
 
-    var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+    var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     function findImages(query, region, account) {
-      return oortEndpoint.all('gce/images/' + account).getList({}, {}).then(function(results) {
+      return gateEndpoint.all('images/' + account).getList({provider: 'gce'}, {}).then(function(results) {
           return results;
         },
         function() {

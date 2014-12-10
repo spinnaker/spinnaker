@@ -8,12 +8,16 @@ angular.module('deckApp')
       RestangularConfigurer.setBaseUrl(settings.oortUrl);
     });
 
+    var gateEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
+    });
+
     function getServerGroupEndpoint(application, account, clusterName, serverGroupName) {
       return oortEndpoint.one('applications', application).all('clusters').all(account).all(clusterName).one('aws').one('serverGroups', serverGroupName);
     }
 
     function getServerGroup(application, account, region, serverGroupName) {
-      return oortEndpoint.one('applications', application).all('serverGroups').all(account).all(region).one(serverGroupName).get();
+      return gateEndpoint.one('applications', application).all('serverGroups').all(account).all(region).one(serverGroupName).get();
     }
 
     function getScalingActivities(application, account, clusterName, serverGroupName, region) {

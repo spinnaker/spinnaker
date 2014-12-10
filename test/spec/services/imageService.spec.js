@@ -41,10 +41,10 @@ describe('Service: NamedImage', function() {
     var query = 'abc', region = 'us-west-1';
 
     function buildQueryString() {
-      return config.oortUrl + '/aws/images/find?q='+query + '&region=' + region;
+      return config.gateUrl + '/images/find?provider=aws&q='+query + '&region=' + region;
     }
 
-    it('queries oort when 3 or more characters are supplied', function() {
+    it('queries gate when 3 or more characters are supplied', function() {
       var result = null;
 
       $http.when('GET', buildQueryString()).respond(200, [
@@ -111,7 +111,7 @@ describe('Service: NamedImage', function() {
     var imageName = 'abc', region = 'us-west-1', credentials = 'test';
 
     function buildQueryString() {
-      return config.oortUrl + ['/aws/images', credentials, region, imageName].join('/');
+      return config.gateUrl + ['/images', credentials, region, imageName].join('/') + '?provider=aws';
     }
 
     it('returns null if server returns 404 or an empty list', function() {
