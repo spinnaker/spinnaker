@@ -69,7 +69,7 @@
         <help-field key="aws.serverGroup.strategy"></help-field>
       </div>
       <div class="col-md-10">
-        <ui-select ng-model="command.strategy" class="form-control input-sm" required>
+        <ui-select ng-model="command.strategy" class="form-control input-sm">
           <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
           <ui-select-choices repeat="strategy.key as strategy in deploymentStrategies | filter: $select.search">
             <strong ng-bind-html="strategy.label | highlight: $select.search"></strong>
