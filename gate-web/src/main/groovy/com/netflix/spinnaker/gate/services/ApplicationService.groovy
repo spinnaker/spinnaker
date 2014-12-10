@@ -67,7 +67,7 @@ class ApplicationService {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
-      flat
+      mergeApps(flat)
     } execute()
   }
 
@@ -78,31 +78,8 @@ class ApplicationService {
       def futures = executorService.invokeAll(applicationRetrievers)
       List<Map> applications = (List<Map>) futures.collect { it.get() }
 
-      def attributes = [:]
-      def clusters = [:]
-      applications.findAll { it }.each { Map app ->
-        if (app.containsKey("clusters")) {
-          // Oort
-          clusters.putAll(app.clusters as Map)
-
-          (app["attributes"] as Map).entrySet().each {
-            if (it.value && !attributes[it.key]) {
-              // don't overwrite existing attributes with metadata from oort
-              attributes[it.key] = it.value
-            }
-          }
-        } else {
-          // Front50
-          app.entrySet().each {
-            if (it.value) {
-              attributes[it.key] = it.value
-            }
-          }
-        }
-      }
-
-      // application doesn't exist if no attributes were found
-      return attributes ? [name: name, attributes: attributes, clusters: clusters] : null
+      def mergedApps = mergeApps(applications)
+      return mergedApps ? mergedApps[0] : null
     } execute()
   }
 
@@ -174,6 +151,38 @@ class ApplicationService {
           new OortApplicationRetriever(applicationName, oortService)
       ]
     } as Collection<Callable<Map>>)
+  }
+
+  private static List<Map> mergeApps(List<Map<String, Object>> applications) {
+    Map<String, Map<String, Object>> merged = [:]
+    for (Map<String, Object> app in applications) {
+      if (!app) continue
+      if (app.containsKey("name") && !merged.containsKey(app.name)) {
+        merged[app.name as String] = [name: app.name, attributes:[:], clusters: [:]]
+      }
+      Map mergedApp = (Map)merged[app.name as String]
+      if (app.containsKey("clusters")) {
+        // Oort
+        (mergedApp.clusters as Map).putAll(app.clusters as Map)
+
+        (app["attributes"] as Map).entrySet().each {
+          if (it.value && !(mergedApp.attributes as Map)[it.key]) {
+            // don't overwrite existing attributes with metadata from oort
+            (mergedApp.attributes as Map)[it.key] = it.value
+          }
+        }
+      } else {
+        // Front50
+        app.entrySet().each {
+          if (it.value) {
+            (mergedApp.attributes as Map)[it.key] = it.value
+          }
+        }
+      }
+    }
+
+    // application doesn't exist if no attributes were found
+    return merged.values().toList()
   }
 
   static class ApplicationListRetriever implements Callable<List<Map>> {
