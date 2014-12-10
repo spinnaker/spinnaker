@@ -62,6 +62,7 @@ class GoogleResourceRetriever {
 
     def tempAppMap = new HashMap<String, GoogleApplication>()
     def tempImageMap = new HashMap<String, List<String>>()
+    def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
 
     getAllGoogleCredentialsObjects(accountCredentialsProvider).each {
       def accountName = it.key
@@ -109,13 +110,13 @@ class GoogleResourceRetriever {
         }
 
         // Network load balancer maps are keyed by account in networkLoadBalancerMap.
-        if (!networkLoadBalancerMap[accountName]) {
-          networkLoadBalancerMap[accountName] = new HashMap<String, List<String>>()
+        if (!tempNetworkLoadBalancerMap[accountName]) {
+          tempNetworkLoadBalancerMap[accountName] = new HashMap<String, List<String>>()
         }
 
         // Retrieve all available network load balancers for this project.
         compute.forwardingRules().aggregatedList(project).queue(
-          regionsBatch, new NetworkLoadBalancersCallback(networkLoadBalancerMap[accountName]))
+          regionsBatch, new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName]))
 
 
         executeIfRequestsAreQueued(regionsBatch)
@@ -127,6 +128,7 @@ class GoogleResourceRetriever {
 
     appMap = tempAppMap
     imageMap = tempImageMap
+    networkLoadBalancerMap = tempNetworkLoadBalancerMap
 
     log.info "Finished loading GCE resources."
   }
