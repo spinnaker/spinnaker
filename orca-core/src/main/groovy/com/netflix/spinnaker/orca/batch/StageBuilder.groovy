@@ -70,13 +70,10 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    * @param taskType The +Task+ implementation class.
    * @return a +Step+ that will execute an instance of the required +Task+.
    */
-  @CompileDynamic
   protected Step buildStep(String taskName, Class<? extends Task> taskType) {
-    taskListeners.inject(steps.get(stepName(taskName))) { StepBuilder builder, StepExecutionListener listener ->
-      builder.listener(listener)
-    }
-                 .tasklet(buildTask(taskType))
-                 .build()
+    createStepWithListeners(taskName)
+        .tasklet(buildTask(taskType))
+        .build()
   }
 
   /**
@@ -87,12 +84,17 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    * @param task The +Task+ implementation.
    * @return a +Step+ that will execute the specified +Task+.
    */
-  @CompileDynamic protected Step buildStep(String taskName, Task task) {
+  protected Step buildStep(String taskName, Task task) {
+    createStepWithListeners(taskName)
+        .tasklet(taskTaskletAdapter.decorate(task))
+        .build()
+  }
+
+  @CompileDynamic
+  private StepBuilder createStepWithListeners(String taskName) {
     taskListeners.inject(steps.get(stepName(taskName))) { StepBuilder builder, StepExecutionListener listener ->
       builder.listener(listener)
     }
-                 .tasklet(taskTaskletAdapter.decorate(task))
-                 .build()
   }
 
   /**
