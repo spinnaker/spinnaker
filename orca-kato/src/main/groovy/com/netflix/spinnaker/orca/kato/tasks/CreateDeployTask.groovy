@@ -33,6 +33,9 @@ import org.springframework.beans.factory.annotation.Value
 @CompileStatic
 class CreateDeployTask implements Task {
 
+  static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc","nf-datacenter-vpc"]
+  static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure","nf-datacenter"]
+
   @Autowired
   KatoService kato
 
@@ -41,6 +44,12 @@ class CreateDeployTask implements Task {
 
   @Value('${default.bake.account:test}')
   String defaultBakeAccount
+
+  @Value('${default.vpc.securityGroups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_VPC_SECURITY_GROUPS}}')
+  List<String> defaultVpcSecurityGroups = DEFAULT_VPC_SECURITY_GROUPS
+
+  @Value('${default.vpc.securityGroups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_SECURITY_GROUPS}}')
+  List<String> defaultSecurityGroups = DEFAULT_SECURITY_GROUPS
 
   @Override
   TaskResult execute(Stage stage) {
@@ -77,7 +86,7 @@ class CreateDeployTask implements Task {
   @CompileStatic(TypeCheckingMode.SKIP)
   private TaskId deploy(Map deployOperation) {
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
-    deployOperation.securityGroups.addAll((deployOperation.subnetType) ? ["nf-infrastructure-vpc", "nf-datacenter-vpc"] : ["nf-infrastructure", "nf-datacenter"])
+    deployOperation.securityGroups.addAll((deployOperation.subnetType) ? defaultVpcSecurityGroups : defaultSecurityGroups)
     List<Map<String, Object>> descriptions = []
 
     if (deployOperation.credentials != defaultBakeAccount) {

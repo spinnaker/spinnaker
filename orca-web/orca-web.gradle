@@ -19,11 +19,13 @@ buildscript {
         jcenter()
     }
     dependencies {
+        classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE"
     }
 }
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
+apply plugin: 'os-package'
 apply plugin: 'spring-boot'
 
 springBoot {
@@ -50,3 +52,16 @@ dependencies {
 }
 
 applicationDefaultJvmArgs = ["-Dserver.port=8083"]
+
+ospackage {
+  packageName = rootProject.name
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/opt/${rootProject.name}"
+  from "${project.buildDir}/install/${project.name}"
+}
+
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
+}
