@@ -141,4 +141,40 @@ class ApplicationServiceSpec extends Specification {
     where:
       account = "global"
   }
+
+  void "should retrieve from both oort and front50 when global registry exists"() {
+    setup:
+      HystrixRequestContext.initializeContext()
+
+      def service = new ApplicationService()
+      def front50 = Mock(Front50Service)
+      def credentialsService = Mock(CredentialsService)
+      def oort = Mock(OortService)
+
+      service.front50Service = front50
+      service.oortService = oort
+      service.credentialsService = credentialsService
+      service.executorService = Executors.newFixedThreadPool(1)
+
+    and:
+      def oortApp = [name: oortName]
+      def front50App = [name: name]
+
+    when:
+      def apps = service.getAll()
+
+    then:
+      1 * oort.getApplications() >> [oortApp]
+      1 * front50.getAll(account) >> [front50App]
+      1 * front50.credentials >> [globalAccount]
+
+      2 == apps.size()
+      apps.containsAll(oortApp, front50App)
+
+    where:
+      oortName = "barApp"
+      name = "foo"
+      account = "global"
+      globalAccount = [name: account, global: true]
+  }
 }

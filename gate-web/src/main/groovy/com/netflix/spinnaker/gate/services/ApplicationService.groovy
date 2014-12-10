@@ -148,12 +148,12 @@ class ApplicationService {
     def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
     if (globalAccounts) {
       return globalAccounts.collectMany { String globalAccount ->
-        [ new ApplicationListRetriever(globalAccount, front50Service) ]
+        [ new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService) ]
       } as Collection<Callable<List<Map>>>
     }
 
-    return (credentialsService.accountNames.collect {
-      new ApplicationListRetriever(it, front50Service)
+    return (credentialsService.accountNames.collectMany {
+      [new ApplicationListRetriever(it, front50Service), new OortApplicationsRetriever(oortService)]
     } as Collection<Callable<List<Map>>>)
   }
 
@@ -229,6 +229,27 @@ class ApplicationService {
       } catch (RetrofitError e) {
         if ((e.cause instanceof ConversionException) || e.response.status == 404) {
           return [:]
+        } else {
+          throw e
+        }
+      }
+    }
+  }
+
+  static class OortApplicationsRetriever implements Callable<List<Map>> {
+    private final OortService oort
+
+    OortApplicationsRetriever(OortService oort) {
+      this.oort = oort
+    }
+
+    @Override
+    List<Map> call() throws Exception {
+      try {
+        oort.applications
+      } catch (RetrofitError e) {
+        if (e.response.status == 404) {
+          return []
         } else {
           throw e
         }
