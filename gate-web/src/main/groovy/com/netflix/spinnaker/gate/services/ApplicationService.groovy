@@ -172,10 +172,19 @@ class ApplicationService {
           }
         }
       } else {
-        // Front50
-        app.entrySet().each {
-          if (it.value) {
-            (mergedApp.attributes as Map)[it.key] = it.value
+        if (app.containsKey("attributes")) {
+          // previously merged
+          ((app.attributes as Map).entrySet()).each {
+            if (it.value) {
+              (mergedApp.attributes as Map)[it.key] = it.value
+            }
+          }
+        } else {
+          // Front50
+          app.entrySet().each {
+            if (it.value) {
+              (mergedApp.attributes as Map)[it.key] = it.value
+            }
           }
         }
       }
