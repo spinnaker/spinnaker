@@ -74,7 +74,7 @@
         </div>
     </filter-section>
 
-    <filter-section heading="Provider" expanded="true">
+    <filter-section heading="Provider" expanded="true" ng-if="clustersFilters.providerTypeHeadings.length > 1">
         <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings">
             <label>
                 <input type="checkbox" ng-model="sortFilter.providerType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
