@@ -52,8 +52,6 @@ class AmazonCredentialsInitializer {
     new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, credentialsType)
   }
 
-
-
   @Bean
   List<? extends NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
                                                                     CredentialsConfig credentialsConfig,
@@ -61,9 +59,10 @@ class AmazonCredentialsInitializer {
                                                                     @Value('${default.account.env:default}') String defaultEnv) {
 
     if (!credentialsConfig.accounts) {
-      credentialsConfig = new CredentialsConfig(
-              defaultRegions: [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) },
-              accounts: [new CredentialsConfig.Account(name: defaultEnv)])
+      credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultEnv)]
+      if (!credentialsConfig.defaultRegions) {
+        credentialsConfig.defaultRegions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) }
+      }
     }
 
     List<? extends NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
