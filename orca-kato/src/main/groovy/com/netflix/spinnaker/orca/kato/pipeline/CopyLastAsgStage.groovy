@@ -53,7 +53,6 @@ class CopyLastAsgStage extends DeployStrategyStage {
   }
 
   @Override
-  @CompileDynamic
   protected String strategy(Stage stage) {
     stage.context.strategy
   }
