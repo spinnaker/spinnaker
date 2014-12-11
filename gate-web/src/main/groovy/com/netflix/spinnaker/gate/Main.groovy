@@ -38,8 +38,8 @@ class Main extends SpringBootServletInitializer {
     imposeSpinnakerClasspathConfig("onelogin.yml")
   }
 
-  static void main(_) {
-    SpringApplication.run this
+  static void main(String... args) {
+    SpringApplication.run this, args
   }
 
   @Override
