@@ -16,43 +16,38 @@
 
 
 package com.netflix.spinnaker.kato
-
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters"])
 @EnableAutoConfiguration
-@EnableScheduling
 class Main extends SpringBootServletInitializer {
+
+  static final Map<String, String> DEFAULT_PROPS = [
+          'netflix.environment': 'test',
+          'netflix.stack': 'test',
+          'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
+          'spring.config.name': 'kato',
+          'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+  ]
+
   static {
-    imposeSpinnakerFileConfig("kato-internal.yml")
-    imposeSpinnakerFileConfig("kato-local.yml")
-    imposeSpinnakerClasspathConfig("kato-internal.yml")
-    imposeSpinnakerClasspathConfig("kato-local.yml")
+    applyDefaults()
+  }
+
+  static void applyDefaults() {
+    DEFAULT_PROPS.each { k, v ->
+      System.setProperty(k, System.getProperty(k, v))
+    }
   }
 
   static void main(String... args) {
     SpringApplication.run this, args
-  }
-
-  static void imposeSpinnakerFileConfig(String file) {
-    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
-    if (internalConfig.exists()) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
-    }
-  }
-
-  static void imposeSpinnakerClasspathConfig(String resource) {
-    def internalConfig = getClass().getResourceAsStream("/${resource}")
-    if (internalConfig) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/${resource}")
-    }
   }
 
   @Override
