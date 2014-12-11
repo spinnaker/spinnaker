@@ -51,11 +51,28 @@ class ClusterController {
     clusterService.getCluster(app, account, clusterName)
   }
 
+  @RequestMapping(value = "/{account}/{clusterName}/{type}/loadBalancers", method = RequestMethod.GET)
+  List getClusterLoadBalancers(
+      @PathVariable String applicationName,
+      @PathVariable String account, @PathVariable String clusterName, @PathVariable String type) {
+    loadBalancerService.getClusterLoadBalancers(applicationName, account, type, clusterName)
+  }
+
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups", method = RequestMethod.GET)
   List<Map> getServerGroups(@PathVariable("application") String app,
                             @PathVariable("account") String account,
                             @PathVariable("clusterName") String clusterName) {
     clusterService.getClusterServerGroups(app, account, clusterName)
+  }
+
+  @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName}/scalingActivities", method = RequestMethod.GET)
+  List<Map> getScalingActivities(@PathVariable("application") String app,
+                                 @PathVariable("account") String account,
+                                 @PathVariable("clusterName") String clusterName,
+                                 @PathVariable("serverGroupName") String serverGroupName,
+                                 @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+                                 @RequestParam(value = "region", required = false) String region) {
+    clusterService.getScalingActivities(app, account, clusterName, serverGroupName, provider, region)
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)

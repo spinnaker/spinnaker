@@ -32,7 +32,11 @@ interface MortService {
   Map getSecurityGroups()
 
   @GET('/search')
-  List<Map> getSecurityGroupById(@Query("q") String id);
+  List<Map> search(@Query("q") String query,
+                   @Query("type") String type,
+                   @Query("platform") String platform,
+                   @Query("pageSize") Integer size,
+                   @Query("page") Integer offset)
 
   @GET('/securityGroups/{account}/{type}')
   Map getSecurityGroups(@Path("account") String account, @Path("type") String type, @Query("region") String region)

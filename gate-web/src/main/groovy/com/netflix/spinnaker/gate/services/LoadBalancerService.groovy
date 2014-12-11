@@ -31,28 +31,26 @@ class LoadBalancerService {
   OortService oortService
 
   List<Map> getAll(String provider = "aws") {
-    HystrixFactory.newListCommand(GROUP, "loadbalancers-${provider}-all".toString(), true) {
-      try {
-        oortService.getLoadBalancers(provider)
-      } catch (Exception e) {
-        throw e
-      }
+    HystrixFactory.newListCommand(GROUP, "loadBalancers-${provider}-all", true) {
+      oortService.getLoadBalancers(provider)
     } execute()
   }
 
   Map get(String name, String provider = "aws") {
-    HystrixFactory.newMapCommand(GROUP, "loadBalancers-${provider}-${name}".toString(), true) {
-      try {
-        oortService.getLoadBalancer(provider, name)
-      } catch (Exception e) {
-        throw e
-      }
+    HystrixFactory.newMapCommand(GROUP, "loadBalancers-${provider}-${name}", true) {
+      oortService.getLoadBalancer(provider, name)
+    } execute()
+  }
+
+  List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String provider = "aws") {
+    HystrixFactory.newListCommand(GROUP, "loadBalancers-${provider}-${account}-${region}-${name}-${provider}", true) {
+      oortService.getLoadBalancerDetails(provider, account, region, name)
     } execute()
   }
 
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
     HystrixFactory.newListCommand(GROUP,
-        "clusterloadBalancers-${provider}-${appName}-${account}-${clusterName}".toString(), true) {
+        "clusterloadBalancers-${provider}-${appName}-${account}-${clusterName}", true) {
       oortService.getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }
