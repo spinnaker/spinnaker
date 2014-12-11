@@ -53,7 +53,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
     1 * mockAutoScalingWorker.getUserData(asgName, launchConfigName) >> { "" }
     1 * mockAutoScalingWorker.getLaunchConfigurationName(0) >> launchConfigName
-    1 * mockAutoScalingWorker.createLaunchConfiguration(_, _, _) >> { launchConfigName }
+    1 * mockAutoScalingWorker.createLaunchConfiguration(_, _, ['sg-1234']) >> { launchConfigName }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 
@@ -97,7 +97,29 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
 
     1 * mockAutoScalingWorker.getAncestorAsg() >> null
-    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> { "launchConfigName" }
+    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234']) >> { "launchConfigName" }
+    1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
+  }
+
+  void "when explicitly provided security group are used and a per application group is not created"() {
+    setup:
+    def mockAutoScalingWorker = Spy(AutoScalingWorker)
+    mockAutoScalingWorker.application = "myasg"
+    mockAutoScalingWorker.securityGroups = ['sg-1234', 'sg-2345']
+    mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
+      0 * getSecurityGroupForApplication("myasg", null)
+      0 * createSecurityGroup("myasg", null)
+    }
+
+    when:
+    mockAutoScalingWorker.deploy()
+
+    then:
+    1 * mockAutoScalingWorker.getUserData(_, _) >> null
+    1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
+
+    1 * mockAutoScalingWorker.getAncestorAsg() >> null
+    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234', 'sg-2345']) >> { "launchConfigName" }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 
@@ -210,8 +232,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.securityGroups = ["sg-12345", "mysecurityGroup"]
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
-      1 * getSecurityGroupForApplication("myasg", null)
-      1 * createSecurityGroup("myasg", null) >> "sg-1234"
       1 * getSecurityGroupIds(["mysecurityGroup"]) >> ["mysecurityGroup": "sg-0000"]
     }
 
@@ -223,7 +243,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
 
     1 * mockAutoScalingWorker.getAncestorAsg() >> null
-    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> { "launchConfigName" }
+    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-12345', 'sg-0000']) >> { "launchConfigName" }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 

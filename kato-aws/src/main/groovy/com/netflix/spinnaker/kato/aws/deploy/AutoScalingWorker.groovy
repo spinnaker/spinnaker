@@ -111,12 +111,6 @@ class AutoScalingWorker {
       suspendedProcesses.addAll(AutoScalingProcessType.getDisableProcesses()*.name())
     }
 
-    task.updateStatus AWS_PHASE, "Checking for security package."
-    String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
-    if (!applicationSecurityGroup) {
-      applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
-    }
-
     task.updateStatus AWS_PHASE, "Looking up security groups..."
     if (securityGroups) {
       def securityGroupsWithIds = []
@@ -142,8 +136,17 @@ class AutoScalingWorker {
       securityGroups = []
     }
 
+    if (!securityGroups) {
+      task.updateStatus AWS_PHASE, "Checking for security package."
+      String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
+      if (!applicationSecurityGroup) {
+        applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
+      }
+
+      securityGroups << applicationSecurityGroup
+    }
+
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
-    securityGroups << applicationSecurityGroup
     def ancestorAsg = ancestorAsg
     Integer nextSequence
     if (ancestorAsg) {
