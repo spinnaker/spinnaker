@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -30,6 +31,7 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.beans.factory.annotation.Autowired
+import static java.util.Collections.EMPTY_LIST
 import static java.util.UUID.randomUUID
 
 /**
@@ -90,11 +92,11 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
         .build()
   }
 
-  @CompileDynamic
   private StepBuilder createStepWithListeners(String taskName) {
-    taskListeners.inject(steps.get(stepName(taskName))) { StepBuilder builder, StepExecutionListener listener ->
+    def stepBuilder = steps.get(stepName(taskName))
+    getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
       builder.listener(listener)
-    }
+    } as StepBuilder
   }
 
   /**
@@ -130,7 +132,10 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   }
 
   @VisibleForTesting
+  @PackageScope
   List<StepExecutionListener> getTaskListeners() {
-    taskListeners == null ? [] : ImmutableList.copyOf(taskListeners)
+    Optional.fromNullable(taskListeners)
+            .transform(ImmutableList.&copyOf)
+            .or(EMPTY_LIST)
   }
 }
