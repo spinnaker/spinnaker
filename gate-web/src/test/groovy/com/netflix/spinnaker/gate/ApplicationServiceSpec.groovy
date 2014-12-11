@@ -54,7 +54,6 @@ class ApplicationServiceSpec extends Specification {
       1 * credentialsService.getAccountNames() >> { [account] }
       1 * oort.getApplication(name) >> oortApp
       1 * front50.getMetaData(account, name) >> front50App
-      1 * front50.getCredentials() >> []
 
       app == [name: name, attributes: (oortApp.attributes + front50App), clusters: oortApp.clusters]
 
@@ -88,7 +87,6 @@ class ApplicationServiceSpec extends Specification {
     1 * credentialsService.getAccountNames() >> { [account] }
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> null
-    1 * front50.getCredentials() >> []
 
     app == null
 
