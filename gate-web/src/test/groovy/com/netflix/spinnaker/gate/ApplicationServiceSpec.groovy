@@ -15,11 +15,9 @@
  */
 
 package com.netflix.spinnaker.gate
-
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spinnaker.gate.config.Service
-import com.netflix.spinnaker.gate.config.ServiceConfiguration
-import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OortService
 import spock.lang.Specification
@@ -107,7 +105,8 @@ class ApplicationServiceSpec extends Specification {
     then:
       1 * front50Service.credentials >> [[name: account, global: true]]
       0 * credentialsService.getAccountNames()
-      applicationListRetrievers*.account == [account]
+      applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
+          .collect { it.@account }.unique() == [account]
 
     where:
       account = "global"
@@ -124,10 +123,86 @@ class ApplicationServiceSpec extends Specification {
 
     then:
       1 * front50Service.credentials >> [[name: account, global: true]]
-      0 * credentialsService.getAccountNames()
-      applicationListRetrievers*.account == [account]
+      applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
+          .collect { it.@account }.unique() == [account]
+
 
     where:
       account = "global"
+  }
+
+  void "should retrieve from both oort and front50 when global registry exists"() {
+    setup:
+      HystrixRequestContext.initializeContext()
+
+      def service = new ApplicationService()
+      def front50 = Mock(Front50Service)
+      def credentialsService = Mock(CredentialsService)
+      def oort = Mock(OortService)
+
+      service.front50Service = front50
+      service.oortService = oort
+      service.credentialsService = credentialsService
+      service.executorService = Executors.newFixedThreadPool(1)
+
+    and:
+      def oortApp = [name: oortName]
+      def front50App = [name: name]
+
+    when:
+      def apps = service.getAll()
+
+    then:
+      1 * oort.getApplications() >> [oortApp]
+      1 * front50.getAll(account) >> [front50App]
+      1 * front50.credentials >> [globalAccount]
+
+      2 == apps.size()
+      apps*.name.containsAll(oortName, name)
+      0 * credentialsService.getAccountNames()
+
+    where:
+      oortName = "barapp"
+      name = "foo"
+      account = "global"
+      globalAccount = [name: account, global: true]
+  }
+
+  void "should properly merge retrieved apps from oort and front50"() {
+    setup:
+      HystrixRequestContext.initializeContext()
+
+      def service = new ApplicationService()
+      def front50 = Mock(Front50Service)
+      def credentialsService = Mock(CredentialsService)
+      def oort = Mock(OortService)
+
+      service.front50Service = front50
+      service.oortService = oort
+      service.credentialsService = credentialsService
+      service.executorService = Executors.newFixedThreadPool(1)
+
+    and:
+      def oortApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
+      def front50App = [name: name.toLowerCase(), email: email]
+
+    when:
+      def apps = service.getAll()
+
+    then:
+      1 * oort.getApplications() >> [oortApp]
+      1 * front50.getAll(account) >> [front50App]
+      1 * front50.credentials >> [globalAccount]
+
+      1 == apps.size()
+      1 == apps.clusters.prod.size()
+      apps[0].attributes.email == email
+      apps[0].attributes.name == name
+
+    where:
+      name = "foo"
+      email = "foo@bar.bz"
+      account = "global"
+      globalAccount = [name: account, global: true]
   }
 }
