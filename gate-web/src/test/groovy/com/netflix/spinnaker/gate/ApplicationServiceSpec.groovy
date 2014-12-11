@@ -95,17 +95,11 @@ class ApplicationServiceSpec extends Specification {
     account = "test"
   }
 
-  void "should obey readAccountOverride when building application list retrievers"() {
+  void "should favor available global registries when building application list retrievers"() {
     setup:
       def credentialsService = Mock(CredentialsService)
       def front50Service = Mock(Front50Service)
-      def serviceConfiguration = new ServiceConfiguration(
-          services: [new Service(name: "front50", config: [readAccountOverride: "global"])]
-      )
-      def service = new ApplicationService(
-          serviceConfiguration: serviceConfiguration, credentialsService: credentialsService,
-          front50Service: front50Service
-      )
+      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service)
 
     when:
       def applicationListRetrievers = service.buildApplicationListRetrievers()
@@ -120,17 +114,11 @@ class ApplicationServiceSpec extends Specification {
       account = "global"
   }
 
-  void "should obey readAccountOverride when building application retrievers"() {
+  void "should favor available global registries when building application retrievers"() {
     setup:
       def credentialsService = Mock(CredentialsService)
       def front50Service = Mock(Front50Service)
-      def serviceConfiguration = new ServiceConfiguration(services: [
-          new Service(name: "front50", config: [readAccountOverride: "global"])
-      ])
-      def service = new ApplicationService(
-          serviceConfiguration: serviceConfiguration, credentialsService: credentialsService,
-          front50Service: front50Service
-      )
+      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service)
 
     when:
       def applicationListRetrievers = service.buildApplicationListRetrievers()
@@ -173,6 +161,7 @@ class ApplicationServiceSpec extends Specification {
 
       2 == apps.size()
       apps*.name.containsAll(oortName, name)
+      0 * credentialsService.getAccountNames()
 
     where:
       oortName = "barApp"

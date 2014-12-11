@@ -15,9 +15,7 @@
  */
 
 package com.netflix.spinnaker.gate.services
-
 import com.google.common.base.Preconditions
-import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.MayoService
@@ -25,13 +23,14 @@ import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-
-import java.util.concurrent.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.converter.ConversionException
-import rx.schedulers.Schedulers
+
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 
 @CompileStatic
 @Component
@@ -56,9 +55,6 @@ class ApplicationService {
 
   @Autowired
   ExecutorService executorService
-
-  @Autowired
-  ServiceConfiguration serviceConfiguration
 
   List<Map> getAll() {
     def applicationListRetrievers = buildApplicationListRetrievers()

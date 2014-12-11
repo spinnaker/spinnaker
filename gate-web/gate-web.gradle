@@ -68,7 +68,8 @@ buildDeb {
   dependsOn installApp
   requires("openjdk-7-jre")
 }
-tasks.build.dependsOn = [buildDeb,test]
+
+tasks.build.dependsOn buildDeb
 
 tasks.bootRepackage.enabled = false
 
