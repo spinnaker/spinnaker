@@ -153,10 +153,11 @@ class ApplicationService {
     Map<String, Map<String, Object>> merged = [:]
     for (Map<String, Object> app in applications) {
       if (!app) continue
-      if (app.containsKey("name") && !merged.containsKey(app.name)) {
-        merged[app.name as String] = [name: app.name, attributes:[:], clusters: [:]]
+      String key = (app.name as String)?.toLowerCase()
+      if (key && !merged.containsKey(key)) {
+        merged[key] = [name: key, attributes:[:], clusters: [:]] as Map<String, Object>
       }
-      Map mergedApp = (Map)merged[app.name as String]
+      Map mergedApp = (Map)merged[key]
       if (app.containsKey("clusters")) {
         // Oort
         (mergedApp.clusters as Map).putAll(app.clusters as Map)

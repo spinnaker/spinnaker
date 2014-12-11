@@ -15,11 +15,9 @@
  */
 
 package com.netflix.spinnaker.gate
-
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spinnaker.gate.config.Service
-import com.netflix.spinnaker.gate.config.ServiceConfiguration
-import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OortService
 import spock.lang.Specification
@@ -164,7 +162,7 @@ class ApplicationServiceSpec extends Specification {
       0 * credentialsService.getAccountNames()
 
     where:
-      oortName = "barApp"
+      oortName = "barapp"
       name = "foo"
       account = "global"
       globalAccount = [name: account, global: true]
@@ -185,8 +183,8 @@ class ApplicationServiceSpec extends Specification {
       service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-      def oortApp = [name: name, attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
-      def front50App = [name: name, email: email]
+      def oortApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
+      def front50App = [name: name.toLowerCase(), email: email]
 
     when:
       def apps = service.getAll()
