@@ -8,6 +8,7 @@
     "select2-bootstrap-css": "~1.3.0",
     "angular-spinner": "~0.5.1",
     "angular-ui-router": "~0.2.11",
+    "angular-ui-sortable": "~0.13.1",
     "bootstrap": "~3.2.0",
     "jquery": "~2.1.1",
     "lodash": "~2.4.1",

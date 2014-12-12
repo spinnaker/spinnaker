@@ -168,7 +168,10 @@ gulp.task('css:vendor', ['clean:styles:vendor'], function() {
   ], {base: 'styles/'}), 'vendor.css');
 });
 gulp.task('css:application', ['clean:styles:application'], function() {
-  return prepareCss(gulp.src([app, styles, '**/*.less'].join('/')), 'application.css');
+  return prepareCss(gulp.src([
+    [app, styles, '**/*.less'].join('/'),
+    [app, scripts, '**/*.less'].join('/'),
+  ]), 'application.css');
 });
 gulp.task('css', ['css:application', 'css:vendor']);
 
@@ -250,7 +253,7 @@ gulp.task('watch', function() {
   gulp.watch('./app/**/*.html', function() {
     run('scripts:templates', 'html');
   });
-  gulp.watch('./app/styles/**/*.less', function() {
+  gulp.watch('./app/**/*.less', function() {
     run('css:application', 'html');
   });
   gulp.watch('./app/scripts/**/*.js', function() {
