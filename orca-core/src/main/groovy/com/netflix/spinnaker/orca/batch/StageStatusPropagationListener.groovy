@@ -35,7 +35,6 @@ class StageStatusPropagationListener extends StageExecutionListener {
 
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
-    def stage = currentStage(stepExecution)
     stage.startTime = stepExecution.startTime.time
     stage.status = ExecutionStatus.RUNNING
     saveStage stage
@@ -54,7 +53,6 @@ class StageStatusPropagationListener extends StageExecutionListener {
       stage.status = ExecutionStatus.TERMINAL
     }
     saveStage stage
-    super.afterStep(stepExecution)
   }
 
   private void saveStage(Stage stage) {
