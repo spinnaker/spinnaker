@@ -21,9 +21,7 @@ import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -68,10 +66,7 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
     persistExecution(subject)
     def job = build(config, subject)
     persistExecution(subject)
-    JobExecution execution = launcher.run job, createJobParameters(subject, config)
-    if (subject instanceof Orchestration) {
-      subject.id = execution.jobId.toString()
-    }
+    launcher.run job, createJobParameters(subject, config)
     subject
   }
 

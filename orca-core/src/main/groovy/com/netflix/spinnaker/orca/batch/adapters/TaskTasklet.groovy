@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -83,14 +81,12 @@ class TaskTasklet implements Tasklet {
   }
 
   private Execution currentExecution(ChunkContext chunkContext) {
-    executionRepository.retrievePipeline(executionId(chunkContext))
-  }
-
-  private static String executionId(ChunkContext chunkContext) {
     if (chunkContext.stepContext.jobParameters.containsKey("pipeline")) {
-      chunkContext.stepContext.jobParameters.pipeline
+      def id = chunkContext.stepContext.jobParameters.pipeline as String
+      executionRepository.retrievePipeline(id)
     } else {
-      chunkContext.stepContext.jobParameters.orchestration
+      def id = chunkContext.stepContext.jobParameters.orchestration as String
+      executionRepository.retrieveOrchestration(id)
     }
   }
 

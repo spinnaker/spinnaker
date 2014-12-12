@@ -36,36 +36,18 @@ class TaskController {
   ExecutionRepository executionRepository
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
-  def list(@PathVariable String application) {
-    def self = this
-    ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
-      jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
-        jobExplorer.getJobExecutions(it).findAll {
-          it.jobParameters.parameters.application?.value == application
-        }.collect {
-          self.convert it
-        }
-      }
-    }).sort { it.id }
+  List<Orchestration> list(@PathVariable String application) {
+    executionRepository.retrieveOrchestrationsForApplication(application)
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
-  List<JobViewModel> list() {
-    def self = this
-    def tasks = ((List<JobViewModel>) jobExplorer.jobNames.collectMany {
-      jobExplorer.findJobInstancesByJobName(it, 0, 1000).collectMany {
-        jobExplorer.getJobExecutions(it).collect {
-          self.convert it
-        }
-      }
-    })
-    tasks.removeAll([null])
-    tasks.sort { it.id }
+  List<Orchestration> list() {
+    executionRepository.retrieveOrchestrations()
   }
 
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
-  JobViewModel getTask(@PathVariable Long id) {
-    convert jobExplorer.getJobExecution(id)
+  Orchestration getTask(@PathVariable String id) {
+    executionRepository.retrieveOrchestration(id)
   }
 
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
@@ -79,7 +61,7 @@ class TaskController {
   }
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
-  List<PipelineViewModel> getApplicationPipelines(@PathVariable String application) {
+  List<Pipeline> getApplicationPipelines(@PathVariable String application) {
     executionRepository.retrievePipelinesForApplication(application)
   }
 

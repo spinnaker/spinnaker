@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.rush.config.RushConfiguration
+import com.netflix.spinnaker.orca.web.config.MultiThreadedJedisBatchConfigurer
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
@@ -40,22 +41,22 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.scheduling.annotation.EnableAsync
+import redis.clients.jedis.JedisCommands
 
 @Configuration
 @EnableAsync
 @EnableAutoConfiguration(exclude = BatchAutoConfiguration)
 @EnableBatchProcessing(modular = true)
 @Import([
+  WebConfiguration,
   OrcaConfiguration,
   JedisConfig,
-  RedbatchConfiguration,
   BakeryConfiguration,
   EchoConfiguration,
   Front50Configuration,
   KatoConfiguration,
   MortConfiguration,
   OortConfiguration,
-  WebConfiguration,
   MayoConfiguration,
   RushConfiguration
 ])
@@ -74,4 +75,5 @@ class Main {
     objectMapper.addMixInAnnotations(PipelineStage, StageMixins)
     new StockMappingJackson2HttpMessageConverter(objectMapper: objectMapper)
   }
+
 }

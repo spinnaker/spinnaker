@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.web.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
@@ -42,6 +41,10 @@ class WebConfiguration {
 
   @Bean JedisPipelineStore pipelineStore(JedisCommands jedisCommands) {
     new JedisPipelineStore(jedisCommands, new OrcaObjectMapper())
+  }
+
+  @Bean MultiThreadedJedisBatchConfigurer multiThreadedJedisBatchConfigurer(JedisCommands jedisCommands) {
+    new MultiThreadedJedisBatchConfigurer(jedisCommands)
   }
 
   @Bean

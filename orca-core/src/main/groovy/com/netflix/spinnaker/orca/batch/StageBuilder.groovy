@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.google.common.base.Function
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
@@ -24,6 +25,7 @@ import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
+import groovy.transform.TypeCheckingMode
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -92,6 +94,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
         .build()
   }
 
+  @CompileStatic(TypeCheckingMode.SKIP)
   private StepBuilder createStepWithListeners(String taskName) {
     def stepBuilder = steps.get(stepName(taskName))
     getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
@@ -135,7 +138,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   @PackageScope
   List<StepExecutionListener> getTaskListeners() {
     Optional.fromNullable(taskListeners)
-            .transform(ImmutableList.&copyOf)
+            .transform(ImmutableList.&copyOf as Function)
             .or(EMPTY_LIST)
   }
 }
