@@ -11,7 +11,7 @@
     </filter-section>
 
     <filter-section heading="Account" expanded="true">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.accountHeadings">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.accountHeadings | orderBy:'toString()'  ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.account[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
             </label>
@@ -19,7 +19,7 @@
     </filter-section>
 
     <filter-section heading="Region" expanded="true">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.regionHeadings">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.regionHeadings | orderBy: 'toString()' ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
             </label>
@@ -67,7 +67,7 @@
 
 
     <filter-section heading="Instance Types" expanded="true">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.instanceTypeHeadings">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.instanceTypeHeadings| orderBy: 'toString()' ">
             <label>
                 <input type="checkbox" ng-model="sortFilter.instanceType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
             </label>
@@ -75,7 +75,7 @@
     </filter-section>
 
     <filter-section heading="Provider" expanded="true" ng-if="clustersFilters.providerTypeHeadings.length > 1">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings">
+        <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings | orderBy: 'toString()'">
             <label>
                 <input type="checkbox" ng-model="sortFilter.providerType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
             </label>
