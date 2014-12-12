@@ -56,6 +56,26 @@ class ImmutableStageSupport {
     }
 
     @Override
+    Long getStartTime() {
+      self.startTime
+    }
+
+    @Override
+    Long getEndTime() {
+      self.endTime
+    }
+
+    @Override
+    void setStartTime(Long startTime) {
+
+    }
+
+    @Override
+    void setEndTime(Long endTime) {
+
+    }
+
+    @Override
     ExecutionStatus getStatus() {
       self.status
     }

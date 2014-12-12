@@ -27,6 +27,8 @@ import static java.util.Collections.EMPTY_MAP
 @CompileStatic
 abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializable {
   String type
+  Long startTime
+  Long endTime
   ExecutionStatus status = NOT_STARTED
   @JsonBackReference
   Execution execution

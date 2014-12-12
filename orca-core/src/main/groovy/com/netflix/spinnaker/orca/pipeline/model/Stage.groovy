@@ -33,6 +33,26 @@ interface Stage<T extends Execution> {
   T getExecution()
 
   /**
+   * Gets the start time for this stage. May return null if the stage has not been started.
+   */
+  Long getStartTime()
+
+  /**
+   * Gets the end time for this stage. May return null if the stage has not yet finished.
+   */
+  Long getEndTime()
+
+  /**
+   * @param startTime
+   */
+  void setStartTime(Long startTime)
+
+  /**
+   * @param endTime
+   */
+  void setEndTime(Long endTime)
+
+  /**
    * The execution status for this stage
    */
   ExecutionStatus getStatus()
@@ -59,8 +79,12 @@ interface Stage<T extends Execution> {
    * Returns the stage as an immutable object. Stage state can be discovered through {@link #isImmutable()}
    * @return
    */
+  @JsonIgnore
   Stage<T> asImmutable()
 
+  /**
+   * @return a reference to the wrapped object in this event this object is the immutable wrapper
+   */
   @JsonIgnore
   Stage<T> getSelf()
 }

@@ -18,10 +18,12 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -47,31 +49,33 @@ class TaskTasklet implements Tasklet {
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     def stage = currentStage(chunkContext)
 
-    def result = task.execute(stage.asImmutable())
+    try {
+      def result = task.execute(stage.asImmutable())
+      if (result.status == ExecutionStatus.TERMINAL) {
+        chunkContext.stepContext.stepExecution.with {
+          setTerminateOnly()
+          executionContext.put("orcaTaskStatus", result.status)
+          exitStatus = ExitStatus.FAILED
+        }
+      }
 
-    if (result.status == ExecutionStatus.TERMINAL) {
-      chunkContext.stepContext.stepExecution.with {
-        setTerminateOnly()
-        executionContext.put("orcaTaskStatus", result.status)
-        exitStatus = ExitStatus.FAILED
+      stage.context.putAll result.outputs
+
+      def batchStepStatus = BatchStepStatus.mapResult(result)
+      chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
+      contribution.exitStatus = batchStepStatus.exitStatus
+      stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
+
+      return batchStepStatus.repeatStatus
+    } finally {
+      // because groovy...
+      def execution = stage.execution
+      if (execution instanceof Orchestration) {
+        executionRepository.store(execution)
+      } else if (execution instanceof Pipeline) {
+        executionRepository.store(execution)
       }
     }
-
-    stage.context.putAll result.outputs
-
-    def batchStepStatus = BatchStepStatus.mapResult(result)
-    chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
-    contribution.exitStatus = batchStepStatus.exitStatus
-
-    // because groovy...
-    def execution = stage.execution
-    if (execution instanceof Orchestration) {
-      executionRepository.store(execution)
-    } else if (execution instanceof Pipeline) {
-      executionRepository.store(execution)
-    }
-
-    return batchStepStatus.repeatStatus
   }
 
   private Execution currentExecution(ChunkContext chunkContext) {

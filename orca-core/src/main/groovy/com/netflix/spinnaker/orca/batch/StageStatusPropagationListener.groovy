@@ -37,7 +37,10 @@ class StageStatusPropagationListener extends StepExecutionListenerSupport {
 
   @Override
   void beforeStep(StepExecution stepExecution) {
-    currentStage(stepExecution).status = ExecutionStatus.RUNNING
+    def stage = currentStage(stepExecution)
+    stage.startTime = stepExecution.startTime.time
+    stage.status = ExecutionStatus.RUNNING
+    saveStage stage
   }
 
   @Override
@@ -46,18 +49,24 @@ class StageStatusPropagationListener extends StepExecutionListenerSupport {
 
     def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     if (orcaTaskStatus) {
+      if (orcaTaskStatus.complete) {
+        stage.endTime = System.currentTimeMillis()
+      }
       stage.status = orcaTaskStatus
     } else {
+      stage.endTime = System.currentTimeMillis()
       stage.status = ExecutionStatus.TERMINAL
     }
+    saveStage stage
+    super.afterStep(stepExecution)
+  }
 
+  private void saveStage(Stage stage) {
     if (stage.execution instanceof Pipeline) {
       executionRepository.store(stage.execution as Pipeline)
     } else {
       executionRepository.store(stage.execution as Orchestration)
     }
-
-    super.afterStep(stepExecution)
   }
 
   private Execution currentPipeline(StepExecution stepExecution) {

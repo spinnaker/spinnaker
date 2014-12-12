@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
@@ -28,11 +27,33 @@ class Pipeline extends Execution<Pipeline> {
 
   String application
   String name
+  Long startTime
+  Long endTime
   final Map<String, Object> trigger = [:]
-
   final Map<String, Serializable> appConfig = [:]
 
-  @JsonIgnore
+  Long getStartTime() {
+    stages ? stages.first().startTime : null
+  }
+
+  Long getEndTime() {
+    if (stages && getStartTime()) {
+      def reverseStages = stages.reverse()
+      def lastStage = reverseStages.first()
+      if (lastStage.endTime) {
+        return lastStage.endTime
+      } else {
+        def lastFailed = reverseStages.find {
+          it.status == FAILED
+        }
+        if (lastFailed) {
+          return lastFailed.endTime
+        }
+      }
+    }
+    null
+  }
+
   ExecutionStatus getStatus() {
     def status = stages.status.reverse().find {
       it != NOT_STARTED
