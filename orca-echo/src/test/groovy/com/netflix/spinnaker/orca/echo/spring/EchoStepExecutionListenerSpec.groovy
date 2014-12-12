@@ -15,7 +15,7 @@ class EchoStepExecutionListenerSpec extends Specification {
   def echoService = Mock(EchoService)
   def executionRepository = Stub(ExecutionRepository)
   @Subject
-      echoListener = new EchoStepExecutionListener(executionRepository, echoService)
+      echoListener = new EchoNotifyingStageExecutionListener(executionRepository, echoService)
   def pipeline = new Pipeline(application: "foo")
   def stage = new PipelineStage(pipeline, "test")
 

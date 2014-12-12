@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.orca.echo.config
 
+import groovy.transform.CompileStatic
+import com.google.gson.Gson
+import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
 import com.netflix.spinnaker.orca.notifications.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.notifications.BuildJobPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
-
-
-import static retrofit.Endpoints.newFixedEndpoint
-
-import com.google.gson.Gson
-import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import groovy.transform.CompileStatic
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -39,10 +35,11 @@ import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
+import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
-@ConditionalOnProperty(value='echo.baseUrl')
+@ConditionalOnProperty(value = 'echo.baseUrl')
 @CompileStatic
 class EchoConfiguration {
 
@@ -55,19 +52,26 @@ class EchoConfiguration {
 
   @Bean EchoService echoService(Endpoint echoEndpoint, Gson gson) {
     new RestAdapter.Builder()
-      .setEndpoint(echoEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setConverter(new GsonConverter(gson))
-      .build()
-      .create(EchoService)
+        .setEndpoint(echoEndpoint)
+        .setClient(retrofitClient)
+        .setLogLevel(retrofitLogLevel)
+        .setConverter(new GsonConverter(gson))
+        .build()
+        .create(EchoService)
   }
 
   @Bean BuildJobNotificationHandler buildJobNotificationHandler() {
     new BuildJobNotificationHandler()
   }
 
-  @Bean BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+  @Bean
+  BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     new BuildJobPollingNotificationAgent(notificationHandlers)
+  }
+
+  @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
+      ExecutionRepository executionRepository,
+      EchoService echoService) {
+    new EchoNotifyingStageExecutionListener(executionRepository, echoService)
   }
 }

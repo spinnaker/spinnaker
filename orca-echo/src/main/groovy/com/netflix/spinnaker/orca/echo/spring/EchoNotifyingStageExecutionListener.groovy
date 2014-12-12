@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired
  * Converts step execution events to Echo events.
  */
 @CompileStatic
-class EchoStepExecutionListener extends StageExecutionListener {
+class EchoNotifyingStageExecutionListener extends StageExecutionListener {
 
   private final EchoService echoService
 
   @Autowired
-  EchoStepExecutionListener(ExecutionRepository executionRepository, EchoService echoService) {
+  EchoNotifyingStageExecutionListener(ExecutionRepository executionRepository, EchoService echoService) {
     super(executionRepository)
     this.echoService = echoService
   }
