@@ -49,12 +49,24 @@ dependencies {
 
 tasks.bootRepackage.enabled = false
 
+applicationName = 'kato'
+applicationDistribution.from(project.file('config')) {
+  into 'config'
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
+
 ospackage {
-  packageName = 'kato'
+  packageName = project.applicationName
   version = project.version.replaceAll('-SNAPSHOT', '')
   release '3'
-  into '/opt/kato'
-  from ("${project.buildDir}/install/${project.name}")
+  into "/opt/${project.applicationName}"
+  from ("${project.buildDir}/install/${project.applicationName}")
 }
 
 buildDeb {
@@ -62,4 +74,3 @@ buildDeb {
   requires("openjdk-7-jre")
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8501", "-Daws.enabled=${System.getProperty('aws.enabled', "true")}"]

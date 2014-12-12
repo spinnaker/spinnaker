@@ -1,0 +1,6 @@
+server:
+  port: 8501
+
+aws:
+  enabled: true
+
