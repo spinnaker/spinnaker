@@ -29,12 +29,18 @@ dependencies {
   compile spinnaker.dependency('eurekaClient')
 }
 
+applicationName = 'oort'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDistribution.from(project.file('config')) {
+  into "config"
+}
+
 ospackage {
-  packageName = rootProject.name
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${rootProject.name}"
-  from "${project.buildDir}/install/${project.name}"
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
 }
 
 buildDeb {
@@ -43,4 +49,3 @@ buildDeb {
   requires("redis-server")
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8081", "-Daws.enabled=${System.getProperty('aws.enabled', 'true')}", "-Djava.security.egd=file:/dev/./urandom", "-Dredis.enabled=true" /* not an option for now */, "-Dredis.host=localhost"]
