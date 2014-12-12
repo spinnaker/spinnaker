@@ -12,7 +12,9 @@ angular.module('deckApp')
       securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
         $scope.securityGroup = details;
-        if (!details) {
+
+        var restanularlessDetails = details.plain();
+        if (_.isEmpty(restanularlessDetails)) {
           fourOhFour();
         }
       },

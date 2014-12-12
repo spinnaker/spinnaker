@@ -20,9 +20,12 @@ angular.module('deckApp')
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
       serverGroupService.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
-        $scope.state.loading = false;
-        angular.extend(details, summary);
-        $scope.serverGroup = details;
+        cancelLoader();
+
+        var restanularlessDetails = details.plain();
+        angular.extend(restanularlessDetails, summary);
+
+        $scope.serverGroup = restanularlessDetails;
         if (details.launchConfig && details.launchConfig.securityGroups) {
           $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
             return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
@@ -30,7 +33,7 @@ angular.module('deckApp')
           }).compact().value();
         }
 
-        if (!$scope.serverGroup) {
+        if (_.isEmpty($scope.serverGroup)) {
           notifications.create({
             message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
             autoDismiss: true,
@@ -40,6 +43,10 @@ angular.module('deckApp')
           $state.go('^');
         }
       });
+    }
+
+    function cancelLoader() {
+      $scope.state.loading = false;
     }
 
     retrieveServerGroup();
