@@ -4,12 +4,12 @@
 angular.module('deckApp')
   .factory('loadBalancerService', function (searchService, settings, $q, Restangular, _) {
 
-    var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+    var gateEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     function loadLoadBalancersByApplicationName(applicationName) {
-      return searchService.search('oort', {q: applicationName, type: 'loadBalancers', pageSize: 10000}).then(function(searchResults) {
+      return searchService.search('gate', {q: applicationName, type: 'loadBalancers', pageSize: 10000}).then(function(searchResults) {
         return _.filter(searchResults.results, { application: applicationName });
       });
     }
@@ -48,7 +48,7 @@ angular.module('deckApp')
     }
 
     function getLoadBalancer(name) {
-      var promise = oortEndpoint.one('aws').one('loadBalancers', name).get();
+      var promise = gateEndpoint.one('loadBalancers', name).get({provider: 'aws'});
       return promise.then(function(loadBalancerRollup) {
         if (angular.isUndefined(loadBalancerRollup)) { return []; }
         var loadBalancers = [];
@@ -65,7 +65,7 @@ angular.module('deckApp')
     }
 
     function getLoadBalancerDetails(provider, account, region, name) {
-      return oortEndpoint.one(provider).one('loadBalancers').one(account).one(region).one(name).getList();
+      return gateEndpoint.one('loadBalancers').one(account).one(region).one(name).get({'provider': provider});
     }
 
     function normalizeLoadBalancersWithServerGroups(application) {

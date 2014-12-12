@@ -4,14 +4,6 @@
 angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {
 
-    var applicationListEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
-    var oortEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
-    });
-
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
 
@@ -80,7 +72,7 @@ angular.module('deckApp')
     });
 
     function listApplications() {
-      return applicationListEndpoint
+      return gateEndpoint
         .all('applications')
 //        .withHttpConfig({cache: scheduledCache })
         .getList();
@@ -158,20 +150,20 @@ angular.module('deckApp')
     }
 
     function listAWSLoadBalancers() {
-      return oortEndpoint
-        .all('aws/loadBalancers')
+      return gateEndpoint
+        .all('loadBalancers')
 //        .withHttpConfig({cache: scheduledCache })
-        .getList();
+        .getList({provider: 'aws'});
     }
 
     function listGCELoadBalancers() {
-      return oortEndpoint
-        .all('gce/loadBalancers')
-        .getList();
+      return gateEndpoint
+        .all('loadBalancers')
+        .getList({provider: 'gce'});
     }
 
     function getInstanceDetails(account, region, id) {
-      return oortEndpoint.all('instances').one(account).one(region).one(id).get();
+      return gateEndpoint.all('instances').one(account).one(region).one(id).get();
     }
 
     return {

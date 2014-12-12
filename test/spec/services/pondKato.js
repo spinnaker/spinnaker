@@ -96,14 +96,14 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
       id: 1,
-      variables: [ { key: 'kato.last.task.id', value: { id: 3 } }],
+      variables: [ { key: 'kato.last.task.id', value: { id: 3 } }, {key: 'application', value: application} ],
       status: 'STARTED'
     });
 
 
     $http.flush();
 
-    var katoRequestHandler = $http.whenGET(config.katoUrl + '/task/3');
+    var katoRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1/details/3');
 
     katoRequestHandler.respond(200, TasksFixture.runningKatoTask);
 
@@ -145,11 +145,11 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     var result = null,
       pondRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1'),
-      katoRequestHandler = $http.whenGET(config.katoUrl + '/task/3');
+      katoRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1/details/3');
 
     pondRequestHandler.respond(200, {
       id: 1,
-      variables: [ { key: 'kato.last.task.id', value: { id: 3 } }],
+      variables: [ { key: 'kato.last.task.id', value: { id: 3 } }, {key: 'application', value: application}],
       status: 'STARTED'
     });
 
@@ -171,7 +171,8 @@ describe('Service: Pond - task complete, task force refresh', function() {
       id: 1,
       variables: [
         { key: 'kato.last.task.id', value: { id: 4 } },
-        { key: 'kato.tasks', value: [ {id: 3, history: []}]}
+        { key: 'kato.tasks', value: [ {id: 3, history: []}]},
+        { key: 'application', value: application}
       ],
       status: 'STARTED'
     });
@@ -182,7 +183,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
     var desiredKatoTask = lodash.cloneDeep(TasksFixture.runningKatoTask);
     desiredKatoTask.id = 4;
     desiredKatoTask.history.push({phase: 'DESIRED_PHASE'});
-    katoRequestHandler = $http.whenGET(config.katoUrl + '/task/4');
+    katoRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1/details/4');
 
     katoRequestHandler.respond(200, desiredKatoTask);
 

@@ -4,12 +4,12 @@
 angular.module('deckApp')
   .factory('clusterService', function (settings, $q, Restangular) {
 
-    var oortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.oortUrl);
+    var gateEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
+      RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
     function loadServerGroups(applicationName) {
-      return oortEndpoint.one('applications', applicationName).one('serverGroups').getList()
+      return gateEndpoint.one('applications', applicationName).one('serverGroups').getList()
         .then(function (serverGroups) {
           serverGroups.forEach(addHealthyCountsToServerGroup);
           return serverGroups;

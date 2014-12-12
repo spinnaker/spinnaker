@@ -132,7 +132,7 @@ angular.module('deckApp')
         if (running && !deferred.promise.cancelled) {
           if (katoTaskId) {
             // check for new task id
-            kato.getTask(katoTaskId.id).get().then(
+            kato.getTask(task.getValueFor('application'), task.id, katoTaskId.id).get().then(
               function(katoTask) {
                 task.updateKatoTask(katoTask);
                 var katoWait = katoTask.waitUntilComplete();
