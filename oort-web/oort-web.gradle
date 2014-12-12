@@ -35,6 +35,13 @@ applicationDistribution.from(project.file('config')) {
   into "config"
 }
 
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
+
 ospackage {
   packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
