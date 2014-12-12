@@ -1,28 +1,39 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.echo.EchoService
-import org.springframework.batch.core.ExitStatus
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.StepExecution
-import org.springframework.batch.core.listener.StepExecutionListenerSupport
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Converts step execution events to Echo events.
  */
 @CompileStatic
-class EchoStepExecutionListener extends StepExecutionListenerSupport {
+class EchoStepExecutionListener extends StageExecutionListener {
 
   private final EchoService echoService
 
   @Autowired
-  EchoStepExecutionListener(EchoService echoService) {
+  EchoStepExecutionListener(ExecutionRepository executionRepository, EchoService echoService) {
+    super(executionRepository)
     this.echoService = echoService
   }
 
-  @Override
-  ExitStatus afterStep(StepExecution stepExecution) {
-    echoService.recordEvent([:])
-    return super.afterStep(stepExecution)
+  protected void afterTask(Stage stage, StepExecution stepExecution) {
+    if (stepExecution.status.running) {
+      return
+    }
+    def execution = stage.execution
+    echoService.recordEvent(
+        details: [
+            source     : "Orca",
+            type       : "orca:task:${stepExecution.status.unsuccessful ? "failed" : "complete"}",
+            application: execution.application
+        ],
+        content: stage.context
+    )
   }
 }

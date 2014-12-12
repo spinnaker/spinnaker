@@ -1,69 +1,83 @@
 package com.netflix.spinnaker.orca.echo.spring
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.SimpleStage
-import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.support.AbstractApplicationContext
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ContextConfiguration
-import spock.lang.Shared
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.StepExecution
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
-
-@ContextConfiguration(classes = [BatchTestConfiguration, OrcaConfiguration])
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 
 class EchoStepExecutionListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
-  def echoListener = new EchoStepExecutionListener(echoService)
-  def task = Stub(Task)
-  def stage = new SimpleStage("test", task)
-
-  @Autowired AbstractApplicationContext applicationContext
-  @Autowired PipelineStarter pipelineStarter
-  @Shared mapper = new OrcaObjectMapper()
-
-  def setup() {
-    applicationContext.beanFactory.with {
-      registerSingleton("echoListener", echoListener)
-
-      autowireBean(stage)
-      registerSingleton("testStage", stage)
-    }
-    pipelineStarter.initialize()
-  }
+  def executionRepository = Stub(ExecutionRepository)
+  @Subject
+      echoListener = new EchoStepExecutionListener(executionRepository, echoService)
+  def pipeline = new Pipeline(application: "foo")
+  def stage = new PipelineStage(pipeline, "test")
 
   @Unroll
-  def "triggers an event when task exits with #status"() {
+  def "triggers an event when a task step exits with #status"() {
     given:
-    task.execute(_) >> new DefaultTaskResult(status)
+    def stepExecution = Stub(StepExecution) {
+      getStatus() >> status
+    }
 
     when:
-    pipelineStarter.start(configJson)
+    echoListener.afterTask(stage, stepExecution)
 
     then:
     1 * echoService.recordEvent(_)
 
     where:
-    status    | _
-    SUCCEEDED | _
-    FAILED    | _
-    TERMINAL  | _
+    status                | _
+    BatchStatus.COMPLETED | _
+    BatchStatus.ABANDONED | _
+    BatchStatus.FAILED    | _
+    BatchStatus.STOPPED   | _
+    BatchStatus.STOPPING  | _
+  }
 
-    config = [
-        application: "app",
-        stages     : [[type: "test"]]
-    ]
-    configJson = mapper.writeValueAsString(config)
+  @Unroll
+  def "does not trigger an event when a task step exits with #status"() {
+    given:
+    def stepExecution = Stub(StepExecution) {
+      getStatus() >> status
+    }
+
+    when:
+    echoListener.afterTask(stage, stepExecution)
+
+    then:
+    0 * echoService._
+
+    where:
+    status               | _
+    BatchStatus.STARTED  | _
+    BatchStatus.STARTING | _
+  }
+
+  def "sends the correct data to echo"() {
+    given:
+    def stepExecution = Stub(StepExecution) {
+      getStatus() >> BatchStatus.COMPLETED
+    }
+    and:
+    def message
+    echoService.recordEvent(_) >> {
+      message = it[0]
+      return null
+    }
+
+    when:
+    echoListener.afterTask(stage, stepExecution)
+
+    then:
+    message.details.source == "Orca"
+    message.details.application == pipeline.application
   }
 
 }

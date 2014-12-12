@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
-
-
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.orca.ExecutionStatus
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @CompileStatic
