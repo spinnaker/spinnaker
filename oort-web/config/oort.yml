@@ -1,0 +1,11 @@
+redis:
+  enabled: true
+  host: localhost
+
+server:
+  port: 8081
+
+aws:
+  enabled: true
+
+
