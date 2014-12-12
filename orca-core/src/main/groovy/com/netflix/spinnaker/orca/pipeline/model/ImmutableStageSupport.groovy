@@ -93,7 +93,13 @@ class ImmutableStageSupport {
     @Override
     ImmutableMap<String, Object> getContext() {
       if (!this.context) {
-        this.context = ImmutableMap.copyOf(self.context)
+        def validContext = [:]
+        for (entry in self.context) {
+          if (entry.key && entry.value) {
+            validContext[entry.key] = entry.value
+          }
+        }
+        this.context = ImmutableMap.copyOf(validContext)
       }
       this.context
     }
