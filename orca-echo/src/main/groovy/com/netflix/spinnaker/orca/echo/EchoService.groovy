@@ -25,7 +25,6 @@ interface EchoService {
   @POST('/')
   Response recordEvent(@Body HashMap notification)
 
-  @GET('/search/events/{time}')
-  retrofit.client.Response getEvents(@Path("time") Long time, @Query("size") Long size, @Query("full") Boolean full,
-                                     @Query("type") String type)
+  @GET('/events/recent/{type}/{time}/')
+  retrofit.client.Response getEvents(@Path("type") String type, @Path("time") Long time)
 }
