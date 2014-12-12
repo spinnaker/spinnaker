@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.echo.cassandra
 
 import com.netflix.astyanax.MutationBatch
-import spock.lang.Ignore
 import spock.lang.Shared
 
 class HistoryRepositorySpec extends AbstractCassandraBackedSpec {

@@ -33,9 +33,9 @@ class AbstractCassandraBackedSpec extends Specification {
             components.connectionPoolMonitor()
         ).getKeyspace('workflow', 'test')
 
-        try{
+        try {
             new Socket(host, port)
-        } catch (Exception e){
+        } catch (ConnectException e) {
             runner = new EmbeddedCassandraRunner(keyspace, port, storagePort, host)
             runner.init()
         }

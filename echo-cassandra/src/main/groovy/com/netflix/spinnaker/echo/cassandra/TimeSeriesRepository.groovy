@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository
  */
 @Slf4j
 @Repository
+@SuppressWarnings('PropertyName')
 class TimeSeriesRepository implements ApplicationListener<ContextRefreshedEvent> {
 
     static final int TTL_DURATION = 10800
@@ -50,9 +51,8 @@ class TimeSeriesRepository implements ApplicationListener<ContextRefreshedEvent>
     }
 
     void add(Event event) {
-        if (!event.details.type) {
-            event.details.type = 'UNKNOWN'
-        }
+
+        event.details.type = event.details.type ?: 'UNKNOWN'
 
         runQuery """
             INSERT INTO events_time_series(

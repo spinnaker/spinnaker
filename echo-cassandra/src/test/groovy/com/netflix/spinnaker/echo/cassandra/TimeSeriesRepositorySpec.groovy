@@ -6,6 +6,7 @@ import spock.lang.Shared
 /**
  * Test for time series repository
  */
+@SuppressWarnings(['DuplicateMapLiteral', 'DuplicateNumberLiteral'])
 class TimeSeriesRepositorySpec extends AbstractCassandraBackedSpec {
 
     @Shared
@@ -29,25 +30,22 @@ class TimeSeriesRepositorySpec extends AbstractCassandraBackedSpec {
         repo.add(new Event(details: [:], content: [:]))
 
         then:
-        repo.eventsByType("UNKNOWN", now).size == 1
+        repo.eventsByType('UNKNOWN', now).size == 1
     }
 
     void 'should return an empty list if there are no events'() {
         expect:
-        repo.eventsByType("NOTHERE", 0) == []
+        repo.eventsByType('NOTHERE', 0) == []
     }
 
     void 'should filter events by type'() {
-        given:
-        long now = new Date().time
-
         when:
         repo.add(new Event(details: [type: 'UNFILTERED'], content: [:]))
         repo.add(new Event(details: [type: 'FILTERED'], content: [data: '111']))
 
         then:
-        repo.eventsByType("FILTERED", 0).size == 1
-        repo.eventsByType("FILTERED", 0).first().content.data == '111'
+        repo.eventsByType('FILTERED', 0).size == 1
+        repo.eventsByType('FILTERED', 0).first().content.data == '111'
     }
 
     void 'should exclude events before requested day'() {
@@ -61,9 +59,9 @@ class TimeSeriesRepositorySpec extends AbstractCassandraBackedSpec {
         5.times {
             repo.add(new Event(details: [type: 'FILTERED'], content: [data: 'second']))
         }
-        def listCreatedAfterRequestTime = repo.eventsByType("FILTERED", requestTime)
+        def listCreatedAfterRequestTime = repo.eventsByType('FILTERED', requestTime)
         then:
-        repo.eventsByType("FILTERED", 0).size == 15
+        repo.eventsByType('FILTERED', 0).size == 15
         listCreatedAfterRequestTime.size == 5
         listCreatedAfterRequestTime.collect { it.content.data }.unique() == ['second']
     }
