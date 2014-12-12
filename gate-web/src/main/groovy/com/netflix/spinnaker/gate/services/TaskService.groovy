@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.google.common.base.Preconditions
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
+import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,17 +26,27 @@ import org.springframework.stereotype.Service
 @CompileStatic
 @Service
 class TaskService {
+  private static final String GROUP = "tasks"
 
   @Autowired
   OrcaService orcaService
+
+  @Autowired
+  KatoService katoService
 
   Map create(Map body) {
     orcaService.doOperation(body)
   }
 
-  // TODO Hystrix fallback?
   Map getTask(String id) {
-    Preconditions.checkNotNull(id)
-    orcaService.getTask(id)
+    HystrixFactory.newMapCommand(GROUP, "tasks-${id}", true) {
+      orcaService.getTask(id)
+    } execute()
+  }
+
+  Map getTaskDetails(String taskDetailsId) {
+    HystrixFactory.newMapCommand(GROUP, "taskDetails-${taskDetailsId}", true) {
+      katoService.getTaskDetails(taskDetailsId)
+    } execute()
   }
 }

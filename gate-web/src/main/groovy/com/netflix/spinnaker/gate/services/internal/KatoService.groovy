@@ -26,4 +26,7 @@ interface KatoService {
 
   @GET('/credentials/{account}')
   Map getAccount(@Path("account") String account)
+
+  @GET('/task/{taskDetailsId}')
+  Map getTaskDetails(@Path("taskDetailsId") String taskDetailsId)
 }

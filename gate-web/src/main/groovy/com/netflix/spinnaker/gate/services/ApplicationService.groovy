@@ -63,7 +63,7 @@ class ApplicationService {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
-      mergeApps(flat)
+      mergeApps(flat).collect { it.attributes }
     } execute()
   }
 
@@ -185,6 +185,10 @@ class ApplicationService {
           }
         }
       }
+
+      // ensure that names are consistently lower-cased.
+      mergedApp.name = key.toLowerCase()
+      mergedApp.attributes['name'] = mergedApp.name
     }
 
     // application doesn't exist if no attributes were found

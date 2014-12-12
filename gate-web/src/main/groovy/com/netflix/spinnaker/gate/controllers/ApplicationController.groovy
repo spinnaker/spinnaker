@@ -101,6 +101,11 @@ class ApplicationController {
     taskService.getTask(id)
   }
 
+  @RequestMapping(value = "/{name}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
+  Map getTaskDetails(@PathVariable("id") String id, @PathVariable("taskDetailsId") String taskDetailsId) {
+    taskService.getTaskDetails(taskDetailsId)
+  }
+
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
   Map task(@RequestBody Map map) {
     taskService.create(map)
