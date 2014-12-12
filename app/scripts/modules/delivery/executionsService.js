@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.delivery')
-  .factory('executionsService', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, executionsFixture, appendTransform) {
+  .factory('executionsService', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, appendTransform) {
     function getCurrentExecution() {
       var deferred = $q.defer();
       getExecutions().then(function(executions) {
@@ -74,75 +74,31 @@ angular.module('deckApp.delivery')
       return deferred.promise;
     }
 
-    executionsFixture.forEach(function(execution) {
-      orchestratedItem.defineProperties(execution);
-      execution.stages.forEach(orchestratedItem.defineProperties);
-    });
-
-    function getExecutionsFromFixture() {
-      if (false) {
-        getExecutions();
-      }
-      var deferred = $q.defer();
-      deferred.resolve(executionsFixture);
-      return deferred.promise;
-    }
-
-    function getCurrentStageFromFixture() {
-      if (false) {
-        getCurrentStage();
-      }
-      var deferred = $q.defer();
-      getCurrentExecutionFromFixture().then(function(execution) {
-        deferred.resolve(execution.stages.reduce(function(acc, stage) {
-          if (stage.name === $stateParams.stageName) {
-            acc = stage;
-          }
-          return acc;
-        }, {}));
-      });
-      return deferred.promise;
-    }
-    console.log(getCurrentStageFromFixture);
-
-    function getCurrentExecutionFromFixture() {
-      var deferred = $q.defer();
-      getExecutionsFromFixture().then(function(executions) {
-        deferred.resolve(executions.reduce(function(acc, execution) {
-          if (execution.id === $stateParams.executionId) {
-            acc = execution;
-          }
-          return acc;
-        }, {}));
-      });
-      return deferred.promise;
-    }
-
     return {
-      getAll: getExecutionsFromFixture,
+      getAll: getExecutions,
       subscribeAll: function(fn) {
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getExecutionsFromFixture());
+            return RxService.Observable.fromPromise(getExecutions());
           })
           .subscribe(fn);
       },
-      getCurrentExecution: getCurrentExecutionFromFixture,
+      getCurrentExecution: getCurrentExecution,
       subscribeToCurrentExecution: function(fn) {
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getCurrentExecutionFromFixture());
+            return RxService.Observable.fromPromise(getCurrentExecution());
           })
           .subscribe(fn);
       },
-      getCurrentStage: getCurrentStageFromFixture,
+      getCurrentStage: getCurrentStage,
       subscribeToCurrentStage: function(fn) {
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getCurrentStageFromFixture());
+            return RxService.Observable.fromPromise(getCurrentStage());
           })
           .subscribe(fn);
       },
