@@ -195,9 +195,9 @@ class ApplicationServiceSpec extends Specification {
       1 * front50.credentials >> [globalAccount]
 
       1 == apps.size()
-      1 == apps.clusters.prod.size()
-      apps[0].attributes.email == email
-      apps[0].attributes.name == name
+      apps[0].email == email
+      apps[0].name == name
+      apps[0].clusters == null
 
     where:
       name = "foo"
