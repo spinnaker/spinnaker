@@ -58,14 +58,14 @@ class BuildJobPollingNotificationAgent implements Runnable {
   @Override
   void run() {
     try {
-      def response = echoService.getEvents(lastCheck, 10000, true, NOTIFICATION_TYPE)
+      def response = echoService.getEvents(NOTIFICATION_TYPE, lastCheck)
       lastCheck = System.currentTimeMillis()
-      def resp = objectMapper.readValue(response.body.in().text, Map)
-      for (event in resp.hits) {
-        if (event.containsKey("project") && event.containsKey("master")) {
+      def resp = objectMapper.readValue(response.body.in().text, List)
+      for (event in resp) {
+        if (event.content.containsKey("project") && event.content.containsKey("master")) {
           for (handler in buildNotificationHandlers) {
-            Map input = event.project as Map
-            input.master = event.master
+            Map input = event.content.project as Map
+            input.master = event.content.master
             handler.handle(input)
           }
         }
