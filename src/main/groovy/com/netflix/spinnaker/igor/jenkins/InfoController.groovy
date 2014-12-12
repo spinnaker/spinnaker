@@ -38,13 +38,13 @@ class InfoController {
     @Autowired
     JenkinsMasters masters
 
-    @RequestMapping(value = '/masters/', method = RequestMethod.GET)
+    @RequestMapping(value = '/masters', method = RequestMethod.GET)
     List<String> listMasters() {
         log.info('Getting list of masters')
         masters.map.keySet().sort()
     }
 
-    @RequestMapping(value = '/jobs/{master}/', method = RequestMethod.GET)
+    @RequestMapping(value = '/jobs/{master}', method = RequestMethod.GET)
     List<String> getJobs(@PathVariable String master) {
         log.info('Getting list of jobs for master: {}', master)
         cache.getJobNames(master)
