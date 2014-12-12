@@ -10,14 +10,42 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class EchoStepExecutionListenerSpec extends Specification {
+class EchoNotifyingStepExecutionListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
   def executionRepository = Stub(ExecutionRepository)
+
   @Subject
-      echoListener = new EchoNotifyingStageExecutionListener(executionRepository, echoService)
+  def echoListener = new EchoNotifyingStageExecutionListener(executionRepository, echoService)
+
   def pipeline = new Pipeline(application: "foo")
   def stage = new PipelineStage(pipeline, "test")
+
+  def "triggers an event when a task step starts"() {
+    given:
+    def stepExecution = Stub(StepExecution) {
+      getStatus() >> BatchStatus.STARTING
+    }
+
+    when:
+    echoListener.beforeTask(stage, stepExecution)
+
+    then:
+    1 * echoService.recordEvent(_)
+  }
+
+  def "does not trigger an event when a re-entrant task starts"() {
+    given:
+    def stepExecution = Stub(StepExecution) {
+      getStatus() >> BatchStatus.STARTED
+    }
+
+    when:
+    echoListener.beforeTask(stage, stepExecution)
+
+    then:
+    0 * echoService._
+  }
 
   @Unroll
   def "triggers an event when a task step exits with #status"() {

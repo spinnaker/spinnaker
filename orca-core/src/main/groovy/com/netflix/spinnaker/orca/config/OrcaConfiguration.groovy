@@ -16,7 +16,13 @@
 
 package com.netflix.spinnaker.orca.config
 
+import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
+import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -24,13 +30,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
-import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
-import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -78,13 +77,10 @@ class OrcaConfiguration {
     new InMemoryPipelineStore(mapper)
   }
 
-  @Bean ExecutionRepository executionRepository(ExecutionStore<Pipeline> pipelineStore,
-                                                ExecutionStore<Orchestration> orchestrationStore) {
+  @Bean
+  ExecutionRepository executionRepository(ExecutionStore<Pipeline> pipelineStore,
+                                          ExecutionStore<Orchestration> orchestrationStore) {
     new DefaultExecutionRepository(orchestrationStore, pipelineStore)
-  }
-
-  @Bean PipelineStarter jobStarter() {
-    new PipelineStarter()
   }
 
   @Bean OrchestrationStarter orchestrationStarter() {
@@ -95,11 +91,13 @@ class OrcaConfiguration {
     new NoopNotificationHandler()
   }
 
-  @Bean TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository) {
+  @Bean
+  TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository) {
     new TaskTaskletAdapter(executionRepository)
   }
 
-  @Bean StageStatusPropagationListener stageStatusPropagationListener(ExecutionRepository executionRepository) {
+  @Bean
+  StageStatusPropagationListener stageStatusPropagationListener(ExecutionRepository executionRepository) {
     new StageStatusPropagationListener(executionRepository)
   }
 }

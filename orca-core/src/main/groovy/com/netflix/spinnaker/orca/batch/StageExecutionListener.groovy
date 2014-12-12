@@ -20,10 +20,10 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
     this.executionRepository = executionRepository
   }
 
-  protected void beforeTask(Stage stage, StepExecution stepExecution) {
+  void beforeTask(Stage stage, StepExecution stepExecution) {
   }
 
-  protected void afterTask(Stage stage, StepExecution stepExecution) {
+  void afterTask(Stage stage, StepExecution stepExecution) {
   }
 
   @Override
