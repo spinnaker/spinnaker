@@ -74,8 +74,8 @@ angular.module('deckApp')
 
     function configureRestangular() {
       return Restangular.withConfig(function(RestangularConfigurer) {
-        RestangularConfigurer.setBaseUrl(settings.katoUrl);
-        RestangularConfigurer.addElementTransformer('task', false, function(task) {
+        RestangularConfigurer.setBaseUrl(settings.gateUrl);
+        RestangularConfigurer.addElementTransformer('details', false, function(task) {
           setTaskProperties(task);
           return task;
         });
@@ -83,8 +83,8 @@ angular.module('deckApp')
     }
 
     return {
-      getTask: function(taskId) {
-        return configureRestangular().one('task', taskId);
+      getTask: function(application, taskId, taskDetailsId) {
+        return configureRestangular().all('applications').one(application).one('tasks', taskId).one('details', taskDetailsId);
       }
     };
 
