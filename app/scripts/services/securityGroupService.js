@@ -105,7 +105,7 @@ angular.module('deckApp')
     }
 
     function getSecurityGroupDetails(application, account, region, id) {
-      return mortEndpoint.one('securityGroups', account).one('aws').one(id).get({region: region}).then(function(details) {
+      return mortEndpoint.one('securityGroups', account).one(id).get({region: region}).then(function(details) {
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter(function(rule) {
             return rule.range;
