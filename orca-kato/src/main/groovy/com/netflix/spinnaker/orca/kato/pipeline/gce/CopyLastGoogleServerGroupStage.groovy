@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import com.netflix.spinnaker.orca.kato.tasks.*
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.CreateCopyLastGoogleServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -41,8 +43,7 @@ class CopyLastGoogleServerGroupStage extends LinearStage {
     def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
     def step5 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step6 = buildStep("sendNotification", NotifyEchoTask)
-    [step1, step2, step3, step4, step5, step6]
+    [step1, step2, step3, step4, step5]
   }
 
 }

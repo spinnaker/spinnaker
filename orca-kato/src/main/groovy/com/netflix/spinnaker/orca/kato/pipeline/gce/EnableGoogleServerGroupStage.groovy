@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.EnableGoogleServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -41,8 +40,7 @@ class EnableGoogleServerGroupStage extends LinearStage {
     def step2 = buildStep("monitorAsg", MonitorKatoTask)
     // TODO(duftler): Since we don't have a GCE health indicator for load balancer association, can't wait on 'up' yet.
 //    def step3 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
-    def step4 = buildStep("sendNotification", NotifyEchoTask)
-    [step1, step2, step4]
+    [step1, step2]
   }
 
 }

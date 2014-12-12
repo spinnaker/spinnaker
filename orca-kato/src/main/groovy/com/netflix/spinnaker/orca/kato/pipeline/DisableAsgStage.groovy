@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.DisableAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForDownInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -41,8 +40,7 @@ class DisableAsgStage extends LinearStage {
     def step1 = buildStep("disableAsg", DisableAsgTask)
     def step2 = buildStep("monitorAsg", MonitorKatoTask)
     def step3 = buildStep("waitForDownInstances", WaitForDownInstancesTask)
-    def step4 = buildStep("sendNotification", NotifyEchoTask)
-    [step1, step2, step3, step4]
+    [step1, step2, step3]
   }
 
 }

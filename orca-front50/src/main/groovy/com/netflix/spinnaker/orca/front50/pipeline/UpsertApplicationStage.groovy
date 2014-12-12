@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.front50.pipeline
 
-import com.netflix.spinnaker.orca.front50.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.front50.tasks.UpsertApplicationTask
 import com.netflix.spinnaker.orca.front50.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
@@ -37,7 +35,6 @@ class UpsertApplicationStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("upsertApplicationTask", UpsertApplicationTask)
     def step2 = buildStep("waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
-    def step3 = buildStep("sendNotification", NotifyEchoTask)
-    [step1, step2, step3]
+    [step1, step2]
   }
 }

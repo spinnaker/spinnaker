@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -41,7 +40,6 @@ class TerminateInstancesStage extends LinearStage {
     def step1 = buildStep("terminateInstances", TerminateInstancesTask)
     def step2 = buildStep("monitorTermination", MonitorKatoTask)
     def step3 = buildStep("waitForTerminatedInstances", WaitForTerminatedInstancesTask)
-    def step4 = buildStep("sendNotification", NotifyEchoTask)
-    [step1, step2, step3, step4]
+    [step1, step2, step3]
   }
 }
