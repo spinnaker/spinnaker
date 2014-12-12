@@ -2,9 +2,11 @@
 
 angular
   .module('cluster.filter.service', ['cluster.filter.model'])
-  .factory('clusterFilterService', function ($location, ClusterFilterModel) {
+  .factory('clusterFilterService', function ($location, $stateParams, ClusterFilterModel) {
 
     function updateQueryParams() {
+      resetParamState();
+
       var defPrimary = 'account';
       var defSecondary = 'region';
 
@@ -24,8 +26,19 @@ angular
       updateProviderTypeParams();
       updateInstanceTypeParams();
 
+      preserveState();
+
     }
 
+    function resetParamState() {
+      $stateParams = {};
+    }
+
+    function preserveState() {
+      _.forOwn($location.search(), function(value, key) {
+        $stateParams[key] = value;
+      })
+    }
 
     function updateAccountParams() {
       var acct = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.account);
