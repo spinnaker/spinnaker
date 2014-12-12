@@ -27,12 +27,17 @@ dependencies {
   runtime spinnaker.dependency("kork")
 }
 
+applicationName = 'mort'
+applicationDistribution.from(project.file('config')) {
+  into 'config'
+}
+
 ospackage {
-  packageName = rootProject.name
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${rootProject.name}"
-  from "${project.buildDir}/install/${project.name}"
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
 }
 
 buildDeb {
@@ -40,4 +45,3 @@ buildDeb {
   requires("openjdk-7-jre")
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8082", "-Daws.enabled=${System.getProperty('aws.enabled', "true")}"]
