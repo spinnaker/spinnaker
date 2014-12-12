@@ -1,12 +1,12 @@
 'use strict';
 
-describe('Controller: ServerGroupCapacity', function () {
+describe('Controller: ServerGroupCapacitySelector', function () {
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(module('deckApp'));
 
-  beforeEach(inject(function ($controller, $rootScope, modalWizardService) {
+  beforeEach(inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();
 
     this.scope.command = {
@@ -20,13 +20,8 @@ describe('Controller: ServerGroupCapacity', function () {
       }
     };
 
-    this.wizard = jasmine.createSpyObj('wizard', ['markComplete', 'markClean', 'markDirty']);
-
-    spyOn(modalWizardService, 'getWizard').and.returnValue(this.wizard);
-
-    this.ctrl = $controller('ServerGroupCapacityCtrl', {
+    this.ctrl = $controller('ServerGroupCapacitySelectorCtrl', {
       $scope: this.scope,
-      modalWizardService: modalWizardService
     });
   }));
 

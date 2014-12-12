@@ -1,0 +1,145 @@
+@import "app/styles/imports/commonImports.less";
+
+.sortable-stages {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.pipeline-footer {
+  border-top: 1px solid @light_grey;
+  margin-top: 10px;
+  padding-top: 10px;
+
+  .alert {
+    display: inline-block;
+    margin-bottom: 0;
+    padding: 6px 12px;
+    vertical-align: middle;
+  }
+}
+
+.additional-details {
+  margin-top: 15px;
+}
+
+pipeline-configurer {
+  margin-top: 15px;
+  display: block;
+
+  .accordion-toggle {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    &:hover {
+      text-decoration: none;
+    }
+
+    .glyphicon {
+      font-size: 70%;
+      opacity: 0.7;
+      margin-right: 5px;
+    }
+  }
+
+  .pipeline-actions {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    .fade-in(0.15, 0.4); // hack: prevent shifting of actions button during sliding animation
+  }
+}
+
+.nav-pipeline-config {
+  border-bottom: 1px solid @light_grey;
+  margin-bottom: 10px;
+  padding-left: 0;
+  margin-top: -15px;
+
+  display: inline-block;
+  width: 100%;
+
+  h4 {
+    line-height: 24px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  li {
+    float: left;
+  }
+
+  .link-pipeline-settings {
+    border-bottom: 4px solid transparent;
+    display: inline-block;
+    height: 44px;
+    line-height: 34px;
+    padding: 5px 15px;
+    margin: 0;
+
+    &:hover, &:active, &.active {
+      background-color: @lightest_grey;
+      border-bottom-color: @spinnaker-blue;
+      text-decoration: none;
+    }
+  }
+
+  .config-section {
+    a, button {
+      margin: 5px;
+      vertical-align: top;
+    }
+  }
+
+}
+
+.config-section {
+  padding: 0 5px;
+  height: 44px;
+  display: inline-block;
+
+  &:last-child {
+    border-right-width: 0;
+  }
+
+  a, h4 {
+    display: inline-block;
+    padding-left: 15px;
+  }
+  .add-new {
+    margin: 0;
+    padding: 7px;
+  }
+  a {
+    padding: 5px 15px;
+  }
+  h4 {
+    background-color: transparent;
+  }
+}
+
+.panel-pipeline-phase {
+  background: #ffffff;
+  border: 1px solid @light_grey;
+  margin: 15px;
+  padding: 15px;
+}
+
+deploy-preview {
+  display: block;
+}
+
+pipeline-config-stage {
+  .panel-group {
+    .panel {
+      border-radius: 0;
+    }
+  }
+}
+
+availability-zone-selector, server-group-capacity-selector {
+  display: block;
+}
+
+.dirty {
+  color: @text_error;
+}

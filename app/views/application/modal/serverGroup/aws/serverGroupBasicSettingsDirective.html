@@ -1,0 +1,84 @@
+<div class="form-group" ng-if="!hideClusterNamePreview">
+  <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
+    <strong>Your server group will be in the cluster:</strong>
+    <span>{{basicSettingsCtrl.getNamePreview()}}</span>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-2 sm-label-left">
+    <b>Account</b>
+  </div>
+  <div class="col-md-7">
+    <account-select-field component="command" field="credentials" accounts="command.backingData.accounts"></account-select-field>
+  </div>
+</div>
+<region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></region-select-field>
+<subnet-select-field label-columns="2" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="backingData.filtered.subnetPurposes"></subnet-select-field>
+<div class="form-group">
+  <div class="col-md-2 sm-label-left">
+    <b>Stack</b>
+    <help-field key="aws.serverGroup.stack"></help-field>
+  </div>
+  <div class="col-md-3"><input type="text"
+                               class="form-control input-sm"
+                               ng-model="command.stack"/></div>
+
+  <div class="col-md-2 sm-label-right">
+    <b>Detail</b>
+    <help-field key="aws.serverGroup.detail"></help-field>
+  </div>
+  <div class="col-md-3"><input type="text"
+                               class="form-control input-sm"
+                               ng-model="command.freeFormDetails"/></div>
+</div>
+<div class="form-group" ng-if="!command.viewState.disableImageSelection">
+  <div class="col-md-2 sm-label-left">
+    <b>Image</b>
+    <help-field key="aws.serverGroup.imageName"></help-field>
+  </div>
+  <div class="col-md-10" ng-if="command.viewState.useAllImageSelection">
+    <ui-select ng-model="command.viewState.allImageSelection"
+               class="form-control input-sm"
+               required>
+      <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || $select.selected}}</ui-select-match>
+      <ui-select-choices repeat="result.imageName as result in allImageSearchResults track by $index"
+                         refresh="basicSettingsCtrl.searchImages($select.search)"
+                         ui-disable-choice="result.message"
+                         reset-search-input="false"
+                         refresh-delay="0">
+        <span ng-bind-html="result.message"></span>
+        <span ng-bind-html="result.imageName | highlight: $select.search"></span>
+        <span ng-if="result.ami">(<span ng-bind-html="result.ami | highlight: $select.search"></span>)</span>
+      </ui-select-choices>
+    </ui-select>
+        <span ng-if="command.backingData.filtered.images.length > 0">
+          <a href ng-click="command.viewState.useAllImageSelection = false">Only show images matching "{{packageBase || applicationName}}"</a>
+          <help-field key="aws.serverGroup.filterImages"></help-field>
+        </span>
+  </div>
+  <div class="col-md-10" ng-if="!command.viewState.useAllImageSelection">
+    <ui-select ng-model="command.amiName" class="form-control input-sm" required>
+      <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
+      <ui-select-choices repeat="image.imageName as image in command.backingData.filtered.images | anyFieldFilter: {imageName: $select.search, ami: $select.search } | orderBy: '-imageName'">
+        <span ng-bind-html="image.imageName | highlight: $select.search"></span>
+        (<span ng-bind-html="image.ami | highlight: $select.search"></span>)
+      </ui-select-choices>
+    </ui-select>
+    <a href ng-click="command.viewState.useAllImageSelection = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
+  </div>
+</div>
+<div class="form-group" ng-if="deploymentStrategies.length">
+  <div class="col-md-2 sm-label-left">
+    <b>Strategy</b>
+    <help-field key="aws.serverGroup.strategy"></help-field>
+  </div>
+  <div class="col-md-10">
+    <ui-select ng-model="command.strategy" class="form-control input-sm">
+      <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
+      <ui-select-choices repeat="strategy.key as strategy in deploymentStrategies | filter: $select.search">
+        <strong ng-bind-html="strategy.label | highlight: $select.search"></strong>
+        <div ng-bind-html="strategy.description"></div>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

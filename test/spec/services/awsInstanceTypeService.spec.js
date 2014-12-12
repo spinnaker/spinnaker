@@ -61,10 +61,11 @@ describe('Service: InstanceType', function () {
     it('returns results for a single region', function() {
       this.$httpBackend.expectGET(this.settings.gateUrl + '/instanceTypes').respond(200, this.allTypes);
 
-      var results = null;
+      var results = null,
+          service = this.instanceTypeService;
 
-      this.instanceTypeService.getAvailableTypesForRegions('aws', ['us-west-2']).then(function(result) {
-        results = result;
+      this.instanceTypeService.getAllTypesByRegion().then(function(result) {
+        results = service.getAvailableTypesForRegions('aws', result, ['us-west-2']);
       });
 
       this.$httpBackend.flush();
@@ -74,10 +75,11 @@ describe('Service: InstanceType', function () {
     it('returns empty list for region with no instance types', function() {
       this.$httpBackend.expectGET(this.settings.gateUrl + '/instanceTypes').respond(200, this.allTypes);
 
-      var results = null;
+      var results = null,
+          service = this.instanceTypeService;
 
-      this.instanceTypeService.getAvailableTypesForRegions('aws', ['us-west-3']).then(function(result) {
-        results = result;
+      this.instanceTypeService.getAllTypesByRegion().then(function(result) {
+        results = service.getAvailableTypesForRegions('aws', result, ['us-west-3']);
       });
 
       this.$httpBackend.flush();
@@ -87,10 +89,11 @@ describe('Service: InstanceType', function () {
     it('returns an intersection when multiple regions are provided', function() {
       this.$httpBackend.expectGET(this.settings.gateUrl + '/instanceTypes').respond(200, this.allTypes);
 
-      var results = null;
+      var results = null,
+          service = this.instanceTypeService;
 
-      this.instanceTypeService.getAvailableTypesForRegions('aws', ['us-west-2', 'eu-west-1']).then(function(result) {
-        results = result;
+      this.instanceTypeService.getAllTypesByRegion().then(function(result) {
+        results = service.getAvailableTypesForRegions('aws', result, ['us-west-2', 'eu-west-1']);
       });
 
       this.$httpBackend.flush();

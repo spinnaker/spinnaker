@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService, scheduledCache) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -149,6 +149,7 @@ angular.module('deckApp')
       securityGroup.type = 'upsertSecurityGroup';
       securityGroup.user = 'deckUser';
       securityGroup.credentials = securityGroup.accountName;
+      scheduledCache.removeAll();
       return executeTask({
         job: [
           securityGroup
@@ -172,6 +173,7 @@ angular.module('deckApp')
       if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
         loadBalancer.securityGroups = null;
       }
+      scheduledCache.removeAll();
       return executeTask({
         job: [
           loadBalancer
@@ -182,6 +184,7 @@ angular.module('deckApp')
     }
 
     function deleteLoadBalancer(loadBalancer, applicationName) {
+      scheduledCache.removeAll();
       return executeTask({
         job: [
           {
@@ -215,8 +218,32 @@ angular.module('deckApp')
       });
     }
 
-    function cloneServerGroup(base, applicationName) {
-      var command = angular.copy(base);
+    function convertServerGroupCommandToDeployConfiguration(base) {
+      // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
+      var command = _.defaults({backingData: [], viewState: []}, base);
+      if (base.viewState.useAllImageSelection) {
+        command.amiName = base.viewState.allImageSelection;
+      }
+      command.availabilityZones = {};
+      command.availabilityZones[command.region] = base.availabilityZones;
+      if (!command.ramdiskId) {
+        delete command.ramdiskId; // TODO: clean up in kato? - should ignore if empty string
+      }
+      delete command.region;
+      delete command.viewState;
+      delete command.backingData;
+      delete command.selectedProvider;
+      delete command.instanceProfile;
+      delete command.vpcId;
+      delete command.usePreferredZones;
+
+      if (!command.subnetType) {
+        delete command.subnetType;
+      }
+      return command;
+    }
+
+    function cloneServerGroup(command, applicationName) {
       command.user = authenticationService.getAuthenticatedUser().name;
 
       var description;
@@ -237,25 +264,10 @@ angular.module('deckApp')
         }
         description = 'Create New Server Group in cluster ' + asgName;
       }
-      if (command.viewState.useAllImageSelection) {
-        command.amiName = command.viewState.allImageSelection;
-      }
-      command.availabilityZones = {};
-      command.availabilityZones[command.region] = base.availabilityZones;
-      delete command.region;
-      delete command.viewState;
-      delete command.selectedProvider;
-      delete command.instanceProfile;
-      delete command.vpcId;
-      delete command.usePreferredZones;
-
-      if (!command.subnetType) {
-        delete command.subnetType;
-      }
 
       return executeTask({
         job: [
-          command
+          convertServerGroupCommandToDeployConfiguration(command)
         ],
         application: applicationName,
         description: description
@@ -264,6 +276,7 @@ angular.module('deckApp')
 
     return {
       cloneServerGroup: cloneServerGroup,
+      convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       createApplication: createApplication,
       deleteLoadBalancer: deleteLoadBalancer,
       destroyServerGroup: destroyServerGroup,

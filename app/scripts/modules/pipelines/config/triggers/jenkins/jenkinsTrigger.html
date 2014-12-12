@@ -1,0 +1,26 @@
+<form class="form-horizontal">
+  <div class="form-group">
+    <label class="col-md-4 control-label">Master</label>
+    <div class="col-md-8">
+      <ui-select class="form-control input-sm"
+                 ng-model="trigger.master">
+        <ui-select-match placeholder="Select a master...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="master in masters | filter: $select.search">
+          <span ng-bind-html="master | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-4 control-label">Job</label>
+    <div class="col-md-8">
+      <p class="form-control-static" ng-if="!trigger.master">(Select a master)</p>
+      <ui-select class="form-control input-sm"
+                 ng-model="trigger.job"
+                 ng-if="trigger.master">
+        <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+</form>

@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler) {
+  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler, scheduledCache) {
 
     var mortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -13,9 +13,17 @@ angular.module('deckApp')
       var securityGroupPromises = [];
 
       application.accounts.forEach(function(account) {
-        securityGroupPromises.push(mortEndpoint.all('securityGroups').one(account).get().then(function(groups) {
-          return { account: account, securityGroups: groups.plain() };
-        }));
+        securityGroupPromises.push(
+          mortEndpoint.all('securityGroups')
+            .one(account)
+            .withHttpConfig({cache: scheduledCache})
+            .get()
+            .then(
+              function(groups) {
+                return { account: account, securityGroups: groups.plain() };
+              }
+            )
+        );
       });
 
       return $q.all(securityGroupPromises).then(_.flatten);
@@ -124,7 +132,7 @@ angular.module('deckApp')
     }
 
     function getAllSecurityGroups() {
-      return mortEndpoint.one('securityGroups').get();
+      return mortEndpoint.one('securityGroups').withHttpConfig({cache: scheduledCache}).get();
     }
 
     function getApplicationSecurityGroup(application, account, region, id) {

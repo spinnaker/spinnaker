@@ -1,0 +1,54 @@
+<div modal-page>
+  <div class="modal-header">
+    <h3>Create Pipeline</h3>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-danger" ng-if="viewState.saveError">
+      <p>Could not save pipeline.</p>
+      <p><b>Reason: </b>{{viewState.errorMessage}}</p>
+      <p><a href ng-click="viewState.saveError = false">[dismiss]</a></p>
+    </div>
+    <form role="form" name="form" class="form-horizontal" ng-submit="createPipelineModalCtrl.createPipeline()">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-left">
+          <b>Pipeline Name</b>
+        </div>
+        <div class="col-md-7">
+          <input type="text" class="form-control input-sm"
+                 ng-model="command.name"
+                 validate-unique="existingNames"/>
+        </div>
+      </div>
+      <div class="form-group" ng-if="templates.length">
+        <div class="col-md-3 sm-label-left">
+          <b>Template</b>
+        </div>
+        <div class="col-md-7">
+          <ui-select ng-model="command.template"
+                     class="form-control input-sm">
+            <ui-select-match>
+              <span>{{$select.selected.name}}</span>
+            </ui-select-match>
+            <ui-select-choices repeat="template in templates | filter: $select.search">
+              <h5>{{template.name}}</h5>
+              <div ng-if="template.stages">
+                <b>{{template.stages.length}} stages: </b>
+                <ul ng-repeat="stage in template.stages">
+                  <li>{{stage.name || stage.type}}</li>
+                </ul>
+              </div>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="createPipelineModalCtrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-disabled="form.$invalid"
+            ng-click="createPipelineModalCtrl.createPipeline()">
+      <span class="glyphicon glyphicon-ok-circle"></span> Create Pipeline
+    </button>
+  </div>
+</div>

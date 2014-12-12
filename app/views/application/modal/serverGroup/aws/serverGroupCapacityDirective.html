@@ -1,0 +1,55 @@
+<div class="clearfix">
+  <div ng-if="!command.viewState.useSimpleCapacity">
+    <div class="form-group">
+      <div class="col-md-12">
+        <p>Sets up auto-scaling for this server group.</p>
+        <p>To disable auto-scaling, use the <a href ng-click="command.viewState.useSimpleCapacity = true">Simple Mode</a>.</p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-4"><b>Min</b></div>
+      <div class="col-md-2"><b>Max</b></div>
+      <div class="col-md-2"><b>Desired</b></div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left"><b>Capacity</b></div>
+      <div class="col-md-2"><input type="number"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.min"
+                                   min="0"
+                                   validate-max="command.capacity.max"
+                                   required/></div>
+      <div class="col-md-2"><input type="number"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.max"
+                                   min="0"
+                                   validate-min="command.capacity.min"
+                                   required/></div>
+      <div class="col-md-2"><input type="number"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.desired"
+                                   min="0"
+                                   validate-min="command.capacity.min"
+                                   validate-max="command.capacity.max"
+                                   required/></div>
+    </div>
+  </div>
+
+  <div ng-if="command.viewState.useSimpleCapacity">
+    <div class="form-group">
+      <div class="col-md-12">
+        <p>Sets min, max, and desired instance counts to the same value.</p>
+        <p> To allow true auto-scaling, use the <a href ng-click="command.viewState.useSimpleCapacity = false">Advanced Mode</a>.</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left"><b>Number of Instances</b></div>
+      <div class="col-md-2"><input type="number"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.desired"
+                                   min="0"
+                                   required/></div>
+    </div>
+  </div>
+</div>

@@ -49,8 +49,11 @@ angular.module('deckApp.gce')
       $scope.lastImageAccount = serverGroupCommand.credentials;
     });
 
+    var instanceTypeLoader = instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(instanceTypes) {
+      $scope.instanceTypesByRegion = instanceTypes;
+    });
 
-    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader]).then(function() {
+    $q.all([accountLoader, securityGroupLoader, loadBalancerLoader, subnetLoader, imageLoader, instanceTypeLoader]).then(function() {
       $scope.state.loaded = true;
       initializeCommand();
       initializeWizardState();
@@ -216,12 +219,10 @@ angular.module('deckApp.gce')
 
     function configureInstanceTypes() {
       if ($scope.command.region) {
-        instanceTypeService.getAvailableTypesForRegions($scope.command.selectedProvider, [$scope.command.region]).then(function (result) {
-          $scope.regionalInstanceTypes = result;
-          if ($scope.command.instanceType && result.indexOf($scope.command.instanceType) === -1) {
-            $scope.regionalInstanceTypes.push($scope.command.instanceType);
-          }
-        });
+        $scope.regionalInstanceTypes = instanceTypeService.getAvailableTypesForRegions($scope.command.selectedProvider, $scope.instanceTypesByRegion, [$scope.command.region]);
+        if ($scope.command.instanceType && result.indexOf($scope.command.instanceType) === -1) {
+          $scope.regionalInstanceTypes.push($scope.command.instanceType);
+        }
       }
     }
 

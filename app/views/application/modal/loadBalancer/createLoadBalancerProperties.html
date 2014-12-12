@@ -17,7 +17,12 @@
       </div>
     </div>
     <kato-error error-wrapper="state" title="We could not create your load balancer."></kato-error>
-    <account-select-field label-columns="3" component="loadBalancer" field="credentials" accounts="accounts" on-change="ctrl.accountUpdated()"></account-select-field>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Account</div>
+      <div class="col-md-7">
+        <account-select-field component="loadBalancer" field="credentials" accounts="accounts" on-change="ctrl.accountUpdated()"></account-select-field>
+      </div>
+    </div>
     <region-select-field label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Stack</div>

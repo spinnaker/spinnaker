@@ -1,86 +1,8 @@
 <form ng-controller="ServerGroupCapacityCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
-    <div ng-if="!command.viewState.useSimpleCapacity">
-      <div class="form-group col-md-12">
-        <p>Sets up auto-scaling for this server group.</p>
-        <p>To disable auto-scaling, use the <a href ng-click="command.viewState.useSimpleCapacity = true">Simple Mode</a>.</p>
-      </div>
-
-      <div class="form-group">
-        <div class="col-md-2 col-md-offset-4"><b>Min</b></div>
-        <div class="col-md-2"><b>Max</b></div>
-        <div class="col-md-2"><b>Desired</b></div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-4 sm-label-left"><b>Capacity</b></div>
-        <div class="col-md-2"><input type="number"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.min"
-                                     min="0"
-                                     validate-max="command.capacity.max"
-                                     required/></div>
-        <div class="col-md-2"><input type="number"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.max"
-                                     min="0"
-                                     validate-min="command.capacity.min"
-                                     required/></div>
-        <div class="col-md-2"><input type="number"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.desired"
-                                     min="0"
-                                     validate-min="command.capacity.min"
-                                     validate-max="command.capacity.max"
-                                     required/></div>
-      </div>
-    </div>
-
-    <div ng-if="command.viewState.useSimpleCapacity">
-      <div class="form-group col-md-12">
-        <p>Sets min, max, and desired instance counts to the same value.</p>
-        <p> To allow true auto-scaling, use the <a href ng-click="command.viewState.useSimpleCapacity = false">Advanced Mode</a>.</p>
-      </div>
-      <div class="form-group">
-        <div class="col-md-4 sm-label-left"><b>Number of Instances</b></div>
-        <div class="col-md-2"><input type="number"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.desired"
-                                     min="0"
-                                     required/></div>
-      </div>
-    </div>
-
+    <server-group-capacity-selector command="command"></server-group-capacity-selector>
     <hr/>
-
-    <input type="hidden" ng-model="command.availabilityZones[0]" required/>
-    <div class="form-group">
-      <div class="col-md-4 sm-label-left">Availability Zones</div>
-      <div class="col-md-7" ng-if="!command.viewState.usePreferredZones && !command.region">(Select a region)</div>
-      <div class="col-md-7" ng-if="command.region">
-        <p>Automatic Availability Zone Balancing:</p>
-        <select class="form-control input-sm"
-                ng-model="command.viewState.usePreferredZones"
-                ng-options="option.value as option.label for option in autoBalancingOptions">
-
-        </select>
-        <br/>
-        <div ng-if="command.viewState.usePreferredZones">
-          <p>
-            Server group will be available in:
-            <ul>
-              <li ng-repeat="zone in preferredZones[command.credentials][command.region]">
-                {{zone}}
-              </li>
-            </ul>
-          </p>
-        </div>
-        <div ng-if="command.region && !command.viewState.usePreferredZones">
-          Restrict server group instances to:
-          <checklist items="regionalAvailabilityZones"
-                     model="command.availabilityZones"></checklist>
-        </div>
-      </div>
-    </div>
+    <availability-zone-selector command="command"></availability-zone-selector>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
@@ -89,7 +11,7 @@
     </button>
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
-                   state="state" on-click="ctrl.clone()" is-new="true"></submit-button>
+                   state="state" on-click="ctrl.submit()" is-new="command.viewState.isNew"></submit-button>
     <button class="btn btn-default"
             ng-disabled="form.$invalid"
             ng-click="wizard.nextPage(form.$valid)">

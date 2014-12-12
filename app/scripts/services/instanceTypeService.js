@@ -18,8 +18,8 @@ angular.module('deckApp')
       return getDelegate(selectedProvider).getAllTypesByRegion();
     }
 
-    function getAvailableTypesForRegions(selectedProvider, selectedRegions) {
-      return getDelegate(selectedProvider).getAvailableTypesForRegions(selectedRegions);
+    function getAvailableTypesForRegions(selectedProvider, instanceTypes, selectedRegions) {
+      return getDelegate(selectedProvider).getAvailableTypesForRegions(instanceTypes, selectedRegions);
     }
 
     return {

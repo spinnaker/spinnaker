@@ -15,15 +15,4 @@ angular.module('deckApp')
       }
     });
 
-    $scope.autoBalancingOptions = [
-      { label: 'Enabled', value: true},
-      { label: 'Manual', value: false}
-    ];
-
-    $scope.$watch('command.capacity.desired', function(newVal) {
-      if ($scope.command.viewState.useSimpleCapacity) {
-        $scope.command.capacity.min = newVal;
-        $scope.command.capacity.max = newVal;
-      }
-    });
   });

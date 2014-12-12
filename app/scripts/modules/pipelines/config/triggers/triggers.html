@@ -1,0 +1,19 @@
+<div class="form-horizontal">
+  <h4>Automated Triggers</h4>
+  <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
+  <div class="row" ng-if="!pipeline.triggers.length">
+    <div class="col-md-12 text-center">
+      You don't have any triggers configured for {{pipeline.name}}.
+      <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addTrigger()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Trigger
+      </button>
+    </div>
+  </div>
+  <div class="row" ng-if="pipeline.triggers.length">
+    <div class="col-md-12">
+      <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addTrigger()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Trigger
+      </button>
+    </div>
+  </div>
+</div>

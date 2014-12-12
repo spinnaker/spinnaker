@@ -185,35 +185,28 @@ angular.module('deckApp')
         RestangularConfigurer.setDefaultHttpFields({cache: true});
       });
 
-      var deferred = $q.defer();
-
-      instanceTypesEndpoint.all('instanceTypes').getList().then(function (types) {
-        deferred.resolve(_.groupBy(types, 'region'));
+      return instanceTypesEndpoint.all('instanceTypes').getList().then(function (types) {
+        return _.groupBy(types, 'region');
       });
-
-      return deferred.promise;
-
     }
 
-    function getAvailableTypesForRegions(selectedRegions) {
+    function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       selectedRegions = selectedRegions || [];
-      return getAllTypesByRegion().then(function (availableRegions) {
-        var availableTypes = [];
+      var availableTypes = [];
 
-        // prime the list of available types
-        if (selectedRegions && selectedRegions.length) {
-          availableTypes = _.pluck(availableRegions[selectedRegions[0]], 'name');
+      // prime the list of available types
+      if (selectedRegions && selectedRegions.length) {
+        availableTypes = _.pluck(availableRegions[selectedRegions[0]], 'name');
+      }
+
+      // this will perform an unnecessary intersection with the first region, which is fine
+      selectedRegions.forEach(function(selectedRegion) {
+        if (availableRegions[selectedRegion]) {
+          availableTypes = _.intersection(availableTypes, _.pluck(availableRegions[selectedRegion], 'name'));
         }
-
-        // this will perform an unnecessary intersection with the first region, which is fine
-        selectedRegions.forEach(function(selectedRegion) {
-          if (availableRegions[selectedRegion]) {
-            availableTypes = _.intersection(availableTypes, _.pluck(availableRegions[selectedRegion], 'name'));
-          }
-        });
-
-        return availableTypes.sort();
       });
+
+      return availableTypes.sort();
     }
 
     return {

@@ -2,7 +2,9 @@
 
 
 angular.module('deckApp')
-  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout, clusterService, loadBalancerService, pond, securityGroupService, scheduler, taskTracker, $exceptionHandler/*, scheduledCache*/) {
+  .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout,
+                                    clusterService, loadBalancerService, pond, securityGroupService,
+                                    scheduler, taskTracker, $exceptionHandler, scheduledCache) {
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -152,7 +154,7 @@ angular.module('deckApp')
     function listAWSLoadBalancers() {
       return gateEndpoint
         .all('loadBalancers')
-//        .withHttpConfig({cache: scheduledCache })
+        .withHttpConfig({cache: scheduledCache })
         .getList({provider: 'aws'});
     }
 

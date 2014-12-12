@@ -1,0 +1,27 @@
+<div modal-page>
+  <div class="modal-header">
+    <h3>Rename Pipeline</h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" name="form" class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-left">
+          <b>Pipeline Name</b>
+        </div>
+        <div class="col-md-7">
+          <input type="text" class="form-control input-sm"
+                 ng-model="newName"
+                 validate-unique="existingNames"/>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="renamePipelineModalCtrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-disabled="form.$invalid || pipeline.name === newName"
+            ng-click="renamePipelineModalCtrl.renamePipeline()">
+      <span class="glyphicon glyphicon-ok-circle"></span> Rename Pipeline
+    </button>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+<div class="col-md-12">
+  <div class="nav-pipeline-config">
+    <div class="config-section">
+      <button class="btn btn-link" ng-click="pipelineConfigNavCtrl.navigateToSettings()"><span class="glyphicon glyphicon-cog"></span> Settings</button>
+    </div>
+    <div class="config-section">
+      <h4>STAGES:</h4>
+      <button ng-repeat="stage in pipeline.stages" role="button" class="btn btn-default" ng-click="pipelineConfigNavCtrl.navigateToStage($index)"
+         ng-class="{'active':$index === stageIsActive($index)}">
+        {{$index+1}}: {{stage.type || '[no name]'}}
+      </button>
+      <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add stage
+      </button>
+    </div>
+  </div>
+</div>

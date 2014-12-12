@@ -12,9 +12,9 @@
   float: left !important;
 }
 
-.fade-in(@duration:0.25) {
+.fade-in(@duration:0.25; @delay: 0) {
   &.ng-enter {
-    transition: opacity ~"@{duration}s" ease-in;
+    transition: opacity ~"@{duration}s" ~"@{delay}s" ease-in;
   }
   &.ng-enter, &.ng-leave.ng-leave-active {
     opacity: 0;

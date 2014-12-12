@@ -6,20 +6,15 @@ describe('Controller: ServerGroupAdvancedSettings', function () {
 
   beforeEach(module('deckApp'));
 
-  beforeEach(inject(function ($controller, $rootScope, modalWizardService) {
+  beforeEach(inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();
 
     this.scope.command = {
       suspendedProcesses: [],
     };
 
-    this.wizard = jasmine.createSpyObj('wizard', ['markComplete', 'markClean', 'markDirty']);
-
-    spyOn(modalWizardService, 'getWizard').and.returnValue(this.wizard);
-
-    this.ctrl = $controller('awsServerGroupAdvancedSettingsCtrl', {
+    this.ctrl = $controller('ServerGroupAdvancedSettingsCtrl', {
       $scope: this.scope,
-      modalWizardService: modalWizardService
     });
   }));
 
