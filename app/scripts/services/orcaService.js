@@ -236,6 +236,7 @@ angular.module('deckApp')
       delete command.instanceProfile;
       delete command.vpcId;
       delete command.usePreferredZones;
+      delete command.source;
 
       if (!command.subnetType) {
         delete command.subnetType;
