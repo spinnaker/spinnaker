@@ -30,7 +30,7 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application) {
-    executionRepository.retrieveOrchestrationsForApplication(application)
+    executionRepository.retrieveOrchestrationsForApplication(application).collect { convert it }
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)

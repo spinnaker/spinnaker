@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
