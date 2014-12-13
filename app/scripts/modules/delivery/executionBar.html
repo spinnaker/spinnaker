@@ -1,0 +1,12 @@
+<div class="row execution-bar">
+  <div class="col-md-12">
+    <div ng-repeat="stage in execution.stages | stages:filter"
+         class="execution-stage"
+         ng-style="ctrl.styleStage(stage)">
+      <div class="execution-stage-label"
+            style="width: 100%">
+        {{ stage.name }}
+      </div>
+    </div>
+  </div>
+</div>

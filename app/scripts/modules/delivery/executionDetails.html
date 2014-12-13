@@ -1,0 +1,43 @@
+<div class="col-md-12 execution-details">
+  <div class="row">
+    <div class="col-md-11">
+      <h5 display>Details</h5>
+    </div>
+    <div class="col-md-1"
+         style="padding-top: 10px;">
+
+      <span class="glyphicon glyphicon-remove"
+            ng-click="ctrl.close(); $event.stopPropagation();">
+      </span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-9">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th>Completed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="stage in execution.stages"
+              ng-class="{ current: ctrl.isStageCurrent(stage) }">
+            <td>{{ stage.name }}</td>
+            <td>
+              <span class="label label-default label-{{ stage.status | lowercase }}">
+                {{ stage.status }}
+              </span>
+            </td>
+            <td>{{ stage.startTime | relativeTime }}</td>
+            <td>{{ stage.endTime | relativeTime }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-3">
+    </div>
+  </div>
+</div>

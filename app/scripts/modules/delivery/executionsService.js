@@ -1,12 +1,12 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('pipelines', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, appendTransform) {
-    function getCurrentPipeline() {
+angular.module('deckApp.delivery')
+  .factory('executionsService', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, appendTransform) {
+    function getCurrentExecution() {
       var deferred = $q.defer();
-      getPipelines().then(function(pipelines) {
+      getExecutions().then(function(executions) {
         // pipelines/:pipeline endpoint doesn't appear to work ATM
-        deferred.resolve(pipelines.filter(function(execution) {
+        deferred.resolve(executions.filter(function(execution) {
           return execution.id === $stateParams.executionId;
         })[0]);
       });
@@ -15,8 +15,8 @@ angular.module('deckApp')
 
     function getCurrentStage() {
       var deferred = $q.defer();
-      getCurrentPipeline().then(function(pipeline) {
-        deferred.resolve(pipeline.stages.reduce(function(acc, stage) {
+      getCurrentExecution().then(function(execution) {
+        deferred.resolve(execution.stages.reduce(function(acc, stage) {
           if (stage.name === $stateParams.stageName) {
             acc = stage;
           }
@@ -27,32 +27,32 @@ angular.module('deckApp')
       return deferred.promise;
     }
 
-    function getPipelines() {
+    function getExecutions() {
       var deferred = $q.defer();
       $http({
         method: 'GET',
         cache: applicationLevelScheduledCache,
-        transformResponse: appendTransform(function(pipelines) {
-          pipelines.forEach(function(pipeline) {
-            orchestratedItem.defineProperties(pipeline);
-            pipeline.stages.forEach(orchestratedItem.defineProperties);
-            Object.defineProperty(pipeline, 'currentStage', {
+        transformResponse: appendTransform(function(executions) {
+          executions.forEach(function(execution) {
+            orchestratedItem.defineProperties(execution);
+            execution.stages.forEach(orchestratedItem.defineProperties);
+            Object.defineProperty(execution, 'currentStage', {
               get: function() {
-                if (pipeline.isCompleted) {
-                  return pipeline.stages.indexOf(
-                    pipeline.stages[pipeline.stages.length -1]
+                if (execution.isCompleted) {
+                  return execution.stages.indexOf(
+                    execution.stages[execution.stages.length -1]
                   );
                 }
-                if (pipeline.isFailed) {
-                  return pipeline.stages.indexOf(
-                    pipeline.stages.filter(function(stage) {
+                if (execution.isFailed) {
+                  return execution.stages.indexOf(
+                    execution.stages.filter(function(stage) {
                       return stage.isFailed;
                     })[0]
                   );
                 }
-                if (pipeline.isRunning) {
-                  return pipeline.stages.indexOf(
-                    pipeline.stages.filter(function(stage) {
+                if (execution.isRunning) {
+                  return execution.stages.indexOf(
+                    execution.stages.filter(function(stage) {
                       return stage.isRunning;
                     })[0]
                   );
@@ -60,7 +60,7 @@ angular.module('deckApp')
               },
             });
           });
-          return pipelines;
+          return executions;
         }),
         url: [
           settings.gateUrl,
@@ -75,21 +75,21 @@ angular.module('deckApp')
     }
 
     return {
-      getAll: getPipelines,
+      getAll: getExecutions,
       subscribeAll: function(fn) {
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getPipelines());
+            return RxService.Observable.fromPromise(getExecutions());
           })
           .subscribe(fn);
       },
-      getCurrentPipeline: getCurrentPipeline,
-      subscribeToCurrentPipeline: function(fn) {
+      getCurrentExecution: getCurrentExecution,
+      subscribeToCurrentExecution: function(fn) {
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getCurrentPipeline());
+            return RxService.Observable.fromPromise(getCurrentExecution());
           })
           .subscribe(fn);
       },

@@ -3,13 +3,13 @@
 angular.module('deckApp')
   .constant('settings', {
     front50Url: 'http://front50-prestaging.prod.netflix.net',
-    oortUrl: 'http://oort-prestaging.prod.netflix.net',
-    mortUrl: 'http://mort-prestaging.prod.netflix.net',
+    oortUrl: 'http://oort.prod.netflix.net',
+    mortUrl: 'http://mort-staging.prod.netflix.net',
     pondUrl: 'http://pond-prestaging.prod.netflix.net',
     katoUrl: 'http://kato-prestaging.prod.netflix.net',
     credentialsUrl: 'http://kato-prestaging.prod.netflix.net/',
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
-    gateUrl: 'http://spinnaker-api-prestaging.prod.netflix.net',
+    gateUrl: 'http://spinnaker-api.prod.netflix.net',
     accounts: {
       prod: {
         challengeDestructiveActions: true

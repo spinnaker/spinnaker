@@ -23,7 +23,8 @@ angular.module('deckApp', [
     'deckApp.aws',
     'deckApp.gce',
     'deckApp.cluster',
-    'deckApp.authentication'
+    'deckApp.authentication',
+    'deckApp.delivery',
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)

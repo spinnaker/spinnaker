@@ -1,13 +1,11 @@
 'use strict';
 
 angular.module('deckApp')
-  .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider) {
+  .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {
       $urlRouterProvider.otherwise('/');
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
       $urlRouterProvider.when('/', '/applications');
-      $urlRouterProvider.when('/applications/{application}/delivery',
-                              '/applications/{application}/delivery/executions');
 
       var instanceDetails = {
         name: 'instanceDetails',
@@ -343,77 +341,6 @@ angular.module('deckApp')
         children: [taskDetails],
       };
 
-      var executions = {
-        name: 'executions',
-        url: '/executions',
-        views: {
-          'delivery': {
-            templateUrl: 'views/delivery/executiontimeline.html',
-            controller: 'ExecutionsCtrl as Ctrl',
-          },
-        },
-        children: [
-          {
-            name: 'executionDetails',
-            url: '/:pipelineName/executions/:executionId',
-            views: {
-              'details': {
-                templateUrl: 'views/delivery/execution.html',
-                controller: 'ExecutionDetailsCtrl as ctrl',
-              },
-            },
-          },
-          {
-            name: 'stageDetails',
-            url: '/:pipelineName/executions/:executionId/stages/:stageName',
-            views: {
-              'details': {
-                templateUrl: 'views/delivery/stage.html',
-                controller: 'ExecutionStageCtrl as ctrl',
-              },
-            },
-          }
-        ]
-      };
-
-      var buildTimelines = {
-        name: 'buildTimelines',
-        url: '/buildTimelines',
-        views: {
-          'delivery': {
-            templateUrl: 'views/delivery/buildtimelines.html',
-            controller: 'BuildTimelinesCtrl as ctrl',
-          }
-        }
-      };
-
-      var pipelineHistory = {
-        name: 'pipelineHistory',
-        url: '/pipelineHistory',
-        views: {
-          'delivery': {
-            templateUrl: 'views/delivery/pipelinehistory.html',
-            controller: 'BuildTimelinesCtrl as ctrl', // yay, reuse!
-          },
-        },
-      };
-
-      var delivery = {
-        name: 'delivery',
-        url: '/delivery',
-        views: {
-          'insight': {
-            templateUrl: 'views/delivery.html',
-            controller: 'DeliveryCtrl',
-          },
-        },
-        children: [
-          executions,
-          buildTimelines,
-          pipelineHistory,
-        ]
-      };
-
       var application = {
         name: 'application',
         url: '/:application',
@@ -437,7 +364,7 @@ angular.module('deckApp')
         children: [
           insight,
           tasks,
-          delivery,
+          deliveryStates.executions,
         ],
       };
 

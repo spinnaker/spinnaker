@@ -2,15 +2,15 @@
 
 
 angular.module('deckApp')
-  .controller('ApplicationCtrl', function($scope, application, pipelines, taskTracker) {
+  .controller('ApplicationCtrl', function($scope, application, executionsService, taskTracker) {
     $scope.application = application;
     application.enableAutoRefresh($scope);
 
-    pipelines.getAll().then(function(oldExecutions) {
-      $scope.pipelines = oldExecutions;
-      var subscription = pipelines.subscribeAll(function(newExecutions) {
+    executionsService.getAll().then(function(oldExecutions) {
+      $scope.executions = oldExecutions;
+      var subscription = executionsService.subscribeAll(function(newExecutions) {
         taskTracker.handleTaskUpdates(oldExecutions, newExecutions);
-        $scope.pipelines = newExecutions;
+        $scope.executions = newExecutions;
         oldExecutions = newExecutions;
       });
       $scope.$on('$destroy', function() {

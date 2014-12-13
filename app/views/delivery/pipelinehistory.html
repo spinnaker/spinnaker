@@ -1,7 +1,0 @@
-<div class="row" ng-repeat="(pipelineName, executions) in pipelines | groupBy:'name'">
-  <div class="col-md-8">
-    <pipeline-heading name="pipelineName"></pipeline-heading>
-    <pipeline-stacked-bar executions="executions">
-    </pipeline-stacked-bar>
-  </div>
-</div>

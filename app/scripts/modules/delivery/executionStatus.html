@@ -1,0 +1,56 @@
+<div class="row execution-status">
+  <div class="col-md-7 execution-info">
+    <span ng-switch="execution.trigger.type">
+      <h5 ng-switch-when="jenkins">
+        Build #{{ execution.trigger.buildInfo.lastBuildLabel }}
+      </h5>
+      <h5 ng-switch-default>
+        Unknown
+      </h5>
+    </span>
+    <ul>
+      <li ng-if="execution.trigger.type === 'jenkins'">
+        {{ execution.trigger.buildInfo.name }}
+      </li>
+      <li>
+        {{ execution.startTime | relativeTime }}
+      </li>
+    </ul>
+  </div>
+  <div class="col-md-5">
+    <span ng-switch="execution.status.toLowerCase()">
+      <span ng-switch-when="failed">
+        <span>
+          <h5 class="status status-failed">
+            FAILED
+          </h5>
+          <ul>
+            <li>
+              {{ ctrl.getFailedStage(execution) }}
+            </li>
+          </ul>
+        </span>
+      </span>
+      <span ng-switch-when="executing">
+        <span>
+          <h5 class="status status-executing">
+            EXECUTING
+          </h5>
+          <ul>
+            <li>
+              {{ ctrl.getExecutingStage(execution) }}
+            </li>
+          </ul>
+        </span>
+      </span>
+      <span ng-switch-when="completed">
+        <h5 class="status status-completed">
+          COMPLETED
+        </h5>
+      </span>
+      <span ng-switch-default>
+        Unknown
+      </span>
+    </span>
+  </div>
+</div>
