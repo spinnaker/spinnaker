@@ -115,7 +115,11 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   void update(String id, Map<String, String> attributes) {
     attributes.name = id
     attributes.updateTs = System.currentTimeMillis() as String
-    runQuery(buildInsertQuery(attributes))
+
+    def existingApplication = findByName(id)
+    def properties = existingApplication.allSetColumnProperties() + attributes
+
+    runQuery(buildInsertQuery(properties))
   }
 
   @Override
@@ -197,13 +201,13 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
           name: getStringValue('name'),
           description: getStringValue('description'),
           email: getStringValue('email'),
-          owner: details.owner,
-          type: details.type,
-          group: details.group,
-          monitorBucketType: details.monitorBucketType,
-          pdApiKey: details.pdApiKey,
-          tags: details.tags,
-          regions: details.regions,
+          owner: details.owner ?: null,
+          type: details.type ?: null,
+          group: details.group ?: null,
+          monitorBucketType: details.monitorBucketType ?: null,
+          pdApiKey: details.pdApiKey ?: null,
+          tags: details.tags ?: null,
+          regions: details.regions ?: null,
           accounts: accounts ? accounts.join(",") : null,
           updateTs: getStringValue('updatets'),
           createTs: getStringValue('createts')

@@ -244,7 +244,7 @@ class GoogleApplicationDAO implements ApplicationDAO {
   }
 
   private static Application mapToApp(Entity entity) {
-    Map<String, String> map = entity.propertyList.collectEntries { [it.name, it.value.getStringValue()] }
+    Map<String, String> map = entity.propertyList.collectEntries { [it.name, (it.value.getStringValue() ?: null)] }
     return new Application(map)
   }
 

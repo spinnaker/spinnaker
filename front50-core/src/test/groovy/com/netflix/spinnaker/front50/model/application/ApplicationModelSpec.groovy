@@ -62,14 +62,17 @@ class ApplicationModelSpec extends Specification {
     def application = new Application()
     application.setName("TEST_APP")
     application.email = 'aglover@netflix.com'
+    application.pdApiKey = ''
+    application.owner = null
 
     def props = application.allSetColumnProperties()
 
     expect:
     props != null
-    props.size() == 2
+    props.size() == 3
     props['name'] == 'TEST_APP'
     props['email'] == "aglover@netflix.com"
+    props['pdApiKey'] == ''
   }
 
   void 'update should update the underlying model'() {

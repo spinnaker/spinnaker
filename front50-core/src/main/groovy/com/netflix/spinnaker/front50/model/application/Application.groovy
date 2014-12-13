@@ -183,7 +183,8 @@ class Application {
       if (isColumnProperty(it)) {
         def value = this."$it.name"
         if (onlySet) {
-          return value ? [it.name, value] : null
+          // consider empty strings to be 'set' values
+          return (value != null) ? [it.name, value] : null
         }
         return [it.name, value]
       }

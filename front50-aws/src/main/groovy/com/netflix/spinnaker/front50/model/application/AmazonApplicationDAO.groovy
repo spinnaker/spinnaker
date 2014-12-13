@@ -109,7 +109,7 @@ class AmazonApplicationDAO implements ApplicationDAO {
   }
 
   private static Application mapToApp(Item item) {
-    Map<String, String> map = item.attributes.collectEntries { [it.name, it.value] }
+    Map<String, String> map = item.attributes.collectEntries { [it.name, (it.value ?: null)] }
     map['name'] = item.name
     return new Application(map)
   }

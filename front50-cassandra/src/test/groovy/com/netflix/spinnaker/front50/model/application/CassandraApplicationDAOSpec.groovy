@@ -175,5 +175,25 @@ class CassandraApplicationDAOSpec extends Specification {
     "description" | null
     "pdApiKey"    | "another pdApiKey"
   }
+
+  void "application updates should merge with existing details"() {
+    given:
+    cassandraApplicationDAO.create(name, [name: name, email: email, owner: owner])
+
+    when:
+    cassandraApplicationDAO.update(name, [pdApiKey: pdApiKey])
+
+    then:
+    def foundApplication = cassandraApplicationDAO.findByName(name)
+    foundApplication.email == email
+    foundApplication.owner == owner
+    foundApplication.pdApiKey == pdApiKey
+
+    where:
+    name = "another-app"
+    email = "another@netflix.com"
+    owner = "owner"
+    pdApiKey = "pdApiKey"
+  }
 }
 
