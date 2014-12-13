@@ -11,7 +11,14 @@ angular.module('deckApp.pipelines')
       controllerAs: 'deployInitializerCtrl'
     }
   })
-  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService) {
+  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategiesService) {
+    var controller = this;
+
+    $scope.command = {
+      strategy: null,
+      template: null
+    };
+
     $scope.templates = [
       { label: '[None]', serverGroup: null, cluster: null }
     ].concat($scope.application.clusters.map(function(cluster) {
@@ -23,12 +30,17 @@ angular.module('deckApp.pipelines')
         };
       }));
 
+    deploymentStrategiesService.listAvailableStrategies().then(function (strategies) {
+      $scope.deploymentStrategies = strategies;
+    });
+
     function clearTemplate() {
-      $scope.stage.cluster = { application: $scope.application.name };
+      $scope.stage.cluster = { application: $scope.application.name, strategy: $scope.command.strategy };
     }
 
-    this.selectTemplate = function (selection) {
-      if (selection.cluster && selection.cluster.serverGroups) {
+    controller.selectTemplate = function (selection) {
+      selection = selection || $scope.command.template;
+      if (selection && selection.cluster && selection.cluster.serverGroups) {
         var cluster = selection.cluster;
         var serverGroups = _.sortBy(cluster.serverGroups, 'name'),
           latest = serverGroups.pop();
@@ -47,6 +59,7 @@ angular.module('deckApp.pipelines')
 
             $scope.stage.cluster = command;
             $scope.stage.account = command.credentials;
+            $scope.stage.cluster.strategy = $scope.command.strategy;
 
             delete command.credentials;
           });
@@ -56,7 +69,13 @@ angular.module('deckApp.pipelines')
       }
     };
 
-    this.useTemplate = function() {
+    function updateStrategy() {
+      controller.selectTemplate();
+    }
+
+    $scope.$watch('command.strategy', updateStrategy);
+
+    controller.useTemplate = function() {
       if (!$scope.stage.cluster) {
         clearTemplate();
       }

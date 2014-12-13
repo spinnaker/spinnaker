@@ -1,8 +1,26 @@
 <form class="form-horizontal">
-  <div class="form-group">
-    <label class="col-md-3 control-label">Template</label>
+  <div class="form-group" ng-if="deploymentStrategies.length">
+    <div class="col-md-3 control-label">
+      <b>Strategy</b>
+      <help-field key="aws.serverGroup.strategy"></help-field>
+    </div>
     <div class="col-md-6">
-      <ui-select ng-model="selectedTemplate"
+      <ui-select ng-model="command.strategy" class="form-control input-sm">
+        <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="strategy.key as strategy in deploymentStrategies | filter: $select.search">
+          <strong ng-bind-html="strategy.label | highlight: $select.search"></strong>
+          <div ng-bind-html="strategy.description"></div>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 control-label">
+      <b>Template</b>
+      <help-field key="pipeline.config.deploy.template"></help-field>
+    </div>
+    <div class="col-md-6">
+      <ui-select ng-model="command.template"
                  on-select="deployInitializerCtrl.selectTemplate($item)"
                  class="form-control input-sm">
         <ui-select-match placeholder="None">
@@ -17,24 +35,16 @@
       </ui-select>
     </div>
   </div>
+
   <div class="form-group">
-    <div class="col-md-8 col-md-offset-2">
-      <p>
-        Select an existing cluster to use as a template for this deployment, and we'll pre-fill the configuration
-        based on the newest server group in the cluster.
-      </p>
-      <p>
-        If you want to start from scratch, select "None".
-      </p>
-      <p>
-        You can always edit the cluster configuration after you've created it.
-      </p>
+    <div class="col-md-6 col-md-offset-3">
+      <button class="btn btn-primary" ng-click="deployInitializerCtrl.useTemplate()">
+        <span ng-if="command.template.serverGroup">Use this template</span>
+        <span ng-if="!command.template.serverGroup">Continue without a template</span>
+      </button>
     </div>
   </div>
-  <div class="form-group" ng-if="stage.cluster">
-    <button class="btn btn-primary" ng-click="deployInitializerCtrl.useTemplate()">Use this template</button>
-  </div>
-  <div class="form-group" ng-if="!stage.cluster">
-    <button class="btn btn-primary" ng-click="deployInitializerCtrl.useTemplate()">Continue without a template</button>
+  <div class="form-group">
+    <deploy-preview stage="stage" ng-if="command.template.serverGroup"></deploy-preview>
   </div>
 </form>

@@ -34,4 +34,8 @@ angular.module('deckApp')
       ', enter "prod canary".</p>' +
       '<p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance ' +
       'will be highlighted for you.</p>',
+    'pipeline.config.deploy.template': '<p>Select an existing cluster to use as a template for this deployment, and we\'ll pre-fill ' +
+      'the configuration based on the newest server group in the cluster.</p>' +
+      '<p>If you want to start from scratch, select "None".</p>' +
+      '<p>You can always edit the cluster configuration after you\'ve created it.</p>',
   });

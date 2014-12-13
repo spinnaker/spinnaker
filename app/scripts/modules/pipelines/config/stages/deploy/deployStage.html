@@ -1,5 +1,5 @@
 <deploy-initializer ng-if="stage.uninitialized" stage="stage" application="application"></deploy-initializer>
-<deploy-preview stage="stage" ng-if="stage.cluster"></deploy-preview>
+<deploy-preview stage="stage" ng-if="!stage.uninitialized"></deploy-preview>
 <h4 ng-if="!stage.uninitialized && !viewState.commandInitialized" class="text-center" style="margin-bottom: 25px">
   <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
   Loading stage details...

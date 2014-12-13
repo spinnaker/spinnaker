@@ -6,13 +6,9 @@ angular.module('deckApp.pipelines.stage.deploy')
       label: 'Deploy',
       description: 'Deploys the previously baked AMI',
       key: 'deploy',
+      templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployStage.html',
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployStage.html',
-      initializationConfig: {
-        controller: 'CreateDeployStageCtrl as createDeployStageCtrl',
-        templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployStageInit.html',
-      }
     });
   })
   .controller('DeployStageCtrl', function ($scope, stage, viewState,
@@ -20,7 +16,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     $scope.stage = stage;
 
     function initializeCommand() {
-      if (!$scope.stage.cluster) {
+      if (!$scope.stage.cluster || $scope.stage.uninitialized) {
         $scope.stage.uninitialized = true;
       } else {
         awsServerGroupService.buildServerGroupCommandFromPipeline($scope.application, stage.cluster, $scope.stage.account).then(function (command) {
