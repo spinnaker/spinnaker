@@ -25,7 +25,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
 
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
-    if (stepExecution.status == BatchStatus.STARTING) {
+    if (stepExecution.status == BatchStatus.STARTED) {
       def execution = stage.execution
       echoService.recordEvent(
           details: [

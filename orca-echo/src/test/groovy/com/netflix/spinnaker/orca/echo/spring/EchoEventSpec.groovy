@@ -28,16 +28,30 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class EchoEventSpec extends Specification {
 
+  public static
+  final taskSuccess = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+  public static final taskFailed = new DefaultTaskResult(ExecutionStatus.FAILED)
+  public static
+  final taskMustRepeat = new DefaultTaskResult(ExecutionStatus.RUNNING)
+
   def echoService = Mock(EchoService)
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired PipelineStarter jobStarter
   @Autowired ExecutionRepository executionRepository
 
-  def task1 = Stub(Task)
-  def task2 = Stub(Task)
+  def task1 = Mock(Task)
+  def task2 = Mock(Task)
 
-  @Shared mapper = new OrcaObjectMapper()
+  @Shared json
+
+  def setupSpec() {
+    def config = [
+        application: "app",
+        stages     : [[type: "stage1"], [type: "stage2"]]
+    ]
+    json = new OrcaObjectMapper().writeValueAsString(config)
+  }
 
   def setup() {
     applicationContext.beanFactory.with {
@@ -53,24 +67,64 @@ class EchoEventSpec extends Specification {
     jobStarter.initialize()
   }
 
-  @Ignore
   def "events are raised in the correct order"() {
     given:
-    task1.execute(_) >> new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-    task2.execute(_) >> new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    def events = collectEvents()
+
+    and:
+    task1.execute(_) >> taskSuccess
+    task2.execute(_) >> taskSuccess
 
     when:
     jobStarter.start(json)
 
     then:
-    4 * echoService.recordEvent(_)
-
-    where:
-    config = [
-        application: "app",
-        stages     : [[type: "stage1"], [type: "stage2"]]
-    ]
-    json = mapper.writeValueAsString(config)
+    events.details.type == ["orca:task:starting", "orca:task:complete"] * 2
   }
 
+  def "when tasks repeat they don't send duplicate start events"() {
+    given:
+    def events = collectEvents()
+
+    and:
+    task1.execute(_) >>> [taskMustRepeat, taskMustRepeat, taskMustRepeat, taskSuccess]
+    task2.execute(_) >> taskSuccess
+
+    when:
+    jobStarter.start(json)
+
+    then:
+    events.details.type == ["orca:task:starting", "orca:task:complete"] * 2
+  }
+
+  @Ignore
+  def "when tasks fail they still send end events"() {
+    given:
+    def events = collectEvents()
+
+    and:
+    task1.execute(_) >> taskFailed
+
+    when:
+    jobStarter.start(json)
+
+    then:
+    0 * task2.execute(_)
+
+    and:
+    events.details.type == ["orca:task:starting", "orca:task:failed"]
+  }
+
+  /**
+   * Traps the events sent to echo.
+   * @return a list that will collect the event data sent to echo.
+   */
+  private List<Map> collectEvents() {
+    def events = []
+    echoService.recordEvent(_) >> {
+      events << it[0]
+      null // don't need to actually return anything from the echo call
+    }
+    return events
+  }
 }
