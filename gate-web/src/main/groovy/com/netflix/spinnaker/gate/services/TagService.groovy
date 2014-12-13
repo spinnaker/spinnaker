@@ -27,10 +27,14 @@ import org.springframework.stereotype.Component
 class TagService {
   private static final String GROUP = "tags"
 
-  @Autowired
+  @Autowired(required = false)
   FlapJackService flapJackService
 
-  List getTags(String application) {
+  List<Map> getTags(String application) {
+    if (!flapJackService) {
+      return []
+    }
+
     HystrixFactory.newListCommand(GROUP, "getTags-${application}", true) {
       flapJackService.getTags(application)
     } execute()

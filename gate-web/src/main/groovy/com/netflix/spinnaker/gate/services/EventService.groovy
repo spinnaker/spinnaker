@@ -27,16 +27,22 @@ import org.springframework.stereotype.Component
 class EventService {
   private static final String GROUP = "events"
 
-  @Autowired
+  @Autowired(required = false)
   EchoService echoService
 
   Map getAll(int offset, int size) {
+    if (echoService == null) {
+      return [:]
+    }
     HystrixFactory.newMapCommand(GROUP, "events-all", true) {
       echoService.getAllEvents(offset, size, true)
     } execute()
   }
 
   Map getForApplication(String app) {
+    if (echoService == null) {
+      return [:]
+    }
     HystrixFactory.newMapCommand(GROUP, "events-${app}".toString(), true) {
       echoService.getEvents(app, 0, Integer.MAX_VALUE, true)
     } execute()
