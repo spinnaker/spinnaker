@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.mort.aws.model
 
-import com.amazonaws.services.ec2.model.ReservedInstancesOffering
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.model.CacheService
 import spock.lang.Specification
@@ -51,17 +50,17 @@ class AmazonInstanceTypeProviderSpec extends Specification {
                 'keyPairs:itp1:test:us-east-1',
                 'keyPairs:itp2:prod:us-west-1'
         ]
-        1 * provider.cacheService.retrieve('keyPairs:itp1:test:us-east-1', ReservedInstancesOffering) >> new ReservedInstancesOffering(
-                reservedInstancesOfferingId: 'itp1',
-                instanceType: 'm1.large',
-                availabilityZone: 'us-east-1a',
-                productDescription: 'Linux/UNIX'
+        1 * provider.cacheService.retrieve('keyPairs:itp1:test:us-east-1', AmazonInstanceType) >> new AmazonInstanceType(
+                account: 'test',
+                region: 'us-east-1',
+                name: 'm1.large',
+                availabilityZone: 'us-east-1a'
         )
-        1 * provider.cacheService.retrieve('keyPairs:itp2:prod:us-west-1', ReservedInstancesOffering) >> new ReservedInstancesOffering(
-                reservedInstancesOfferingId: 'itp2',
-                instanceType: 'm1.medium',
-                availabilityZone: 'us-west-1b',
-                productDescription: 'Linux/UNIX'
+        1 * provider.cacheService.retrieve('keyPairs:itp2:prod:us-west-1', AmazonInstanceType) >> new AmazonInstanceType(
+                account: 'prod',
+                region: 'us-west-1',
+                name: 'm1.medium',
+                availabilityZone: 'us-west-1b'
         )
         0 * _
     }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.aws.cache
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsRequest
 import com.amazonaws.services.ec2.model.ReservedInstancesOffering
+import com.netflix.spinnaker.mort.aws.model.AmazonInstanceType
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.CachingAgent
 import groovy.transform.Immutable
@@ -61,7 +62,16 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
       })
 
       observable.subscribe {
-          cacheService.put(Keys.getInstanceTypeKey(it.instanceType, region, account), it)
+          cacheService.put(Keys.getInstanceTypeKey(it.reservedInstancesOfferingId, region, account),
+                  new AmazonInstanceType(
+                          account: account,
+                          region: region,
+                          name: it.instanceType,
+                          availabilityZone: it.availabilityZone,
+                          productDescription: it.productDescription,
+                          durationSeconds: it.duration
+                  )
+          )
       }
   }
 }
