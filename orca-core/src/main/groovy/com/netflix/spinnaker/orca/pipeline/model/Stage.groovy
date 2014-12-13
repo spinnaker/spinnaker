@@ -28,6 +28,11 @@ interface Stage<T extends Execution> {
   String getType()
 
   /**
+   * The name of the stage. Can be different from type, but often will be the same.
+   */
+  String getName()
+
+  /**
    * Gets the execution object for this stage
    */
   T getExecution()
@@ -67,6 +72,9 @@ interface Stage<T extends Execution> {
    */
   Stage preceding(String type)
 
+  /**
+   * The context driving this stage. Provides inputs necessary to component steps
+   */
   Map<String, Object> getContext()
 
   /**
@@ -87,4 +95,7 @@ interface Stage<T extends Execution> {
    */
   @JsonIgnore
   Stage<T> getSelf()
+
+  List<Task> getTasks()
+
 }

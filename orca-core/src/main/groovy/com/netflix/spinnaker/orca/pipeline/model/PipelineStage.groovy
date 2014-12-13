@@ -32,6 +32,10 @@ class PipelineStage extends AbstractStage<Pipeline> {
     super(pipeline, type)
   }
 
+  PipelineStage(Pipeline pipeline, String type, String name, Map<String, Object> context) {
+    super(pipeline, type, name, context)
+  }
+
   PipelineStage(Pipeline pipeline, String type, Map<String, Object> context) {
     super(pipeline, type, context)
   }

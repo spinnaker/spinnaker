@@ -18,12 +18,7 @@ package com.netflix.spinnaker.orca.jackson
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.core.TreeNode
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.fasterxml.jackson.databind.*
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
@@ -52,12 +47,7 @@ class StageDeserializer extends JsonDeserializer<Stage> {
 
   @Override
   Stage deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-    TreeNode node = jp.getCodec().readTree(jp)
-    def quotedJson = node.toString()
-    def valueMap = slurper.parseText(slurper.parseText(quotedJson) as String) as Map
-    String type = valueMap.remove("__type__")
-    Class stageClass = Class.forName(type)
-    def stage = (Stage)objectMapper.convertValue(valueMap, stageClass)
+    def stage = (Stage) OrcaJackson.deserialize(jp)
     stage.immutable ? stage.asImmutable() : stage
   }
 }

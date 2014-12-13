@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.model
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import groovy.transform.Immutable
-import org.springframework.batch.core.BatchStatus
 
 @Immutable(knownImmutables = ['status', 'variables', 'steps'])
-class JobViewModel {
-  Long id
+class OrchestrationViewModel {
+  String id
   String name
-  BatchStatus status
+  ExecutionStatus status
   def variables
-  def steps
+  List<Task> steps
   long startTime
   long endTime
 }

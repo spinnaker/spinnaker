@@ -42,7 +42,7 @@ class TaskTaskletSpec extends Specification {
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
-  def pipeline = Pipeline.builder().withStage("stage", [foo: "foo"]).build()
+  def pipeline = Pipeline.builder().withStage("stage", "stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 

@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.ExecutionStatus
 
-@CompileStatic
-class Orchestration extends Execution<Orchestration> {
-  String description
+class DefaultTask implements Task, Serializable {
+  String name
+  Long startTime = System.currentTimeMillis()
+  Long endTime
+  ExecutionStatus status = ExecutionStatus.NOT_STARTED
 }

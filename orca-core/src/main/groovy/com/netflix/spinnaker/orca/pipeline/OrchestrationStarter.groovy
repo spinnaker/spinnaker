@@ -41,6 +41,15 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   @Override
   protected Orchestration create(Map<String, Object> config) {
     def orchestration = new Orchestration()
+    if (config.containsKey("application")) {
+      orchestration.application = config.application
+    }
+    if (config.containsKey("description")) {
+      orchestration.description = config.description
+    }
+    if (config.containsKey("name")) {
+      orchestration.description = config.name
+    }
 
     for (context in ((List<Map<String, Object>>) config.stages)) {
       def type = context.remove("type").toString()

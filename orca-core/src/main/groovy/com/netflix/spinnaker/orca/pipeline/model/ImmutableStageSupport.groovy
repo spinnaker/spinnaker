@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.ExecutionStatus
 import java.lang.reflect.Method
@@ -48,6 +49,11 @@ class ImmutableStageSupport {
     @Override
     String getType() {
       self.type
+    }
+
+    @Override
+    String getName() {
+      self.name
     }
 
     @Override
@@ -111,6 +117,11 @@ class ImmutableStageSupport {
     @Override
     Stage<T> asImmutable() {
       this
+    }
+
+    @Override
+    List<Task> getTasks() {
+      ImmutableList.copyOf(self.tasks)
     }
 
     Stage<T> unwrap() {

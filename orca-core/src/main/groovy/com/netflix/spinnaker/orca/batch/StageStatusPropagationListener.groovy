@@ -18,15 +18,13 @@ package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.StepExecution
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
-class StageStatusPropagationListener extends StageExecutionListener {
+class StageStatusPropagationListener extends AbstractStagePropagationListener {
 
   @Autowired
   StageStatusPropagationListener(ExecutionRepository executionRepository) {
@@ -54,13 +52,4 @@ class StageStatusPropagationListener extends StageExecutionListener {
     }
     saveStage stage
   }
-
-  private void saveStage(Stage stage) {
-    if (stage.execution instanceof Pipeline) {
-      executionRepository.store(stage.execution as Pipeline)
-    } else {
-      executionRepository.store(stage.execution as Orchestration)
-    }
-  }
-
 }

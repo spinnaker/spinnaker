@@ -16,9 +16,24 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.netflix.spinnaker.orca.ExecutionStatus
 
-@CompileStatic
-class Orchestration extends Execution<Orchestration> {
-  String description
+/**
+ * A "task" is a component piece of a stage
+ */
+@JsonDeserialize(as = DefaultTask)
+interface Task {
+
+  String getName()
+
+  Long getStartTime()
+
+  Long getEndTime()
+
+  void setEndTime(Long time)
+
+  ExecutionStatus getStatus()
+
+  void setStatus(ExecutionStatus status)
 }

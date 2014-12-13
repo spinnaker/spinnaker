@@ -62,9 +62,9 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
                            .withApplication("orca")
                            .withName("dummy-pipeline")
                            .withTrigger(name: "some-jenkins-job", lastBuildLabel: 1)
-                           .withStage("one", [foo: "foo"])
-                           .withStage("two", [bar: "bar"])
-                           .withStage("three", [baz: "baz"])
+                           .withStage("one", "one", [foo: "foo"])
+                           .withStage("two", "two", [bar: "bar"])
+                           .withStage("three", "three", [baz: "baz"])
                            .build()
 
     and:

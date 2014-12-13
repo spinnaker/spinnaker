@@ -26,46 +26,8 @@ class Pipeline extends Execution<Pipeline> {
 
   String application
   String name
-  Long startTime
-  Long endTime
   final Map<String, Object> trigger = [:]
   final Map<String, Serializable> appConfig = [:]
-
-  Long getStartTime() {
-    stages ? stages.first().startTime : null
-  }
-
-  Long getEndTime() {
-    if (stages && getStartTime()) {
-      def reverseStages = stages.reverse()
-      def lastStage = reverseStages.first()
-      if (lastStage.endTime) {
-        return lastStage.endTime
-      } else {
-        def lastFailed = reverseStages.find {
-          it.status == FAILED
-        }
-        if (lastFailed) {
-          return lastFailed.endTime
-        }
-      }
-    }
-    null
-  }
-
-  ExecutionStatus getStatus() {
-    def status = stages.status.reverse().find {
-      it != NOT_STARTED
-    }
-
-    if (!status) {
-      NOT_STARTED
-    } else if (status == SUCCEEDED && stages.last().status != SUCCEEDED) {
-      RUNNING
-    } else {
-      status
-    }
-  }
 
   static Builder builder() {
     new Builder()
@@ -83,18 +45,20 @@ class Pipeline extends Execution<Pipeline> {
       return this
     }
 
-    Builder withStage(String type, Map<String, Object> context = [:]) {
+    Builder withStage(String type, String name = type, Map<String, Object> context = [:]) {
       if (context.providerType) {
         type += "_$context.providerType"
       }
 
-      pipeline.stages << new PipelineStage(pipeline, type, context)
+      pipeline.stages << new PipelineStage(pipeline, type, name, context)
       return this
     }
 
     Builder withStages(List<Map<String, Object>> stages) {
       stages.each {
-        withStage(it.remove("type").toString(), it)
+        def type = it.remove("type").toString()
+        def name = it.remove("name").toString()
+        withStage(type, name ?: type, it)
       }
       return this
     }

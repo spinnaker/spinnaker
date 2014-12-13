@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
@@ -99,5 +100,9 @@ class OrcaConfiguration {
   @Bean
   StageStatusPropagationListener stageStatusPropagationListener(ExecutionRepository executionRepository) {
     new StageStatusPropagationListener(executionRepository)
+  }
+
+  @Bean StageTaskPropagationListener stageTaskPropagationListener(ExecutionRepository executionRepository) {
+    new StageTaskPropagationListener(executionRepository)
   }
 }

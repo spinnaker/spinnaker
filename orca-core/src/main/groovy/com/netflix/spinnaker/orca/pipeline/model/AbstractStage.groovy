@@ -27,6 +27,7 @@ import static java.util.Collections.EMPTY_MAP
 @CompileStatic
 abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializable {
   String type
+  String name
   Long startTime
   Long endTime
   ExecutionStatus status = NOT_STARTED
@@ -34,12 +35,20 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Execution execution
   Map<String, Object> context = [:]
   boolean immutable = false
+  List<Task> tasks = []
 
   /**
    * yolo
    */
   AbstractStage() {
 
+  }
+
+  AbstractStage(Execution execution, String type, String name, Map<String, Object> context) {
+    this.execution = execution
+    this.type = type
+    this.name = name
+    this.context = context
   }
 
   AbstractStage(Execution execution, String type, Map<String, Object> context) {
@@ -67,5 +76,4 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Stage<T> getSelf() {
     this
   }
-
 }

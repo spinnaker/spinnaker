@@ -16,22 +16,15 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.model.JobViewModel
-import com.netflix.spinnaker.orca.model.PipelineViewModel
+import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 class TaskController {
-  @Autowired
-  JobExplorer jobExplorer
-
   @Autowired
   ExecutionRepository executionRepository
 
@@ -41,13 +34,13 @@ class TaskController {
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
-  List<Orchestration> list() {
-    executionRepository.retrieveOrchestrations()
+  List<OrchestrationViewModel> list() {
+    executionRepository.retrieveOrchestrations().collect { convert it }
   }
 
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
-  Orchestration getTask(@PathVariable String id) {
-    executionRepository.retrieveOrchestration(id)
+  OrchestrationViewModel getTask(@PathVariable String id) {
+    convert executionRepository.retrieveOrchestration(id)
   }
 
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
@@ -65,47 +58,15 @@ class TaskController {
     executionRepository.retrievePipelinesForApplication(application)
   }
 
-  private JobViewModel convert(JobExecution jobExecution) {
-    def steps = jobExecution.stepExecutions.collect {
-      def stepName = it.stepName.contains('.') ? it.stepName.tokenize('.')[1] : it.stepName
-      [name: stepName, status: it.exitStatus.exitCode, startTime: it.startTime?.time, endTime: it.endTime?.time]
-    }
+  private OrchestrationViewModel convert(Orchestration orchestration) {
     def variables = [:]
-    if (jobExecution.jobParameters.parameters.containsKey("description")) {
-      variables.description = jobExecution.jobParameters.getString("description")
-    }
-    if (jobExecution.jobParameters.parameters.containsKey("name")) {
-      variables.description = jobExecution.jobParameters.getString("name")
-    }
-    if (jobExecution.jobParameters.parameters.containsKey("pipeline")) {
-      String pipelineId = jobExecution.jobParameters.parameters.get("pipeline")
-      Pipeline pipeline = executionRepository.retrievePipeline(pipelineId)
-      for (stage in pipeline.stages) {
-        for (entry in stage.context.entrySet()) {
-          def key = "${stage.type}.${entry.key}"
-          variables[key] = entry.value
-        }
-      }
-    } else if (jobExecution.jobParameters.parameters.containsKey("orchestration")) {
-      String orchestrationId = jobExecution.jobParameters.parameters.get("orchestration")
-      Orchestration orchestration = executionRepository.retrieveOrchestration(orchestrationId)
       for (stage in orchestration.stages) {
         for (entry in stage.context.entrySet()) {
           variables[entry.key] = entry.value
         }
       }
-    } else {
-      for (stepExecution in jobExecution.stepExecutions) {
-        def stageName = stepExecution.stepName.find(/^\w+(?=\.)/)
-        if (!stageName) continue
-        Stage stage = (Stage) stepExecution.jobExecution.executionContext.get(stageName)
-        for (entry in stage.context.entrySet()) {
-          variables[entry.key] = entry.value
-        }
-      }
-    }
-    new JobViewModel(id: jobExecution.id, name: jobExecution.jobInstance.jobName, status: jobExecution.status,
-      variables: variables.entrySet(), steps: steps, startTime: jobExecution.startTime?.time,
-      endTime: jobExecution.endTime?.time)
+    new OrchestrationViewModel(id: orchestration.id, name: orchestration.description, status: orchestration.getStatus(),
+      variables: variables.entrySet(), steps: orchestration.stages.tasks.flatten(), startTime: orchestration.startTime,
+      endTime: orchestration.endTime)
   }
 }
