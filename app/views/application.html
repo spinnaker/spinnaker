@@ -3,11 +3,14 @@
     <h2><a ui-sref="home.applications"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>{{application.name}}
     </h2>
     <ul class="nav nav-pills">
-      <!--<li>-->
-      <!--<a href>-->
-      <!--Delivery-->
-      <!--</a>-->
-      <!--</li>-->
+      <li ng-if="executions.length > 0">
+        <a ui-sref=".executions" ng-class="{active: $state.includes('**.executions.**')}">
+          Delivery <span class="badge"
+                         ng-if="( executions | filter:{isRunning:'true'}).length > 0">
+            {{ (executions | filter:{isRunning:'true'}).length }}
+          </span>
+        </a>
+      </li>
       <li>
         <a ui-sref=".insight.clusters" ng-class="{active: $state.includes('**.clusters.**')}">
           <!--<span class="glyphicon glyphicon-th"></span>-->
@@ -33,14 +36,6 @@
           Tasks <span class="badge" ng-if="application.tasks.runningCount">
           {{ application.tasks.runningCount }}
         </span>
-        </a>
-      </li>
-      <li ng-if="executions.length > 0">
-        <a ui-sref=".executions" ng-class="{active: $state.includes('**.executions.**')}">
-          Delivery <span class="badge"
-                         ng-if="( executions | filter:{isRunning:'true'}).length > 0">
-            {{ (executions | filter:{isRunning:'true'}).length }}
-          </span>
         </a>
       </li>
     </ul>
