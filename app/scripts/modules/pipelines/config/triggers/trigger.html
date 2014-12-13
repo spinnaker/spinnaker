@@ -1,0 +1,22 @@
+<div class="row panel-pipeline-phase">
+  <div class="col-md-3">
+    <label>Type
+      <select class="input-sm"
+              ng-change="triggerCtrl.loadTrigger()"
+              ng-options="option.key as option.label for option in options"
+              ng-model="trigger.type">
+        <option value="">Select...</option>
+      </select>
+    </label>
+    <div>{{description}}</div>
+  </div>
+  <div class="col-md-8 trigger-body"></div>
+  <div class="col-md-1">
+    <button class="btn-link" ng-click="triggerCtrl.removeTrigger(trigger)">
+      <span class="glyphicon glyphicon-trash" tooltip="Remove trigger"></span><span class="sr-only">Remove trigger</span>
+    </button>
+  </div>
+  <div class="col-md-12 checkbox">
+    <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true"/> Trigger Enabled</label>
+  </div>
+</div>

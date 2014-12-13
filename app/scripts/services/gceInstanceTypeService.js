@@ -265,24 +265,22 @@ angular.module('deckApp')
 
     }
 
-    function getAvailableTypesForRegions(selectedRegions) {
+    function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       selectedRegions = selectedRegions || [];
-      return getAllTypesByRegion().then(function(availableRegions) {
-        var availableTypes = [];
+      var availableTypes = [];
 
-        var regions = availableRegions.filter(function(region) {
-          return selectedRegions.indexOf(region.region) !== -1;
-        });
-        if (regions.length) {
-          availableTypes = regions[0].sizes;
-        }
-
-        regions.forEach(function(region) {
-          availableTypes = _.intersection(availableTypes, region.sizes);
-        });
-
-        return availableTypes.sort();
+      var regions = availableRegions.filter(function(region) {
+        return selectedRegions.indexOf(region.region) !== -1;
       });
+      if (regions.length) {
+        availableTypes = regions[0].sizes;
+      }
+
+      regions.forEach(function(region) {
+        availableTypes = _.intersection(availableTypes, region.sizes);
+      });
+
+      return availableTypes.sort();
     }
 
     return {

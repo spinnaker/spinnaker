@@ -1,0 +1,44 @@
+<div ng-if="viewState.loading">
+  <h4 ng-if="viewState.loading" class="text-center">
+    <span us-spinner="{radius:20, width:6, length: 12}"></span>
+  </h4>
+</div>
+<form class="form-horizontal" ng-if="!viewState.loading">
+  <div class="form-group">
+    <label class="col-md-3 control-label">Region</label>
+    <div class="col-md-6">
+      <select class="form-control input-sm" ng-model="stage.region" ng-options="region for region in regions">
+        <option value="">Select a region...</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-3 control-label">Package</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.package"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-3 control-label">Base OS</label>
+    <div class="col-md-6">
+      <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
+        <input type="radio"
+               ng-model="stage.baseOs"
+               ng-value="baseOsOption"/>
+        {{baseOsOption}}
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-3 control-label">Base Label</label>
+    <div class="col-md-6">
+      <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
+        <input type="radio"
+               ng-model="stage.baseLabel"
+               ng-value="baseLabel"/>
+        {{baseLabel}}
+      </label>
+    </div>
+  </div>
+</form>

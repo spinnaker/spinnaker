@@ -1,37 +1,6 @@
 <form ng-controller="InstanceTypeCtrl as instanceTypeCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
-    <div class="row" ng-repeat="family in selectedInstanceProfile.families">
-      <div class="col-md-12">
-        <h4>{{selectedInstanceProfile.label}}: {{family.type}}</h4>
-        <p>{{family.description}}</p>
-        <table class="table table-hover">
-          <thead>
-          <tr>
-            <th></th>
-            <th>Size</th>
-            <th>vCPU</th>
-            <th>Mem (GiB)</th>
-            <th>SSD Storage (GB)</th>
-            <th>Cost</th>
-          </tr>
-          </thead>
-          <tbody>
-            <tr class="clickable"
-                ng-repeat="instanceType in family.instanceTypes"
-                ng-class="{info: command.instanceType === instanceType.name}"
-                ng-click="instanceTypeCtrl.selectInstanceType(instanceType.name)">
-              <td><input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/></td>
-              <td>{{instanceType.label}}</td>
-              <td>{{instanceType.cpu}}</td>
-              <td>{{instanceType.memory}}</td>
-              <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
-              <td ng-if="instanceType.storage.type === 'SSD'">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
-              <td><span class="label-cost label-cost-{{instanceType.costFactor}}"></span><span class="sr-only">{{instanceType.costFactor}}&times;</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <instance-type-selector command="command"></instance-type-selector>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
@@ -40,7 +9,7 @@
     </button>
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
-                   submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="command.viewState.isNew"></submit-button>
     <button class="btn btn-primary"
             ng-disabled="!command.viewState.instanceProfile || form.$invalid"
             ng-click="wizard.nextPage(form.$valid)">

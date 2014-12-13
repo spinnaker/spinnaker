@@ -1,0 +1,10 @@
+<div class="col-md-12">
+  <triggers ng-if="viewState.section === 'triggers'"
+                            pipeline="pipeline">
+  </triggers>
+  <pipeline-config-stage ng-if="viewState.section === 'stage'"
+                         application="application"
+                         view-state="viewState"
+                         stage="pipeline.stages[viewState.stageIndex]">
+  </pipeline-config-stage>
+</div>

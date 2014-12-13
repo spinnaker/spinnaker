@@ -1,0 +1,95 @@
+<deploy-initializer ng-if="stage.uninitialized" stage="stage" application="application"></deploy-initializer>
+<deploy-preview stage="stage" ng-if="stage.cluster"></deploy-preview>
+<h4 ng-if="!stage.uninitialized && !viewState.commandInitialized" class="text-center" style="margin-bottom: 25px">
+  <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+  Loading stage details...
+</h4>
+<accordion close-others="false" ng-if="viewState.commandInitialized">
+
+  <accordion-group is-open="viewState.sections.basicSettings.expanded">
+    <accordion-heading>
+      <span class="glyphicon glyphicon-chevron-{{viewState.sections.basicSettings.expanded ? 'down' : 'right'}}"></span> Basic Settings
+    </accordion-heading>
+    <div class="form-horizontal">
+      <div class="col-md-10 col-md-offset-1">
+        <server-group-basic-settings-selector
+          command="command"
+          application-name="stage.cluster.application"
+          hide-cluster-name-preview="true"></server-group-basic-settings-selector>
+      </div>
+    </div>
+  </accordion-group>
+
+  <accordion-group is-open="viewState.sections.loadBalancers.expanded">
+    <accordion-heading>
+      <span ng-class="{dirty: viewState.sections.loadBalancers.dirty}">
+        <span class="glyphicon glyphicon-chevron-{{viewState.sections.loadBalancers.expanded ? 'down' : 'right'}}"></span>
+        Load Balancers ({{command.loadBalancers.length || '0'}})
+        <span ng-if="viewState.sections.loadBalancers.dirty" class="glyphicon glyphicon-exclamation-sign pulsing"></span>
+      </span>
+    </accordion-heading>
+    <div class="alert alert-danger" ng-if="viewState.sections.loadBalancers.dirty">
+      <span class="glyphicon glyphicon-exclamation-sign"></span>
+      We could not match all load balancers to the new account/region/VPC
+      <a class="dirty-flag-dismiss" href ng-click="viewState.sections.loadBalancers.dirty = false">[dismiss]</a>
+    </div>
+    <div class="col-md-10 col-md-offset-1">
+      <server-group-load-balancers-selector command="command"></server-group-load-balancers-selector>
+    </div>
+  </accordion-group>
+  <accordion-group is-open="viewState.sections.securityGroups.expanded">
+    <accordion-heading>
+      <span ng-class="{dirty: viewState.sections.securityGroups.dirty}">
+        <span class="glyphicon glyphicon-chevron-{{viewState.sections.securityGroups.expanded ? 'down' : 'right'}}"></span>
+        Security Groups ({{command.securityGroups.length || '0'}})
+        <span ng-if="viewState.sections.securityGroups.dirty" class="glyphicon glyphicon-exclamation-sign pulsing"></span>
+      </span>
+    </accordion-heading>
+    <div class="alert alert-danger" ng-if="viewState.sections.securityGroups.dirty">
+      <span class="glyphicon glyphicon-exclamation-sign"></span>
+      We could not match all security groups to the new account/region/VPC
+      <a class="dirty-flag-dismiss" href ng-click="viewState.sections.securityGroups.dirty = false">[dismiss]</a>
+    </div>
+    <div class="col-md-10 col-md-offset-1">
+      <server-group-security-groups-selector command="command"></server-group-security-groups-selector>
+    </div>
+  </accordion-group>
+  <accordion-group is-open="viewState.sections.instanceType.expanded">
+    <accordion-heading>
+      <span class="glyphicon glyphicon-chevron-{{viewState.sections.instanceType.expanded ? 'down' : 'right'}}"></span> Instance Type
+    </accordion-heading>
+    <div class="col-md-10 col-md-offset-1">
+      <instance-archetype-selector command="command"></instance-archetype-selector>
+      <instance-type-selector command="command"></instance-type-selector>
+    </div>
+  </accordion-group>
+  <accordion-group is-open="viewState.sections.capacityZones.expanded">
+    <accordion-heading>
+      <span ng-class="{dirty: viewState.sections.capacityZones.dirty}">
+        <span class="glyphicon glyphicon-chevron-{{viewState.sections.capacityZones.expanded ? 'down' : 'right'}}"></span>
+        Capacity/Zones
+        <span ng-if="viewState.sections.capacityZones.dirty" class="glyphicon glyphicon-exclamation-sign pulsing"></span>
+      </span>
+    </accordion-heading>
+    <div class="alert alert-danger" ng-if="viewState.sections.capacityZones.dirty">
+      <span class="glyphicon glyphicon-exclamation-sign"></span>
+      Please select new availability zones - or enable automatic zone selection.
+      <a class="dirty-flag-dismiss" href ng-click="viewState.sections.capacityZones.dirty = false">[dismiss]</a>
+    </div>
+    <div class="col-md-10 col-md-offset-1">
+      <server-group-capacity-selector command="command"></server-group-capacity-selector>
+      <hr class="clearfix"/>
+      <availability-zone-selector command="command"></availability-zone-selector>
+    </div>
+  </accordion-group>
+  <accordion-group is-open="viewState.sections.advancedSettings.expanded">
+    <accordion-heading>
+      <span class="glyphicon glyphicon-chevron-{{viewState.sections.advancedSettings.expanded ? 'down' : 'right'}}"></span> Advanced Settings
+    </accordion-heading>
+    <div class="form-horizontal">
+      <div class="col-md-10 col-md-offset-1">
+        <server-group-advanced-settings-selector command="command"></server-group-advanced-settings-selector>
+      </div>
+    </div>
+  </accordion-group>
+</accordion>

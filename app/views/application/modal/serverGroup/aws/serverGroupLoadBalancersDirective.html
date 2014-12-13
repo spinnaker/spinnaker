@@ -1,0 +1,11 @@
+<div class="form-group">
+  <div class="col-md-3 sm-label-left"><b>Load Balancers</b></div>
+  <div class="col-md-9">
+    <ui-select multiple ng-model="command.loadBalancers" class="form-control input-sm">
+      <ui-select-match>{{$item}}</ui-select-match>
+      <ui-select-choices repeat="loadBalancer in command.backingData.filtered.loadBalancers | filter: $select.search">
+        <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

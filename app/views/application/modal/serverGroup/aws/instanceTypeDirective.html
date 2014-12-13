@@ -1,0 +1,32 @@
+<div class="row" ng-repeat="family in selectedInstanceProfile.families">
+  <div class="col-md-12">
+    <h4>{{selectedInstanceProfile.label}}: {{family.type}}</h4>
+    <p>{{family.description}}</p>
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th></th>
+        <th>Size</th>
+        <th>vCPU</th>
+        <th>Mem (GiB)</th>
+        <th>SSD Storage (GB)</th>
+        <th>Cost</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr class="clickable"
+          ng-repeat="instanceType in family.instanceTypes"
+          ng-class="{info: command.instanceType === instanceType.name}"
+          ng-click="instanceTypeCtrl.selectInstanceType(instanceType.name)">
+        <td><input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/></td>
+        <td>{{instanceType.label}}</td>
+        <td>{{instanceType.cpu}}</td>
+        <td>{{instanceType.memory}}</td>
+        <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
+        <td ng-if="instanceType.storage.type === 'SSD'">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
+        <td><span class="label-cost label-cost-{{instanceType.costFactor}}"></span><span class="sr-only">{{instanceType.costFactor}}&times;</span></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

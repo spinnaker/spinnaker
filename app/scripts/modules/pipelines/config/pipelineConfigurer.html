@@ -1,0 +1,66 @@
+<accordion>
+  <accordion-group is-open="viewState.expanded">
+    <accordion-heading>
+      <h4 class="heading-pipeline-config">
+        <span class="glyphicon glyphicon-chevron-{{viewState.expanded ? 'down' : 'right'}}"></span> {{pipeline.name || '[Unnamed]'}} <span ng-if="pipeline.disabled" class="badge badge-disabled">disabled</span></h4>
+    </accordion-heading>
+    <div class="pipeline-actions text-right" ng-if="viewState.expanded">
+      <div class="dropdown">
+        <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+          Pipeline Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href ng-click="pipelineConfigurerCtrl.renamePipeline()">Rename</a></li>
+          <li><a href ng-click="pipelineConfigurerCtrl.deletePipeline()">Delete</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="row pipeline-config">
+        <ul class="nav-pipeline-config">
+          <li class="config-section">
+            <button class="btn btn-default"
+                    ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
+                    ng-click="pipelineConfigurerCtrl.navigateTo('triggers')">
+              <span class="glyphicon glyphicon-certificate"></span> Triggers
+            </button>
+          </li>
+          <li class="config-section nav-stages">
+            <h4>Stages</h4>
+            <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
+              <a href ng-repeat="stage in pipeline.stages" role="button" class="btn btn-default"
+                      ng-click="pipelineConfigurerCtrl.navigateToStage($index)"
+                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
+                {{$index+1}}: {{stage.name || stage.type || '[new stage]'}}
+              </a>
+            </div>
+            <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add stage
+            </button>
+          </li>
+        </ul>
+    </div>
+    <div class="row">
+      <pipeline-config-view application="application" pipeline="pipeline" view-state="viewState"></pipeline-config-view>
+    </div>
+    <div class="row pipeline-footer">
+      <div class="col-md-3">
+        <button is-visible="viewState.isDirty" class="btn btn-default" ng-click="pipelineConfigurerCtrl.revertPipelineChanges()"><span class="glyphicon glyphicon-flash"></span> Revert</button>
+      </div>
+      <div class="col-md-9 text-right">
+        <span ng-if="viewState.saveError" class="alert alert-danger">
+          There was an error saving your pipeline.
+          <a class="alert-dismiss" href ng-click="viewState.saveError = false">[dismiss]</a>
+        </span>
+        <button ng-if="viewState.isDirty" class="btn btn-primary" ng-click="pipelineConfigurerCtrl.savePipeline()">
+          <span ng-if="!viewState.saving">
+            <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
+          </span>
+          <span ng-if="viewState.saving" class="pulsing">
+            <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Saving&hellip;
+          </span>
+        </button>
+        <span ng-if="!viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
+      </div>
+    </div>
+  </accordion-group>
+</accordion>

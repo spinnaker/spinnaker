@@ -1,5 +1,10 @@
 'use strict';
 
+/*
+ This is more of an integration test between ServerGroupConfigurationService and awsCloneServerGroupCtrl.
+ ServerGroupConfigurationService is not mocked out to verify behavior that existed before it was refactored into
+ existence.
+ */
 describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(loadDeckWithoutCacheInitializer);
@@ -113,7 +118,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
-
+      spyOn(this.instanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
@@ -202,13 +207,8 @@ describe('Controller: awsCloneServerGroup', function () {
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           orcaService: this.orcaService,
-          mortService: this.mortService,
-          oortService: this.oortService,
-          imageService: this.imageService,
-          searchService: this.searchService,
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
-          securityGroupService: this.securityGroupService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
@@ -230,11 +230,11 @@ describe('Controller: awsCloneServerGroup', function () {
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
-
+      spyOn(this.instanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
-    it('sets state flags for imagesLoaded and useAllImageSelection when none found and no server group provided', function () {
+    it('sets state flags useAllImageSelection when none found and no server group provided', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
@@ -244,11 +244,10 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
     });
 
-    it('sets state flag for imagesLoaded and puts found images on scope when found', function () {
+    it('puts found images on scope when found', function () {
       var $scope = this.$scope,
         regionalImages = [
           {imageName: 'someImage', amis: {'us-east-1': ['ami-1']}}
@@ -261,10 +260,9 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
-      expect($scope.regionalImages.length).toBe(1);
-      expect($scope.regionalImages[0]).toEqual({imageName: 'someImage', ami: 'ami-1'});
+      expect($scope.command.backingData.filtered.images.length).toBe(1);
+      expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'someImage', ami: 'ami-1'});
     });
 
     it('queries based on existing ami when cloning', function () {
@@ -291,13 +289,12 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
       expect(this.imageService.getAmi).toHaveBeenCalledWith('aws', serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
       expect(this.imageService.findImages).toHaveBeenCalledWith('aws', 'something');
 
-      expect($scope.regionalImages.length).toBe(1);
-      expect($scope.regionalImages[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});
+      expect($scope.command.backingData.filtered.images.length).toBe(1);
+      expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});
     });
 
     it('adds no regional images to the scope when the one provided does not match any results', function () {
@@ -312,10 +309,9 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
       expect(this.imageService.getAmi).toHaveBeenCalledWith('aws', serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
-      expect($scope.regionalImages).toEqual([]);
+      expect($scope.command.backingData.filtered.images).toEqual([]);
     });
 
     it('queries all images for ami when no regional images present', function () {
@@ -330,7 +326,6 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.state.imagesLoaded).toBe(true);
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
     });
   });
@@ -344,13 +339,8 @@ describe('Controller: awsCloneServerGroup', function () {
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           orcaService: this.orcaService,
-          mortService: this.mortService,
-          oortService: this.oortService,
-          imageService: this.imageService,
-          searchService: this.searchService,
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
-          securityGroupService: this.securityGroupService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroup,
           application: {name: 'x'},
@@ -373,7 +363,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
-
+      spyOn(this.instanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
       spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
       spyOn(this.imageService, 'getAmi').and.callFake(this.reject(null));
@@ -398,7 +388,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      $scope.subnets = [
+      $scope.command.backingData.subnets = [
         { vpcId: 'vpc-1', account: 'prod', region: 'us-west-1' },
         { vpcId: 'vpc-2', account: 'prod', region: 'us-west-1', purpose: 'magic' }
       ];

@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('awsImageService', function (settings, $q, Restangular) {
+  .factory('awsImageService', function (settings, $q, Restangular, scheduledCache) {
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -20,7 +20,7 @@ angular.module('deckApp')
       if (query.length < 3) {
         return $q.when([{message: 'Please enter at least 3 characters...'}]);
       }
-      return gateEndpoint.all('images/find').getList(params, {}).then(function(results) {
+      return gateEndpoint.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {
           return results;
         },
         function() {

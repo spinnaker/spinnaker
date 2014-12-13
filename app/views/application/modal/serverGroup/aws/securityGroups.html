@@ -1,17 +1,6 @@
 <form ng-controller="ServerGroupSecurityGroupsCtrl as serverGroupSecurityGroupsCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
-    <div class="form-group">
-      <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
-      <div class="col-md-9">
-        <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm">
-          <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
-          <ui-select-choices repeat="regionalSecurityGroup.id as regionalSecurityGroup in regionalSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
-            <span ng-bind-html="regionalSecurityGroup.name | highlight: $select.search"></span>
-            (<span ng-bind-html="regionalSecurityGroup.id  | highlight: $select.search"></span>)
-          </ui-select-choices>
-        </ui-select>
-      </div>
-    </div>
+    <server-group-security-groups-selector command="command"></server-group-security-groups-selector>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
@@ -20,7 +9,7 @@
     </button>
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
-                   submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="command.viewState.isNew"></submit-button>
     <button class="btn btn-primary"
             ng-disabled="form.$invalid"
             ng-click="wizard.nextPage(form.$valid)">

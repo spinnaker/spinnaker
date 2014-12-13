@@ -1,0 +1,33 @@
+<div class="well well-sm clearfix">
+  <h4 class="text-center">Deployment Summary</h4>
+  <div class="col-md-6">
+    <dl class="dl-horizontal dl-narrow">
+      <dt>Account</dt>
+      <dd><account-tag account="stage.account"></account-tag></dd>
+      <dt>Region</dt>
+      <dd>
+        <div ng-repeat="region in regionsWithZones">
+          {{region.region}}
+          <span ng-if="region.availabilityZones">({{region.availabilityZones.join(', ')}})</span>
+        </div>
+      </dd>
+      <dt>VPC</dt>
+      <dd>{{stage.cluster.subnetType || '[none]'}}</dd>
+    </dl>
+  </div>
+  <div class="col-md-6">
+    <dl class="dl-horizontal dl-narrow">
+      <dt>Strategy</dt>
+      <dd>{{stage.cluster.strategy || '[None]'}}</dd>
+      <dt>Cluster</dt>
+      <dd>{{clusterName || '[None]'}}</dd>
+      <dt>Capacity</dt>
+      <dd ng-if="stage.cluster.capacity.min === stage.cluster.capacity.max">{{stage.cluster.capacity.max}}</dd>
+      <dd ng-if="stage.cluster.capacity.min !== stage.cluster.capacity.max">
+        Min: {{stage.cluster.capacity.min}},
+        Max: {{stage.cluster.capacity.max}},
+        Desired: {{stage.cluster.capacity.desired}}
+      </dd>
+    </dl>
+  </div>
+</div>

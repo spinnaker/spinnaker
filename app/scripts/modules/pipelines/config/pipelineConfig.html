@@ -1,0 +1,29 @@
+<div class="row" ng-if="application.pipelines.length">
+  <div class="col-md-4">
+    <a class="btn btn-link" ui-sref="^.executions">
+      <span class="glyphicon glyphicon-arrow-left"></span>
+      Back to Executions
+    </a>
+  </div>
+  <div class="col-md-4 text-right">
+    <create-pipeline-button application="application"></create-pipeline-button>
+  </div>
+</div>
+<div class="row" ng-repeat="pipeline in application.pipelines">
+  <div class="col-md-8">
+    <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
+  </div>
+</div>
+  <div class="row" ng-if="!state.pipelinesLoaded">
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+<div class="row" ng-if="state.pipelinesLoaded && !application.pipelines.length">
+  <div class="col-md-8 text-center">
+    <h4>You don't have any pipelines configured for {{application.name}}.</h4>
+    <p>
+      <create-pipeline-button application="application"></create-pipeline-button>
+    </p>
+  </div>
+</div>

@@ -16,7 +16,32 @@ angular.module('deckApp.delivery')
           name: 'execution',
           url: '/:executionId',
           view: {},
+          data: {
+            pageTitleSection: {
+              nameParam: 'executionId'
+            }
+          }
         },
       ],
+      data: {
+        pageTitleSection: {
+          title: 'pipeline executions'
+        }
+      }
     },
+    configure: {
+      name: 'pipelineConfig',
+      url: '/pipelines',
+      views: {
+        'insight': {
+          templateUrl: 'scripts/modules/pipelines/config/pipelineConfig.html',
+          controller: 'PipelineConfigCtrl as pipelineConfigCtrl'
+        },
+      },
+      data: {
+        pageTitleSection: {
+          title: 'pipeline config'
+        }
+      }
+    }
   });

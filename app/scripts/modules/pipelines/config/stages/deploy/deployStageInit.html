@@ -1,0 +1,40 @@
+<div>
+  <div class="form-group">
+    <div class="col-md-2 sm-label-left">Template:</div>
+    <div class="col-md-8">
+      <ui-select ng-model="selectedTemplate"
+                 on-select="createDeployStageCtrl.selectTemplate($item)"
+                 class="form-control input-sm">
+        <ui-select-match placeholder="None">
+          <span>{{$select.selected.label}}</span>
+        </ui-select-match>
+        <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroup: $select.search}">
+          <h5>{{template.label}}</h5>
+          <div ng-if="template.serverGroup">
+            <b>Most recent server group: </b> {{template.serverGroup}}
+          </div>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-8 col-md-offset-2">
+      <p>
+        Select an existing cluster to use as a template for this deployment, and we'll pre-fill the configuration
+        based on the newest server group in the cluster.
+      </p>
+      <p>
+        If you want to start from scratch, select "None".
+      </p>
+      <p>
+        You can always edit the cluster configuration after you've created it.
+      </p>
+    </div>
+  </div>
+  <div class="form-group" ng-if="additionalDetails.cluster">
+    <div class="col-md-12"><h3>Preview</h3></div>
+  </div>
+  <div class="form-group" ng-if="additionalDetails.cluster">
+    <deploy-preview stage="additionalDetails"></deploy-preview>
+  </div>
+</div>

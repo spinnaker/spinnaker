@@ -365,6 +365,7 @@ angular.module('deckApp')
           insight,
           tasks,
           deliveryStates.executions,
+          deliveryStates.configure
         ],
       };
 

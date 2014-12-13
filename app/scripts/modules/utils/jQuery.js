@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.utils')
   .factory('$', function() {
     return $;
   });

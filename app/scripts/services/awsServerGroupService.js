@@ -49,9 +49,40 @@ angular.module('deckApp')
             useSimpleCapacity: true,
             usePreferredZones: true,
             mode: 'create',
+            isNew: true,
           },
         };
       });
+    }
+
+    function buildServerGroupCommandFromPipeline(application, cluster, account) {
+
+      return buildNewServerGroupCommand(application).then(function(command) {
+
+        var region = Object.keys(cluster.availabilityZones)[0];
+        var zones = cluster.availabilityZones[region];
+        var usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
+
+        var viewState = {
+          instanceProfile: 'custom',
+          disableImageSelection: true,
+          useSimpleCapacity: cluster.capacity.minSize === cluster.capacity.maxSize,
+          usePreferredZones: usePreferredZones,
+          mode: 'clone',
+          isNew: false,
+        };
+
+        var viewOverrides = {
+          credentials: account,
+          availabilityZones: cluster.availabilityZones[command.region],
+          viewState: viewState,
+        };
+
+        cluster.strategy = cluster.strategy || '';
+
+        return angular.extend({}, command, cluster, viewOverrides);
+      });
+
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode, parseServerGroupName) {
@@ -99,6 +130,7 @@ angular.module('deckApp')
             useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
             usePreferredZones: usePreferredZones,
             mode: mode,
+            isNew: false,
           },
         };
 
@@ -135,7 +167,8 @@ angular.module('deckApp')
 
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
-      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting
+      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
+      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
 });
 

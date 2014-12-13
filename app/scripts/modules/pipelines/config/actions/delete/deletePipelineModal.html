@@ -1,0 +1,26 @@
+<div modal-page>
+  <div class="modal-header">
+    <h3>Really Delete Pipeline?</h3>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-danger" ng-if="viewState.saveError">
+      <p>Could not delete pipeline.</p>
+      <p><b>Reason: </b>{{viewState.errorMessage}}</p>
+      <p><a href ng-click="viewState.saveError = false">[dismiss]</a></p>
+    </div>
+    <form role="form" name="form" class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <p>Are you sure you want to delete the pipeline: {{pipeline.name}}?</p>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="deletePipelineModalCtrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="deletePipelineModalCtrl.deletePipeline()">
+      <span class="glyphicon glyphicon-remove-circle"></span> I'm sure. Delete it.
+    </button>
+  </div>
+</div>

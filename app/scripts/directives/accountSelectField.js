@@ -12,7 +12,8 @@ angular.module('deckApp')
         field: '@',
         loading: '=',
         onChange: '&',
-        labelColumns: '@'
+        labelColumns: '@',
+        labelAlign: '@'
       },
       link: function(scope) {
         function groupAccounts(accounts) {

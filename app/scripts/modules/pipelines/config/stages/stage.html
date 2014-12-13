@@ -1,0 +1,36 @@
+<div class="col-md-12">
+  <form class="form-horizontal">
+    <div class="form-group">
+      <label class="col-md-3 control-label">Stage Type</label>
+      <div class="col-md-6" ng-if="stage.isNew">
+        <select class="input-sm"
+                ng-change="stageConfigCtrl.selectStage()"
+                ng-options="option.key as option.label for option in options"
+                ng-model="stage.type">
+          <option value="">Select...</option>
+        </select>
+        {{description}}
+      </div>
+      <div class="col-md-6" ng-if="!stage.isNew">
+        <p class="form-control-static" ng-if="!stage.isNew">
+          {{stage.type}}
+          <help-field content="{{description}}"></help-field>
+        </p>
+      </div>
+      <div class="col-md-1 col-md-offset-2">
+        <button class="btn-link" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
+          <span class="glyphicon glyphicon-trash" tooltip="Remove stage"></span><span class="sr-only">Remove stage</span>
+        </button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-md-3 control-label">Stage Name</label>
+      <div class="col-md-6">
+        <input type="text" class="form-control input-sm" ng-model="stage.name"/>
+      </div>
+    </div>
+  </form>
+  <div class="stage-details">
+    <div class="stage-body"></div>
+  </div>
+</div>
