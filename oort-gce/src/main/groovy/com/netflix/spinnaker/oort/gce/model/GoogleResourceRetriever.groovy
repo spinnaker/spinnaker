@@ -64,7 +64,7 @@ class GoogleResourceRetriever {
     def tempImageMap = new HashMap<String, List<String>>()
     def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
 
-    getAllGoogleCredentialsObjects(accountCredentialsProvider).each {
+    getAllGoogleCredentialsObjects().each {
       def accountName = it.key
       def credentialsSet = it.value
 
@@ -139,7 +139,7 @@ class GoogleResourceRetriever {
     }
   }
 
-  Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects(AccountCredentialsProvider accountCredentialsProvider) {
+  Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects() {
     def accountNameToSetOfGoogleCredentialsMap = new HashMap<String, Set<GoogleCredentials>>()
 
     for (def accountCredentials : accountCredentialsProvider.getAll()) {
