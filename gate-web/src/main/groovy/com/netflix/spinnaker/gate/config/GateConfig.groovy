@@ -119,6 +119,13 @@ class GateConfig {
                           Client retrofitClient) {
     createClient "mayo", MayoService, serviceConfiguration, retrofitClient
   }
+  
+  @Bean
+  @ConditionalOnProperty('services.igor.enabled')
+  IgorService igorService(ServiceConfiguration serviceConfiguration,
+                          Client retrofitClient) {
+    createClient "igor", IgorService, serviceConfiguration, retrofitClient
+  }
 
   private static RestAdapter.Log serviceLogger(Class type) {
     new RetrofitLogger(LoggerFactory.getLogger(type))

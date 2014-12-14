@@ -28,4 +28,6 @@ services:
     enabled: false
   flapjack:
     enabled: false
+  igor:
+    enabled: false
 
