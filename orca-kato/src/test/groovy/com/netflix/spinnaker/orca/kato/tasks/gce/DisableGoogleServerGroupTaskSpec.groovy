@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DisableGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -63,10 +62,10 @@ class DisableGoogleServerGroupTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].disableGoogleReplicaPoolDescription) {
-      it instanceof DisableGoogleServerGroupOperation
-      replicaPoolName == disableASGConfig.asgName
-      zone == disableASGConfig.zones[0]
-      credentials == disableASGConfig.credentials
+      it instanceof Map
+      replicaPoolName == this.disableASGConfig.asgName
+      zone == this.disableASGConfig.zones[0]
+      credentials == this.disableASGConfig.credentials
     }
   }
 

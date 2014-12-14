@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.DeleteAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -46,11 +45,11 @@ class DeleteAsgTask implements Task {
       ["deploy.account.name" : operation.credentials,
        "kato.last.task.id"   : taskId,
        "kato.task.id"        : taskId, // TODO retire this.
-       "deploy.server.groups": operation.regions.collectEntries { [(it): operation.asgName] }
+       "deploy.server.groups": ((Iterable)operation.regions).collectEntries { [(it): operation.asgName] }
       ])
   }
 
-  DeleteAsgOperation convert(Stage stage) {
-    mapper.convertValue(stage.context, DeleteAsgOperation)
+  Map convert(Stage stage) {
+    mapper.convertValue(stage.context, Map)
   }
 }

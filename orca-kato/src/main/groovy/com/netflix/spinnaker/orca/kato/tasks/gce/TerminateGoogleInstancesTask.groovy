@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -53,7 +52,7 @@ class TerminateGoogleInstancesTask implements Task {
     ])
   }
 
-  TerminateGoogleInstancesOperation convert(Stage stage) {
-    mapper.convertValue(stage.context, TerminateGoogleInstancesOperation)
+  Map convert(Stage stage) {
+    mapper.convertValue(stage.context, Map)
   }
 }

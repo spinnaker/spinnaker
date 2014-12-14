@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.TerminateGoogleInstancesOperation
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -64,10 +62,10 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].terminateGoogleInstancesDescription) {
-      it instanceof TerminateGoogleInstancesOperation
-      zone == terminateInstancesConfig.zone
-      credentials == terminateInstancesConfig.credentials
-      instanceIds == terminateInstancesConfig.instanceIds
+      it instanceof Map
+      zone == this.terminateInstancesConfig.zone
+      credentials == this.terminateInstancesConfig.credentials
+      instanceIds == this.terminateInstancesConfig.instanceIds
     }
   }
 

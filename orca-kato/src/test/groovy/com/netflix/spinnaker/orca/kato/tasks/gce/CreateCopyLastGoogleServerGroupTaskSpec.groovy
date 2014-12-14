@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DeployGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -82,18 +81,18 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
     operations.size() == 1
 
     with (operations[0].copyLastGoogleServerGroupDescription) {
-      it instanceof DeployGoogleServerGroupOperation
-      application == copyLastAsgConfig.application
-      stack == copyLastAsgConfig.stack
-      initialNumReplicas == copyLastAsgConfig.capacity.desired
-      image == copyLastAsgConfig.image
-      instanceType == copyLastAsgConfig.instanceType
-      instanceMetadata == copyLastAsgConfig.instanceMetadata
-      networkLoadBalancers == copyLastAsgConfig.loadBalancers
-      zone == copyLastAsgConfig.zone
-      source.zone == copyLastAsgConfig.source.zone
-      source.serverGroupName == copyLastAsgConfig.source.serverGroupName
-      credentials == copyLastAsgConfig.credentials
+      it instanceof Map
+      application == this.copyLastAsgConfig.application
+      stack == this.copyLastAsgConfig.stack
+      initialNumReplicas == this.copyLastAsgConfig.capacity.desired
+      image == this.copyLastAsgConfig.image
+      instanceType == this.copyLastAsgConfig.instanceType
+      instanceMetadata == this.copyLastAsgConfig.instanceMetadata
+      networkLoadBalancers == this.copyLastAsgConfig.loadBalancers
+      zone == this.copyLastAsgConfig.zone
+      source.zone == this.copyLastAsgConfig.source.zone
+      source.serverGroupName == this.copyLastAsgConfig.source.serverGroupName
+      credentials == this.copyLastAsgConfig.credentials
     }
   }
 

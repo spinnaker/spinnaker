@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.UpsertSecurityGroupOperation
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,8 +63,8 @@ class UpsertSecurityGroupTask implements Task {
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
-  UpsertSecurityGroupOperation convert(Stage stage) {
-    mapper.convertValue(stage.context, UpsertSecurityGroupOperation)
+  Map convert(Stage stage) {
+    mapper.convertValue(stage.context, Map)
   }
 
   static String parseCurrentValue(Response response) {

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DisableGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -49,12 +48,12 @@ class DisableGoogleServerGroupTask implements Task {
     ])
   }
 
-  DisableGoogleServerGroupOperation convert(Stage stage) {
+  Map convert(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName
     operation.zone = operation.zones ? operation.zones[0] : null
 
-    mapper.convertValue(operation, DisableGoogleServerGroupOperation)
+    mapper.convertValue(operation, Map)
   }
 }

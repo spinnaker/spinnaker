@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.EnableOrDisableAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -40,7 +39,7 @@ abstract class AbstractAsgTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    EnableOrDisableAsgOperation operation = operationFromContext(stage)
+    def operation = operationFromContext(stage)
     def taskId = kato.requestOperations([
       [("${asgAction}Description".toString()): operation]
     ]).toBlocking().first()
@@ -54,7 +53,7 @@ abstract class AbstractAsgTask implements Task {
     ])
   }
 
-  private EnableOrDisableAsgOperation operationFromContext(Stage stage) {
-    mapper.convertValue(stage.context.containsKey(asgAction) ? stage.context[asgAction] : stage.context, EnableOrDisableAsgOperation)
+  private Map operationFromContext(Stage stage) {
+    mapper.convertValue(stage.context.containsKey(asgAction) ? stage.context[asgAction] : stage.context, Map)
   }
 }

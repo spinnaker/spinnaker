@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
@@ -100,7 +99,7 @@ class CreateDeployTask implements Task {
     result
   }
 
-  private static AllowLaunchOperation convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
-    new AllowLaunchOperation(account: targetAccount, credentials: sourceAccount, region: region, amiName: ami)
+  private static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
+    [ account: targetAccount, credentials: sourceAccount, region: region, amiName: ami ]
   }
 }

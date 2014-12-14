@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.DestroyGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -63,10 +62,10 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].deleteGoogleReplicaPoolDescription) {
-      it instanceof DestroyGoogleReplicaPoolOperation
-      replicaPoolName == destroyASGConfig.asgName
-      zone == destroyASGConfig.zones[0]
-      credentials == destroyASGConfig.credentials
+      it instanceof Map
+      replicaPoolName == this.destroyASGConfig.asgName
+      zone == this.destroyASGConfig.zones[0]
+      credentials == this.destroyASGConfig.credentials
     }
   }
 

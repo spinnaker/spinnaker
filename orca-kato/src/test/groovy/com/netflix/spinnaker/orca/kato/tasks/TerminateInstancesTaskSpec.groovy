@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.TerminateInstancesOperation
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -64,10 +62,10 @@ class TerminateInstancesTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].terminateInstancesDescription) {
-      it instanceof TerminateInstancesOperation
-      region == terminateInstancesConfig.region
-      credentials == terminateInstancesConfig.credentials
-      instanceIds == terminateInstancesConfig.instanceIds
+      it instanceof Map
+      region == this.terminateInstancesConfig.region
+      credentials == this.terminateInstancesConfig.credentials
+      instanceIds == this.terminateInstancesConfig.instanceIds
     }
   }
 
