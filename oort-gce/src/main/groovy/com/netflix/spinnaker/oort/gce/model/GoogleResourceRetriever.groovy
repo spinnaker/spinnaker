@@ -25,39 +25,39 @@ import com.netflix.spinnaker.oort.gce.model.callbacks.NetworkLoadBalancersCallba
 import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import org.apache.log4j.Logger
+import org.springframework.beans.factory.annotation.Autowired
 
-import java.util.concurrent.atomic.AtomicBoolean
+import javax.annotation.PostConstruct
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class GoogleResourceRetriever {
-  protected static final Logger log = Logger.getLogger(this)
+  protected final Logger log = Logger.getLogger(GoogleResourceRetriever.class)
+
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
 
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
-  private static appMap = new HashMap<String, GoogleApplication>()
-  private static imageMap = new HashMap<String, List<String>>()
-  private static networkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
+  private appMap = new HashMap<String, GoogleApplication>()
+  private imageMap = new HashMap<String, List<String>>()
+  private networkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
 
-  private static AtomicBoolean initialized = new AtomicBoolean(false)
+  @PostConstruct
+  void init() {
+    log.info "Initializing GoogleResourceRetriever thread..."
 
-  static void init(AccountCredentialsProvider accountCredentialsProvider) {
-    // We want this routine to run exactly once.
-    if (initialized.compareAndSet(false, true)) {
-      log.info "Initializing GoogleResourceRetriever thread..."
-
-      // Load all resources initially in 10 seconds, and then every 60 seconds thereafter.
-      Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
-        try {
-          load(accountCredentialsProvider)
-        } catch (Throwable t) {
-          t.printStackTrace()
-        }
-      }, 10, 60, TimeUnit.SECONDS)
-    }
+    // Load all resources initially in 10 seconds, and then every 60 seconds thereafter.
+    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
+      try {
+        load()
+      } catch (Throwable t) {
+        t.printStackTrace()
+      }
+    }, 10, 60, TimeUnit.SECONDS)
   }
 
   // TODO(duftler): Handle paginated results.
-  private static void load(AccountCredentialsProvider accountCredentialsProvider) {
+  private void load() {
     log.info "Loading GCE resources..."
 
     def tempAppMap = new HashMap<String, GoogleApplication>()
@@ -139,7 +139,7 @@ class GoogleResourceRetriever {
     }
   }
 
-  static Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects(AccountCredentialsProvider accountCredentialsProvider) {
+  Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects(AccountCredentialsProvider accountCredentialsProvider) {
     def accountNameToSetOfGoogleCredentialsMap = new HashMap<String, Set<GoogleCredentials>>()
 
     for (def accountCredentials : accountCredentialsProvider.getAll()) {

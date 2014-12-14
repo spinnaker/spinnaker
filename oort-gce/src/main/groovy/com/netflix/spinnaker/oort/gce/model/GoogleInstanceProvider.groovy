@@ -23,8 +23,6 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 @Component
 @CompileStatic
 class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
@@ -32,13 +30,8 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
   GoogleResourceRetriever googleResourceRetriever
-
-  @PostConstruct
-  void init() {
-    googleResourceRetriever = new GoogleResourceRetriever()
-    googleResourceRetriever.init(accountCredentialsProvider)
-  }
 
   @Override
   GoogleInstance getInstance(String account, String region, String id) {

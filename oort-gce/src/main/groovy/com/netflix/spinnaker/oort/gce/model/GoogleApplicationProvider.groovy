@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.oort.gce.model
+
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
@@ -34,6 +35,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
   GoogleResourceRetriever googleResourceRetriever
 
   Timer applications
@@ -44,8 +46,6 @@ class GoogleApplicationProvider implements ApplicationProvider {
     String[] tags = ['className', this.class.simpleName]
     applications = extendedRegistry.timer('applications', tags)
     applicationByName = extendedRegistry.timer('applicationByName', tags)
-    googleResourceRetriever = new GoogleResourceRetriever()
-    googleResourceRetriever.init(accountCredentialsProvider)
   }
 
   @Override

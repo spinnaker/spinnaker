@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-import javax.annotation.PostConstruct
-
 @RestController
 @RequestMapping("/gce/loadBalancers")
 class GoogleLoadBalancerController {
@@ -33,13 +31,8 @@ class GoogleLoadBalancerController {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
   GoogleResourceRetriever googleResourceRetriever
-
-  @PostConstruct
-  void init() {
-    googleResourceRetriever = new GoogleResourceRetriever()
-    googleResourceRetriever.init(accountCredentialsProvider)
-  }
 
   @RequestMapping(method = RequestMethod.GET)
   List<GoogleLoadBalancerAccount> list() {
