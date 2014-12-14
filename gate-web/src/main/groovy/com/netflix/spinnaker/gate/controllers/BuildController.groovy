@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
-@RequestMapping("/build-masters")
+@RequestMapping("/builds")
 @RestController
 class BuildController {
   @Autowired
