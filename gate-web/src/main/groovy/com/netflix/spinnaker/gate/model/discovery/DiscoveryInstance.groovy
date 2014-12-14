@@ -31,8 +31,8 @@ class DiscoveryInstance {
     HEALTH_TYPE
   }
   String hostName
-  Integer port
-  Integer securePort
+  Port port
+  Port securePort
   String application
   String ipAddress
   String status
@@ -51,8 +51,8 @@ class DiscoveryInstance {
 
   @JsonCreator
   public static DiscoveryInstance buildInstance(@JsonProperty('hostName') String hostName,
-                                                @JsonProperty('port') Integer port,
-                                                @JsonProperty('securePort') Integer securePort,
+                                                @JsonProperty('port') Port port,
+                                                @JsonProperty('securePort') Port securePort,
                                                 @JsonProperty('app') String app,
                                                 @JsonProperty('ipAddr') String ipAddr,
                                                 @JsonProperty('status') String status,

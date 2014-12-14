@@ -27,7 +27,7 @@ import java.util.concurrent.ThreadLocalRandom
 class DiscoveryApplication {
 
   static DiscoveryInstance getRandomUpInstance(List<DiscoveryApplication> apps) {
-    List<DiscoveryInstance> candidates = apps.collect { it.instances.findAll { it.status == 'UP' } }.flatten()
+    List<DiscoveryInstance> candidates = apps.collect { it.instances.findAll { it.status == 'UP' && it.port.enabled } }.flatten()
     if (!candidates) {
       return null
     }

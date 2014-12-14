@@ -44,7 +44,7 @@ class EurekaOkClient extends OkClient {
       if (!randomInstance) {
         throw new RuntimeException("Error resolving Eureka UP instance for ${vip}!")
       } else {
-        request = new Request(r.method, "http://${randomInstance.hostName}:${randomInstance.port}${path}", r.headers, r.body)
+        request = new Request(r.method, "http://${randomInstance.hostName}:${randomInstance.port.port}${path}", r.headers, r.body)
       }
     }
     super.openConnection(request)

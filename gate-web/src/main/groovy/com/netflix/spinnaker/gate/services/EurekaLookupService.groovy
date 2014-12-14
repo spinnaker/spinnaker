@@ -76,6 +76,9 @@ class EurekaLookupService {
         }
       }
     }
+    if (!app) {
+      return null
+    }
     app.applications
   }
 
