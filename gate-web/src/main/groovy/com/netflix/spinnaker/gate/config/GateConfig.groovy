@@ -18,22 +18,13 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
-import com.netflix.spinnaker.gate.services.internal.EchoService
-import com.netflix.spinnaker.gate.services.internal.FlapJackService
-import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.IgorService
-import com.netflix.spinnaker.gate.services.internal.KatoService
-import com.netflix.spinnaker.gate.services.internal.MayoService
-import com.netflix.spinnaker.gate.services.internal.MortService
-import com.netflix.spinnaker.gate.services.internal.OortService
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.*
 import groovy.transform.CompileStatic
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -43,6 +34,11 @@ import retrofit.client.Client
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -69,70 +65,102 @@ class GateConfig {
   }
 
   @Bean
+  @ConditionalOnProperty('services.oort.enabled')
   OortService oortDeployService(ServiceConfiguration serviceConfiguration,
                                 Client retrofitClient) {
     createClient "oort", OortService, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.orca.enabled')
   OrcaService orcaService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
-    createClient "pond", OrcaService, serviceConfiguration, retrofitClient
+    createClient "orca", OrcaService, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.echo.enabled')
   EchoService echoService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "echo", EchoService, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.flapjack.enabled')
   FlapJackService flapJackService(ServiceConfiguration serviceConfiguration,
                                   Client retrofitClient) {
     createClient "flapjack", FlapJackService, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.front50.enabled')
   Front50Service front50Service(ServiceConfiguration serviceConfiguration,
                                 Client retrofitClient) {
     createClient "front50", Front50Service, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.mort.enabled')
   MortService mortService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "mort", MortService, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.kato.enabled')
   KatoService katoService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "kato", KatoService, serviceConfiguration, retrofitClient
   }
 
   @Bean
+  @ConditionalOnProperty('services.mayo.enabled')
   MayoService mayoService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "mayo", MayoService, serviceConfiguration, retrofitClient
   }
-
+  
   @Bean
+  @ConditionalOnProperty('services.igor.enabled')
   IgorService igorService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "igor", IgorService, serviceConfiguration, retrofitClient
   }
 
-  private
-  static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
-    def endpoint = serviceConfiguration.discoveryHosts && !serviceConfiguration.getService(serviceName)?.baseUrl ?
-        newFixedEndpoint("niws://${serviceConfiguration.getService(serviceName).name}")
-        : newFixedEndpoint(serviceConfiguration.getService(serviceName).baseUrl)
+  private static RestAdapter.Log serviceLogger(Class type) {
+    new RetrofitLogger(LoggerFactory.getLogger(type))
+  }
+
+  private static class RetrofitLogger implements RestAdapter.Log {
+    private final Logger logger
+
+    public RetrofitLogger(Logger logger) {
+      this.logger = logger
+    }
+    @Override
+    void log(String message) {
+      logger.info(message)
+    }
+  }
+
+  private static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
+    Service service = serviceConfiguration.getService(serviceName)
+    if (service == null) {
+      throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
+    }
+    if (!service.enabled) {
+      return null
+    }
+    def endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
+        newFixedEndpoint("niws://${service.vipAddress}")
+        : newFixedEndpoint(service.baseUrl)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
         .setClient(client)
         .setConverter(new JacksonConverter())
         .setLogLevel(RestAdapter.LogLevel.BASIC)
+        .setLog(serviceLogger(type))
         .build()
         .create(type)
   }

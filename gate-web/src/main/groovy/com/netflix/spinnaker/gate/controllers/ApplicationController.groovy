@@ -34,7 +34,7 @@ class ApplicationController {
   @Autowired
   TaskService taskService
 
-  @Autowired
+  @Autowired(required = false)
   TagService tagService
 
   @RequestMapping(method = RequestMethod.GET)
@@ -113,7 +113,11 @@ class ApplicationController {
 
   @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
   List<String> getTags(@PathVariable("name") String name) {
-    tagService.getTags(name)
+    if (tagService) {
+      tagService.getTags(name)
+    } else {
+      []
+    }
   }
 
   static class BakeCommand {

@@ -31,6 +31,8 @@ class DiscoveryInstance {
     HEALTH_TYPE
   }
   String hostName
+  Port port
+  Port securePort
   String application
   String ipAddress
   String status
@@ -49,6 +51,8 @@ class DiscoveryInstance {
 
   @JsonCreator
   public static DiscoveryInstance buildInstance(@JsonProperty('hostName') String hostName,
+                                                @JsonProperty('port') Port port,
+                                                @JsonProperty('securePort') Port securePort,
                                                 @JsonProperty('app') String app,
                                                 @JsonProperty('ipAddr') String ipAddr,
                                                 @JsonProperty('status') String status,
@@ -61,6 +65,8 @@ class DiscoveryInstance {
     def meta = dataCenterInfo.metadata
     new DiscoveryInstance(
         hostName,
+        port,
+        securePort,
         app,
         ipAddr,
         status,

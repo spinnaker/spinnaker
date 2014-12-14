@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.model.discovery
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.FlapJackService
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+import groovy.transform.Immutable
 
 @CompileStatic
-@Component
-class TagService {
-  private static final String GROUP = "tags"
+@Immutable
+class Port {
+    boolean enabled
+    int port
 
-  @Autowired(required = false)
-  FlapJackService flapJackService
-
-  List<Map> getTags(String application) {
-    if (!flapJackService) {
-      return []
+    @JsonCreator
+    public static Port buildPort(@JsonProperty('@enabled') boolean enabled, @JsonProperty('$') int port) {
+        new Port(enabled, port)
     }
-
-    HystrixFactory.newListCommand(GROUP, "getTags-${application}", true) {
-      flapJackService.getTags(application)
-    } execute()
-  }
 }

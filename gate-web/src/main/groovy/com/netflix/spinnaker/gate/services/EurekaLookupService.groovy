@@ -47,15 +47,15 @@ class EurekaLookupService {
       for (vip in instanceCache.keySet()) {
         def cached = instanceCache[vip]
         if (cached.expired) {
-          getApplication(vip)
+          getApplications(vip)
         }
       }
     }, 0, 30, TimeUnit.SECONDS)
   }
 
-  DiscoveryApplication getApplication(String vip) {
+  List<DiscoveryApplication> getApplications(String vip) {
     if (instanceCache.containsKey(vip) && !instanceCache[vip].expired) {
-      return instanceCache[vip].application
+      return instanceCache[vip].applications
     }
     List<String> hosts = []
     hosts.addAll(serviceConfiguration.discoveryHosts)
@@ -65,9 +65,9 @@ class EurekaLookupService {
     for (host in hosts) {
       EurekaService eureka = getEurekaService(host)
       try {
-        app = eureka.getApplication(vip)
-        if (app) {
-          instanceCache[vip] = new CachedDiscoveryApplication(application: app)
+        app = eureka.getVips(vip)
+        if (app && app.applications) {
+          instanceCache[vip] = new CachedDiscoveryApplication(applications: app.applications)
           break
         }
       } catch (RetrofitError e) {
@@ -76,7 +76,10 @@ class EurekaLookupService {
         }
       }
     }
-    app
+    if (!app) {
+      return null
+    }
+    app.applications
   }
 
   private static EurekaService getEurekaService(String host) {
@@ -91,11 +94,11 @@ class EurekaLookupService {
         .create(EurekaService)
   }
 
-  @Immutable(knownImmutables = ["application"])
+  @Immutable(knownImmutables = ["applications"])
   static class CachedDiscoveryApplication {
-    private final Long ttl = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS)
+    private final Long ttl = TimeUnit.SECONDS.toMillis(60)
     private final Long cacheTime = System.currentTimeMillis()
-    final DiscoveryApplication application
+    final List<DiscoveryApplication> applications
 
     boolean isExpired() {
       (System.currentTimeMillis() - cacheTime) > ttl

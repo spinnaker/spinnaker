@@ -30,12 +30,23 @@ import org.springframework.scheduling.annotation.EnableAsync
 @ComponentScan("com.netflix.spinnaker.gate")
 @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration])
 class Main extends SpringBootServletInitializer {
-  private static final String ENV_KEY = "netflix.environment"
+  static final Map<String, String> DEFAULT_PROPS = [
+          'netflix.environment': 'test',
+          'netflix.account': System.getProperty('netflix.environment', 'test'),
+          'netflix.stack': 'test',
+          'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
+          'spring.config.name': 'gate',
+          'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+  ]
 
   static {
-    System.setProperty(ENV_KEY, System.getProperty(ENV_KEY, "test"))
-    imposeSpinnakerFileConfig("onelogin.yml")
-    imposeSpinnakerClasspathConfig("onelogin.yml")
+    applyDefaults()
+  }
+
+  static void applyDefaults() {
+    DEFAULT_PROPS.each { k, v ->
+      System.setProperty(k, System.getProperty(k, v))
+    }
   }
 
   static void main(String... args) {
@@ -45,19 +56,5 @@ class Main extends SpringBootServletInitializer {
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
     builder.sources(Main)
-  }
-
-  static void imposeSpinnakerFileConfig(String file) {
-    def internalConfig = new File("${System.properties['user.home']}/.spinnaker/${file}")
-    if (internalConfig.exists()) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},${internalConfig.canonicalPath}")
-    }
-  }
-
-  static void imposeSpinnakerClasspathConfig(String resource) {
-    def internalConfig = getClass().getResourceAsStream("/${resource}")
-    if (internalConfig) {
-      System.setProperty("spring.config.location", "${System.properties["spring.config.location"]},classpath:/${resource}")
-    }
   }
 }

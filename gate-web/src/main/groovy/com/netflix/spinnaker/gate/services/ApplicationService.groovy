@@ -41,7 +41,7 @@ class ApplicationService {
   @Autowired
   OortService oortService
 
-  @Autowired
+  @Autowired(required = false)
   MayoService mayoService
 
   @Autowired
@@ -90,12 +90,19 @@ class ApplicationService {
   }
 
   List<Map> getPipelineConfigs(String app) {
+    if (!mayoService) {
+      return []
+    }
+
     HystrixFactory.newListCommand(GROUP, "getPipelineConfigs-${app}".toString(), true) {
       mayoService.getPipelineConfigs(app)
     } execute()
   }
 
   Map getPipelineConfig(String app, String pipelineName) {
+    if (!mayoService) {
+      return null
+    }
     HystrixFactory.newMapCommand(GROUP, "getPipelineConfig-${app}-${pipelineName}".toString(), true) {
       mayoService.getPipelineConfig(app, pipelineName)
     } execute()

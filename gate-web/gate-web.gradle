@@ -1,6 +1,6 @@
 buildscript {
   ext {
-    springBootVersion = "1.1.7.RELEASE"
+    springBootVersion = "1.1.9.RELEASE"
   }
   repositories {
     jcenter()
@@ -30,11 +30,10 @@ dependencies {
 
   compile 'org.springframework:springloaded:1.2.1.RELEASE'
 
-  compile 'cglib:cglib-nodep:3.1'
-  compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
+  spinnaker.group('retrofitDefault')
+
+  compile spinnaker.dependency('cglib')
   compile 'com.netflix.hystrix:hystrix-core:1.4.0-RC5'
-  compile 'com.squareup.retrofit:retrofit:1.6.1'
-  compile 'com.squareup.retrofit:converter-jackson:1.6.1'
   compile "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
 
   spinnaker.group("bootWeb")
@@ -57,12 +56,18 @@ tasks.startScripts {
   }
 }
 
+applicationName = 'gate'
+applicationDistribution.from(project.file('config')) {
+  into 'config'
+}
+
+
 ospackage {
-  packageName = "gate"
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${project.name}"
-  from "${project.buildDir}/install/${project.name}"
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
 }
 buildDeb {
   dependsOn installApp
@@ -73,4 +78,3 @@ tasks.build.dependsOn buildDeb
 
 tasks.bootRepackage.enabled = false
 
-applicationDefaultJvmArgs = ["-Dspring.config.location=classpath:/application.properties"]

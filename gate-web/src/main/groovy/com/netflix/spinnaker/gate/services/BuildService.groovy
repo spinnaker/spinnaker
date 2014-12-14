@@ -28,16 +28,23 @@ import org.springframework.stereotype.Component
 class BuildService {
   private static final String GROUP = "builds"
 
-  @Autowired
+  @Autowired(required = false)
   IgorService igorService
 
   List<String> getBuildMasters() {
+    if (!igorService) {
+      return []
+    }
     HystrixFactory.newListCommand(GROUP, "masters".toString(), true) {
       igorService.getBuildMasters()
     } execute()
   }
 
+
   List<String> getJobsForBuildMaster(String buildMaster) {
+    if (!igorService) {
+      return []
+    }
     HystrixFactory.newListCommand(GROUP, "jobs-${buildMaster}".toString(), true) {
       igorService.getJobsForBuildMaster(buildMaster)
     } execute()

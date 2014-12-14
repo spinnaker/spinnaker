@@ -15,19 +15,16 @@
  */
 
 package com.netflix.spinnaker.gate.retrofit
-
+import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.services.EurekaLookupService
-import java.util.regex.Pattern
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import retrofit.client.OkClient
 import retrofit.client.Request
 
+import java.util.regex.Pattern
+
 class EurekaOkClient extends OkClient {
   private static final Pattern NIWS_SCHEME_PATTERN = ~("niws://([^/]+)(.*)")
-
-  @Value('${spinnaker.stack:main}')
-  String stack
 
   @Autowired
   EurekaLookupService eureka
@@ -42,12 +39,12 @@ class EurekaOkClient extends OkClient {
       if (matcher[0].size() > 2) {
         path = matcher[0][2]
       }
-      def app = eureka.getApplication(vip)
-      def randomInstance = stack ? app.getRandomUpInstance(stack) : app.randomUpInstance
+      def apps = eureka.getApplications(vip)
+      def randomInstance = DiscoveryApplication.getRandomUpInstance(apps)
       if (!randomInstance) {
         throw new RuntimeException("Error resolving Eureka UP instance for ${vip}!")
       } else {
-        request = new Request(r.method, "http://${randomInstance.vipAddress}${path}", r.headers, r.body)
+        request = new Request(r.method, "http://${randomInstance.hostName}:${randomInstance.port.port}${path}", r.headers, r.body)
       }
     }
     super.openConnection(request)

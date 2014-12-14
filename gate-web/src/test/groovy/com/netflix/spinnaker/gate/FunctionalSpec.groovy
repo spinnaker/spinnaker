@@ -26,6 +26,8 @@ import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.MortService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+import org.springframework.context.ConfigurableApplicationContext
 import retrofit.RetrofitError
 
 import java.util.concurrent.ExecutorService
@@ -57,6 +59,8 @@ class FunctionalSpec extends Specification {
   static KatoService katoService
   static ServiceConfiguration serviceConfiguration
 
+  ConfigurableApplicationContext ctx
+
   void setup() {
     applicationService = Mock(ApplicationService)
     flapJackService = Mock(FlapJackService)
@@ -75,9 +79,12 @@ class FunctionalSpec extends Specification {
     def localPort = sock.localPort
     sock.close()
     System.setProperty("server.port", localPort.toString())
+    System.setProperty("onelogin.enabled", "false")
+    System.setProperty('security.basic.enabled', 'false')
+    System.setProperty('management.security.enabled', 'false')
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration] as Set)
-    spring.run()
+    ctx = spring.run()
 
     api = new RestAdapter.Builder()
         .setEndpoint("http://localhost:${localPort}")
@@ -88,6 +95,7 @@ class FunctionalSpec extends Specification {
   }
 
   def cleanup() {
+    ctx.close()
   }
 
   void "should call ApplicationService for applications"() {
@@ -146,7 +154,7 @@ class FunctionalSpec extends Specification {
       task = [type: "deploy"]
   }
 
-  @EnableAutoConfiguration
+  @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration])
   @Configuration
   static class FunctionalConfiguration {
 

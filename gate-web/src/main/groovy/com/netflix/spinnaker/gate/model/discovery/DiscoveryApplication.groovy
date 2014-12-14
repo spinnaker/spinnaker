@@ -16,38 +16,27 @@
 
 
 package com.netflix.spinnaker.gate.model.discovery
-
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
-import com.netflix.frigga.Names
 import groovy.transform.EqualsAndHashCode
+
+import java.util.concurrent.ThreadLocalRandom
 
 @JsonRootName("application")
 @EqualsAndHashCode
 class DiscoveryApplication {
 
+  static DiscoveryInstance getRandomUpInstance(List<DiscoveryApplication> apps) {
+    List<DiscoveryInstance> candidates = apps.collect { it.instances.findAll { it.status == 'UP' && it.port.enabled } }.flatten()
+    if (!candidates) {
+      return null
+    }
+    candidates[ThreadLocalRandom.current().nextInt(candidates.size())]
+  }
+
   String name
 
   @JsonProperty('instance')
   List<DiscoveryInstance> instances
-
-  DiscoveryInstance getRandomUpInstance() {
-    if (!this.instances) return null
-    def instances = []
-    instances.addAll(this.instances)
-    Collections.shuffle(instances)
-    instances.find { it.status == 'UP' }
-  }
-
-  DiscoveryInstance getRandomUpInstance(String stack) {
-    if (!this.instances) return null
-    def instances = []
-    instances.addAll(this.instances)
-    Collections.shuffle(instances)
-    instances.find { DiscoveryInstance instance ->
-      def names = Names.parseName(instance.asgName)
-      instance.status == 'UP' && names.stack == stack
-    }
-  }
 }
 

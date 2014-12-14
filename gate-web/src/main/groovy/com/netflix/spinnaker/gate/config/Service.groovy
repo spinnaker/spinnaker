@@ -20,8 +20,8 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class Service {
-  // Will be used as the VIP if no baseUrl is specified
-  String name
+  boolean enabled = true
+  String vipAddress
   String baseUrl
 
   Map<String, Object> config = [:]

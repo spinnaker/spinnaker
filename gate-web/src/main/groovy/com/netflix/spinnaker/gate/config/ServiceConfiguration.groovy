@@ -27,12 +27,12 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties
 class ServiceConfiguration {
   List<String> discoveryHosts
-  List<Service> services
+  Map<String, Service> services
 
   @Autowired
   ApplicationContext ctx
 
   Service getService(String name) {
-    services.find { it.name == name }
+    services[name]
   }
 }
