@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.FlapJackService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.MortService
@@ -113,6 +114,12 @@ class GateConfig {
   MayoService mayoService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "mayo", MayoService, serviceConfiguration, retrofitClient
+  }
+
+  @Bean
+  IgorService igorService(ServiceConfiguration serviceConfiguration,
+                          Client retrofitClient) {
+    createClient "igor", IgorService, serviceConfiguration, retrofitClient
   }
 
   private

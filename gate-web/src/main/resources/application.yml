@@ -19,6 +19,7 @@ mayo.baseUrl: http://mayo.prod.netflix.net
 orca.baseUrl: http://pond.prod.netflix.net
 front50.baseUrl: http://front50.prod.netflix.net
 flapjack.baseUrl: http://flapjack.prod.netflix.net
+igor.baseUrl: http://igor.prod.netflix.net
 
 services:
   - name: oort
@@ -45,3 +46,6 @@ services:
   - name: mayo
     group: config
     baseUrl: ${mayo.baseUrl}
+  - name: igor
+    group: builds
+    baseUrl: ${igor.baseUrl}
