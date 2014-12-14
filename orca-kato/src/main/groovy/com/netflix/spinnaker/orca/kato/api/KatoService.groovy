@@ -32,7 +32,7 @@ import rx.Observable
 interface KatoService {
 
   @POST("/ops")
-  Observable<TaskId> requestOperations(@Body Collection<? extends Map<String, ? extends Operation>> operations)
+  Observable<TaskId> requestOperations(@Body Collection<? extends Map<String, Map>> operations)
 
   @GET("/task")
   Observable<List<Task>> listTasks()
