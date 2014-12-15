@@ -19,9 +19,9 @@ package com.netflix.spinnaker.oort.gce.controllers
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -34,8 +34,8 @@ class GoogleNamedImageLookupController {
   @Autowired
   GoogleResourceRetriever googleResourceRetriever
 
-  @RequestMapping(value = '/{account}', method = RequestMethod.GET)
-  List<String> listImages(@PathVariable String account) {
+  @RequestMapping(value = '/find', method = RequestMethod.GET)
+  List<String> find(@RequestParam(value = "account") String account) {
     def imageMap = googleResourceRetriever.imageMap
     def imageList = imageMap?.get(account)
 
