@@ -89,7 +89,7 @@ describe('orcaService', function () {
       expect(submitted.description).toBe('Create New Server Group in cluster appName--details');
     });
 
-    it('sets action type and description appropriately when cloning', function () {
+    it('sets action type and description appropriately when cloning, preserving source', function () {
       var command = {
           viewState: {
             mode: 'clone',
@@ -102,6 +102,7 @@ describe('orcaService', function () {
       var submitted = postTask(command);
       expect(submitted.job[0].type).toBe('copyLastAsg');
       expect(submitted.description).toBe('Create Cloned Server Group from appName-v002');
+      expect(submitted.job[0].source).toEqual(command.source);
     });
   });
 });

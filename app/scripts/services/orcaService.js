@@ -221,6 +221,9 @@ angular.module('deckApp')
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
       var command = _.defaults({backingData: [], viewState: []}, base);
+      if (base.viewState.mode !== 'clone') {
+        delete command.source;
+      }
       if (base.viewState.useAllImageSelection) {
         command.amiName = base.viewState.allImageSelection;
       }
@@ -236,7 +239,6 @@ angular.module('deckApp')
       delete command.instanceProfile;
       delete command.vpcId;
       delete command.usePreferredZones;
-      delete command.source;
 
       if (!command.subnetType) {
         delete command.subnetType;
