@@ -19,5 +19,10 @@ angular.module('deckApp.delivery')
       return stage.name === $stateParams.stageName;
     };
 
+    controller.executionNotCurrent = function() {
+      return $scope.execution.id !== $stateParams.executionId &&
+        $state.includes('**.execution.**');
+    };
+
   });
 
