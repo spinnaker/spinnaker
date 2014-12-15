@@ -11,12 +11,12 @@ angular.module('deckApp')
         },
         isRunning: {
           get: function() {
-            return item.status === 'STARTED' || item.status === 'EXECUTING';
+            return item.status === 'STARTED' || item.status === 'EXECUTING' || item.status === 'RUNNING';
           },
         },
         isFailed: {
           get: function() {
-            return item.status === 'FAILED' || item.status === 'STOPPED';
+            return item.status === 'FAILED' || item.status === 'STOPPED' || item.status === 'TERMINAL';
           },
         },
         isStopped: {

@@ -43,9 +43,18 @@ angular.module('deckApp')
 
     function isBetween(item, a, b) {
       var ts = momentService(item.startTime);
-      return angular.isDefined(a) &&
-        ts.isBefore(a.moment()) &&
+      if (angular.isUndefined(a)) {
+        return false;
+      }
+      var aIndex = boundaries.indexOf(a);
+      var btw = ts.isBefore(a.moment()) &&
         (angular.isUndefined(b) || ts.isAfter(b.moment()) || ts.isSame(b.moment()));
+      var exclusive = boundaries.every(function(boundary, idx) {
+        var next = boundaries[idx+1];
+        return idx >= aIndex || !(ts.isBefore(boundary.moment()) &&
+          (ts.isAfter(next.moment()) || ts.isSame(next.moment())));
+      });
+      return btw && exclusive;
     }
 
     return {
