@@ -1,8 +1,13 @@
 <div class="modal-page">
+  <div class="close-button pull-right">
+    <a class="btn btn-link" ng-click="$close()" >
+      <span class="glyphicon glyphicon-remove"></span>
+    </a>
+  </div>
+  <div class="modal-header">
+    <h3 data-purpose="modal-header">New Application</h3>
+  </div>
   <form role="form" class="container-fluid" novalidate name="newApplicationForm">
-    <div class="modal-header">
-      <h3 data-purpose="modal-header">New Application</h3>
-    </div>
     <div class="modal-body">
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Name</div>
