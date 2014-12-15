@@ -1,13 +1,19 @@
 <div modal-page>
+  <!--<div class="close-button pull-right">-->
+    <!--<a class="btn btn-link" ng-click="$close()" >-->
+      <!--<span class="glyphicon glyphicon-remove"></span>-->
+    <!--</a>-->
+  <!--</div>-->
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>User Data for {{serverGroup.name}}</h3>
+  </div>
   <form role="form">
-    <div class="modal-header">
-      <h3>User Data for {{serverGroup.name}}</h3>
-    </div>
     <div class="modal-body">
       <textarea readonly="readonly" rows="15" class="code">{{userData}}</textarea>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" ng-click="close()">Close</button>
+      <button class="btn btn-primary" ng-click="$close()">Close</button>
     </div>
   </form>
 </div>
