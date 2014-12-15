@@ -18,4 +18,8 @@ angular.module('deckApp')
       'mouseenter focus': 'mouseleave blur'
     });
   })
+  .config(function($modalProvider) {
+    $modalProvider.options.backdrop = 'static';
+    $modalProvider.options.keyboard = false;
+  })
 ;
