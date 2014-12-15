@@ -9,7 +9,7 @@ angular.module('deckApp')
       },
       templateUrl: 'views/application/modal/serverGroup/aws/serverGroupAdvancedSettingsDirective.html',
       controller: 'ServerGroupAdvancedSettingsCtrl as advancedSettingsCtrl',
-    }
+    };
   })
   .controller('ServerGroupAdvancedSettingsCtrl', function($scope) {
     $scope.healthCheckTypes = ['EC2', 'ELB'];
@@ -27,6 +27,6 @@ angular.module('deckApp')
 
     this.processIsSuspended = function(process) {
       return $scope.command.suspendedProcesses.indexOf(process) !== -1;
-    }
+    };
 
   });

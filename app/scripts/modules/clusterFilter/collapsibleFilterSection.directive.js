@@ -1,3 +1,5 @@
+'use strict';
+
 angular
   .module('cluster.filter.collapse', [])
   .directive('filterSection', function ($timeout) {
@@ -10,7 +12,7 @@ angular
         helpKey: '@?'
       },
       templateUrl: 'scripts/modules/clusterFilter/collapsibleFilterSection.html',
-      link:  function (scope, elem, attrs, toggleController) {
+      link:  function (scope, elem) {
         var expanded = (scope.expanded === 'true');
         scope.state = {expanded: expanded};
         scope.getIcon = function () {
@@ -29,13 +31,12 @@ angular
         });
       },
 
-      controller: function($scope){
+      controller: function($scope) {
         $scope.$on('parent::toggle', function(event, isShow) {
           $scope.state = {expanded: isShow };
         });
-
       }
-    }
+    };
   })
   .directive('filterToggleAll', function () {
     return {
@@ -51,11 +52,6 @@ angular
         '</div>'
       ].join(''),
       controller: function ($scope) {
-        $scope.show = false;
-        $scope.buttonName = ($scope.show ? 'Hide All' : 'Show All');
-        $scope.toggle = toggle;
-        $scope.clearAll = clearAll;
-
         function toggle() {
           $scope.show = !$scope.show;
           $scope.$broadcast('parent::toggle', $scope.show);
@@ -65,6 +61,11 @@ angular
         function clearAll() {
           $scope.$broadcast('parent::clearAll');
         }
+
+        $scope.show = false;
+        $scope.buttonName = ($scope.show ? 'Hide All' : 'Show All');
+        $scope.toggle = toggle;
+        $scope.clearAll = clearAll;
       }
-    }
+    };
   });

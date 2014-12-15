@@ -6,7 +6,7 @@ describe('authenticationProvider: application startup', function() {
     loadDeck({
       initializeCache: false,
       generateUrls: true
-    })
+    });
   });
 
   beforeEach(inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal, $rootScope) {

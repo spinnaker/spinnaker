@@ -9,7 +9,7 @@ angular.module('deckApp')
       },
       templateUrl: 'views/application/modal/serverGroup/aws/availabilityZoneDirective.html',
       controller: 'AvailabilityZoneSelectorCtrl as availabilityZoneCtrl',
-    }
+    };
   })
   .controller('AvailabilityZoneSelectorCtrl', function($scope) {
     $scope.autoBalancingOptions = [

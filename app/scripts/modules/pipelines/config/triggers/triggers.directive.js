@@ -10,7 +10,7 @@ angular.module('deckApp.pipelines.trigger')
       controller: 'triggersCtrl',
       controllerAs: 'triggersCtrl',
       templateUrl: 'scripts/modules/pipelines/config/triggers/triggers.html'
-    }
+    };
   })
   .controller('triggersCtrl', function($scope) {
     this.addTrigger = function() {

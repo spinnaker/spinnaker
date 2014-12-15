@@ -18,7 +18,7 @@ angular.module('deckApp')
     }
 
     // TODO(duftler): Rename getAmi() to getImage()?
-    function getAmi(amiName, region, credentials) {
+    function getAmi(/*amiName, region, credentials*/) {
       // GCE images are not regional so we don't need to retrieve ids scoped to regions.
       return null;
     }

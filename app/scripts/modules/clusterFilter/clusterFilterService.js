@@ -37,7 +37,7 @@ angular
     function preserveState() {
       _.forOwn($location.search(), function(value, key) {
         $stateParams[key] = value;
-      })
+      });
     }
 
     function updateAccountParams() {

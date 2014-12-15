@@ -1,3 +1,5 @@
+'use strict';
+
 angular.module('deckApp.pipelines')
   .directive('deployInitializer', function() {
     return {
@@ -9,7 +11,7 @@ angular.module('deckApp.pipelines')
       templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployInitializer.html',
       controller: 'DeployInitializerCtrl',
       controllerAs: 'deployInitializerCtrl'
-    }
+    };
   })
   .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategiesService) {
     var controller = this;
@@ -53,7 +55,7 @@ angular.module('deckApp.pipelines')
             command.availabilityZones = {};
             command.availabilityZones[command.region] = zones;
             var securityGroups = command.securityGroups.map(function (securityGroupId) {
-              return securityGroupService.getApplicationSecurityGroup($scope.application, command.credentials, command.region, securityGroupId).name
+              return securityGroupService.getApplicationSecurityGroup($scope.application, command.credentials, command.region, securityGroupId).name;
             });
             command.securityGroups = securityGroups;
 

@@ -9,7 +9,7 @@ angular.module('deckApp')
       },
       templateUrl: 'views/application/modal/serverGroup/aws/instanceTypeDirective.html',
       controller: 'InstanceTypeSelectorCtrl as instanceTypeCtrl',
-    }
+    };
   })
   .controller('InstanceTypeSelectorCtrl', function($scope, instanceTypeService) {
     function updateFamilies() {

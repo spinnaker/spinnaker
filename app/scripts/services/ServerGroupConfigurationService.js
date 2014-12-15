@@ -62,7 +62,7 @@ angular.module('deckApp')
     function configureInstanceTypes(command) {
       var result = { dirty: {} };
       if (command.region) {
-        var filtered = instanceTypeService.getAvailableTypesForRegions(command.selectedProvider, command.backingData.instanceTypes, [command.region])
+        var filtered = instanceTypeService.getAvailableTypesForRegions(command.selectedProvider, command.backingData.instanceTypes, [command.region]);
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
           command.instanceType = null;
           result.dirty.instanceType = true;
@@ -86,7 +86,7 @@ angular.module('deckApp')
             return image.amis && image.amis[command.region];
           }).
           map(function (image) {
-            return { imageName: image.imageName, ami: image.amis ? image.amis[command.region][0] : null }
+            return { imageName: image.imageName, ami: image.amis ? image.amis[command.region][0] : null };
           });
         if (command.amiName && !regionalImages.some(function (image) {
           return image.imageName === command.amiName;
@@ -258,7 +258,7 @@ angular.module('deckApp')
           command.region = null;
         }
         return result;
-      }
+      };
     }
 
     return {

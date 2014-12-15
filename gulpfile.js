@@ -176,7 +176,10 @@ gulp.task('css:application', ['clean:styles:application'], function() {
 gulp.task('css', ['css:application', 'css:vendor']);
 
 gulp.task('jshint', function() {
-  return gulp.src([app, scripts, '**/*(!.spec).js'].join('/'))
+  return gulp.src([
+    [app, scripts, '**/*.js'].join('/'),
+    '!**/*.spec.js'
+  ])
     .pipe($.if(!development, $.jshint()))
     .pipe($.if(!development, $.jshint.reporter('jshint-stylish')))
     .pipe($.if(!development, $.jshint.reporter('fail')));

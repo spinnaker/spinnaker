@@ -7,5 +7,5 @@ angular
       scope:true,
       restrict: 'E',
       templateUrl: 'views/directives/modalClose.html'
-    }
+    };
   });

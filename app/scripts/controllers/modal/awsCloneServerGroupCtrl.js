@@ -62,7 +62,7 @@ angular.module('deckApp.aws')
     function createResultProcessor(method) {
       return function() {
         processCommandUpdateResult(method());
-      }
+      };
     }
 
     function processCommandUpdateResult(result) {

@@ -10,5 +10,5 @@ angular.module('deckApp.pipelines.create')
       templateUrl: 'scripts/modules/pipelines/config/actions/create/createPipelineButton.html',
       controller: 'CreatePipelineButtonCtrl',
       controllerAs: 'buttonCtrl',
-    }
+    };
   });

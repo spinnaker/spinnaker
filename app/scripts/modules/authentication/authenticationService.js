@@ -58,5 +58,5 @@ angular.module('deckApp.authentication')
       redirect: function(url) {
         $window.location.href = url;
       }
-    }
+    };
   });

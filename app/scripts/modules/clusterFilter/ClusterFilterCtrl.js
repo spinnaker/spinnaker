@@ -48,13 +48,13 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
 
     var providerType = {
       getDisplayValue: function (cluster) {
-        return _.unique(_.collect(cluster.serverGroups, 'type'))
+        return _.unique(_.collect(cluster.serverGroups, 'type'));
       }
     };
 
     var instanceType = {
       getDisplayValue: function (cluster) {
-        return _.unique(_.collect(cluster.serverGroups, 'instanceType'))
+        return _.unique(_.collect(cluster.serverGroups, 'instanceType'));
       }
     };
 
@@ -88,19 +88,19 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
     function getAccountHeadings() {
       var accountNameList = getHeadingsForOption(accountOption);
       return accountNameList;
-    };
+    }
 
     function getRegionHeadings() {
       return getHeadingsForOption(regionOption);
-    };
+    }
 
     function getProviderType() {
       return getHeadingsForOption(providerType);
-    };
+    }
 
     function getInstanceType() {
       return getHeadingsForOption(instanceType);
-    };
+    }
 
     function getHeadingsForOption(option) {
       var allValues = application.clusters.map(option.getDisplayValue);
@@ -109,7 +109,7 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
 
     function clearFilters() {
       clusterFilterService.clearFilters();
-      clusterFilterService.updateClusterGroups(application)
+      clusterFilterService.updateClusterGroups(application);
     }
 
 

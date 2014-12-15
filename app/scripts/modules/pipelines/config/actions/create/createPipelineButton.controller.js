@@ -10,6 +10,6 @@ angular.module('deckApp.pipelines.create')
         resolve: {
           application: function() { return $scope.application; }
         }
-      })
-    }
+      });
+    };
   });

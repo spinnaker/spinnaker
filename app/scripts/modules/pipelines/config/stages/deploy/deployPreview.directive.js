@@ -1,3 +1,5 @@
+'use strict';
+
 angular.module('deckApp.pipelines')
   .directive('deployPreview', function(serverGroupService) {
     return {
@@ -30,5 +32,5 @@ angular.module('deckApp.pipelines')
         scope.$watch('stage.cluster.availabilityZones', buildDisplayableRegions);
         scope.$watch('stage.cluster', buildClusterName);
       }
-    }
+    };
   });

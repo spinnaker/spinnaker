@@ -9,7 +9,7 @@ angular.module('deckApp')
       },
       templateUrl: 'views/application/modal/serverGroup/aws/serverGroupCapacityDirective.html',
       controller: 'ServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
-    }
+    };
   })
   .controller('ServerGroupCapacitySelectorCtrl', function($scope) {
     $scope.$watch('command.capacity.desired', function(newVal) {

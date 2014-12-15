@@ -8,5 +8,5 @@ angular.module('deckApp')
         command: '=',
       },
       templateUrl: 'views/application/modal/serverGroup/aws/serverGroupLoadBalancersDirective.html'
-    }
+    };
   });

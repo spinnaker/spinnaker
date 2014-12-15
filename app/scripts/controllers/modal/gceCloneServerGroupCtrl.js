@@ -204,7 +204,7 @@ angular.module('deckApp.gce')
     }
 
     function configureImages() {
-      if ($scope.command.credentials != $scope.lastImageAccount) {
+      if ($scope.command.credentials !== $scope.lastImageAccount) {
         imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, $scope.command.credentials).then(function(images) {
           $scope.gceImages = images;
 
@@ -217,14 +217,14 @@ angular.module('deckApp.gce')
       }
     }
 
-    function configureInstanceTypes() {
-      if ($scope.command.region) {
-        $scope.regionalInstanceTypes = instanceTypeService.getAvailableTypesForRegions($scope.command.selectedProvider, $scope.instanceTypesByRegion, [$scope.command.region]);
-        if ($scope.command.instanceType && result.indexOf($scope.command.instanceType) === -1) {
-          $scope.regionalInstanceTypes.push($scope.command.instanceType);
-        }
-      }
-    }
+//    function configureInstanceTypes() {
+//      if ($scope.command.region) {
+//        $scope.regionalInstanceTypes = instanceTypeService.getAvailableTypesForRegions($scope.command.selectedProvider, $scope.instanceTypesByRegion, [$scope.command.region]);
+//        if ($scope.command.instanceType && $scope.regionalInstanceTypes.indexOf($scope.command.instanceType) === -1) {
+//          $scope.regionalInstanceTypes.push($scope.command.instanceType);
+//        }
+//      }
+//    }
 
     function initializeCommand() {
       if (serverGroupCommand.viewState.imageId && $scope.gceImages.indexOf(serverGroupCommand.viewState.imageId) > -1) {
@@ -237,7 +237,7 @@ angular.module('deckApp.gce')
 
       // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
       $scope.command.instanceMetadata.forEach(function(metadataPair) {
-        transformedInstanceMetadata[metadataPair['key']] = metadataPair['value'];
+        transformedInstanceMetadata[metadataPair.key] = metadataPair.value;
       });
 
       // We use this list of load balancer names when 'Enabling' a server group.

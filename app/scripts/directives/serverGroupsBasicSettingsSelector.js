@@ -11,7 +11,7 @@ angular.module('deckApp')
       },
       templateUrl: 'views/application/modal/serverGroup/aws/serverGroupBasicSettingsDirective.html',
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
-    }
+    };
   })
   .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, deploymentStrategiesService, serverGroupService) {
     function searchImages(q) {

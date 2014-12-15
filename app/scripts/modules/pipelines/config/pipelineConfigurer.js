@@ -53,7 +53,7 @@ angular.module('deckApp.pipelines')
         var itemScope = ui.item.scope(),
           currentPage = $scope.viewState.stageIndex,
           startingPagePosition = itemScope.$index,
-          isCurrentPage = currentPage == startingPagePosition;
+          isCurrentPage = currentPage === startingPagePosition;
 
         $timeout(function() {
           itemScope = ui.item.scope(); // this is terrible but provides a hook for mocking in tests

@@ -6,11 +6,11 @@ angular.module('deckApp')
     $scope.sortFilter = {};
 
     function isSideNavHideable() {
-      return  $state.is('home.applications.application.insight.clusters') && $scope.application.serverGroups.length === 0
+      return  $state.is('home.applications.application.insight.clusters') && $scope.application.serverGroups.length === 0;
     }
 
     $scope.$on('$stateChangeSuccess', function() {
-      self.isSideNavHideable = isSideNavHideable()
+      self.isSideNavHideable = isSideNavHideable();
     });
 
 

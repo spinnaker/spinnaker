@@ -38,7 +38,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     function createResultProcessor(method) {
       return function() {
         processCommandUpdateResult(method());
-      }
+      };
     }
 
     function processCommandUpdateResult(result) {

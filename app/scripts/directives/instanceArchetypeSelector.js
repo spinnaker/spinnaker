@@ -9,7 +9,7 @@ angular.module('deckApp')
       },
       templateUrl: 'views/application/modal/serverGroup/aws/instanceArchetypeDirective.html',
       controller: 'InstanceArchetypeSelectorCtrl as instanceArchetypeCtrl',
-    }
+    };
   })
   .controller('InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService) {
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
