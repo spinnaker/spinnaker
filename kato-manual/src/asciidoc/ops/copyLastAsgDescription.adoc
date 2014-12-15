@@ -59,7 +59,7 @@ This description provides the same deployment functionality as a +basicAmazonDep
 |startDisabled            | boolean | false    | Indicates that this deployment should start without traffic being sent to new instances.
 |======================
 
-======= Listing 1: Description of capacity object
+> Listing 1: Description of capacity object
 [source,javascript]
 ----
 {
@@ -69,7 +69,7 @@ This description provides the same deployment functionality as a +basicAmazonDep
 }
 ----
 
-======= Listing 1: Description of source object
+> Listing 2: Description of source object
 [source,javascript]
 ----
 {
