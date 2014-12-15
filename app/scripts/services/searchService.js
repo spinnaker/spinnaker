@@ -18,7 +18,7 @@ angular.module('deckApp')
       })
         .then(
           function(response) {
-            return response.data[0];
+            return response.data[0] || getFallbackResults();
           },
           function (response) {
             $log.error(response.data, response);
