@@ -34,9 +34,10 @@ This description provides the same deployment functionality as a +basicAmazonDep
 |application              | string  | true     | The name of the application to which this deployment is concerned. Strictly speaking, this will be used to build the common naming scheme for the AutoScaling group
 |amiName                  | string  | true     | The imageId of an AMI (e.g. ami-f00fbeef) or the name of the AMI that will be deployed to the ASG. If a name is provided, the image Id will be looked up in each region.
 |credentials              | string  | true     | The named account credentials that are to be used for this operation.
+|source                   | object  | true     | An object structure like the one found in Listing 2. Required to ascertain the source configurtion for the clone operation.
 |instanceType             | string  | false    | Some https://aws.amazon.com/ec2/instance-types/[Amazon Instance Type] that members of this AutoScaling group will use.
 |availabilityZones        | object  | false    | An object that provides a named region to array of availability zone relationships. For example, +{ "us-east-1": ["us-east-1a", "us-east-1c"] }+ will inform the deployment engine to deploy the provided AMI in the "us-east-1" region, and specifically into the availability zones: "us-east-1a", "us-east-1c".
-|capacity                 | object  | false    | An object that represents the capacity of the newly created AutoScaling group. Valid values are "min", "max", and "desired", which represent the minimum number of instances, the maximum number of instances, and the desired number of instances for an AutoScaling group, respectively.
+|capacity                 | object  | false    | An object structure like the one found in Listing 1, which represents the capacity of the newly created AutoScaling group. Valid values are "min", "max", and "desired", which represent the minimum number of instances, the maximum number of instances, and the desired number of instances for an AutoScaling group, respectively.
 |iamRole                  | string  | false    | A specified IAM Role that will be applied to the launch configuration. If not specified, a default value will be used as defined by the configuration directive, +aws.defaults.iamRole+.
 |keyPair                  | string  | false    | The named key pair to be applied to the new instances of this asg. If not specified, a default value will be used as defined by the configuration directive, +aws.defaults.keyPair+.
 |securityGroups           | array   | false    | List of security *group names*. Their IDs in their particular regions will be found at Amazon -- no need to look them up in advance.
@@ -50,4 +51,30 @@ This description provides the same deployment functionality as a +basicAmazonDep
 |spotPrice                | string  | false    | The spot price to apply to the create ASG request. Only send this value if you're absolutely sure of what you're doing.
 |healthCheckType          | string  | false    | Valid values are: EC2 or ELB. Indicates whether an autoscaling group should derive instance health from Amazon itself or from the ELB. The latter may give you more granular application-level capabilities, while the former may be more accurate from a system perspective.
 |healthCheckGracePeriod   | number  | false    | Specifies a period of time in seconds to wait after a service comes into existence that Amazon should wait to perform health check polling. This may be useful for instances that need a "warm-up" period to become fully initialized.                                                                                                                                                                                         
+|freeFormDetails          | string  | false    | Influences the generated name of the auto scaling group. Free form details are added to the end of the name, following two double dashes ('--'). For example, if the application is named "foo" and free form details of "bar" are provided, then the generated ASG name will be "foo--bar". This field may contain no spaces or special characters.
+|cooldown                 | number  | false    | Specifies the cooldown period between scaling operations (in seconds). Default: 600.
+|instanceMonitoring       | boolean | false    | Indicates that instances started as part of this deployment should be launched with CloudWatch instance monitoring.
+|ebsOptimized             | boolean | false    | Indicates that instances started as part of this deployment should be launched as EBS optimized instances. This may entail an additional cost from Amazon for dedicated capacity.
+|ignoreSequence           | boolean | false    | Indicates that this deployment should avoid adding the sequence qualifier (ie. v000, v001, etc...) to the ASG name. Default is false.
+|startDisabled            | boolean | false    | Indicates that this deployment should start without traffic being sent to new instances.
 |======================
+
+======= Listing 1: Description of capacity object
+[source,javascript]
+----
+{
+  "min": 5,
+  "max": 5,
+  "desired": 5
+}
+----
+
+======= Listing 1: Description of source object
+[source,javascript]
+----
+{
+  "account": "test",
+  "region": "us-east-1",
+  "asgName": "kato-v000"
+}
+----
