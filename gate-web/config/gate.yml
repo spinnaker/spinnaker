@@ -1,25 +1,13 @@
-security:
-  basic:
-    enabled: false
-management:
-  security:
-    enabled: false
-
 services:
   oort:
-    enabled: true
     baseUrl: http://localhost:8081
   orca:
-    enabled: true
     baseUrl: http://pond-${netflix.stack}.${netflix.environment}.netflix.net
   front50:
-    enabled: true
     baseUrl: http://front50-${netflix.stack}.${netflix.environment}.netflix.net
   mort:
-    enabled: true
     baseUrl: http://localhost:8082
   kato:
-    enabled: true
     baseUrl: http://localhost:8501
 #optional services:
   echo:

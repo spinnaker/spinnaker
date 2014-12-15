@@ -15,16 +15,13 @@
  */
 
 package com.netflix.spinnaker.gate.config
-
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
+import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.internal.*
 import groovy.transform.CompileStatic
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
@@ -65,19 +62,36 @@ class GateConfig {
   }
 
   @Bean
-  @ConditionalOnProperty('services.oort.enabled')
   OortService oortDeployService(ServiceConfiguration serviceConfiguration,
                                 Client retrofitClient) {
     createClient "oort", OortService, serviceConfiguration, retrofitClient
   }
 
   @Bean
-  @ConditionalOnProperty('services.orca.enabled')
   OrcaService orcaService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "orca", OrcaService, serviceConfiguration, retrofitClient
   }
 
+  @Bean
+  Front50Service front50Service(ServiceConfiguration serviceConfiguration,
+                                Client retrofitClient) {
+    createClient "front50", Front50Service, serviceConfiguration, retrofitClient
+  }
+
+  @Bean
+  MortService mortService(ServiceConfiguration serviceConfiguration,
+                          Client retrofitClient) {
+    createClient "mort", MortService, serviceConfiguration, retrofitClient
+  }
+
+  @Bean
+  KatoService katoService(ServiceConfiguration serviceConfiguration,
+                          Client retrofitClient) {
+    createClient "kato", KatoService, serviceConfiguration, retrofitClient
+  }
+
+  //---- optional backend components:
   @Bean
   @ConditionalOnProperty('services.echo.enabled')
   EchoService echoService(ServiceConfiguration serviceConfiguration,
@@ -93,27 +107,6 @@ class GateConfig {
   }
 
   @Bean
-  @ConditionalOnProperty('services.front50.enabled')
-  Front50Service front50Service(ServiceConfiguration serviceConfiguration,
-                                Client retrofitClient) {
-    createClient "front50", Front50Service, serviceConfiguration, retrofitClient
-  }
-
-  @Bean
-  @ConditionalOnProperty('services.mort.enabled')
-  MortService mortService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "mort", MortService, serviceConfiguration, retrofitClient
-  }
-
-  @Bean
-  @ConditionalOnProperty('services.kato.enabled')
-  KatoService katoService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "kato", KatoService, serviceConfiguration, retrofitClient
-  }
-
-  @Bean
   @ConditionalOnProperty('services.mayo.enabled')
   MayoService mayoService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
@@ -125,22 +118,6 @@ class GateConfig {
   IgorService igorService(ServiceConfiguration serviceConfiguration,
                           Client retrofitClient) {
     createClient "igor", IgorService, serviceConfiguration, retrofitClient
-  }
-
-  private static RestAdapter.Log serviceLogger(Class type) {
-    new RetrofitLogger(LoggerFactory.getLogger(type))
-  }
-
-  private static class RetrofitLogger implements RestAdapter.Log {
-    private final Logger logger
-
-    public RetrofitLogger(Logger logger) {
-      this.logger = logger
-    }
-    @Override
-    void log(String message) {
-      logger.info(message)
-    }
   }
 
   private static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
@@ -160,7 +137,7 @@ class GateConfig {
         .setClient(client)
         .setConverter(new JacksonConverter())
         .setLogLevel(RestAdapter.LogLevel.BASIC)
-        .setLog(serviceLogger(type))
+        .setLog(new Slf4jRetrofitLogger(type))
         .build()
         .create(type)
   }

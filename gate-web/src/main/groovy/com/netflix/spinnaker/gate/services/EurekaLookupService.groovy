@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
+import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.internal.EurekaService
 import groovy.transform.Immutable
 import java.util.concurrent.*
@@ -89,7 +90,8 @@ class EurekaLookupService {
         .setConverter(new JacksonConverter(new ObjectMapper().configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)))
         .setClient(new OkClient())
-        .setLogLevel(RestAdapter.LogLevel.FULL)
+        .setLogLevel(RestAdapter.LogLevel.BASIC)
+        .setLog(new Slf4jRetrofitLogger(EurekaService))
         .build()
         .create(EurekaService)
   }
