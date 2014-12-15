@@ -34,7 +34,7 @@ class SearchController {
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   List<Map> search(@RequestParam(value = "q") String query,
                    @RequestParam(value = "type") String type,
-                   @RequestParam(value = "platform", defaultValue = "aws", required = false) String platform,
+                   @RequestParam(value = "platform", required = false) String platform,
                    @RequestParam(value = "pageSize", defaultValue = "10000", required = false) int pageSize,
                    @RequestParam(value = "page", defaultValue = "1", required = false) int page) {
     searchService.search(query, type, platform, pageSize, page)
