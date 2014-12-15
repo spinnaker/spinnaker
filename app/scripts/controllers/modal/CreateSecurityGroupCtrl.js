@@ -131,7 +131,7 @@ angular.module('deckApp')
     this.upsert = function () {
       $scope.taskMonitor.submit(
         function() {
-          orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Create');
+          return orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Create');
         }
       );
     };
