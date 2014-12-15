@@ -6,7 +6,8 @@ angular
       transclude: true,
       scope: {
         heading: '@',
-        expanded: '@?'
+        expanded: '@?',
+        helpKey: '@?'
       },
       templateUrl: 'scripts/modules/clusterFilter/collapsibleFilterSection.html',
       link:  function (scope, elem, attrs, toggleController) {
