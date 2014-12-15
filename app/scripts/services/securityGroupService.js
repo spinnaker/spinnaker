@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler, scheduledCache) {
+  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler, scheduledCache, notifications) {
 
     var mortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -32,6 +32,16 @@ angular.module('deckApp')
 
     function loadSecurityGroupsByApplicationName(applicationName) {
       return searchService.search('gate', {q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
+        if (!searchResults || !searchResults.results) {
+          notifications.create({
+            message: 'Warning: Security Group endpoint appears to be down. Security group info will not be displayed.',
+            autoDismiss: false,
+            hideTimestamp: true,
+            strong: true
+          });
+          $exceptionHandler('WARNING: Gate security group endpoint appears to be down.');
+          return [];
+        }
         return _.filter(searchResults.results, {application: applicationName});
       });
     }
