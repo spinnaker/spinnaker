@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import retrofit.client.Response
+import retrofit.http.Body
+import retrofit.http.DELETE
 import retrofit.http.GET
+import retrofit.http.POST
 import retrofit.http.Path
 
 interface MayoService {
@@ -26,4 +30,13 @@ interface MayoService {
 
   @GET('/pipelines/{app}/{name}')
   Map getPipelineConfig(@Path("app") String app, @Path("name") String name)
+
+  @DELETE('/pipelines/{app}/{name}')
+  Response deletePipelineConfig(@Path("app") String app, @Path("name") String name)
+
+  @POST('/pipelines')
+  Response savePipelineConfig(@Body Map pipelineConfig)
+
+  @POST('/pipelines/move')
+  Response move(@Body Map moveCommand)
 }

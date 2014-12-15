@@ -17,29 +17,28 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.MayoService
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @CompileStatic
 @Component
-class ImageService {
-  private static final String GROUP = "images"
-
+@Slf4j
+class PipelineService {
   @Autowired
-  OortService oortService
+  MayoService mayoService
 
-  List<Map> getForAccountAndRegion(String provider, String account, String region, String imageId) {
-    HystrixFactory.newListCommand(GROUP, "images-${provider}-${account}-${region}-${imageId}", true) {
-      oortService.getImageDetails(provider, account, region, imageId)
-    } execute()
+  void deleteForApplication(String applicationName, String pipelineName) {
+    mayoService.deletePipelineConfig(applicationName, pipelineName)
   }
 
-  List<Map> search(String provider, String query, String region, String account) {
-    HystrixFactory.newListCommand(GROUP, "images-${provider}-${query}-${region}-${account}", true) {
-      oortService.findImages(provider, query, region, account)
-    } execute()
+  void save(Map pipeline) {
+    mayoService.savePipelineConfig(pipeline)
+  }
+
+  void move(Map moveCommand) {
+    mayoService.move(moveCommand)
   }
 }

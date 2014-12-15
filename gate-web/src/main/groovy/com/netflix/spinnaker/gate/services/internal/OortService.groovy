@@ -118,7 +118,8 @@ interface OortService {
   @GET("/{provider}/images/find")
   List<Map> findImages(@Path("provider") String provider,
                        @Query("q") String query,
-                       @Query("region") String region)
+                       @Query("region") String region,
+                       @Query("account") String account)
 
   @Headers("Accept: application/json")
   @GET("/search")
