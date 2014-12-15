@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp')
-  .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder) {
+  .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder, settings) {
     return function() {
       var deferred;
 
@@ -40,6 +40,7 @@ angular.module('deckApp')
           return RxService.Observable.fromPromise(searchService.search('gate', {
             q: query,
             type: ['applications', 'clusters', 'serverGroupInstances', 'serverGroups', 'loadBalancerServerGroups'],
+            platform: settings.providers && settings.providers.length ? settings.providers[0] : 'aws',
           }));
         })
         .subscribe(function(result) {
