@@ -44,7 +44,9 @@ class GoogleResourceRetrieverSpec extends Specification {
       accountCredentialsProviderMock.getAll() >> ([credentialsMock1, credentialsMock2a, credentialsMock2b] as Set)
 
     when:
-      def credentialsMap = GoogleResourceRetriever.getAllGoogleCredentialsObjects(accountCredentialsProviderMock)
+      def credentialsMap =
+        new GoogleResourceRetriever(accountCredentialsProvider: accountCredentialsProviderMock)
+          .getAllGoogleCredentialsObjects()
 
     then:
       credentialsMap.keySet() == ["account-1", "account-2"] as Set

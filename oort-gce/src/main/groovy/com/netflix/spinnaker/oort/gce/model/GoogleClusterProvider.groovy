@@ -35,6 +35,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
+  GoogleResourceRetriever googleResourceRetriever
+
+  @Autowired
   ExtendedRegistry extendedRegistry
 
   Timer allClusters
@@ -45,8 +48,6 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
 
   Timer clustersById
 
-  GoogleResourceRetriever googleResourceRetriever
-
   @PostConstruct
   void init() {
     String[] tags = ['className', this.class.simpleName]
@@ -54,9 +55,6 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
     clustersByApplication = extendedRegistry.timer('clustersByApplications', tags)
     clustersByApplicationAndAccount = extendedRegistry.timer('clustersByApplicationAndAccount', tags)
     clustersById = extendedRegistry.timer('clustersById', tags)
-
-    googleResourceRetriever = new GoogleResourceRetriever()
-    googleResourceRetriever.init(accountCredentialsProvider)
   }
 
   @Override

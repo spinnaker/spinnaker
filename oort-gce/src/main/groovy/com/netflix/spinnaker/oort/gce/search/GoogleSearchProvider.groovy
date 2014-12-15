@@ -27,14 +27,15 @@ import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 @Component
 class GoogleSearchProvider implements SearchProvider {
   protected static final Logger log = Logger.getLogger(this)
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  GoogleResourceRetriever googleResourceRetriever
 
   static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
 
@@ -48,14 +49,6 @@ class GoogleSearchProvider implements SearchProvider {
   ]
 
   String platform = 'gce'
-
-  GoogleResourceRetriever googleResourceRetriever
-
-  @PostConstruct
-  void init() {
-    googleResourceRetriever = new GoogleResourceRetriever()
-    googleResourceRetriever.init(accountCredentialsProvider)
-  }
 
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize, Map<String, String> filters) {

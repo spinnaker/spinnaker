@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -66,5 +67,10 @@ class GoogleConfig {
         log.info "Could not load account ${managedAccount.name} for Google", e
       }
     }
+  }
+
+  @Bean
+  GoogleResourceRetriever googleResourceRetriever() {
+    new GoogleResourceRetriever()
   }
 }
