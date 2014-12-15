@@ -4,7 +4,7 @@
     <label>Status</label>
     <div class="btn-group">
       <label class="btn btn-default btn-xs"
-             ng-repeat="(status, displayName) in statusDisplayNames"
+             ng-repeat="(status, displayName) in statusDisplayNames | statusNames"
              ng-model="filter.stage.status[status]"
              ng-mouseenter="ctrl.solo('status', status)"
              ng-mouseleave="ctrl.endSolo()"

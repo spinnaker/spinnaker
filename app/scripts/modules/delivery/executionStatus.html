@@ -31,6 +31,18 @@
           </ul>
         </span>
       </span>
+      <span ng-switch-when="terminal">
+        <span>
+          <h5 class="status status-failed">
+            FAILED
+          </h5>
+          <ul>
+            <li>
+              {{ ctrl.getFailedStage(execution) }}
+            </li>
+          </ul>
+        </span>
+      </span>
       <span ng-switch-when="executing">
         <span>
           <h5 class="status status-executing">

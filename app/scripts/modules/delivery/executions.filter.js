@@ -7,7 +7,8 @@ angular.module('deckApp.delivery')
         .filter(function(execution) {
           return [
             // execution status is not filtered
-            filter.execution.status[execution.status.toLowerCase()],
+            filter.execution.status[execution.status.toLowerCase()] ||
+              filter.execution.status.failed && execution.status.toLowerCase() === 'terminal',
 
             // not grouped
             !filter.execution.groupBy ||
