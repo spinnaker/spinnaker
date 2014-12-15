@@ -1,4 +1,5 @@
 <div class="row execution"
+     ng-class="{'execution-not-current': ctrl.executionNotCurrent()}"
      ui-sref=".execution({executionId: execution.id})">
   <div class="col-md-12">
     <div class="row" ng-if="execution">
