@@ -7,7 +7,7 @@ angular.module('deckApp.delivery')
     $scope.filter = {
       execution: {
         status: {
-          executing: true,
+          running: true,
           completed: true,
           failed: true,
         },
@@ -25,7 +25,7 @@ angular.module('deckApp.delivery')
           value: false,
         },
         status: {
-          executing: true,
+          running: true,
           completed: true,
           failed: true,
         },
@@ -38,7 +38,7 @@ angular.module('deckApp.delivery')
       'failed': 'Failed',
       'terminal': 'Failed',
       //'not_started': 'Not Started',
-      'executing': 'Executing',
+      'running': 'Running',
       'completed': 'Completed',
     };
 
@@ -49,7 +49,7 @@ angular.module('deckApp.delivery')
       status: d3Service
         .scale
         .ordinal()
-        .domain(['succeeded', 'failed', 'terminal', 'executing', 'not_started'])
+        .domain(['succeeded', 'failed', 'terminal', 'running', 'not_started'])
         .range(['#c0d89d', '#b82525', '#b82525', '#2275b8', '#ffffff']),
     };
 

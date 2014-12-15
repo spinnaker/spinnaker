@@ -10,7 +10,7 @@ angular.module('deckApp.delivery')
       })[0].name;
     };
 
-    controller.getExecutingStage = function(execution) {
+    controller.getRunningStage = function(execution) {
       return execution.stages.filter(function(stage) {
         return stage.isRunning;
       })[0].name;

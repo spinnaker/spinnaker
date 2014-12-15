@@ -43,14 +43,14 @@
           </ul>
         </span>
       </span>
-      <span ng-switch-when="executing">
+      <span ng-switch-when="running">
         <span>
-          <h5 class="status status-executing">
-            EXECUTING
+          <h5 class="status status-running">
+            RUNNING
           </h5>
           <ul>
             <li>
-              {{ ctrl.getExecutingStage(execution) }}
+              {{ ctrl.getRunningStage(execution) }}
             </li>
           </ul>
         </span>
