@@ -50,7 +50,7 @@ angular.module('deckApp')
     function getLoadBalancer(name) {
       var promise = gateEndpoint.one('loadBalancers', name).get({provider: 'aws'});
       return promise.then(function(loadBalancerRollup) {
-        if (angular.isUndefined(loadBalancerRollup)) { return []; }
+        if (angular.isUndefined(loadBalancerRollup.accounts)) { return []; }
         var loadBalancers = [];
         loadBalancerRollup.accounts.forEach(function (account) {
           account.regions.forEach(function (region) {
