@@ -5,6 +5,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -50,10 +51,11 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
   }
 
   @Unroll
-  def "triggers an event when a task step exits with #status"() {
+  def "triggers an event when a task step exits with #batchStatus / #exitStatus.exitCode"() {
     given:
     def stepExecution = Stub(StepExecution) {
-      getStatus() >> status
+      getStatus() >> batchStatus
+      getExitStatus() >> exitStatus
     }
 
     when:
@@ -63,19 +65,18 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     1 * echoService.recordEvent(_)
 
     where:
-    status                | _
-    BatchStatus.COMPLETED | _
-    BatchStatus.ABANDONED | _
-    BatchStatus.FAILED    | _
-    BatchStatus.STOPPED   | _
-    BatchStatus.STOPPING  | _
+    batchStatus           | exitStatus
+    BatchStatus.COMPLETED | ExitStatus.COMPLETED
+    BatchStatus.COMPLETED | ExitStatus.FAILED // this happens when you have a handled error in a step
+    BatchStatus.STOPPED   | ExitStatus.STOPPED
+    BatchStatus.FAILED    | ExitStatus.FAILED
   }
 
   @Unroll
-  def "does not trigger an event when a task step exits with #status"() {
+  def "does not trigger an event when a task step exits with #batchStatus"() {
     given:
     def stepExecution = Stub(StepExecution) {
-      getStatus() >> status
+      getStatus() >> batchStatus
     }
 
     when:
@@ -85,15 +86,17 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     0 * echoService._
 
     where:
-    status               | _
+    batchStatus | _
     BatchStatus.STARTED  | _
     BatchStatus.STARTING | _
   }
 
-  def "sends the correct data to echo"() {
+  @Unroll
+  def "sends the correct data to echo when the step completes with #batchStatus / #exitStatus.exitCode"() {
     given:
     def stepExecution = Stub(StepExecution) {
-      getStatus() >> BatchStatus.COMPLETED
+      getStatus() >> batchStatus
+      getExitStatus() >> exitStatus
     }
     and:
     def message
@@ -108,6 +111,14 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     then:
     message.details.source == "Orca"
     message.details.application == pipeline.application
+    message.details.type == "orca:task:$echoMessage"
+
+    where:
+    batchStatus           | exitStatus           | echoMessage
+    BatchStatus.COMPLETED | ExitStatus.COMPLETED | "complete"
+    BatchStatus.COMPLETED | ExitStatus.FAILED    | "failed"
+    BatchStatus.STOPPED   | ExitStatus.STOPPED   | "failed"
+    BatchStatus.FAILED    | ExitStatus.FAILED    | "failed"
   }
 
 }

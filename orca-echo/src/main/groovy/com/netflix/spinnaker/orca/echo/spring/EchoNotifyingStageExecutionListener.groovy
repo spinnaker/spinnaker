@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -46,10 +47,19 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     echoService.recordEvent(
         details: [
             source     : "Orca",
-            type       : "orca:task:${stepExecution.status.unsuccessful ? "failed" : "complete"}",
+            type       : "orca:task:${(wasSuccessful(stepExecution) ? "complete" : "failed")}",
             application: execution.application
         ],
         content: stage.context
     )
+  }
+
+  /**
+   * Determines if the step was a success (from an Orca perspective). Note that
+   * even if the Orca task failed we'll get a `stepExecution.status` of
+   * `COMPLETED` as the error was handled.
+   */
+  private static boolean wasSuccessful(StepExecution stepExecution) {
+    stepExecution.exitStatus.exitCode == ExitStatus.COMPLETED.exitCode
   }
 }

@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -14,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
@@ -97,7 +98,6 @@ class EchoEventSpec extends Specification {
     events.details.type == ["orca:task:starting", "orca:task:complete"] * 2
   }
 
-  @Ignore
   def "when tasks fail they still send end events"() {
     given:
     def events = collectEvents()
