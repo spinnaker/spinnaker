@@ -143,7 +143,7 @@ angular.module('deckApp')
         },
         resolve: {
           taskId: ['$stateParams', function($stateParams) {
-            return parseInt($stateParams.taskId);
+            return $stateParams.taskId;
           }]
         }
       };
