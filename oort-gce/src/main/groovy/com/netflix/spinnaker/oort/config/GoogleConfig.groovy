@@ -37,6 +37,8 @@ import javax.annotation.PostConstruct
 class GoogleConfig {
   private static final Logger log = Logger.getLogger(this.class.simpleName)
 
+  public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 60
+
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository
 
@@ -49,6 +51,7 @@ class GoogleConfig {
   static class GoogleConfigurationProperties {
     String kmsServer
     List<ManagedAccount> accounts = []
+    int pollingIntervalSeconds = POLLING_INTERVAL_SECONDS_DEFAULT
   }
 
   @Bean

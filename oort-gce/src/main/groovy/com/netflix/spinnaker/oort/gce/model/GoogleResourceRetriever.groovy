@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.oort.config.GoogleConfig.GoogleConfigurationProperties
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.NetworkLoadBalancersCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
@@ -37,6 +38,9 @@ class GoogleResourceRetriever {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  GoogleConfigurationProperties googleConfigurationProperties
+
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private appMap = new HashMap<String, GoogleApplication>()
   private imageMap = new HashMap<String, List<String>>()
@@ -46,14 +50,14 @@ class GoogleResourceRetriever {
   void init() {
     log.info "Initializing GoogleResourceRetriever thread..."
 
-    // Load all resources initially in 10 seconds, and then every 60 seconds thereafter.
+    // Load all resources initially in 10 seconds, and then every googleConfigurationProperties.pollingIntervalSeconds seconds thereafter.
     Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
       try {
         load()
       } catch (Throwable t) {
         t.printStackTrace()
       }
-    }, 10, 60, TimeUnit.SECONDS)
+    }, 10, googleConfigurationProperties.pollingIntervalSeconds, TimeUnit.SECONDS)
   }
 
   // TODO(duftler): Handle paginated results.
