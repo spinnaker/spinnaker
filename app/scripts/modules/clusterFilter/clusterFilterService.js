@@ -214,7 +214,7 @@ angular
 
     function sortGroupsByHeading(groups) {
       var sortedGroups = _.sortBy(groups, 'heading');
-      angular.copy(sortedGroups,ClusterFilterModel.groups) ;
+      angular.extend(ClusterFilterModel.groups, sortedGroups) ;
     }
 
     function setDisplayOptions(totalInstancesDisplayed) {
