@@ -22,6 +22,12 @@
   margin-top: 15px;
 }
 
+.pipeline-config {
+  &.row {
+    border-bottom: 1px solid @light_grey;
+  }
+}
+
 .pipeline-configurer {
   &:last-child {
     margin-bottom: 100px;
@@ -31,6 +37,10 @@
 pipeline-configurer {
   margin-top: 15px;
   display: block;
+
+  .panel-body {
+    padding-top: 0;
+  }
 
   .accordion-toggle {
     display: block;
@@ -56,10 +66,8 @@ pipeline-configurer {
 }
 
 .nav-pipeline-config {
-  border-bottom: 1px solid @light_grey;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   padding-left: 0;
-  margin-top: -15px;
 
   display: inline-block;
   width: 100%;
@@ -74,33 +82,26 @@ pipeline-configurer {
     float: left;
   }
 
-  .link-pipeline-settings {
-    border-bottom: 4px solid transparent;
-    display: inline-block;
-    height: 44px;
-    line-height: 34px;
-    padding: 5px 15px;
-    margin: 0;
-
-    &:hover, &:active, &.active {
-      background-color: @lightest_grey;
-      border-bottom-color: @spinnaker-blue;
-      text-decoration: none;
-    }
-  }
-
   .config-section {
     a, button {
-      margin: 5px;
+      margin: 10px 5px;
       vertical-align: top;
+      &:first-child {
+        margin-left: 0;
+      }
     }
   }
+}
 
+triggers {
+  .add-new {
+    margin: 10px 0;
+  }
 }
 
 .config-section {
-  padding: 0 5px;
-  height: 44px;
+  padding: 0;
+  height: 49px;
   display: inline-block;
 
   &:last-child {
@@ -120,13 +121,16 @@ pipeline-configurer {
   }
   h4 {
     background-color: transparent;
+    padding-right: 5px;
+    vertical-align: middle;
+    height: 32px;
+    line-height: 32px;
   }
 }
 
 .panel-pipeline-phase {
   background: #ffffff;
   border: 1px solid @light_grey;
-  margin: 15px;
   padding: 15px;
 }
 
