@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 @Component
 @Slf4j
 class PipelineService {
-  @Autowired
+  @Autowired(required = false)
   MayoService mayoService
 
   void deleteForApplication(String applicationName, String pipelineName) {

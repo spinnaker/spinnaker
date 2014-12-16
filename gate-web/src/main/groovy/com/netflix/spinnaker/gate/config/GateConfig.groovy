@@ -15,27 +15,29 @@
  */
 
 package com.netflix.spinnaker.gate.config
+
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
-import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.gate.retrofit.*
+import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import groovy.transform.CompileStatic
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import org.springframework.boot.actuate.metrics.repository.MetricRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import retrofit.Endpoint
 import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -57,70 +59,66 @@ class GateConfig {
   }
 
   @Bean
-  Client retrofitClient(ServiceConfiguration serviceConfiguration) {
-    serviceConfiguration.discoveryHosts ? new EurekaOkClient() : new OkClient()
+  OortService oortDeployService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                                EurekaLookupService eurekaLookupService) {
+    createClient "oort", OortService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   @Bean
-  OortService oortDeployService(ServiceConfiguration serviceConfiguration,
-                                Client retrofitClient) {
-    createClient "oort", OortService, serviceConfiguration, retrofitClient
+  OrcaService orcaService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "orca", OrcaService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   @Bean
-  OrcaService orcaService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "orca", OrcaService, serviceConfiguration, retrofitClient
+  Front50Service front50Service(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                                EurekaLookupService eurekaLookupService) {
+    createClient "front50", Front50Service, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   @Bean
-  Front50Service front50Service(ServiceConfiguration serviceConfiguration,
-                                Client retrofitClient) {
-    createClient "front50", Front50Service, serviceConfiguration, retrofitClient
+  MortService mortService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "mort", MortService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   @Bean
-  MortService mortService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "mort", MortService, serviceConfiguration, retrofitClient
-  }
-
-  @Bean
-  KatoService katoService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "kato", KatoService, serviceConfiguration, retrofitClient
+  KatoService katoService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "kato", KatoService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   //---- optional backend components:
   @Bean
   @ConditionalOnProperty('services.echo.enabled')
-  EchoService echoService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "echo", EchoService, serviceConfiguration, retrofitClient
+  EchoService echoService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "echo", EchoService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   @Bean
   @ConditionalOnProperty('services.flapjack.enabled')
-  FlapJackService flapJackService(ServiceConfiguration serviceConfiguration,
-                                  Client retrofitClient) {
-    createClient "flapjack", FlapJackService, serviceConfiguration, retrofitClient
+  FlapJackService flapJackService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                                  EurekaLookupService eurekaLookupService) {
+    createClient "flapjack", FlapJackService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
   @Bean
   @ConditionalOnProperty('services.mayo.enabled')
-  MayoService mayoService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "mayo", MayoService, serviceConfiguration, retrofitClient
-  }
-  
-  @Bean
-  @ConditionalOnProperty('services.igor.enabled')
-  IgorService igorService(ServiceConfiguration serviceConfiguration,
-                          Client retrofitClient) {
-    createClient "igor", IgorService, serviceConfiguration, retrofitClient
+  MayoService mayoService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "mayo", MayoService, serviceConfiguration, eurekaLookupService, metricRepository
   }
 
-  private static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, Client client) {
+  @Bean
+  @ConditionalOnProperty('services.igor.enabled')
+  IgorService igorService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "igor", IgorService, serviceConfiguration, eurekaLookupService, metricRepository
+  }
+
+  private
+  static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, EurekaLookupService eurekaLookupService, MetricRepository metricRepository) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
       throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
@@ -128,9 +126,13 @@ class GateConfig {
     if (!service.enabled) {
       return null
     }
-    def endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
+    Endpoint endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
         newFixedEndpoint("niws://${service.vipAddress}")
         : newFixedEndpoint(service.baseUrl)
+
+    def client = endpoint.url ==~ EurekaOkClient.NIWS_SCHEME_PATTERN ?
+        new EurekaOkClient(metricRepository, serviceName, eurekaLookupService) :
+        new MetricsInstrumentedOkClient(metricRepository, serviceName)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
@@ -145,7 +147,8 @@ class GateConfig {
   @Bean
   Filter simpleCORSFilter() {
     new Filter() {
-      public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+      public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+          throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res;
         HttpServletRequest request = (HttpServletRequest) req;
         String origin = request.getHeader("Origin") ?: "*"
@@ -167,7 +170,8 @@ class GateConfig {
   @Component
   static class HystrixFilter implements Filter {
     @Override
-    void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
       HystrixRequestContext.initializeContext()
       chain.doFilter(request, response)
     }

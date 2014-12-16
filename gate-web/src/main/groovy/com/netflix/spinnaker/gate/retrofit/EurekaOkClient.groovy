@@ -15,19 +15,25 @@
  */
 
 package com.netflix.spinnaker.gate.retrofit
+
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.services.EurekaLookupService
+import java.util.regex.Pattern
 import org.springframework.beans.factory.annotation.Autowired
-import retrofit.client.OkClient
+import org.springframework.boot.actuate.metrics.repository.MetricRepository
 import retrofit.client.Request
 
-import java.util.regex.Pattern
+class EurekaOkClient extends MetricsInstrumentedOkClient {
+  static final Pattern NIWS_SCHEME_PATTERN = ~("niws://([^/]+)(.*)")
 
-class EurekaOkClient extends OkClient {
-  private static final Pattern NIWS_SCHEME_PATTERN = ~("niws://([^/]+)(.*)")
+  private final EurekaLookupService eureka
 
   @Autowired
-  EurekaLookupService eureka
+  EurekaOkClient(MetricRepository metricRepository, String name, EurekaLookupService eureka) {
+    super(metricRepository, name)
+    this.eureka = eureka
+  }
 
   @Override
   protected HttpURLConnection openConnection(Request r) throws IOException {
@@ -44,7 +50,8 @@ class EurekaOkClient extends OkClient {
       if (!randomInstance) {
         throw new RuntimeException("Error resolving Eureka UP instance for ${vip}!")
       } else {
-        request = new Request(r.method, "http://${randomInstance.hostName}:${randomInstance.port.port}${path}", r.headers, r.body)
+        request = new Request(r.method, "http://${randomInstance.hostName}:${randomInstance.port.port}${path}",
+            r.headers, r.body)
       }
     }
     super.openConnection(request)
