@@ -3,16 +3,16 @@
     <div class="row">
       <div class="col-md-7">
         <div class="btn-group">
-          <label class="btn btn-default" ng-model="taskStateFilter" btn-radio="'All'">
+          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'All'">
             All
           </label>
-          <label class="btn btn-default" ng-model="taskStateFilter" btn-radio="'Running'">
+          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Running'">
             Running
           </label>
-          <label class="btn btn-default" ng-model="taskStateFilter" btn-radio="'Completed'">
+          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Completed'">
             Completed
           </label>
-          <label class="btn btn-default" ng-model="taskStateFilter" btn-radio="'Errored'">
+          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Errored'">
             Errored
           </label>
         </div>
@@ -24,12 +24,12 @@
                    id="task-filter"
                    class="form-control"
                    placeholder="Filter tasks"
-                   ng-model="taskFilter">
+                   ng-model="tasks.taskFilter">
           <span class="glyphicon glyphicon-search form-control-feedback"></span>
         </div>
       </div>
     </div>
-    <div class="row padding" ng-repeat="task in application.tasks | taskFilter:taskStateFilter | filter:taskFilter | orderBy:'startTime':'true'">
+    <div class="row padding" ng-repeat="task in tasks.sortedTasks | taskFilter:tasks.taskStateFilter | filter:tasks.taskFilter">
       <task-view task="task"></task-view>
     </div>
   </div>

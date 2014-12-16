@@ -126,7 +126,84 @@ TasksFixture.secondSnapshot = [
         name: 'ForceCacheRefreshStep',
       }
     ],
+  },
+  {
+    id: 6,
+    status: 'RUNNING',
+    variables: [
+      {
+        key: 'description',
+        value: 'Resizing ASG',
+      },
+      {
+        key: 'application',
+        value: 'Hello world',
+      }
+    ],
+    steps: [
+      {
+        name: 'ForceCacheRefreshStep',
+      }
+    ],
+  },
+  {
+    id: 7,
+    status: 'TERMINAL',
+    variables: [
+      {
+        key: 'description',
+        value: 'Resizing ASG',
+      },
+      {
+        key: 'application',
+        value: 'Hello world',
+      }
+    ],
+    steps: [
+      {
+        name: 'ForceCacheRefreshStep',
+      }
+    ],
+  },
+  {
+    id: 8,
+    status: 'SUSPENDED',
+    variables: [
+      {
+        key: 'description',
+        value: 'Resizing ASG',
+      },
+      {
+        key: 'application',
+        value: 'Hello world',
+      }
+    ],
+    steps: [
+      {
+        name: 'ForceCacheRefreshStep',
+      }
+    ],
+  },
+  {
+    id: 9,
+    status: 'SUCCEEDED',
+    variables: [
+      {
+        key: 'description',
+        value: 'Resizing ASG',
+      },
+      {
+        key: 'application',
+        value: 'Hello world',
+      }
+    ],
+    steps: [
+      {
+        name: 'ForceCacheRefreshStep',
+      }
+    ],
   }
+
 ];
 
 TasksFixture.failedKatoTask = {
