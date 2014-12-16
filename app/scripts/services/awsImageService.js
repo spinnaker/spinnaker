@@ -8,16 +8,8 @@ angular.module('deckApp')
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
-    function findImages(query, region, account) {
-      var params = {q: query};
-      if (region) {
-        params.region = region;
-      }
-      if (account) {
-        params.account = account;
-      }
-      params.provider = 'aws';
-      if (query.length < 3) {
+    function findImages(params) {
+      if (!params.q || params.q.length < 3) {
         return $q.when([{message: 'Please enter at least 3 characters...'}]);
       }
       return gateEndpoint.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {

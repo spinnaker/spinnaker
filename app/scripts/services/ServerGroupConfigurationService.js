@@ -32,7 +32,10 @@ angular.module('deckApp')
     }
 
     function loadImagesFromApplicationName(application, provider) {
-      return imageService.findImages(provider, application.name);
+      return imageService.findImages({
+        provider: provider,
+        q: application.name
+      });
     }
 
     function loadImagesFromAmi(command) {
@@ -44,7 +47,10 @@ angular.module('deckApp')
           var match = packageRegex.exec(namedImage.imageName);
           var packageBase = match[1];
 
-          return imageService.findImages(command.selectedProvider, packageBase);
+          return imageService.findImages({
+            provider: command.selectedProvider,
+            q: packageBase
+          });
         },
         function() {
           return [];

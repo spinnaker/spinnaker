@@ -8,8 +8,8 @@ angular.module('deckApp')
       return (!provider || provider === 'aws') ? awsImageService : gceImageService;
     }
 
-    function findImages(selectedProvider, query, region, account) {
-      return getDelegate(selectedProvider).findImages(query, region, account);
+    function findImages(params) {
+      return getDelegate(params.provider).findImages(params);
     }
 
     function getAmi(selectedProvider, amiName, region, credentials) {

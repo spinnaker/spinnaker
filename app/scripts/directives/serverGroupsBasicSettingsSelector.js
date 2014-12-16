@@ -21,7 +21,11 @@ angular.module('deckApp')
         }
       ];
       return new RxService.Observable.fromPromise(
-        imageService.findImages($scope.command.selectedProvider, q, $scope.command.region, $scope.command.credentials)
+        imageService.findImages({
+          provider: $scope.command.selectedProvider,
+          q: q,
+          region: $scope.command.region
+        })
       );
     }
 

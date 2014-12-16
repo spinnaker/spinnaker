@@ -51,7 +51,7 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages('aws', query, region).then(function(results) {
+      service.findImages({provider: 'aws', q: query, region: region}).then(function(results) {
         result = results;
       });
 
@@ -66,7 +66,7 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages('aws', query, region).then(function(results) {
+      service.findImages({provider: 'aws', q: query, region: region}).then(function(results) {
         result = results;
       });
 
@@ -81,7 +81,7 @@ describe('Service: NamedImage', function() {
 
       var result = null;
 
-      service.findImages('aws', query, region).then(function(results) {
+      service.findImages({provider: 'aws', q: query, region: region}).then(function(results) {
         result = results;
       });
 
@@ -97,7 +97,7 @@ describe('Service: NamedImage', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.findImages('aws', query, region).then(function(results) {
+      service.findImages({provider: 'aws', q: query, region: region}).then(function(results) {
         result = results;
       });
 
