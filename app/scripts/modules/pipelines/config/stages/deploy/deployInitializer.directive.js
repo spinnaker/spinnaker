@@ -22,7 +22,7 @@ angular.module('deckApp.pipelines')
     };
 
     $scope.templates = [
-      { label: '[None]', serverGroup: null, cluster: null }
+      { label: 'None', serverGroup: null, cluster: null }
     ].concat($scope.application.clusters.map(function(cluster) {
         var latest = _.sortBy(cluster.serverGroups, 'name').pop();
         return {
@@ -36,8 +36,28 @@ angular.module('deckApp.pipelines')
       $scope.deploymentStrategies = strategies;
     });
 
+    function transformCommandToStage(command) {
+      // this is awful but this is the world we live in
+      var zones = command.availabilityZones;
+      command.availabilityZones = {};
+      command.availabilityZones[command.region] = zones;
+      if (command.securityGroups) {
+        var securityGroups = command.securityGroups.map(function (securityGroupId) {
+          return securityGroupService.getApplicationSecurityGroup($scope.application, command.credentials, command.region, securityGroupId).name;
+        });
+        command.securityGroups = securityGroups;
+      }
+      $scope.stage.cluster = command;
+      $scope.stage.account = command.credentials;
+      $scope.stage.cluster.strategy = $scope.command.strategy;
+
+      delete command.credentials;
+    }
+
     function clearTemplate() {
-      $scope.stage.cluster = { application: $scope.application.name, strategy: $scope.command.strategy };
+      serverGroupService.buildNewServerGroupCommand($scope.application).then(function(command) {
+        transformCommandToStage(command);
+      });
     }
 
     controller.selectTemplate = function (selection) {
@@ -50,20 +70,7 @@ angular.module('deckApp.pipelines')
           angular.extend(details, latest);
           serverGroupService.buildServerGroupCommandFromExisting($scope.application, details).then(function (command) {
             command.instanceType = details.launchConfig.instanceType;
-            // this is awful but this is the world we live in
-            var zones = command.availabilityZones;
-            command.availabilityZones = {};
-            command.availabilityZones[command.region] = zones;
-            var securityGroups = command.securityGroups.map(function (securityGroupId) {
-              return securityGroupService.getApplicationSecurityGroup($scope.application, command.credentials, command.region, securityGroupId).name;
-            });
-            command.securityGroups = securityGroups;
-
-            $scope.stage.cluster = command;
-            $scope.stage.account = command.credentials;
-            $scope.stage.cluster.strategy = $scope.command.strategy;
-
-            delete command.credentials;
+            transformCommandToStage(command);
           });
         });
       } else {

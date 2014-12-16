@@ -1,29 +1,45 @@
-<div class="col-md-12 panel-pipeline-phase">
-  <div class="row">
-    <div class="col-md-3">
-      <label>Type
-        <select class="input-sm"
-                ng-change="triggerCtrl.loadTrigger()"
-                ng-options="option.key as option.label for option in options"
-                ng-model="trigger.type">
-          <option value="">Select...</option>
-        </select>
-      </label>
-      <div>{{description}}</div>
-    </div>
-    <div class="col-md-8 trigger-body"></div>
-    <div class="col-md-1">
-      <button class="btn-link" ng-click="triggerCtrl.removeTrigger(trigger)">
-        <span class="glyphicon glyphicon-trash" tooltip="Remove trigger"></span><span class="sr-only">Remove trigger</span>
-      </button>
-    </div>
-    <div class="row" ng-if="trigger.type">
-      <div class="col-md-8 col-md-offset-3">
-        <div class="form-group checkbox">
-          <div class="col-md-12 col-md-offset-2">
-            <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true"/> Trigger Enabled</label>
+<div class="row">
+  <div class="col-md-12">
+    <form class="form-horizontal panel-pipeline-phase">
+      <div class="form-group">
+        <div class="col-md-8 col-md-offset-1">
+          <div class="row">
+            <label class="col-md-3 sm-label-left">Type</label>
+            <div class="col-md-6">
+              <select class="input-sm"
+                      ng-change="triggerCtrl.loadTrigger()"
+                      ng-options="option.key as option.label for option in options"
+                      ng-model="trigger.type">
+                <option value="">Select...</option>
+              </select>
+              {{description}}
+            </div>
           </div>
         </div>
+        <div class="col-md-1 col-md-offset-2">
+          <button class="btn-link" ng-click="triggerCtrl.removeTrigger(trigger)">
+            <span class="glyphicon glyphicon-trash" tooltip="Remove trigger"></span><span class="sr-only">Remove trigger</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-8 col-md-offset-1">
+          <div class="trigger-body"></div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="trigger.type">
+        <div class="col-md-8 col-md-offset-1">
+          <div class="row">
+            <div class="col-md-8 col-md-offset-3 checkbox">
+              <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true"/> Trigger Enabled</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="stage-details">
+      <div class="row">
+        <div class="stage-body"></div>
       </div>
     </div>
   </div>

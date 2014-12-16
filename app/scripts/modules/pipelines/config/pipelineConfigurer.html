@@ -19,17 +19,17 @@
       <div class="col-md-12">
         <ul class="nav-pipeline-config">
           <li class="config-section">
-            <button class="btn btn-default"
+            <a href class="btn btn-default"
                     ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
                     ng-click="pipelineConfigurerCtrl.navigateTo('triggers')">
               <span class="glyphicon glyphicon-certificate"></span> Triggers
-            </button>
+            </a>
           </li>
           <li class="config-section nav-stages">
             <h4>Stages</h4>
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
-              <a href ng-repeat="stage in pipeline.stages" role="button" class="btn btn-default"
-                      ng-click="pipelineConfigurerCtrl.navigateToStage($index)"
+              <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
+                      ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
                       ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
                 {{$index+1}}: {{stage.name || stage.type || '[new stage]'}}
               </a>

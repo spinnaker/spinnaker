@@ -26,6 +26,8 @@ angular.module('deckApp.pipelines')
               });
             }
             scope.regionsWithZones = result;
+          } else {
+            delete scope.regionsWithZones;
           }
         }
 

@@ -95,7 +95,7 @@ pipeline-configurer {
 
 triggers {
   .add-new {
-    margin: 10px 0;
+    margin: 0;
   }
 }
 
@@ -132,6 +132,15 @@ triggers {
   background: #ffffff;
   border: 1px solid @light_grey;
   padding: 15px;
+  margin-bottom: 15px;
+  &.no-border {
+    border-width: 0;
+  }
+  .select2-result-label {
+    h5 {
+      margin: 5px 0 0 0;
+    }
+  }
 }
 
 deploy-preview {
@@ -142,6 +151,9 @@ pipeline-config-stage {
   .panel-group {
     .panel {
       border-radius: 0;
+      .panel-body {
+        padding-top: 15px;
+      }
     }
   }
 }

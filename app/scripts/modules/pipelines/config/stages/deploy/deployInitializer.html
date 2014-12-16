@@ -1,12 +1,12 @@
 <form class="form-horizontal">
   <div class="form-group" ng-if="deploymentStrategies.length">
-    <div class="col-md-3 control-label">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Strategy</b>
       <help-field key="aws.serverGroup.strategy"></help-field>
     </div>
     <div class="col-md-6">
       <ui-select ng-model="command.strategy" class="form-control input-sm">
-        <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
+        <ui-select-match placeholder="Select...">{{$select.selected.label}}</ui-select-match>
         <ui-select-choices repeat="strategy.key as strategy in deploymentStrategies | filter: $select.search">
           <strong ng-bind-html="strategy.label | highlight: $select.search"></strong>
           <div ng-bind-html="strategy.description"></div>
@@ -15,7 +15,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 control-label">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Template</b>
       <help-field key="pipeline.config.deploy.template"></help-field>
     </div>
@@ -23,7 +23,7 @@
       <ui-select ng-model="command.template"
                  on-select="deployInitializerCtrl.selectTemplate($item)"
                  class="form-control input-sm">
-        <ui-select-match placeholder="None">
+        <ui-select-match placeholder="Select...">
           <span>{{$select.selected.label}}</span>
         </ui-select-match>
         <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroup: $select.search}">
@@ -36,15 +36,14 @@
     </div>
   </div>
 
-  <div class="form-group">
-    <div class="col-md-6 col-md-offset-3">
+  <div class="form-group" ng-if="command.template">
+    <div class="col-md-12">
+      <deploy-preview stage="stage"></deploy-preview>
+    </div>
+    <div class="col-md-12 text-right">
       <button class="btn btn-primary" ng-click="deployInitializerCtrl.useTemplate()">
-        <span ng-if="command.template.serverGroup">Use this template</span>
-        <span ng-if="!command.template.serverGroup">Continue without a template</span>
+        Use this template
       </button>
     </div>
-  </div>
-  <div class="form-group">
-    <deploy-preview stage="stage" ng-if="command.template.serverGroup"></deploy-preview>
   </div>
 </form>
