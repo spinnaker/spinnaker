@@ -48,7 +48,7 @@ angular.module('deckApp.gce')
         provider: $scope.command.selectedProvider,
         account: serverGroupCommand.credentials })
       .then(function(images) {
-        $scope.gceImages = images;
+        $scope.gceImages = collectImageNames(images);
         $scope.lastImageAccount = serverGroupCommand.credentials;
       }
     );
@@ -213,7 +213,7 @@ angular.module('deckApp.gce')
             provider: $scope.command.selectedProvider,
             account: $scope.command.credentials})
           .then(function(images) {
-            $scope.gceImages = images;
+            $scope.gceImages = collectImageNames(images);
             if ($scope.gceImages.indexOf($scope.command.image) === -1) {
               $scope.command.image = null;
             }
@@ -222,6 +222,14 @@ angular.module('deckApp.gce')
 
         $scope.lastImageAccount = $scope.command.credentials;
       }
+    }
+
+    function collectImageNames(images) {
+      return _(images)
+        .pluck('imageName')
+        .flatten(true)
+        .unique()
+        .valueOf();
     }
 
 //    function configureInstanceTypes() {
