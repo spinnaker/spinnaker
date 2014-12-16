@@ -9,15 +9,15 @@ angular.module('deckApp')
           return tasks;
         case 'Running':
           return tasks.filter(function(task) {
-            return task.status === 'STARTED';
+            return task.status === 'RUNNING';
           });
         case 'Completed':
           return tasks.filter(function(task) {
-            return task.status === 'COMPLETED';
+            return task.status === 'SUCCEEDED';
           });
         case 'Errored':
           return tasks.filter(function(task) {
-            return task.status === 'FAILED' || task.status === 'STOPPED';
+            return task.status === 'FAILED' || task.status === 'TERMINAL' || task.status === 'SUSPENDED';
           });
         default:
           return tasks;

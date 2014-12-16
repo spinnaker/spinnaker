@@ -33,6 +33,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.deploy',
     'deckApp.authentication',
     'deckApp.delivery',
+    'deckApp.tasks',
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
