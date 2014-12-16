@@ -20,10 +20,9 @@ buildscript {
     }
     dependencies {
         classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.9.RELEASE"
     }
 }
-apply from: "$rootDir/gradle/groovy-module.gradle"
 
 apply plugin: 'os-package'
 apply plugin: 'spring-boot'

@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 dependencies {
   compile project(":orca-core")
-  compile commonDependencies.retrofit
-  compile commonDependencies.rxJava
-  compile commonDependencies.okHttp
+  spinnaker.group('retrofitDefault')
+  compile spinnaker.dependency('rxJava')
 }
