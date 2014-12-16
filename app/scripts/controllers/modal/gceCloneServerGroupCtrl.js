@@ -44,10 +44,14 @@ angular.module('deckApp.gce')
 
     $scope.command = serverGroupCommand;
 
-    var imageLoader = imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, serverGroupCommand.credentials).then(function(images) {
-      $scope.gceImages = images;
-      $scope.lastImageAccount = serverGroupCommand.credentials;
-    });
+    var imageLoader = imageService.findImages({
+        provider: $scope.command.selectedProvider,
+        account: serverGroupCommand.credentials })
+      .then(function(images) {
+        $scope.gceImages = images;
+        $scope.lastImageAccount = serverGroupCommand.credentials;
+      }
+    );
 
     var instanceTypeLoader = instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(instanceTypes) {
       $scope.instanceTypesByRegion = instanceTypes;
@@ -205,13 +209,16 @@ angular.module('deckApp.gce')
 
     function configureImages() {
       if ($scope.command.credentials !== $scope.lastImageAccount) {
-        imageService.findImages($scope.command.selectedProvider, application.name, serverGroupCommand.region, $scope.command.credentials).then(function(images) {
-          $scope.gceImages = images;
-
-          if ($scope.gceImages.indexOf($scope.command.image) === -1) {
-            $scope.command.image = null;
+        imageService.findImages({
+            provider: $scope.command.selectedProvider,
+            account: $scope.command.credentials})
+          .then(function(images) {
+            $scope.gceImages = images;
+            if ($scope.gceImages.indexOf($scope.command.image) === -1) {
+              $scope.command.image = null;
+            }
           }
-        });
+        );
 
         $scope.lastImageAccount = $scope.command.credentials;
       }

@@ -2,14 +2,14 @@
 
 
 angular.module('deckApp')
-  .factory('gceImageService', function (settings, $q, Restangular) {
+  .factory('gceImageService', function (settings, $q, Restangular, scheduledCache) {
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
 
-    function findImages(query, region, account) {
-      return gateEndpoint.all('images/' + account).getList({provider: 'gce'}, {}).then(function(results) {
+    function findImages(params) {
+      return gateEndpoint.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {
           return results;
         },
         function() {
