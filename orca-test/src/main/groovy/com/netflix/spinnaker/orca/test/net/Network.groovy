@@ -30,6 +30,11 @@ import static java.util.concurrent.TimeUnit.SECONDS
 class Network {
 
   @Memoized
+  static boolean notReachable(String url, int timeoutMillis = SECONDS.toMillis(1)) {
+    !isReachable(url, timeoutMillis)
+  }
+
+  @Memoized
   static boolean isReachable(String url, int timeoutMillis = SECONDS.toMillis(1)) {
     try {
       def connection = url.toURL().openConnection()

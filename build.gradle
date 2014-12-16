@@ -20,7 +20,7 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.14"
+    classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.36"
   }
 }
 
@@ -35,7 +35,7 @@ ext {
     retrofit: "1.6.1",
     rx      : "0.19.6",
     slf4j   : "1.7.5",
-    spock   : "1.0-groovy-2.3-SNAPSHOT",
+    spock   : "0.7-groovy-2.0",
     spring  : "4.0.6.RELEASE"
   ]
 
@@ -71,10 +71,6 @@ allprojects {
   apply plugin: "spinnaker-gradle-project"
   group = "com.netflix.spinnaker.orca"
 
-  repositories {
-    mavenLocal()
-  }
-
   configurations.all {
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: "org.slf4j", module: "slf4j-log4j12"
@@ -86,10 +82,6 @@ allprojects {
 }
 
 subprojects {
-  repositories {
-    maven { url "http://clojars.org/repo" }
-  }
-
   plugins.withType(JavaPlugin) {
     sourceCompatibility = "1.7"
     targetCompatibility = "1.7"

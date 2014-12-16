@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -40,20 +40,8 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     def pipeline = new Pipeline()
     def instanceId = 'i-123456'
     task.objectMapper = mapper
-    def response = GroovyMock(Response)
-    response.getStatus() >> 200
-    response.getBody() >> {
-      def input = Mock(TypedInput)
-      input.in() >> {
-        def jsonObj = [
-          [totalMatches: matches]
-        ]
-        new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
-      }
-      input
-    }
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'serverGroupInstances', 'aws') >> response
+      getSearchResults(instanceId, 'serverGroupInstances', 'aws') >> { new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([[totalMatches: matches]]))) }
     }
 
     and:
@@ -123,25 +111,11 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     given:
     def pipeline = new Pipeline()
     def instanceIds = ['i-123456', 'i-654321']
+    def emptyResult = new Response('oort', 200, 'ok', [], new TypedString('[{"totalMatches":0}]'))
     task.objectMapper = mapper
-    def responses = instanceIds.collect {
-      def response = GroovyMock(Response)
-      response.getStatus() >> 200
-      response.getBody() >> {
-        def input = Mock(TypedInput)
-        input.in() >> {
-          def jsonObj = [
-            [totalMatches: 0]
-          ]
-          new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
-        }
-        input
-      }
-      response
-    }
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceIds[0], 'serverGroupInstances', 'aws') >> responses[0]
-      getSearchResults(instanceIds[1], 'serverGroupInstances', 'aws') >> responses[1]
+      getSearchResults(instanceIds[0], 'serverGroupInstances', 'aws') >> emptyResult
+      getSearchResults(instanceIds[1], 'serverGroupInstances', 'aws') >> emptyResult
     }
 
     and:

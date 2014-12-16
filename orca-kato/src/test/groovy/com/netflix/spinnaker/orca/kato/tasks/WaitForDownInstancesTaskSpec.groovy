@@ -15,16 +15,16 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
-import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 /**
  * Created by aglover on 7/10/14.
  */
@@ -37,34 +37,27 @@ class WaitForDownInstancesTaskSpec extends Specification {
     given:
     def pipeline = new Pipeline()
     task.objectMapper = mapper
-    def response = GroovyMock(Response)
-    response.getStatus() >> 200
-    response.getBody() >> {
-      def input = Mock(TypedInput)
-      input.in() >> {
-        def jsonObj = [
-          name        : "front50",
-          serverGroups: [
+    def response = mapper.writeValueAsString([
+      name        : "front50",
+      serverGroups: [
+        [
+          region   : "us-west-1",
+          name     : "front50-v000",
+          asg      : [
+            minSize: 1
+          ],
+          instances: [
             [
-              region   : "us-west-1",
-              name     : "front50-v000",
-              asg      : [
-                minSize: 1
-              ],
-              instances: [
-                [
-                  health: [ [ state : "Down"] ]
-                ]
-              ]
+              health: [ [ state : "Down"] ]
             ]
           ]
         ]
-        new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
-      }
-      input
-    }
+      ]
+    ])
+
+
     task.oortService = Stub(OortService) {
-      getCluster(*_) >> response
+      getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
     }
 
     and:

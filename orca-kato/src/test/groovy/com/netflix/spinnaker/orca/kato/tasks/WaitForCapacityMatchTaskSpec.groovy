@@ -15,9 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -25,7 +22,10 @@ import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import retrofit.client.Response
-import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
 
 class WaitForCapacityMatchTaskSpec extends Specification {
 
@@ -36,16 +36,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale up operation"() {
     setup:
       oort = Stub(OortService)
-      oort.getCluster("kato", "test", "kato-main") >> {
-        def response = GroovyMock(Response)
-        response.getStatus() >> 200
-        response.getBody() >> {
-          def input = Mock(TypedInput)
-          input.in() >> new ByteArrayInputStream(mapper.writeValueAsBytes(cluster))
-          input
-        }
-        response
-      }
+      oort.getCluster("kato", "test", "kato-main") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
       task.oortService = oort
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
       def stage = new OrchestrationStage(new Orchestration(), "resizeAsg", context)
@@ -87,16 +78,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale down operation"() {
     setup:
     oort = Stub(OortService)
-    oort.getCluster("kato", "test", "kato-main") >> {
-      def response = GroovyMock(Response)
-      response.getStatus() >> 200
-      response.getBody() >> {
-        def input = Mock(TypedInput)
-        input.in() >> new ByteArrayInputStream(mapper.writeValueAsBytes(cluster))
-        input
-      }
-      response
-    }
+    oort.getCluster("kato", "test", "kato-main") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new OrchestrationStage(new Orchestration(), "resizeAsg", context)
