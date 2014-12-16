@@ -2,7 +2,7 @@
   <a class="instance health-status-{{instance.isHealthy ? 'Healthy' : 'Unhealthy'}}"
      ng-class="{highlighted: highlight && highlight.length > 1 && instance.id.indexOf(highlight) !== -1, 'health-status-Unknown': instance.healthStatus === 'Disabled'}"
      ng-repeat="instance in displayedInstances | orderBy:'launchTime'"
-     tooltip="{{instance.instanceId}}"
+     tooltip="{{instance.id}}"
      ui-sref=".instanceDetails({instanceId: instance.id })"
      ui-sref-active="active">
     <span class="sr-only">{{instance.id}}</span></a>
