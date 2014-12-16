@@ -221,13 +221,14 @@ angular
     }
 
     function setDisplayOptions(totalInstancesDisplayed) {
-      ClusterFilterModel.displayOptions =  {
+      var newOptions =  {
         renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
         totalInstancesDisplayed: totalInstancesDisplayed,
         showInstances: ClusterFilterModel.sortFilter.showAllInstances,
         hideHealthy: ClusterFilterModel.sortFilter.hideHealthy,
         filter: ClusterFilterModel.sortFilter.filter
       };
+      angular.copy(newOptions, ClusterFilterModel.displayOptions);
     }
 
     function clearFilters() {
