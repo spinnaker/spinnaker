@@ -16,15 +16,13 @@
 
 
 package com.netflix.spinnaker.orca.notifications
-
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import groovy.json.JsonSlurper
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import groovy.json.JsonSlurper
 import retrofit.client.Response
-import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
 import spock.lang.Specification
 
 class BuildJobNotificationHandlerSpec extends Specification {
@@ -91,16 +89,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     handler.run()
 
     then:
-    1 * mayo.getPipelines() >> {
-      def response = GroovyMock(Response)
-      def typedInput = Mock(TypedInput)
-      typedInput.in() >> {
-        def json = new OrcaObjectMapper().writeValueAsString([pipeline1, pipeline2])
-        new ByteArrayInputStream(json.bytes)
-      }
-      response.getBody() >> typedInput
-      response
-    }
+    1 * mayo.getPipelines() >> new Response('mayo', 200, 'ok', [], new TypedString(new OrcaObjectMapper().writeValueAsString([pipeline1, pipeline2])))
     2 == handler.interestingPipelines[key].size()
     handler.interestingPipelines[key].name == ["pipeline1", "pipeline2"]
 

@@ -15,13 +15,12 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
-
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
-import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -37,15 +36,8 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
     def groupName = 'group'
     def account = 'account'
     def region = 'region'
-    def response = GroovyMock(Response)
-    response.getStatus() >> 200
-    response.getBody() >> {
-      def input = Mock(TypedInput)
-      input.in() >> new ByteArrayInputStream(current.bytes)
-      input
-    }
     task.mortService = Stub(MortService) {
-      getSecurityGroup(account, 'aws', groupName, region) >> response
+      getSecurityGroup(account, 'aws', groupName, region) >> new Response('mort', 200, 'ok', [], new TypedString(current))
     }
 
     and:

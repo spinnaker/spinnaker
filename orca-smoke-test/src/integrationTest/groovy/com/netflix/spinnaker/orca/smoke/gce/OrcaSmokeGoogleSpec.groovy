@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.smoke.gce
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
@@ -30,14 +29,14 @@ import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
-import spock.lang.Requires
+import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.test.net.Network.isReachable
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
+import static com.netflix.spinnaker.orca.test.net.Network.notReachable
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 // Only runs if the gcs-kms server is listening on port 7909 on the same machine.
-@Requires({ isReachable("http://localhost:7909") })
+@IgnoreIf({ notReachable("http://localhost:7909") })
 @ContextConfiguration(classes = [OrcaConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration,
                                  Front50Configuration])
 @DirtiesContext(classMode = AFTER_CLASS)
