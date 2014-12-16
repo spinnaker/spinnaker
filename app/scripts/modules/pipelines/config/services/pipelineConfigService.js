@@ -4,10 +4,6 @@
 angular.module('deckApp.pipelines')
   .factory('pipelineConfigService', function (settings, Restangular) {
 
-    var mayoEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.mayoUrl);
-    });
-
     var gateEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
     });
@@ -17,18 +13,18 @@ angular.module('deckApp.pipelines')
     }
 
     function deletePipeline(applicationName, pipelineName) {
-      return mayoEndpoint.all('pipelines').one(applicationName, pipelineName).remove();
+      return gateEndpoint.all('pipelines').one(applicationName, pipelineName).remove();
     }
 
     function savePipeline(pipeline) {
       pipeline.stages.forEach(function(stage) {
         delete stage.isNew;
       });
-      return mayoEndpoint.all('pipelines').post(pipeline);
+      return gateEndpoint.all('pipelines').post(pipeline);
     }
 
     function renamePipeline(applicationName, currentName, newName) {
-      return mayoEndpoint.all('pipelines').all('move').post({
+      return gateEndpoint.all('pipelines').all('move').post({
         application: applicationName,
         from: currentName,
         to: newName
