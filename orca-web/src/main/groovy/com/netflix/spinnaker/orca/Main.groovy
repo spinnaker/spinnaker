@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.redbatch.config.RedbatchConfiguration
 import com.netflix.spinnaker.kork.jedis.JedisConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -30,7 +29,6 @@ import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.rush.config.RushConfiguration
-import com.netflix.spinnaker.orca.web.config.MultiThreadedJedisBatchConfigurer
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
@@ -41,7 +39,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.scheduling.annotation.EnableAsync
-import redis.clients.jedis.JedisCommands
 
 @Configuration
 @EnableAsync

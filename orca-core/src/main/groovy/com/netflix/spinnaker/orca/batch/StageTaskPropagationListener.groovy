@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component
 @Component
 class StageTaskPropagationListener extends AbstractStagePropagationListener {
 
-  private final Pattern TASK_NAME_PATTERN = ~/^\w+(?=\.)/
+  private final Pattern TASK_NAME_PATTERN = ~/(?<=[\.])(\S+)(?=\.)/
 
   @Autowired
   StageTaskPropagationListener(ExecutionRepository executionRepository) {
