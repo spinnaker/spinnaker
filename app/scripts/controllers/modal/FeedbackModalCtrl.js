@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings) {
+  .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings, authenticationService) {
 
     $scope.states = {
       EDITING: 0,
@@ -13,17 +13,26 @@ angular.module('deckApp')
 
     $scope.state = $scope.states.EDITING;
 
+    $scope.userIsAuthenticated = authenticationService.getAuthenticatedUser().authenticated;
+
     $scope.feedback = {
       title: '',
       description: '',
       contact: ''
     };
 
+    function getContactInfo() {
+      if ($scope.userIsAuthenticated) {
+        return authenticationService.getAuthenticatedUser().name;
+      }
+      return $scope.feedback.contact;
+    }
+
     function buildDescription() {
       return [
-        '**Submitted by:**\n' + $scope.feedback.contact,
-        '**From page:**\n' + $location.absUrl(),
-        '**Description:**\n' + $scope.feedback.description
+        '*Submitted by:*\n' + getContactInfo(),
+        '*From page:*\n' + $location.absUrl(),
+        '*Description:*\n' + $scope.feedback.description
       ].join('\n\n');
     }
 

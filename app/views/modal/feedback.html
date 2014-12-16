@@ -10,8 +10,7 @@
           Having a problem or looking for something that's not in Spinnaker? Let us know.
         </p>
         <p>
-          You'll be able to <a target=_blank href="https://github.com/spinnaker/spinnaker/issues">track the issue through GitHub</a>
-          if you have an account. Need access to the Spinnaker GitHub repository? Include that in the description and we'll be sure to add you.</p>
+          You'll be able to <a target=_blank href="https://jira.netflix.com/browse/SPIN">track the issue through JIRA</a>.</p>
         <br/>
         <div class="form-group">
           <label>Title</label>
@@ -29,7 +28,7 @@
                     required
             ></textarea>
         </div>
-        <div class="form-group">
+        <div class="form-group" ng-if="!userIsAuthenticated">
           <label>Contact Info</label>
           <input type="text"
                  class="form-control"
