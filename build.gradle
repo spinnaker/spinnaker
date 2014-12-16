@@ -20,51 +20,8 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.36"
+    classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.37"
   }
-}
-
-ext {
-  versions = [
-    batch   : "3.0.2.RELEASE",
-    groovy  : "2.3.8",
-    guava   : "14.0.1",
-    jackson : "2.3.3",
-    kork    : "1.25",
-    okhttp  : "2.0.0",
-    retrofit: "1.6.1",
-    rx      : "0.19.6",
-    slf4j   : "1.7.5",
-    spock   : "0.7-groovy-2.0",
-    spring  : "4.0.6.RELEASE"
-  ]
-
-  commonDependencies = [
-    groovy         : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy"),
-    guava          : dependencies.create("com.google.guava:guava:$versions.guava"),
-    hamcrest       : dependencies.create("org.hamcrest:hamcrest-all:1.3"),
-    jacksonDatabind: dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
-    jacksonGuava   : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
-    kork           : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
-    korkJedis      : dependencies.create("com.netflix.spinnaker.kork:kork-jedis:$versions.kork"),
-    korkJedisTest  : dependencies.create("com.netflix.spinnaker.kork:kork-jedis-test:$versions.kork"),
-    logback        : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
-    okHttp         : dependencies.create("com.squareup.okhttp:okhttp-urlconnection:$versions.okhttp"),
-    retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),
-    rxJava         : dependencies.create("com.netflix.rxjava:rxjava-core:$versions.rx"),
-    slf4j          : dependencies.create("org.slf4j:slf4j-api:$versions.slf4j"),
-    slf4jJcl       : dependencies.create("org.slf4j:jcl-over-slf4j:$versions.slf4j"),
-    slf4jSimple    : dependencies.create("org.slf4j:slf4j-simple:$versions.slf4j"),
-    spock          : dependencies.create("org.spockframework:spock-core:$versions.spock"),
-    spockSpring    : dependencies.create("org.spockframework:spock-spring:$versions.spock"),
-    springBatch    : dependencies.create("org.springframework.batch:spring-batch-core:$versions.batch"),
-    springBatchTest: dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
-    springTest     : dependencies.create("org.springframework:spring-test:$versions.spring"),
-    springWeb      : dependencies.create("org.springframework:spring-web:$versions.spring"),
-    objenesis      : dependencies.create("org.objenesis:objenesis:2.1"),
-    cglib   : dependencies.create("cglib:cglib-nodep:3.1"),
-    redbatch: dependencies.create("com.netflix:redbatch:0.1")
-  ]
 }
 
 allprojects {
@@ -76,15 +33,26 @@ allprojects {
     exclude group: "org.slf4j", module: "slf4j-log4j12"
     exclude group: "org.slf4j", module: "slf4j-simple"
     resolutionStrategy {
-      force "com.netflix.rxjava:rxjava-core:$versions.rx"
+      eachDependency {
+        if (it.requested.group == 'com.netflix.rxjava' && it.requested.name == 'rxjava-core') {
+          it.useTarget group: 'io.reactivex', name: 'rxjava', version: '1.0.2'
+        }
+      }
     }
   }
 }
-
 subprojects {
+  apply plugin: 'groovy'
   plugins.withType(JavaPlugin) {
     sourceCompatibility = "1.7"
     targetCompatibility = "1.7"
+  }
+  dependencies {
+    spinnaker.group('spockBase')
+    compile spinnaker.dependency('groovy')
+    compile spinnaker.dependency('guava')
+    compile spinnaker.dependency('slf4jApi')
+    testRuntime spinnaker.dependency('slf4jSimple')
   }
 }
 

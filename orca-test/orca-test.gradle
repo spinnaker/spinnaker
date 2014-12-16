@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 dependencies {
-  compile commonDependencies.objenesis
-  compile commonDependencies.spock
-  compile commonDependencies.korkJedisTest
-  compile commonDependencies.springTest
-  compile commonDependencies.springBatchTest
-  compile commonDependencies.redbatch
-  runtime commonDependencies.spockSpring
+  compile spinnaker.dependency('spock')
+  compile spinnaker.dependency('spockSpring')
+  compile spinnaker.dependency('junit')
+  compile spinnaker.dependency('hamcrestCore')
+  compile spinnaker.dependency('springTest')
+  compile spinnaker.dependency('korkJedisTest')
+  compile spinnaker.dependency('batchTest')
+  compile spinnaker.dependency('redbatch')
+  runtime spinnaker.dependency('objenesis')
+  runtime spinnaker.dependency('cglib')
 }

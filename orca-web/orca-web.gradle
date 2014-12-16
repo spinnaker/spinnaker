@@ -20,10 +20,9 @@ buildscript {
     }
     dependencies {
         classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.8.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RELEASE"
     }
 }
-apply from: "$rootDir/gradle/groovy-module.gradle"
 
 apply plugin: 'os-package'
 apply plugin: 'spring-boot'
@@ -35,7 +34,7 @@ springBoot {
 dependencies {
   spinnaker.group("bootWeb")
 
-  compile commonDependencies.redbatch
+  compile spinnaker.dependency('redbatch')
   compile project(":orca-bakery")
   compile project(":orca-kato")
   compile project(":orca-oort")
@@ -45,23 +44,34 @@ dependencies {
   compile project(":orca-mayo")
   compile project(":orca-rush")
 
-  testCompile commonDependencies.springBatchTest
-  testCompile commonDependencies.spockSpring
-  testCompile commonDependencies.springTest
+  spinnaker.group('test')
+  testCompile spinnaker.dependency('batchTest')
   testCompile project(":orca-test")
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8083"]
+applicationName = 'orca'
+applicationDistribution.from(project.file('config')) {
+  into "config"
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
 
 ospackage {
-  packageName = rootProject.name
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${rootProject.name}"
-  from "${project.buildDir}/install/${project.name}"
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
 }
 
 buildDeb {
   dependsOn installApp
   requires("openjdk-7-jre")
+  requires("redis-server")
 }
+

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 dependencies {
-  compile commonDependencies.springBatch
-  compile commonDependencies.jacksonDatabind
-  compile commonDependencies.jacksonGuava
-  compile commonDependencies.rxJava
-  compile commonDependencies.korkJedis
-  compile commonDependencies.cglib
+  compile spinnaker.dependency('batch')
+  compile spinnaker.dependency('cglib')
+  spinnaker.group('jackson')
+  compile spinnaker.dependency('jacksonGuava')
+  compile spinnaker.dependency('rxJava')
+  compile spinnaker.dependency('korkJedis')
   testCompile project(":orca-test")
 }

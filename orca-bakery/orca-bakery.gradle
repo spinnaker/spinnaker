@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 dependencies {
   compile project(":orca-retrofit")
-  compile commonDependencies.jacksonGuava
+  spinnaker.group('jackson')
+  compile spinnaker.dependency('jacksonGuava')
   testCompile project(":orca-test")
-  testCompile commonDependencies.hamcrest
 }
