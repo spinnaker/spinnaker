@@ -14,7 +14,7 @@ class AmiIdResolver {
       nameOrId
     } else {
       def images = amazonEC2.describeImages(new DescribeImagesRequest().withFilters(new Filter('name').withValues(nameOrId)))
-      images?.images?.first()?.imageId
+      images?.images?.getAt(0)?.imageId
     }
 
   }
