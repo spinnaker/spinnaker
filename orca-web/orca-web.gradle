@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.9.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RELEASE"
     }
 }
 
@@ -34,7 +34,7 @@ springBoot {
 dependencies {
   spinnaker.group("bootWeb")
 
-  compile commonDependencies.redbatch
+  compile spinnaker.dependency('redbatch')
   compile project(":orca-bakery")
   compile project(":orca-kato")
   compile project(":orca-oort")
@@ -44,9 +44,8 @@ dependencies {
   compile project(":orca-mayo")
   compile project(":orca-rush")
 
-  testCompile commonDependencies.springBatchTest
-  testCompile commonDependencies.spockSpring
-  testCompile commonDependencies.springTest
+  spinnaker.group('test')
+  testCompile spinnaker.dependency('batchTest')
   testCompile project(":orca-test")
 }
 
