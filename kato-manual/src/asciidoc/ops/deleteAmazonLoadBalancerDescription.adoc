@@ -6,7 +6,7 @@
 
 ====== Description
 
-This description provides the inputs necessary to handle the deletion of an Elastic Load Balancer at Amazon. This is a destructive process, which cannot be reversed. If the provided +loadBalancerName+ is not found for _all_ provided +regions+, the operation will fail validation.
+This description provides the inputs necessary to handle the deletion of an Elastic Load Balancer at Amazon. This is a destructive process, which cannot be reversed.
 
 CAUTION: This operation marks the end of a Load Balancer's life. The process cannot be undone, and the configuration cannot be reconstituted. A load balancer of the same configuration will need to be recreated from scratch.
 
