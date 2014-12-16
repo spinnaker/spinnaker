@@ -17,7 +17,8 @@ angular.module('deckApp.delivery')
           url: '/:executionId',
           view: {},
           data: {
-            pageTitleSection: {
+            pageTitleDetails: {
+              title: 'Execution Details',
               nameParam: 'executionId'
             }
           }
@@ -25,7 +26,7 @@ angular.module('deckApp.delivery')
       ],
       data: {
         pageTitleSection: {
-          title: 'pipeline executions'
+          title: 'Pipeline Executions'
         }
       }
     },
