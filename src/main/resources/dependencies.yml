@@ -1,54 +1,41 @@
 versions:
-  springBoot: "1.1.9.RELEASE"
-  kork: "1.25"
-  groovy: "2.3.7"
+# spinnaker libs
+  amazoncomponents: "0.9.28"
+  amos: "0.20"
+  cats: "0.9"
+  kork: "1.26"
+  redbatch: "0.1"
+# third party
   astyanax: "2.0.2"
-  rxJava: "0.20.4"
-  spock: "0.7-groovy-2.0"
-  batch: "3.0.1.RELEASE"
-  eureka: "1.1.143"
-  frigga: "0.13"
+  aws: "1.9.11"
+  batch: "3.0.2.RELEASE"
   cglib: "3.1"
-  amos: "0.19"
-  amazoncomponents: "0.9.27"
-  aws: "1.9.4"
-  httpclient: "4.3.5"
-  httpcore: "4.3.2"
-  retrofit: "1.7.1"
-  jedis: "2.6.0"
-  guava: "18.0"
-  slf4j: "1.7.7"
-  spectator: "0.14.2"
-  okHttp: "2.1.0"
-  objenesis: "2.1"
+  eureka: "1.1.146"
+  frigga: "0.13"
+  googleHttp: "1.18.0-rc"
   googleCompute: "v1-rev40-1.19.0"
   googleReplicapool: "v1beta2-rev1-1.19.0"
   googleResourceviews: "v1beta2-rev3-1.19.0"
-  googleHttp: "1.18.0-rc"
+  groovy: "2.3.8"
+  guava: "18.0"
+  hamcrest: "1.3"
+  httpclient: "4.3.6"
+  httpcore: "4.3.3"
+  jackson: "2.4.4"
+  jedis: "2.6.1"
+  junit: "4.12"
+  objenesis: "2.1"
+  okHttp: "2.1.0"
+  redisEmbedded: "0.6"
+  retrofit: "1.8.0"
+  rxJava: "1.0.2"
+  slf4j: "1.7.8"
+  spectator: "0.14.2"
+  spock: "0.7-groovy-2.0"
+  spring: "4.1.3.RELEASE"
+  springBoot: "1.2.0.RELEASE"
 
 groups:
-  bootWeb:
-    compile:
-      - bootActuator
-      - bootWeb
-      - bootDataRest
-  test:
-    testCompile:
-      - bootTest
-      - spock
-      - spockSpring
-      - cglib
-      - objenesis
-  spockBase:
-    testCompile:
-      - spock
-      - cglib
-      - objenesis
-  cassandra:
-    compile:
-      - astyanaxCql
-      - astyanaxCassandra
-      - astyanaxThrift
   amazon:
     compile:
       - amazoncomponents
@@ -60,12 +47,16 @@ groups:
       - awsEc2
       - awsIam
       - awsSts
-  retrofitDefault:
+  bootWeb:
     compile:
-      - retrofit
-      - okHttp
-      - okHttpUrlconnection
-      - retrofitJackson
+      - bootActuator
+      - bootWeb
+      - bootDataRest
+  cassandra:
+    compile:
+      - astyanaxCql
+      - astyanaxCassandra
+      - astyanaxThrift
   gceApi:
     compile:
       - googleCompute
@@ -79,50 +70,94 @@ groups:
       - googleReplicapool
       - googleResourceviews
       - googleHttp
+  jackson:
+    compile:
+      - jacksonCore
+      - jacksonDatabind
+      - jacksonAnnotations
+  spockBase:
+    testCompile:
+      - spock
+      - cglib
+      - objenesis
+  springBatch:
+    compile:
+      - batch
+    testCompile:
+      - batchTest
+  retrofitDefault:
+    compile:
+      - retrofit
+      - okHttp
+      - okHttpUrlconnection
+      - retrofitJackson
+  test:
+    testCompile:
+      - bootTest
+      - spock
+      - spockSpring
+      - springTest
+      - cglib
+      - objenesis
+      - junit
+      - hamcrestCore
 
 dependencies:
+# spinnaker libs
+  amazoncomponents: "com.netflix.amazoncomponents:amazoncomponents:${versions.amazoncomponents}"
   amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
   amosAws: "com.netflix.spinnaker:amos-aws:${versions.amos}"
   amosGce: "com.netflix.spinnaker:amos-gce:${versions.amos}"
-  bootActuator: "org.springframework.boot:spring-boot-starter-actuator:${versions.springBoot}"
-  bootAutoConfigure: "org.springframework.boot:spring-boot-autoconfigure:${versions.springBoot}"
-  bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
-  bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
-  bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
-  eurekaClient: "com.netflix.eureka:eureka-client:${versions.eureka}"
   kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
   korkCassandra: "com.netflix.spinnaker.kork:kork-cassandra:${versions.kork}"
-  groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}"
-  astyanaxCql: "com.netflix.astyanax:astyanax-cql:${versions.astyanax}"
+  korkJedis: "com.netflix.spinnaker.kork:kork-jedis:${versions.kork}"
+  korkJedisTest: "com.netflix.spinnaker.kork:kork-jedis-test:${versions.kork}"
+  redbatch: "com.netflix:redbatch:${versions.redbatch}"
+# third party
   astyanaxCassandra: "com.netflix.astyanax:astyanax-cassandra:${versions.astyanax}"
+  astyanaxCql: "com.netflix.astyanax:astyanax-cql:${versions.astyanax}"
   astyanaxThrift: "com.netflix.astyanax:astyanax-thrift:${versions.astyanax}"
-  rxJava: "com.netflix.rxjava:rxjava-core:${versions.rxJava}"
-  spectatorApi: "com.netflix.spectator:spectator-api:${versions.spectator}"
-  spock: "org.spockframework:spock-core:${versions.spock}"
-  spockSpring: "org.spockframework:spock-spring:${versions.spock}"
-  batch: "org.springframework.batch:spring-batch-core:${versions.batch}"
-  frigga: "com.netflix.frigga:frigga:${versions.frigga}"
-  cglib: "cglib:cglib-nodep:${versions.cglib}"
-  amazoncomponents: "com.netflix.amazoncomponents:amazoncomponents:${versions.amazoncomponents}"
   aws: "com.amazonaws:aws-java-sdk:${versions.aws}"
   awsCore: "com.amazonaws:aws-java-sdk-core:${versions.aws}"
   awsEc2: "com.amazonaws:aws-java-sdk-ec2:${versions.aws}"
   awsIam: "com.amazonaws:aws-java-sdk-iam:${versions.aws}"
   awsSts: "com.amazonaws:aws-java-sdk-sts:${versions.aws}"
+  batch: "org.springframework.batch:spring-batch-core:${versions.batch}"
+  batchTest: "org.springframework.batch:spring-batch-test:${versions.batch}"
+  bootActuator: "org.springframework.boot:spring-boot-starter-actuator:${versions.springBoot}"
+  bootAutoConfigure: "org.springframework.boot:spring-boot-autoconfigure:${versions.springBoot}"
+  bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
+  bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
+  bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+  cglib: "cglib:cglib-nodep:${versions.cglib}"
+  eurekaClient: "com.netflix.eureka:eureka-client:${versions.eureka}"
+  frigga: "com.netflix.frigga:frigga:${versions.frigga}"
+  googleCompute: "com.google.apis:google-api-services-compute:${versions.googleCompute}"
+  googleHttp: "com.google.http-client:google-http-client-jackson2:${versions.googleHttp}"
+  googleReplicapool: "com.google.apis:google-api-services-replicapool:${versions.googleReplicapool}"
+  googleResourceviews: "com.google.apis:google-api-services-resourceviews:${versions.googleResourceviews}"
+  groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}"
+  guava: "com.google.guava:guava:${versions.guava}"
+  hamcrestCore: "org.hamcrest:hamcrest-core:${versions.hamcrest}"
   httpclient: "org.apache.httpcomponents:httpclient:${versions.httpclient}"
   httpcore: "org.apache.httpcomponents:httpcore:${versions.httpcore}"
+  jacksonAnnotations: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+  jacksonCore: "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+  jacksonDatabind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+  jacksonGuava: "com.fasterxml.jackson.datatype:jackson-datatype-guava:${versions.jackson}"
+  jedis: "redis.clients:jedis:${versions.jedis}"
+  junit: "junit:junit:${versions.junit}"
+  objenesis: "org.objenesis:objenesis:${versions.objenesis}"
+  okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
+  okHttpUrlconnection: "com.squareup.okhttp:okhttp-urlconnection:${versions.okHttp}"
+  redisEmbedded: "com.orange.redis-embedded:embedded-redis:${versions.redisEmbedded}"
   retrofit: "com.squareup.retrofit:retrofit:${versions.retrofit}"
   retrofitJackson: "com.squareup.retrofit:converter-jackson:${versions.retrofit}"
-  jedis: "redis.clients:jedis:${versions.jedis}"
-  guava: "com.google.guava:guava:${versions.guava}"
+  rxJava: "com.netflix.rxjava:rxjava-core:${versions.rxJava}"
+  spectatorApi: "com.netflix.spectator:spectator-api:${versions.spectator}"
   slf4j: "org.slf4j:jcl-over-slf4j:${versions.slf4j}"
   slf4jApi: "org.slf4j:slf4j-api:${versions.slf4j}"
   slf4jSimple: "org.slf4j:slf4j-simple:${versions.slf4j}"
-  okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
-  okHttpUrlconnection: "com.squareup.okhttp:okhttp-urlconnection:${versions.okHttp}"
-  objenesis: "org.objenesis:objenesis:${versions.objenesis}"
-  googleCompute: "com.google.apis:google-api-services-compute:${versions.googleCompute}"
-  googleReplicapool: "com.google.apis:google-api-services-replicapool:${versions.googleReplicapool}"
-  googleResourceviews: "com.google.apis:google-api-services-resourceviews:${versions.googleResourceviews}"
-  googleHttp: "com.google.http-client:google-http-client-jackson2:${versions.googleHttp}"
-
+  spock: "org.spockframework:spock-core:${versions.spock}"
+  spockSpring: "org.spockframework:spock-spring:${versions.spock}"
+  springTest: "org.springframework:spring-test:${versions.spring}"
