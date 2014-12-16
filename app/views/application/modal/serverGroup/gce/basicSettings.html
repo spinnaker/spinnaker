@@ -8,7 +8,14 @@
     </div>
     <kato-error task-status="taskStatus" title="We could not create your server group."></kato-error>
     <kato-progress task-status="taskStatus" title="Creating your server group."></kato-progress>
-    <account-select-field label-columns="2" component="command" field="credentials" accounts="accounts" loading="false"></account-select-field>
+    <div class="form-group">
+      <div class="col-md-2 sm-label-left">
+        <b>Account</b>
+      </div>
+      <div class="col-md-7">
+        <account-select-field component="command" field="credentials" accounts="accounts"></account-select-field>
+      </div>
+    </div>
 <!--
     <region-select-field component="command" field="region" account="command.credentials" regions="regions"></region-select-field>
     <subnet-select-field component="command" field="subnetType" region="command.region" subnets="regionSubnetPurposes"></subnet-select-field>
