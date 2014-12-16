@@ -143,6 +143,9 @@ angular.module('deckApp.pipelines')
         if ($scope.viewState.stageIndex > lastStage) {
           $scope.viewState.stageIndex = lastStage;
         }
+        if (!$scope.pipeline.stages.length) {
+          this.navigateTo('triggers');
+        }
       }
     };
 
