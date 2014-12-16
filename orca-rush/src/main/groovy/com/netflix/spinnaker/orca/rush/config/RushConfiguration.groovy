@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.rush.config
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.google.gson.GsonBuilder
@@ -44,6 +46,7 @@ import java.lang.reflect.Type
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
 @ComponentScan("com.netflix.spinnaker.orca.rush.pipeline")
+@ConditionalOnProperty("rush.baseUrl")
 @CompileStatic
 class RushConfiguration {
 

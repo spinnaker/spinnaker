@@ -34,6 +34,8 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -57,11 +59,33 @@ import org.springframework.scheduling.annotation.EnableAsync
   MayoConfiguration,
   RushConfiguration
 ])
-class Main {
+class Main extends SpringBootServletInitializer {
+  static final Map<String, String> DEFAULT_PROPS = [
+    'netflix.environment': 'test',
+    'netflix.account': System.getProperty('netflix.environment', 'test'),
+    'netflix.stack': 'test',
+    'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
+    'spring.config.name': 'orca',
+    'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+  ]
+
+  static {
+    applyDefaults()
+  }
+
+  static void applyDefaults() {
+    DEFAULT_PROPS.each { k, v ->
+      System.setProperty(k, System.getProperty(k, v))
+    }
+  }
 
   static void main(String... args) {
-    System.setProperty('netflix.environment', 'test')
     SpringApplication.run(Main, args)
+  }
+
+  @Override
+  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    application.sources Main
   }
 
   static class StockMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {

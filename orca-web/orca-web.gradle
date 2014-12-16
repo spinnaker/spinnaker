@@ -49,17 +49,29 @@ dependencies {
   testCompile project(":orca-test")
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8083"]
+applicationName = 'orca'
+applicationDistribution.from(project.file('config')) {
+  into "config"
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
 
 ospackage {
-  packageName = rootProject.name
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${rootProject.name}"
-  from "${project.buildDir}/install/${project.name}"
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
 }
 
 buildDeb {
   dependsOn installApp
   requires("openjdk-7-jre")
+  requires("redis-server")
 }
+
