@@ -50,7 +50,7 @@ class DeleteAmazonLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus BASE_PHASE, "Deleting ${description.loadBalancerName} in ${region} for ${description.credentials.name}."
       loadBalancing.deleteLoadBalancer(request)
     }
-    task.updateStatus BASE_PHASE, "Done deleteing ${description.loadBalancerName} in ${description.regions} for ${description.credentials.name}."
+    task.updateStatus BASE_PHASE, "Done deleting ${description.loadBalancerName} in ${description.regions} for ${description.credentials.name}."
     null
   }
 }
