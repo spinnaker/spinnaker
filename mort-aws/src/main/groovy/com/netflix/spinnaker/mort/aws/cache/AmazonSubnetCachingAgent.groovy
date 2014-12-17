@@ -39,6 +39,12 @@ class AmazonSubnetCachingAgent implements CachingAgent {
   }
 
   @Override
+  int getIntervalMultiplier() {
+    1
+  }
+
+
+  @Override
   void call() {
     log.info "$description - Caching..."
     def result = ec2.describeSubnets()

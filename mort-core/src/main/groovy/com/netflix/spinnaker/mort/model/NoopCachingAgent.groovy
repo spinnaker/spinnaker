@@ -24,6 +24,11 @@ class NoopCachingAgent implements CachingAgent {
     }
 
     @Override
+    int getIntervalMultiplier() {
+        1
+    }
+
+    @Override
     void call() {
 
     }

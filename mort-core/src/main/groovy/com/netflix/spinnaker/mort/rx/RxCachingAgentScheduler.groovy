@@ -38,7 +38,7 @@ class RxCachingAgentScheduler implements CachingAgentScheduler {
   @PostConstruct
   void init() {
     for (agent in cachingAgents) {
-      Schedulers.computation().createWorker().schedulePeriodically(new CachingAgentRxAdapter(cachingAgent: agent), 0, cachingInterval,
+      Schedulers.computation().createWorker().schedulePeriodically(new CachingAgentRxAdapter(cachingAgent: agent), 0, cachingInterval * agent.intervalMultiplier,
           TimeUnit.MILLISECONDS)
     }
   }

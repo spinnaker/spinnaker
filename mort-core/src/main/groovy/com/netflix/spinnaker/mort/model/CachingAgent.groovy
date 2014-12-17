@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.mort.model
 
 interface CachingAgent {
+  int getIntervalMultiplier()
   String getDescription()
   void call()
 }
