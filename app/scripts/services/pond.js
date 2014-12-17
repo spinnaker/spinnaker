@@ -152,7 +152,7 @@ angular.module('deckApp')
               task.updateKatoTask
             );
           } else {
-            $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 500);
+            $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 1000);
           }
         }
         task.pendingPolls.push(deferred.promise);
@@ -173,7 +173,7 @@ angular.module('deckApp')
               updateTask(task, updatedTask);
               task.watchForTaskComplete(deferred).then(deferred.resolve, deferred.reject);
             });
-          }, 500);
+          }, 1000);
         }
         task.pendingPolls.push(deferred.promise);
         return deferred.promise;
