@@ -32,6 +32,7 @@ abstract class DeployStrategyStage extends LinearStage {
 
   @Autowired OortService oort
   @Autowired ObjectMapper mapper
+  @Autowired ResizeAsgStage resizeAsgStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyAsgStage destroyAsgStage
 
@@ -90,6 +91,12 @@ abstract class DeployStrategyStage extends LinearStage {
       def disableInputs = [asgName: lastAsg.name, regions: [lastAsg.region], credentials: clusterConfig.account]
       stage.context."disableAsg" = disableInputs
       steps.addAll(disableAsgStage.buildSteps(stage))
+      if (Boolean.parseBoolean((((Map)stage.context.cluster)?.scaleDown ?: false)?.toString())) {
+        def resizeInputs = new HashMap(disableInputs)
+        resizeInputs.put "capacity", [min: 0, max: 0, desired: 0]
+        stage.context."resizeAsg" = resizeInputs
+        steps.addAll(resizeAsgStage.buildSteps(stage))
+      }
     }
 
     steps

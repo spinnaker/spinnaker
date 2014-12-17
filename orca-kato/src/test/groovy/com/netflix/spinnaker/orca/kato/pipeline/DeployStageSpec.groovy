@@ -81,14 +81,16 @@ class DeployStageSpec extends Specification {
   @Shared OortService oortService
   @Shared DisableAsgStage disableAsgStage
   @Shared DestroyAsgStage destroyAsgStage
+  @Shared ResizeAsgStage resizeAsgStage
 
   def setup() {
     oortService = Mock(OortService)
     disableAsgStage = Mock(DisableAsgStage)
     destroyAsgStage = Mock(DestroyAsgStage)
+    resizeAsgStage = Mock(ResizeAsgStage)
 
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
-        mapper: mapper)
+        resizeAsgStage: resizeAsgStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
     deployStage.applicationContext = Stub(ApplicationContext)
@@ -122,6 +124,39 @@ class DeployStageSpec extends Specification {
     }
     1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
     steps[-1] == disableAsgTask
+  }
+
+  void "should create tasks of basicDeploy, disableAsg, and resizeAsg when strategy is redblack and scaleDown is true"() {
+    setup:
+    def pipeline = new Pipeline()
+    def config = mapper.readValue(configJson, Map)
+    config.cluster.scaleDown = true
+    config.cluster.strategy = "redblack"
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    def resizeAsgTask = deployStage.buildStep("resize", TestTask)
+    def disableAsgTask = deployStage.buildStep("foo", TestTask)
+
+    when:
+    def steps = deployStage.buildSteps(stage)
+
+    then:
+    "should call to oort to get the last ASG so that we know what to disable"
+    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+      def cluster = [serverGroups: [[
+                                      name  : "pond-prestaging-v000",
+                                      region: "us-east-1"
+                                    ]]]
+      new Response(
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          objectMapper.writeValueAsBytes(cluster)
+        )
+      )
+    }
+    1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
+    1 * resizeAsgStage.buildSteps(stage) >> [resizeAsgTask]
+    steps[-1] == resizeAsgTask
   }
 
   void "should create tasks of basicDeploy and destroyAsg when strategy is highlander"() {
