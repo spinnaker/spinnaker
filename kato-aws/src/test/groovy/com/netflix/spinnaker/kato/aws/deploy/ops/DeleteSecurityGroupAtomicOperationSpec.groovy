@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
+
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
@@ -197,5 +199,70 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
             "Initializing Delete Security Group Operation...",
             "There is no foo in us-east-1 vpc1 for test."
     ]
+  }
+
+  void "should be idempotent and not fail for deletion when the security group for the ID no longer exists"() {
+      def description = new DeleteSecurityGroupDescription(securityGroupName: "foo", regions: ["us-east-1"], credentials: credz)
+      def op = new DeleteSecurityGroupAtomicOperation(description)
+      op.amazonClientProvider = amazonClientProvider
+
+      when:
+      op.operate([])
+
+      then:
+      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+      1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+              securityGroups: [
+                      new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
+              ]
+      )
+      1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123')) >> {
+          def e = new AmazonServiceException("The security group '123' does not exist")
+          e.errorCode = "InvalidGroup.NotFound"
+          throw e
+      }
+      0 * _
+
+      and:
+      task.history*.status == [
+              "Creating task task1",
+              "Initializing Delete Security Group Operation...",
+              "Deleting foo in us-east-1 for test.",
+              "Done deleting foo in us-east-1 for test."
+      ]
+  }
+
+  void "should fail on delete for errors other than not found"() {
+      def description = new DeleteSecurityGroupDescription(securityGroupName: "foo", regions: ["us-east-1"], credentials: credz)
+      def op = new DeleteSecurityGroupAtomicOperation(description)
+      op.amazonClientProvider = amazonClientProvider
+
+      when:
+      op.operate([])
+
+      then:
+      thrown(AmazonServiceException)
+
+      and:
+      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+      1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+              securityGroups: [
+                      new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
+              ]
+      )
+      1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123')) >> {
+          def e = new AmazonServiceException("No idea what happened here, but you should know about it!")
+          e.errorCode = "Something.Seriously.BAD"
+          throw e
+      }
+      0 * _
+
+      and:
+      task.history*.status == [
+              "Creating task task1",
+              "Initializing Delete Security Group Operation...",
+              "Deleting foo in us-east-1 for test.",
+              "No idea what happened here, but you should know about it!"
+      ]
   }
 }

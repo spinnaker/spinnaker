@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -54,7 +55,14 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
             if (securityGroup) {
                 DeleteSecurityGroupRequest request = new DeleteSecurityGroupRequest(groupId: securityGroup.groupId)
                 task.updateStatus BASE_PHASE, "Deleting ${securityGroupDescription}."
-                ec2.deleteSecurityGroup(request)
+                try {
+                    ec2.deleteSecurityGroup(request)
+                } catch (AmazonServiceException e) {
+                    if (e.errorCode != "InvalidGroup.NotFound") {
+                        task.updateStatus BASE_PHASE, e.errorMessage
+                        throw e
+                    }
+                }
                 task.updateStatus BASE_PHASE, "Done deleting ${securityGroupDescription}."
             } else {
                 task.updateStatus BASE_PHASE, "There is no ${securityGroupDescription}."
