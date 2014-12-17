@@ -136,14 +136,18 @@ angular.module('deckApp')
 
     function configureSecurityGroupOptions(command) {
       var results = { dirty: {} };
-      var current = command.securityGroups;
       var currentOptions = command.backingData.filtered.securityGroups;
       var newRegionalSecurityGroups = _(command.backingData.securityGroups[command.credentials].aws[command.region])
         .filter({vpcId: command.vpcId || null})
         .valueOf();
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
-        var matchedGroupNames = command.securityGroups.map(function(groupId) {
+        var currentGroupNames = command.securityGroups.map(function(groupId) {
+          var match = _(currentOptions).find({id: groupId});
+          return match ? match.name : null;
+        });
+
+        var matchedGroups = command.securityGroups.map(function(groupId) {
           var securityGroup = _(currentOptions).find({id: groupId}) ||
             _(currentOptions).find({name: groupId});
           return securityGroup ? securityGroup.name : null;
@@ -151,12 +155,13 @@ angular.module('deckApp')
           return _(newRegionalSecurityGroups).find({name: groupName});
         }).filter(function(group) {
           return group;
-        }).map(function(group) {
-          return group.id;
         });
-        command.securityGroups = matchedGroupNames;
-        if (current.length !== command.securityGroups.length) {
-          results.dirty.securityGroups = true;
+
+        var matchedGroupNames = _.pluck(matchedGroups, 'name');
+        var removed = _.xor(currentGroupNames, matchedGroupNames);
+        command.securityGroups = _.pluck(matchedGroups, 'id');
+        if (removed.length) {
+          results.dirty.securityGroups = removed;
         }
       }
       command.backingData.filtered.securityGroups = newRegionalSecurityGroups;
@@ -181,9 +186,11 @@ angular.module('deckApp')
         .valueOf();
 
       if (current && command.loadBalancers) {
-        command.loadBalancers = _.intersection(newLoadBalancers, command.loadBalancers);
-        if (current.length !== command.loadBalancers.length) {
-          results.dirty.loadBalancers = true;
+        var matched = _.intersection(newLoadBalancers, command.loadBalancers);
+        var removed = _.xor(matched, current);
+        command.loadBalancers = matched;
+        if (removed.length) {
+          results.dirty.loadBalancers = removed;
         }
       }
       command.backingData.filtered.loadBalancers = newLoadBalancers;

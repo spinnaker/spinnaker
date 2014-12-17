@@ -43,14 +43,29 @@ angular.module('deckApp.pipelines.stage.deploy')
 
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
-        $scope.viewState.sections.loadBalancers.dirty = true;
+        $scope.viewState.sections.loadBalancers.dirty = result.dirty.loadBalancers;
       }
       if (result.dirty.securityGroups) {
-        $scope.viewState.sections.securityGroups.dirty = true;
+        $scope.viewState.sections.securityGroups.dirty = result.dirty.securityGroups;
       }
       if (result.dirty.availabilityZones) {
         $scope.viewState.sections.capacityZones.dirty = true;
       }
+    }
+
+    function resetCapacityZonesFlag() {
+      $scope.viewState.sections.capacityZones.dirty = false;
+    }
+
+    function clearOnIncrement(field) {
+      return function(newVal, oldVal) {
+        var newLength = newVal && newVal.length ? newVal.length : 0,
+          oldLength = oldVal && oldVal.length ? oldVal.length : 0;
+
+        if (newLength > oldLength) {
+          $scope.viewState.sections[field].dirty = null;
+        }
+      };
     }
 
     function applyCommandToStage() {
@@ -72,6 +87,10 @@ angular.module('deckApp.pipelines.stage.deploy')
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.subnetType', createResultProcessor($scope.command.subnetChanged));
       $scope.$watch('command.viewState.usePreferredZones', createResultProcessor($scope.command.usePreferredZonesChanged));
+      $scope.$watch('command.viewState.usePreferredZones', resetCapacityZonesFlag);
+      $scope.$watch('command.availabilityZones', clearOnIncrement('capacityZones'));
+      $scope.$watch('command.loadBalancers', clearOnIncrement('loadBalancers'));
+      $scope.$watch('command.securityGroups', clearOnIncrement('securityGroups'));
     }
 
     $scope.viewState = {

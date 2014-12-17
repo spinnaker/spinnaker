@@ -46,6 +46,7 @@ pipeline-configurer {
     display: block;
     width: 100%;
     cursor: pointer;
+    font-weight: 600;
     &:hover {
       text-decoration: none;
     }
@@ -55,6 +56,17 @@ pipeline-configurer {
       opacity: 0.7;
       margin-right: 5px;
     }
+
+    .dirty {
+      .glyphicon-warning-sign {
+        color: @text_error;
+        font-size: 90%;
+        opacity: 1;
+        margin-left: 5px;
+        padding: 0 2px;
+      }
+    }
+
   }
 
   .pipeline-actions {
@@ -160,8 +172,4 @@ pipeline-config-stage {
 
 availability-zone-selector, server-group-capacity-selector {
   display: block;
-}
-
-.dirty {
-  color: @text_error;
 }

@@ -25,13 +25,21 @@
       <span ng-class="{dirty: viewState.sections.loadBalancers.dirty}">
         <span class="glyphicon glyphicon-chevron-{{viewState.sections.loadBalancers.expanded ? 'down' : 'right'}}"></span>
         Load Balancers ({{command.loadBalancers.length || '0'}})
-        <span ng-if="viewState.sections.loadBalancers.dirty" class="glyphicon glyphicon-exclamation-sign pulsing"></span>
+        <span ng-if="viewState.sections.loadBalancers.dirty"><span class="glyphicon glyphicon-warning-sign pulsing"></span></span>
       </span>
     </accordion-heading>
-    <div class="alert alert-danger" ng-if="viewState.sections.loadBalancers.dirty">
-      <span class="glyphicon glyphicon-exclamation-sign"></span>
-      We could not match all load balancers to the new account/region/VPC
-      <a class="dirty-flag-dismiss" href ng-click="viewState.sections.loadBalancers.dirty = false">[dismiss]</a>
+    <div class="col-md-10 col-md-offset-1" ng-if="viewState.sections.loadBalancers.dirty">
+      <div class="alert alert-warning">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+        The following load balancers could not be found in the selected account/region/VPC and were removed:
+        </p>
+        <ul>
+          <li ng-repeat="loadBalancer in viewState.sections.loadBalancers.dirty">{{loadBalancer}}</li>
+        </ul>
+        <p class="text-right">
+        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="viewState.sections.loadBalancers.dirty = null">Okay</a>
+        </p>
+      </div>
     </div>
     <div class="col-md-10 col-md-offset-1">
       <server-group-load-balancers-selector command="command"></server-group-load-balancers-selector>
@@ -42,13 +50,21 @@
       <span ng-class="{dirty: viewState.sections.securityGroups.dirty}">
         <span class="glyphicon glyphicon-chevron-{{viewState.sections.securityGroups.expanded ? 'down' : 'right'}}"></span>
         Security Groups ({{command.securityGroups.length || '0'}})
-        <span ng-if="viewState.sections.securityGroups.dirty" class="glyphicon glyphicon-exclamation-sign pulsing"></span>
+        <span ng-if="viewState.sections.securityGroups.dirty"><span class="glyphicon glyphicon-warning-sign pulsing"></span></span>
       </span>
     </accordion-heading>
-    <div class="alert alert-danger" ng-if="viewState.sections.securityGroups.dirty">
-      <span class="glyphicon glyphicon-exclamation-sign"></span>
-      We could not match all security groups to the new account/region/VPC
-      <a class="dirty-flag-dismiss" href ng-click="viewState.sections.securityGroups.dirty = false">[dismiss]</a>
+    <div class="col-md-10 col-md-offset-1" ng-if="viewState.sections.securityGroups.dirty">
+      <div class="alert alert-warning">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+          The following security groups could not be found in the selected account/region/VPC and were removed:
+        </p>
+        <ul>
+          <li ng-repeat="securityGroup in viewState.sections.securityGroups.dirty">{{securityGroup}}</li>
+        </ul>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="viewState.sections.securityGroups.dirty = null">Okay</a>
+        </p>
+      </div>
     </div>
     <div class="col-md-10 col-md-offset-1">
       <server-group-security-groups-selector command="command"></server-group-security-groups-selector>
@@ -68,13 +84,18 @@
       <span ng-class="{dirty: viewState.sections.capacityZones.dirty}">
         <span class="glyphicon glyphicon-chevron-{{viewState.sections.capacityZones.expanded ? 'down' : 'right'}}"></span>
         Capacity/Zones
-        <span ng-if="viewState.sections.capacityZones.dirty" class="glyphicon glyphicon-exclamation-sign pulsing"></span>
+        <span ng-if="viewState.sections.capacityZones.dirty"><span class="glyphicon glyphicon-warning-sign pulsing"></span></span>
       </span>
     </accordion-heading>
-    <div class="alert alert-danger" ng-if="viewState.sections.capacityZones.dirty">
-      <span class="glyphicon glyphicon-exclamation-sign"></span>
-      Please select new availability zones - or enable automatic zone selection.
-      <a class="dirty-flag-dismiss" href ng-click="viewState.sections.capacityZones.dirty = false">[dismiss]</a>
+    <div class="col-md-10 col-md-offset-1" ng-if="viewState.sections.capacityZones.dirty">
+      <div class="alert alert-warning">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+          Please select new availability zones - or enable automatic zone selection.
+        </p>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="viewState.sections.capacityZones.dirty = false">Okay</a>
+        </p>
+      </div>
     </div>
     <div class="col-md-10 col-md-offset-1">
       <server-group-capacity-selector command="command"></server-group-capacity-selector>
