@@ -74,6 +74,26 @@ describe('Controller: createPipelineModal', function() {
       expect(submitted.triggers).toEqual([]);
     });
 
+    it('should insert new pipeline as first one in application', function() {
+      var $q = this.$q;
+      var submitted = null;
+      var application = {name:'the_app', pipelines: [ {name: 'a'}]};
+      this.initializeController(application);
+      spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function (pipeline) {
+        submitted = pipeline;
+        return $q.when(null);
+      });
+      spyOn(this.$modalInstance, 'close');
+
+      this.$scope.command.name = 'new pipeline';
+
+      this.controller.createPipeline();
+      this.$scope.$digest();
+
+      expect(application.pipelines.length).toBe(2);
+      expect(application.pipelines[0]).toBe(submitted);
+    });
+
     it('sets error flag, message when save is rejected', function() {
       var $q = this.$q;
       this.initializeController({name:'the_app'});

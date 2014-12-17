@@ -27,7 +27,7 @@ angular.module('deckApp.pipelines.create')
 
       return pipelineConfigService.savePipeline(pipeline).then(
         function() {
-          application.pipelines.push(pipeline);
+          application.pipelines.splice(0, 0, pipeline);
           $modalInstance.close();
         },
         function(response) {
