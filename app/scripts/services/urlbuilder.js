@@ -92,44 +92,72 @@ angular.module('deckApp')
 
     var pushVersion = /-v\d+$/;
 
-    function asgTask(task, type) {
-      var asgName = task.getValueFor(type+'Asg.asgName');
+    function createCloneTask(task) {
+      var regionAndName = task.getValueFor('deploy.server.groups');
       var account = task.getValueFor('deploy.account.name');
+      if (!regionAndName) {
+        return false;
+      }
+
+      var regions = Object.keys(regionAndName),
+          region = regions[0],
+          asgName = regionAndName[region][0];
+
+      if (!asgName) {
+        return false;
+      }
+      if (!asgName.match(pushVersion)) { return false; }
+      return $state.href(
+        'home.applications.application.insight.clusters.serverGroup',
+        {
+          application: asgName.split('-')[0],
+          cluster: asgName.replace(pushVersion, ''),
+          account: account,
+          accountId: account,
+          region: regions,
+          serverGroup: asgName,
+          q: asgName
+        });
+    }
+
+    function asgTask(task) {
+      var asgName = task.getValueFor('asgName');
+      var account = task.getValueFor('credentials');
+      if (!asgName) {
+        return false;
+      }
       if (!asgName.match(pushVersion)) { return '/'; }
       return $state.href(
         'home.applications.application.insight.clusters.cluster.serverGroup',
         {
-          application: task.getValueFor('application'),
+          application: asgName.split('-')[0],
           cluster: asgName.replace(pushVersion, ''),
           account: account,
           accountId: account,
-          region: task.getValueFor(type+'Asg.regions')[0],
+          region: task.getValueFor('regions')[0],
           serverGroup: asgName,
         });
     }
 
-    function terminateInstancesTask(task) {
-      angular.noop(task);
-      return '/'; // TODO: where should this go?
-    }
-
     function fromTask(task) {
-      var desc = task.getValueFor('description');
+      var desc = task.name || '';
       var contains = function(str) {
         return desc.indexOf(str) !== -1;
       };
 
       switch (true) {
-        case contains('Destroying Server Group'):
+        case contains('Destroy Server Group'):
           return false;
-        case contains('Disabling Server Group'):
-          return asgTask(task, 'disable');
-        case contains('Enabling Server Group'):
-          return asgTask(task, 'enable');
-        case contains('Resizing Server Group'):
-          return asgTask(task, 'resize');
-        case contains('Terminating instance'):
-          return terminateInstancesTask(task);
+        case contains('Disable Server Group'):
+          return asgTask(task);
+        case contains('Enable Server Group'):
+          return asgTask(task);
+        case contains('Resize Server Group'):
+          return asgTask(task);
+        case contains('Create Cloned Server Group'):
+          return createCloneTask(task);
+        case contains('Create New Server Group'):
+          return createCloneTask(task);
         default:
           return false;
       }

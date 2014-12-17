@@ -12,7 +12,7 @@ angular.module('deckApp')
         },
         isCompleted: {
           get: function() {
-            return item.status === 'COMPLETED';
+            return item.status === 'COMPLETED' || item.status === 'SUCCEEDED';
           },
         },
         isRunning: {
