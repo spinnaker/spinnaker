@@ -75,3 +75,4 @@ buildDeb {
   requires("redis-server")
 }
 
+applicationDefaultJvmArgs = ["-Dspring.groovy.template.check-template-location=false"]
