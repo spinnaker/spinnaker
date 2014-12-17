@@ -11,5 +11,5 @@ kato:
   baseUrl: http://localhost:8501
 
 redis:
-  connection: redis://locahost:6379
+  connection: redis://localhost:6379
 
