@@ -18,7 +18,7 @@
 
 
 package com.netflix.spinnaker.mort.aws.model
-import com.amazonaws.services.ec2.model.ReservedInstancesOffering
+
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.InstanceTypeProvider
@@ -35,14 +35,7 @@ class AmazonInstanceTypeProvider implements InstanceTypeProvider<AmazonInstanceT
     Set<AmazonInstanceType> getAll() {
       def keys = cacheService.keysByType(Keys.Namespace.INSTANCE_TYPES)
       keys.collect { String key ->
-          def parts = Keys.parse(key)
-          def reservedInstancesOffering = cacheService.retrieve(key, ReservedInstancesOffering)
-          new AmazonInstanceType(
-                  account: parts.account,
-                  region: parts.region,
-                  name: reservedInstancesOffering.instanceType,
-                  availabilityZone: reservedInstancesOffering.availabilityZone
-          )
+          cacheService.retrieve(key, AmazonInstanceType)
       }
     }
 }

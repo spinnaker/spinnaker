@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsRequest
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsResult
 import com.amazonaws.services.ec2.model.ReservedInstancesOffering
+import com.netflix.spinnaker.mort.aws.model.AmazonInstanceType
 import com.netflix.spinnaker.mort.model.CacheService
 import spock.lang.Specification
 import spock.lang.Subject
@@ -46,10 +47,10 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     then:
     1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
         reservedInstancesOfferings: [
-            new ReservedInstancesOffering(instanceType: '1')
+            new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm1')
         ]
     )
-    1 * cacheService.put('instanceTypes:1:test:us-east-1', new ReservedInstancesOffering(instanceType: '1'))
+    1 * cacheService.put('instanceTypes:1:test:us-east-1', new AmazonInstanceType(name: 'm1', account: 'test', region: 'us-east-1'))
     0 * _
   }
 
@@ -60,19 +61,19 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
       then:
       1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
               reservedInstancesOfferings: [
-                      new ReservedInstancesOffering(instanceType: '1'),
-                      new ReservedInstancesOffering(instanceType: '2')
+                      new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm1'),
+                      new ReservedInstancesOffering(reservedInstancesOfferingId: '2', instanceType: 'm2')
               ],
               nextToken: 'moar'
       )
       1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest(nextToken: 'moar')) >> new DescribeReservedInstancesOfferingsResult(
               reservedInstancesOfferings: [
-                      new ReservedInstancesOffering(instanceType: '3')
+                      new ReservedInstancesOffering(reservedInstancesOfferingId: '3', instanceType: 'm3')
               ]
       )
-      1 * cacheService.put('instanceTypes:1:test:us-east-1', new ReservedInstancesOffering(instanceType: '1'))
-      1 * cacheService.put('instanceTypes:2:test:us-east-1', new ReservedInstancesOffering(instanceType: '2'))
-      1 * cacheService.put('instanceTypes:3:test:us-east-1', new ReservedInstancesOffering(instanceType: '3'))
+      1 * cacheService.put('instanceTypes:1:test:us-east-1', new AmazonInstanceType(name: 'm1', account: 'test', region: 'us-east-1'))
+      1 * cacheService.put('instanceTypes:2:test:us-east-1', new AmazonInstanceType(name: 'm2', account: 'test', region: 'us-east-1'))
+      1 * cacheService.put('instanceTypes:3:test:us-east-1', new AmazonInstanceType(name: 'm3', account: 'test', region: 'us-east-1'))
       0 * _
   }
 
