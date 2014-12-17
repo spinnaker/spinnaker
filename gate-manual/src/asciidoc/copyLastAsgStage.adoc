@@ -51,5 +51,7 @@ _createCopyLastAsg_, _monitorDeploy_, _forceCacheRefresh_, _waitForUpInstances_,
 |spotPrice                | string  | false    | The spot price to apply to the create ASG request. Only send this value if you're absolutely sure of what you're doing.
 |healthCheckType          | string  | false    | Valid values are: EC2 or ELB. Indicates whether an autoscaling group should derive instance health from Amazon itself or from the ELB. The latter may give you more granular application-level capabilities, while the former may be more accurate from a system perspective.
 |healthCheckGracePeriod   | number  | false    | Specifies a period of time in seconds to wait after a service comes into existence that Amazon should wait to perform health check polling. This may be useful for instances that need a "warm-up" period to become fully initialized.
+|strategy                 | string  | false    | Specifies the deployment strategy that this copy operation should use. Options include: "redblack" or "highlander". See [Deploy Stage] for more information on strategies.
+|scaleDown                | string  | false    | Applicable only when applied in conjunction with "redblack" strategy value. This property specifies that the ancestor server group should be scaled to size 0 after a successful deployment.
 |======================
 
