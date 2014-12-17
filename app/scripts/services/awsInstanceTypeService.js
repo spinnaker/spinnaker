@@ -61,7 +61,7 @@ angular.module('deckApp')
 
     var t2 = {
       type: 'T2',
-      description: 'T2 instances are a good choice for workloads that don’t use the full CPU o!en or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      description: 'T2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
           name: 't2.small',
@@ -160,21 +160,91 @@ angular.module('deckApp')
       {
         type: 'general',
         label: 'General Purpose',
-        families: [ m3 ]
+        description: 'Instances that provide a balance of compute, memory, and network resources',
+        families: [ m3 ],
+        icon: 'hdd'
       },
       {
         type: 'memory',
         label: 'High Memory',
-        families: [ r3 ]
+        description: 'Instances that are optimized for memory-intensive applications',
+        families: [ r3 ],
+        icon: 'hdd'
       },
       {
         type: 'micro',
         label: 'Micro Utility',
-        families: [t2, m3micro]
+        description: 'Instances that provide relatively small amounts of memory and CPU power',
+        families: [t2, m3micro],
+        icon: 'hdd'
+      },
+      {
+        type: 'custom',
+        label: 'Custom Type',
+        description: 'Select the instance type below.',
+        families: [],
+        icon: 'asterisk'
       }
     ];
 
+    function calculateStorage(type) {
+      if (!type || !type.storage) {
+        return 0;
+      }
+      return type.storage.count * type.storage.size;
+    }
+
+    function buildStats(category) {
+      var stats = {
+        cpu: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        memory: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        storage: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        costFactor: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        families: []
+      };
+
+      if (category.families && category.families.length) {
+        category.families.forEach(function(family) {
+          stats.families.push(family.type);
+          var cpuMin = _.min(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
+            cpuMax = _.max(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE,
+            memoryMin = _.min(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
+            memoryMax = _.max(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
+            storageMin = calculateStorage(_.min(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE,
+            storageMax = calculateStorage(_.max(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE,
+            costFactorMin = _.min(family.instanceTypes, 'costFactor').costFactor || Number.MAX_VALUE,
+            costFactorMax = _.max(family.instanceTypes, 'costFactor').costFactor || -Number.MAX_VALUE;
+
+          stats.cpu.min = Math.min(stats.cpu.min, cpuMin);
+          stats.cpu.max = Math.max(stats.cpu.max, cpuMax);
+          stats.memory.min = Math.min(stats.memory.min, memoryMin);
+          stats.memory.max = Math.max(stats.memory.max, memoryMax);
+          stats.storage.min = Math.min(stats.storage.min, storageMin);
+          stats.storage.max = Math.max(stats.storage.max, storageMax);
+          stats.costFactor.min = Math.min(stats.costFactor.min, costFactorMin);
+          stats.costFactor.max = Math.max(stats.costFactor.max, costFactorMax);
+        });
+      }
+
+      return stats;
+    }
+
     function getCategories() {
+      categories.map(function(category) {
+        category.stats = buildStats(category);
+      });
       return $q.when(categories);
     }
 

@@ -9,20 +9,30 @@
           <span is-visible="command.viewState.instanceProfile === instanceProfile.type"
                 class="glyphicon glyphicon-ok-circle selected-indicator"></span>
       <div class="panel-heading">
-        <h4><span class="glyphicon glyphicon-hdd"></span><br/> {{instanceProfile.label}}</h4>
+        <h4><span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span><br/> {{instanceProfile.label}}</h4>
       </div>
     </button>
   </div>
-  <div class="col-md-3 col-narrow">
-    <button class="instance-profile"
-            ng-class="{active: command.viewState.instanceProfile === 'custom'}"
-            ng-click="instanceArchetypeCtrl.selectInstanceType('custom')">
-          <span is-visible="command.viewState.instanceProfile === 'custom'"
-                class="glyphicon glyphicon-ok-circle selected-indicator custom"></span>
-      <div class="panel-heading">
-        <h4><span class="glyphicon glyphicon-asterisk"></span><br/> Custom Type</h4>
-      </div>
-    </button>
+</div>
+<div class="row fade-in" ng-if="selectedInstanceProfile.description">
+  <div class="col-md-12">
+    <p ng-bind="selectedInstanceProfile.description"></p>
+    <dl class="dl-horizontal" ng-if="selectedInstanceProfile.type !== 'custom'">
+      <dt ng-if="selectedInstanceProfile.stats.families.length > 1">Families</dt>
+      <dt ng-if="selectedInstanceProfile.stats.families.length === 1">Family</dt>
+      <dd>{{selectedInstanceProfile.stats.families.join(', ')}}</dd>
+      <dt>CPUs</dt>
+      <dd>{{selectedInstanceProfile.stats.cpu.min}} &ndash; {{selectedInstanceProfile.stats.cpu.max}}</dd>
+      <dt>Memory (GB):</dt>
+      <dd>{{selectedInstanceProfile.stats.memory.min}} &ndash; {{selectedInstanceProfile.stats.memory.max}}</dd>
+      <dt>Storage (GB):</dt>
+      <dd>{{selectedInstanceProfile.stats.storage.min}} &ndash; {{selectedInstanceProfile.stats.storage.max}}</dd>
+      <dt>Cost:</dt>
+      <dd><span class="label-cost label-cost-{{selectedInstanceProfile.stats.costFactor.min}}"></span>
+        &ndash;
+        <span class="label-cost label-cost-{{selectedInstanceProfile.stats.costFactor.max}}"></span>
+      </dd>
+    </dl>
   </div>
 </div>
 <div class="row fade-in" ng-if="command.viewState.instanceProfile === 'custom'">

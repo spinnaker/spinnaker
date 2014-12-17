@@ -12,12 +12,14 @@ angular.module('deckApp')
     };
   })
   .controller('InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService) {
+    var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
+      controller.selectInstanceType($scope.command.viewState.instanceProfile);
     });
 
     this.selectInstanceType = function (type) {
-      if ($scope.command.viewState.instanceProfile === type) {
+      if ($scope.selectedInstanceProfile && $scope.selectedInstanceProfile.type === type) {
         type = null;
       }
       $scope.command.viewState.instanceProfile = type;
@@ -29,7 +31,7 @@ angular.module('deckApp')
     };
 
     if ($scope.command.region && $scope.command.instanceType && !$scope.command.viewState.instanceProfile) {
-      $scope.command.viewState.instanceProfile = 'custom';
+      this.selectInstanceType('custom');
     }
 
   });
