@@ -34,6 +34,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
@@ -44,7 +45,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
 @EnableAsync
-@EnableAutoConfiguration(exclude = BatchAutoConfiguration)
+@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 @EnableBatchProcessing(modular = true)
 @Import([
   WebConfiguration,
