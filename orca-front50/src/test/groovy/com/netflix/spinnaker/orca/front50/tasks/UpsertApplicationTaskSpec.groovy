@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
@@ -139,7 +140,7 @@ class UpsertApplicationTaskSpec extends Specification {
     given:
     def errorDetails = [errors: ["#1", "#2"]]
     def retrofitError = Mock(RetrofitError) {
-      1 * getResponse() >> new Response("", 400, "", [], null)
+      1 * getResponse() >> new Response("U", 400, "R", [], null)
       1 * getBodyAs(Map) >> errorDetails
       0 * _._
     }
@@ -152,11 +153,15 @@ class UpsertApplicationTaskSpec extends Specification {
       0 * _._
     }
 
+    and:
+    def stage = new PipelineStage(new Pipeline(), "UpsertApplication", config)
+    stage.tasks = [new DefaultTask(name: "T1"), new DefaultTask(name: "T2")]
+
     when:
-    def taskResult = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
+    def taskResult = task.execute(stage)
 
     then:
     taskResult.status == ExecutionStatus.TERMINAL
-    taskResult.outputs.exception == [statusCode: 400, operation: "UpsertApplication", details: errorDetails]
+    taskResult.outputs.exception == [statusCode: 400, operation: "T2", details: errorDetails, url: "U", reason: "R"]
   }
 }

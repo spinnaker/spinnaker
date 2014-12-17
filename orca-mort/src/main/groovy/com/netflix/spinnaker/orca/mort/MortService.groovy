@@ -25,11 +25,14 @@ import retrofit.http.Path
 import retrofit.http.Query
 
 interface MortService {
-
   @GET("/securityGroups/{account}/{type}/{securityGroupName}")
   Response getSecurityGroup(
     @Path("account") String account,
     @Path("type") String type, @Path("securityGroupName") String securityGroupName, @Query("region") String region)
+
+  @GET("/search")
+  Response getSearchResults(@Query("q") String searchTerm,
+                            @Query("type") String type)
 
   @POST("/cache/{type}")
   Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)

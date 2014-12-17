@@ -15,7 +15,6 @@
  */
 
 
-
 package com.netflix.spinnaker.orca.oort
 
 import retrofit.client.Response
@@ -32,9 +31,14 @@ interface OortService {
   @GET("/applications/{app}/clusters/{account}/{cluster}/aws/serverGroups/{serverGroup}")
   Response getServerGroup(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster,
                           @Path("serverGroup") String serverGroup, @Query("region") String region)
+
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm, @Query("type") String type,
                             @Query("platform") String platform)
+
+  @GET("/applications/{app}")
+  Response getApplication(@Path("app") String app)
+
   @POST("/cache/{type}")
   Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)
 

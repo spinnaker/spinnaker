@@ -53,12 +53,11 @@ abstract class AbstractFront50Task implements Task {
     try {
       performRequest(account, application)
     } catch (RetrofitError e) {
-      def response = e.response
-      def exception = [statusCode: response.status, operation: stage.type]
-      if (response.status == 400) {
-        def errorBody = e.getBodyAs(Map) as Map
-        exception.details = errorBody
-      }
+      def resp = e.response
+      def exception = [ statusCode: resp.status, operation: stage.tasks[-1].name, url: resp.url, reason: resp.reason ]
+      try {
+        exception.details = e.getBodyAs(Map) as Map
+      } catch (ignored) {}
       outputs.exception = exception
       executionStatus = ExecutionStatus.TERMINAL
     }
