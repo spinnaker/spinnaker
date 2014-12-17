@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
@@ -22,11 +23,10 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.kato.aws.deploy.ops.DeleteSecurityGroupAtomicOperation
+import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
 import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
 import spock.lang.Specification
 
 class DeleteSecurityGroupAtomicOperationSpec extends Specification {
@@ -138,9 +138,9 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> new DescribeSecurityGroupsResult(
-            securityGroups: []
-    )
+    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> {
+        throw new AmazonServiceException("The security group 'foo' does not exist")
+    }
     0 * _
 
     and:
