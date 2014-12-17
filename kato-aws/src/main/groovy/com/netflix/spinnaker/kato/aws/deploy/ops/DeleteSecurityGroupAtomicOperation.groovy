@@ -15,14 +15,12 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
-import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -48,14 +46,9 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Initializing Delete Security Group Operation..."
         for (region in description.regions) {
             def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
-            List<SecurityGroup> securityGroups
-            try {
-                def result = ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: [description.securityGroupName]))
-                securityGroups = result.securityGroups
-            } catch(AmazonServiceException e) {
-                securityGroups = []
-            }
-            SecurityGroup securityGroup = securityGroups.find { it.vpcId == description.vpcId }
+            def result = ec2.describeSecurityGroups()
+            List<SecurityGroup> securityGroups = result.securityGroups
+            SecurityGroup securityGroup = securityGroups.find { it.vpcId == description.vpcId && it.groupName == description.securityGroupName }
             String vpcText = description.vpcId ? "${description.vpcId} ": ''
             String securityGroupDescription = "${description.securityGroupName} in ${region} ${vpcText}for ${description.credentials.name}"
             if (securityGroup) {

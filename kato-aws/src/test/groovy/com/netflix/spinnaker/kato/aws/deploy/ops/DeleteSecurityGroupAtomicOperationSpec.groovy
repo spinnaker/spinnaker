@@ -15,10 +15,8 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
-import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -55,12 +53,12 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> new DescribeSecurityGroupsResult(
+    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123")
             ]
     )
-    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123',))
+    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123'))
     0 * _
 
     and:
@@ -82,13 +80,13 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> new DescribeSecurityGroupsResult(
+    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null),
                     new SecurityGroup(groupName: "foo", groupId: "456", vpcId: "vpc1")
             ]
     )
-    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123',))
+    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '123'))
     0 * _
 
     and:
@@ -110,13 +108,13 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> new DescribeSecurityGroupsResult(
+    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null),
                     new SecurityGroup(groupName: "foo", groupId: "456", vpcId: "vpc1")
             ]
     )
-    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '456',))
+    1 * ec2.deleteSecurityGroup(new DeleteSecurityGroupRequest(groupId: '456'))
     0 * _
 
     and:
@@ -138,9 +136,9 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> {
-        throw new AmazonServiceException("The security group 'foo' does not exist")
-    }
+    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+            securityGroups: []
+    )
     0 * _
 
     and:
@@ -149,6 +147,31 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
             "Initializing Delete Security Group Operation...",
             "There is no foo in us-east-1 for test."
     ]
+  }
+
+  void "should be idempotent and not fail for deletion when no security group exists with that name"() {
+      def description = new DeleteSecurityGroupDescription(securityGroupName: "foo", regions: ["us-east-1"], credentials: credz)
+      def op = new DeleteSecurityGroupAtomicOperation(description)
+      op.amazonClientProvider = amazonClientProvider
+
+      when:
+      op.operate([])
+
+      then:
+      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+      1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+              securityGroups: [
+                      new SecurityGroup(groupName: "bar", groupId: "123", vpcId: null)
+              ]
+      )
+      0 * _
+
+      and:
+      task.history*.status == [
+              "Creating task task1",
+              "Initializing Delete Security Group Operation...",
+              "There is no foo in us-east-1 for test."
+      ]
   }
 
   void "should be idempotent and not fail for deletion when no security group exists in VPC"() {
@@ -161,7 +184,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupNames: ['foo'])) >> new DescribeSecurityGroupsResult(
+    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
             ]
