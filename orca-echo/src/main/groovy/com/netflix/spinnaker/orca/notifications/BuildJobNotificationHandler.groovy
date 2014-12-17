@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.notifications
-
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
@@ -24,7 +23,6 @@ import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 
 import javax.annotation.PostConstruct
 import java.util.concurrent.Executors
@@ -46,8 +44,7 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
   ObjectMapper objectMapper
 
   @Autowired
-  @Qualifier("appInfoManager")
-  ApplicationInfoManager appInfoManager
+  ApplicationInfoManager applicationInfoManager
 
   private Map<String, Map> interestingPipelines = [:]
 
@@ -87,7 +84,8 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
 
   @Override
   void handle(Map input) {
-    if (appInfoManager?.info?.status == InstanceInfo.InstanceStatus.OUT_OF_SERVICE) {
+    def info = applicationInfoManager.info
+    if (info && (info.status != InstanceInfo.InstanceStatus.UP || info.overriddenStatus == InstanceInfo.InstanceStatus.OUT_OF_SERVICE)) {
       return
     }
     try {
