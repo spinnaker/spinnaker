@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch) {
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch, _) {
     var ctrl = this;
     var search = infrastructureSearch();
 
@@ -24,46 +24,58 @@ angular.module('deckApp')
 
     this.dispatchQueryInput = function(event) {
       if ($scope.showSearchResults) {
-        if (event.which === 27) { // escape
+        var code = event.which;
+        if (code === 27) { // escape
           return reset();
         }
-        if (event.which === 40) { // down
+        if (code === 40) { // down
           return ctrl.focusFirstSearchResult(event);
         }
-        if (event.which === 38) { // up
+        if (code === 38) { // up
           return ctrl.focusLastSearchResult(event);
         }
-        if (event.which === 39 || event.which === 37 || event.which === 16) { // right, left, shift
-          return;
-        }
-        if (event.which === 9) { // tab
+        if (code === 9) { // tab
           if (!event.shiftKey) {
             ctrl.focusFirstSearchResult(event);
           }
           return;
         }
+        if (code < 46 && code !== 8) { // bunch of control keys, except delete (46), and backspace (8)
+          return;
+        }
+        if (code === 91 || code === 92 || code === 93) { // left + right command/window, select
+          return;
+        }
+        if (code > 111 && code < 186) { // f keys, misc
+          return;
+        }
       }
-      $scope.querying = true;
-      search.query($scope.query).then(function(result) {
-        $scope.querying = false;
-        $scope.categories = result;
-        $scope.showSearchResults = !!$scope.query;
-      });
+      ctrl.executeQuery();
     };
 
+    this.executeQuery = _.debounce(function() {
+      $scope.querying = true;
+      search.query($scope.query).then(function (result) {
+        $scope.$eval(function () {
+          $scope.querying = false;
+          $scope.categories = result;
+          $scope.showSearchResults = !!$scope.query;
+        });
+      });
+    }, 200);
 
 
-    this.focusFirstSearchResult = function focusFirstSearchResult() {
-      event.preventDefault();
+    this.focusFirstSearchResult = function focusFirstSearchResult(event) {
       try {
-        $element.find('.dropdown-menu').find('a').first().focus();
+        event.preventDefault();
+        $element.find('ul.dropdown-menu').find('a').first().focus();
       } catch (e) {}
     };
 
-    this.focusLastSearchResult = function focusLastSearchResult() {
-      event.preventDefault();
+    this.focusLastSearchResult = function focusLastSearchResult(event) {
       try {
-        $element.find('.dropdown-menu').find('a').last().focus();
+        event.preventDefault();
+        $element.find('ul.dropdown-menu').find('a').last().focus();
       } catch (e) {}
     };
 
@@ -75,30 +87,30 @@ angular.module('deckApp')
 
     this.navigateResults = function(event) {
       var $target = $(event.target);
-      if (event.which === 27) {
+      if (event.which === 27) { // escape
         reset();
       }
-      if (event.which === 40) {
+      if (event.which === 40) { // down
         try {
           $target
             .parent()
-            .nextAll('.result')[0]
+            .nextAll('li.result')[0]
             .children[0]
             .focus();
         } catch (e) {
-          ctrl.focusFirstSearchResult();
+          ctrl.focusFirstSearchResult(event);
         }
         event.preventDefault();
       }
-      if (event.which === 38) {
+      if (event.which === 38) { // up
         try {
           $target
             .parent()
-            .prevAll('.result')[0]
+            .prevAll('li.result')[0]
             .children[0]
             .focus();
         } catch (e) {
-          ctrl.focusLastSearchResult();
+          ctrl.focusLastSearchResult(event);
         }
         event.preventDefault();
       }

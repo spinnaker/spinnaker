@@ -9,21 +9,24 @@ describe('Controller: GlobalSearch', function () {
 
   describe('keyboard navigation', function() {
     // Initialize the controller and a mock scope
-    beforeEach(inject(function ($controller, $rootScope, $window, $q) {
+    beforeEach(inject(function ($controller, $rootScope, $window, $q, _) {
       var inputSpy = jasmine.createSpyObj('input', ['focus']),
           infrastructureSearch = jasmine.createSpy('infrastructuresearch');
       this.$scope = $rootScope.$new();
       this.$q = $q;
       this.infrastructureSearch = infrastructureSearch;
       this.infrastructureSearch.query = angular.noop;
+      this.lodash = _;
       this.input = inputSpy;
       this.$element = { find: function() { return inputSpy; } };
 
+      spyOn(_, 'debounce').and.callFake(function(method) { return method; });
       spyOn(infrastructureSearch, 'query').and.callFake(function() { return $q.when([])});
 
       this.ctrl = $controller('GlobalSearchCtrl', {
         $scope: this.$scope,
         $element: this.$element,
+        _ : _,
         infrastructureSearch: function() { return infrastructureSearch }
       });
 
@@ -100,7 +103,7 @@ describe('Controller: GlobalSearch', function () {
       expect(this.infrastructureSearch.query).not.toHaveBeenCalled();
 
 
-      this.ctrl.dispatchQueryInput({which: 30});
+      this.ctrl.dispatchQueryInput({which: 65});
       this.$scope.$digest();
       expect(this.infrastructureSearch.query).toHaveBeenCalled();
     });

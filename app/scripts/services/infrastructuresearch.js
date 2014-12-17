@@ -32,7 +32,6 @@ angular.module('deckApp')
       var querySubject = new RxService.Subject();
 
       querySubject
-        .distinctUntilChanged()
         .flatMapLatest(function(query) {
           if (!query || !angular.isDefined(query) || query.length < 1) {
             return RxService.Observable.just(searchService.getFallbackResults());
