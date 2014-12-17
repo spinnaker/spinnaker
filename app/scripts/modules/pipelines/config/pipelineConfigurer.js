@@ -119,6 +119,10 @@ angular.module('deckApp.pipelines')
       }
     };
 
+    this.isValid = function() {
+      return _.every($scope.pipeline.stages, 'name');
+    };
+
     this.savePipeline = function() {
       var pipeline = $scope.pipeline,
           viewState = $scope.viewState;

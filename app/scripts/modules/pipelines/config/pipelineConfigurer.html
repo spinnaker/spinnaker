@@ -30,8 +30,8 @@
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
               <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
                       ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
-                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
-                {{$index+1}}: {{stage.name || stage.type || '[new stage]'}}
+                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index), 'invalid' : !stage.name}">
+                {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
               </a>
             </div>
             <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
@@ -53,7 +53,7 @@
           There was an error saving your pipeline.
           <a class="alert-dismiss" href ng-click="viewState.saveError = false">[dismiss]</a>
         </span>
-        <button ng-if="viewState.isDirty" class="btn btn-primary" ng-click="pipelineConfigurerCtrl.savePipeline()">
+        <button ng-if="viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary" ng-click="pipelineConfigurerCtrl.savePipeline()">
           <span ng-if="!viewState.saving">
             <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
           </span>
