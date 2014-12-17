@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -32,24 +31,16 @@ class DeleteAsgTask implements Task {
   @Autowired
   KatoService kato
 
-  @Autowired
-  ObjectMapper mapper
-
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[deleteAsgDescription: operation]])
+    def taskId = kato.requestOperations([[deleteAsgDescription: stage.context]])
       .toBlocking()
       .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
-      ["deploy.account.name" : operation.credentials,
+      ["deploy.account.name" : stage.context.credentials,
        "kato.last.task.id"   : taskId,
        "kato.task.id"        : taskId, // TODO retire this.
-       "deploy.server.groups": ((Iterable)operation.regions).collectEntries { [(it): operation.asgName] }
+       "deploy.server.groups": ((Iterable)stage.context.regions).collectEntries { [(it): stage.context.asgName] }
       ])
-  }
-
-  Map convert(Stage stage) {
-    mapper.convertValue(stage.context, Map)
   }
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -28,9 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired
 class DisableGoogleServerGroupTask implements Task {
   @Autowired
   KatoService kato
-
-  @Autowired
-  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
@@ -53,7 +49,6 @@ class DisableGoogleServerGroupTask implements Task {
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName
     operation.zone = operation.zones ? operation.zones[0] : null
-
-    mapper.convertValue(operation, Map)
+    operation
   }
 }

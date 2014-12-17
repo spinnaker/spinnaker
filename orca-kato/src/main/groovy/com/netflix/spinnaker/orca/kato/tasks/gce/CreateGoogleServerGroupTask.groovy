@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -30,9 +29,6 @@ class CreateGoogleServerGroupTask implements Task {
 
   @Autowired
   KatoService kato
-
-  @Autowired
-  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
@@ -53,8 +49,7 @@ class CreateGoogleServerGroupTask implements Task {
     operation.putAll(stage.context)
     operation.initialNumReplicas = operation.capacity.desired
     operation.networkLoadBalancers = operation.loadBalancers
-
-    mapper.convertValue(operation, Map)
+    operation
   }
 
   private TaskId deploy(Map deployOperation) {

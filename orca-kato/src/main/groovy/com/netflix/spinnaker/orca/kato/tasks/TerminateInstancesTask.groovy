@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -31,26 +30,18 @@ class TerminateInstancesTask implements Task {
   @Autowired
   KatoService kato
 
-  @Autowired
-  ObjectMapper mapper
-
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[terminateInstancesDescription: operation]])
+    def taskId = kato.requestOperations([[terminateInstancesDescription: stage.context]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"     : "terminateinstances",
-      "terminate.account.name": operation.credentials,
-      "terminate.region"      : operation.region,
+      "terminate.account.name": stage.context.credentials,
+      "terminate.region"      : stage.context.region,
       "kato.last.task.id"     : taskId,
       "kato.task.id"          : taskId, // TODO retire this.
-      "terminate.instance.ids": operation.instanceIds,
+      "terminate.instance.ids": stage.context.instanceIds,
     ])
-  }
-
-  Map convert(Stage stage) {
-    mapper.convertValue(stage.context, Map)
   }
 }

@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -28,7 +26,6 @@ import spock.lang.Subject
 class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   @Subject task = new ResizeGoogleReplicaPoolTask()
   def stage = new PipelineStage(type: "whatever")
-  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
@@ -43,10 +40,6 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-
-    task.mapper = mapper
-
     stage.context.putAll(resizeASGConfig)
   }
 

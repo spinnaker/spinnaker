@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks.gce
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -31,28 +30,20 @@ class TerminateGoogleInstancesTask implements Task {
   @Autowired
   KatoService kato
 
-  @Autowired
-  ObjectMapper mapper
-
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[terminateGoogleInstancesDescription: operation]])
+    def taskId = kato.requestOperations([[terminateGoogleInstancesDescription: stage.context]])
                      .toBlocking()
                      .first()
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"     : "terminategoogleinstances",
-      "terminate.account.name": operation.credentials,
-      "terminate.region"      : operation.zone,
+      "terminate.account.name": stage.context.credentials,
+      "terminate.region"      : stage.context.zone,
       "kato.last.task.id"     : taskId,
       "kato.task.id"          : taskId, // TODO retire this.
-      "terminate.instance.ids": operation.instanceIds,
+      "terminate.instance.ids": stage.context.instanceIds,
     ])
-  }
-
-  Map convert(Stage stage) {
-    mapper.convertValue(stage.context, Map)
   }
 }

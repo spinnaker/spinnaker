@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -29,9 +28,6 @@ class ResizeAsgTask implements Task {
 
   @Autowired
   KatoService kato
-
-  @Autowired
-  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
@@ -53,6 +49,6 @@ class ResizeAsgTask implements Task {
     if (stage.context.containsKey("resizeAsg")) {
       input = stage.context.resizeAsg
     }
-    mapper.convertValue(input, Map)
+    input
   }
 }
