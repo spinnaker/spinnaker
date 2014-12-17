@@ -5,7 +5,7 @@
 </div>
 <form class="form-horizontal" ng-if="!viewState.loading">
   <div class="form-group">
-    <label class="col-md-3 control-label">Region</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Region</label>
     <div class="col-md-6">
       <select class="form-control input-sm" ng-model="stage.region" ng-options="region for region in regions">
         <option value="">Select a region...</option>
@@ -13,14 +13,14 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-3 control-label">Package</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Package</label>
     <div class="col-md-6">
       <input type="text" class="form-control input-sm"
              ng-model="stage.package"/>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-3 control-label">Base OS</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Base OS</label>
     <div class="col-md-6">
       <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
         <input type="radio"
@@ -31,7 +31,7 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-3 control-label">Base Label</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Base Label</label>
     <div class="col-md-6">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
         <input type="radio"

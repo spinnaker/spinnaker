@@ -1,33 +1,53 @@
 <div class="well well-sm clearfix">
-  <h4 class="text-center">Deployment Summary</h4>
-  <div class="col-md-6">
-    <dl class="dl-horizontal dl-narrow">
-      <dt>Account</dt>
-      <dd><account-tag account="stage.account"></account-tag></dd>
-      <dt>Region</dt>
-      <dd>
-        <div ng-repeat="region in regionsWithZones">
-          {{region.region}}
-          <span ng-if="region.availabilityZones">({{region.availabilityZones.join(', ')}})</span>
-        </div>
-      </dd>
-      <dt>VPC</dt>
-      <dd>{{stage.cluster.subnetType || '[none]'}}</dd>
-    </dl>
+  <div class="row">
+    <div class="col-md-12">
+      <h4 class="text-left">Deployment Summary</h4>
+    </div>
   </div>
-  <div class="col-md-6">
-    <dl class="dl-horizontal dl-narrow">
-      <dt>Strategy</dt>
-      <dd>{{stage.cluster.strategy || '[None]'}}</dd>
-      <dt>Cluster</dt>
-      <dd>{{clusterName || '[None]'}}</dd>
-      <dt>Capacity</dt>
-      <dd ng-if="stage.cluster.capacity.min === stage.cluster.capacity.max">{{stage.cluster.capacity.max}}</dd>
-      <dd ng-if="stage.cluster.capacity.min !== stage.cluster.capacity.max">
-        Min: {{stage.cluster.capacity.min}},
-        Max: {{stage.cluster.capacity.max}},
-        Desired: {{stage.cluster.capacity.desired}}
-      </dd>
-    </dl>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-condensed">
+        <thead>
+        <tr>
+          <th>Account</th>
+          <th>Region <span ng-if="regionsWithZones[0].region.availabilityZones">(Zones)</span></th>
+          <th>Cluster</th>
+          <th>VPC</th>
+          <th>Strategy</th>
+          <th>Capacity</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>
+            <account-tag account="stage.account"></account-tag>
+          </td>
+          <td>
+            <div ng-repeat="region in regionsWithZones">
+              {{region.region}}
+              <div ng-if="region.availabilityZones">({{region.availabilityZones.join(', ')}})</div>
+            </div>
+          </td>
+          <td>
+            {{clusterName || '[none]'}}
+          </td>
+          <td>
+            {{stage.cluster.subnetType || '[none]'}}
+          </td>
+          <td>
+            {{stage.cluster.strategy || '[none]'}}
+          </td>
+          <td>
+            <div ng-if="stage.cluster.capacity.min === stage.cluster.capacity.max">{{stage.cluster.capacity.max}}</div>
+            <div ng-if="stage.cluster.capacity.min !== stage.cluster.capacity.max">
+              Min: {{stage.cluster.capacity.min}},
+              Max: {{stage.cluster.capacity.max}},
+              Desired: {{stage.cluster.capacity.desired}}
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

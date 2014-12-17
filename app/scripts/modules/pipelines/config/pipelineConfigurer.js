@@ -88,9 +88,12 @@ angular.module('deckApp.pipelines')
         });
     };
 
-    this.navigateToStage = function(index) {
+    this.navigateToStage = function(index, event) {
       $scope.viewState.section = 'stage';
       $scope.viewState.stageIndex = index;
+      if (event && event.target && event.target.focus) {
+        event.target.focus();
+      }
     };
 
     this.navigateTo = function(section) {
@@ -142,6 +145,9 @@ angular.module('deckApp.pipelines')
         var lastStage = $scope.pipeline.stages.length - 1;
         if ($scope.viewState.stageIndex > lastStage) {
           $scope.viewState.stageIndex = lastStage;
+        }
+        if (!$scope.pipeline.stages.length) {
+          this.navigateTo('triggers');
         }
       }
     };
