@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,16 +31,9 @@ class DeleteAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
   @Override
   void validate(List priorDescriptions, DeleteAmazonLoadBalancerDescription description, Errors errors) {
     validateRegions(description, description.regions, "deleteAmazonLoadBalancerDescription", errors)
-    for (region in description.regions) {
-      validateLoadBalancer region, description.loadBalancerName, description.credentials, errors
+    if (!description.loadBalancerName) {
+      errors.rejectValue "loadBalancerName", "deleteAmazonLoadBalancerDescription.loadBalancerName.empty"
     }
   }
 
-  void validateLoadBalancer(String region, String name, NetflixAmazonCredentials credentials, Errors errors) {
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(credentials, region)
-    def descriptions = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: [name])).loadBalancerDescriptions
-    if (!descriptions) {
-      errors.rejectValue "name", "amazonLoadBalancerDescription.name.not.found", [region] as Object[], "Amazon Load Balancer ${name} not found in ${region} for ${credentials.name}"
-    }
-  }
 }
