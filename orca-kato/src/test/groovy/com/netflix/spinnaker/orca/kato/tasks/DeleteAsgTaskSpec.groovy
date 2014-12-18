@@ -16,13 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.DeleteAsgOperation
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,7 +26,6 @@ import spock.lang.Subject
 class DeleteAsgTaskSpec extends Specification {
   @Subject task = new DeleteAsgTask()
   def stage = new PipelineStage(type: "whatever")
-  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deleteASGConfig = [
@@ -41,10 +36,6 @@ class DeleteAsgTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-
-    task.mapper = mapper
-
     stage.context.putAll(deleteASGConfig)
   }
 
@@ -64,11 +55,11 @@ class DeleteAsgTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].deleteAsgDescription) {
-      it instanceof DeleteAsgOperation
-      asgName == deleteASGConfig.asgName
-      regions == deleteASGConfig.regions
-      credentials == deleteASGConfig.credentials
-      forceDelete == deleteASGConfig.forceDelete
+      it instanceof Map
+      asgName == this.deleteASGConfig.asgName
+      regions == this.deleteASGConfig.regions
+      credentials == this.deleteASGConfig.credentials
+      forceDelete == this.deleteASGConfig.forceDelete
     }
   }
 

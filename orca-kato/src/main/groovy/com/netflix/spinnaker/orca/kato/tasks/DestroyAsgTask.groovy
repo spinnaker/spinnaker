@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
@@ -47,18 +46,18 @@ class DestroyAsgTask implements Task {
       "deploy.account.name" : operation.credentials,
       "kato.last.task.id"   : taskId,
       "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": operation.regions.collectEntries {
+      "deploy.server.groups": ((Iterable)operation.regions).collectEntries {
         [(it): operation.asgName]
       }
     ])
   }
 
-  DestroyAsgOperation convert(Stage stage) {
+  Map convert(Stage stage) {
     def input = stage.context
     if (stage.context.containsKey("destroyAsgDescriptions") && stage.context.destroyAsgDescriptions) {
       input = ((List)stage.context.destroyAsgDescriptions).pop()
     }
 
-    mapper.convertValue(input, DestroyAsgOperation)
+    mapper.convertValue(input, Map)
   }
 }

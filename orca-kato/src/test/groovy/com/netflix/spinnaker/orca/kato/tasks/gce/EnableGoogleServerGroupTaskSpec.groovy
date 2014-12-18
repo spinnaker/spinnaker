@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.EnableGoogleServerGroupOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -30,7 +27,6 @@ import spock.lang.Subject
 class EnableGoogleServerGroupTaskSpec extends Specification {
   @Subject task = new EnableGoogleServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "whatever")
-  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def enableASGConfig = [
@@ -40,10 +36,6 @@ class EnableGoogleServerGroupTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-
-    task.mapper = mapper
-
     stage.context = enableASGConfig
   }
 
@@ -63,10 +55,10 @@ class EnableGoogleServerGroupTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].enableGoogleReplicaPoolDescription) {
-      it instanceof EnableGoogleServerGroupOperation
-      replicaPoolName == enableASGConfig.asgName
-      zone == enableASGConfig.zones[0]
-      credentials == enableASGConfig.credentials
+      it instanceof Map
+      replicaPoolName == this.enableASGConfig.asgName
+      zone == this.enableASGConfig.zones[0]
+      credentials == this.enableASGConfig.credentials
     }
   }
 

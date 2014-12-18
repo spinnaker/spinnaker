@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.AllowLaunchOperation
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -59,12 +58,12 @@ class CreateCopyLastAsgTask implements Task {
     if (operation.credentials != defaultBakeAccount) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
-          allowLaunchDescription: new AllowLaunchOperation(
+          allowLaunchDescription: [
             account: operation.credentials,
             credentials: defaultBakeAccount,
             region: region,
             amiName: operation.amiName
-          )
+          ]
         ]
       }
       descriptions.addAll(allowLaunchDescriptions)

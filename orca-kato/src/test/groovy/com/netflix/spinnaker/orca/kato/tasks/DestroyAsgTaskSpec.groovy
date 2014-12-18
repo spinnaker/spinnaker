@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.DestroyAsgOperation
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -64,10 +62,10 @@ class DestroyAsgTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].destroyAsgDescription) {
-      it instanceof DestroyAsgOperation
-      asgName == destroyASGConfig.asgName
-      regions == destroyASGConfig.regions
-      credentials == destroyASGConfig.credentials
+      it instanceof Map
+      asgName == this.destroyASGConfig.asgName
+      regions == this.destroyASGConfig.regions
+      credentials == this.destroyASGConfig.credentials
     }
   }
 

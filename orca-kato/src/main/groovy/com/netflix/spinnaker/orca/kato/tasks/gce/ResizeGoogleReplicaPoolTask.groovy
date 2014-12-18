@@ -16,22 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeGoogleReplicaPoolTask implements Task {
   @Autowired
   KatoService kato
-
-  @Autowired
-  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
@@ -48,13 +43,12 @@ class ResizeGoogleReplicaPoolTask implements Task {
     ])
   }
 
-  ResizeGoogleReplicaPoolOperation convert(Stage stage) {
+  Map convert(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName
     operation.numReplicas = operation.capacity.desired
     operation.zone = operation.zones ? operation.zones[0] : null
-
-    mapper.convertValue(operation, ResizeGoogleReplicaPoolOperation)
+    operation
   }
 }

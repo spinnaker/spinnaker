@@ -16,13 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.ResizeAsgOperation
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,7 +26,6 @@ import spock.lang.Subject
 class ResizeAsgTaskSpec extends Specification {
   @Subject task = new ResizeAsgTask()
   def stage = new PipelineStage(type: "pipeline")
-  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
@@ -45,10 +40,6 @@ class ResizeAsgTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-
-    task.mapper = mapper
-
     stage.context.putAll(resizeASGConfig)
   }
 
@@ -68,15 +59,15 @@ class ResizeAsgTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].resizeAsgDescription) {
-      it instanceof ResizeAsgOperation
-      asgName == resizeASGConfig.asgName
-      regions == resizeASGConfig.regions
-      credentials == resizeASGConfig.credentials
+      it instanceof Map
+      asgName == this.resizeASGConfig.asgName
+      regions == this.resizeASGConfig.regions
+      credentials == this.resizeASGConfig.credentials
       regions.size() == 2
       capacity.with {
-        min = resizeASGConfig.capacity.min
-        max = resizeASGConfig.capacity.max
-        desired = resizeASGConfig.capacity.desired
+        min = this.resizeASGConfig.capacity.min
+        max = this.resizeASGConfig.capacity.max
+        desired = this.resizeASGConfig.capacity.desired
       }
     }
   }

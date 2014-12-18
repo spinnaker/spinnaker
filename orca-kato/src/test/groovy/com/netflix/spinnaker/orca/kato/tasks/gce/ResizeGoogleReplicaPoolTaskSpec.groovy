@@ -16,13 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.kato.api.ops.gce.ResizeGoogleReplicaPoolOperation
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,7 +26,6 @@ import spock.lang.Subject
 class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   @Subject task = new ResizeGoogleReplicaPoolTask()
   def stage = new PipelineStage(type: "whatever")
-  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
@@ -45,10 +40,6 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-
-    task.mapper = mapper
-
     stage.context.putAll(resizeASGConfig)
   }
 
@@ -68,11 +59,11 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
     then:
     operations.size() == 1
     with(operations[0].resizeGoogleReplicaPoolDescription) {
-      it instanceof ResizeGoogleReplicaPoolOperation
-      replicaPoolName == resizeASGConfig.asgName
-      zone == resizeASGConfig.zones[0]
-      credentials == resizeASGConfig.credentials
-      numReplicas == resizeASGConfig.capacity.desired
+      it instanceof Map
+      replicaPoolName == this.resizeASGConfig.asgName
+      zone == this.resizeASGConfig.zones[0]
+      credentials == this.resizeASGConfig.credentials
+      numReplicas == this.resizeASGConfig.capacity.desired
     }
   }
 
