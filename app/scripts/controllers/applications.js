@@ -3,8 +3,7 @@
 
 angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
-                                           notifications, oortService, orcaService, urlBuilder, $state,
-                                           $timeout) {
+                                           notifications, oortService , orcaService, urlBuilder, $state) {
 
     $scope.applicationsLoaded = false;
 
@@ -19,47 +18,24 @@ angular.module('deckApp')
       $scope.accounts = accounts;
     });
 
+    function routeToApplication(app) {
+      $state.go(
+        'home.applications.application', {
+          application: app.name,
+        }
+      );
+    }
+
     $scope.menuActions = [
       {
         displayName: 'Create Application',
         action: function() {
           $modal.open({
             scope: $scope,
-            templateUrl: 'views/newapplication.html'
-          }).result.then(function(app) {
-            app.name = app.name.toLowerCase();
-            orcaService.createApplication(app).then(function(resp) {
-              $log.debug(resp);
-              notifications.create({
-                title: 'Creating application '+app.name,
-              });
-              var pollForApp = function() {
-                oortService.getApplicationWithoutAppendages(app.name).get()
-                .then(function() {
-                    notifications.create({
-                      title: app.name,
-                      message: 'Created!',
-                      href: urlBuilder.buildFromMetadata({
-                        type: 'applications',
-                        application: app.name,
-                      }),
-                    });
-                    $state.go(
-                      'home.applications.application', {
-                        application: app.name,
-                      }
-                    );
-                }, function() {
-                  $timeout(pollForApp, 500);
-                });
-              };
-              $timeout(pollForApp);
-
-
-            }, function(err) {
-              $exceptionHandler(err);
-            });
-          });
+            templateUrl: 'views/newapplication.html',
+            controller: 'CreateApplicationModalCtrl',
+            controllerAs: 'newAppModal'
+          }).result.then(routeToApplication);
         }
       }
     ];

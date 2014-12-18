@@ -133,7 +133,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       var result = null,
         requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
-      requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
+      requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
 
       task.watchForForceRefresh().then(function(updatedTask) { result = updatedTask; });
@@ -145,7 +145,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       // Step 2: Step found, running (retry)
       requestHandler.respond(200, {
         id: 1,
-        status: 'STARTED',
+        status: 'RUNNING',
         steps: [{
           name: 'ForceCacheRefreshStep',
           status: 'STARTED'
@@ -157,7 +157,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       // Step 3: Step found, completed
       requestHandler.respond(200, {
         id: 1,
-        status: 'STARTED',
+        status: 'RUNNING',
         steps: [{
           name: 'ForceCacheRefreshStep',
           status: 'COMPLETED'
@@ -165,7 +165,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       });
 
       cycle();
-      expect(result.status).toBe('STARTED');
+      expect(result.status).toBe('RUNNING');
 
     });
 
@@ -173,7 +173,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       var result = null,
         requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
-      requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
+      requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
 
       task.watchForForceRefresh().then(angular.noop, function(updatedTask) { result = updatedTask; });
@@ -185,7 +185,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       // Step 2: Step found, running (retry)
       requestHandler.respond(200, {
         id: 1,
-        status: 'STARTED',
+        status: 'RUNNING',
         steps: [{
           name: 'ForceCacheRefreshStep',
           status: 'STARTED'
@@ -197,7 +197,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       // Step 3: Step found, completed
       requestHandler.respond(200, {
         id: 1,
-        status: 'STARTED',
+        status: 'RUNNING',
         steps: [{
           name: 'ForceCacheRefreshStep',
           status: 'FAILED'
@@ -205,7 +205,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       });
 
       cycle();
-      expect(result.status).toBe('STARTED');
+      expect(result.status).toBe('RUNNING');
     });
 
     it('rejects when force refresh step never occurs', function() {
@@ -226,7 +226,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       var result = null,
         requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
-      requestHandler.respond(200, { id: 1, status: 'STARTED', steps: [] });
+      requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
 
       task.watchForForceRefresh().then(angular.noop, function(updatedTask) { result = updatedTask; });
@@ -238,7 +238,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       // Step 2: Step found, running (retry)
       requestHandler.respond(200, {
         id: 1,
-        status: 'STARTED',
+        status: 'RUNNING',
         steps: [{
           name: 'ForceCacheRefreshStep',
           status: 'STARTED'
