@@ -37,7 +37,7 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    List<String> instanceIds = stage.context."instance.ids"
+    List<String> instanceIds = stage.context."terminate.instance.ids"
 
     if (!instanceIds || !instanceIds.size()) {
       return new DefaultTaskResult(ExecutionStatus.FAILED)
