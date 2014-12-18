@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.model.*
+import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
+import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
+import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
+import com.amazonaws.services.ec2.model.SecurityGroup
+import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -38,36 +43,39 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     SecurityGroup securityGroup
 
-    def getSecurityGroup = { ->
-      ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupNames(description.name))?.securityGroups?.getAt(0)
-    }
-
-    try {
-      securityGroup = getSecurityGroup()
-    } catch (AmazonServiceException ignore) {
-    }
+    final List<SecurityGroup> securityGroups = ec2.describeSecurityGroups().securityGroups.
+            findAll { it.vpcId == description.vpcId }
+    securityGroup = securityGroups.find { it.groupName == description.name }
 
     if (!securityGroup) {
       def request = new CreateSecurityGroupRequest(description.name, description.description)
       if (description.vpcId) {
         request.withVpcId(description.vpcId)
       }
-      ec2.createSecurityGroup(request)
-      securityGroup = getSecurityGroup()
+      def result = ec2.createSecurityGroup(request)
+      securityGroup = ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupIds: [result.groupId])).
+              securityGroups[0]
     }
 
     List<IpPermission> ipPermissions = description.securityGroupIngress.collect { ingress ->
-      map(ingress).withUserIdGroupPairs(new UserIdGroupPair().withGroupName(ingress.name))
+      def ingressSecurityGroup = securityGroups.find { it.groupName == ingress.name }
+      map(ingress).withUserIdGroupPairs(new UserIdGroupPair().withGroupId(ingressSecurityGroup.groupId))
     } + description.ipIngress.collect { ingress ->
       map(ingress).withIpRanges(ingress.cidr)
     }
 
     if (securityGroup.ipPermissions) {
-      def request = new RevokeSecurityGroupIngressRequest(description.name, securityGroup.ipPermissions.collect { it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupId = null; it }; it })
+      def request = new RevokeSecurityGroupIngressRequest(groupId: securityGroup.groupId,
+              ipPermissions: securityGroup.ipPermissions.collect {
+                it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupName = null; it }
+                it
+              }
+      )
       ec2.revokeSecurityGroupIngress(request)
     }
     if (ipPermissions) {
-      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(description.name, ipPermissions))
+      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: securityGroup.groupId,
+              ipPermissions: ipPermissions))
     }
     null
   }
