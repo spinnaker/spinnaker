@@ -27,6 +27,18 @@ angular.module('deckApp.delivery')
       return deferred.promise;
     }
 
+    function fixStageTime(stage) {
+      if (stage.tasks && stage.tasks.length) {
+        stage.startTime = stage.tasks[0].startTime;
+      }
+    }
+
+    function fixExecutionTime(execution) {
+      if (execution.stages && execution.stages.length) {
+        execution.startTime = execution.stages[0].startTime;
+      }
+    }
+
     function getExecutions() {
       var deferred = $q.defer();
       $http({
@@ -36,6 +48,12 @@ angular.module('deckApp.delivery')
           executions.forEach(function(execution) {
             orchestratedItem.defineProperties(execution);
             execution.stages.forEach(orchestratedItem.defineProperties);
+
+            // TODO: Remove when https://github.com/spinnaker/orca/issues/167 is resolved
+            execution.stages.forEach(fixStageTime);
+            fixExecutionTime(execution);
+            // end TODO
+
             Object.defineProperty(execution, 'currentStage', {
               get: function() {
                 if (execution.isCompleted) {

@@ -36,7 +36,6 @@ angular.module('deckApp.delivery')
 
     $scope.statusDisplayNames = {
       'failed': 'Failed',
-      'terminal': 'Failed',
       //'not_started': 'Not Started',
       'running': 'Running',
       'completed': 'Completed',
@@ -49,8 +48,8 @@ angular.module('deckApp.delivery')
       status: d3Service
         .scale
         .ordinal()
-        .domain(['succeeded', 'failed', 'terminal', 'running', 'not_started'])
-        .range(['#c0d89d', '#b82525', '#b82525', '#2275b8', '#ffffff']),
+        .domain(['completed', 'failed', 'running', 'not_started'])
+        .range(['#c0d89d', '#b82525','#2275b8', '#ffffff']),
     };
 
     controller.solo = function(facet, value) {

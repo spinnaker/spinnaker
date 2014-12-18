@@ -29,6 +29,24 @@ angular.module('deckApp')
             return item.status === 'NOT_STARTED';
           }
         },
+        normalizedStatus: {
+          get: function() {
+            switch(item.status) {
+              case 'COMPLETED':
+              case 'SUCCEEDED':
+                return 'COMPLETED';
+              case 'STARTED':
+              case 'EXECUTING':
+              case 'RUNNING':
+                return 'RUNNING';
+              case 'FAILED':
+              case 'TERMINAL':
+                return 'FAILED';
+              default:
+                return item.status;
+            }
+          }
+        },
         runningTime: {
           get: function() {
             return momentService

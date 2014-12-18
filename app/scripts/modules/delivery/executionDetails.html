@@ -28,8 +28,8 @@
               ng-class="{ current: ctrl.isStageCurrent(stage) }">
             <td>{{ stage.name }}</td>
             <td>
-              <span class="label label-default label-{{ stage.status | lowercase }}">
-                {{ stage.status }}
+              <span class="label label-default label-{{ stage.normalizedStatus | lowercase }}">
+                {{ stage.normalizedStatus }}
               </span>
             </td>
             <td>{{ stage.startTime | relativeTime }}</td>
