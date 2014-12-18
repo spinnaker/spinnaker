@@ -2,7 +2,7 @@
 
 angular
   .module('deckApp')
-  .controller('CreateApplicationModalCtrl', function($scope, $log, $modalInstance, orcaService) {
+  .controller('CreateApplicationModalCtrl', function($scope, $log, $state, $modalInstance, orcaService) {
     var vm = this;
 
     vm.appNameList = _.pluck($scope.applications, 'name');
@@ -26,17 +26,22 @@ angular
           taskResponse
             .watchForTaskComplete()
             .then(
-              function() {
-                $modalInstance.close(vm.application);
-              },
+              routeToApplication,
               extractErrorMsg
-            )
-            .then(goIdle);
+            );
         }, function() {
           vm.errorMsgs.push('Could not create application');
-        })
-        .then(goIdle);
+          goIdle();
+        });
     };
+
+    function routeToApplication() {
+      $state.go(
+        'home.applications.application', {
+          application: vm.application.name,
+        }
+      );
+    }
 
     function submitting() {
       vm.submitting = true;
@@ -67,6 +72,7 @@ angular
 
       angular.copy(exceptions, vm.errorMsgs );
       assignErrorMsgs();
+      goIdle();
 
     }
 
