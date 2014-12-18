@@ -19,15 +19,17 @@ angular.module('deckApp')
       var op = getEndpoint(taskCommand.application).post(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
-          notifications.create({
-            title: taskCommand.application,
-            message: taskCommand.description,
-            href: urlBuilder.buildFromMetadata({
-              type: 'task',
-              application: taskCommand.application,
-              taskId: taskId
-            })
-          });
+          if(!taskCommand.supressNotification) {
+            notifications.create({
+              title: taskCommand.application,
+              message: taskCommand.description,
+              href: urlBuilder.buildFromMetadata({
+                type: 'task',
+                application: taskCommand.application,
+                taskId: taskId
+              })
+            });
+          }
           return pond.one('applications', taskCommand.application).one('tasks', taskId).get();
         },
         function(response) {
@@ -52,6 +54,7 @@ angular.module('deckApp')
           {
             type: 'createApplication',
             account: app.account,
+            supressNotification: true,
             application: {
               name: app.name,
               description: app.description,
