@@ -21,8 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired
 class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
-  long pollingInterval = 60
-  String notificationType = NOTIFICATION_TYPE
+  long pollingInterval = 10
+  String getNotificationType() {
+    NOTIFICATION_TYPE
+  }
 
   @Autowired
   ManualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
@@ -32,7 +34,7 @@ class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationA
   @Override
   void handleNotification(List<Map> resp) {
     for (event in resp) {
-      notify event
+      notify event.content
     }
   }
 }

@@ -35,18 +35,20 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
   abstract String getNotificationType()
   abstract void handleNotification(List<Map> input)
 
+  final List<NotificationHandler> allNotificationHandler
   final List<NotificationHandler> agentNotificationHandlers = []
 
   AbstractPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    for (handler in notificationHandlers) {
-      if (handler.handles(getNotificationType())) {
-        agentNotificationHandlers << handler
-      }
-    }
+    this.allNotificationHandler = notificationHandlers
   }
 
   @PostConstruct
   void init() {
+    for (handler in allNotificationHandler) {
+      if (handler.handles(getNotificationType())) {
+        agentNotificationHandlers << handler
+      }
+    }
     Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
   }
 

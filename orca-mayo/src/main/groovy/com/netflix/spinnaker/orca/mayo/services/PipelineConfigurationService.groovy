@@ -41,7 +41,7 @@ class PipelineConfigurationService {
   List<Map> getPipelines() {
     def list = []
     for (pipeline in pipelines) {
-      list << ImmutableMap.copyOf(pipeline)
+      list << new HashMap(pipeline)
     }
     ImmutableList.copyOf(list)
   }
