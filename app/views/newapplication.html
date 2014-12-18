@@ -32,7 +32,8 @@
         <div class="col-sm-9">
           <input type="email"
                  name="email"
-                 class="form-control input-sm"
+                 ng-class="{'ng-invalid ng-dirty':newAppModal.emailErrorMsg.length > 0 }"
+                 class="form-control input-sm "
                  data-purpose="application-email"
                  ng-model="newAppModal.application.email"
                  placeholder="Enter an email address"
@@ -49,8 +50,9 @@
       </div>
 
       <div class="form-group row slide-in" ng-if="newAppModal.emailErrorMsg">
-        <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in newAppModal.errorMsgs">
-          {{errorMsg}} <span class="glyphicon glyphicon-remove" ng-click="newAppModal.clearEmailMsg()" style="cursor: pointer;"></span>
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in newAppModal.emailErrorMsg">
+          {{errorMsg}} <small><span class="glyphicon glyphicon-remove" ng-click="newAppModal.clearEmailMsg()" style="cursor: pointer; padding-left: 10px"></span></small>
+
         </div>
       </div>
 
@@ -91,12 +93,21 @@
         </div>
       </div>
     </div>
+
+
+    <div class="form-group row slide-in" ng-if="newAppModal.errorMsgs">
+      <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in newAppModal.errorMsgs">
+        {{errorMsg}}
+      </div>
+    </div>
+
     <div class="modal-footer">
+      <span ng-show="newAppModal.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="!newApplicationForm.$valid"
+              ng-disabled="!newApplicationForm.$valid || newAppModal.submitting"
               ng-click="newAppModal.submit()">
         <span class="glyphicon glyphicon-ok-circle"></span> Create
       </button>

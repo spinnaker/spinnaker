@@ -18,35 +18,12 @@ angular.module('deckApp')
       $scope.accounts = accounts;
     });
 
-    function newAppNotification(app) {
-      notifications.create({
-        title: 'Creating application '+app.name,
-      });
-    }
-
-    function appCreatedNotification(app) {
-      notifications.create({
-        title: app.name,
-        message: 'Created!',
-        href: urlBuilder.buildFromMetadata({
-          type: 'applications',
-          application: app.name,
-        }),
-      });
-    }
-
     function routeToApplication(app) {
       $state.go(
         'home.applications.application', {
           application: app.name,
         }
       );
-    }
-
-    function successModalClose (app) {
-      newAppNotification(app);
-      appCreatedNotification(app);
-      routeToApplication(app);
     }
 
     $scope.menuActions = [
@@ -58,7 +35,7 @@ angular.module('deckApp')
             templateUrl: 'views/newapplication.html',
             controller: 'CreateApplicationModalCtrl',
             controllerAs: 'newAppModal'
-          }).result.then(successModalClose);
+          }).result.then(routeToApplication);
         }
       }
     ];

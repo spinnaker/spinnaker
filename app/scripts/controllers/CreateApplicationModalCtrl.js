@@ -5,15 +5,11 @@ angular
   .controller('CreateApplicationModalCtrl', function($scope, $log, $modalInstance, orcaService) {
     var vm = this;
 
-    vm.applicationsList = $scope.applications;
+    vm.appNameList = _.pluck($scope.applications, 'name');
+    vm.submitting = false;
     vm.application = {};
     vm.errorMsgs = [];
-    vm.emailErrorMsg = '';
-
-
-    (function() {
-      vm.appNameList = _.pluck(vm.applicationsList, 'name');
-    })();
+    vm.emailErrorMsg = [];
 
     vm.clearEmailMsg = function() {
       vm.emailErrorMsg = '';
@@ -21,24 +17,34 @@ angular
 
     vm.submit = function() {
 
+      submitting();
+
       vm.application.name = vm.application.name.toLowerCase();
 
       orcaService.createApplication(vm.application)
         .then(function(taskResponse) {
-          $log.info('task info', taskResponse);
           taskResponse
             .watchForTaskComplete()
             .then(
               function() {
-                $log.debug('success', vm.application);
                 $modalInstance.close(vm.application);
               },
               extractErrorMsg
-            );
-        }, function(error) {
-          $log.debug('create app error', error);
-        });
+            )
+            .then(goIdle);
+        }, function() {
+          vm.errorMsgs.push('Could not create application');
+        })
+        .then(goIdle);
     };
+
+    function submitting() {
+      vm.submitting = true;
+    }
+
+    function goIdle() {
+      vm.submitting = false;
+    }
 
     function assignErrorMsgs() {
       vm.emailErrorMsg = vm.errorMsgs.filter(function(msg){
