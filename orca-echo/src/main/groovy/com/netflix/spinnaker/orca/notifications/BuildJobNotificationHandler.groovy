@@ -15,51 +15,31 @@
  */
 
 package com.netflix.spinnaker.orca.notifications
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.annotations.VisibleForTesting
-import com.netflix.appinfo.ApplicationInfoManager
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.spinnaker.orca.mayo.MayoService
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import org.springframework.beans.factory.annotation.Autowired
 
-import javax.annotation.PostConstruct
+import com.google.common.annotations.VisibleForTesting
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import javax.annotation.PostConstruct
 
-class BuildJobNotificationHandler implements NotificationHandler, Runnable {
-
+class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable  {
   static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
   static final String TRIGGER_MASTER = "master"
 
-  @Autowired
-  MayoService mayoService
-
-  @Autowired
-  PipelineStarter pipelineStarter
-
-  @Autowired
-  ObjectMapper objectMapper
-
-  @Autowired
-  ApplicationInfoManager applicationInfoManager
-
+  final String handlerType = BuildJobPollingNotificationAgent.NOTIFICATION_TYPE
+  final long pollingInterval = 60
   private Map<String, Map> interestingPipelines = [:]
 
   @PostConstruct
   void init() {
-    Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, 0, 120, TimeUnit.SECONDS)
+    Executors.newSingleThreadScheduledExecutor().schedule(this, pollingInterval, TimeUnit.SECONDS)
   }
 
   @Override
   void run() {
     try {
       def _interestingPipelines = [:]
-      List<Map> pipelines = objectMapper.readValue(mayoService.pipelines.body.in().text, new TypeReference<List<Map>>() {
-      })
-      for (Map pipeline in pipelines) {
+      for (Map pipeline in pipelineConfigurationService.pipelines) {
         List<Map> triggers = pipeline.triggers
         for (Map trigger in triggers) {
           if (trigger.type == TRIGGER_TYPE) {
@@ -78,16 +58,7 @@ class BuildJobNotificationHandler implements NotificationHandler, Runnable {
   }
 
   @Override
-  boolean handles(String type) {
-    type == BuildJobPollingNotificationAgent.NOTIFICATION_TYPE
-  }
-
-  @Override
-  void handle(Map input) {
-    def info = applicationInfoManager.info
-    if (info && (info.status != InstanceInfo.InstanceStatus.UP || info.overriddenStatus == InstanceInfo.InstanceStatus.OUT_OF_SERVICE)) {
-      return
-    }
+  void handleInternal(Map input) {
     try {
       String key = generateKey(input.master as String, input.name as String)
       if (interestingPipelines.containsKey(key)) {

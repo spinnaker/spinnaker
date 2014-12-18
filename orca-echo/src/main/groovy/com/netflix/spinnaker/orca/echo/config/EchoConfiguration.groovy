@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.echo.config
 
+import com.netflix.spinnaker.orca.notifications.ManualTriggerNotificationHandler
+import com.netflix.spinnaker.orca.notifications.ManualTriggerPollingNotificationAgent
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -67,6 +69,15 @@ class EchoConfiguration {
   @Bean
   BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     new BuildJobPollingNotificationAgent(notificationHandlers)
+  }
+
+  @Bean ManualTriggerNotificationHandler manualTriggerNotificationHandler() {
+    new ManualTriggerNotificationHandler()
+  }
+
+  @Bean
+  ManualTriggerPollingNotificationAgent manualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+    new ManualTriggerPollingNotificationAgent(notificationHandlers)
   }
 
   @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(

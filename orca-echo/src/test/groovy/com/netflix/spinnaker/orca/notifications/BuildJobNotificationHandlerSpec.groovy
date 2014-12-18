@@ -20,12 +20,10 @@ package com.netflix.spinnaker.orca.notifications
 import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.mayo.MayoService
+import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.json.JsonSlurper
-import retrofit.client.Response
-import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -94,15 +92,15 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   void "should add multiple pipeline targets to single trigger type"() {
     setup:
-    def mayo = Mock(MayoService)
+    def pipelineConfigService = Mock(PipelineConfigurationService)
     def pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(applicationInfoManager: applicationInfoManager, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), mayoService: mayo)
+    def handler = new BuildJobNotificationHandler(applicationInfoManager: applicationInfoManager, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
 
     when:
     handler.run()
 
     then:
-    1 * mayo.getPipelines() >> new Response('mayo', 200, 'ok', [], new TypedString(new OrcaObjectMapper().writeValueAsString([pipeline1, pipeline2])))
+    1 * pipelineConfigService.getPipelines() >> [pipeline1, pipeline2]
     2 == handler.interestingPipelines[key].size()
     handler.interestingPipelines[key].name == ["pipeline1", "pipeline2"]
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.mayo.config
 
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.mayo.MayoService
+import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,6 +47,11 @@ class MayoConfiguration {
   @Bean
   Endpoint mayoEndpoint(@Value('${mayo.baseUrl:http://mayo.prod.netflix.net}') String url) {
     newFixedEndpoint(url)
+  }
+
+  @Bean
+  PipelineConfigurationService pipelineConfigurationService() {
+    new PipelineConfigurationService()
   }
 
   @Bean

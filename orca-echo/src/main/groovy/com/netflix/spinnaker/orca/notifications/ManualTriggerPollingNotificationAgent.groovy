@@ -14,32 +14,25 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.notifications
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
-@Component
-class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent {
+class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
-  static final String NOTIFICATION_TYPE = "build"
-  long pollingInterval = 30
+  static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
+  long pollingInterval = 60
   String notificationType = NOTIFICATION_TYPE
 
   @Autowired
-  BuildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+  ManualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     super(notificationHandlers)
   }
 
   @Override
   void handleNotification(List<Map> resp) {
     for (event in resp) {
-      if (event.content.containsKey("project") && event.content.containsKey("master")) {
-        Map input = event.content.project as Map
-        input.master = event.content.master
-        notify(input)
-      }
+      notify event
     }
   }
 }
