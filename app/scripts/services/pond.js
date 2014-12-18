@@ -7,7 +7,7 @@ angular.module('deckApp')
       Object.defineProperties(item, {
         isEnqueued: {
           get: function() {
-            return item.startTime === 0 && item.status === 'STARTED';
+            return item.status === 'NOT_STARTED' || item.status === 'STARTED';
           }
         },
         isCompleted: {
@@ -17,12 +17,12 @@ angular.module('deckApp')
         },
         isRunning: {
           get: function() {
-            return item.status === 'STARTED';
+            return item.status === 'RUNNING';
           },
         },
         isFailed: {
           get: function() {
-            return item.status === 'FAILED' || item.status === 'STOPPED';
+            return item.status === 'FAILED' || item.status === 'STOPPED' || item.status === 'TERMINAL';
           },
         },
         isStopped: {
@@ -167,7 +167,7 @@ angular.module('deckApp')
         if (task.isCompleted) {
           deferred.resolve(task);
         }
-        if (task.isRunning && !deferred.promise.cancelled) {
+        if ((task.isRunning || task.isEnqueued) && !deferred.promise.cancelled) {
           $timeout(function () {
             task.get().then(function (updatedTask) {
               updateTask(task, updatedTask);

@@ -385,3 +385,24 @@ select.select2 {
     border-bottom-right-radius: 5px;
   }
 }
+.slide-in.ng-leave,
+.slide-in.ng-enter {
+  .transition(0.3s ease-in-out);
+}
+
+.slide-in.ng-enter {
+  line-height: 0px;
+  opacity: 0.25;
+}
+
+.slide-in.ng-leave,
+.slide-in.ng-enter.ng-enter-active {
+  line-height: 100%;
+  opacity: 1;
+}
+
+.slide-in.ng-leave-active {
+  line-height: 0px;
+  opacity: 0;
+}
+
