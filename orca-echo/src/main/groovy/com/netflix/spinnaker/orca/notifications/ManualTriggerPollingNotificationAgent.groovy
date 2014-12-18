@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.notifications
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
