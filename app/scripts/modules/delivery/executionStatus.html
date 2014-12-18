@@ -18,20 +18,8 @@
     </ul>
   </div>
   <div class="col-md-5">
-    <span ng-switch="execution.status.toLowerCase()">
+    <span ng-switch="execution.normalizedStatus.toLowerCase()">
       <span ng-switch-when="failed">
-        <span>
-          <h5 class="status status-failed">
-            FAILED
-          </h5>
-          <ul>
-            <li>
-              {{ ctrl.getFailedStage(execution) }}
-            </li>
-          </ul>
-        </span>
-      </span>
-      <span ng-switch-when="terminal">
         <span>
           <h5 class="status status-failed">
             FAILED
