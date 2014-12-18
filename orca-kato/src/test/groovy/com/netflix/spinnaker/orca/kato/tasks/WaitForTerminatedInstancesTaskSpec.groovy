@@ -46,7 +46,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      "instance.ids": [instanceId]
+      "terminate.instance.ids": [instanceId]
     ]).asImmutable()
 
     expect:
@@ -72,7 +72,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      "instance.ids": [instanceId]
+      "terminate.instance.ids": [instanceId]
     ]).asImmutable()
 
     expect:
@@ -100,7 +100,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      "instance.ids": [instanceId]
+      "terminate.instance.ids": [instanceId]
     ]).asImmutable()
 
     expect:
@@ -120,7 +120,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      "instance.ids": instanceIds
+      "terminate.instance.ids": instanceIds
     ]).asImmutable()
 
     expect:
@@ -150,7 +150,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      "instance.ids": instanceIds
+      "terminate.instance.ids": instanceIds
     ]).asImmutable()
 
     expect:
