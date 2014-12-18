@@ -34,7 +34,7 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
     if (!stage.startTime) {
-      stage.startTime = stepExecution.startTime.time
+      stage.startTime = System.currentTimeMillis()
     }
     stage.status = ExecutionStatus.RUNNING
     saveStage stage
