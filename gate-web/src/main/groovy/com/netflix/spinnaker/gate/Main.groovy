@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.gate
 
+import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.context.embedded.ServletRegistrationBean
 import org.springframework.boot.context.web.SpringBootServletInitializer
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableAsync
@@ -56,5 +59,10 @@ class Main extends SpringBootServletInitializer {
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
     builder.sources(Main)
+  }
+
+  @Bean
+  ServletRegistrationBean hystrixEventStream() {
+    new ServletRegistrationBean(new HystrixMetricsStreamServlet(), '/hystrix.stream')
   }
 }

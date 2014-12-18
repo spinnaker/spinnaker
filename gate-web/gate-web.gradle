@@ -34,6 +34,7 @@ dependencies {
 
   compile spinnaker.dependency('cglib')
   compile 'com.netflix.hystrix:hystrix-core:1.4.0-RC5'
+  compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.4.0-RC5'
   compile "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
 
   spinnaker.group("bootWeb")
