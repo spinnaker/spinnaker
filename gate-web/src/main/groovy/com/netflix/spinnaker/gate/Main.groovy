@@ -31,9 +31,9 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
-          'netflix.environment': 'test',
+          'netflix.environment': System.getProperty('netflix.environment', 'test'),
           'netflix.account': System.getProperty('netflix.environment', 'test'),
-          'netflix.stack': 'test',
+          'netflix.stack': System.getProperty('netflix.stack', 'test'),
           'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
           'spring.config.name': 'gate',
           'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"

@@ -20,7 +20,10 @@ import com.netflix.spinnaker.gate.services.*
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @CompileStatic
@@ -36,6 +39,9 @@ class ApplicationController {
 
   @Autowired(required = false)
   TagService tagService
+
+  @Autowired(required = false)
+  PipelineService pipelineService
 
   @RequestMapping(method = RequestMethod.GET)
   List<Map> all() {
@@ -93,7 +99,21 @@ class ApplicationController {
   @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.GET)
   Map getPipelineConfig(
       @PathVariable("name") String name, @PathVariable("pipelineName") String pipelineName) {
-    applicationService.getPipelineConfig(name, pipelineName)
+    applicationService.getPipelineConfigs(name).find {
+      it.name == pipelineName
+    }
+  }
+
+  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.POST, params = ['user'])
+  HttpEntity invokePipelineConfig(@PathVariable("name") String application,
+                                  @PathVariable("pipelineName") String pipelineName,
+                                  @RequestParam("user") String user) {
+    try {
+      pipelineService.trigger(application, pipelineName, user)
+      new ResponseEntity(HttpStatus.ACCEPTED)
+    } catch (e) {
+      new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
+    }
   }
 
   @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
