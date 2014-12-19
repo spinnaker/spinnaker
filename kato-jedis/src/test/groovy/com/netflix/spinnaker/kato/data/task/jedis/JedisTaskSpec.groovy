@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kato.data.task.jedis
 
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.kato.data.task.Status
 import com.netflix.spinnaker.kato.data.task.TaskState
 import redis.clients.jedis.JedisCommands
 import spock.lang.Shared
@@ -62,6 +63,16 @@ class JedisTaskSpec extends Specification {
 
     then:
     1 * repository.getHistory(task)
+  }
+
+  void 'task history excludes the final state that marked the task as complete'() {
+    when:
+    List<Status> history = task.history
+
+    then:
+    1 * repository.getHistory(task) >> [new DefaultTaskStatus('foo', 'bar', TaskState.STARTED), new DefaultTaskStatus('foo', 'baz', TaskState.STARTED), new DefaultTaskStatus('foo', 'biz', TaskState.COMPLETED)]
+    history.size() == 2
+    history.status == ['bar', 'baz']
   }
 
   void 'changing the status of a task to complete saves it to Jedis'() {
