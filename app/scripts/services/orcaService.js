@@ -16,6 +16,9 @@ angular.module('deckApp')
       if (taskCommand.job[0].providerType === 'aws') {
         delete taskCommand.job[0].providerType;
       }
+      taskCommand.job.forEach(function(job) {
+        job.user = authenticationService.getAuthenticatedUser().name;
+      });
       var op = getEndpoint(taskCommand.application).post(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
@@ -84,7 +87,6 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: authenticationService.getAuthenticatedUser().name,
             providerType: serverGroup.type
           }
         ],
@@ -102,7 +104,6 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: authenticationService.getAuthenticatedUser().name,
             providerType: serverGroup.type
           }
         ],
@@ -120,7 +121,6 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: authenticationService.getAuthenticatedUser().name,
             providerType: serverGroup.type
           }
         ],
@@ -138,7 +138,6 @@ angular.module('deckApp')
             regions: [serverGroup.region],
             zones: serverGroup.zones,
             credentials: serverGroup.account,
-            user: authenticationService.getAuthenticatedUser().name,
             capacity: capacity,
             providerType: serverGroup.type
           }
@@ -150,8 +149,6 @@ angular.module('deckApp')
 
     function upsertSecurityGroup(securityGroup, applicationName, descriptor) {
       securityGroup.type = 'upsertSecurityGroup';
-      securityGroup.user = 'deckUser';
-      securityGroup.credentials = securityGroup.accountName;
       scheduledCache.removeAll();
       return executeTask({
         job: [
@@ -170,7 +167,6 @@ angular.module('deckApp')
         loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort;
       }
       loadBalancer.type = 'upsertAmazonLoadBalancer';
-      loadBalancer.user = 'deckUser';
       loadBalancer.availabilityZones = {};
       loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones || [];
       if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
@@ -195,7 +191,6 @@ angular.module('deckApp')
             loadBalancerName: loadBalancer.name,
             regions: [loadBalancer.region],
             credentials: loadBalancer.accountId,
-            user: authenticationService.getAuthenticatedUser().name
           }
         ],
         application: applicationName,
@@ -212,7 +207,6 @@ angular.module('deckApp')
             region: instance.region,
             zone: instance.placement.availabilityZone,
             credentials: instance.account,
-            user: authenticationService.getAuthenticatedUser().name,
             providerType: instance.providerType
           }
         ],
@@ -250,7 +244,6 @@ angular.module('deckApp')
     }
 
     function cloneServerGroup(command, applicationName) {
-      command.user = authenticationService.getAuthenticatedUser().name;
 
       var description;
       if (command.viewState.mode === 'clone') {
