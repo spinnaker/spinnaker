@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.AwsNetworkInterface
@@ -28,7 +28,7 @@ class CreateNetworkInterfaceDescriptionValidatorSpec extends Specification {
   CreateNetworkInterfaceDescriptionValidator validator = new CreateNetworkInterfaceDescriptionValidator()
 
   @Shared
-  NetflixAssumeRoleAmazonCredentials credentials = TestCredential.named('test')
+  NetflixAmazonCredentials credentials = TestCredential.named('test')
 
   void "pass validation with proper description inputs"() {
     setup:

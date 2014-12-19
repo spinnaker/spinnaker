@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
@@ -40,7 +40,7 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   void "should fail validation with invalid load balancer name"() {
     setup:
     def errors = Mock(Errors)
-    def description = new DeleteAmazonLoadBalancerDescription(regions: ["us-east-1"], credentials: Mock(NetflixAssumeRoleAmazonCredentials))
+    def description = new DeleteAmazonLoadBalancerDescription(regions: ["us-east-1"], credentials: Stub(NetflixAmazonCredentials))
     validator.amazonClientProvider = amazonClientProvider
 
     when:

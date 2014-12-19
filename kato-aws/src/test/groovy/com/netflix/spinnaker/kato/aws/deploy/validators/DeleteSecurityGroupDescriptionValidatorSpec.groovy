@@ -15,8 +15,9 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
 import org.springframework.validation.Errors
@@ -38,7 +39,7 @@ class DeleteSecurityGroupDescriptionValidatorSpec extends Specification {
   void "should fail validation with invalid security group name"() {
     setup:
     def errors = Mock(Errors)
-    def description = new DeleteSecurityGroupDescription(regions: ["us-east-1"], credentials: Mock(NetflixAssumeRoleAmazonCredentials))
+    def description = new DeleteSecurityGroupDescription(regions: ["us-east-1"], credentials: Stub(NetflixAmazonCredentials))
     validator.amazonClientProvider = amazonClientProvider
 
     when:

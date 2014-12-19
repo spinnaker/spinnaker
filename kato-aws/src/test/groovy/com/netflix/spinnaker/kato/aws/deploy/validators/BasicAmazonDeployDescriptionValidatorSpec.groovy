@@ -16,9 +16,10 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
+
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
@@ -34,7 +35,7 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
   BasicAmazonDeployDescriptionValidator validator
 
   @Shared
-  NetflixAssumeRoleAmazonCredentials amazonCredentials = TestCredential.named(ACCOUNT_NAME)
+  NetflixAmazonCredentials amazonCredentials = TestCredential.named(ACCOUNT_NAME)
 
   void setupSpec() {
     validator = new BasicAmazonDeployDescriptionValidator()
