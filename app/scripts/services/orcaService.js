@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService, scheduledCache) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService, scheduledCache, infrastructureCaches) {
 
     var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -149,7 +149,7 @@ angular.module('deckApp')
 
     function upsertSecurityGroup(securityGroup, applicationName, descriptor) {
       securityGroup.type = 'upsertSecurityGroup';
-      scheduledCache.removeAll();
+      infrastructureCaches.securityGroups.removeAll();
       return executeTask({
         job: [
           securityGroup
@@ -183,7 +183,7 @@ angular.module('deckApp')
     }
 
     function deleteLoadBalancer(loadBalancer, applicationName) {
-      scheduledCache.removeAll();
+      infrastructureCaches.loadBalancers.removeAll();
       return executeTask({
         job: [
           {

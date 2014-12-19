@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('mortService', function (settings, $q, Restangular) {
+  .factory('mortService', function (settings, $q, Restangular, infrastructureCaches) {
 
     var subnetsCache = [],
         vpcsCache = [],
@@ -17,7 +17,9 @@ angular.module('deckApp')
         return $q.when(subnetsCache);
       } else {
         var deferred = $q.defer();
-        endpoint.all('subnets').getList().then(function(list) {
+        endpoint.all('subnets')
+          .withHttpConfig({cache: infrastructureCaches.subnets})
+          .getList().then(function(list) {
           subnetsCache = list;
           deferred.resolve(list);
         });
@@ -30,7 +32,9 @@ angular.module('deckApp')
         return $q.when(vpcsCache);
       } else {
         var deferred = $q.defer();
-        endpoint.all('vpcs').getList().then(function(list) {
+        endpoint.all('vpcs')
+          .withHttpConfig({cache: infrastructureCaches.vpcs})
+          .getList().then(function(list) {
           vpcsCache = list;
           deferred.resolve(list);
         });
@@ -43,7 +47,9 @@ angular.module('deckApp')
         return $q.when(keyPairsCache);
       } else {
         var deferred = $q.defer();
-        endpoint.all('keyPairs').getList().then(function(list) {
+        endpoint.all('keyPairs')
+          .withHttpConfig({cache: infrastructureCaches.keyPairs})
+          .getList().then(function(list) {
           keyPairsCache = list;
           deferred.resolve(list);
         });
