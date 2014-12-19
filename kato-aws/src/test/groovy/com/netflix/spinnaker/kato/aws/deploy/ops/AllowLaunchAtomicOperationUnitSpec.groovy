@@ -16,24 +16,15 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.CreateTagsRequest
-import com.amazonaws.services.ec2.model.DeleteTagsRequest
-import com.amazonaws.services.ec2.model.DescribeImagesRequest
-import com.amazonaws.services.ec2.model.DescribeImagesResult
-import com.amazonaws.services.ec2.model.DescribeTagsResult
-import com.amazonaws.services.ec2.model.Image
-import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
-import com.amazonaws.services.ec2.model.Tag
-import com.amazonaws.services.ec2.model.TagDescription
+import com.amazonaws.services.ec2.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import spock.lang.Specification
 
 class AllowLaunchAtomicOperationUnitSpec extends Specification {
@@ -50,7 +41,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     }
 
     def creds = Stub(AccountCredentialsProvider) {
-      getCredentials(_) >> Stub(NetflixAssumeRoleAmazonCredentials)
+      getCredentials(_) >> Stub(NetflixAmazonCredentials)
     }
     def op = new AllowLaunchAtomicOperation(new AllowLaunchDescription(amiName: 'super-awesome-ami'))
     op.accountCredentialsProvider = creds
@@ -79,7 +70,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def provider = Stub(AmazonClientProvider) {
       getAmazonEC2(_, _) >> ec2
     }
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Mock(NetflixAssumeRoleAmazonCredentials))
+    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Stub(NetflixAmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     def accountHolder = Mock(AccountCredentialsProvider)
@@ -93,7 +84,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       assert request.launchPermission.add.get(0).userId == "5678"
     }
     1 * accountHolder.getCredentials("prod") >> {
-      def mock = Mock(NetflixAssumeRoleAmazonCredentials)
+      def mock = Stub(NetflixAmazonCredentials)
       mock.getAccountId() >> 5678
       mock
     }
@@ -134,11 +125,9 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     }
   }
 
-  void "should replicate tags from the same account"() {
+  void "should skip allow launch when target account is the same as the requesting account"() {
     def testCredentials = TestCredential.named('test')
 
-    def sourceAmazonEc2 = Mock(AmazonEC2)
-    def targetAmazonEc2 = Mock(AmazonEC2)
     def provider = Mock(AmazonClientProvider)
 
     def description = new AllowLaunchDescription(account: "test", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
@@ -153,18 +142,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     with(op.accountCredentialsProvider){
       1 * getCredentials("test") >> testCredentials
     }
-    with(provider) {
-      2 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2  >> targetAmazonEc2
-    }
-    with(sourceAmazonEc2) {
-      1 * modifyImageAttribute(_)
-      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
-    }
-    with(targetAmazonEc2) {
-      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
-      1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "a"), new Tag(key: "b")]))
-      1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "a", value: "1"), new Tag(key: "b", value: "2")]))
-    }
+    0 * _
   }
 
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->

@@ -21,12 +21,12 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,7 +54,11 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
-    def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAssumeRoleAmazonCredentials
+    def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials
+    if (description.credentials == targetCredentials) {
+      task.updateStatus BASE_PHASE, "Allow launch not required"
+      return
+    }
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 

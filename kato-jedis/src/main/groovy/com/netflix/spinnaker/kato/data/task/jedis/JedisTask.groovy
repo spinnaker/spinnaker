@@ -63,7 +63,12 @@ class JedisTask implements Task {
   }
 
   public List<Status> getHistory() {
-    repository.getHistory(this)
+    def status = repository.getHistory(this)
+    if (status && status.last().isCompleted()) {
+      status.subList(0, status.size()  - 1)
+    } else {
+      status
+    }
   }
 
   @Override
