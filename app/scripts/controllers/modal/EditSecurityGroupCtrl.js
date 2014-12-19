@@ -10,7 +10,7 @@ angular.module('deckApp')
     $scope.securityGroup = securityGroup;
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      applicationName: application.name,
+      application: application,
       title: 'Updating your security group',
       forceRefreshMessage: 'Getting your updated security group from Amazon...',
       modalInstance: $modalInstance,
@@ -54,7 +54,7 @@ angular.module('deckApp')
 
       $scope.taskMonitor.submit(
         function() {
-          orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Update');
+          return orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Update');
         }
       );
     };

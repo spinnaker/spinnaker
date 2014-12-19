@@ -18,7 +18,7 @@ angular.module('deckApp')
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      applicationName: application.name,
+      application: application,
       title: 'Creating your security group',
       forceRefreshMessage: 'Getting your new security group from Amazon...',
       modalInstance: $modalInstance,
