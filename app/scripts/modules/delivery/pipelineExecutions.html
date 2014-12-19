@@ -6,12 +6,6 @@
         </ng-include>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12 stage-filter-controls filter-controls">
-        <ng-include src="'scripts/modules/delivery/pipelineExecutions.stageFilter.html'">
-        </ng-include>
-      </div>
-    </div>
     <div class="row"
          ng-if="filter.execution.groupBy"
          ng-repeat="executionGrouping in executions | executionGroups:filter">

@@ -13,20 +13,22 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-9">
-      <table class="table table-striped table-hover">
+    <div class="col-md-8">
+      <table class="table table-hover">
         <thead>
           <tr>
             <th>Stage</th>
-            <th>Status</th>
             <th>Started</th>
-            <th>Completed</th>
+            <th>Ended</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           <tr ng-repeat="stage in execution.stages"
               ng-class="{ current: ctrl.isStageCurrent(stage) }">
-            <td>{{ stage.name }}</td>
+            <td>{{ stage.name != "null" ? stage.name : stage.type | robotToHuman }}</td>
+            <td>{{ stage.startTime | simpleTime }}</td>
+            <td>{{ stage.endTime | simpleTime }}</td>
             <td>
               <span class="label label-default label-{{ stage.status | lowercase }}">
                 {{ stage.status | lowercase | robotToHuman }}

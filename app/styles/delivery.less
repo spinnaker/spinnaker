@@ -14,20 +14,34 @@ body, html {
 }
 
 .executions {
+  .execution-is-current {
+    background-color: #ffffff;
+    border: 1px solid @mid_light_grey;
+    padding-bottom: 0px !important;
+  }
   .execution-not-current {
     opacity: .5;
   }
   .execution-details {
-    font-size: .8em !important;
-    background-color: @mid_light_grey;
+    background-color: @light_grey;
     .glyphicon-remove {
       cursor: pointer;
+      color: @mid_grey;
+    }
+    padding: 5px 30px 5px 30px;
+    border: 1px solid @mid_light_grey;
+    h5 {
+      font-weight: bold;
+      font-size: 1.1em;
+      padding-bottom: 10px;
     }
   }
   .execution-group-container {
     transition: height 2s;
+    padding-left: 40px;
   }
   .execution {
+    padding: 10px 0 10px 0;
     border-bottom: 1px solid @mid_light_grey;
   }
   .execution-stage {
@@ -35,16 +49,35 @@ body, html {
     margin-top: 8px;
     display: inline-block;
     float: left;
-    border: 1px solid @mid_grey;
     height: 35px;
+    border-left: 2px solid #fff;
     padding-top: 32px;
     overflow: visible;
     text-transform: uppercase;
-    transition: width .4s, background-color .4s, opacity .2s;
+    transition: width .4s;
+    color: @mid_grey;
+    opacity: 1;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+  }
+  .pre-execution-stage-border {
+    height: 35px;
+    width: 5px;
+    margin-top: 8px;
+    margin-left: -5px;
+    display: inline-block;
+    float: left;
+    background-color: @spinnaker-blue;
+    opacity: 0.5;
   }
   .execution-stage-label {
     overflow-x: hidden;
     font-size: .8em;
+    line-height: 25px;
+    padding-left: 5px;
+    font-weight: 600;
+  }
+  .execution-group-title {
+    padding-left: 10px;
   }
   .execution-group-heading {
     background-color: @mid_grey;
@@ -57,9 +90,15 @@ body, html {
     }
   }
   .execution-group-col-headers {
-    border-bottom: 1px solid @mid_light_grey;
+    border-bottom: 1px solid @dark_grey;
     font-weight: bold;
-    margin-top: 10px;
+    font-size: 0.9em;
+    line-height: 30px;
+    padding: 10px 0px 10px 15px;
+    > div {
+      width: 14.6667%;
+      float: left;
+    }
   }
   rect {
     fill: rgb(248, 248, 238);
@@ -68,20 +107,17 @@ body, html {
   .filter-controls {
     label {
       font-size: 12px;
+      font-weight: bold;
       vertical-align: -1px;
-      font-weight: normal;
     }
-    .label-bold {
-      font-weight: 900;
-      vertical-align: 0px;
-      display: inline-block;
-      width: 100px;
-    }
-    border-top: 1px solid @mid_light_grey;
     padding-top: 5px;
     padding-bottom: 5px;
+    border-bottom: 1px solid @mid_light_grey;
     .form-group {
-      margin-right: 5px;
+      margin-right: 10px;
+      >label {
+        margin-right: 5px;
+      }
     }
     .legend.color {
       display: inline-block;
@@ -90,12 +126,12 @@ body, html {
       border-radius: 50%;
     }
   }
-  .stage-filter-controls {
-    border-bottom: 1px solid @mid_light_grey;
-  }
-
 }
 
+.configure-pipelines-btn {
+  padding-left: 0;
+  margin: 10px 0 10px 0;
+}
 
 .execution-status {
   cursor: pointer;
@@ -103,11 +139,19 @@ body, html {
   overflow-y: hidden;
   font-size: .8em;
   line-height: 12px;
+  .status {
+    line-height: 35px;
+    font-weight: bold;
+  }
   .execution-info {
+    h5 {
+      font-weight: bold;
+      font-size: 1.3em;
+    }
+    line-height: 15px;
     padding-right: 0px;
   }
   h6, h5 {
-    font-weight: 900;
     margin-top: 0px;
     margin-bottom: 0px;
   }
@@ -116,8 +160,6 @@ body, html {
     li {
       list-style: none;
     }
-  }
-  .status {
   }
 }
 .execution-stacked-bar {

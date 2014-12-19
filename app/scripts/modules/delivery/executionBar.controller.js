@@ -54,6 +54,10 @@ angular.module('deckApp.delivery')
         'background-color': controller.getStageColor(stage),
         opacity: controller.getStageOpacity(stage),
       };
+      if (stage.isRunning) {
+        style['-webkit-animation'] = 'animate-glow 1s ease-out infinite';
+        style['-moz-animation'] = 'animate-glow 1s ease-out infinite';
+      }
       return style;
     };
   });

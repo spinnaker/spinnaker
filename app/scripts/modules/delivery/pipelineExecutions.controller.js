@@ -49,7 +49,7 @@ angular.module('deckApp.delivery')
         .scale
         .ordinal()
         .domain(['completed', 'failed', 'running', 'not_started'])
-        .range(['#c0d89d', '#b82525','#2275b8', '#ffffff']),
+        .range(['#769D3E', '#b82525','#2275b8', '#cccccc']),
     };
 
     controller.solo = function(facet, value) {

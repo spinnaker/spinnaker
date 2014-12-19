@@ -5,7 +5,12 @@
       <h4 style="font-weight: bold;">
         <span class="glyphicon"
               ng-class="{'glyphicon-chevron-up': !open, 'glyphicon-chevron-down': open}"
-              style="font-size: .8em"></span> {{ value }}</h4>
+              style="font-size: .8em">
+        </span> 
+        <span class="execution-group-title">
+        {{ value | robotToHuman }}
+        </span>
+      </h4>
     </div>
   </div>
   <div class="row" ng-show="open">
