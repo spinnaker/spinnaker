@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('accountService', function(settings, Restangular, $q, scheduledCache) {
+  .factory('accountService', function(settings, Restangular, $q, scheduledCache, infrastructureCaches) {
 
     var credentialsEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(settings.gateUrl);
@@ -68,7 +68,7 @@ angular.module('deckApp')
     function listAccounts() {
       return credentialsEndpoint
         .all('credentials')
-        .withHttpConfig({cache: scheduledCache})
+        .withHttpConfig({cache: infrastructureCaches.credentials})
         .getList();
     }
 
@@ -79,7 +79,7 @@ angular.module('deckApp')
           acc[account] = credentialsEndpoint
             .all('credentials')
             .one(account)
-            .withHttpConfig({cache: scheduledCache})
+            .withHttpConfig({cache: infrastructureCaches.credentials})
             .get();
           return acc;
         }, {})).then(function(result) {
@@ -90,7 +90,9 @@ angular.module('deckApp')
     }
 
     function getAccountDetails(accountName) {
-      return credentialsEndpoint.one('credentials', accountName).get();
+      return credentialsEndpoint.one('credentials', accountName)
+        .withHttpConfig({cache: infrastructureCaches.credentials})
+        .get();
     }
 
     function getRegionsForAccount(accountName) {
