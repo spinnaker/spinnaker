@@ -13,11 +13,11 @@ angular.module('deckApp')
           });
         case 'Completed':
           return tasks.filter(function(task) {
-            return task.status === 'SUCCEEDED';
+            return task.status === 'COMPLETED';
           });
         case 'Errored':
           return tasks.filter(function(task) {
-            return task.status === 'FAILED' || task.status === 'TERMINAL' || task.status === 'SUSPENDED';
+            return task.status === 'FAILED';
           });
         default:
           return tasks;

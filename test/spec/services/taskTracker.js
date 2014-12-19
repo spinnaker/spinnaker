@@ -11,9 +11,6 @@ describe('Service: taskTracker', function() {
       scheduleImmediate: angular.noop,
     };
 
-    this.initialSnapshot = TasksFixture.initialSnapshot;
-    this.secondSnapshot = TasksFixture.secondSnapshot;
-
     spyOn(notifications, 'create');
     spyOn(scheduler, 'scheduleImmediate');
 
@@ -28,8 +25,14 @@ describe('Service: taskTracker', function() {
     this.scheduler = scheduler;
   });
 
-  beforeEach(inject(function(taskTracker) {
+  beforeEach(inject(function(taskTracker, orchestratedItem) {
     this.taskTracker = taskTracker;
+
+    this.initialSnapshot = TasksFixture.initialSnapshot;
+    this.secondSnapshot = TasksFixture.secondSnapshot;
+    this.initialSnapshot.forEach(orchestratedItem.defineProperties);
+    this.secondSnapshot.forEach(orchestratedItem.defineProperties);
+
   }));
 
   describe('getCompleted(old, new)', function() {
@@ -56,11 +59,11 @@ describe('Service: taskTracker', function() {
   });
 
   describe('forceRefreshFromTasks(tasks)', function() {
-    it('checks for a task that has a ForceCacheRefreshStep', function() {
+    it('checks for a task that has a forceCacheRefresh Step', function() {
       function checkForForceCacheRefresh(tasks) {
         return tasks.some(function(task) {
           return task.steps.some(function(step) {
-            return step.name === 'ForceCacheRefreshStep';
+            return step.name === 'forceCacheRefresh';
           });
         });
       }
@@ -72,7 +75,7 @@ describe('Service: taskTracker', function() {
 
     });
 
-    it('calls scheduler.scheduleImmediate when a ForceCacheRefreshStep is found', function() {
+    it('calls scheduler.scheduleImmediate when a forceCacheRefresh Step is found', function() {
       this.taskTracker.forceRefreshFromTasks(this.initialSnapshot);
       expect(this.scheduler.scheduleImmediate).not.toHaveBeenCalled();
 
