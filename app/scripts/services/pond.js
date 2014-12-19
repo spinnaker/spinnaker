@@ -254,9 +254,9 @@ angular.module('deckApp')
         });
         RestangularConfigurer.addElementTransformer('tasks', false, function(task) {
 
-          setStatusProperties(task);
+          orchestratedItem.defineProperties(task);
           if (task.steps && task.steps.length) {
-            task.steps.forEach(setStatusProperties);
+            task.steps.forEach(orchestratedItem.defineProperties);
           }
           setTaskProperties(task);
 
