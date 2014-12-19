@@ -11,7 +11,7 @@ angular.module('deckApp')
       var monitor = {
         submitting: false,
         forceRefreshing: false,
-        forceRefreshEnabled: !!params.forceRefreshEnabled && false, // TODO: Remove once forceRefresh is working again
+        forceRefreshEnabled: !!params.forceRefreshEnabled,
         forceRefreshComplete: false,
         task: null,
         error: false,

@@ -148,13 +148,13 @@ angular.module('deckApp')
           deferred.reject(task);
         }
         if (task.isCompleted || task.isRunning) {
-          var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'ForceCacheRefreshStep'; });
-          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'STARTED' && forceRefreshStep[0].status !== 'EXECUTING') {
+          var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'forceCacheRefresh'; });
+          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'RUNNING') {
             var forceRefreshStatus = forceRefreshStep[0].status;
             if (forceRefreshStatus === 'COMPLETED') {
               deferred.resolve(task);
             }
-            if (forceRefreshStatus === 'FAILED' || forceRefreshStatus === 'STOPPED') {
+            if (forceRefreshStatus === 'FAILED') {
               deferred.reject(task);
             }
           } else {
@@ -238,7 +238,7 @@ angular.module('deckApp')
         runningCount: {
           get: function() {
             return taskCollection.reduce(function(acc, current) {
-              return current.status === 'STARTED' ? acc + 1 : acc;
+              return current.status === 'RUNNING' ? acc + 1 : acc;
             }, 0);
           }
         }

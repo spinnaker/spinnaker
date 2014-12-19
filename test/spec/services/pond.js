@@ -148,7 +148,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         status: 'RUNNING',
         steps: [{
           name: 'forceCacheRefresh',
-          status: 'STARTED'
+          status: 'RUNNING'
         }]
       });
       cycle();
