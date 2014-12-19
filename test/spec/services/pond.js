@@ -125,7 +125,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
       requestHandler.respond(200, { id: 1, status: 'STOPPED' });
       cycle();
       expect(result.id).toBe(1);
-      expect(result.status).toBe('STOPPED');
+      expect(result.status).toBe('FAILED');
     });
 
 
@@ -147,7 +147,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         id: 1,
         status: 'RUNNING',
         steps: [{
-          name: 'ForceCacheRefreshStep',
+          name: 'forceCacheRefresh',
           status: 'STARTED'
         }]
       });
@@ -159,7 +159,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         id: 1,
         status: 'RUNNING',
         steps: [{
-          name: 'ForceCacheRefreshStep',
+          name: 'forceCacheRefresh',
           status: 'COMPLETED'
         }]
       });
@@ -187,7 +187,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         id: 1,
         status: 'RUNNING',
         steps: [{
-          name: 'ForceCacheRefreshStep',
+          name: 'forceCacheRefresh',
           status: 'STARTED'
         }]
       });
@@ -199,7 +199,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         id: 1,
         status: 'RUNNING',
         steps: [{
-          name: 'ForceCacheRefreshStep',
+          name: 'forceCacheRefresh',
           status: 'FAILED'
         }]
       });
@@ -240,7 +240,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
         id: 1,
         status: 'RUNNING',
         steps: [{
-          name: 'ForceCacheRefreshStep',
+          name: 'forceCacheRefresh',
           status: 'STARTED'
         }]
       });

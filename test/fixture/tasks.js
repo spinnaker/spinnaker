@@ -123,7 +123,7 @@ TasksFixture.secondSnapshot = [
     ],
     steps: [
       {
-        name: 'ForceCacheRefreshStep',
+        name: 'forceCacheRefresh',
       }
     ],
   },
@@ -142,7 +142,7 @@ TasksFixture.secondSnapshot = [
     ],
     steps: [
       {
-        name: 'ForceCacheRefreshStep',
+        name: 'forceCacheRefresh',
       }
     ],
   },
@@ -161,7 +161,7 @@ TasksFixture.secondSnapshot = [
     ],
     steps: [
       {
-        name: 'ForceCacheRefreshStep',
+        name: 'forceCacheRefresh',
       }
     ],
   },
@@ -180,7 +180,7 @@ TasksFixture.secondSnapshot = [
     ],
     steps: [
       {
-        name: 'ForceCacheRefreshStep',
+        name: 'forceCacheRefresh',
       }
     ],
   },
@@ -199,7 +199,7 @@ TasksFixture.secondSnapshot = [
     ],
     steps: [
       {
-        name: 'ForceCacheRefreshStep',
+        name: 'forceCacheRefresh',
       }
     ],
   }

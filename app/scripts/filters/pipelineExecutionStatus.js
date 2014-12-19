@@ -15,10 +15,7 @@ angular.module('deckApp')
         case 'COMPLETED':
           return 'COMPLETED';
         case 'FAILED':
-        case 'STOPPED':
           return getStageMatching(execution, 'FAILED')[0];
-        case 'STARTED':
-          return getStageMatching(execution, 'RUNNING')[0];
         case 'RUNNING':
           return getStageMatching(execution, 'RUNNING')[0];
       }

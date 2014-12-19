@@ -18,7 +18,7 @@ angular.module('deckApp')
             return oldTask.id !== task.id;
           });
           var hasBeenSeenIncomplete = oldTasks.some(function(oldTask) {
-            return oldTask.id === task.id && oldTask.status === 'STARTED';
+            return oldTask.id === task.id && oldTask.status === 'RUNNING';
           });
           return hasNotBeenSeen || hasBeenSeenIncomplete;
         });
@@ -32,14 +32,14 @@ angular.module('deckApp')
 
     that.getFailed = function getFailed(oldTasks, newTasks) {
       return that.getTasksMatchingPred(oldTasks, newTasks, function(task) {
-        return task.status === 'FAILED' || task.status === 'STOPPED';
+        return task.status === 'FAILED';
       });
     };
 
     that.forceRefreshFromTasks = function forceRefreshFromTasks(tasks) {
       if (tasks.some(function(task) {
         return task.steps.some(function(step) {
-          return step.name === 'ForceCacheRefreshStep';
+          return step.name === 'forceCacheRefresh';
         });
       })) {
         scheduler.scheduleImmediate();

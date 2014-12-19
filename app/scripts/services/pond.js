@@ -2,44 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato, $exceptionHandler) {
-    function setStatusProperties(item) {
-      Object.defineProperties(item, {
-        isEnqueued: {
-          get: function() {
-            return item.status === 'NOT_STARTED' || item.status === 'STARTED';
-          }
-        },
-        isCompleted: {
-          get: function() {
-            return item.status === 'COMPLETED' || item.status === 'SUCCEEDED';
-          },
-        },
-        isRunning: {
-          get: function() {
-            return item.status === 'RUNNING';
-          },
-        },
-        isFailed: {
-          get: function() {
-            return item.status === 'FAILED' || item.status === 'STOPPED' || item.status === 'TERMINAL';
-          },
-        },
-        isStopped: {
-          get: function() {
-            return item.status === 'STOPPED';
-          }
-        },
-        runningTime: {
-          get: function() {
-            var endTime = item.status === 'STARTED' ? new Date() : parseInt(item.endTime) || parseInt(item.startTime);
-            return momentService
-              .duration(endTime - parseInt(item.startTime))
-              .humanize();
-          }
-        }
-      });
-    }
+  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato, $exceptionHandler, orchestratedItem) {
 
     function getKatoTasks(task) {
       return task.getValueFor('kato.tasks');
@@ -167,7 +130,7 @@ angular.module('deckApp')
         if (task.isCompleted) {
           deferred.resolve(task);
         }
-        if ((task.isRunning || task.isEnqueued) && !deferred.promise.cancelled) {
+        if (task.isRunning && !deferred.promise.cancelled) {
           $timeout(function () {
             task.get().then(function (updatedTask) {
               updateTask(task, updatedTask);
