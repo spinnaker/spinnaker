@@ -24,7 +24,7 @@
         <td>{{instanceType.memory}}</td>
         <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
         <td ng-if="instanceType.storage.type === 'SSD'">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
-        <td><span class="label-cost label-cost-{{instanceType.costFactor}}"></span><span class="sr-only">{{instanceType.costFactor}}&times;</span></td>
+        <td><cost-factor factor="instanceType.costFactor"></cost-factor></td>
       </tr>
       </tbody>
     </table>

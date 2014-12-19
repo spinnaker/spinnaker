@@ -28,10 +28,7 @@
       <dt>Storage (GB):</dt>
       <dd>{{selectedInstanceProfile.stats.storage.min}} &ndash; {{selectedInstanceProfile.stats.storage.max}}</dd>
       <dt>Cost:</dt>
-      <dd><span class="label-cost label-cost-{{selectedInstanceProfile.stats.costFactor.min}}"></span>
-        &ndash;
-        <span class="label-cost label-cost-{{selectedInstanceProfile.stats.costFactor.max}}"></span>
-      </dd>
+      <dd><cost-factor range="selectedInstanceProfile.stats.costFactor"></cost-factor></dd>
     </dl>
   </div>
 </div>
