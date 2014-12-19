@@ -82,7 +82,7 @@ angular.module('deckApp')
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
         destructive: true,
-        account: loadBalancer.account,
+        account: loadBalancer.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
