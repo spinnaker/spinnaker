@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.echo
 
 import javax.xml.ws.Response
-import retrofit.http.*
+import retrofit.http.Body
+import retrofit.http.GET
+import retrofit.http.POST
+import retrofit.http.Path
 
 interface EchoService {
 
   @POST('/')
-  Response recordEvent(@Body HashMap notification)
+  Response recordEvent(@Body Map<String, ?> notification)
 
   @GET('/events/recent/{type}/{time}/')
-  retrofit.client.Response getEvents(@Path("type") String type, @Path("time") Long time)
+  retrofit.client.Response getEvents(
+      @Path("type") String type, @Path("time") Long time)
 }

@@ -86,7 +86,7 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     0 * echoService._
 
     where:
-    batchStatus | _
+    batchStatus          | _
     BatchStatus.STARTED  | _
     BatchStatus.STARTING | _
   }
@@ -112,6 +112,7 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     message.details.source == "Orca"
     message.details.application == pipeline.application
     message.details.type == "orca:task:$echoMessage"
+    message.details.type instanceof String
 
     where:
     batchStatus           | exitStatus           | echoMessage
