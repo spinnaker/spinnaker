@@ -6,7 +6,7 @@ angular.module('deckApp')
       restrict: 'E',
       scope: {
         command: '=',
-        applicationName: '=',
+        application: '=',
         hideClusterNamePreview: '=',
       },
       templateUrl: 'views/application/modal/serverGroup/aws/serverGroupBasicSettingsDirective.html',
@@ -47,12 +47,17 @@ angular.module('deckApp')
       imageSearchResultsStream.onNext(q);
     };
 
+    this.createsNewCluster = function() {
+      var name = this.getNamePreview();
+      return !_.find($scope.application.clusters, { name: name });
+    };
+
     this.getNamePreview = function() {
       var command = $scope.command;
       if (!command) {
         return '';
       }
-      return serverGroupService.getClusterName($scope.applicationName, command.stack, command.freeFormDetails);
+      return serverGroupService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
 
     // Use undefined to check for the presence of the 'strategy' field, which is added to the command

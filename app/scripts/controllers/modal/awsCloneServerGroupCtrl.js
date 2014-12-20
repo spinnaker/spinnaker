@@ -8,6 +8,7 @@ angular.module('deckApp.aws')
     $scope.title = title;
 
     $scope.applicationName = application.name;
+    $scope.application = application;
 
     $scope.command = serverGroupCommand;
 
