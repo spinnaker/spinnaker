@@ -35,7 +35,7 @@ angular.module('deckApp.delivery')
 
     function fixExecutionTime(execution) {
       if (execution.stages && execution.stages.length) {
-        execution.startTime = execution.stages[0].startTime;
+        execution.startTime = Math.min(execution.stages[0].startTime, execution.startTime);
       }
     }
 
