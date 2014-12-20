@@ -29,7 +29,7 @@
             <td>{{ stage.name }}</td>
             <td>
               <span class="label label-default label-{{ stage.status | lowercase }}">
-                {{ stage.status }}
+                {{ stage.status | lowercase | robotToHuman }}
               </span>
             </td>
             <td>{{ stage.startTime | relativeTime }}</td>
