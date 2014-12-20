@@ -38,7 +38,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
     stage.context.putAll(config)
   }
 
-  def "creates a delete ELB task based on job parameters"() {
+  def "creates a delete security group task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
