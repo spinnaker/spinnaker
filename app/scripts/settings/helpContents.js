@@ -38,4 +38,9 @@ angular.module('deckApp')
       'the configuration based on the newest server group in the cluster.</p>' +
       '<p>If you want to start from scratch, select "None".</p>' +
       '<p>You can always edit the cluster configuration after you\'ve created it.</p>',
+
+    'loadBalancer.advanceSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target. Default: 5</p>',
+    'loadBalancer.advanceSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks. Default: 10</p>',
+    'loadBalancer.advanceSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation. Default: 10</p>',
+    'loadBalancer.advanceSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB. Default: 2</p>'
   });

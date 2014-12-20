@@ -115,6 +115,11 @@ angular.module('deckApp')
         }
 
         if (elb.healthCheck && elb.healthCheck.target) {
+          toEdit.healthTimeout = elb.healthCheck.timeout;
+          toEdit.healthInterval = elb.healthCheck.interval;
+          toEdit.healthyThreshold = elb.healthCheck.healthyThreshold;
+          toEdit.unhealthyThreshold = elb.healthCheck.unhealthyThreshold;
+
           var healthCheck = loadBalancer.elb.healthCheck.target;
           var protocolIndex = healthCheck.indexOf(':'),
             pathIndex = healthCheck.indexOf('/');
@@ -140,6 +145,10 @@ angular.module('deckApp')
         healthCheckProtocol: 'HTTP',
         healthCheckPort: 7001,
         healthCheckPath: '/health',
+        healthTimeout: 5,
+        healthInterval: 10,
+        healthyThreshold: 10,
+        unhealthyThreshold: 2,
         regionZones: [],
         securityGroups: [],
         listeners: [
