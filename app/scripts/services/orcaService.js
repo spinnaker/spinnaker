@@ -53,11 +53,11 @@ angular.module('deckApp')
 
     function createApplication(app) {
       return executeTask({
+        supressNotification: true,
         job: [
           {
             type: 'createApplication',
-            account: app.account,
-            supressNotification: true,
+            account: app.account,            
             application: {
               name: app.name,
               description: app.description,
