@@ -40,7 +40,7 @@ class DestroyGoogleReplicaPoolTask implements Task {
       "deploy.account.name" : operation.credentials,
       "kato.last.task.id"   : taskId,
       "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": [(operation.zone): [operation.replicaPoolName]],
+      "deploy.server.groups": [(operation.region): [operation.replicaPoolName]],
     ])
   }
 
@@ -48,6 +48,7 @@ class DestroyGoogleReplicaPoolTask implements Task {
     def operation = [:]
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName
+    operation.region = operation.regions ? operation.regions[0] : null
     operation.zone = operation.zones ? operation.zones[0] : null
     operation
   }
