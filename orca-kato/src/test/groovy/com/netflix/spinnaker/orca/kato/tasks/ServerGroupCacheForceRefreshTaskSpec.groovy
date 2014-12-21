@@ -44,7 +44,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
     then:
     1 * task.oort.forceCacheUpdate(ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
-      assert body.asgName == (deployConfig."server.groups"."us-east-1").get(0)
+      assert body.asgName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
       assert body.account == deployConfig."account.name"
       assert body.region == "us-east-1"
     }
