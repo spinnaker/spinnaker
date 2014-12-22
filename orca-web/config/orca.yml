@@ -1,10 +1,10 @@
 server:
   port: 8083
 
+front50:
+  baseUrl: http://localhost:8080
 oort:
   baseUrl: http://localhost:8081
-front50:
-  baseUrl: http://front50-${netflix.stack}.${netflix.environment}.netflix.net
 mort:
   baseUrl: http://localhost:8082
 kato:
