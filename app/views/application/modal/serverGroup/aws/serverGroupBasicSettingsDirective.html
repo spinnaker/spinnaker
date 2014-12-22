@@ -1,14 +1,3 @@
-<div class="form-group" ng-if="!hideClusterNamePreview">
-  <div class="col-md-12" ng-class="basicSettingsCtrl.createsNewCluster() ? 'alert alert-warning' : 'well'">
-    <h5>
-      <strong>Your server group will be in the cluster:</strong>
-      <span>{{basicSettingsCtrl.getNamePreview()}}</span>
-    </h5>
-    <h4 ng-if="basicSettingsCtrl.createsNewCluster()">
-      <span class="glyphicon glyphicon-info-sign"></span> This server group will create a new cluster.
-    </h4>
-  </div>
-</div>
 <div class="form-group">
   <div class="col-md-2 sm-label-left">
     <b>Account</b>
@@ -85,5 +74,18 @@
         <div ng-bind-html="strategy.description"></div>
       </ui-select-choices>
     </ui-select>
+  </div>
+</div>
+<div class="form-group" ng-if="!hideClusterNamePreview">
+  <div class="col-md-9 col-md-offset-2">
+    <div class="well-compact" ng-class="basicSettingsCtrl.createsNewCluster() ? 'alert alert-warning' : 'well'">
+      <h5 class="text-center">
+        <p>Your server group will be in the cluster:</p>
+        <strong>
+          {{basicSettingsCtrl.getNamePreview()}}
+          <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
+        </strong>
+      </h5>
+    </div>
   </div>
 </div>
