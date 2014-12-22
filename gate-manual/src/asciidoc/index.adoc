@@ -33,7 +33,7 @@ Presently, all orchestrated stages need to be scoped to an application, and wrap
 ----
 {
     "application": "kato",
-    "description": "bake",
+    "name": "bake",
     "stages": [{
         "type": "bake",
         "region": "us-east-1",
@@ -139,7 +139,7 @@ An example payload of chained stages can be seen in Listing 1.3.
 ----
 {
     "application": "kato",
-    "description": "bake and deploy",
+    "name": "bake and deploy",
     "stages": [{
         "type": "bake",
         "region": "us-east-1",
@@ -191,6 +191,8 @@ include::bakeStage.adoc[]
 include::copyLastAsgStage.adoc[]
 - - -
 include::deleteAmazonLoadBalancer.adoc[]
+- - -
+include::deleteSecurityGroup.adoc[]
 - - -
 include::deleteApplicationStage.adoc[]
 - - -
