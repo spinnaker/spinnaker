@@ -56,5 +56,5 @@ subprojects {
   }
 }
 
-defaultTasks "build"
 tasks.checkSnapshotDependencies.enabled = false
+defaultTasks ":orca-web:bootRun"
