@@ -25,3 +25,5 @@ allprojects {
     compile spinnaker.dependency('bootActuator')
   }
 }
+
+defaultTasks ':mort-web:bootRun'

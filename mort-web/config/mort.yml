@@ -2,5 +2,14 @@ server:
   port: 8082
 
 aws:
-  enabled: true
+  enabled: ${AWS_ENABLED:false}
+
+gce:
+  enabled: ${GCE_ENABLED:false}
+
+docker:
+  enabled: ${DOCKER_ENABLED:false}
+
+titan:
+  enabled: ${TITAN_ENABLED:false}
 
