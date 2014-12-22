@@ -39,7 +39,7 @@ class ResizeGoogleReplicaPoolTask implements Task {
       "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
       "kato.last.task.id"   : taskId,
       "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.zone): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
+      "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.region): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
     ])
   }
 
@@ -48,6 +48,7 @@ class ResizeGoogleReplicaPoolTask implements Task {
     operation.putAll(stage.context)
     operation.replicaPoolName = operation.asgName
     operation.numReplicas = operation.capacity.desired
+    operation.region = operation.regions ? operation.regions[0] : null
     operation.zone = operation.zones ? operation.zones[0] : null
     operation
   }
