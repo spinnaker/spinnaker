@@ -110,20 +110,33 @@ class DeployStageSpec extends Specification {
     then:
     "should call to oort to get the last ASG so that we know what to disable"
     1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
-      def cluster = [serverGroups: [[
-                                        name  : "pond-prestaging-v000",
-                                        region: "us-east-1"
-                                    ]]]
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(cluster)
-          )
-      )
+      def cluster = [serverGroups: [[name  : "pond-prestaging-v000",region: "us-west-1"]]]
+      new Response("foo", 200, "ok", [], new TypedByteArray("application/json",objectMapper.writeValueAsBytes(cluster)))
     }
     1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
     steps[-1] == disableAsgTask
+  }
+
+  void "should choose the ancestor asg from the same region when redblack is selected"() {
+    setup:
+      def pipeline = new Pipeline()
+      def config = mapper.readValue(configJson, Map)
+      config.cluster.strategy = "redblack"
+      def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+      def disableAsgTask = deployStage.buildStep("foo", TestTask)
+
+    when:
+      deployStage.buildSteps(stage)
+
+    then:
+      "should call to oort to get the last ASG so that we know what to disable"
+      1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+        def cluster = [serverGroups: [[name  : "pond-prestaging-v000",region: "us-east-1"],
+                                      [name: "pond-prestaging-v000", region: "us-west-1"]]]
+        new Response("foo", 200, "ok", [], new TypedByteArray("application/json",objectMapper.writeValueAsBytes(cluster)))
+      }
+      1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
+      stage.context."disableAsg".regions[0] == config.cluster.availabilityZones.keySet()[0]
   }
 
   void "should create tasks of basicDeploy, disableAsg, and resizeAsg when strategy is redblack and scaleDown is true"() {
@@ -144,7 +157,7 @@ class DeployStageSpec extends Specification {
     1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
       def cluster = [serverGroups: [[
                                       name  : "pond-prestaging-v000",
-                                      region: "us-east-1"
+                                      region: "us-west-1"
                                     ]]]
       new Response(
         "foo", 200, "ok", [],
@@ -177,7 +190,7 @@ class DeployStageSpec extends Specification {
     1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
       def cluster = [serverGroups: [[
                                         name  : "pond-prestaging-v000",
-                                        region: "us-east-1"
+                                        region: "us-west-1"
                                     ]]]
       new Response(
           "foo", 200, "ok", [],

@@ -86,7 +86,7 @@ abstract class DeployStrategyStage extends LinearStage {
     def steps = basicSteps()
 
     def clusterConfig = determineClusterForCleanup(stage)
-    def lastAsg = getLastAsg(clusterConfig.app, clusterConfig.account, clusterConfig.cluster)
+    def lastAsg = getLastAsg(clusterConfig.app, clusterConfig.account, clusterConfig.cluster, clusterConfig.region)
     if (lastAsg) {
       def disableInputs = [asgName: lastAsg.name, regions: [lastAsg.region], credentials: clusterConfig.account]
       stage.context."disableAsg" = disableInputs
@@ -121,8 +121,8 @@ abstract class DeployStrategyStage extends LinearStage {
   }
 
   @CompileDynamic
-  private Map getLastAsg(String app, String account, String cluster) {
-    getExistingAsgs(app, account, cluster).sort { a, b -> b.name <=> a.name }?.getAt(0)
+  private Map getLastAsg(String app, String account, String cluster, String region) {
+    getExistingAsgs(app, account, cluster).findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
   }
 
   @CompileDynamic
@@ -142,15 +142,24 @@ abstract class DeployStrategyStage extends LinearStage {
     String account
     String app
     String cluster
+    String region
 
     @CompileDynamic
     static ClusterConfig fromContext(Map context) {
       String account = context.account
       String app = context.cluster.application
       String stack = context.cluster.stack
+      String region
+      if (context.containsKey("availabilityZones")) {
+        region = ((Map)context.availabilityZones).keySet().getAt(0)
+      } else if (context.containsKey("cluster") && context.cluster.containsKey("availabilityZones")) {
+        region = ((Map)context.cluster.availabilityZones).keySet().getAt(0)
+      } else {
+        throw new IllegalArgumentException("Cowardishly failing because couldn't ascertain the target region.")
+      }
       String cluster = "$app${stack ? '-' + stack : ''}"
 
-      new ClusterConfig(account, app, cluster)
+      new ClusterConfig(account, app, cluster, region)
     }
   }
 }
