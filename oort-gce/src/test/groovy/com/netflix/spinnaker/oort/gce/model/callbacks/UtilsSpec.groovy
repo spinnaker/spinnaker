@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.com.netflix.spinnaker.oort.gce.model.callbacks
+package com.netflix.spinnaker.oort.gce.model.callbacks
 
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster

@@ -48,8 +48,7 @@ class GoogleResourceRetriever {
   @Autowired
   GoogleConfigurationProperties googleConfigurationProperties
 
-  // TODO(duftler): Make this protected once the test package tree matches the source package tree.
-  Lock cacheLock = new ReentrantLock()
+  protected Lock cacheLock = new ReentrantLock()
 
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private appMap = new HashMap<String, GoogleApplication>()
