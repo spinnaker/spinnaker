@@ -50,9 +50,6 @@ dependencies {
 tasks.bootRepackage.enabled = false
 
 applicationName = 'kato'
-applicationDistribution.from(project.file('config')) {
-  into 'config'
-}
 
 sourceSets {
   main {
