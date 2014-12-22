@@ -30,6 +30,6 @@ CAUTION: This operation marks the end of a Security Group's life. The process ca
 |Key               | Type   | Required | Value
 |securityGroupName | string | true     | The name of the security group.
 |vpcId             | string | false    | The id of VPC where the security group should be deleted. It is not needed for EC2 classic or the default VPC.
-|regions           | array  | true     | An object that provides a named region to array of region names. For example, +["us-east-1", "us-west-1"]+ will inform the deployment engine to delete the ELB those specific regions.
+|regions           | array  | true     | An object that provides a named region to array of region names. For example, +["us-east-1", "us-west-1"]+ will inform the deployment engine to delete from those specific regions.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================

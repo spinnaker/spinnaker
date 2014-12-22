@@ -28,6 +28,6 @@ CAUTION: This operation marks the end of a Load Balancer's life. The process can
 |======================
 |Key               | Type   | Required | Value
 |loadBalancerName  | string | true     | The name of the load balancer.
-|regions           | array  | true     | An object that provides a named region to array of region names. For example, +["us-east-1", "us-west-1"]+ will inform the deployment engine to delete the ELB those specific regions.
+|regions           | array  | true     | An object that provides a named region to array of region names. For example, +["us-east-1", "us-west-1"]+ will inform the deployment engine to delete from those specific regions.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================
