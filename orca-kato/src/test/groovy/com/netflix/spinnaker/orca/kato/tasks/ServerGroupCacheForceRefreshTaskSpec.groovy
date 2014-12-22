@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import retrofit.client.Response
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -38,15 +40,19 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   void "should force cache refresh server groups via oort"() {
     setup:
     task.oort = Mock(OortService)
+    Map expectations = [:]
 
     when:
-    task.execute(stage.asImmutable())
+    def result = task.execute(stage.asImmutable())
 
     then:
     1 * task.oort.forceCacheUpdate(ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
-      assert body.asgName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
-      assert body.account == deployConfig."account.name"
-      assert body.region == "us-east-1"
+      expectations = body
+      return new Response('oort', 202, 'ok', [], new TypedString("[]"))
     }
+    expectations.asgName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
+    expectations.account == deployConfig."account.name"
+    expectations.region == "us-east-1"
+    result.outputs == [:]
   }
 }
