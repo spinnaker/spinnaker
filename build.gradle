@@ -55,3 +55,5 @@ subprojects { project ->
 }
 
 tasks.checkSnapshotDependencies.enabled = false
+
+defaultTasks ':kato-web:bootRun'
