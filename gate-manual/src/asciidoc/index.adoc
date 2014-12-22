@@ -34,7 +34,7 @@ Presently, all orchestrated stages need to be scoped to an application, and wrap
 {
     "application": "kato",
     "description": "bake",
-    "job": [{
+    "stages": [{
         "type": "bake",
         "region": "us-east-1",
         "user": "orca",
@@ -140,7 +140,7 @@ An example payload of chained stages can be seen in Listing 1.3.
 {
     "application": "kato",
     "description": "bake and deploy",
-    "job": [{
+    "stages": [{
         "type": "bake",
         "region": "us-east-1",
         "user": "orca",
