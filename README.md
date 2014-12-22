@@ -13,7 +13,7 @@ This project requires JDK7 or higher to build. There is [JVM bug](https://jira.c
 Quick Use
 ===
 
-`./gradlew build kato-web:bootRun`
+`./gradlew`
 
 Bootstrapping
 ===
@@ -28,11 +28,6 @@ Documentation
 ===
 
 Start an instance of Kato and point to `/manual/index.html`.
-
-Authors
-===
-
-Dan Woods
 
 Copyright and License
 ===
