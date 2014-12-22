@@ -31,12 +31,36 @@ ideaConfig {
   mainClassName = 'com.netflix.spinnaker.front50.Main'
 }
 
-applicationDefaultJvmArgs = ["-Dserver.port=8080", "-Dspinnaker.cassandra.enabled=true", "-Daws.enabled=false" /* always use the global registry */,
-                             "-Dspinnaker.cassandra.cluster=CASS_SPINNAKER", "-Dspinnaker.cassandra.keyspace=front50",
-                             "-javaagent:/opt/front50/lib/jamm-0.2.5.jar", "-Dspinnaker.cassandra.name=default"]
+if (file("/opt/front50/lib").exists()) {
+  applicationDefaultJvmArgs = ['-javaagent:$APP_HOME/lib/jamm-0.2.5.jar']
+} else {
+  applicationDefaultJvmArgs = ['-javaagent:build/install/front50-web/lib/jamm-0.2.5.jar']
+}
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
+sourceSets {
+  main {
+    resources {
+      srcDir 'src/main/resources'
+      srcDir 'config'
+    }
+  }
+}
+
+jar {
+  doFirst { 
+    exclude "${rootProject.name}.yml"
+  }
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
 }
 
 dependencies {

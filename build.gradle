@@ -36,3 +36,5 @@ allprojects { project ->
     spinnaker.group("test")
   }
 }
+
+defaultTasks ':front50-web:bootRun'
