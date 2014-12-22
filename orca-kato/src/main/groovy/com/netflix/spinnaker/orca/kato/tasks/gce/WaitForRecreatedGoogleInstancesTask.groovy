@@ -30,8 +30,6 @@ class WaitForRecreatedGoogleInstancesTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 600000
 
-  private long taskCreationTime = System.currentTimeMillis()
-
   @Autowired
   OortService oortService
 
@@ -41,9 +39,16 @@ class WaitForRecreatedGoogleInstancesTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     List<String> instanceIds = stage.context."terminate.instance.ids"
+    List<Long> launchTimes = stage.context.launchTimes
 
-    if (!instanceIds || !instanceIds.size()) {
+    if (!instanceIds || !launchTimes || instanceIds.size() != launchTimes.size()) {
       return new DefaultTaskResult(ExecutionStatus.FAILED)
+    }
+
+    Map<String, Long> launchTimesMap = new HashMap<String, Long>()
+
+    for (int i = 0; i < instanceIds.size; i++) {
+      launchTimesMap[instanceIds[i]] = launchTimes[i]
     }
 
     def notAllRecreated = instanceIds.find { String instanceId ->
@@ -51,7 +56,7 @@ class WaitForRecreatedGoogleInstancesTask implements RetryableTask {
         def response = oortService.getInstance(stage.context.credentials, stage.context.region, instanceId)
         def instanceQueryResult = objectMapper.readValue(response.body.in().text, Map)
 
-        return !instanceQueryResult || instanceQueryResult.launchTime < taskCreationTime
+        return !instanceQueryResult || instanceQueryResult.launchTime == launchTimesMap[instanceId]
       } catch (RetrofitError e) {
         // 404 causes this Error to be thrown. If the cache was refreshed while the instance was non-existent,
         // oort will 404.

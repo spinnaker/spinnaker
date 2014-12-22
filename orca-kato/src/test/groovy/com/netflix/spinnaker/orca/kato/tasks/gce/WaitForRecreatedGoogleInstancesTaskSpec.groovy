@@ -53,7 +53,8 @@ class WaitForRecreatedGoogleInstancesTaskSpec extends Specification {
       def stage = new PipelineStage(pipeline, "whatever", [
         "credentials": CREDENTIALS,
         "region": REGION,
-        "terminate.instance.ids": [instanceId]
+        "terminate.instance.ids": [instanceId],
+        "launchTimes": [THE_PAST]
       ]).asImmutable()
 
     expect:
@@ -75,7 +76,8 @@ class WaitForRecreatedGoogleInstancesTaskSpec extends Specification {
       def stage = new PipelineStage(pipeline, "whatever", [
         "credentials": CREDENTIALS,
         "region": REGION,
-        "terminate.instance.ids": instanceIds
+        "terminate.instance.ids": instanceIds,
+        "launchTimes": [THE_PAST, THE_PAST]
       ]).asImmutable()
 
     expect:
@@ -96,7 +98,8 @@ class WaitForRecreatedGoogleInstancesTaskSpec extends Specification {
       def stage = new PipelineStage(pipeline, "whatever", [
         "credentials": CREDENTIALS,
         "region": REGION,
-        "terminate.instance.ids": instanceIds
+        "terminate.instance.ids": instanceIds,
+        "launchTimes": [THE_PAST, THE_PAST]
       ]).asImmutable()
 
     expect:
