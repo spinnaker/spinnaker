@@ -204,6 +204,7 @@ angular.module('deckApp')
           {
             type: 'terminateInstances',
             instanceIds: [instance.instanceId],
+            launchTimes: [instance.launchTime],
             region: instance.region,
             zone: instance.placement.availabilityZone,
             credentials: instance.account,
