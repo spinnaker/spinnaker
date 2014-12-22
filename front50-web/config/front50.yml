@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 
 aws:
   enabled: ${AWS_ENABLED:false}
