@@ -6,7 +6,7 @@
 
 ====== Description
 
-This stage provides orchestration for deleting an Amazon Elastic Load Balancer. This is a destructive process, which cannot be reversed. If the provided +loadBalancerName+ is not found for _all_ provided +regions+, the operation will fail validation.
+This stage provides orchestration for deleting an Amazon Elastic Load Balancer. This is a destructive process, which cannot be reversed.
 
 CAUTION: This operation marks the end of a Load Balancer's life. The process cannot be undone, and the configuration cannot be reconstituted. A load balancer of the same configuration will need to be recreated from scratch.
 
@@ -16,7 +16,7 @@ _orca_, _kato_, _oort_
 
 ====== Steps
 
-_deleteAmazonLoadBalancer_, _forceCacheRefresh_, _monitorDelete_, _sendNotification_
+_deleteAmazonLoadBalancer_, _forceCacheRefresh_, _monitorDelete_
 
 ====== Example Request Body
 [source,javascript]
@@ -35,7 +35,7 @@ _deleteAmazonLoadBalancer_, _forceCacheRefresh_, _monitorDelete_, _sendNotificat
 |======================
 |Key               | Type   | Required | Value
 |loadBalancerName  | string | true     | The name of the load balancer.
-|regions           | array  | true     | An object that provides a named region to array of region names. For example, +["us-east-1", "us-west-1"]+ will inform the deployment engine to delete the ELB those specific regions.
+|regions           | array  | true     | An object that provides a named region to array of region names. For example, +["us-east-1", "us-west-1"]+ will inform the deployment engine to delete from those specific regions.
 |credentials       | string | true     | The named account credentials that are to be used for this operation.
 |======================
 
