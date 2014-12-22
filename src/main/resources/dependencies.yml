@@ -91,6 +91,8 @@ groups:
       - okHttp
       - okHttpUrlconnection
       - retrofitJackson
+    test:
+      - retrofitMock
   test:
     testCompile:
       - bootTest
@@ -153,6 +155,7 @@ dependencies:
   redisEmbedded: "com.orange.redis-embedded:embedded-redis:${versions.redisEmbedded}"
   retrofit: "com.squareup.retrofit:retrofit:${versions.retrofit}"
   retrofitJackson: "com.squareup.retrofit:converter-jackson:${versions.retrofit}"
+  retrofitMock: "com.squareup.retrofit:retrofit-mock:${versions.retrofit}"
   rxJava: "io.reactivex:rxjava:${versions.rxJava}"
   spectatorApi: "com.netflix.spectator:spectator-api:${versions.spectator}"
   slf4j: "org.slf4j:jcl-over-slf4j:${versions.slf4j}"
