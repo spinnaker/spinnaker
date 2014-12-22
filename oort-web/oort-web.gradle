@@ -35,6 +35,15 @@ applicationDistribution.from(project.file('config')) {
   into "config"
 }
 
+sourceSets {
+  main {
+    resources {
+      srcDir 'config'
+      srcDir 'src/main/resources'
+    }
+  }
+}
+
 startScripts {
   doLast {
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
