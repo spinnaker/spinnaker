@@ -60,6 +60,12 @@ sourceSets {
   }
 }
 
+jar {
+  doFirst { 
+    exclude "${rootProject.name}.yml"
+  }
+}
+
 startScripts {
   doLast {
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')

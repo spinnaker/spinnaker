@@ -30,7 +30,7 @@ class Main extends SpringBootServletInitializer {
 
   static final Map<String, String> DEFAULT_PROPS = [
           'netflix.environment': 'test',
-          'netflix.account': 'test',
+          'netflix.account': System.getProperty('netflix.environment', 'test'),
           'netflix.stack': 'test',
           'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
           'spring.config.name': 'kato',
