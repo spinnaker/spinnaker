@@ -43,7 +43,6 @@ angular.module('deckApp.delivery')
       var deferred = $q.defer();
       $http({
         method: 'GET',
-        cache: applicationLevelScheduledCache,
         transformResponse: appendTransform(function(executions) {
           executions.forEach(function(execution) {
             orchestratedItem.defineProperties(execution);
