@@ -34,12 +34,19 @@ applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
 applicationDistribution.from(project.file('config')) {
   into "config"
 }
+
 sourceSets {
   main {
     resources {
       srcDir 'src/main/resources'
       srcDir 'config'
     }
+  }
+}
+
+jar {
+  doFirst { 
+    exclude "${rootProject.name}.yml"
   }
 }
 
