@@ -72,23 +72,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
       def appName = names.app.toLowerCase()
 
       if (appName) {
-        if (!tempAppMap[appName]) {
-          tempAppMap[appName] = new GoogleApplication(name: appName)
-        }
-
-        if (!tempAppMap[appName].clusterNames[accountName]) {
-          tempAppMap[appName].clusterNames[accountName] = new HashSet<String>()
-          tempAppMap[appName].clusters[accountName] = new HashMap<String, GoogleCluster>()
-        }
-
-        if (!tempAppMap[appName].clusters[accountName][names.cluster]) {
-          tempAppMap[appName].clusters[accountName][names.cluster] = new GoogleCluster(name: names.cluster,
-                                                                                       accountName: accountName)
-        }
-
-        def cluster = tempAppMap[appName].clusters[accountName][names.cluster]
-
-        tempAppMap[appName].clusterNames[accountName] << names.cluster
+        def cluster = Utils.retrieveOrCreatePathToCluster(tempAppMap, accountName, appName, names.cluster)
 
         // instanceGroupManager.name == names.group
         def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, region)

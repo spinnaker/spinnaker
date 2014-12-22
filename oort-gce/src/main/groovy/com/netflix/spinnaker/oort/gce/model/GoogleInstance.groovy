@@ -16,12 +16,32 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import com.netflix.spinnaker.oort.model.Instance
 
 class GoogleInstance extends HashMap implements Instance, Serializable {
 
+  GoogleInstance() {
+    this(null)
+  }
+
   GoogleInstance(String name) {
     setProperty "name", name
+  }
+
+  // Used as a deep copy-constructor.
+  public static GoogleInstance newInstance(GoogleInstance originalGoogleInstance) {
+    GoogleInstance copyGoogleInstance = new GoogleInstance()
+
+    originalGoogleInstance.keySet().each { key ->
+      def valueCopy = Utils.getImmutableCopy(originalGoogleInstance[key])
+
+      if (valueCopy) {
+        copyGoogleInstance[key] = valueCopy
+      }
+    }
+
+    copyGoogleInstance
   }
 
   @Override

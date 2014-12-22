@@ -31,4 +31,21 @@ class GoogleCluster implements Cluster, Serializable {
   String accountName
   Set<GoogleServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<GoogleServerGroup>())
   Set<LoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<LoadBalancer>())
+
+  // Used as a deep copy-constructor.
+  public static GoogleCluster newInstance(GoogleCluster originalGoogleCluster) {
+    GoogleCluster copyGoogleCluster = new GoogleCluster(name: originalGoogleCluster.name,
+                                                        type: originalGoogleCluster.type,
+                                                        accountName: originalGoogleCluster.accountName)
+
+    originalGoogleCluster.serverGroups.each { originalServerGroup ->
+      copyGoogleCluster.serverGroups << GoogleServerGroup.newInstance(originalServerGroup)
+    }
+
+    // TODO(duftler): Flesh this out when GoogleLoadBalancer exists (which will be shortly).
+//    originalGoogleCluster.loadBalancers.each { originalLoadBalancer ->
+//    }
+
+    copyGoogleCluster
+  }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 
@@ -32,6 +33,29 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
     setProperty "zones", new HashSet<>()
     setProperty "instances", new HashSet<>()
     setProperty "health", new HashSet<>()
+  }
+
+  // Used as a deep copy-constructor.
+  public static GoogleServerGroup newInstance(GoogleServerGroup originalGoogleServerGroup) {
+    GoogleServerGroup copyGoogleServerGroup = new GoogleServerGroup()
+
+    originalGoogleServerGroup.getMetaClass().getProperties().each { metaProperty ->
+      def propertyName = metaProperty.name
+
+      if (propertyName.equals("instances")) {
+        originalGoogleServerGroup.instances.each { originalInstance ->
+          copyGoogleServerGroup.instances << GoogleInstance.newInstance((GoogleInstance) originalInstance)
+        }
+      } else {
+        def valueCopy = Utils.getImmutableCopy(originalGoogleServerGroup.getProperty(propertyName))
+
+        if (valueCopy) {
+          copyGoogleServerGroup.setProperty(propertyName, valueCopy)
+        }
+      }
+    }
+
+    copyGoogleServerGroup
   }
 
   @Override

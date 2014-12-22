@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.oort.model.gce
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
+import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import spock.lang.Specification
 
 class GoogleResourceRetrieverSpec extends Specification {
@@ -52,5 +55,93 @@ class GoogleResourceRetrieverSpec extends Specification {
       credentialsMap.keySet() == ["account-1", "account-2"] as Set
       credentialsMap["account-1"] == [credentials1] as Set
       credentialsMap["account-2"] == [credentials2a, credentials2b] as Set
+  }
+
+  void "cache update is skipped when cacheLock cannot be obtained"() {
+    setup:
+      def googleResourceRetriever = new GoogleResourceRetriever()
+      def originalAppMap = googleResourceRetriever.applicationsMap
+
+    when:
+      googleResourceRetriever.cacheLock.lock()
+
+      // Need to attempt to acquire the lock in a different thread (lock is reentrant).
+      Thread.start {
+        googleResourceRetriever.handleCacheUpdate([serverGroupName: "testapp-dev-v000", account: "account-1"])
+      }.join()
+
+    then:
+      googleResourceRetriever.applicationsMap.is(originalAppMap)
+  }
+
+  void "new applications map is created on update"() {
+    setup:
+      def googleResourceRetriever = new GoogleResourceRetriever()
+      def originalAppMap = googleResourceRetriever.applicationsMap
+
+    when:
+      googleResourceRetriever.createUpdatedApplicationMap("account-1", "testapp-dev-v000", null)
+
+    then:
+      !googleResourceRetriever.applicationsMap.is(originalAppMap)
+  }
+
+  void "old server group is removed on update"() {
+    setup:
+      def googleResourceRetriever = new GoogleResourceRetriever()
+      def cluster =
+        Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
+
+    when:
+      cluster.serverGroups << new GoogleServerGroup(name: "testapp-dev-v000")
+      cluster.serverGroups << new GoogleServerGroup(name: "testapp-dev-v001")
+
+    then:
+      cluster.serverGroups.collect { serverGroup ->
+        serverGroup.name
+      } as Set == ["testapp-dev-v000", "testapp-dev-v001"] as Set
+
+    when:
+      googleResourceRetriever.createUpdatedApplicationMap("account-1", "testapp-dev-v000", null)
+      cluster =
+        Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
+
+    then:
+      cluster.serverGroups.collect { serverGroup ->
+        serverGroup.name
+      } == ["testapp-dev-v001"]
+  }
+
+  void "new server group is added on update"() {
+    setup:
+      def googleResourceRetriever = new GoogleResourceRetriever()
+      def cluster =
+        Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
+
+    when:
+      cluster.serverGroups << new GoogleServerGroup(name: "testapp-dev-v000", zones: ["us-central1-a"])
+      cluster.serverGroups << new GoogleServerGroup(name: "testapp-dev-v001")
+
+    then:
+      cluster.serverGroups.collect { serverGroup ->
+        serverGroup.name
+      } as Set == ["testapp-dev-v000", "testapp-dev-v001"] as Set
+      cluster.serverGroups.find { serverGroup ->
+        serverGroup.name == "testapp-dev-v000"
+      }.zones == ["us-central1-a"]
+
+    when:
+      googleResourceRetriever.createUpdatedApplicationMap(
+        "account-1", "testapp-dev-v000", new GoogleServerGroup(name: "testapp-dev-v000", zones: ["us-central1-f"]))
+      cluster =
+        Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
+
+    then:
+      cluster.serverGroups.collect { serverGroup ->
+        serverGroup.name
+      } as Set == ["testapp-dev-v000", "testapp-dev-v001"] as Set
+      cluster.serverGroups.find { serverGroup ->
+        serverGroup.name == "testapp-dev-v000"
+      }.zones == ["us-central1-f"]
   }
 }
