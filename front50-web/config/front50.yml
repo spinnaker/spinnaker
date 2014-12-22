@@ -1,0 +1,12 @@
+server:
+  port: 8081
+
+aws:
+  enabled: ${AWS_ENABLED:false}
+
+spinnaker:
+  cassandra:
+    enabled: ${SPINNAKER_CASSANDRA_ENABLED:true}
+    cluster: CASS_SPINNAKER
+    keyspace: front50
+    name: default
