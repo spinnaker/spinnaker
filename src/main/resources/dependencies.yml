@@ -91,7 +91,7 @@ groups:
       - okHttp
       - okHttpUrlconnection
       - retrofitJackson
-    test:
+    testCompile:
       - retrofitMock
   test:
     testCompile:
