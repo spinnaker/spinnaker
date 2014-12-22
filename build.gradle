@@ -46,3 +46,4 @@ ideaConfig {
   codeStyleXml = file('idea/codeStyle.xml')
 }
 
+defaultTasks ':oort-web:bootRun'
