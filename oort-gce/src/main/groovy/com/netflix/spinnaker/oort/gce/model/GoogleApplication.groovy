@@ -27,4 +27,28 @@ class GoogleApplication implements Application, Serializable {
   Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())
   Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
   Map<String, Map<String, GoogleCluster>> clusters = Collections.synchronizedMap(new HashMap<String, Map<String, GoogleCluster>>())
+
+  // Used as a deep copy-constructor.
+  public static GoogleApplication newInstance(GoogleApplication originalGoogleApplication) {
+    GoogleApplication copyGoogleApplication = new GoogleApplication(name: originalGoogleApplication.name)
+
+    originalGoogleApplication.clusterNames.each { accountNameKey, originalClusterNames ->
+      copyGoogleApplication.clusterNames[accountNameKey] = new HashSet<String>()
+      copyGoogleApplication.clusterNames[accountNameKey].addAll(originalClusterNames)
+    }
+
+    originalGoogleApplication.attributes.each {
+      copyGoogleApplication.attributes[it.key] = it.value
+    }
+
+    originalGoogleApplication.clusters.each { accountNameKey, originalClustersMap ->
+      copyGoogleApplication.clusters[accountNameKey] = new HashMap<String, GoogleCluster>()
+
+      originalClustersMap.each { clusterNameKey, originalCluster ->
+        copyGoogleApplication.clusters[accountNameKey][clusterNameKey] = GoogleCluster.newInstance(originalCluster)
+      }
+    }
+
+    copyGoogleApplication
+  }
 }

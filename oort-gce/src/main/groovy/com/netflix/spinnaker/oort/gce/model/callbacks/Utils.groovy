@@ -17,6 +17,10 @@
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
 import com.google.api.services.compute.model.Metadata
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.oort.gce.model.GoogleApplication
+import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import org.springframework.util.ClassUtils
 
 import java.text.SimpleDateFormat
 
@@ -60,6 +64,51 @@ class Utils {
       }
     } else {
       return []
+    }
+  }
+
+  static GoogleCluster retrieveOrCreatePathToCluster(
+    Map<String, GoogleApplication> tempAppMap, String accountName, String appName, String clusterName) {
+    if (!tempAppMap[appName]) {
+      tempAppMap[appName] = new GoogleApplication(name: appName)
+    }
+
+    if (!tempAppMap[appName].clusterNames[accountName]) {
+      tempAppMap[appName].clusterNames[accountName] = new HashSet<String>()
+      tempAppMap[appName].clusters[accountName] = new HashMap<String, GoogleCluster>()
+    }
+
+    if (!tempAppMap[appName].clusters[accountName][clusterName]) {
+      tempAppMap[appName].clusters[accountName][clusterName] =
+        new GoogleCluster(name: clusterName, accountName: accountName)
+    }
+
+    tempAppMap[appName].clusterNames[accountName] << clusterName
+
+    return tempAppMap[appName].clusters[accountName][clusterName]
+  }
+
+  static Map<String, GoogleApplication> deepCopyApplicationMap(Map<String, GoogleApplication> originalAppMap) {
+    Map copyMap = new HashMap<String, GoogleApplication>()
+
+    originalAppMap.each { appNameKey, originalGoogleApplication ->
+      copyMap[appNameKey] = GoogleApplication.newInstance(originalGoogleApplication)
+    }
+
+    return copyMap
+  }
+
+  static Object getImmutableCopy(def value) {
+    def valueClass = value.getClass()
+
+    if (ClassUtils.isPrimitiveOrWrapper(valueClass) || valueClass == String.class) {
+      return value
+    } else if (value instanceof Cloneable) {
+      return value.clone()
+    } else if (value) {
+      return value.toString()
+    } else {
+      return null
     }
   }
 }
