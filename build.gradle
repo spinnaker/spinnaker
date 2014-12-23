@@ -18,9 +18,10 @@ buildscript {
   repositories {
     jcenter()
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
+    mavenLocal()
   }
   dependencies {
-    classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.45"
+    classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.46-SNAPSHOT"
   }
 }
 
