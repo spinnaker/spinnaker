@@ -46,7 +46,6 @@ angular.module('deckApp')
           var packageRegex = /((nf(lx)?-)?\w+)-?\w+/;
           var match = packageRegex.exec(namedImage.imageName);
           var packageBase = match[1];
-          console.warn(packageBase);
           if (!packageBase || packageBase.length < 3) {
             return [namedImage];
           }
