@@ -119,13 +119,13 @@ class BintrayDebPublishingTask extends DefaultTask {
       http.request(POST, JSON) {
         uri.path = "/packages/${getUserOrg()}/${getRepoName()}/${getPackageName()}"
         body = [name: getPackageName(),
-                desc: ${getPkg().getDesc()},
-                licenses: ${getPkg().getLicenses()},
-                labels: ${getPkg().getLabels()},
-                website_url: ${getPkg().getWebsiteUrl()},
-                issue_tracker_url: ${getPkg().getIssueTrackerUrl()},
-                vcs_url: ${getPkg().getVcsUrl()},
-                public_download_numbers: ${getPkg().getPublicDownloadNumbers()}]
+                desc: getPkg().getDesc(),
+                licenses: getPkg().getLicenses(),
+                labels: getPkg().getLabels(),
+                website_url: getPkg().getWebsiteUrl(),
+                issue_tracker_url: getPkg().getIssueTrackerUrl(),
+                vcs_url: getPkg().getVcsUrl(),
+                public_download_numbers: getPkg().getPublicDownloadNumbers()]
 
         response.success = { resp ->
           logger.info("Created package '${getPackageName()}'.")
