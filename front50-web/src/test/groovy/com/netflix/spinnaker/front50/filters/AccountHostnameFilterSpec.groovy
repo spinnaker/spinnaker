@@ -70,6 +70,6 @@ class AccountHostnameFilterSpec extends Specification {
     then:
     1 * req.getRequestURL() >> new StringBuffer("http://front50.test.netflix.net")
     1 * req.getRequestURI() >> "/test/applications"
-    1 * credentialsRepository.getOne("test") >> new AmazonCredentials()
+    1 * credentialsRepository.getOne("test") >> new AmazonCredentials("test", "12345", null, [new AmazonCredentials.AWSRegion("us-west-1", ["us-west-1a"])])
   }
 }

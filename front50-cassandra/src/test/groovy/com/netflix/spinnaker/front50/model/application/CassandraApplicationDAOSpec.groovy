@@ -21,6 +21,7 @@ import com.netflix.astyanax.Keyspace
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
@@ -31,7 +32,7 @@ import spock.lang.Unroll
 @WebAppConfiguration
 @ContextConfiguration(classes = [CassandraSetup])
 class CassandraApplicationDAOSpec extends Specification {
-  @EnableAutoConfiguration
+  @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
   @ComponentScan("com.netflix.spinnaker.front50")
   static class CassandraSetup {}
 

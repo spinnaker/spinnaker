@@ -43,7 +43,7 @@ class AmazonApplicationDAOProviderSpec extends Specification {
     def credProvider = Mock(AWSCredentialsProvider)
 
     when:
-    def dao = provider.getForAccount(new AmazonCredentials(credentialsProvider: credProvider))
+    def dao = provider.getForAccount(new AmazonCredentials(new AmazonCredentials("test", "12345", null, [new AmazonCredentials.AWSRegion("us-west-1", ["us-west-1a"])]), credProvider))
 
     then:
     dao instanceof AmazonApplicationDAO
