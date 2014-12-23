@@ -24,6 +24,7 @@ angular.module('deckApp', [
     'deckApp.gce',
     'deckApp.utils',
     'deckApp.settings',
+    'deckApp.urlBuilder',
     'deckApp.cluster',
     'deckApp.pipelines',
     'deckApp.pipelines.trigger',

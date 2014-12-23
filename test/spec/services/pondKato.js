@@ -25,9 +25,9 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function(settings, pond, $httpBackend, $rootScope, $timeout, _) {
+  beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout, _) {
 
-    service = pond;
+    service = tasksApi;
     config = settings;
     $http = $httpBackend;
     timeout = $timeout;

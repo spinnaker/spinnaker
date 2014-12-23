@@ -1,6 +1,5 @@
 'use strict';
 
-
 angular.module('deckApp')
   .filter('taskFilter', function() {
     return function(tasks, pred) {

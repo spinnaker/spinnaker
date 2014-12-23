@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .factory('oortService', function (searchService, settings, $q, Restangular, _, $timeout,
-                                    clusterService, loadBalancerService, pond, securityGroupService,
+                                    clusterService, loadBalancerService, tasksReader, securityGroupService,
                                     scheduler, taskTracker, $exceptionHandler, infrastructureCaches) {
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
@@ -102,7 +102,7 @@ angular.module('deckApp')
           loadBalancersByApplicationNameLoader = loadBalancerService.loadLoadBalancersByApplicationName(applicationName),
           applicationLoader = getApplicationEndpoint(applicationName).get(),
           serverGroupLoader = clusterService.loadServerGroups(applicationName),
-          taskLoader = pond.one('applications', applicationName).all('tasks').getList();
+          taskLoader = tasksReader.listAllTasksForApplication(applicationName);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
