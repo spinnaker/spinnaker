@@ -43,9 +43,13 @@ angular.module('deckApp')
         function (namedImage) {
           command.amiName = namedImage.imageName;
 
-          var packageRegex = /((nflx-)?\w+)-?\w+/;
+          var packageRegex = /((nf(lx)?-)?\w+)-?\w+/;
           var match = packageRegex.exec(namedImage.imageName);
           var packageBase = match[1];
+          console.warn(packageBase);
+          if (!packageBase || packageBase.length < 3) {
+            return [namedImage];
+          }
 
           return imageService.findImages({
             provider: command.selectedProvider,

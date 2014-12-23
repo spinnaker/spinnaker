@@ -297,6 +297,28 @@ describe('Controller: awsCloneServerGroup', function () {
       expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});
     });
 
+    it('returns only the existing ami without further querying when package name is less than three characters', function() {
+      var $scope = this.$scope,
+          amiBasedImage = {imageName: 'aa-packagebase', amis: {'us-east-1': ['ami-1234']}},
+          serverGroup = this.buildBaseClone();
+
+      serverGroup.viewState.imageId = 'ami-1234';
+      setupMocks.bind(this).call();
+
+      serverGroup.region = 'us-east-1';
+
+      spyOn(this.imageService, 'findImages');
+
+      spyOn(this.imageService, 'getAmi').and.callFake(this.resolve(amiBasedImage));
+
+      initController(serverGroup);
+      $scope.$digest();
+
+      expect(this.imageService.findImages).not.toHaveBeenCalled();
+      expect($scope.command.backingData.filtered.images.length).toBe(1);
+      expect($scope.command.backingData.filtered.images[0].imageName).toBe(amiBasedImage.imageName);
+    });
+
     it('adds no regional images to the scope when the one provided does not match any results', function () {
       var $scope = this.$scope,
         serverGroup = this.buildBaseClone();
@@ -373,7 +395,7 @@ describe('Controller: awsCloneServerGroup', function () {
           command: command,
           applicationName: applicationName,
           description: description
-        }
+        };
       });
 
     }
