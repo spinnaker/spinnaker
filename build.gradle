@@ -27,11 +27,11 @@ buildscript {
 }
 
 allprojects {
+  apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'idea'
 }
 
 subprojects { project ->
-  apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
 
   targetCompatibility = 1.7
