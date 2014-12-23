@@ -31,6 +31,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
+import java.util.regex.Pattern
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 
@@ -43,6 +44,7 @@ class AutoScalingWorker {
   static final String SUBNET_METADATA_KEY = "immutable_metadata"
   private static final String SUBNET_TARGET = "ec2"
   private static final String AWS_PHASE = "AWS_DEPLOY"
+  private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -116,14 +118,14 @@ class AutoScalingWorker {
       def securityGroupsWithIds = []
       def securityGroupsWithNames = []
       for (securityGroup in securityGroups) {
-        if (securityGroup.startsWith("sg-")) {
+        if (SG_PATTERN.matcher(securityGroup).matches()) {
           securityGroupsWithIds << securityGroup
         } else {
           securityGroupsWithNames << securityGroup
         }
       }
       if (securityGroupsWithNames) {
-        def lookedUpIds = [:]
+        Map<String, String> lookedUpIds
         if (subnetType) {
           lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames, securityGroupService.subnetAnalyzer.getVpcIdForSubnetPurpose(subnetType))
         } else {
