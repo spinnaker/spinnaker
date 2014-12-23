@@ -19,17 +19,17 @@
       <label class="btn btn-default btn"
              ng-model="filter.execution.status.running"
              btn-checkbox>
-        Running
+        <status-glyph item="{isRunning: true}"></status-glyph> Running
       </label>
       <label class="btn btn-default btn"
              ng-model="filter.execution.status.completed"
              btn-checkbox>
-        Completed
+        <status-glyph item="{isCompleted: true}"></status-glyph> Completed
       </label>
       <label class="btn btn-default btn"
              ng-model="filter.execution.status.failed"
              btn-checkbox>
-        Failed
+        <status-glyph item="{isFailed: true}"></status-glyph> Failed
       </label>
     </div>
   </div>
