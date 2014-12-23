@@ -32,7 +32,8 @@ bintray {
 }
 
 dependencies {
-  compile 'com.netflix.nebula:nebula-plugin-plugin:1.12.2'
+  compile 'com.netflix.nebula:nebula-plugin-plugin:1.12.13'
+  compile 'com.netflix.nebula:gradle-ospackage-plugin:1.12.7'
   compile 'org.yaml:snakeyaml:1.13'
   testCompile "org.spockframework:spock-core:0.7-groovy-1.8"
 }

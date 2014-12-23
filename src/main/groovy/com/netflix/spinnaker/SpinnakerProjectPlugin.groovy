@@ -18,8 +18,8 @@ package com.netflix.spinnaker
 import com.jfrog.bintray.gradle.BintrayExtension
 import com.netflix.spinnaker.internal.IdeaConfig
 import groovy.util.logging.Log4j
-import nebula.plugin.plugin.NebulaBintrayPublishingPlugin
-import nebula.plugin.plugin.NebulaOJOPublishingPlugin
+import nebula.plugin.bintray.NebulaBintrayPublishingPlugin
+import nebula.plugin.bintray.NebulaOJOPublishingPlugin
 import nebula.plugin.publishing.maven.NebulaBaseMavenPublishingPlugin
 import nebula.plugin.responsible.NebulaResponsiblePlugin
 import org.gradle.api.*
