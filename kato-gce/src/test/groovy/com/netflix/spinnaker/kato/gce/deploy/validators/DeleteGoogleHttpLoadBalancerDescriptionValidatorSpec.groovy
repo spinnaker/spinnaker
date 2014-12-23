@@ -27,8 +27,8 @@ import spock.lang.Specification
 
 class DeleteGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final Long TIMEOUT_SECONDS = 5
-  private static final LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ACCOUNT_NAME = "auto"
+  private static final String LOAD_BALANCER_NAME = "spinnaker-test-v000"
+  private static final String ACCOUNT_NAME = "auto"
 
   @Shared
   DeleteGoogleHttpLoadBalancerDescriptionValidator validator

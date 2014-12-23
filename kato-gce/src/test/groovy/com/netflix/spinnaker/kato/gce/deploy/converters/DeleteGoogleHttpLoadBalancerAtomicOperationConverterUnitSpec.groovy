@@ -26,8 +26,8 @@ import spock.lang.Specification
 
 class DeleteGoogleHttpLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final long TIMEOUT_SECONDS = 5
-  private static final HTTP_LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ACCOUNT_NAME = "auto"
+  private static final String HTTP_LOAD_BALANCER_NAME = "spinnaker-test-v000"
+  private static final String ACCOUNT_NAME = "auto"
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()

@@ -43,6 +43,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final URL_MAP_DELETE_OP_NAME = "delete-url-map"
   private static final BACKEND_SERVICE_DELETE_OP_NAME = "delete-backend-service"
   private static final HEALTH_CHECK_DELETE_OP_NAME = "delete-health-check"
+  private static final PENDING = "PENDING"
+  private static final DONE = "DONE"
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -68,23 +70,23 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
       def targetHttpProxiesDeleteOp = new Operation(
           name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
       def urlMapsDeleteOp = new Operation(
           name: URL_MAP_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def backendServicesDelete = Mock(Compute.BackendServices.Delete)
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
       def globalForwardingRulesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -173,35 +175,35 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
       def targetHttpProxiesDeleteOp = new Operation(
           name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
       def urlMapsDeleteOp = new Operation(
           name: URL_MAP_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def backendServicesDelete = Mock(Compute.BackendServices.Delete)
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def backendServicesDelete2 = Mock(Compute.BackendServices.Delete)
       def backendServicesDeleteOp2 = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME+"2",
-          status: "DONE")
+          status: DONE)
       def backendServicesDelete3 = Mock(Compute.BackendServices.Delete)
       def backendServicesDeleteOp3 = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME+"3",
-          status: "DONE")
+          status: DONE)
       def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def healthChecksDelete2 = Mock(Compute.HttpHealthChecks.Delete)
       def healthChecksDeleteOp2 = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME+"2",
-          status: "DONE")
+          status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
       def globalForwardingRulesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -323,26 +325,26 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
       def targetHttpProxiesDeleteOp = new Operation(
           name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
       def urlMapsDeleteOp = new Operation(
           name: URL_MAP_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def backendServicesDelete = Mock(Compute.BackendServices.Delete)
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
       def healthChecksPendingDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
-          status: "PENDING")
+          status: PENDING)
       def healthChecksFailingDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
-          status: "DONE",
+          status: DONE,
           error: new Operation.Error(errors: [new Operation.Error.Errors(message: "error")]))
 
       def globalOperations = Mock(Compute.GlobalOperations)
@@ -422,23 +424,23 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesPendingDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
-          status: "PENDING")
+          status: PENDING)
       def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
       def targetHttpProxiesDeleteOp = new Operation(
           name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
       def urlMapsDeleteOp = new Operation(
           name: URL_MAP_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def backendServicesDelete = Mock(Compute.BackendServices.Delete)
       def backendServicesDeleteOp = new Operation(
           name: BACKEND_SERVICE_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
       def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
-          status: "DONE")
+          status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
       def globalForwardingRulesOperationGet = Mock(Compute.GlobalOperations.Get)
