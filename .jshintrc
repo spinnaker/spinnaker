@@ -38,6 +38,6 @@
     "xit": false,
     "inject": false,
     "expect": false,
-    "sypOn": false
+    "spyOn": false
   }
 }
