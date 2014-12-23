@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.batch.exceptions.NoopExceptionHandler
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
@@ -92,9 +94,14 @@ class OrcaConfiguration {
     new NoopNotificationHandler()
   }
 
+  @Bean NoopExceptionHandler noopExceptionHandler() {
+    new NoopExceptionHandler()
+  }
+
   @Bean
-  TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository) {
-    new TaskTaskletAdapter(executionRepository)
+  TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository,
+                                        List<ExceptionHandler> exceptionHandlers) {
+    new TaskTaskletAdapter(executionRepository, exceptionHandlers)
   }
 
   @Bean

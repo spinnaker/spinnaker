@@ -135,33 +135,4 @@ class UpsertApplicationTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
   }
-
-  void "should add full exception details to TaskResult when Front50 returns a status 400"() {
-    given:
-    def errorDetails = [errors: ["#1", "#2"]]
-    def retrofitError = Mock(RetrofitError) {
-      1 * getResponse() >> new Response("U", 400, "R", [], null)
-      1 * getBodyAs(Map) >> errorDetails
-      0 * _._
-    }
-
-    and:
-    task.front50Service = Mock(Front50Service) {
-      1 * create(_, _, _) >> { throw retrofitError }
-      1 * getCredentials() >> []
-      1 * get(_, _) >> null
-      0 * _._
-    }
-
-    and:
-    def stage = new PipelineStage(new Pipeline(), "UpsertApplication", config)
-    stage.tasks = [new DefaultTask(name: "T1"), new DefaultTask(name: "T2")]
-
-    when:
-    def taskResult = task.execute(stage)
-
-    then:
-    taskResult.status == ExecutionStatus.TERMINAL
-    taskResult.outputs.exception == [statusCode: 400, operation: "T2", details: errorDetails, url: "U", reason: "R"]
-  }
 }

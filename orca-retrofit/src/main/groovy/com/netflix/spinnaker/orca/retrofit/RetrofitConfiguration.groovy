@@ -20,6 +20,7 @@
 
 package com.netflix.spinnaker.orca.retrofit
 
+import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.transform.CompileStatic
 import com.google.common.base.Optional
 import com.google.gson.Gson
@@ -47,4 +48,9 @@ class RetrofitConfiguration {
         .registerTypeAdapter(Optional, new GsonOptionalDeserializer())
         .create()
   }
+
+  @Bean RetrofitExceptionHandler retrofitExceptionHandler() {
+    new RetrofitExceptionHandler()
+  }
+
 }

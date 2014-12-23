@@ -38,7 +38,7 @@ class TestStage extends LinearStage {
   TestStage(String name, StepBuilderFactory steps, ExecutionRepository executionRepository, Task... tasks) {
     super(name)
     this.steps = steps
-    this.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
+    this.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
 //    this.taskListeners = [
 //        new StageStatusPropagationListener(executionRepository)
 //    ]
