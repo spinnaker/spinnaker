@@ -96,6 +96,14 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     bintray.pkg.repo = 'spinnaker'
     bintray.pkg.labels = ['spinnaker', 'groovy', 'Netflix']
     project.tasks.publish.dependsOn('bintrayUpload')
+
+    // correct bintray's assumption that we don't want to publish from a subproject
+    project.tasks.bintrayUpload.metaClass.setSubtaskSkipPublish = {
+      // ignore
+    }
+    project.tasks.bintrayUpload.metaClass.getSubtaskSkipPublish = {
+      false
+    }
   }
 
   static void configureSnapshot(Project project) {
