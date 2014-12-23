@@ -5,7 +5,7 @@ buildscript {
     mavenLocal()
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.36'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.44'
   }
 }
 
