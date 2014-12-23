@@ -50,11 +50,11 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
   }
 
   private static handleFinishedAsyncDeleteOperation(Operation operation, String resourceType, String resourceName) {
-    if (operation == null) {
+    if (!operation) {
       GCEUtil.updateStatusAndThrowException("Delete operation of $resourceType $resourceName timed out. The resource " +
           "may still exist.", task, BASE_PHASE)
     }
-    if (operation.getError() != null) {
+    if (operation.getError()) {
       def error = operation.getError().getErrors().get(0)
       GCEUtil.updateStatusAndThrowException("Failed to delete $resourceType $resourceName with error: $error", task,
           BASE_PHASE)
@@ -99,7 +99,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
 
 
     ForwardingRule forwardingRule = compute.globalForwardingRules().get(project, forwardingRuleName).execute()
-    if (forwardingRule == null) {
+    if (!forwardingRule) {
       GCEUtil.updateStatusAndThrowException("Global forwarding rule $forwardingRuleName not found for $project",
           task, BASE_PHASE)
     }
@@ -109,7 +109,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     task.updateStatus BASE_PHASE, "Retrieving target HTTP proxy $targetHttpProxyName..."
 
     TargetHttpProxy targetHttpProxy = compute.targetHttpProxies().get(project, targetHttpProxyName).execute()
-    if (targetHttpProxy == null) {
+    if (!targetHttpProxy) {
       GCEUtil.updateStatusAndThrowException("Target http proxy $targetHttpProxyName not found for $project", task,
           BASE_PHASE)
     }
