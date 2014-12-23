@@ -29,6 +29,7 @@ buildscript {
 
 apply plugin: 'os-package'
 apply plugin: 'spring-boot'
+apply plugin: 'spinnaker-debpublish'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
