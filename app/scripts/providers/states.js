@@ -136,9 +136,9 @@ angular.module('deckApp')
         url: '/:taskId',
         views: {
           'task-details': {
-            templateUrl: 'views/taskdetails.html',
+            templateUrl: 'scripts/modules/tasks/taskdetails.html',
             controller: 'TaskDetailsCtrl',
-            controllerAs: 'ctrl'
+            controllerAs: 'taskDetail'
           }
         },
         resolve: {
@@ -329,7 +329,7 @@ angular.module('deckApp')
         url: '/tasks',
         views: {
           'insight': {
-            templateUrl: 'views/tasks.html',
+            templateUrl: 'scripts/modules/tasks/tasks.html',
             controller: 'TasksCtrl',
             controllerAs: 'tasks'
           },

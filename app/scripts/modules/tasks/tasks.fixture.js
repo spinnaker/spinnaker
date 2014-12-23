@@ -213,8 +213,8 @@ TasksFixture.failedKatoTask = {
     failed: true
   },
   history: [{
-    phase: "ORCHESTRATION",
-    status: "Orchestration failed."
+    phase: 'ORCHESTRATION',
+    status: 'Orchestration failed.'
   }]
 };
 
@@ -225,8 +225,8 @@ TasksFixture.successfulKatoTask = {
     failed: false
   },
   history: [{
-    phase: "ORCHESTRATION",
-    status: "Orchestration completed."
+    phase: 'ORCHESTRATION',
+    status: 'Orchestration completed.'
   }]
 };
 
@@ -237,7 +237,7 @@ TasksFixture.runningKatoTask = {
     failed: false
   },
   history: [{
-    phase: "ORCHESTRATION",
-    status: "Initializing Orchestration Task..."
+    phase: 'ORCHESTRATION',
+    status: 'Initializing Orchestration Task...'
   }]
 };

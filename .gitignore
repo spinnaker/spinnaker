@@ -4,7 +4,7 @@ node_modules
 /dist
 test-results.xml
 npm-debug.log
-
+*.iml
 deck.iml
 .idea
 .gradle

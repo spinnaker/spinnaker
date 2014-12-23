@@ -10,7 +10,7 @@ describe('Controller: tasks', function () {
     };
   };
 
-  beforeEach(module('deckApp.tasks'));
+  beforeEach(module('deckApp.tasks.main'));
 
   beforeEach(
     inject(
