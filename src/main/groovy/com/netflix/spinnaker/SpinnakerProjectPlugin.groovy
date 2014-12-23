@@ -46,7 +46,6 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     addStandardRepos(project)
     addProvidedScope(project)
     configureBintray(project)
-    tweakGeneratedPom(project)
     configureSnapshot(project)
     configureRelease(project)
 
@@ -97,27 +96,6 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     bintray.pkg.repo = 'spinnaker'
     bintray.pkg.labels = ['spinnaker', 'groovy', 'Netflix']
     project.tasks.publish.dependsOn('bintrayUpload')
-  }
-
-  void tweakGeneratedPom(Project project) {
-    String repoName = project.name
-    project.plugins.withType(NebulaBaseMavenPublishingPlugin) { basePlugin ->
-      basePlugin.withMavenPublication { MavenPublication t ->
-        t.pom.withXml(new Action<XmlProvider>() {
-          @Override
-          void execute(XmlProvider x) {
-            def root = x.asNode()
-            root.appendNode('url', "https://github.com/spinnaker/${repoName}")
-            root.appendNode('scm').replaceNode {
-              scm {
-                url "scm:git://github.com/spinnaker/${repoName}.git"
-                connection "scm:git://github.com/spinnaker/${repoName}.git"
-              }
-            }
-          }
-        })
-      }
-    }
   }
 
   static void configureSnapshot(Project project) {
