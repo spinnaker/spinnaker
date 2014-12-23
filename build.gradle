@@ -27,6 +27,7 @@ buildscript {
 }
 
 allprojects {
+  group = "com.netflix.spinnaker.kato"
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'idea'
 }
@@ -37,7 +38,6 @@ subprojects { project ->
   targetCompatibility = 1.7
   sourceCompatibility = 1.7
 
-  group = "com.netflix.spinnaker.kato"
 
   repositories {
     jcenter()
