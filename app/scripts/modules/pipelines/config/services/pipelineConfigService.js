@@ -31,7 +31,7 @@ angular.module('deckApp.pipelines')
     }
 
     function triggerPipeline(applicationName, pipelineName) {
-      return gateEndpoint.one('applications', applicationName).all('pipelineConfigs')
+      return Restangular.one('applications', applicationName).all('pipelineConfigs')
         .customPOST(
           {}, pipelineName, { user: authenticationService.getAuthenticatedUser().name }
       );
