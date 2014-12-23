@@ -88,5 +88,3 @@ buildDeb {
   requires("openjdk-7-jre")
   requires("redis-server")
 }
-
-project.tasks.bintrayDebPublish.mustRunAfter 'release'
