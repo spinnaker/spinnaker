@@ -48,7 +48,7 @@ class BintrayDebPublishingPlugin implements Plugin<Project> {
         dryRun = { extension.dryRun }
       }
     }
-    project.tasks.publish.dependsOn 'bintrayDebPublish'
+    project.rootProject.tasks.createReleaseTag.dependsOn publishTask
     publishTask.baseExtension = bintrayBaseExtension
     publishTask.dependsOn 'buildDeb'
   }
