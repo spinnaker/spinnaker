@@ -7,5 +7,6 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.create',
   'deckApp.pipelines.delete',
   'deckApp.pipelines.rename',
+  'deckApp.authentication',
   'ui.sortable',
 ]);

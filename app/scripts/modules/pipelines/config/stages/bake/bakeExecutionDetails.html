@@ -1,0 +1,48 @@
+<div>
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Bake Configuration</h5>
+      <dl class="dl-narrow dl-horizontal">
+        <dt>AMI</dt>
+        <dd>{{stage.context.ami}}</dd>
+        <dt>Region</dt>
+        <dd>{{stage.context.region}}</dd>
+        <dt>BaseOS</dt>
+        <dd>{{stage.context.baseOs}}</dd>
+        <dt>Label</dt>
+        <dd>{{stage.context.baseLabel}}</dd>
+        <dt>Package</dt>
+        <dd>{{stage.context.package}}</dd>
+      </dl>
+    </div>
+
+    <div class="col-md-6">
+      <h5>Steps</h5>
+      <div class="row">
+        <div class="col-md-8">
+          <strong>Task</strong>
+        </div>
+        <div class="col-md-4 text-right">
+          <strong>Duration</strong>
+        </div>
+      </div>
+      <div class="row" ng-repeat="task in stage.tasks">
+        <div class="col-md-6">
+          <span class="small"><status-glyph item="task"></status-glyph></span> {{task.name | robotToHuman }}
+        </div>
+        <div class="col-md-6 text-right">
+          {{task.endTime - task.startTime | numericDuration }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" ng-if="stage.isCompleted && stage.context.status.state === 'COMPLETED'">
+    <div class="col-md-12">
+      <div class="well alert alert-info">
+        <a target="_blank" href="http://bakery.test.netflix.net/#/?region={{stage.context.region}}&package={{stage.context.package}}&detail=bake:{{stage.context.status.resourceId}}">
+          View Bakery Details
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

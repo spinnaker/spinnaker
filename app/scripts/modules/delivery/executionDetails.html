@@ -1,19 +1,18 @@
 <div class="col-md-12 execution-details">
+  <a scroll-on-render offset="120"></a>
   <div class="row">
     <div class="col-md-11">
-      <h5 display>Details</h5>
+      <h4>Details</h4>
     </div>
-    <div class="col-md-1"
-         style="padding-top: 10px;">
-
-      <span class="glyphicon glyphicon-remove"
-            style="float: right;"
-            ng-click="ctrl.close(); $event.stopPropagation();">
-      </span>
+    <div class="col-md-1 text-right"
+         style="padding: 10px 0 5px 0;">
+      <a href ng-click="ctrl.close(); $event.stopPropagation();">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-6">
       <table class="table table-hover">
         <thead>
           <tr>
@@ -25,8 +24,10 @@
         </thead>
         <tbody>
           <tr ng-repeat="stage in execution.stages"
-              ng-class="{ current: ctrl.isStageCurrent(stage) }">
-            <td>{{ stage.name != "null" ? stage.name : stage.type | robotToHuman }}</td>
+              ng-class="{ info: ctrl.isStageCurrent(stage) }"
+              ng-click="ctrl.toggleDetails(stage)"
+            >
+            <td>{{ stage.name != "null" ? stage.name : stage.type }}</td>
             <td>{{ stage.startTime | simpleTime }}</td>
             <td>{{ stage.endTime | simpleTime }}</td>
             <td>
@@ -34,13 +35,24 @@
                 {{ stage.status | lowercase | robotToHuman }}
               </span>
             </td>
-            <td>{{ stage.startTime | relativeTime }}</td>
-            <td>{{ stage.endTime | relativeTime }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-6" ng-if="ctrl.getDetailsSourceUrl()">
+      <div class="stage-details well">
+        <div class="row stage-details-heading">
+          <div class="col-md-11">
+            <h4><span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name}}</h4>
+          </div>
+          <div class="col-md-1 text-right">
+            <a href ng-click="ctrl.closeDetails(); $event.stopPropagation();">
+              <span class="glyphicon glyphicon-remove"></span>
+            </a>
+          </div>
+        </div>
+        <ng-include src="ctrl.getDetailsSourceUrl()"></ng-include>
+      </div>
     </div>
   </div>
 </div>

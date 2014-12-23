@@ -1,8 +1,8 @@
 <div class="row execution"
-     ng-class="{'execution-not-current': ctrl.executionInState() && !ctrl.executionIsCurrent(), 'execution-is-current': ctrl.executionIsCurrent()}"
-     ui-sref=".execution({executionId: execution.id})">
+     ng-class="{'execution-not-current': ctrl.executionInState() && !ctrl.executionIsCurrent(), 'execution-is-current': ctrl.executionIsCurrent()}">
   <div class="col-md-12">
-    <div class="row" ng-if="execution">
+    <a id="execution-{{execution.id}}"></a>
+    <div class="row" ng-if="execution" ui-sref=".execution({executionId: execution.id})">
       <div class="col-md-3">
         <execution-status execution="execution">
         </execution-status>

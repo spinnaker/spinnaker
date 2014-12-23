@@ -8,11 +8,12 @@
     </div>
     <div class="row"
          ng-if="filter.execution.groupBy"
-         ng-repeat="executionGrouping in executions | executionGroups:filter">
+         ng-repeat="executionGrouping in executions | executionGroups:filter:configurations">
       <execution-group-heading value="executionGrouping"
                                scale="scale"
                                filter="filter"
-                               executions="executions">
+                               executions="executions"
+                               configurations="configurations">
       </execution-group-heading>
     </div>
     <div class="row"
@@ -26,9 +27,16 @@
     </div>
   </div>
 </div>
-<div class="row pipelines executions" ng-if="!executions.length">
+<div class="row pipelines executions" ng-if="!executions.length && !viewState.loading">
   <div class="col-md-8 text-center">
     <h4>We couldn't find any pipelines execution history for {{application.name}}.</h4>
     <a ui-sref="^.pipelineConfig" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
+  </div>
+</div>
+<div class="row pipelines executions" ng-if="viewState.loading">
+  <div class="col-md-12">
+    <h2 class="text-center" style="margin-bottom: 250px">
+      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+    </h2>
   </div>
 </div>

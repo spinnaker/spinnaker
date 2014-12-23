@@ -15,10 +15,6 @@ angular.module('deckApp.delivery')
       });
     };
 
-    controller.isStageCurrent = function(stage) {
-      return stage.name === $stateParams.stageName;
-    };
-
     controller.executionInState = function() {
       return $stateParams.executionId && $state.includes('**.execution.**');
     };

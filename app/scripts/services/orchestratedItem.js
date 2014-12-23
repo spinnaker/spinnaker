@@ -9,6 +9,7 @@ angular.module('deckApp')
       }
 
       item.originalStatus = item.status;
+      item.endTime = item.endTime || new Date().getTime();
       Object.defineProperties(item, {
         isCompleted: {
           get: function() {

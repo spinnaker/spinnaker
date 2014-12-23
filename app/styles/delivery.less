@@ -71,6 +71,8 @@ body, html {
   }
   .execution-stage-label {
     overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: .8em;
     line-height: 25px;
     padding-left: 5px;
@@ -80,13 +82,16 @@ body, html {
     padding-left: 10px;
   }
   .execution-group-heading {
+    margin-top: 5px;
     background-color: @mid_grey;
     color: rgb(248, 248, 248);
     border: 1px solid @mid_grey;
     border-radius: 3px;
-    margin-top: 10px;
     h4 {
-      font-weight: normal !important;
+      cursor: pointer;
+      .glyphicon {
+        font-size: 80%;
+      }
     }
   }
   .execution-group-col-headers {
@@ -220,4 +225,14 @@ body, html {
   content: "\25BC";
   position: absolute;
   text-align: center;
+}
+
+.stage-details {
+  background-color: @table-bg-hover;
+  .stage-details-heading {
+    border-bottom: 1px solid @dark_grey;
+  }
+  h4 {
+    margin-top: 0;
+  }
 }

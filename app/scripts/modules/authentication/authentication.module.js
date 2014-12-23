@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.authentication', [])
+angular.module('deckApp.authentication', [
+  'ui.bootstrap',
+])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
   })

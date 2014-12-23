@@ -1,8 +1,12 @@
 'use strict';
 
 angular.module('deckApp.delivery')
-  .controller('pipelineExecutions', function($scope, executionsService, d3Service) {
+  .controller('pipelineExecutions', function($scope, executionsService, d3Service, pipelineConfigService, $q, scrollToService) {
     var controller = this;
+
+    $scope.viewState = {
+      loading: true
+    };
 
     $scope.filter = {
       execution: {
@@ -79,21 +83,31 @@ angular.module('deckApp.delivery')
       });
     };
 
-    executionsService.getAll().then(function(e) {
-      $scope.filter.stage.max = e.reduce(function(acc, execution) {
+    function updateExecutions(executions) {
+      $scope.filter.stage.max = executions.reduce(function(acc, execution) {
         return execution.stages.length > acc ? execution.stages.length : acc;
       }, 0);
-      $scope.executions = e;
+      $scope.executions = executions;
       controller.updateLegend();
-      var subscription = executionsService.subscribeAll(function(e) {
-        $scope.filter.stage.max = e.reduce(function(acc, execution) {
-          return execution.stages.length > acc ? execution.stages.length : acc;
-        }, 0);
-        controller.updateLegend();
-        $scope.executions = e;
-      });
+    }
+
+    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
+      $scope.detailsTarget = toParams.executionId;
+    });
+
+    $q.all({
+      configurations: pipelineConfigService.getPipelinesForApplication($scope.application.name),
+      executions: executionsService.getAll()
+    }).then(function(results) {
+      $scope.viewState.loading = false;
+      $scope.configurations = results.configurations.plain();
+      updateExecutions(results.executions);
+      var subscription = executionsService.subscribeAll(updateExecutions);
       $scope.$on('$destroy', function() {
         subscription.dispose();
       });
+      if ($scope.detailsTarget) {
+        scrollToService.scrollTo('execution-' + $scope.detailsTarget, 250);
+      }
     });
   });
