@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -46,7 +47,7 @@ class TaskTaskletSpec extends Specification {
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
-  @Subject tasklet = new TaskTasklet(task, executionRepository)
+  @Subject tasklet = new TaskTasklet(task, executionRepository, [])
 
   JobExecution jobExecution
   StepExecution stepExecution
@@ -175,5 +176,35 @@ class TaskTaskletSpec extends Specification {
     where:
     key = "foo"
     value = "bar"
+  }
+
+  def "should invoke matching exception handler when task execution fails"() {
+    given:
+    tasklet.exceptionHandlers << Mock(ExceptionHandler) {
+      1 * handles(_) >> {
+        true
+      }
+      1 * handle(_, _) >> {
+        new ExceptionHandler.Response(exceptionType, operation, new ExceptionHandler.ResponseDetails(error, errors))
+      }
+    }
+
+    and:
+    task.execute(_) >> { throw new RuntimeException() }
+
+    expect:
+    with(tasklet.executeTask(tasklet.currentStage(chunkContext))) {
+      status == TERMINAL
+      outputs.exception.exceptionType == exceptionType
+      outputs.exception.operation == operation
+      outputs.exception.details.error == error
+      outputs.exception.details.errors == errors
+    }
+
+    where:
+    exceptionType = "exceptionType"
+    operation = "operation"
+    error = "error"
+    errors = ["error1", "error2"]
   }
 }

@@ -46,7 +46,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
-  def taskFactory = new TaskTaskletAdapter(executionRepository, sleeper)
+  def taskFactory = new TaskTaskletAdapter(executionRepository, [], sleeper)
   Pipeline pipeline
 
   @Override

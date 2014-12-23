@@ -92,7 +92,7 @@ class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
         startTask: startTask,
         recoveryTask: recoveryTask,
         endTask: endTask,
-        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository)
+        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
     ).build(builder, pipeline.namedStage("failureRecovery"))
      .build()
      .build()

@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -37,10 +39,12 @@ class TaskTasklet implements Tasklet {
 
   private final Task task
   private final ExecutionRepository executionRepository
+  private final List<ExceptionHandler> exceptionHandlers
 
-  TaskTasklet(Task task, ExecutionRepository executionRepository) {
+  TaskTasklet(Task task, ExecutionRepository executionRepository, List<ExceptionHandler> exceptionHandlers) {
     this.task = task
     this.executionRepository = executionRepository
+    this.exceptionHandlers = exceptionHandlers
   }
 
   Class<? extends Task> getTaskType() {
@@ -52,7 +56,7 @@ class TaskTasklet implements Tasklet {
     def stage = currentStage(chunkContext)
 
     try {
-      def result = task.execute(stage.asImmutable())
+      def result = executeTask(stage)
       if (result.status == ExecutionStatus.TERMINAL) {
         chunkContext.stepContext.stepExecution.with {
           setTerminateOnly()
@@ -77,6 +81,22 @@ class TaskTasklet implements Tasklet {
       } else if (execution instanceof Pipeline) {
         executionRepository.store(execution)
       }
+    }
+  }
+
+  private TaskResult executeTask(Stage stage) {
+    try {
+      return task.execute(stage.asImmutable())
+    } catch (RuntimeException e) {
+      def exceptionHandler = exceptionHandlers.find { it.handles(e) }
+      if (!exceptionHandler) {
+        throw e
+      }
+
+      def taskName = (!stage.tasks.isEmpty() ? stage.tasks[-1].name : null) as String
+      return new DefaultTaskResult(ExecutionStatus.TERMINAL, [
+        "exception": exceptionHandler.handle(taskName, e)
+      ])
     }
   }
 

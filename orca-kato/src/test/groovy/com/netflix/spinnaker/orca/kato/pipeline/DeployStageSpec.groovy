@@ -92,7 +92,7 @@ class DeployStageSpec extends Specification {
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
         resizeAsgStage: resizeAsgStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
+    deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
     deployStage.applicationContext = Stub(ApplicationContext)
   }
 

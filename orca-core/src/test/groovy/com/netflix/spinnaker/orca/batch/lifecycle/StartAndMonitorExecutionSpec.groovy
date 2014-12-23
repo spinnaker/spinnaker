@@ -90,7 +90,7 @@ class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
         steps: steps,
         startTask: startTask,
         monitorTask: monitorTask,
-        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository)
+        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
     ).build(builder, pipeline.namedStage("startAndMonitor"))
      .build()
      .build()

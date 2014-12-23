@@ -49,7 +49,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.applicationContext = Stub(ApplicationContext)
     copyLastAsgStage.mapper = objectMapper
     copyLastAsgStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    copyLastAsgStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository)
+    copyLastAsgStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
     copyLastAsgStage.oort = oort
     copyLastAsgStage.disableAsgStage = disableAsgStage
     copyLastAsgStage.destroyAsgStage = destroyAsgStage

@@ -120,7 +120,7 @@ class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
         preInterventionTask: preInterventionTask,
         postInterventionTask: postInterventionTask,
         finalTask: finalTask,
-        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository)
+        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
     ).build(builder, pipeline.namedStage("manualIntervention"))
      .build()
      .build()
