@@ -4,11 +4,9 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
   }
 }
 
-apply plugin: 'os-package'
 apply plugin: 'spring-boot'
 apply plugin: 'spinnaker-debpublish'
 
