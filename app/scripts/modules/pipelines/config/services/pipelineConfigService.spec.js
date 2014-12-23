@@ -20,7 +20,7 @@ describe('pipelineConfigService', function () {
         ]
       };
 
-      this.$http.expectPOST(this.settings.gateUrl + '/pipelines').respond(200, '');
+      this.$http.expectPOST('/pipelines').respond(200, '');
 
       this.service.savePipeline(pipeline);
       this.$scope.$digest();

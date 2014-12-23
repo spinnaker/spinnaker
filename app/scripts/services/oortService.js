@@ -7,7 +7,6 @@ angular.module('deckApp')
                                     scheduler, taskTracker, $exceptionHandler, infrastructureCaches) {
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 

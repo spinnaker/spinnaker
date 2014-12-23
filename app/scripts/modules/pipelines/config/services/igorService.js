@@ -4,16 +4,12 @@
 angular.module('deckApp')
   .factory('igorService', function (settings, Restangular) {
 
-    var igorEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
     function listMasters() {
-      return igorEndpoint.one('builds').getList();
+      return Restangular.one('builds').getList();
     }
 
     function listJobsForMaster(master) {
-      return igorEndpoint.one('builds', master).all('jobs').getList();
+      return Restangular.one('builds', master).all('jobs').getList();
     }
 
     return {

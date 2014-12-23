@@ -4,17 +4,13 @@
 angular.module('deckApp')
   .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler, scheduledCache, infrastructureCaches, notifications) {
 
-    var mortEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
     function loadSecurityGroups(application) {
 
       var securityGroupPromises = [];
 
       application.accounts.forEach(function(account) {
         securityGroupPromises.push(
-          mortEndpoint.all('securityGroups')
+          Restangular.all('securityGroups')
             .one(account)
             .withHttpConfig({cache: infrastructureCaches.securityGroups})
             .get()
@@ -123,7 +119,7 @@ angular.module('deckApp')
     }
 
     function getSecurityGroupDetails(application, account, region, id) {
-      return mortEndpoint.one('securityGroups', account).one(id).get({region: region}).then(function(details) {
+      return Restangular.one('securityGroups', account).one(id).get({region: region}).then(function(details) {
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter(function(rule) {
             return rule.range;
@@ -142,7 +138,7 @@ angular.module('deckApp')
     }
 
     function getAllSecurityGroups() {
-      return mortEndpoint.one('securityGroups')
+      return Restangular.one('securityGroups')
         .withHttpConfig({cache: infrastructureCaches.securityGroups})
         .get();
     }

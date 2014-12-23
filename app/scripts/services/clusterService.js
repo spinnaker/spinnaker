@@ -2,14 +2,10 @@
 
 
 angular.module('deckApp')
-  .factory('clusterService', function (settings, $q, Restangular) {
-
-    var gateEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
+  .factory('clusterService', function ($q, Restangular) {
 
     function loadServerGroups(applicationName) {
-      return gateEndpoint.one('applications', applicationName).one('serverGroups').getList()
+      return Restangular.one('applications', applicationName).one('serverGroups').getList()
         .then(function (serverGroups) {
           serverGroups.forEach(addHealthyCountsToServerGroup);
           return serverGroups;

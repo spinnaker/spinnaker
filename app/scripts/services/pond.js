@@ -247,7 +247,6 @@ angular.module('deckApp')
 
     function configureRestangular() {
       return Restangular.withConfig(function(RestangularConfigurer) {
-        RestangularConfigurer.setBaseUrl(settings.gateUrl);
         RestangularConfigurer.addElementTransformer('tasks', true, function(taskCollection) {
           setTaskCollectionProperties(taskCollection);
           return taskCollection;
