@@ -20,6 +20,8 @@ import com.netflix.spinnaker.mort.model.CachingAgentScheduler
 import com.netflix.spinnaker.mort.rx.RxCachingAgentScheduler
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
@@ -29,7 +31,7 @@ import javax.servlet.Filter
 
 @Configuration
 @ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnaker.mort.web', 'com.netflix.spinnaker.mort.filters'])
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 class Main extends SpringBootServletInitializer {
 
   static final Map<String, String> DEFAULT_PROPS = [
