@@ -22,17 +22,22 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.simpledb.AmazonSimpleDB
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
+import com.netflix.spinnaker.amos.aws.config.CredentialsConfig
+import com.netflix.spinnaker.amos.aws.config.CredentialsLoader
 import com.netflix.spinnaker.front50.security.aws.BastionCredentialsProvider
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-import javax.annotation.PostConstruct
+import org.springframework.core.env.AbstractEnvironment
+import org.springframework.core.env.MapPropertySource
+
+import static com.amazonaws.regions.Regions.*
+
 
 /**
  * Created by aglover on 4/23/14.
@@ -47,28 +52,69 @@ class AmazonConfig {
   }
 
   @Bean
-  @ConditionalOnExpression('!${bastion.enabled:false}')
-  AmazonCredentialsInitializer amazonCredentialsInitializer() {
-    new AmazonCredentialsInitializer()
+  Class<? extends NetflixAmazonCredentials> credentialsType(CredentialsConfig credentialsConfig) {
+    if (!credentialsConfig.accounts) {
+      NetflixAmazonCredentials
+    } else {
+      NetflixAssumeRoleAmazonCredentials
+    }
   }
 
   @Bean
-  @ConditionalOnExpression('${bastion.enabled:false}')
-  BastionCredentialsInitializer bastionCredentialsInitializer() {
-    new BastionCredentialsInitializer()
+  CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, AbstractEnvironment environment, Class<? extends NetflixAmazonCredentials> credentialsType) {
+    Map<String, String> envProps = environment.getPropertySources().findAll {
+      it instanceof MapPropertySource
+    }.collect { MapPropertySource mps ->
+      mps.propertyNames.collect {
+        [(it): environment.getConversionService().convert(mps.getProperty(it), String)]
+      }
+    }.flatten().collectEntries()
+    new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, credentialsType, envProps)
   }
 
   @Bean
+  List<? extends NetflixAmazonCredentials> netflixAmazonCredentials(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
+                                                                    CredentialsConfig credentialsConfig,
+                                                                    AccountCredentialsRepository accountCredentialsRepository,
+                                                                    @Value('${default.account.env:default}') String defaultEnv) {
+
+    if (!credentialsConfig.accounts) {
+      credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultEnv)]
+      if (!credentialsConfig.defaultRegions) {
+        credentialsConfig.defaultRegions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) }
+      }
+    }
+
+    List<? extends NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
+
+    for (act in accounts) {
+      accountCredentialsRepository.save(act.name, act)
+    }
+
+    accounts
+  }
+
+  @Bean
+  @ConfigurationProperties("bastion")
   BastionConfiguration bastionConfiguration() {
     new BastionConfiguration()
   }
 
   @Bean
+  @ConfigurationProperties("aws")
   AwsConfigurationProperties awsConfigurationProperties() {
     new AwsConfigurationProperties()
   }
 
-  @ConfigurationProperties("bastion")
+  @Bean
+  @ConditionalOnExpression('${bastion.enabled:false}')
+  AWSCredentialsProvider awsCredentialsProvider(BastionConfiguration bastionConfiguration) {
+    def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
+        bastionConfiguration.proxyRegion, bastionConfiguration.accountIamRole)
+    provider.refresh()
+    provider
+  }
+
   static class BastionConfiguration {
     Boolean enabled
     String host
@@ -76,71 +122,14 @@ class AmazonConfig {
     Integer port
     String proxyCluster
     String proxyRegion
+    String accountIamRole
   }
 
-  static class BastionCredentialsInitializer {
-    @Autowired
-    AccountCredentialsRepository accountCredentialsRepository
-
-    @Autowired
-    BastionConfiguration bastionConfiguration
-
-    @Autowired
-    AwsConfigurationProperties awsConfigurationProperties
-
-    @PostConstruct
-    void init() {
-      def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
-        bastionConfiguration.proxyRegion, awsConfigurationProperties.accountIamRole)
-      for (account in awsConfigurationProperties.accounts) {
-        account.credentialsProvider = provider
-        account.assumeRole = awsConfigurationProperties.assumeRole
-        accountCredentialsRepository.save(account.name, account)
-      }
-    }
-  }
-
-  static class AmazonCredentialsInitializer {
-    @Autowired
-    AWSCredentialsProvider awsCredentialsProvider
-
-    @Autowired
-    AccountCredentialsRepository accountCredentialsRepository
-
-    @Autowired
-    AwsConfigurationProperties awsConfigurationProperties
-
-    @Value('${default.account.env:default}')
-    String defaultEnv
-
-    @PostConstruct
-    void init() {
-      if (!awsConfigurationProperties.accounts) {
-        accountCredentialsRepository.save(defaultEnv, new AmazonCredentials(name: defaultEnv,
-          credentialsProvider: awsCredentialsProvider))
-        if (awsConfigurationProperties.defaultAccountAliases) {
-          for (alias in awsConfigurationProperties.defaultAccountAliases) {
-            accountCredentialsRepository.save(alias, new AmazonCredentials(name: alias,
-              credentialsProvider: awsCredentialsProvider))
-          }
-        }
-      } else {
-        for (account in awsConfigurationProperties.accounts) {
-          account.credentialsProvider = awsCredentialsProvider
-          account.assumeRole = awsConfigurationProperties.assumeRole
-          accountCredentialsRepository.save(account.name, account)
-        }
-      }
-    }
-  }
-
-  @ConfigurationProperties("aws")
-  static class AwsConfigurationProperties {
+  static class AwsConfigurationProperties extends CredentialsConfig {
     String accountIamRole
     String assumeRole
     List<String> defaultAccountAliases
     String defaultSimpleDBDomain = "RESOURCE_REGISTRY"
-    List<NetflixAssumeRoleAmazonCredentials> accounts
   }
 
 }

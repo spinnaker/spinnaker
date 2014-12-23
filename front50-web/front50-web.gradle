@@ -22,12 +22,11 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE"
-    classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
   }
 }
 
-apply plugin: 'os-package'
 apply plugin: 'spring-boot'
+apply plugin: 'spinnaker-debpublish'
 
 ideaConfig {
   mainClassName = 'com.netflix.spinnaker.front50.Main'
