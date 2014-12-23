@@ -44,6 +44,18 @@
   }
 }
 
+.status-glyph {
+  &.glyphicon-ok {
+    color: @healthy_green_icon;
+  }
+  &.glyphicon-warning-sign {
+    color: @unhealthy_red;
+  }
+  &.glyphicon-play {
+    color: @spinnaker-blue;
+  }
+}
+
 .task-details {
   @media(min-width: 992px) {
     .details-panel {
@@ -54,12 +66,6 @@
     .details-panel {
       display: none;
     }
-  }
-  .glyphicon-ok {
-    color: @healthy_green_icon;
-  }
-  .glyphicon-warning-sign {
-    color: @unhealthy_red;
   }
   dt {
     float: left;

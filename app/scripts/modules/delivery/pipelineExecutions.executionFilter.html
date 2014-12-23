@@ -1,61 +1,71 @@
 <form class="form-inline">
-<label class="label-bold">Filter Executions</label>
   <div class="form-group">
-    <label>Status</label>
+    <label>Group by</label>
+    <select class="form-control" ng-model="filter.execution.groupBy">
+      <option value="">None</option>
+      <option value="name">Pipeline</option>
+      <option value="timeBoundary">Time Boundary</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Sort by</label>
+    <select class="form-control" ng-model="filter.execution.sortBy">
+      <option value="startTime">Start Time</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Pipeline Status</label>
     <div class="btn-group">
-      <label class="btn btn-default btn-xs"
+      <label class="btn btn-default btn"
              ng-model="filter.execution.status.running"
              btn-checkbox>
         Running
       </label>
-      <label class="btn btn-default btn-xs"
+      <label class="btn btn-default btn"
              ng-model="filter.execution.status.completed"
              btn-checkbox>
         Completed
       </label>
-      <label class="btn btn-default btn-xs"
+      <label class="btn btn-default btn"
              ng-model="filter.execution.status.failed"
              btn-checkbox>
         Failed
       </label>
     </div>
   </div>
-  <div class="form-group">
-    <label>Group by</label>
-    <div class="btn-group">
-      <label class="btn btn-default btn-xs"
-             ng-model="filter.execution.groupBy"
-             btn-radio="false">
-        None
-      </label>
-      <label class="btn btn-default btn-xs"
-             ng-model="filter.execution.groupBy"
-             btn-radio="'name'">
-        Pipeline
-      </label>
-      <label class="btn btn-default btn-xs"
-             ng-model="filter.execution.groupBy"
-             btn-radio="'timeBoundary'">
-        Time Boundary
-      </label>
-      <!--<label class="btn btn-default btn-xs"
-             ng-model="filter.execution.groupBy"
-             btn-radio="'trigger'">
-        Trigger
-        </label>-->
+  <div class="pull-right">
+    <div class="form-group">
+      <label>Legend Overlay</label>
+      <select class="form-control" ng-model="filter.stage.colorOverlay">
+        <option value="status">Status</option>
+        <option value="name">Stage name</option>
+      </select>
     </div>
-  </div>
-  <div class="form-group">
-    <label>Sort by</label>
-    <div class="btn-group">
-      <label class="btn btn-default btn-xs"
-             ng-model="filter.execution.sortBy"
-             btn-radio="'startTime'">
-        Start Time
-      </label>
+    <div class="form-group">
+      <label>Scaling</label>
+      <div class="btn-group">
+        <label class="btn btn-default btn"
+               ng-model="filter.stage.scale"
+               btn-radio="'absolute'">
+          <span class="glyphicon glyphicon-align-left" title="Absolute" aria-hidden="true"></span>
+        </label>
+        <label class="btn btn-default btn"
+               ng-model="filter.stage.scale"
+               btn-radio="'fixed'">
+          <span class="glyphicon glyphicon-align-justify" title="Fixed" aria-hidden="true"></span>
+        </label>
+        <label class="btn btn-default btn"
+               ng-model="filter.stage.scale"
+               btn-radio="'relative'">
+          <span class="glyphicon glyphicon-tasks" title="Relative" aria-hidden="true"></span>
+        </label>
+      </div>
     </div>
-  </div>
-  <div class="form-group pull-right">
-    <a ui-sref="^.pipelineConfig" class="btn btn-xs btn-link"><span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
   </div>
 </form>
+<form class="form-inline">
+  <div class="form-group">
+    <a ui-sref="^.pipelineConfig" class="configure-pipelines-btn btn"><span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
+  </div>
+</form>
+

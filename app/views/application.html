@@ -3,7 +3,7 @@
     <h2><a ui-sref="home.applications"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>{{application.name}}
     </h2>
     <ul class="nav nav-pills">
-      <li ng-if="executions.length > 0">
+      <li>
         <a ui-sref=".executions" ng-class="{active: $state.includes('**.executions.**')}">
           Delivery <span class="badge"
                          ng-if="( executions | filter:{isRunning:'true'}).length > 0">

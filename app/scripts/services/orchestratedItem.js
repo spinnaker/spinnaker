@@ -44,6 +44,11 @@ angular.module('deckApp')
               .duration(parseInt(item.endTime) - parseInt(item.startTime))
               .humanize();
           }
+        },
+        runningTimeInMs: {
+          get: function() {
+            return (parseInt(item.endTime) || new Date().getTime()) - parseInt(item.startTime);
+          }
         }
       });
     }

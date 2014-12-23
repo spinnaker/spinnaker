@@ -12,7 +12,7 @@ angular.module('deckApp.delivery')
     $scope.$on('destroy', function() {
       subscription.dispose();
     });
-    
+
     controller.getStageWidth = function(stage) {
       var filtered = $filter('stages')($scope.execution.stages, $scope.filter);
       switch ($scope.filter.stage.scale) {

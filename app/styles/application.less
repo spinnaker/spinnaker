@@ -67,3 +67,11 @@
   margin-bottom: 10px;
   .pull-right;
 }
+
+.link-inverse {
+  color: @inverse-link-color;
+  &:active, &:focus, &:hover {
+    color: @inverse-link-color-active;
+    text-decoration: none;
+  }
+}

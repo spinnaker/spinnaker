@@ -9,3 +9,5 @@ deck.iml
 .idea
 .gradle
 build
+*.swp
+

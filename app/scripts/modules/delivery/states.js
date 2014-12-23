@@ -14,7 +14,7 @@ angular.module('deckApp.delivery')
       children: [
         {
           name: 'execution',
-          url: '/:executionId',
+          url: '/:executionId?stage',
           view: {},
           data: {
             pageTitleDetails: {

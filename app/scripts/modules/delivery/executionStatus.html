@@ -4,17 +4,25 @@
       <h5 ng-switch-when="jenkins">
         Build #{{ execution.trigger.buildInfo.lastBuildLabel }}
       </h5>
+      <h5 ng-switch-when="manual">
+        Manual Start
+      </h5>
       <h5 ng-switch-default>
-        Unknown
+        {{ execution.trigger.type }}
       </h5>
     </span>
     <ul>
-      <li ng-if="execution.trigger.type === 'jenkins'">
-        {{ execution.trigger.buildInfo.name }}
-      </li>
-      <li>
-        {{ execution.startTime | relativeTime }}
-      </li>
+      <span ng-switch="execution.trigger.type">
+        <li ng-switch-when="jenkins">
+          {{ execution.trigger.buildInfo.name }}
+        </li>
+        <li ng-switch-when="manual">
+          {{ execution.trigger.user }}
+        </li>
+        <li>
+          {{ execution.startTime | relativeTime }}
+        </li>
+      </span>
     </ul>
   </div>
   <div class="col-md-5">

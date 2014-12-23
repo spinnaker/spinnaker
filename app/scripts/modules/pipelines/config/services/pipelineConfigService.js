@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.pipelines')
-  .factory('pipelineConfigService', function (settings, Restangular) {
+  .factory('pipelineConfigService', function (settings, Restangular, authenticationService) {
 
     function getPipelinesForApplication(applicationName) {
       return Restangular.one('applications', applicationName).all('pipelineConfigs').getList();
@@ -30,11 +30,19 @@ angular.module('deckApp.pipelines')
       });
     }
 
+    function triggerPipeline(applicationName, pipelineName) {
+      return gateEndpoint.one('applications', applicationName).all('pipelineConfigs')
+        .customPOST(
+          {}, pipelineName, { user: authenticationService.getAuthenticatedUser().name }
+      );
+    }
+
     return {
       getPipelinesForApplication: getPipelinesForApplication,
       savePipeline: savePipeline,
       deletePipeline: deletePipeline,
-      renamePipeline: renamePipeline
+      renamePipeline: renamePipeline,
+      triggerPipeline: triggerPipeline,
     };
 
   });

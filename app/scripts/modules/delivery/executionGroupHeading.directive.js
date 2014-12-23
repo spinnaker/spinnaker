@@ -10,6 +10,7 @@ angular.module('deckApp.delivery')
         scale: '=',
         filter: '=',
         executions: '=',
+        configurations: '=',
       },
       templateUrl: 'scripts/modules/delivery/executionGroupHeading.html',
       controller: 'executionGroupHeading as ctrl',

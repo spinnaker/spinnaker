@@ -46,7 +46,12 @@ angular.module('deckApp.delivery')
         transformResponse: appendTransform(function(executions) {
           executions.forEach(function(execution) {
             orchestratedItem.defineProperties(execution);
-            execution.stages.forEach(orchestratedItem.defineProperties);
+            execution.stages.forEach(function(stage) {
+              orchestratedItem.defineProperties(stage);
+              if (stage.tasks && stage.tasks.length) {
+                stage.tasks.forEach(orchestratedItem.defineProperties);
+              }
+            });
 
             // TODO: Remove when https://github.com/spinnaker/orca/issues/167 is resolved
             execution.stages.forEach(fixStageTime);
@@ -93,6 +98,7 @@ angular.module('deckApp.delivery')
 
     return {
       getAll: getExecutions,
+      forceRefresh: scheduler.scheduleImmediate,
       subscribeAll: function(fn) {
         return scheduler
           .get()

@@ -8,7 +8,8 @@ angular.module('deckApp.pipelines.stage.bake')
       key: 'bake',
       controller: 'BakeStageCtrl',
       controllerAs: 'bakeStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/bake/bakeStage.html'
+      templateUrl: 'scripts/modules/pipelines/config/stages/bake/bakeStage.html',
+      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
     });
   })
   .controller('BakeStageCtrl', function($scope, stage, bakeryService, $q, authenticationService) {

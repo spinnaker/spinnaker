@@ -7,6 +7,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       description: 'Deploys the previously baked AMI',
       key: 'deploy',
       templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployStage.html',
+      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
     });

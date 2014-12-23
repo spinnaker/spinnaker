@@ -1,14 +1,34 @@
 <div class="col-md-12">
   <div class="row">
-    <div class="col-md-12 execution-group-heading"
-         ng-click="ctrl.toggle()">
-      <h4 style="font-weight: bold;">
-        <span class="glyphicon"
-              ng-class="{'glyphicon-chevron-up': !open, 'glyphicon-chevron-down': open}"
-              style="font-size: .8em"></span> {{ value }}</h4>
+    <div class="col-md-12 execution-group-heading">
+      <div class="row">
+        <div class="col-md-10" ng-click="ctrl.toggle()">
+          <h4>
+            <span class="glyphicon"
+                  ng-class="{'glyphicon-chevron-up': !viewState.open, 'glyphicon-chevron-down': viewState.open}">
+            </span>
+            <span class="execution-group-title">
+            {{ value }}
+            </span>
+          </h4>
+        </div>
+        <div class="col-md-2 text-right" ng-if="ctrl.canTriggerPipelineManually()">
+          <h4><a href
+                 class="btn btn-xs btn-link link-inverse"
+                 ng-click="ctrl.triggerPipeline()">
+            <span ng-if="viewState.triggeringExecution">
+              <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> STARTING NEW EXECUTION&hellip;
+            </span>
+            <span ng-if="!viewState.triggeringExecution">
+              <span class="glyphicon glyphicon-play"></span> RUN NEW EXECUTION
+            </span>
+            </a>
+          </h4>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="row" ng-show="open">
+  <div class="row" ng-show="viewState.open">
     <div class="col-md-12 execution-group-container">
       <execution-group grouping="value"
                        filter="filter"
