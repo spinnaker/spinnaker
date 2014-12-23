@@ -26,6 +26,7 @@ import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.MortService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
 import retrofit.RetrofitError
@@ -154,7 +155,7 @@ class FunctionalSpec extends Specification {
       task = [type: "deploy"]
   }
 
-  @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration])
+  @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
   @Configuration
   static class FunctionalConfiguration {
 
