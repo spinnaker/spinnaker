@@ -19,13 +19,12 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.netflix.nebula:gradle-ospackage-plugin:1.12.2"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RELEASE"
     }
 }
 
-apply plugin: 'os-package'
 apply plugin: 'spring-boot'
+apply plugin: 'spinnaker-debpublish'
 
 springBoot {
     mainClass = 'com.netflix.spinnaker.orca.Main'
@@ -90,3 +89,4 @@ buildDeb {
   requires("redis-server")
 }
 
+project.tasks.bintrayDebPublish.mustRunAfter 'release'
