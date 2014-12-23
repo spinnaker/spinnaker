@@ -17,11 +17,14 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
+import com.amazonaws.services.autoscaling.model.Ebs
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
-import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.AmazonDeploymentResult
@@ -65,7 +68,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def expectedDeployDescription = { region ->
       new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
         blockDevices: [new AmazonBlockDevice(deviceName: '/dev/sdb', size: 125), new AmazonBlockDevice(deviceName: '/dev/sdc', virtualName: 'ephemeral1')],
-        securityGroups: ['someGroupName', 'otherGroupName'], availabilityZones: [(region): null],
+        securityGroups: ['someGroupName', 'sg-12345a'], availabilityZones: [(region): null],
         capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
         source: new BasicAmazonDeployDescription.Source())
     }
@@ -74,17 +77,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     op.operate([])
 
     then:
-    2 * mockEC2.describeSecurityGroups(_) >> { DescribeSecurityGroupsRequest request ->
-      assert request.groupNames == ['someGroupName']
-      assert request.groupIds == ['sg-12345a']
-      def grpByName = Mock(SecurityGroup)
-      grpByName.getGroupName() >> "someGroupName"
-      grpByName.getGroupId() >> "sg-12345b"
-      def grpById = Mock(SecurityGroup)
-      grpById.getGroupName() >> "otherGroupName"
-      grpById.getGroupId() >> "sg-12345a"
-      new DescribeSecurityGroupsResult().withSecurityGroups([grpByName, grpById])
-    }
     2 * mockAutoScaling.describeLaunchConfigurations(_) >> { DescribeLaunchConfigurationsRequest request ->
       assert request.launchConfigurationNames == ['foo']
       def mockLaunch = Mock(LaunchConfiguration)

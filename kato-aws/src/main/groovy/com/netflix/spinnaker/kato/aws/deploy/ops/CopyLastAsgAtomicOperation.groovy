@@ -16,9 +16,11 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
-
-import com.amazonaws.services.autoscaling.model.*
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
@@ -35,10 +37,7 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-import java.util.regex.Pattern
-
 class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
-  private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
   private static final String BASE_PHASE = "COPY_LAST_ASG"
 
   private static Task getTask() {
@@ -106,7 +105,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones]
       newDescription.instanceType = description.instanceType ?: ancestorLaunchConfiguration.instanceType
       newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames
-      newDescription.securityGroups = getSecurityGroupNamesForIds(sourceRegion, description.securityGroups != null ? description.securityGroups : ancestorLaunchConfiguration.securityGroups)
+      newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : ancestorLaunchConfiguration.securityGroups
       newDescription.capacity.min = description.capacity?.min != null ? description.capacity.min : ancestorAsg.minSize
       newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize
       newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity
@@ -158,14 +157,6 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
     def json = result.subnets?.getAt(0)?.tags?.find { it.key == AutoScalingWorker.SUBNET_METADATA_KEY }?.value
     def metadata = objectMapper.readValue(json, Map)
     (metadata && metadata.purpose) ? metadata.purpose : null
-  }
-
-  List<String> getSecurityGroupNamesForIds(String region, List<String> ids) {
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
-
-    def (List<String> groupIds, List<String> groupNames) = ids.split { SG_PATTERN.matcher(it).matches() }
-    def result = amazonEC2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupIds(groupIds).withGroupNames(groupNames))
-    result.securityGroups*.groupName
   }
 
   List<AmazonBlockDevice> convertBlockDevices(List<BlockDeviceMapping> blockDeviceMappings) {
