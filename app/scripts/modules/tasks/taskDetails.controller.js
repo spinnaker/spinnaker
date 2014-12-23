@@ -1,8 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('TaskDetailsCtrl', function($scope, taskId, application, $state, notifications) {
+angular.module('deckApp.tasks.detail', [])
+  .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notifications) {
+
+    var vm = this;
 
     function extractTaskDetails() {
       var filtered = application.tasks.filter(function(task) {
@@ -17,11 +19,16 @@ angular.module('deckApp')
         });
         $state.go('^');
       } else {
-        $scope.task = filtered[0];
+        vm.task = filtered[0];
       }
     }
 
     extractTaskDetails();
 
     application.registerAutoRefreshHandler(extractTaskDetails, $scope);
+
+    vm.retry = angular.noop;
+    vm.cancel = angular.noop;
+
+    return vm;
   });

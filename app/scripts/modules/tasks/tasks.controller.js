@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.tasks', [])
+angular.module('deckApp.tasks.main', [])
   .controller('TasksCtrl', function (application) {
     var self = this;
     self.taskStateFilter = 'All';

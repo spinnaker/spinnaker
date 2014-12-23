@@ -5,7 +5,7 @@ angular.module('deckApp')
   .directive('taskView', function () {
     return {
       restrict: 'E',
-      templateUrl: 'views/task.html',
+      templateUrl: 'scripts/modules/tasks/taskview.html',
       scope: {
         task: '=',
       },

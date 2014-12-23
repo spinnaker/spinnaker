@@ -24,6 +24,20 @@
     "$": true,
     "_": true,
     "Rx": true,
-    "moment": true
+    "moment": true,
+    "jasmine" : false,
+    "describe": false,
+    "ddescribe": false,
+    "xdescribe": false,
+    "beforeEach": false,
+    "before": false,
+    "after": false,
+    "afterEach": false,
+    "it": false,
+    "iit": false,
+    "xit": false,
+    "inject": false,
+    "expect": false,
+    "sypOn": false
   }
 }

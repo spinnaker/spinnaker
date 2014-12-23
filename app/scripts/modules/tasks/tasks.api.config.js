@@ -1,8 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .factory('pond', function(settings, Restangular, momentService, urlBuilder, $timeout, $q, kato, $exceptionHandler, orchestratedItem) {
+angular.module('deckApp.tasks.api', ['restangular','deckApp.settings', 'deckApp.urlBuilder'])
+  .factory('tasksApi', function(settings, Restangular, urlBuilder, $timeout, $q, kato, $exceptionHandler, orchestratedItem) {
 
     function getKatoTasks(task) {
       return task.getValueFor('kato.tasks');

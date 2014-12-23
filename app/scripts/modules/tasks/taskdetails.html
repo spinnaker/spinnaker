@@ -7,7 +7,7 @@
       </a>
     </div>
     <div class="header-text">
-      <h3>{{ task.name }}</h3>
+      <h3>{{ taskDetail.task.name }}</h3>
     </div>
     <div class="actions">
       <div class="dropdown">
@@ -17,8 +17,8 @@
           Task Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" role="menu">
-          <li ng-if="task.isCompleted"><a href ng-click="ctrl.retry()">Retry</a></li>
-          <li ng-if="task.isRunning"><a href ng-click="ctrl.cancel()">Cancel</a></li>
+          <li ng-if="taskDetail.task.isCompleted"><a href ng-click="taskDetail.retry()">Retry</a></li>
+          <li ng-if="taskDetail.task.isRunning"><a href ng-click="taskDetail.cancel()">Cancel</a></li>
         </ul>
       </div>
     </div>
@@ -26,20 +26,20 @@
   <div class="content">
     <collapsible-section heading="Status" expanded="true">
       <status-glyph item="task"></status-glyph>
-      {{ task.status}}
+      {{ taskDetail.task.status}}
       <dl>
         <dt>Started</dt>
-        <dd>{{ task.startTime | relativeTime }}</dd>
-        <span ng-if="task.isCompleted">
+        <dd>{{ taskDetail.task.startTime | relativeTime }}</dd>
+        <span ng-if="taskDetail.task.isCompleted">
           <dt>Completed</dt>
-          <dd>{{ task.endTime | relativeTime }}</dd>
+          <dd>{{ taskDetail.task.endTime | relativeTime }}</dd>
         </span>
         <dt>Running time</dt>
-        <dd>{{ task.runningTime }}</dd>
+        <dd>{{ taskDetail.task.runningTime }}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Orchestration Log" expanded="true">
-      <h5 ng-repeat-start="step in task.steps">
+      <h5 ng-repeat-start="step in taskDetail.task.steps">
         <status-glyph item="step"></status-glyph>
         {{ step.name | robotToHuman }}
       </h5>
@@ -53,7 +53,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Kato Log" expanded="true">
-      <h5 ng-repeat-start="step in task.katoTasks">
+      <h5 ng-repeat-start="step in taskDetail.task.katoTasks">
         {{ step.status }}
       </h5>
       <dl class="well" style="padding: 10px;" ng-repeat-end>

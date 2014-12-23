@@ -16,14 +16,14 @@
 
 'use strict';
 
-describe('Service: Pond - task complete, task force refresh', function() {
+describe('Service: tasksApi - task complete, task force refresh', function() {
 
   var service, $http, config, scope, timeout, task;
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function(settings, pond, $httpBackend, $rootScope, $timeout) {
-    service = pond;
+  beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout) {
+    service = tasksApi;
     config = settings;
     $http = $httpBackend;
     timeout = $timeout;
