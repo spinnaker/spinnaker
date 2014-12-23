@@ -4,6 +4,9 @@ server:
 aws:
   enabled: ${AWS_ENABLED:false}
 
+google:
+  enabled: ${GOOGLE_ENABLED:false}
+
 spinnaker:
   cassandra:
     enabled: ${SPINNAKER_CASSANDRA_ENABLED:true}
