@@ -4,10 +4,6 @@
 angular.module('deckApp')
   .factory('accountService', function(settings, Restangular, $q, scheduledCache, infrastructureCaches) {
 
-    var credentialsEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
     var preferredZonesByAccount = {
       prod: {
         'us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e'],
@@ -66,7 +62,7 @@ angular.module('deckApp')
     }
 
     function listAccounts() {
-      return credentialsEndpoint
+      return Restangular
         .all('credentials')
         .withHttpConfig({cache: infrastructureCaches.credentials})
         .getList();
@@ -76,7 +72,7 @@ angular.module('deckApp')
       var deferred = $q.defer();
       listAccounts().then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
-          acc[account] = credentialsEndpoint
+          acc[account] = Restangular
             .all('credentials')
             .one(account)
             .withHttpConfig({cache: infrastructureCaches.credentials})
@@ -90,7 +86,7 @@ angular.module('deckApp')
     }
 
     function getAccountDetails(accountName) {
-      return credentialsEndpoint.one('credentials', accountName)
+      return Restangular.one('credentials', accountName)
         .withHttpConfig({cache: infrastructureCaches.credentials})
         .get();
     }

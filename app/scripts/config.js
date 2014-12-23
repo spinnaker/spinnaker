@@ -22,4 +22,7 @@ angular.module('deckApp')
     $modalProvider.options.backdrop = 'static';
     $modalProvider.options.keyboard = false;
   })
+  .config(function(RestangularProvider, settings) {
+    RestangularProvider.setBaseUrl(settings.gateUrl);
+  })
 ;

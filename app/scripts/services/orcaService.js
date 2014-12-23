@@ -4,9 +4,7 @@
 angular.module('deckApp')
   .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, pond, $q, authenticationService, scheduledCache, infrastructureCaches) {
 
-    var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    }).all('applications');
+    var endpoint = Restangular.all('applications');
 
     function getEndpoint(application) {
       return endpoint.all(application).all('tasks');

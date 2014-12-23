@@ -251,7 +251,6 @@ angular.module('deckApp')
     function getAllTypesByRegion() {
 
       var instanceTypesEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-        RestangularConfigurer.setBaseUrl(settings.gateUrl);
         RestangularConfigurer.setDefaultHttpFields({cache: true});
       });
 

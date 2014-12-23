@@ -4,16 +4,12 @@
 angular.module('deckApp')
   .factory('serverGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, mortService, awsServerGroupService, gceServerGroupService) {
 
-    var gateEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
     function getServerGroupEndpoint(application, account, clusterName, serverGroupName) {
-      return gateEndpoint.one('applications', application).all('clusters').all(account).all(clusterName).one('serverGroups', serverGroupName);
+      return Restangular.one('applications', application).all('clusters').all(account).all(clusterName).one('serverGroups', serverGroupName);
     }
 
     function getServerGroup(application, account, region, serverGroupName) {
-      return gateEndpoint.one('applications', application).all('serverGroups').all(account).all(region).one(serverGroupName).get();
+      return Restangular.one('applications', application).all('serverGroups').all(account).all(region).one(serverGroupName).get();
     }
 
     function getScalingActivities(application, account, clusterName, serverGroupName, region) {

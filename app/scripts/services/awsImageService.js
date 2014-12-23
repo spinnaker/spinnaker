@@ -4,15 +4,11 @@
 angular.module('deckApp')
   .factory('awsImageService', function (settings, $q, Restangular, scheduledCache) {
 
-    var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
     function findImages(params) {
       if (!params.q || params.q.length < 3) {
         return $q.when([{message: 'Please enter at least 3 characters...'}]);
       }
-      return gateEndpoint.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {
+      return Restangular.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {
           return results;
         },
         function() {
@@ -21,7 +17,7 @@ angular.module('deckApp')
     }
 
     function getAmi(amiName, region, credentials) {
-      return gateEndpoint.all('images').one(credentials).one(region).all(amiName).getList({provider: 'aws'}).then(function(results) {
+      return Restangular.all('images').one(credentials).one(region).all(amiName).getList({provider: 'aws'}).then(function(results) {
           return results && results.length ? results[0] : null;
         },
         function() {

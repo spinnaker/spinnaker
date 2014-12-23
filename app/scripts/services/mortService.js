@@ -8,16 +8,12 @@ angular.module('deckApp')
         vpcsCache = [],
         keyPairsCache = [];
 
-    var endpoint = Restangular.withConfig(function(RestangularConfigurer) {
-      RestangularConfigurer.setBaseUrl(settings.gateUrl);
-    });
-
     function listSubnets() {
       if (subnetsCache.length) {
         return $q.when(subnetsCache);
       } else {
         var deferred = $q.defer();
-        endpoint.all('subnets')
+        Restangular.all('subnets')
           .withHttpConfig({cache: infrastructureCaches.subnets})
           .getList().then(function(list) {
           subnetsCache = list;
@@ -32,7 +28,7 @@ angular.module('deckApp')
         return $q.when(vpcsCache);
       } else {
         var deferred = $q.defer();
-        endpoint.all('vpcs')
+        Restangular.all('vpcs')
           .withHttpConfig({cache: infrastructureCaches.vpcs})
           .getList().then(function(list) {
           vpcsCache = list;
@@ -47,7 +43,7 @@ angular.module('deckApp')
         return $q.when(keyPairsCache);
       } else {
         var deferred = $q.defer();
-        endpoint.all('keyPairs')
+        Restangular.all('keyPairs')
           .withHttpConfig({cache: infrastructureCaches.keyPairs})
           .getList().then(function(list) {
           keyPairsCache = list;
