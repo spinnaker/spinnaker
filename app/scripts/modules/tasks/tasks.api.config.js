@@ -130,7 +130,7 @@ angular.module('deckApp.tasks.api', ['restangular','deckApp.settings', 'deckApp.
         if (task.isCompleted) {
           deferred.resolve(task);
         }
-        if (task.isRunning && !deferred.promise.cancelled) {
+        if ( (task.isRunning || task.hasNotStarted) && !deferred.promise.cancelled) {
           $timeout(function () {
             task.get().then(function (updatedTask) {
               updateTask(task, updatedTask);
