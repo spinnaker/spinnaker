@@ -12,7 +12,7 @@ angular.module('deckApp.delivery')
     $scope.$on('destroy', function() {
       subscription.dispose();
     });
-    
+
     controller.getStageWidth = function(stage) {
       var filtered = $filter('stages')($scope.execution.stages, $scope.filter);
       switch ($scope.filter.stage.scale) {
@@ -54,10 +54,6 @@ angular.module('deckApp.delivery')
         'background-color': controller.getStageColor(stage),
         opacity: controller.getStageOpacity(stage),
       };
-      if (stage.isRunning) {
-        style['-webkit-animation'] = 'animate-glow 1s ease-out infinite';
-        style['-moz-animation'] = 'animate-glow 1s ease-out infinite';
-      }
       return style;
     };
   });

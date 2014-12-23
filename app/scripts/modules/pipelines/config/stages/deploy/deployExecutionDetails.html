@@ -38,7 +38,7 @@
           <span class="small"><status-glyph item="task"></status-glyph></span> {{task.name | robotToHuman }}
         </div>
         <div class="col-md-4 text-right">
-          {{task.endTime - task.startTime | numericDuration }}
+          {{task.runningTimeInMs | numericDuration }}
         </div>
       </div>
     </div>

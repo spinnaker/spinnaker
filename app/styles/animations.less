@@ -16,19 +16,19 @@
 
 @import "app/styles/imports/colors.less";
 
-.glow {
-  -webkit-animation: animate-glow 1s ease-out infinite;
-  -moz-animation: animate-glow 1s ease-out infinite;
+.glowing {
+  -webkit-animation: animate-glow 1.5s ease-out infinite;
+  -moz-animation: animate-glow 1.5s ease-out infinite;
 }
 
 @-webkit-keyframes animate-glow {
-     0% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;} 
+     0% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
      50% { -webkit-box-shadow: 0 30px 30px @glow-mid inset, 0 -30px 30px @glow-mid inset;}
      100% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
 }
 
 @-moz-keyframes animate-glow {
-     0% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;} 
+     0% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
      50% { -webkit-box-shadow: 0 30px 30px @glow-mid inset, 0 -30px 30px @glow-mid inset;}
      100% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
 }

@@ -9,7 +9,6 @@ angular.module('deckApp')
       }
 
       item.originalStatus = item.status;
-      item.endTime = item.endTime || new Date().getTime();
       Object.defineProperties(item, {
         isCompleted: {
           get: function() {
@@ -44,6 +43,11 @@ angular.module('deckApp')
             return momentService
               .duration(parseInt(item.endTime) - parseInt(item.startTime))
               .humanize();
+          }
+        },
+        runningTimeInMs: {
+          get: function() {
+            return (parseInt(item.endTime) || new Date().getTime()) - parseInt(item.startTime);
           }
         }
       });
