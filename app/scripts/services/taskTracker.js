@@ -5,6 +5,9 @@ angular.module('deckApp')
   .factory('taskTracker', function(notifications, scheduler) {
     var that = {};
     that.getValueForKey = function getValueForKey(task, k) {
+      if (!task.variables) {
+        return null;
+      }
       var variables =  task.variables.filter(function(v) {
         return v.key === k;
       });
