@@ -32,7 +32,10 @@ interface ExceptionHandler<T extends RuntimeException> {
   }
 
   @Canonical
-  static class ResponseDetails extends HashMap<String, Object> {
+  static class ResponseDetails implements Map<String, Object> {
+    @Delegate
+    Map<String, Object> delegate = [:]
+
     ResponseDetails(String error, List<String> errors = []) {
       put("error", error)
       put("errors", errors)
