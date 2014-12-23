@@ -90,3 +90,4 @@ buildDeb {
   requires("openjdk-7-jre")
 }
 
+project.tasks.bintrayDebPublish.mustRunAfter 'release'
