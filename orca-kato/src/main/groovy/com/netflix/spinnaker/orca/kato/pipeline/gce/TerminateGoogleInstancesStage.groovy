@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.TerminateGoogleInstancesTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.WaitForRecreatedGoogleInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
@@ -39,7 +39,7 @@ class TerminateGoogleInstancesStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep("terminateInstances", TerminateGoogleInstancesTask)
     def step2 = buildStep("monitorTermination", MonitorKatoTask)
-    def step3 = buildStep("waitForTerminatedInstances", WaitForTerminatedInstancesTask)
+    def step3 = buildStep("waitForRecreatedInstances", WaitForRecreatedGoogleInstancesTask)
     [step1, step2, step3]
   }
 }

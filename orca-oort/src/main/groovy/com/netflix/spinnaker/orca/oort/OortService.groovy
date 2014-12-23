@@ -39,6 +39,10 @@ interface OortService {
   @GET("/applications/{app}")
   Response getApplication(@Path("app") String app)
 
+  @GET("/instances/{account}/{region}/{instanceId}")
+  Response getInstance(@Path("account") String account, @Path("region") String region,
+                       @Path("instanceId") String instanceId)
+
   @POST("/cache/{type}")
   Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)
 

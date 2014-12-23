@@ -32,7 +32,8 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
   def terminateInstancesConfig = [
     zone       : "us-central1-b",
     credentials: "fzlem",
-    instanceIds: ['i-123456', 'i-654321']
+    instanceIds: ['i-123456', 'i-654321'],
+    launchTimes: [1419273631008, 1419273085007]
   ]
 
   def setup() {
@@ -59,6 +60,7 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
       zone == this.terminateInstancesConfig.zone
       credentials == this.terminateInstancesConfig.credentials
       instanceIds == this.terminateInstancesConfig.instanceIds
+      launchTimes == this.terminateInstancesConfig.launchTimes
     }
   }
 
