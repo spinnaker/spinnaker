@@ -7,12 +7,11 @@ buildscript {
   }
   dependencies {
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    classpath 'com.netflix.nebula:gradle-ospackage-plugin:1.12.+'
   }
 }
 
 apply plugin: 'spring-boot'
-apply plugin: 'os-package'
+apply plugin: 'spinnaker-debpublish'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 
