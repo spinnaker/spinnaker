@@ -80,20 +80,3 @@ buildDeb {
   dependsOn installApp
   requires("openjdk-7-jre")
 }
-
-if (file("/opt/front50/lib/jamm-0.2.5.jar").exists()) {
-  applicationDefaultJvmArgs = ['-javaagent:$APP_HOME/lib/jamm-0.2.5.jar']
-} else {
-  def javaAgent = getJvmArgs()
-  applicationDefaultJvmArgs = [javaAgent]
-}
-
-String getJvmArgs() {
-  def mainSourceSet = project.convention.getPlugin(JavaPluginConvention).sourceSets.main
-  def jarFile = JarFinder.find("org.github.jamm.MemoryMeter", mainSourceSet.compileClasspath.files)
-  if (jarFile) {
-    "-javaagent:${jarFile.absolutePath}"
-  } else {
-    ""
-  }
-}
