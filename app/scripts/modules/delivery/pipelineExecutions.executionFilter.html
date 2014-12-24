@@ -17,6 +17,11 @@
     <label>Pipeline Status</label>
     <div class="btn-group">
       <label class="btn btn-default btn"
+             ng-model="filter.execution.status.not_started"
+             btn-checkbox>
+        <status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started
+      </label>
+      <label class="btn btn-default btn"
              ng-model="filter.execution.status.running"
              btn-checkbox>
         <status-glyph item="{isRunning: true}"></status-glyph> Running

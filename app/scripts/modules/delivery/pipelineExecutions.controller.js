@@ -14,6 +14,7 @@ angular.module('deckApp.delivery')
           running: true,
           completed: true,
           failed: true,
+          'not_started': true,
         },
         triggers: {
           jenkins: true,
@@ -32,6 +33,7 @@ angular.module('deckApp.delivery')
           running: true,
           completed: true,
           failed: true,
+          'not_started': true,
         },
         scale: 'fixed',
         colorOverlay: 'status',
@@ -39,10 +41,10 @@ angular.module('deckApp.delivery')
     };
 
     $scope.statusDisplayNames = {
-      'failed': 'Failed',
-      //'not_started': 'Not Started',
-      'running': 'Running',
-      'completed': 'Completed',
+      failed: 'Failed',
+      'not_started': 'Not Started',
+      running: 'Running',
+      completed: 'Completed',
     };
 
     $scope.scale = {
@@ -91,6 +93,9 @@ angular.module('deckApp.delivery')
       controller.updateLegend();
     }
 
+    // The executionId will not be available in the $stateParams that would be passed into this controller
+    // because that field belongs to a child state. So we have to watch for a $stateChangeSuccess event, then set
+    // the value on the scope
     $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
       $scope.detailsTarget = toParams.executionId;
     });
@@ -106,6 +111,7 @@ angular.module('deckApp.delivery')
       $scope.$on('$destroy', function() {
         subscription.dispose();
       });
+      // if we detected the loading of a details section, scroll it into view
       if ($scope.detailsTarget) {
         scrollToService.scrollTo('execution-' + $scope.detailsTarget, 250);
       }
