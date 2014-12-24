@@ -11,6 +11,7 @@ angular.module('deckApp.gce')
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
     $scope.applicationName = application.name;
+    $scope.application = application;
 
     $scope.state = {
       loaded: false,
