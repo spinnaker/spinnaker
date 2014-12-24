@@ -11,23 +11,33 @@ angular.module('deckApp')
     }
 
     function loadLoadBalancers(application, loadBalancersByApplicationName) {
-        var loadBalancerNames = _.pluck(loadBalancersByApplicationName, 'loadBalancer'),
-          loadBalancerPromises = [];
+      var loadBalancerResults = loadBalancersByApplicationName;
 
-        application.accounts.forEach(function(account) {
-          var accountClusters = application.clusters[account] || [];
-          accountClusters.forEach(function(cluster) {
-            loadBalancerNames.push(cluster.loadBalancers);
+      loadBalancerResults = _.map(loadBalancerResults, function(individualResult) {
+        return _.pick(individualResult, 'loadBalancer', 'provider');
+      });
+
+      application.accounts.forEach(function(account) {
+        var accountClusters = application.clusters[account] || [];
+
+        accountClusters.forEach(function(cluster) {
+          cluster.loadBalancers.forEach(function(loadBalancerName) {
+            loadBalancerResults.push({loadBalancer: loadBalancerName, provider: cluster.provider});
           });
         });
+      });
 
-        loadBalancerNames = _.unique(_.flatten(loadBalancerNames));
-        loadBalancerNames.forEach(function(loadBalancer) {
-          var loadBalancerPromise = getLoadBalancer(loadBalancer);
-          loadBalancerPromises.push(loadBalancerPromise);
-        });
+      loadBalancerResults = _.unique(_.flatten(loadBalancerResults), 'loadBalancer');
 
-        return $q.all(loadBalancerPromises).then(_.flatten);
+      var loadBalancerPromises = [];
+
+      loadBalancerResults.forEach(function(loadBalancer) {
+        var loadBalancerPromise = getLoadBalancer(loadBalancer);
+
+        loadBalancerPromises.push(loadBalancerPromise);
+      });
+
+      return $q.all(loadBalancerPromises).then(_.flatten);
     }
 
     function updateHealthCounts(loadBalancer) {
@@ -43,8 +53,8 @@ angular.module('deckApp')
       };
     }
 
-    function getLoadBalancer(name) {
-      var promise = Restangular.one('loadBalancers', name).get({provider: 'aws'});
+    function getLoadBalancer(loadBalancer) {
+      var promise = Restangular.one('loadBalancers', loadBalancer.loadBalancer).get({provider: loadBalancer.provider});
       return promise.then(function(loadBalancerRollup) {
         if (angular.isUndefined(loadBalancerRollup.accounts)) { return []; }
         var loadBalancers = [];
