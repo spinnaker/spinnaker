@@ -18,8 +18,8 @@ allprojects {
 
   group = "com.netflix.spinnaker.oort"
 
-  sourceCompatibility = 1.7
-  targetCompatibility = 1.7
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
 
   configurations.all {
     resolutionStrategy {
