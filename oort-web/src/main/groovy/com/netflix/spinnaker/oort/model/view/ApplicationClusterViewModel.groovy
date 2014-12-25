@@ -20,4 +20,5 @@ class ApplicationClusterViewModel {
   String name
   TreeSet<String> loadBalancers
   TreeSet<String> serverGroups
+  String provider
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.gce.model.callbacks
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
 import com.netflix.spinnaker.oort.gce.model.GoogleInstance
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import spock.lang.Specification
@@ -30,6 +31,9 @@ class UtilsSpec extends Specification {
   private final static String CLUSTER_DEV_NAME = "testapp-dev"
   private final static String CLUSTER_PROD_NAME = "testapp-prod"
   private final static String SERVER_GROUP_NAME = "testapp-dev-v000"
+  private final static String INSTANCE_NAME = "testapp-dev-v000-abcd"
+  private final static String LOAD_BALANCER_NAME = "testapp-dev-frontend"
+  private final static String REGION = "us-central1"
 
   void "getImmutableCopy returns an immutable copy"() {
     when:
@@ -62,12 +66,13 @@ class UtilsSpec extends Specification {
       Utils.getImmutableCopy("some-string") == "some-string"
   }
 
-  void "deep-copied application maps do not share applications, clusters or server groups"() {
+  void "deep-copied application maps do not share applications, clusters, server groups or load balancers"() {
     setup:
       def originalServerGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME)
-      originalServerGroup.instances << new GoogleInstance(name: "testapp-dev-v000-abcd")
+      originalServerGroup.instances << new GoogleInstance(name: INSTANCE_NAME)
       def originalClusterDev = new GoogleCluster(name: CLUSTER_DEV_NAME)
       originalClusterDev.serverGroups << originalServerGroup
+      originalClusterDev.loadBalancers << new GoogleLoadBalancer(LOAD_BALANCER_NAME, REGION)
       def originalClusterProd = new GoogleCluster(name: CLUSTER_PROD_NAME)
       def originalApplication = new GoogleApplication(name: APPLICATION_NAME)
       originalApplication.clusterNames[ACCOUNT_NAME] = [CLUSTER_DEV_NAME, CLUSTER_PROD_NAME] as Set
@@ -150,6 +155,26 @@ class UtilsSpec extends Specification {
       retrievedCopyServerGroup.instances.collect { instance ->
         instance.name
       } == []
+
+    when:
+      copyAppMap = Utils.deepCopyApplicationMap(originalAppMap)
+      retrievedOrigClusterDev =
+        Utils.retrieveOrCreatePathToCluster(originalAppMap, ACCOUNT_NAME, APPLICATION_NAME, CLUSTER_DEV_NAME)
+      def origLoadBalancer = retrievedOrigClusterDev.loadBalancers.find { it.name == LOAD_BALANCER_NAME }
+      retrievedCopyClusterDev =
+        Utils.retrieveOrCreatePathToCluster(copyAppMap, ACCOUNT_NAME, APPLICATION_NAME, CLUSTER_DEV_NAME)
+      def copyLoadBalancer = retrievedCopyClusterDev.loadBalancers.find { it.name == LOAD_BALANCER_NAME }
+
+    then:
+      origLoadBalancer.serverGroups == [] as Set
+      copyLoadBalancer.serverGroups == [] as Set
+
+    when:
+      origLoadBalancer.serverGroups << SERVER_GROUP_NAME
+
+    then:
+      origLoadBalancer.serverGroups == [SERVER_GROUP_NAME] as Set
+      copyLoadBalancer.serverGroups == [] as Set
   }
 
   void "cluster paths are retrieved or built as necessary"() {

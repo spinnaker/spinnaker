@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.gce.search
 
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import com.netflix.spinnaker.oort.gce.search.GoogleSearchProvider
 import spock.lang.Specification
@@ -41,9 +42,11 @@ class GoogleSearchProviderSpec extends Specification {
       resultSet.pageNumber == 1
       resultSet.pageSize == 10
       resultSet.results == [[type: "applications",
+                             provider: "gce",
                              application: "rosco_app_1",
                              url: "/applications/rosco_app_1"],
                             [type: "applications",
+                             provider: "gce",
                              application: "rosco_app_2",
                              url: "/applications/rosco_app_2"]]
   }
@@ -67,6 +70,150 @@ class GoogleSearchProviderSpec extends Specification {
       resultSetNoTypes.results == resultSetApplicationsType.results
   }
 
+  void "return load balancers with load balancers type specified"() {
+    setup:
+      def searchProvider = new GoogleSearchProvider()
+      def resourceRetrieverMock = Mock(GoogleResourceRetriever)
+      searchProvider.googleResourceRetriever = resourceRetrieverMock
+      def networkLoadBalancerMap = [
+        "$ACCOUNT_NAME": [
+          'us-central1' : [new GoogleLoadBalancer('testapp1-dev-frontend', 'us-central1'),
+                           new GoogleLoadBalancer('testapp2-dev-frontend', 'us-central1'),
+                           new GoogleLoadBalancer('testapp3a-dev-frontend', 'us-central1'),
+                           new GoogleLoadBalancer('testapp3b-dev', 'us-central1')],
+          'europe-west1': [new GoogleLoadBalancer('testapp4-dev-frontend', 'europe-west1'),
+                           new GoogleLoadBalancer('testapp5-dev-frontend', 'europe-west1'),
+                           new GoogleLoadBalancer('testapp6-prod-frontend', 'europe-west1')],
+          'asia-east1'  : [new GoogleLoadBalancer('testapp7-prod-frontend', 'asia-east1'),
+                           new GoogleLoadBalancer('testapp8-prod-frontend', 'asia-east1'),
+                           new GoogleLoadBalancer('testapp9-prod-frontend', 'asia-east1')],
+        ]
+      ]
+      resourceRetrieverMock.getApplicationsMap() >> [:]
+
+    when:
+      def resultSet = searchProvider.search('testapp', ["loadBalancers"], 1, 10)
+
+    then:
+      1 * resourceRetrieverMock.getNetworkLoadBalancerMap() >> networkLoadBalancerMap
+
+      resultSet.totalMatches == 10
+      resultSet.pageNumber == 1
+      resultSet.pageSize == 10
+      resultSet.results == [
+        [
+          type: "loadBalancers",
+          region: "us-central1",
+          loadBalancer: "testapp1-dev-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp1",
+          stack: "dev",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp1-dev-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "us-central1",
+          loadBalancer: "testapp2-dev-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp2",
+          stack: "dev",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp2-dev-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "us-central1",
+          loadBalancer: "testapp3a-dev-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp3a",
+          stack: "dev",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp3a-dev-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "us-central1",
+          loadBalancer: "testapp3b-dev",
+          account: ACCOUNT_NAME,
+          application: "testapp3b",
+          stack: "dev",
+          detail: null,
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp3b-dev"
+        ],
+        [
+          type: "loadBalancers",
+          region: "europe-west1",
+          loadBalancer: "testapp4-dev-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp4",
+          stack: "dev",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp4-dev-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "europe-west1",
+          loadBalancer: "testapp5-dev-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp5",
+          stack: "dev",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp5-dev-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "europe-west1",
+          loadBalancer: "testapp6-prod-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp6",
+          stack: "prod",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp6-prod-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "asia-east1",
+          loadBalancer: "testapp7-prod-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp7",
+          stack: "prod",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp7-prod-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "asia-east1",
+          loadBalancer: "testapp8-prod-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp8",
+          stack: "prod",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp8-prod-frontend"
+        ],
+        [
+          type: "loadBalancers",
+          region: "asia-east1",
+          loadBalancer: "testapp9-prod-frontend",
+          account: ACCOUNT_NAME,
+          application: "testapp9",
+          stack: "prod",
+          detail: "frontend",
+          provider: "gce",
+          url: "/gce/loadBalancers/testapp9-prod-frontend"
+        ]
+      ]
+  }
+
   void 'respect user-specified size limit'() {
     setup:
       def searchProvider = new GoogleSearchProvider()
@@ -84,12 +231,14 @@ class GoogleSearchProviderSpec extends Specification {
       resultSetPage1.pageNumber == 1
       resultSetPage1.pageSize == 1
       resultSetPage1.results == [[type: "applications",
-                                 application: "rosco_app_1",
-                                 url: "/applications/rosco_app_1"]]
+                                  provider: "gce",
+                                  application: "rosco_app_1",
+                                  url: "/applications/rosco_app_1"]]
       resultSetPage2.totalMatches == 2
       resultSetPage2.pageNumber == 2
       resultSetPage2.pageSize == 1
       resultSetPage2.results == [[type: "applications",
+                                  provider: "gce",
                                   application: "rosco_app_2",
                                   url: "/applications/rosco_app_2"]]
   }
@@ -110,22 +259,27 @@ class GoogleSearchProviderSpec extends Specification {
       resultSet.pageNumber == 1
       resultSet.pageSize == 5
       resultSet.results == [[type: "applications",
+                             provider: "gce",
                              application: "rosco_app_1",
                              url: "/applications/rosco_app_1"],
                             [type: "clusters",
+                             provider: "gce",
                              application: "rosco_app_1",
                              account: ACCOUNT_NAME,
                              cluster: "rosco_app_1-cluster1",
                              url: "/applications/rosco_app_1/clusters/default/rosco_app_1-cluster1"],
                             [type: "applications",
+                             provider: "gce",
                              application: "rosco_app_2",
                              url: "/applications/rosco_app_2"],
                             [type: "clusters",
+                             provider: "gce",
                              application: "rosco_app_2",
                              account: ACCOUNT_NAME,
                              cluster: "rosco_app_2-cluster2a",
                              url: "/applications/rosco_app_2/clusters/default/rosco_app_2-cluster2a"],
                             [type: "clusters",
+                             provider: "gce",
                              application: "rosco_app_2",
                              account: ACCOUNT_NAME,
                              cluster: "rosco_app_2-cluster2b",

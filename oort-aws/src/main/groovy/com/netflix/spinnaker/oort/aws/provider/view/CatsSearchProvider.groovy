@@ -107,6 +107,8 @@ class CatsSearchProvider implements SearchProvider {
       results: results
     )
     resultSet.results.each { Map<String, String> result ->
+      result.provider = "aws"
+
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]
         binding.putAll(result)

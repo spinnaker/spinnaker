@@ -18,8 +18,10 @@ package com.netflix.spinnaker.oort.gce.controllers
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -36,38 +38,59 @@ class GoogleLoadBalancerController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<GoogleLoadBalancerAccount> list() {
-    getSummaryForLoadBalancers(googleResourceRetriever.getNetworkLoadBalancerMap())
+    getSummaryForLoadBalancers(googleResourceRetriever.getNetworkLoadBalancerMap()).values() as List
   }
 
-  public static List<GoogleLoadBalancerAccount> getSummaryForLoadBalancers(
-    Map<String, Map<String, List<String>>> networkLoadBalancerMap) {
-    List<GoogleLoadBalancerAccount> list = []
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
+  GoogleLoadBalancerSummary get(@PathVariable String name) {
+    getSummaryForLoadBalancers(googleResourceRetriever.getNetworkLoadBalancerMap()).get(name)
+  }
+
+  public static Map<String, GoogleLoadBalancerSummary> getSummaryForLoadBalancers(
+    Map<String, Map<String, List<GoogleLoadBalancer>>> networkLoadBalancerMap) {
+    Map<String, GoogleLoadBalancerSummary> map = [:]
 
     networkLoadBalancerMap?.each() { account, regionMap ->
-      def loadBalancerAccount = list.find {
-        it.name == account
-      }
-
-      if (!loadBalancerAccount) {
-        loadBalancerAccount = new GoogleLoadBalancerAccount(account: account)
-        list << loadBalancerAccount
-      }
-
       regionMap.each() { region, loadBalancerList ->
-        loadBalancerAccount.getOrCreateRegion(region).loadBalancers.with { loadBalancers ->
-          loadBalancerList.each { loadBalancer ->
-            loadBalancers << new GoogleLoadBalancerDetail(account: account, region: region, name: loadBalancer)
+        loadBalancerList.each { GoogleLoadBalancer loadBalancer ->
+          def summary = map.get(loadBalancer.name)
+
+          if (!summary) {
+            summary = new GoogleLoadBalancerSummary(name: loadBalancer.name)
+            map.put loadBalancer.name, summary
           }
+
+          def loadBalancerDetail =
+            new GoogleLoadBalancerDetail(account: account, region: region, name: loadBalancer.name)
+
+          summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancerDetail
         }
       }
     }
 
-    list
+    map
+  }
+
+  static class GoogleLoadBalancerSummary {
+    private Map<String, GoogleLoadBalancerAccount> mappedAccounts = [:]
+    String name
+
+    GoogleLoadBalancerAccount getOrCreateAccount(String name) {
+      if (!mappedAccounts.containsKey(name)) {
+        mappedAccounts.put(name, new GoogleLoadBalancerAccount(name: name))
+      }
+      mappedAccounts[name]
+    }
+
+    @JsonProperty("accounts")
+    List<GoogleLoadBalancerAccount> getAccounts() {
+      mappedAccounts.values() as List
+    }
   }
 
   static class GoogleLoadBalancerAccount {
     private Map<String, GoogleLoadBalancerAccountRegion> mappedRegions = [:]
-    String account
+    String name
 
     GoogleLoadBalancerAccountRegion getOrCreateRegion(String name) {
       if (!mappedRegions.containsKey(name)) {
@@ -92,5 +115,7 @@ class GoogleLoadBalancerController {
     String region
     String name
     String type = 'gce'
+    // TODO(duftler): This doesn't really fit here, but it is used in the comparison logic in Deck. Resolve the discrepancy.
+    String vpcId
   }
 }
