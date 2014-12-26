@@ -15,6 +15,10 @@
  */
 
 package com.netflix.spinnaker.oort.config
+
+import com.netflix.appinfo.HealthCheckHandler
+import com.netflix.appinfo.InstanceInfo
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
@@ -29,6 +33,11 @@ import com.netflix.spinnaker.oort.model.*
 import com.netflix.spinnaker.oort.search.NoopSearchProvider
 import com.netflix.spinnaker.oort.search.SearchProvider
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.actuate.health.CompositeHealthIndicator
+import org.springframework.boot.actuate.health.HealthAggregator
+import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.boot.actuate.health.Status
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -42,6 +51,25 @@ class DefaultConfig {
   @ConditionalOnMissingBean(AccountCredentialsRepository)
   AccountCredentialsRepository accountCredentialsRepository() {
     new MapBackedAccountCredentialsRepository()
+  }
+
+  @Bean
+  @ConditionalOnBean(DiscoveryClient)
+  HealthCheckHandler healthCheckHandler(DiscoveryClient discoveryClient, HealthAggregator healthAggregator, Map<String, HealthIndicator> healthIndicators) {
+    final HealthIndicator aggregateHealth = new CompositeHealthIndicator(healthAggregator, healthIndicators)
+    HealthCheckHandler healthCheckHandler = new HealthCheckHandler() {
+      @Override
+      InstanceInfo.InstanceStatus getStatus(InstanceInfo.InstanceStatus currentStatus) {
+        switch (aggregateHealth.health().status.code) {
+          case Status.UP.code: return InstanceInfo.InstanceStatus.UP
+          case Status.OUT_OF_SERVICE.code: return InstanceInfo.InstanceStatus.OUT_OF_SERVICE
+          case Status.DOWN.code: return InstanceInfo.InstanceStatus.DOWN
+          default: return InstanceInfo.InstanceStatus.UNKNOWN
+        }
+      }
+    }
+    discoveryClient.registerHealthCheck(healthCheckHandler)
+    return healthCheckHandler
   }
 
   @Bean
