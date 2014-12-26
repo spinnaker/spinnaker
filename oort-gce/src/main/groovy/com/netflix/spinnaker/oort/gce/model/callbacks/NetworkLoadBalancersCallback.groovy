@@ -20,14 +20,15 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.ForwardingRuleAggregatedList
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import org.apache.log4j.Logger
 
 class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBatchCallback<ForwardingRuleAggregatedList> {
   protected static final Logger log = Logger.getLogger(this)
 
-  private Map<String, List<String>> networkLoadBalancerMap
+  private Map<String, List<GoogleLoadBalancer>> networkLoadBalancerMap
 
-  public NetworkLoadBalancersCallback(Map<String, List<String>> networkLoadBalancerMap) {
+  public NetworkLoadBalancersCallback(Map<String, List<GoogleLoadBalancer>> networkLoadBalancerMap) {
     this.networkLoadBalancerMap = networkLoadBalancerMap
   }
 
@@ -48,7 +49,7 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
           }
 
           forwardingRules?.each { forwardingRule ->
-            networkLoadBalancerMap[region] << forwardingRule.name
+            networkLoadBalancerMap[region] << new GoogleLoadBalancer(forwardingRule.name, region)
           }
         }
       }

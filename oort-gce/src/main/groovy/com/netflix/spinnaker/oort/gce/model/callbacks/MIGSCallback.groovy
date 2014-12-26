@@ -26,6 +26,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import com.netflix.spinnaker.oort.gce.model.ResourceViewsBuilder
 import org.apache.log4j.Logger
@@ -107,6 +108,13 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                               desiredCapacity  : instanceGroupManager.targetSize])
 
         cluster.serverGroups << googleServerGroup
+
+        // Collect all load balancer names at the cluster level as well.
+        loadBalancerNames.each { loadBalancerName ->
+          if (!cluster.loadBalancers.find { it.name == loadBalancerName }) {
+            cluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, region)
+          }
+        }
       }
     }
   }

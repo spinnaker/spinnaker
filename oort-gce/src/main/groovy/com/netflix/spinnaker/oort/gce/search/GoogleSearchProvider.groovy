@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.gce.search
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import com.netflix.spinnaker.oort.search.SearchProvider
 import com.netflix.spinnaker.oort.search.SearchResultSet
@@ -31,6 +32,20 @@ import org.springframework.stereotype.Component
 class GoogleSearchProvider implements SearchProvider {
   protected static final Logger log = Logger.getLogger(this)
 
+  private static final String APPLICATIONS_TYPE = "applications"
+  private static final String LOAD_BALANCERS_TYPE = "loadBalancers"
+  private static final String CLUSTERS_TYPE = "clusters"
+  private static final String SERVER_GROUPS_TYPE = "serverGroups"
+  private static final String SERVER_GROUP_INSTANCES_TYPE = "serverGroupInstances"
+
+  private static final List<String> DEFAULT_TYPES = [
+    APPLICATIONS_TYPE,
+    LOAD_BALANCERS_TYPE,
+    CLUSTERS_TYPE,
+    SERVER_GROUPS_TYPE,
+    SERVER_GROUP_INSTANCES_TYPE
+  ]
+
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
@@ -40,12 +55,14 @@ class GoogleSearchProvider implements SearchProvider {
   static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
 
   static Map<String, Template> urlMappings = [
-    ("serverGroups"):
+    (SERVER_GROUPS_TYPE):
       urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster/aws/serverGroups/$serverGroup?region=$region'),
-    ("clusters"):
+    (CLUSTERS_TYPE):
       urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster'),
-    ("applications"):
-      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}')
+    (APPLICATIONS_TYPE):
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}'),
+    (LOAD_BALANCERS_TYPE):
+      urlMappingTemplateEngine.createTemplate('/gce/loadBalancers/$loadBalancer')
   ]
 
   String platform = 'gce'
@@ -53,7 +70,7 @@ class GoogleSearchProvider implements SearchProvider {
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
     // TODO(duftler): Take into account |filters|.
-    search(query, ["applications", "clusters", "serverGroupInstances", "serverGroups"], pageNumber, pageSize)
+    search(query, DEFAULT_TYPES, pageNumber, pageSize)
   }
 
   @Override
@@ -64,7 +81,34 @@ class GoogleSearchProvider implements SearchProvider {
 
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize) {
-    search(query, ["applications", "clusters", "serverGroupInstances", "serverGroups"], pageNumber, pageSize)
+    search(query, DEFAULT_TYPES, pageNumber, pageSize)
+  }
+
+  private void findLoadBalancerMatches(String normalizedSearchTerm, List<Map<String, String>> matches) {
+    Map<String, Map<String, List<String>>> networkLoadBalancerMap =
+      googleResourceRetriever.getNetworkLoadBalancerMap()
+    List<Map<String, String>> loadBalancerMatches = []
+
+    networkLoadBalancerMap?.each() { account, regionMap ->
+      regionMap.each() { region, loadBalancerList ->
+        loadBalancerList.each { GoogleLoadBalancer loadBalancer ->
+          if (loadBalancer.name.indexOf(normalizedSearchTerm) >= 0) {
+            Names names = Names.parseName(loadBalancer.name)
+            loadBalancerMatches << [type: LOAD_BALANCERS_TYPE,
+                                    region: region,
+                                    loadBalancer: loadBalancer.name,
+                                    account: account,
+                                    application: names.app,
+                                    stack: names.stack,
+                                    detail: names.detail]
+          }
+        }
+      }
+    }
+
+    loadBalancerMatches = loadBalancerMatches.sort{ it.loadBalancer }
+
+    matches.addAll(loadBalancerMatches)
   }
 
   @Override
@@ -77,8 +121,8 @@ class GoogleSearchProvider implements SearchProvider {
 
       String normalizedSearchTerm = query.toLowerCase()
 
-      if (types.contains("applications") && applicationName.indexOf(normalizedSearchTerm) >= 0) {
-        matches << [type: "applications", application: applicationName]
+      if (types.contains(APPLICATIONS_TYPE) && applicationName.indexOf(normalizedSearchTerm) >= 0) {
+        matches << [type: APPLICATIONS_TYPE, application: applicationName]
       }
 
       googleApplication.clusters.entrySet().each() {
@@ -87,32 +131,59 @@ class GoogleSearchProvider implements SearchProvider {
         for (def clusterName : clusterMap.keySet().sort()) {
           def cluster = clusterMap.get(clusterName)
 
-          if (types.contains("clusters") && clusterName.indexOf(normalizedSearchTerm) >= 0) {
-            matches << [type: "clusters", application: applicationName, account: cluster.accountName, cluster: clusterName]
+          if (types.contains(CLUSTERS_TYPE) && clusterName.indexOf(normalizedSearchTerm) >= 0) {
+            matches << [type: CLUSTERS_TYPE,
+                        application: applicationName,
+                        account: cluster.accountName,
+                        cluster: clusterName]
           }
 
           for (def serverGroup : cluster.serverGroups) {
             if (serverGroup.name.indexOf(normalizedSearchTerm) >= 0) {
-              if (types.contains("serverGroups")) {
+              if (types.contains(SERVER_GROUPS_TYPE)) {
                 def names = Names.parseName(serverGroup.name)
-                matches << [type: "serverGroups", application: applicationName, account: cluster.accountName, cluster: clusterName, region: serverGroup.region, serverGroup: serverGroup.name, stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
+                matches << [type: SERVER_GROUPS_TYPE,
+                            application: applicationName,
+                            account: cluster.accountName,
+                            cluster: clusterName,
+                            region: serverGroup.region,
+                            serverGroup: serverGroup.name,
+                            stack: names.stack,
+                            detail: names.detail,
+                            sequence: names.sequence?.toString()]
               }
 
-              if (types.contains("serverGroupInstances")) {
+              if (types.contains(SERVER_GROUP_INSTANCES_TYPE)) {
                 for (def instance : serverGroup.instances.sort { it.name }) {
-                  matches << [type: "serverGroupInstances", application: applicationName, account: cluster.accountName, cluster: clusterName, region: serverGroup.region, serverGroup: serverGroup.name, instanceId: instance.name]
+                  matches << [type: SERVER_GROUP_INSTANCES_TYPE,
+                              application: applicationName,
+                              account: cluster.accountName,
+                              cluster: clusterName,
+                              region: serverGroup.region,
+                              serverGroup: serverGroup.name,
+                              instanceId: instance.name]
                 }
               }
-            } else if (types.contains("serverGroupInstances")) {
+            } else if (types.contains(SERVER_GROUP_INSTANCES_TYPE)) {
               for (def instance : serverGroup.instances.sort { it.name }) {
                 if (instance.name.indexOf(normalizedSearchTerm) >= 0) {
-                  matches << [type: "serverGroupInstances", application: applicationName, account: cluster.accountName, cluster: clusterName, region: serverGroup.region, serverGroup: serverGroup.name, instanceId: instance.name]
+                  matches << [type: SERVER_GROUP_INSTANCES_TYPE,
+                              application: applicationName,
+                              account: cluster.accountName,
+                              cluster: clusterName,
+                              region: serverGroup.region,
+                              serverGroup: serverGroup.name,
+                              instanceId: instance.name]
                 }
               }
             }
           }
         }
       }
+    }
+
+    if (types.contains(LOAD_BALANCERS_TYPE)) {
+      findLoadBalancerMatches(query, matches)
     }
 
     def paginatedResults = paginateResults(matches, pageSize, pageNumber)
@@ -127,6 +198,8 @@ class GoogleSearchProvider implements SearchProvider {
     )
 
     resultSet.results.each { Map<String, String> result ->
+      result.provider = "gce"
+
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]
         binding.putAll(result)

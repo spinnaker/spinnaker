@@ -94,7 +94,7 @@ class ApplicationsController {
           result.clusters[account] = []
         }
         if (!result.clusters[account].find { it.name == cluster.name }) {
-          result.clusters[account] << new ApplicationClusterViewModel(name: cluster.name, loadBalancers: cluster.loadBalancers.name as TreeSet, serverGroups: cluster.serverGroups*.name as TreeSet)
+          result.clusters[account] << new ApplicationClusterViewModel(name: cluster.name, loadBalancers: cluster.loadBalancers.name as TreeSet, serverGroups: cluster.serverGroups*.name as TreeSet, provider: cluster.type)
         } else {
           result.clusters[account].loadBalancers.addAll(cluster.loadBalancers*.name)
           result.clusters[account].serverGroups.addAll(cluster.serverGroups*.name)

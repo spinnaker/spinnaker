@@ -53,7 +53,7 @@ class GoogleResourceRetriever {
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private appMap = new HashMap<String, GoogleApplication>()
   private imageMap = new HashMap<String, List<String>>()
-  private networkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
+  private networkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
   @PostConstruct
   void init() {
@@ -80,7 +80,7 @@ class GoogleResourceRetriever {
     try {
       def tempAppMap = new HashMap<String, GoogleApplication>()
       def tempImageMap = new HashMap<String, List<String>>()
-      def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<String>>>()
+      def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
       getAllGoogleCredentialsObjects().each {
         def accountName = it.key
@@ -129,7 +129,7 @@ class GoogleResourceRetriever {
 
           // Network load balancer maps are keyed by account in networkLoadBalancerMap.
           if (!tempNetworkLoadBalancerMap[accountName]) {
-            tempNetworkLoadBalancerMap[accountName] = new HashMap<String, List<String>>()
+            tempNetworkLoadBalancerMap[accountName] = new HashMap<String, List<GoogleLoadBalancer>>()
           }
 
           // Retrieve all available network load balancers for this project.
@@ -297,7 +297,7 @@ class GoogleResourceRetriever {
     return imageMap
   }
 
-  Map<String, Map<String, List<String>>> getNetworkLoadBalancerMap() {
+  Map<String, Map<String, List<GoogleLoadBalancer>>> getNetworkLoadBalancerMap() {
     return networkLoadBalancerMap
   }
 }

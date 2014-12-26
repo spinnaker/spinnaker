@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spinnaker.oort.model.Cluster
-import com.netflix.spinnaker.oort.model.LoadBalancer
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
@@ -25,12 +24,10 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "accountName"])
 class GoogleCluster implements Cluster, Serializable {
   String name
-  // TODO(duftler): Once the UI can request a type other than 'aws', fix this.
-//  String type = "gce"
-  String type = "aws"
+  String type = "gce"
   String accountName
   Set<GoogleServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<GoogleServerGroup>())
-  Set<LoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<LoadBalancer>())
+  Set<GoogleLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<GoogleLoadBalancer>())
 
   // Used as a deep copy-constructor.
   public static GoogleCluster newInstance(GoogleCluster originalGoogleCluster) {
@@ -42,9 +39,9 @@ class GoogleCluster implements Cluster, Serializable {
       copyGoogleCluster.serverGroups << GoogleServerGroup.newInstance(originalServerGroup)
     }
 
-    // TODO(duftler): Flesh this out when GoogleLoadBalancer exists (which will be shortly).
-//    originalGoogleCluster.loadBalancers.each { originalLoadBalancer ->
-//    }
+    originalGoogleCluster.loadBalancers.each { originalLoadBalancer ->
+      copyGoogleCluster.loadBalancers << GoogleLoadBalancer.newInstance(originalLoadBalancer)
+    }
 
     copyGoogleCluster
   }

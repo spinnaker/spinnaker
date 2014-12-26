@@ -16,88 +16,91 @@
 
 package com.netflix.spinnaker.oort.gce.controllers
 
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import spock.lang.Specification
 
 class GoogleLoadBalancerControllerSpec extends Specification {
-  void "returned summary list is built for zero accounts"() {
+  void "returned summary map is built for zero accounts"() {
     setup:
       def networkLoadBalancerMap = [:]
 
     when:
-      def summaryList = GoogleLoadBalancerController.getSummaryForLoadBalancers(networkLoadBalancerMap)
+      def summaryMap = GoogleLoadBalancerController.getSummaryForLoadBalancers(networkLoadBalancerMap)
 
     then:
-      summaryList.size == 0
+      summaryMap.size() == 0
 
     when:
-      summaryList = GoogleLoadBalancerController.getSummaryForLoadBalancers(null)
+      summaryMap = GoogleLoadBalancerController.getSummaryForLoadBalancers(null)
 
     then:
-      summaryList.size == 0
+      summaryMap.size() == 0
   }
 
-  void "returned summary list is built for one account"() {
+  void "returned summary map is built for one account"() {
     setup:
       def networkLoadBalancerMap = [
         'my-account-name': [
-          'us-central1' : ['lb1', 'lb2', 'lb3'],
-          'europe-west1': ['lb4', 'lb5', 'lb6'],
-          'asia-east1'  : ['lb7', 'lb8', 'lb9']
+          'us-central1' : [new GoogleLoadBalancer('lb1', 'us-central1'),
+                           new GoogleLoadBalancer('lb2', 'us-central1'),
+                           new GoogleLoadBalancer('lb3', 'us-central1')],
+          'europe-west1': [new GoogleLoadBalancer('lb4', 'europe-west1'),
+                           new GoogleLoadBalancer('lb5', 'europe-west1'),
+                           new GoogleLoadBalancer('lb6', 'europe-west1')],
+          'asia-east1'  : [new GoogleLoadBalancer('lb7', 'asia-east1'),
+                           new GoogleLoadBalancer('lb8', 'asia-east1'),
+                           new GoogleLoadBalancer('lb9', 'asia-east1')],
         ]
       ]
 
     when:
-      def summaryList = GoogleLoadBalancerController.getSummaryForLoadBalancers(networkLoadBalancerMap)
+      def summaryMap = GoogleLoadBalancerController.getSummaryForLoadBalancers(networkLoadBalancerMap)
 
     then:
-      summaryList.size == 1
-      summaryList[0].account == 'my-account-name'
-      summaryList[0].regions.collect { it.name } as Set == ['us-central1', 'europe-west1', 'asia-east1'] as Set
-      summaryList[0].regions.find {
-        it.name == 'us-central1'
-      }.loadBalancers.collect { it.name } == ['lb1', 'lb2', 'lb3']
-      summaryList[0].regions.find {
-        it.name == 'europe-west1'
-      }.loadBalancers.collect { it.name } == ['lb4', 'lb5', 'lb6']
-      summaryList[0].regions.find {
-        it.name == 'asia-east1'
-      }.loadBalancers.collect { it.name } == ['lb7', 'lb8', 'lb9']
+      summaryMap.keySet() == ['lb1', 'lb2', 'lb3', 'lb4', 'lb5', 'lb6', 'lb7', 'lb8', 'lb9'] as Set
+      def regions = [] as Set
+      summaryMap.values().each { summary ->
+        summary.accounts.collect { it.name } == ['my-account-name']
+        regions << summary.accounts*.regions.name
+      }
+      regions.flatten() == ['us-central1', 'europe-west1', 'asia-east1'] as Set
   }
 
-  void "returned summary list is built for multiple accounts"() {
+  void "returned summary map is built for multiple accounts"() {
     setup:
       def networkLoadBalancerMap = [
-        'my-account-name-1': [
-          'us-central1' : ['lb1', 'lb2', 'lb3'],
-          'europe-west1': ['lb4', 'lb5', 'lb6']
+        'my-account-name': [
+          'us-central1' : [new GoogleLoadBalancer('lb1', 'us-central1'),
+                           new GoogleLoadBalancer('lb2', 'us-central1'),
+                           new GoogleLoadBalancer('lb3', 'us-central1')],
+          'europe-west1': [new GoogleLoadBalancer('lb4', 'europe-west1'),
+                           new GoogleLoadBalancer('lb5', 'europe-west1'),
+                           new GoogleLoadBalancer('lb6', 'europe-west1')],
+          'asia-east1'  : [new GoogleLoadBalancer('lb7', 'asia-east1'),
+                           new GoogleLoadBalancer('lb8', 'asia-east1'),
+                           new GoogleLoadBalancer('lb9', 'asia-east1')],
         ],
         'my-account-name-2': [
-          'asia-east1'  : ['lb7', 'lb8', 'lb9'],
-          'europe-west1': ['lb10', 'lb11', 'lb12']
+          'asia-east1'  : [new GoogleLoadBalancer('lb10', 'asia-east1'),
+                           new GoogleLoadBalancer('lb11', 'asia-east1'),
+                           new GoogleLoadBalancer('lb12', 'asia-east1')],
+          'europe-west1': [new GoogleLoadBalancer('lb13', 'europe-west1'),
+                           new GoogleLoadBalancer('lb14', 'europe-west1'),
+                           new GoogleLoadBalancer('lb15', 'europe-west1')]
         ]
       ]
 
     when:
-      def summaryList = GoogleLoadBalancerController.getSummaryForLoadBalancers(networkLoadBalancerMap)
+      def summaryMap = GoogleLoadBalancerController.getSummaryForLoadBalancers(networkLoadBalancerMap)
 
     then:
-      summaryList.size == 2
-      summaryList[0].account == 'my-account-name-1'
-      summaryList[0].regions.collect { it.name } as Set == ['us-central1', 'europe-west1'] as Set
-      summaryList[0].regions.find {
-        it.name == 'us-central1'
-      }.loadBalancers.collect { it.name } == ['lb1', 'lb2', 'lb3']
-      summaryList[0].regions.find {
-        it.name == 'europe-west1'
-      }.loadBalancers.collect { it.name } == ['lb4', 'lb5', 'lb6']
-
-      summaryList[1].account == 'my-account-name-2'
-      summaryList[1].regions.collect { it.name } as Set == ['asia-east1', 'europe-west1'] as Set
-      summaryList[1].regions.find {
-        it.name == 'asia-east1'
-      }.loadBalancers.collect { it.name } == ['lb7', 'lb8', 'lb9']
-      summaryList[1].regions.find {
-        it.name == 'europe-west1'
-      }.loadBalancers.collect { it.name } == ['lb10', 'lb11', 'lb12']
+      summaryMap.keySet() == ['lb1', 'lb2', 'lb3', 'lb4', 'lb5', 'lb6', 'lb7', 'lb8', 'lb9', 'lb10', 'lb11', 'lb12',
+                              'lb13', 'lb14', 'lb15'] as Set
+      def regions = [] as Set
+      summaryMap.values().each { summary ->
+        summary.accounts.collect { it.name } == ['my-account-name', 'my-account-name-2'] as Set
+        regions << summary.accounts*.regions.name
+      }
+      regions.flatten() == ['us-central1', 'europe-west1', 'asia-east1'] as Set
   }
 }
