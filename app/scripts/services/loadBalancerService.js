@@ -88,7 +88,7 @@ angular.module('deckApp')
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
       return serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
-        serverGroup.vpcId === loadBalancer.vpcId &&
+        (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
