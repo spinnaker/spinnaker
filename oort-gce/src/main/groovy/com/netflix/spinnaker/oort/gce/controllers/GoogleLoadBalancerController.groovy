@@ -115,7 +115,5 @@ class GoogleLoadBalancerController {
     String region
     String name
     String type = 'gce'
-    // TODO(duftler): This doesn't really fit here, but it is used in the comparison logic in Deck. Resolve the discrepancy.
-    String vpcId
   }
 }
