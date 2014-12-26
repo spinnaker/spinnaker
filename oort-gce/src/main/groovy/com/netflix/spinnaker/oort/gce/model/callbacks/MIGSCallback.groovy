@@ -93,28 +93,23 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                                                                  resourceViewsCallback)
 
         def localInstanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-        def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup)
+        def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup, cluster)
         compute.instanceTemplates().get(project,
                                         localInstanceTemplateName).queue(resourceViewsBatch,
                                                                          instanceTemplatesCallback)
 
-        def loadBalancerNames =
+        // The isDisabled property of a server group is set based on whether there are associated target pools.
+        def targetPoolLoadBalancerNames =
           Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
 
+        googleServerGroup.setDisabled(targetPoolLoadBalancerNames.empty)
+
         // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
-        googleServerGroup.setProperty("asg", [loadBalancerNames: loadBalancerNames,
-                                              minSize          : instanceGroupManager.targetSize,
+        googleServerGroup.setProperty("asg", [minSize          : instanceGroupManager.targetSize,
                                               maxSize          : instanceGroupManager.targetSize,
                                               desiredCapacity  : instanceGroupManager.targetSize])
 
         cluster.serverGroups << googleServerGroup
-
-        // Collect all load balancer names at the cluster level as well.
-        loadBalancerNames.each { loadBalancerName ->
-          if (!cluster.loadBalancers.find { it.name == loadBalancerName }) {
-            cluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, region)
-          }
-        }
       }
     }
   }

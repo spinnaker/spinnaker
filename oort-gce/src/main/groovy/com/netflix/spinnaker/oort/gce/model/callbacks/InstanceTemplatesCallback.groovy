@@ -20,6 +20,8 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.InstanceTemplate
+import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import groovy.json.JsonBuilder
 import org.apache.log4j.Logger
@@ -28,9 +30,11 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
   protected static final Logger log = Logger.getLogger(this)
 
   private GoogleServerGroup googleServerGroup
+  private GoogleCluster googleCluster
 
-  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup) {
+  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup, GoogleCluster googleCluster) {
     this.googleServerGroup = googleServerGroup
+    this.googleCluster = googleCluster
   }
 
   @Override
@@ -55,6 +59,21 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
         def base64EncodedMap = new JsonBuilder(metadataMap).toString().bytes.encodeBase64().toString()
 
         googleServerGroup.launchConfig.userData = base64EncodedMap
+
+        if (metadataMap["load-balancer-names"]) {
+          def loadBalancerNameList = metadataMap["load-balancer-names"].split(",")
+
+          if (loadBalancerNameList) {
+            googleServerGroup.asg.loadBalancerNames = loadBalancerNameList
+
+            // Collect all load balancer names at the cluster level as well.
+            loadBalancerNameList.each { loadBalancerName ->
+              if (!googleCluster.loadBalancers.find { it.name == loadBalancerName }) {
+                googleCluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, googleServerGroup.region)
+              }
+            }
+          }
+        }
       }
     }
   }
