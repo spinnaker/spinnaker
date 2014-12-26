@@ -187,7 +187,9 @@ angular.module('deckApp.gce')
 
     function configureLoadBalancerOptions() {
       var newLoadBalancers = _($scope.loadBalancers)
-        .filter({account: $scope.command.credentials})
+        .pluck('accounts')
+        .flatten(true)
+        .filter({name: $scope.command.credentials})
         .pluck('regions')
         .flatten(true)
         .filter({name: $scope.command.region})
