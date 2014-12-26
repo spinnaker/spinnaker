@@ -27,9 +27,12 @@ import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.actuate.health.Health
+import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
 import java.util.concurrent.TimeUnit
@@ -46,6 +49,38 @@ class RedisConfig {
     poolConfig.setMinIdle(25)
     poolConfig.setMaxIdle(100)
     new JedisPool(poolConfig, redisHost, redisPort)
+  }
+
+  @Bean
+  HealthIndicator redisHealth(JedisPool jedisPool) {
+    final JedisPool src = jedisPool
+    new HealthIndicator() {
+      @Override
+      Health health() {
+        Jedis jedis = null
+        Health.Builder health = null
+        try {
+          jedis = src.resource
+          if ('PONG'.equals(jedis.ping())) {
+            health = Health.up()
+          } else {
+            health = Health.down()
+          }
+        } catch (Exception ex) {
+          health = Health.down(ex)
+        } finally {
+          jedis?.close()
+        }
+        def internal = jedisPool.internalPool //thx groovy
+        health.withDetail('maxIdle', internal.maxIdle)
+        health.withDetail('minIdle', internal.minIdle)
+        health.withDetail('numActive', internal.numActive)
+        health.withDetail('numIdle', internal.numIdle)
+        health.withDetail('numWaiters', internal.numWaiters)
+
+        return health.build()
+      }
+    }
   }
 
   @Bean
