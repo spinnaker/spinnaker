@@ -75,6 +75,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
+        loadBalancer.providerType = $scope.loadBalancer.type;
         return orcaService.deleteLoadBalancer(loadBalancer, application.name);
       };
 
