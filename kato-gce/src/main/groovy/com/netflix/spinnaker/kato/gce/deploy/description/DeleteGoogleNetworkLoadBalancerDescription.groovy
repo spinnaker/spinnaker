@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 class DeleteGoogleNetworkLoadBalancerDescription {
   Long deleteOperationTimeoutSeconds
   String networkLoadBalancerName
-  String zone
+  String region
   String accountName
   GoogleCredentials credentials
 }

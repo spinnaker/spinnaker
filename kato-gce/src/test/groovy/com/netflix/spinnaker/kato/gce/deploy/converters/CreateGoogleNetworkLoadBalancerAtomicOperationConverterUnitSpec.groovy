@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class CreateGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
   private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final ACCOUNT_NAME = "auto"
   private static final CHECK_INTERVAL_SEC = 7
   private static final INSTANCE = "inst"
@@ -51,7 +51,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationConverterUnitSpec extends Sp
     setup:
       def input = [
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           healthCheck: [checkIntervalSec: CHECK_INTERVAL_SEC],
           instances: [INSTANCE],

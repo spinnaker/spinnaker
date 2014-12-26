@@ -26,7 +26,7 @@ class CreateGoogleNetworkLoadBalancerDescription {
   List<String> instances
   String ipAddress
   String portRange
-  String zone
+  String region
   String accountName
   GoogleCredentials credentials
 

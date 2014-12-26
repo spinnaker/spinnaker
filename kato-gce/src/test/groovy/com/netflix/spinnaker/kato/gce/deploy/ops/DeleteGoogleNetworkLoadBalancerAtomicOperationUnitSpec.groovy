@@ -31,7 +31,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final NETWORK_LOAD_BALANCER_NAME = "default"
-  private static final ZONE = "us-central1-b"
   private static final REGION = "us-central1"
   private static final FORWARDING_RULE_DELETE_OP_NAME = "delete-forwarding-rule"
   private static final TARGET_POOL_URL = "project/target-pool"
@@ -53,8 +52,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def targetPoolOperationGet = Mock(Compute.RegionOperations.Get)
       def globalOperations = Mock(Compute.GlobalOperations)
       def healthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
@@ -77,7 +74,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -86,9 +83,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule
@@ -118,8 +112,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def regionOperations = Mock(Compute.RegionOperations)
       def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def targetPoolOperationGet = Mock(Compute.RegionOperations.Get)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
@@ -137,7 +129,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -146,9 +138,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule
@@ -170,14 +159,12 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   void "should fail to delete a Network Load Balancer that does not exist"() {
     setup:
       def computeMock = Mock(Compute)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -186,9 +173,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> null
@@ -200,8 +184,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def computeMock = Mock(Compute)
       def regionOperations = Mock(Compute.RegionOperations)
       def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
@@ -221,7 +203,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -230,9 +212,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule
@@ -254,8 +233,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def computeMock = Mock(Compute)
       def regionOperations = Mock(Compute.RegionOperations)
       def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
@@ -272,7 +249,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           deleteOperationTimeoutSeconds: 0,
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -281,9 +258,6 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule

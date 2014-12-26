@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final ACCOUNT_NAME = "auto"
   private static final INSTANCE = "inst"
 
@@ -49,7 +49,7 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
     setup:
       def description = new CreateGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           instances: [INSTANCE],
           healthCheck: [
@@ -75,7 +75,7 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
     setup:
       def description = new CreateGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           instances: [INSTANCE])
       def errors = Mock(Errors)
@@ -98,6 +98,6 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('networkLoadBalancerName', _)
-      1 * errors.rejectValue('zone', _)
+      1 * errors.rejectValue('region', _)
   }
 }
