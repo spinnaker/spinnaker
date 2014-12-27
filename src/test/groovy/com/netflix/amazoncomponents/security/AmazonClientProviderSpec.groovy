@@ -37,6 +37,7 @@ import org.apache.http.StatusLine
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.entity.ContentType
+import org.apache.http.message.BasicHeader
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -63,6 +64,8 @@ class AmazonClientProviderSpec extends Specification {
     1 * mockHttp.execute(_) >> {
       mockResponse
     }
+    provider.lastResponseHeaders != null
+    provider.lastResponseHeaders.containsKey('last-modified')
   }
 
   void "edda requests handle parameters from request objects"() {
@@ -192,6 +195,7 @@ class AmazonClientProviderSpec extends Specification {
   def getMockResponse(String content = ARRAY_ASG_CONTENT) {
     def mock = Mock(HttpResponse)
     def statusLine = Mock(StatusLine)
+    mock.allHeaders >> [new BasicHeader('Last-Modified', 'Sat, 27 Dec 2014 02:05:31 GMT')]
     statusLine.getStatusCode() >> 200
     mock.getStatusLine() >> statusLine
     def entity = Mock(HttpEntity)
