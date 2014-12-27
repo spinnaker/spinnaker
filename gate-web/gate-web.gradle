@@ -49,10 +49,10 @@ ideaConfig {
   mainClassName = 'com.netflix.spinnaker.gate.Main'
 }
 
-tasks.startScripts {
+startScripts {
   doLast {
-    def scriptFile = file "${outputDir}/${applicationName}"
-    scriptFile.text = scriptFile.text.replace('CLASSPATH=$APP_HOME/lib', 'CLASSPATH=$APP_HOME/lib/int/*:$APP_HOME/lib')
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
 }
 
