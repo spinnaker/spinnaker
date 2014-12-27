@@ -1,14 +1,12 @@
-===== Delete Amazon Load Balancer
+===== Delete Load Balancer
 
 ====== Type
 
-+deleteAmazonLoadBalancer+
++deleteLoadBalancer+
 
 ====== Description
 
 This stage provides orchestration for deleting an Amazon Elastic Load Balancer. This is a destructive process, which cannot be reversed.
-
-_Note: This stage has been deprecated in favor of link:#_delete_load_balancer[Delete Load Balancer]._
 
 CAUTION: This operation marks the end of a Load Balancer's life. The process cannot be undone, and the configuration cannot be reconstituted. A load balancer of the same configuration will need to be recreated from scratch.
 
@@ -24,7 +22,7 @@ _deleteAmazonLoadBalancer_, _forceCacheRefresh_, _monitorDelete_
 [source,javascript]
 ----
 {
-  "type": "deleteAmazonLoadBalancer",
+  "type": "deleteLoadBalancer",
   "loadBalancerName": "kato-main-frontend",
   "regions": ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"],
   "credentials": "test"
