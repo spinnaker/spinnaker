@@ -52,7 +52,6 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
           void call(Subscriber<? super ReservedInstancesOffering> subscriber) {
               def request = new DescribeReservedInstancesOfferingsRequest()
               while (true) {
-                  log.info "$description - ${request.getNextToken()}"
                   def result = ec2.describeReservedInstancesOfferings(request)
                   result.reservedInstancesOfferings.each {
                       subscriber.onNext(it)
