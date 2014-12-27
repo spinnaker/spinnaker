@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+aws:
+  enabled: ${AWS_ENABLED:false}
+
+google:
+  enabled: ${GOOGLE_ENABLED:false}
+
+spinnaker:
+  cassandra:
+    enabled: false
+    cluster: CASS_SPINNAKER
+    keyspace: front50
+    name: default
