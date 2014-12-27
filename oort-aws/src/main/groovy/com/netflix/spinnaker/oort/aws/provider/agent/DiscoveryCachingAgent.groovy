@@ -38,15 +38,21 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
-class DiscoveryCachingAgent implements CachingAgent {
-  public static final String PROVIDER_NAME = "discovery"
+class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
+  private final List<NetflixAmazonCredentials> accounts
+  private final String region
+  private final DiscoveryApi discoveryApi
+  private final ObjectMapper objectMapper
+  private final String discoveryHost
+  final String healthId = "discovery"
 
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
-    AUTHORITATIVE.forType(HEALTH.ns),
-    INFORMATIVE.forType(INSTANCES.ns)
-  ])
+  DiscoveryCachingAgent(DiscoveryApi discoveryApi, List<NetflixAmazonCredentials> accounts, String region, ObjectMapper objectMapper) {
+    this.accounts = accounts
+    this.region = region
+    this.discoveryApi = discoveryApi
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.discoveryHost = accounts[0].discovery.toURL().host
+  }
 
   @Override
   String getProviderName() {
@@ -63,20 +69,6 @@ class DiscoveryCachingAgent implements CachingAgent {
     types
   }
 
-  private final List<NetflixAmazonCredentials> accounts
-  private final String region
-  private final DiscoveryApi discoveryApi
-  private final ObjectMapper objectMapper
-  private final String discoveryHost
-
-  DiscoveryCachingAgent(DiscoveryApi discoveryApi, List<NetflixAmazonCredentials> accounts, String region, ObjectMapper objectMapper) {
-    this.accounts = accounts
-    this.region = region
-    this.discoveryApi = discoveryApi
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    this.discoveryHost = accounts[0].discovery.toURL().host
-  }
-
   @Override
   CacheResult loadData() {
 
@@ -90,7 +82,7 @@ class DiscoveryCachingAgent implements CachingAgent {
         if (instance.instanceId) {
           for (NetflixAmazonCredentials account : accounts) {
             String instanceKey = Keys.getInstanceKey(instance.instanceId, account.name, region)
-            String instanceHealthKey = Keys.getInstanceHealthKey(instance.instanceId, account.name, region, PROVIDER_NAME)
+            String instanceHealthKey = Keys.getInstanceHealthKey(instance.instanceId, account.name, region, healthId)
             Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
             Map<String, Collection<String>> relationships = [(INSTANCES.ns):[instanceKey]]
             discoveryCacheData.add(new DefaultCacheData(instanceHealthKey, attributes, relationships))

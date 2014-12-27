@@ -18,19 +18,22 @@ package com.netflix.spinnaker.oort.aws.provider
 
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.oort.aws.provider.agent.DiscoveryCachingAgent
-import com.netflix.spinnaker.oort.aws.provider.agent.EddaLoadBalancerCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent
+import org.springframework.beans.factory.annotation.Autowired
 
 class AwsProvider implements Provider {
-
-  public static final Set<String> HEALTH_PROVIDERS = [DiscoveryCachingAgent.PROVIDER_NAME, EddaLoadBalancerCachingAgent.PROVIDER_NAME]
 
   public static final String PROVIDER_NAME = AwsProvider.name
 
   private final Collection<CachingAgent> agents
+  private final Collection<HealthProvidingCachingAgent> healthAgents
+
+  @Autowired(required = false)
+  List<HealthProvidingCachingAgent> externalHealthProvidingCachingAgents = []
 
   AwsProvider(Collection<CachingAgent> agents) {
     this.agents = Collections.unmodifiableCollection(agents)
+    this.healthAgents = Collections.unmodifiableCollection(agents.findAll { it instanceof HealthProvidingCachingAgent } as List<HealthProvidingCachingAgent>)
   }
 
   @Override
@@ -41,5 +44,12 @@ class AwsProvider implements Provider {
   @Override
   Collection<CachingAgent> getCachingAgents() {
     agents
+  }
+
+  Collection<HealthProvidingCachingAgent> getHealthAgents() {
+    def allHealthAgents = []
+    allHealthAgents.addAll(this.healthAgents)
+    allHealthAgents.addAll(this.externalHealthProvidingCachingAgents)
+    Collections.unmodifiableCollection(allHealthAgents)
   }
 }

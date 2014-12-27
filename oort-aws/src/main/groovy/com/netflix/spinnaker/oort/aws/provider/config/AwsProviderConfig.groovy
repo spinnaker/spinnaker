@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.oort.aws.provider.config
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentials
@@ -22,21 +23,23 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.oort.aws.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import com.netflix.spinnaker.oort.aws.provider.agent.*
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-import org.springframework.web.client.RestTemplate
 
 @Configuration
 class AwsProviderConfig {
 
   @Bean
   @DependsOn('netflixAmazonCredentials')
-  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, RestTemplate restTemplate) {
+  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, ApplicationContext ctx) {
     Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
     List<CachingAgent> agents = []
 
@@ -53,6 +56,10 @@ class AwsProviderConfig {
         agents << new LoadBalancerCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         if (credentials.eddaEnabled) {
           agents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
+        } else {
+          def agent = new AmazonLoadBalancerInstanceStateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+          ctx.autowireCapableBeanFactory.autowireBean(agent)
+          agents << agent
         }
         if (credentials.discoveryEnabled) {
           discoveryAccounts[credentials.discovery][region.name].add(credentials)
@@ -67,7 +74,6 @@ class AwsProviderConfig {
 
     new AwsProvider(agents)
   }
-
 
 
 }

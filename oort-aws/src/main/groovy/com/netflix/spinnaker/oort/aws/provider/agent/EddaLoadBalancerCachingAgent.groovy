@@ -37,15 +37,19 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
-class EddaLoadBalancerCachingAgent implements CachingAgent {
-  public static final String PROVIDER_NAME = "edda-load-balancers"
+class EddaLoadBalancerCachingAgent implements HealthProvidingCachingAgent {
+  private final EddaApi eddaApi
+  private final NetflixAmazonCredentials account
+  private final String region
+  private final ObjectMapper objectMapper
+  final String healthId = "edda-load-balancers"
 
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
-    AUTHORITATIVE.forType(HEALTH.ns),
-    INFORMATIVE.forType(INSTANCES.ns)
-  ])
+  EddaLoadBalancerCachingAgent(EddaApi eddaApi, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
+    this.eddaApi = eddaApi
+    this.account = account
+    this.region = region
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+  }
 
   @Override
   String getProviderName() {
@@ -62,18 +66,6 @@ class EddaLoadBalancerCachingAgent implements CachingAgent {
     types
   }
 
-  private final EddaApi eddaApi
-  private final NetflixAmazonCredentials account
-  private final String region
-  private final ObjectMapper objectMapper
-
-  EddaLoadBalancerCachingAgent(EddaApi eddaApi, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
-    this.eddaApi = eddaApi
-    this.account = account
-    this.region = region
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-  }
-
   @Override
   CacheResult loadData() {
     List<LoadBalancerInstanceState> balancerInstances = eddaApi.loadBalancerInstances()
@@ -84,7 +76,7 @@ class EddaLoadBalancerCachingAgent implements CachingAgent {
 
     for (InstanceLoadBalancers ilb : ilbs) {
       String instanceId = Keys.getInstanceKey(ilb.instanceId, account.name, region)
-      String healthId = Keys.getInstanceHealthKey(ilb.instanceId, account.name, region, PROVIDER_NAME)
+      String healthId = Keys.getInstanceHealthKey(ilb.instanceId, account.name, region, healthId)
       Map<String, Object> attributes = objectMapper.convertValue(ilb, ATTRIBUTES)
       Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
       lbHealths.add(new DefaultCacheData(healthId, attributes, relationships))
