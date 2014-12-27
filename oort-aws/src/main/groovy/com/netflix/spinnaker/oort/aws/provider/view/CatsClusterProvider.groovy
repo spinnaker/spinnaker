@@ -33,10 +33,12 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private final Cache cacheView
+  private final AwsProvider awsProvider
 
   @Autowired
-  CatsClusterProvider(Cache cacheView) {
+  CatsClusterProvider(Cache cacheView, AwsProvider awsProvider) {
     this.cacheView = cacheView
+    this.awsProvider = awsProvider
   }
 
   @Override
@@ -217,8 +219,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     Map<String, String> healthKeysToInstance = [:]
     instanceData.each { instanceEntry ->
       Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
-      AwsProvider.HEALTH_PROVIDERS.each {
-        def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it)
+      awsProvider.healthAgents.each {
+        def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
         healthKeysToInstance.put(key, instanceEntry.id)
       }
     }
