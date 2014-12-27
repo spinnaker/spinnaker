@@ -46,6 +46,41 @@ class GoogleLoadBalancerController {
     getSummaryForLoadBalancers(googleResourceRetriever.getNetworkLoadBalancerMap()).get(name)
   }
 
+  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
+  List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+    Map<String, Map<String, List<GoogleLoadBalancer>>> networkLoadBalancerMap =
+      googleResourceRetriever.getNetworkLoadBalancerMap()
+    def accountMap = networkLoadBalancerMap[account]
+
+    if (accountMap) {
+      def regionList = accountMap[region]
+
+      if (regionList) {
+        def googleLoadBalancer = regionList.find {
+          it.name == name
+        }
+
+        if (googleLoadBalancer) {
+          def loadBalancerDetail = [
+            loadBalancerName: name
+          ]
+
+          if (googleLoadBalancer.createdTime != null) {
+            loadBalancerDetail.createdTime = googleLoadBalancer.createdTime
+          }
+
+          if (googleLoadBalancer.healthCheck) {
+            loadBalancerDetail.healthCheck = googleLoadBalancer.healthCheck
+          }
+
+          return [ loadBalancerDetail ]
+        }
+      }
+    }
+
+    return []
+  }
+
   public static Map<String, GoogleLoadBalancerSummary> getSummaryForLoadBalancers(
     Map<String, Map<String, List<GoogleLoadBalancer>>> networkLoadBalancerMap) {
     Map<String, GoogleLoadBalancerSummary> map = [:]
