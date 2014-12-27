@@ -18,14 +18,12 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -38,19 +36,11 @@ import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 
 class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCachingAgent {
-  private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-  private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
-    AUTHORITATIVE.forType(HEALTH.ns),
-    INFORMATIVE.forType(INSTANCES.ns)
-  ])
-
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
