@@ -56,6 +56,6 @@ class DeployStage extends DeployStrategyStage {
   @Override
   @CompileDynamic
   protected String strategy(Stage stage) {
-    stage.context.cluster?.strategy
+    stage.context.containsKey("cluster") ? stage.context.cluster?.strategy : stage.context.strategy
   }
 }

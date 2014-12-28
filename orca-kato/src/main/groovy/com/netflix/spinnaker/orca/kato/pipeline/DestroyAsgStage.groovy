@@ -29,8 +29,8 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DestroyAsgStage extends LinearStage {
-
-  public static final String MAYO_CONFIG_TYPE = "destroyAsg"
+  static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
+  static final String MAYO_CONFIG_TYPE = "destroyAsg"
 
   @Autowired ResizeAsgStage resizeAsgStage
 

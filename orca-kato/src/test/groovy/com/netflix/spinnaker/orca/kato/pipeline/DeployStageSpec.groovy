@@ -154,7 +154,7 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
       def cluster = [serverGroups: [[
                                       name  : "pond-prestaging-v000",
                                       region: "us-west-1"

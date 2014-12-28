@@ -29,8 +29,8 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class ResizeAsgStage extends LinearStage {
-
-  public static final String MAYO_CONFIG_TYPE = "resizeAsg"
+  static final String CAPACITY_KEY = "capacity"
+  static final String MAYO_CONFIG_TYPE = "resizeAsg"
 
   ResizeAsgStage() {
     super(MAYO_CONFIG_TYPE)

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -46,8 +47,8 @@ class ResizeAsgTask implements Task {
 
   Map convert(Stage stage) {
     def input = stage.context
-    if (stage.context.containsKey("resizeAsg")) {
-      input = stage.context.resizeAsg
+    if (stage.context.containsKey(ResizeAsgStage.MAYO_CONFIG_TYPE)) {
+      input = stage.context[ResizeAsgStage.MAYO_CONFIG_TYPE]
     }
     input
   }

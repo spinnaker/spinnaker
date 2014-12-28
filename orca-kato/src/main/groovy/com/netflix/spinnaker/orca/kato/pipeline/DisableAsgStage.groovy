@@ -28,8 +28,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DisableAsgStage extends LinearStage {
-
-  public static final String MAYO_CONFIG_TYPE = "disableAsg"
+  static final String MAYO_CONFIG_TYPE = "disableAsg"
 
   DisableAsgStage() {
     super(MAYO_CONFIG_TYPE)
