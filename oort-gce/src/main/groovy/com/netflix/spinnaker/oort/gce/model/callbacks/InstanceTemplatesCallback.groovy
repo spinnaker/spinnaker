@@ -29,6 +29,8 @@ import org.apache.log4j.Logger
 class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> {
   protected static final Logger log = Logger.getLogger(this)
 
+  private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
+
   private GoogleServerGroup googleServerGroup
   private GoogleCluster googleCluster
 
@@ -60,14 +62,14 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
 
         googleServerGroup.launchConfig.userData = base64EncodedMap
 
-        if (metadataMap["load-balancer-names"]) {
-          def loadBalancerNameList = metadataMap["load-balancer-names"].split(",")
+        if (metadataMap[LOAD_BALANCER_NAMES]) {
+          def loadBalancerNameList = metadataMap[LOAD_BALANCER_NAMES].split(",")
 
           if (loadBalancerNameList) {
             googleServerGroup.asg.loadBalancerNames = loadBalancerNameList
 
             // Collect all load balancer names at the cluster level as well.
-            loadBalancerNameList.each { loadBalancerName ->
+            for (loadBalancerName in loadBalancerNameList) {
               if (!googleCluster.loadBalancers.find { it.name == loadBalancerName }) {
                 googleCluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, googleServerGroup.region)
               }

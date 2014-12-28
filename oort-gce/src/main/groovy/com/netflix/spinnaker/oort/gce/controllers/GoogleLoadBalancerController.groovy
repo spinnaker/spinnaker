@@ -65,7 +65,7 @@ class GoogleLoadBalancerController {
             loadBalancerName: name
           ]
 
-          if (googleLoadBalancer.createdTime != null) {
+          if (googleLoadBalancer.createdTime) {
             loadBalancerDetail.createdTime = googleLoadBalancer.createdTime
           }
 
