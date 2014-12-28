@@ -24,6 +24,7 @@ import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 
 import javax.servlet.Filter
@@ -31,6 +32,7 @@ import javax.servlet.Filter
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters"])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
+@EnableScheduling
 class Main extends SpringBootServletInitializer {
 
   static final Map<String, String> DEFAULT_PROPS = [
