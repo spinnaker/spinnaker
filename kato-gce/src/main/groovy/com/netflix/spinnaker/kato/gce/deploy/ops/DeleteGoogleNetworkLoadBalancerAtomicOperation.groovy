@@ -60,12 +60,12 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleNetworkLoadBalancerDescription": { "zone": "us-central1-f", "credentials": "my-account-name", "networkLoadBalancerName": "testlb" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleNetworkLoadBalancerDescription": { "region": "us-central1", "credentials": "my-account-name", "networkLoadBalancerName": "testlb" }} ]' localhost:8501/ops
    */
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing delete of network load balancer $description.networkLoadBalancerName " +
-        "in $description.zone..."
+        "in $description.region..."
 
     if (!description.credentials) {
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
@@ -73,8 +73,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
 
     def compute = description.credentials.compute
     def project = description.credentials.project
-    def zone = description.zone
-    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+    def region = description.region
     def forwardingRuleName = description.networkLoadBalancerName
 
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."

@@ -50,9 +50,9 @@ class DeleteGoogleNetworkLoadBalancerDescriptionValidator extends
           "deleteGoogleNetworkLoadBalancerDescription.networkLoadBalancerName.empty")
     }
 
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "deleteGoogleNetworkLoadBalancerDescription.zone.empty"
+    // TODO(duftler): Also validate against set of supported GCE regions.
+    if (!description.region) {
+      errors.rejectValue "region", "deleteGoogleNetworkLoadBalancerDescription.region.empty"
     }
   }
 }

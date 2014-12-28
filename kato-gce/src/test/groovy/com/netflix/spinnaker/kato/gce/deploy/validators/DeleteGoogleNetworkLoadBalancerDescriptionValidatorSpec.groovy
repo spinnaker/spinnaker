@@ -28,7 +28,7 @@ import spock.lang.Specification
 class DeleteGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final Long TIMEOUT_SECONDS = 5
   private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
-  private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -50,7 +50,7 @@ class DeleteGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
@@ -65,7 +65,7 @@ class DeleteGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
     setup:
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
@@ -87,6 +87,6 @@ class DeleteGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('networkLoadBalancerName', _)
-      1 * errors.rejectValue('zone', _)
+      1 * errors.rejectValue('region', _)
   }
 }

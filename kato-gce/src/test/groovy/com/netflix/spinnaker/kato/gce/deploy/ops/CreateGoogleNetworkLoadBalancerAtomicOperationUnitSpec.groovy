@@ -28,7 +28,6 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final NETWORK_LOAD_BALANCER_NAME = "default"
-  private static final ZONE = "us-central1-b"
   private static final REGION = "us-central1"
   private static final HEALTH_CHECK_PORT = 80
   private static final INSTANCE = "inst"
@@ -43,8 +42,6 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def computeMock = Mock(Compute)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsInsert = Mock(Compute.TargetPools.Insert)
       def forwardingRules = Mock(Compute.ForwardingRules)
@@ -56,7 +53,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           healthCheck: [port: HEALTH_CHECK_PORT],
           instances: [INSTANCE],
           ipAddress: IP_ADDRESS,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new CreateGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -68,9 +65,6 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.insert(PROJECT_NAME, {it.port == HEALTH_CHECK_PORT && it.checkIntervalSec == null}) >> httpHealthChecksInsert
       1 * httpHealthChecksInsert.execute() >> insertOp
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.insert(PROJECT_NAME, REGION, {it.instances.size() == 1 && it.instances.get(0) == INSTANCE}) >> targetPoolsInsert
       1 * targetPoolsInsert.execute() >> insertOp
@@ -82,8 +76,6 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   void "should create a Network Load Balancer without health checks if non are specified"() {
     setup:
       def computeMock = Mock(Compute)
-      def zones = Mock(Compute.Zones)
-      def getZoneRequest = Mock(Compute.Zones.Get)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsInsert = Mock(Compute.TargetPools.Insert)
       def forwardingRules = Mock(Compute.ForwardingRules)
@@ -92,7 +84,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          zone: ZONE,
+          region: REGION,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new CreateGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -102,9 +94,6 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
     then:
       0 * computeMock.httpHealthChecks()
-      1 * computeMock.zones() >> zones
-      1 * zones.get(PROJECT_NAME, ZONE) >> getZoneRequest
-      1 * getZoneRequest.execute() >> new com.google.api.services.compute.model.Zone().setRegion(REGION)
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.insert(PROJECT_NAME, REGION, _) >> targetPoolsInsert
       1 * targetPoolsInsert.execute() >> insertOp
