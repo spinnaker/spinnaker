@@ -183,10 +183,11 @@ angular.module('deckApp')
       return executeTask({
         job: [
           {
-            type: 'deleteAmazonLoadBalancer',
+            type: 'deleteLoadBalancer',
             loadBalancerName: loadBalancer.name,
             regions: [loadBalancer.region],
             credentials: loadBalancer.accountId,
+            providerType: loadBalancer.providerType
           }
         ],
         application: applicationName,

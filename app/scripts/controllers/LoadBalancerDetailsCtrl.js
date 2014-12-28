@@ -15,7 +15,7 @@ angular.module('deckApp')
       })[0];
 
       if ($scope.loadBalancer) {
-        var detailsLoader = loadBalancerService.getLoadBalancerDetails('aws', loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+        var detailsLoader = loadBalancerService.getLoadBalancerDetails($scope.loadBalancer.type, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
         detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var securityGroups = [];
@@ -75,6 +75,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
+        loadBalancer.providerType = $scope.loadBalancer.type;
         return orcaService.deleteLoadBalancer(loadBalancer, application.name);
       };
 
