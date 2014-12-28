@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class DisableAsgTask extends AbstractAsgTask {
-  String asgAction = "disableAsg"
+  String asgAction = DisableAsgStage.MAYO_CONFIG_TYPE
 }

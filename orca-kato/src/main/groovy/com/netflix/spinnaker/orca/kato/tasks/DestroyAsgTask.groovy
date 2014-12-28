@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import static com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage.DESTROY_ASG_DESCRIPTIONS_KEY
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -54,8 +55,9 @@ class DestroyAsgTask implements Task {
 
   Map convert(Stage stage) {
     def input = stage.context
-    if (stage.context.containsKey("destroyAsgDescriptions") && stage.context.destroyAsgDescriptions) {
-      input = ((List)stage.context.destroyAsgDescriptions).pop()
+    if (stage.context.containsKey(DESTROY_ASG_DESCRIPTIONS_KEY) &&
+      stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]) {
+      input = ((List)stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]).pop()
     }
 
     mapper.convertValue(input, Map)

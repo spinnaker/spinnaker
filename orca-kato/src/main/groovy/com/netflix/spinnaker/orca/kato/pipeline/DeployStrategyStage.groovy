@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
@@ -23,12 +24,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
 abstract class DeployStrategyStage extends LinearStage {
+  static final String RED_BLACK_KEY = "redblack"
+  static final String HIGHLANDER_KEY = "highlander"
+  static final String CLUSTER_KEY = "cluster"
+  static final String SCALE_DOWN_KEY = "scaleDown"
+  static final String AVAILABILITY_ZONES_KEY = "availabilityZones"
 
   @Autowired OortService oort
   @Autowired ObjectMapper mapper
@@ -65,18 +70,17 @@ abstract class DeployStrategyStage extends LinearStage {
 
     List<Step> steps
     switch(strategy) {
-      case "redblack":
+      case RED_BLACK_KEY:
         steps = redBlackSteps(stage)
         break
-      case "highlander":
+      case HIGHLANDER_KEY:
         steps = highlanderStages(stage)
         break
       default:
         steps = basicSteps()
     }
     steps.each {
-      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, type)
-                       ?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
+      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, type)?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
     }
     steps
   }
@@ -84,22 +88,65 @@ abstract class DeployStrategyStage extends LinearStage {
   @VisibleForTesting
   protected List<Step> redBlackSteps(Stage stage) {
     def steps = basicSteps()
+    def stageProps = new DecomposedStageProperties(stage)
 
-    def clusterConfig = determineClusterForCleanup(stage)
-    def lastAsg = getLastAsg(clusterConfig.app, clusterConfig.account, clusterConfig.cluster, clusterConfig.region)
-    if (lastAsg) {
-      def disableInputs = [asgName: lastAsg.name, regions: [lastAsg.region], credentials: clusterConfig.account]
-      stage.context."disableAsg" = disableInputs
-      steps.addAll(disableAsgStage.buildSteps(stage))
-      if (Boolean.parseBoolean((((Map)stage.context.cluster)?.scaleDown ?: false)?.toString())) {
-        def resizeInputs = new HashMap(disableInputs)
-        resizeInputs.put "capacity", [min: 0, max: 0, desired: 0]
-        stage.context."resizeAsg" = resizeInputs
-        steps.addAll(resizeAsgStage.buildSteps(stage))
-      }
-    }
+    applyDisablePolicy(stageProps, steps)
+    applyScaleDownPolicy(stageProps, steps)
 
     steps
+  }
+
+  private void applyDisablePolicy(DecomposedStageProperties stageProperties, List<Step> steps) {
+    stageProperties.stage.context.put(DisableAsgStage.MAYO_CONFIG_TYPE, stageProperties.disableInputs)
+    steps.addAll(disableAsgStage.buildSteps(stageProperties.stage))
+  }
+
+  private void applyScaleDownPolicy(DecomposedStageProperties stageProperties, List<Step> steps) {
+    if (stageProperties.isScaleDown()) {
+      def resizeInputs = new HashMap(stageProperties.disableInputs)
+      resizeInputs.put(ResizeAsgStage.CAPACITY_KEY, [min: 0, max:0, desired: 0])
+      stageProperties.stage.context.put(ResizeAsgStage.MAYO_CONFIG_TYPE, resizeInputs)
+      steps.addAll(resizeAsgStage.buildSteps(stageProperties.stage))
+    }
+  }
+
+  class DecomposedStageProperties {
+    final Stage stage
+    final Map context
+    final Map cluster
+    final ClusterConfig clusterConfig
+    boolean scaleDown
+
+    DecomposedStageProperties(Stage stage) {
+      this.stage = stage
+      this.context = stage.context
+      if (context.containsKey(CLUSTER_KEY)) {
+        this.cluster = context[CLUSTER_KEY] as Map
+      } else {
+        this.cluster = [:]
+      }
+      this.clusterConfig = determineClusterForCleanup(stage)
+    }
+
+    Boolean isScaleDown() {
+      if (!this.scaleDown) {
+        def srcMap = cluster.containsKey(SCALE_DOWN_KEY) ? cluster : context
+        this.scaleDown = Boolean.parseBoolean(srcMap[SCALE_DOWN_KEY].toString())
+      }
+      this.scaleDown
+    }
+
+    Map getDisableInputs() {
+      def latestAsg = getLatestAsg()
+      latestAsg ? [asgName: latestAsg.name, regions: [latestAsg.region], credentials: clusterConfig.account] : [:]
+    }
+
+    @CompileDynamic
+    Map getLatestAsg() {
+      DeployStrategyStage.this.getExistingAsgs(clusterConfig.app, clusterConfig.account, clusterConfig.cluster)
+        .findAll { it.region == clusterConfig.region }
+        .sort { a, b -> b.name <=> a.name }?.getAt(0)
+    }
   }
 
   @VisibleForTesting
@@ -114,24 +161,18 @@ abstract class DeployStrategyStage extends LinearStage {
         destroyAsgDescriptions << [asgName: asg.name, credentials: clusterConfig.account, regions: [asg.region]]
         steps.addAll(destroyAsgStage.buildSteps(stage))
       }
-      stage.context."destroyAsgDescriptions" = destroyAsgDescriptions
+      stage.context[DestroyAsgStage.DESTROY_ASG_DESCRIPTIONS_KEY] = destroyAsgDescriptions
     }
 
     steps
   }
 
-  @CompileDynamic
-  private Map getLastAsg(String app, String account, String cluster, String region) {
-    getExistingAsgs(app, account, cluster).findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
-  }
-
-  @CompileDynamic
-  private List<Map> getExistingAsgs(String app, String account, String cluster) {
+  List<Map> getExistingAsgs(String app, String account, String cluster) {
     try {
       def response = oort.getCluster(app, account, cluster)
       def json = response.body.in().text
       def map = mapper.readValue(json, Map)
-      map.serverGroups
+      map.serverGroups as List<Map>
     } catch (e) {
       null
     }
@@ -147,19 +188,23 @@ abstract class DeployStrategyStage extends LinearStage {
     @CompileDynamic
     static ClusterConfig fromContext(Map context) {
       String account = context.account
-      String app = context.cluster.application
-      String stack = context.cluster.stack
+      String app = fromClusterOrContext(context, "application")
+      String stack = fromClusterOrContext(context, "stack")
       String region
-      if (context.containsKey("availabilityZones")) {
-        region = ((Map)context.availabilityZones).keySet().getAt(0)
-      } else if (context.containsKey("cluster") && context.cluster.containsKey("availabilityZones")) {
-        region = ((Map)context.cluster.availabilityZones).keySet().getAt(0)
+      if (context.containsKey(AVAILABILITY_ZONES_KEY)) {
+        region = ((Map)context[AVAILABILITY_ZONES_KEY]).keySet().getAt(0)
+      } else if (context.containsKey(CLUSTER_KEY) && context[CLUSTER_KEY].containsKey(AVAILABILITY_ZONES_KEY)) {
+        region = ((Map)context[CLUSTER_KEY][AVAILABILITY_ZONES_KEY]).keySet().getAt(0)
       } else {
         throw new IllegalArgumentException("Cowardishly failing because couldn't ascertain the target region.")
       }
       String cluster = "$app${stack ? '-' + stack : ''}"
 
       new ClusterConfig(account, app, cluster, region)
+    }
+
+    static def fromClusterOrContext(Map context, String property) {
+      context.containsKey(CLUSTER_KEY) ? context[CLUSTER_KEY][property] : context[property]
     }
   }
 }
