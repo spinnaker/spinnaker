@@ -20,11 +20,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.AvailabilityZone;
-import com.amazonaws.services.ec2.model.DescribeRegionsRequest;
-import com.amazonaws.services.ec2.model.Region;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.ec2.model.*;
 import com.netflix.spinnaker.amos.aws.AmazonCredentials.AWSRegion;
 
 import java.util.*;
@@ -32,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
+    private static final String DEFAULT_SECURITY_GROUP_NAME = "default";
     private static final Pattern IAM_ARN_PATTERN = Pattern.compile(".*?arn:aws:(?:iam|sts)::(\\d+):.*");
 
     private final AWSCredentialsProvider credentialsProvider;
@@ -42,12 +39,13 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
 
     @Override
     public String findAccountId() {
-        AmazonIdentityManagement iam = new AmazonIdentityManagementClient(credentialsProvider.getCredentials());
+        AmazonEC2 ec2 = new AmazonEC2Client(credentialsProvider.getCredentials());
         try {
-            String arn = iam.getUser().getUser().getArn();
-            Matcher matcher = IAM_ARN_PATTERN.matcher(arn);
-            if (matcher.matches()) {
-                return matcher.group(1);
+            DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest()
+                    .withGroupNames(DEFAULT_SECURITY_GROUP_NAME);
+            DescribeSecurityGroupsResult result = ec2.describeSecurityGroups(request);
+            if (result.getSecurityGroups().size() > 0) {
+                return result.getSecurityGroups().get(0).getOwnerId();
             }
         } catch (AmazonServiceException ase) {
             if ("AccessDenied".equals(ase.getErrorCode())) {
