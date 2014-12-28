@@ -22,6 +22,8 @@ import com.netflix.spinnaker.oort.model.ServerGroup
 
 class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
+  private boolean disabled = true
+
   GoogleServerGroup() {
     this(null, null, null)
   }
@@ -104,13 +106,11 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   Boolean isDisabled() {
-    def asg = getAsg()
-    if (asg) {
-      return !asg.loadBalancerNames
-    }
+    return disabled
+  }
 
-    // Something is structurally wrong if there is no asg property here. Not the same thing as being disabled.
-    return false
+  void setDisabled(boolean disabled) {
+    this.disabled = disabled
   }
 
   @Override

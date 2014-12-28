@@ -20,6 +20,8 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.InstanceTemplate
+import com.netflix.spinnaker.oort.gce.model.GoogleCluster
+import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import groovy.json.JsonBuilder
 import org.apache.log4j.Logger
@@ -27,10 +29,14 @@ import org.apache.log4j.Logger
 class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> {
   protected static final Logger log = Logger.getLogger(this)
 
-  private GoogleServerGroup googleServerGroup
+  private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
-  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup) {
+  private GoogleServerGroup googleServerGroup
+  private GoogleCluster googleCluster
+
+  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup, GoogleCluster googleCluster) {
     this.googleServerGroup = googleServerGroup
+    this.googleCluster = googleCluster
   }
 
   @Override
@@ -55,6 +61,21 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
         def base64EncodedMap = new JsonBuilder(metadataMap).toString().bytes.encodeBase64().toString()
 
         googleServerGroup.launchConfig.userData = base64EncodedMap
+
+        if (metadataMap[LOAD_BALANCER_NAMES]) {
+          def loadBalancerNameList = metadataMap[LOAD_BALANCER_NAMES].split(",")
+
+          if (loadBalancerNameList) {
+            googleServerGroup.asg.loadBalancerNames = loadBalancerNameList
+
+            // Collect all load balancer names at the cluster level as well.
+            for (loadBalancerName in loadBalancerNameList) {
+              if (!googleCluster.loadBalancers.find { it.name == loadBalancerName }) {
+                googleCluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, googleServerGroup.region)
+              }
+            }
+          }
+        }
       }
     }
   }

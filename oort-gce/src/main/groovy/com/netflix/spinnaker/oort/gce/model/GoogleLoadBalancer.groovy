@@ -68,6 +68,14 @@ class GoogleLoadBalancer extends HashMap implements LoadBalancer {
     (String) getProperty("region")
   }
 
+  Map<String, Object> getHealthCheck() {
+    (Map<String, Object>) getProperty("healthCheck")
+  }
+
+  Long getCreatedTime() {
+    (Long) getProperty("createdTime")
+  }
+
   @Override
   boolean equals(Object o) {
     if (!(o instanceof GoogleLoadBalancer)) {

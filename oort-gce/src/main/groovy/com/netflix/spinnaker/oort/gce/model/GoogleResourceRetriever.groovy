@@ -133,9 +133,13 @@ class GoogleResourceRetriever {
           }
 
           // Retrieve all available network load balancers for this project.
-          compute.forwardingRules().aggregatedList(project).queue(
-            regionsBatch, new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName]))
+          def networkLoadBalancersCallback = new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName],
+                                                                              project,
+                                                                              compute,
+                                                                              migsBatch,
+                                                                              resourceViewsBatch)
 
+          compute.forwardingRules().aggregatedList(project).queue(regionsBatch, networkLoadBalancersCallback)
 
           executeIfRequestsAreQueued(regionsBatch)
           executeIfRequestsAreQueued(migsBatch)
