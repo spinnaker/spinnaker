@@ -192,6 +192,8 @@ include::copyLastAsgStage.adoc[]
 - - -
 include::deleteAmazonLoadBalancer.adoc[]
 - - -
+include::deleteLoadBalancer.adoc[]
+- - -
 include::deleteSecurityGroup.adoc[]
 - - -
 include::deleteApplicationStage.adoc[]
