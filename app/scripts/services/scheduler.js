@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.scheduler', ['deckApp.utils.rx', 'deckApp.settings'])
   .factory('scheduler', function(RxService, settings, $q) {
     var scheduler = new RxService.Subject();
 

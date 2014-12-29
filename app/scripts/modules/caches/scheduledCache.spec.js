@@ -2,7 +2,7 @@
 
 describe('scheduledCache', function() {
   beforeEach(function() {
-    module('deckApp');
+    module('deckApp.caches.scheduled');
   });
 
   beforeEach(inject(function(scheduledCache, $http, $cacheFactory, scheduler) {

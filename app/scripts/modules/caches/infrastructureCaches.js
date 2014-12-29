@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.caches.infrastructure', [])
   .factory('infrastructureCaches', function($cacheFactory) {
 
     var caches = {};

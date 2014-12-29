@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.caches.collapsibleSectionState', [])
   .factory('collapsibleSectionStateCache', function() {
 
     var stateCache = {};

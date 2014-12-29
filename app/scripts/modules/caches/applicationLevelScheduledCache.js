@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.caches.applicationLevelScheduled', [])
   .factory('applicationLevelScheduledCache', function(scheduledCache, $rootScope, $stateParams) {
     var currentApplication = '';
     var toRemove = [];
