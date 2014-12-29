@@ -44,7 +44,6 @@ angular.module('deckApp.delivery')
       $http({
         method: 'GET',
         transformResponse: appendTransform(function(executions) {
-          console.warn('oh hey just modifying your executions nbd');
           executions.forEach(function(execution) {
             orchestratedItem.defineProperties(execution);
             execution.stages.forEach(function(stage) {
