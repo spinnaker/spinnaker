@@ -66,7 +66,7 @@ angular.module('deckApp')
         url: '/loadBalancerDetails?name&accountId&region&vpcId',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'views/application/loadBalancer/loadBalancerDetails.html',
+            templateUrl: 'scripts/modules/loadBalancers/loadBalancerDetails.html',
             controller: 'LoadBalancerDetailsCtrl',
             controllerAs: 'ctrl'
           }
@@ -216,12 +216,12 @@ angular.module('deckApp')
           name: 'loadBalancers',
           views: {
             'nav': {
-              templateUrl: 'views/application/loadBalancer/navigation.html',
+              templateUrl: 'scripts/modules/loadBalancers/navigation.html',
               controller: 'LoadBalancersNavCtrl',
               controllerAs: 'ctrl'
             },
             'master': {
-              templateUrl: 'views/application/loadBalancer/all.html',
+              templateUrl: 'scripts/modules/loadBalancers/all.html',
               controller: 'AllLoadBalancersCtrl',
               controllerAs: 'ctrl'
             }

@@ -155,46 +155,6 @@ angular.module('deckApp')
       });
     }
 
-    function upsertLoadBalancer(loadBalancer, applicationName, descriptor) {
-      var name = loadBalancer.clusterName || loadBalancer.name;
-      if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {
-        loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
-      } else {
-        loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort;
-      }
-      loadBalancer.type = 'upsertAmazonLoadBalancer';
-      loadBalancer.availabilityZones = {};
-      loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones || [];
-      if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
-        loadBalancer.securityGroups = null;
-      }
-      scheduledCache.removeAll();
-      return executeTask({
-        job: [
-          loadBalancer
-        ],
-        application: applicationName,
-        description: descriptor + ' Load Balancer: ' + name
-      });
-    }
-
-    function deleteLoadBalancer(loadBalancer, applicationName) {
-      infrastructureCaches.loadBalancers.removeAll();
-      return executeTask({
-        job: [
-          {
-            type: 'deleteLoadBalancer',
-            loadBalancerName: loadBalancer.name,
-            regions: [loadBalancer.region],
-            credentials: loadBalancer.accountId,
-            providerType: loadBalancer.providerType
-          }
-        ],
-        application: applicationName,
-        description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
-      });
-    }
-
     function terminateInstance(instance, applicationName) {
       return executeTask({
         job: [
@@ -272,16 +232,18 @@ angular.module('deckApp')
     }
 
     return {
+      // TODO: This should be the only function in this service
+      executeTask: executeTask,
+
+      //TODO: extract these into distinct services
       cloneServerGroup: cloneServerGroup,
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       createApplication: createApplication,
-      deleteLoadBalancer: deleteLoadBalancer,
       destroyServerGroup: destroyServerGroup,
       disableServerGroup: disableServerGroup,
       enableServerGroup: enableServerGroup,
       resizeServerGroup: resizeServerGroup,
       terminateInstance: terminateInstance,
       upsertSecurityGroup: upsertSecurityGroup,
-      upsertLoadBalancer: upsertLoadBalancer
     };
   });

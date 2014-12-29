@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, notificationsService, loadBalancer, application,
-                                                   securityGroupService, $modal, _, confirmationModalService, orcaService, loadBalancerService) {
+                                                   securityGroupService, $modal, _, confirmationModalService, loadBalancerWriter, loadBalancerService, loadBalancerReader) {
 
     $scope.state = {
       loading: true
@@ -15,7 +15,7 @@ angular.module('deckApp')
       })[0];
 
       if ($scope.loadBalancer) {
-        var detailsLoader = loadBalancerService.getLoadBalancerDetails($scope.loadBalancer.type, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+        var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.type, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
         detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var securityGroups = [];
@@ -52,7 +52,7 @@ angular.module('deckApp')
 
     this.editLoadBalancer = function editLoadBalancer() {
       $modal.open({
-        templateUrl: 'views/application/modal/loadBalancer/editLoadBalancer.html',
+        templateUrl: 'scripts/modules/loadBalancers/editLoadBalancer.html',
         controller: 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
@@ -76,7 +76,7 @@ angular.module('deckApp')
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
-        return orcaService.deleteLoadBalancer(loadBalancer, application.name);
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application.name);
       };
 
       confirmationModalService.confirm({
