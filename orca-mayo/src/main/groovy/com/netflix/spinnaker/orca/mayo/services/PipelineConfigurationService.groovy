@@ -48,7 +48,7 @@ class PipelineConfigurationService {
 
   @PostConstruct
   void init() {
-    Executors.newScheduledThreadPool(1).schedule(new PipelinePoller(), 15, TimeUnit.SECONDS)
+    Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new PipelinePoller(), 0, 15, TimeUnit.SECONDS)
   }
 
   private class PipelinePoller implements Runnable {
