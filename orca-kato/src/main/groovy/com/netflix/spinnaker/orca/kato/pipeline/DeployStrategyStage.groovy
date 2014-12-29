@@ -80,7 +80,12 @@ abstract class DeployStrategyStage extends LinearStage {
         steps = basicSteps()
     }
     steps.each {
-      it.name = it.name?.replace(DisableAsgStage.MAYO_CONFIG_TYPE, type)?.replace(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
+      if (it.name) {
+        it.name = it.name
+            .replaceFirst(DisableAsgStage.MAYO_CONFIG_TYPE, type)
+            .replaceFirst(DestroyAsgStage.MAYO_CONFIG_TYPE, type)
+            .replaceFirst(ResizeAsgStage.MAYO_CONFIG_TYPE, type)
+      }
     }
     steps
   }
