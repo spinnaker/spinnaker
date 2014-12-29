@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('cluster.filter.service', ['cluster.filter.model'])
-  .factory('clusterFilterService', function ($location, $stateParams, ClusterFilterModel) {
+  .module('cluster.filter.service', ['cluster.filter.model', 'deckApp.utils.lodash'])
+  .factory('clusterFilterService', function ($location, $stateParams, ClusterFilterModel, _) {
 
     function updateQueryParams() {
       resetParamState();

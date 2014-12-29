@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     });
   })
   .controller('DeployStageCtrl', function ($scope, stage, viewState,
-                                           awsServerGroupService, serverGroupConfigurationService, orcaService) {
+                                           awsServerGroupService, serverGroupConfigurationService, orcaService, _) {
     $scope.stage = stage;
 
     function initializeCommand() {

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.delivery')
-  .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
+  .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig, _) {
     var controller = this;
 
     controller.close = function() {

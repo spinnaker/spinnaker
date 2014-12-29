@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.delivery')
-  .filter('executionGroups', function(timeBoundaries) {
+  .filter('executionGroups', function(timeBoundaries, _) {
     return function(executions, filter, configurations) {
       switch (filter.execution.groupBy) {
         case 'timeBoundary':

@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('cluster.filter.model', ['ui.router'])
-  .factory('ClusterFilterModel', function($rootScope, $stateParams) {
+  .module('cluster.filter.model', ['ui.router', 'deckApp.utils.lodash'])
+  .factory('ClusterFilterModel', function($rootScope, $stateParams, _) {
 
     var sortFilter = {};
 

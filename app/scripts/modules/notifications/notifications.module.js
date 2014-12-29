@@ -1,5 +1,5 @@
 'use strict';
 
 angular.module('deckApp.notifications', [
-  'deckApp.utils',
+  'deckApp.utils.rx',
 ]);
