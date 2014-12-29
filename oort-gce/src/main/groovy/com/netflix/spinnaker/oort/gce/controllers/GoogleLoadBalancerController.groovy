@@ -69,9 +69,28 @@ class GoogleLoadBalancerController {
             loadBalancerDetail.createdTime = googleLoadBalancer.createdTime
           }
 
+          // TODO(duftler): This displays well in the details pane in deck, but the port-range values cannot be edited.
+          // This is ok for now, since we don't support Create/Edit of load balancers via Deck yet anyway.
+          // Revisit this when we have a GCE-specific details pane in deck.
+          loadBalancerDetail.listenerDescriptions = [
+            [
+              listener: [
+                protocol: googleLoadBalancer.ipProtocol,
+                loadBalancerPort: googleLoadBalancer.portRange,
+                instanceProtocol: googleLoadBalancer.ipProtocol,
+                instancePort: googleLoadBalancer.portRange
+              ]
+            ]
+          ]
+
           if (googleLoadBalancer.healthCheck) {
             loadBalancerDetail.healthCheck = googleLoadBalancer.healthCheck
           }
+
+          loadBalancerDetail.ipAddress = googleLoadBalancer.ipAddress
+
+          // TODO(duftler): Remove this when we have a GCE-specific details pane in deck.
+          loadBalancerDetail.dnsname = googleLoadBalancer.ipAddress
 
           return [ loadBalancerDetail ]
         }

@@ -75,6 +75,10 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
 
               compute.targetPools().get(project, region, localTargetPoolName).queue(targetPoolBatch, targetPoolCallback)
             }
+
+            googleLoadBalancer.setProperty("ipAddress", forwardingRule.IPAddress)
+            googleLoadBalancer.setProperty("ipProtocol", forwardingRule.IPProtocol)
+            googleLoadBalancer.setProperty("portRange", forwardingRule.portRange)
           }
         }
       }

@@ -76,6 +76,18 @@ class GoogleLoadBalancer extends HashMap implements LoadBalancer {
     (Long) getProperty("createdTime")
   }
 
+  String getIpAddress() {
+    (String) getProperty("ipAddress")
+  }
+
+  String getIpProtocol() {
+    (String) getProperty("ipProtocol")
+  }
+
+  String getPortRange() {
+    (String) getProperty("portRange")
+  }
+
   @Override
   boolean equals(Object o) {
     if (!(o instanceof GoogleLoadBalancer)) {
