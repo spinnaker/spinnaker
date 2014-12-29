@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.tasks.detail', [])
-  .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notifications) {
+  .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notificationsService) {
 
     var vm = this;
 
@@ -11,7 +11,7 @@ angular.module('deckApp.tasks.detail', [])
         return task.id === taskId;
       });
       if (!filtered.length) {
-        notifications.create({
+        notificationsService.create({
           message: 'No task with id "' + taskId + '" was found.',
           autoDismiss: true,
           hideTimestamp: true,

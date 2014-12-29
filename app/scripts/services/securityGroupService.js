@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler, scheduledCache, infrastructureCaches, notifications) {
+  .factory('securityGroupService', function (searchService, settings, $q, Restangular, _, $exceptionHandler, scheduledCache, infrastructureCaches, notificationsService) {
 
     function loadSecurityGroups(application) {
 
@@ -29,7 +29,7 @@ angular.module('deckApp')
     function loadSecurityGroupsByApplicationName(applicationName) {
       return searchService.search('gate', {q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
         if (!searchResults || !searchResults.results) {
-          notifications.create({
+          notificationsService.create({
             message: 'Warning: Security Group endpoint appears to be down. Security group info will not be displayed.',
             autoDismiss: false,
             hideTimestamp: true,

@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('InstanceDetailsCtrl', function ($scope, $state, notifications, instance, application,
+  .controller('InstanceDetailsCtrl', function ($scope, $state, notificationsService, instance, application,
                                                orcaService, oortService, confirmationModalService) {
 
     $scope.state = {
@@ -52,7 +52,7 @@ angular.module('deckApp')
         });
       }
       if (!instanceSummary) {
-        notifications.create({
+        notificationsService.create({
           message: 'Could not find instance "' + instance.instanceId,
           autoDismiss: true,
           hideTimestamp: true,

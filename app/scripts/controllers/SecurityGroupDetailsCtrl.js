@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notifications, securityGroup, application, securityGroupService, $modal) {
+  .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application, securityGroupService, $modal) {
 
     $scope.state = {
       loading: true
@@ -24,7 +24,7 @@ angular.module('deckApp')
     }
 
     function fourOhFour() {
-      notifications.create({
+      notificationsService.create({
         message: 'No security group named "' + securityGroup.name + '" was found in ' + securityGroup.accountId + ':' + securityGroup.region,
         autoDismiss: true,
         hideTimestamp: true,

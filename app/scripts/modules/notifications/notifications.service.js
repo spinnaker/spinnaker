@@ -1,8 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .factory('notifications', function(RxService) {
+angular.module('deckApp.notifications')
+  .factory('notificationsService', function(RxService) {
     var stream = new RxService.Subject();
 
     return {

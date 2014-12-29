@@ -3,7 +3,7 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notifications,
+  .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notificationsService,
                                                   serverGroupService, $modal, confirmationModalService, _) {
 
     $scope.state = {
@@ -22,10 +22,10 @@ angular.module('deckApp')
       serverGroupService.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
-        var restanularlessDetails = details.plain();
-        angular.extend(restanularlessDetails, summary);
+        var restangularlessDetails = details.plain();
+        angular.extend(restangularlessDetails, summary);
 
-        $scope.serverGroup = restanularlessDetails;
+        $scope.serverGroup = restangularlessDetails;
         if (details.launchConfig && details.launchConfig.securityGroups) {
           $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
             return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
@@ -34,7 +34,7 @@ angular.module('deckApp')
         }
 
         if (_.isEmpty($scope.serverGroup)) {
-          notifications.create({
+          notificationsService.create({
             message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
             autoDismiss: true,
             hideTimestamp: true,

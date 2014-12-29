@@ -35,6 +35,7 @@ angular.module('deckApp', [
     'deckApp.authentication',
     'deckApp.delivery',
     'deckApp.search',
+    'deckApp.notifications',
     'deckApp.tasks',
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {

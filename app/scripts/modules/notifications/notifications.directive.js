@@ -1,14 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.notifications')
   .directive('notifications', function ($exceptionHandler, $timeout) {
     return {
       scope: {},
       restrict: 'E',
       replace: true,
-      templateUrl: 'views/notifications.html',
-      controller: function ($scope, notifications) {
+      templateUrl: 'scripts/modules/notifications/notifications.html',
+      controller: function ($scope, notificationsService) {
 
         var addNotificationProps = function (notificationsObj) {
           return Object.defineProperties(notificationsObj, {
@@ -71,7 +71,7 @@ angular.module('deckApp')
           return false;
         };
 
-        notifications.subscribe(function (notification) {
+        notificationsService.subscribe(function (notification) {
           Object.defineProperties(notification, {
             $ephemeral: {
               value: true,
