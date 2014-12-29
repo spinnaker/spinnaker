@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.search.global')
   .directive('globalSearch', function($window, $) {
     return {
       restrict: 'E',

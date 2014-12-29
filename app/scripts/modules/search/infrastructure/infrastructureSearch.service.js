@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('infrastructureSearch', function(RxService, $q, searchService, urlBuilder) {
+angular.module('deckApp.search')
+  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilder) {
     return function() {
       var deferred;
 

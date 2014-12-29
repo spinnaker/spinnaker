@@ -2,9 +2,9 @@
 
 
 
-angular.module('deckApp')
-  .controller('InfrastructureCtrl', function($scope, infrastructureSearch, $stateParams, $location) {
-    var search = infrastructureSearch();
+angular.module('deckApp.search.infrastructure')
+  .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location) {
+    var search = infrastructureSearchService();
     if (angular.isDefined($stateParams.q)) {
       $scope.query = $stateParams.q;
     }

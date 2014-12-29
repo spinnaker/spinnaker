@@ -34,6 +34,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.deploy',
     'deckApp.authentication',
     'deckApp.delivery',
+    'deckApp.search',
     'deckApp.tasks',
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {

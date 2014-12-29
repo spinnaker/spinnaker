@@ -1,0 +1,43 @@
+@import "app/styles/imports/commonImports.less";
+
+.global-search {
+  margin-top: 6px;
+  .dropdown-menu {
+    min-width: 206px;
+    top: 51px;
+    li {
+      color: #999;
+      strong {
+        font-weight: 600;
+      }
+      a, .category-heading {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      a {
+        font-variant: normal;
+        color: #000;
+        .expand-results {
+          font-weight: bold;
+        }
+      }
+      &.category-heading {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #f1f1f1;
+        text-transform: uppercase;
+      }
+      &:first-child {
+        margin-top: 0;
+        border: none;
+      }
+    }
+  }
+}
+
+.global-search-header {
+  .input-md {
+    margin-top: 10px;
+  }
+}
+
