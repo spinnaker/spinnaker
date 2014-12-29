@@ -39,8 +39,16 @@ angular.module('deckApp')
       '<p>If you want to start from scratch, select "None".</p>' +
       '<p>You can always edit the cluster configuration after you\'ve created it.</p>',
 
-    'loadBalancer.advanceSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target. Default: 5</p>',
-    'loadBalancer.advanceSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks. Default: 10</p>',
-    'loadBalancer.advanceSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation. Default: 10</p>',
-    'loadBalancer.advanceSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB. Default: 2</p>'
+    'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.</p><p> Default: <b>5</b></p>',
+    'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.</p><p>Default: <b>10</b></p>',
+    'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
+    'loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
+
+    'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
+      '<ul>' +
+      '<li>For <b>AWS</b>, a server group is an <b>Auto Scaling Group</b>.</li>' +
+      '<li>For <b>GCE</b>, a server group is an <b>Instance Group</b>.</li>' +
+      '</ul>',
+
+
   });
