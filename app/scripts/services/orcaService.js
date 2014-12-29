@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('orcaService', function(settings, Restangular, scheduler, notifications, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
+  .factory('orcaService', function(settings, Restangular, scheduler, notificationsService, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
 
 
     function executeTask(taskCommand) {
@@ -19,7 +19,7 @@ angular.module('deckApp')
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
 
           if(!taskCommand.supressNotification) {
-            notifications.create({
+            notificationsService.create({
               title: taskCommand.application,
               message: taskCommand.description,
               href: urlBuilder.buildFromMetadata({
@@ -53,7 +53,7 @@ angular.module('deckApp')
         job: [
           {
             type: 'createApplication',
-            account: app.account,            
+            account: app.account,
             application: {
               name: app.name,
               description: app.description,

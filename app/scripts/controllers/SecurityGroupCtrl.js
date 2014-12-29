@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('SecurityGroupCtrl', function($scope, $state, notifications, securityGroup, application, securityGroupService, $modal) {
+  .controller('SecurityGroupCtrl', function($scope, $state, notificationsService, securityGroup, application, securityGroupService, $modal) {
 
     $scope.displayOptions = {
       showServerGroups: true,
@@ -20,7 +20,7 @@ angular.module('deckApp')
       $scope.securityGroup = securityGroupService.getApplicationSecurityGroup(application, securityGroup.account, securityGroup.region, securityGroup.name);
       if (!$scope.securityGroup) {
         $state.go('^');
-        notifications.create({
+        notificationsService.create({
           message: 'No security group named "' + securityGroup.name + '" was found in ' + securityGroup.account + ':' + securityGroup.region,
           autoDismiss: true,
           hideTimestamp: true,

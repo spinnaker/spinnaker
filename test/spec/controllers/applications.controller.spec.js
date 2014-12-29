@@ -14,7 +14,7 @@ describe('Controller: Applications', function () {
         applicationList = [ deck, oort, mort ];
 
     // Initialize the controller and a mock scope
-    beforeEach(inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService, notifications,
+    beforeEach(inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService,
                                 oortService, orcaService, urlBuilder, $state, $timeout, settings) {
 
       this.$scope = $rootScope.$new();
@@ -37,7 +37,6 @@ describe('Controller: Applications', function () {
         $log: $log,
         $filter: $filter,
         accountService: accountService,
-        notifications: notifications,
         oortService: oortService,
         orcaService: orcaService,
         urlBuilder: orcaService,

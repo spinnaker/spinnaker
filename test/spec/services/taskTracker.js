@@ -3,7 +3,7 @@
 
 describe('Service: taskTracker', function() {
   beforeEach(function() {
-    var notifications = {
+    var notificationsService = {
       create: angular.noop,
     };
 
@@ -11,17 +11,17 @@ describe('Service: taskTracker', function() {
       scheduleImmediate: angular.noop,
     };
 
-    spyOn(notifications, 'create');
+    spyOn(notificationsService, 'create');
     spyOn(scheduler, 'scheduleImmediate');
 
     module('deckApp');
 
     module(function($provide) {
-      $provide.value('notifications', notifications);
+      $provide.value('notificationsService', notificationsService);
       $provide.value('scheduler', scheduler);
     });
 
-    this.notifications = notifications;
+    this.notificationsService = notificationsService;
     this.scheduler = scheduler;
   });
 
@@ -87,7 +87,7 @@ describe('Service: taskTracker', function() {
   describe('generateNotifications(tasks, appendedMessage)', function() {
     it('generates one notification for each task', function() {
       this.taskTracker.generateNotifications(this.secondSnapshot);
-      expect(this.notifications.create.calls.count()).toEqual(this.secondSnapshot.length);
+      expect(this.notificationsService.create.calls.count()).toEqual(this.secondSnapshot.length);
     });
   });
 

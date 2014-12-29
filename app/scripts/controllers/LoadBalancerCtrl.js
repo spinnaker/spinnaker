@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('LoadBalancerCtrl', function ($scope, $state, notifications, application, loadBalancer) {
+  .controller('LoadBalancerCtrl', function ($scope, $state, notificationsService, application, loadBalancer) {
     $scope.application = application;
 
     function extractLoadBalancer() {
@@ -11,7 +11,7 @@ angular.module('deckApp')
       })[0];
 
       if (!$scope.loadBalancer) {
-        notifications.create({
+        notificationsService.create({
           message: 'No load balancer named "' + loadBalancer.name + '" was found in ' + loadBalancer.account + ':' + loadBalancer.region,
           autoDismiss: true,
           hideTimestamp: true,

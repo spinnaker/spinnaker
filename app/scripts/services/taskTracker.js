@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('taskTracker', function(notifications, scheduler) {
+  .factory('taskTracker', function(notificationsService, scheduler) {
     var that = {};
     that.getValueForKey = function getValueForKey(task, k) {
       if (!task.variables) {
@@ -62,7 +62,7 @@ angular.module('deckApp')
     that.generateNotifications = function generateNotifications(tasks, appendedMessage) {
       tasks.forEach(function(task) {
         // generate notifications
-        notifications.create({
+        notificationsService.create({
           title: that.getApplicationNameFromTask(task),
           message: that.getDescriptionFromTask(task) + ' ' + appendedMessage,
           href: '/',

@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
-                                           notifications, oortService , orcaService, urlBuilder, $state) {
+                                           oortService , orcaService, urlBuilder, $state) {
 
     $scope.applicationsLoaded = false;
 
