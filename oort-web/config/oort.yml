@@ -1,6 +1,6 @@
 redis:
   enabled: true
-  host: localhost
+  host: ${REDIS_HOST:localhost}
 
 server:
   port: 8081
