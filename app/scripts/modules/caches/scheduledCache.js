@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp')
-  .factory('scheduledCache', function($cacheFactory, scheduler, $http) {
+angular.module('deckApp.caches.scheduled', ['deckApp.scheduler'])
+  .factory('scheduledCache', function($cacheFactory, $http, scheduler) {
     // returns a cache that is cleared according to the scheduler
     var that = {};
 

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.caches.initializer', [])
   .factory('cacheInitializer', function(accountService, instanceTypeService, oortService, securityGroupService, mortService) {
     return {
       initialize: function() {
