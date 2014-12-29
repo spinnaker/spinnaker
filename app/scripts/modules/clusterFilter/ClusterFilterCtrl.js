@@ -2,7 +2,7 @@
 
 // controllerAs: clustersFilters
 
-angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model'])
+angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'deckApp.utils.lodash'])
   .controller('ClusterFilterCtr', function ($scope, application, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
 
     var defaultPrimary = 'account';

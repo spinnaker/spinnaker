@@ -12,7 +12,7 @@ angular.module('deckApp.pipelines')
       templateUrl: 'scripts/modules/pipelines/config/pipelineConfigurer.html'
     };
   })
-  .controller('PipelineConfigurerCtrl', function($scope, pipelineConfigService, $modal, $timeout) {
+  .controller('PipelineConfigurerCtrl', function($scope, pipelineConfigService, $modal, $timeout, _) {
 
     $scope.viewState = {
       expanded: true,

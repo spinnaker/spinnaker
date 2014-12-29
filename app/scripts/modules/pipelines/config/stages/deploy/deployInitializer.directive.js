@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines')
+angular.module('deckApp.pipelines.stage.deploy')
   .directive('deployInitializer', function() {
     return {
       restrict: 'E',
@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines')
       controllerAs: 'deployInitializerCtrl'
     };
   })
-  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategiesService) {
+  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategiesService, _) {
     var controller = this;
 
     $scope.command = {

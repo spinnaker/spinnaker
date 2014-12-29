@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.utils.appendTransform')
   .factory('appendTransform', function($http) {
     function append(defaults, transform) {
       defaults = angular.isArray(defaults) ? defaults : [defaults];

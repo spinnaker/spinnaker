@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils')
+angular.module('deckApp.utils.jQuery', [])
   .factory('$', function() {
     return $;
   });

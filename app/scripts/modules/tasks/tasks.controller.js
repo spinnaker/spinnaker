@@ -1,8 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.main', [])
-  .controller('TasksCtrl', function ($scope, application) {
+angular.module('deckApp.tasks.main', ['deckApp.utils.lodash'])
+  .controller('TasksCtrl', function ($scope, application, _) {
     var self = this;
     self.taskStateFilter = 'All';
     self.application = application;

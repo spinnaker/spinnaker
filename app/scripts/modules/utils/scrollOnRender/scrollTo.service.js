@@ -16,7 +16,7 @@
 
 'use strict';
 
-angular.module('deckApp.utils.scrollTo', [])
+angular.module('deckApp.utils.scrollTo', ['deckApp.utils.jQuery'])
   .factory('scrollToService', function($timeout, $) {
 
     function scrollTo(elementId, offset) {

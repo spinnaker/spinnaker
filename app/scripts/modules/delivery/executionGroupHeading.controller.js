@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.delivery')
-  .controller('executionGroupHeading', function($scope, pipelineConfigService, $stateParams, executionsService) {
+  .controller('executionGroupHeading', function($scope, pipelineConfigService, $stateParams, executionsService, _) {
     var controller = this;
 
     $scope.viewState = {

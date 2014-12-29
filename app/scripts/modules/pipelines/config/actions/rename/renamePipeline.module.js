@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.pipelines.rename', ['deckApp.pipelines', 'deckApp.settings']);
+angular.module('deckApp.pipelines.rename', ['deckApp.pipelines', 'deckApp.settings', 'deckApp.utils.lodash']);

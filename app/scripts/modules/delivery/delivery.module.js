@@ -2,7 +2,12 @@
 
 angular.module('deckApp.delivery', [
   'deckApp.pipelines',
-  'deckApp.utils',
+  'deckApp.settings',
+  'deckApp.utils.appendTransform',
+  'deckApp.utils.d3',
+  'deckApp.utils.lodash',
+  'deckApp.utils.moment',
+  'deckApp.utils.rx',
   'deckApp.utils.scrollTo'
 ])
   .config(angular.noop)

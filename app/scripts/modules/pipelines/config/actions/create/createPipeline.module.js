@@ -1,3 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.create', ['deckApp.utils', 'deckApp.pipelines', 'deckApp.settings']);
+angular.module('deckApp.pipelines.create', [
+  'deckApp.utils.lodash',
+  'deckApp.pipelines',
+  'deckApp.settings',
+]);
