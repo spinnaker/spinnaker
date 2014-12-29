@@ -5,8 +5,9 @@ describe('Controller: tasks', function () {
   var controllerInjector;
 
   controllerInjector = function (appData) {
-    return function ($controller) {
-      controller = $controller('TasksCtrl', { application: appData });
+    appData.registerAutoRefreshHandler = angular.noop;
+    return function ($controller, $rootScope) {
+      controller = $controller('TasksCtrl', { application: appData, $scope: $rootScope.$new() });
     };
   };
 
