@@ -5,7 +5,7 @@ angular.module('deckApp')
   .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
                                                  accountService, loadBalancerService, securityGroupService, mortService,
-                                                 _, searchService, modalWizardService, orcaService, taskMonitorService) {
+                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
 
@@ -234,7 +234,7 @@ angular.module('deckApp')
 
       $scope.taskMonitor.submit(
         function() {
-          return orcaService.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor);
+          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor);
         }
       );
     };
