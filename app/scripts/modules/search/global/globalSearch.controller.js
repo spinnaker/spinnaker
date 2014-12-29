@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearch, _) {
+angular.module('deckApp.search.global')
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, _) {
     var ctrl = this;
-    var search = infrastructureSearch();
+    var search = infrastructureSearchService();
 
     $scope.showSearchResults = false;
 

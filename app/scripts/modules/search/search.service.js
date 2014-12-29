@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.search')
   .factory('searchService', function($q, $http, settings, $log) {
 
     function getFallbackResults() {

@@ -2,32 +2,30 @@
 
 describe('Controller: GlobalSearch', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
-
   // load the controller's module
-  beforeEach(module('deckApp'));
+  beforeEach(module('deckApp.search.global'));
 
   describe('keyboard navigation', function() {
     // Initialize the controller and a mock scope
     beforeEach(inject(function ($controller, $rootScope, $window, $q, _) {
       var inputSpy = jasmine.createSpyObj('input', ['focus']),
-          infrastructureSearch = jasmine.createSpy('infrastructuresearch');
+          infrastructureSearchService = jasmine.createSpy('infrastructureSearchService');
       this.$scope = $rootScope.$new();
       this.$q = $q;
-      this.infrastructureSearch = infrastructureSearch;
-      this.infrastructureSearch.query = angular.noop;
+      this.infrastructureSearchService = infrastructureSearchService;
+      this.infrastructureSearchService.query = angular.noop;
       this.lodash = _;
       this.input = inputSpy;
       this.$element = { find: function() { return inputSpy; } };
 
       spyOn(_, 'debounce').and.callFake(function(method) { return method; });
-      spyOn(infrastructureSearch, 'query').and.callFake(function() { return $q.when([])});
+      spyOn(infrastructureSearchService, 'query').and.callFake(function() { return $q.when([])});
 
       this.ctrl = $controller('GlobalSearchCtrl', {
         $scope: this.$scope,
         $element: this.$element,
         _ : _,
-        infrastructureSearch: function() { return infrastructureSearch }
+        infrastructureSearchService: function() { return infrastructureSearchService; }
       });
 
       this.$scope.showSearchResults = true;
@@ -92,20 +90,20 @@ describe('Controller: GlobalSearch', function () {
       this.ctrl.dispatchQueryInput({which: 39});
       this.$scope.$digest();
 
-      expect(this.infrastructureSearch.query).not.toHaveBeenCalled();
+      expect(this.infrastructureSearchService.query).not.toHaveBeenCalled();
 
       this.ctrl.dispatchQueryInput({which: 37});
       this.$scope.$digest();
-      expect(this.infrastructureSearch.query).not.toHaveBeenCalled();
+      expect(this.infrastructureSearchService.query).not.toHaveBeenCalled();
 
       this.ctrl.dispatchQueryInput({which: 16});
       this.$scope.$digest();
-      expect(this.infrastructureSearch.query).not.toHaveBeenCalled();
+      expect(this.infrastructureSearchService.query).not.toHaveBeenCalled();
 
 
       this.ctrl.dispatchQueryInput({which: 65});
       this.$scope.$digest();
-      expect(this.infrastructureSearch.query).toHaveBeenCalled();
+      expect(this.infrastructureSearchService.query).toHaveBeenCalled();
     });
 
 
