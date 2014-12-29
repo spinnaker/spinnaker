@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils.scrollTrigger')
+angular.module('deckApp.utils.scrollTrigger', [])
   .factory('scrollTriggerService', function($window, $) {
     var eventRegistry = Object.create(null), // creates {} with no prototype; ES6 Maps would be preferable (available in Chrome 38?)
         registryCounter = 0,
