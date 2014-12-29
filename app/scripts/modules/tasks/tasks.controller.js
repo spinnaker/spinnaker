@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.tasks.main', [])
-  .controller('TasksCtrl', function (application) {
+  .controller('TasksCtrl', function ($scope, application) {
     var self = this;
     self.taskStateFilter = 'All';
     self.application = application;
@@ -16,6 +16,8 @@ angular.module('deckApp.tasks.main', [])
     };
 
     self.sortTasks();
+
+    application.registerAutoRefreshHandler(self.sortTasks, $scope);
 
     function filterRunningTasks() {
       var running = _.chain(application.tasks)
