@@ -95,8 +95,8 @@ abstract class DeployStrategyStage extends LinearStage {
     def steps = basicSteps()
     def stageProps = new DecomposedStageProperties(stage)
 
-    applyDisablePolicy(stageProps, steps)
     applyScaleDownPolicy(stageProps, steps)
+    applyDisablePolicy(stageProps, steps)
 
     steps
   }

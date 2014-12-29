@@ -139,7 +139,7 @@ class DeployStageSpec extends Specification {
       stage.context."disableAsg".regions[0] == config.cluster.availabilityZones.keySet()[0]
   }
 
-  void "should create tasks of basicDeploy, disableAsg, and resizeAsg when strategy is redblack and scaleDown is true"() {
+  void "should create tasks of basicDeploy, resizeAsg, and disableAsg when strategy is redblack and scaleDown is true"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
@@ -169,7 +169,7 @@ class DeployStageSpec extends Specification {
     }
     1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
     1 * resizeAsgStage.buildSteps(stage) >> [resizeAsgTask]
-    steps[-1] == resizeAsgTask
+    steps[-1] == disableAsgTask
   }
 
   void "should create tasks of basicDeploy and destroyAsg when strategy is highlander"() {
