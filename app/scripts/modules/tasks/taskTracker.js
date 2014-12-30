@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.tasks.tracker', [
+  'deckApp.scheduler',
+  'deckApp.notifications',
+])
   .factory('taskTracker', function(notificationsService, scheduler) {
     var that = {};
     that.getValueForKey = function getValueForKey(task, k) {
