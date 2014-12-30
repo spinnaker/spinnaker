@@ -18,12 +18,11 @@
 
 describe('Directives: validateMin, validateMax', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(module('deckApp.validation'));
 
-  beforeEach(inject(function ($rootScope, $compile, $) {
+  beforeEach(inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
-    this.$ = $;
   }));
 
   describe('validateMin', function() {
@@ -47,7 +46,7 @@ describe('Directives: validateMin, validateMax', function () {
         } else {
           expect(this.input.hasClass('ng-valid')).toBe(true);
         }
-      }
+      };
     });
 
     it('pushes value back to model, even when invalid', function() {

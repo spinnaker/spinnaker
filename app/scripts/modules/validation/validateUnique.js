@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.validation')
   .directive('validateUnique', function () {
     return {
       restrict: 'A',

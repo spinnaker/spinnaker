@@ -39,6 +39,7 @@ angular.module('deckApp', [
     'deckApp.search',
     'deckApp.notifications',
     'deckApp.tasks',
+    'deckApp.validation',
     'deckApp.loadBalancer',
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {

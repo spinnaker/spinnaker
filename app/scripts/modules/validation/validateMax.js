@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.validation')
   .directive('validateMax', function (isEmpty) {
     return {
       restrict: 'A',
