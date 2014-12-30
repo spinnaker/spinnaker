@@ -74,7 +74,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-prestaging") >> {
+    1 * oort.getCluster("deck", account, "deck-prestaging", "aws") >> {
       def responseBody = [
           serverGroups: asgNames.collect { name ->
             [name: name, region: region]
@@ -122,7 +122,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-prestaging") >> {
+    1 * oort.getCluster("deck", account, "deck-prestaging", "aws") >> {
       def responseBody = [
           serverGroups: asgNames.collect { name ->
             [name: name, region: region]

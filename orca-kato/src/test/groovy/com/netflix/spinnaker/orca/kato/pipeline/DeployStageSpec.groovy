@@ -109,7 +109,7 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
       def cluster = [serverGroups: [[name  : "pond-prestaging-v000",region: "us-west-1"]]]
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json",objectMapper.writeValueAsBytes(cluster)))
     }
@@ -130,7 +130,7 @@ class DeployStageSpec extends Specification {
 
     then:
       "should call to oort to get the last ASG so that we know what to disable"
-      1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+      1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
         def cluster = [serverGroups: [[name  : "pond-prestaging-v000",region: "us-east-1"],
                                       [name: "pond-prestaging-v000", region: "us-west-1"]]]
         new Response("foo", 200, "ok", [], new TypedByteArray("application/json",objectMapper.writeValueAsBytes(cluster)))
@@ -154,7 +154,7 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
       def cluster = [serverGroups: [[
                                       name  : "pond-prestaging-v000",
                                       region: "us-west-1"
@@ -187,7 +187,7 @@ class DeployStageSpec extends Specification {
     "should call to oort to get the last ASG so that we know what to disable"
     stage.context.containsKey("destroyAsgDescriptions")
     1 == stage.context.destroyAsgDescriptions.size()
-    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging") >> {
+    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
       def cluster = [serverGroups: [[
                                         name  : "pond-prestaging-v000",
                                         region: "us-west-1"
