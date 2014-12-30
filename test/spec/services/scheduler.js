@@ -33,45 +33,6 @@ describe('scheduler', function() {
     });
   });
 
-  describe('subscription methods', function() {
-    beforeEach(function() {
-      this.numIterations = 10;
-      this.cycles = 2;
-    });
-
-    xdescribe('#subscribe', function() {
-      it('it takes a callback that is invoked at each iteration of the scheduler', function(done) {
-
-        spyOn(this.test, 'call');
-        this.pre = this.test.call.calls.count();
-        this.scheduler.subscribe(this.test.call);
-        setTimeout(function() {
-          var post = this.test.call.calls.count();
-          // error bounds of +/- 1
-          expect(post - this.pre).toBeGreaterThan(this.numIterations - 2);
-          expect(post - this.pre).toBeLessThan(this.numIterations + 2);
-          done();
-        }.bind(this), this.pollSchedule * this.numIterations);
-
-      });
-    });
-
-    xdescribe('#subscribeEveryN', function() {
-      it('it takes an int N, a callback that is invoked every N scheduler iterations', function(done) {
-        spyOn(this.test, 'call');
-        this.pre = this.test.call.calls.count();
-        this.scheduler.subscribeEveryN(this.cycles, this.test.call);
-        setTimeout(function() {
-          var post = this.test.call.calls.count();
-          // error bounds of +/- 1
-          expect(post - this.pre).toBeGreaterThan(this.numIterations/this.cycles - 2);
-          expect(post - this.pre).toBeLessThan(this.numIterations/this.cycles + 2);
-          done();
-        }.bind(this), this.pollSchedule * this.numIterations);
-      });
-    });
-  });
-
   describe('#scheduleImmediate', function() {
     it('invokes all subscribed callbacks immediately', function() {
       var numSubscribers = 20;
