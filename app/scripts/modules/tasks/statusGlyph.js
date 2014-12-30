@@ -8,7 +8,7 @@ angular.module('deckApp')
       scope: {
         item: '=',
       },
-      templateUrl: 'views/statusglyph.html',
+      templateUrl: 'scripts/modules/tasks/statusGlyph.html',
     };
 
   });
