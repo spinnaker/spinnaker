@@ -3,9 +3,9 @@
 
 angular.module('deckApp')
   .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
-                                                accountService, orcaService, securityGroupService, mortService,
+                                                accountService,  securityGroupService,
                                                 taskMonitorService,
-                                                _, application, securityGroup) {
+                                                _, application, securityGroup, securityGroupWriter) {
 
     $scope.securityGroup = securityGroup;
 
@@ -54,7 +54,7 @@ angular.module('deckApp')
 
       $scope.taskMonitor.submit(
         function() {
-          return orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Update');
+          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application.name, 'Update');
         }
       );
     };

@@ -3,8 +3,8 @@
 
 
 angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, orcaService, notificationsService,
-                                                  serverGroupService, $modal, confirmationModalService, _) {
+  .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
+                                                  serverGroupService, $modal, confirmationModalService, _, serverGroupWriter) {
 
     $scope.state = {
       loading: true
@@ -65,7 +65,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return orcaService.destroyServerGroup(serverGroup, application.name);
+        return serverGroupWriter.destroyServerGroup(serverGroup, application.name);
       };
 
       var stateParams = {
@@ -103,7 +103,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return orcaService.disableServerGroup(serverGroup, application.name);
+        return serverGroupWriter.disableServerGroup(serverGroup, application.name);
       };
 
       confirmationModalService.confirm({
@@ -128,7 +128,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return orcaService.enableServerGroup(serverGroup, application.name);
+        return serverGroupWriter.enableServerGroup(serverGroup, application.name);
       };
 
       confirmationModalService.confirm({

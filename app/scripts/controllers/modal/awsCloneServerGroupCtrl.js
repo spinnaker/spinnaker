@@ -3,7 +3,7 @@
 
 angular.module('deckApp.aws')
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state, settings,
-                                               orcaService, modalWizardService, taskMonitorService,
+                                               serverGroupWriter, modalWizardService, taskMonitorService,
                                                serverGroupConfigurationService, serverGroupCommand, application, title) {
     $scope.title = title;
 
@@ -134,7 +134,7 @@ angular.module('deckApp.aws')
       } else {
         $scope.taskMonitor.submit(
           function() {
-            return orcaService.cloneServerGroup($scope.command, application.name);
+            return serverGroupWriter.cloneServerGroup($scope.command, application.name);
           }
         );
       }

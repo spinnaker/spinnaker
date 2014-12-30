@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .controller('InstanceDetailsCtrl', function ($scope, $state, notificationsService, instance, application,
-                                               orcaService, oortService, confirmationModalService) {
+                                               instanceWriter, oortService, confirmationModalService) {
 
     $scope.state = {
       loading: true
@@ -78,7 +78,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return orcaService.terminateInstance(instance, $scope.application.name);
+        return instanceWriter.terminateInstance(instance, $scope.application.name);
       };
 
       confirmationModalService.confirm({
