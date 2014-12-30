@@ -10,13 +10,12 @@ describe('Controller: awsCloneServerGroup', function () {
   beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(function() {
-    inject(function ($controller, $rootScope, accountService, orcaService, mortService, oortService, imageService, settings,
-                     searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService, serverGroupService, $q) {
+    inject(function ($controller, $rootScope, accountService, serverGroupWriter, oortService, imageService, settings,
+                     searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService, serverGroupService, $q, subnetReader, keyPairsReader) {
 
       this.$scope = $rootScope.$new();
       this.accountService = accountService;
-      this.orcaService = orcaService;
-      this.mortService = mortService;
+      this.serverGroupWriter = serverGroupWriter;
       this.oortService = oortService;
       this.imageService = imageService;
       this.searchService = searchService;
@@ -26,6 +25,8 @@ describe('Controller: awsCloneServerGroup', function () {
       this.serverGroupService = serverGroupService;
       this.taskMonitorService = taskMonitorService;
       this.settings = settings;
+      this.subnetReader = subnetReader;
+      this.keyPairsReader = keyPairsReader;
       this.$q = $q;
     });
 
@@ -87,8 +88,7 @@ describe('Controller: awsCloneServerGroup', function () {
           settings: this.settings,
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
-          orcaService: this.orcaService,
-          mortService: this.mortService,
+          serverGroupWriter: this.serverGroupWriter,
           oortService: this.oortService,
           imageService: this.imageService,
           searchService: this.searchService,
@@ -110,8 +110,8 @@ describe('Controller: awsCloneServerGroup', function () {
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
-      spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
-      spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
+      spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
       spyOn(this.oortService, 'listAWSLoadBalancers').and.callFake(resolve([]));
       spyOn(this.imageService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
@@ -206,7 +206,7 @@ describe('Controller: awsCloneServerGroup', function () {
           settings: this.settings,
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
-          orcaService: this.orcaService,
+          serverGroupWriter: this.serverGroupWriter,
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
           taskMonitorService: this.taskMonitorService,
@@ -223,8 +223,8 @@ describe('Controller: awsCloneServerGroup', function () {
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
-      spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
-      spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
+      spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
       spyOn(this.oortService, 'listAWSLoadBalancers').and.callFake(resolve([]));
 
@@ -360,7 +360,7 @@ describe('Controller: awsCloneServerGroup', function () {
           settings: this.settings,
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
-          orcaService: this.orcaService,
+          serverGroupWriter: this.serverGroupWriter,
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
           taskMonitorService: this.taskMonitorService,
@@ -378,8 +378,8 @@ describe('Controller: awsCloneServerGroup', function () {
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
-      spyOn(this.mortService, 'listSubnets').and.callFake(resolve([]));
-      spyOn(this.mortService, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
+      spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
       spyOn(this.oortService, 'listAWSLoadBalancers').and.callFake(resolve([]));
 
@@ -390,7 +390,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.imageService, 'findImages').and.callFake(this.resolve([]));
       spyOn(this.imageService, 'getAmi').and.callFake(this.reject(null));
 
-      spyOn(this.orcaService, 'cloneServerGroup').and.callFake(function(command, applicationName, description) {
+      spyOn(this.serverGroupWriter, 'cloneServerGroup').and.callFake(function(command, applicationName, description) {
         spec.submitted = {
           command: command,
           applicationName: applicationName,

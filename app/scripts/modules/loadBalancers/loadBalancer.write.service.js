@@ -2,11 +2,11 @@
 
 angular
   .module('deckApp.loadBalancer.write.service', [])
-  .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, orcaService) {
+  .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, applicationName) {
       infrastructureCaches.loadBalancers.removeAll();
-      return orcaService.executeTask({
+      return taskExecutor.executeTask({
         job: [
           {
             type: 'deleteLoadBalancer',
@@ -36,7 +36,7 @@ angular
         loadBalancer.securityGroups = null;
       }
       scheduledCache.removeAll();
-      return orcaService.executeTask({
+      return taskExecutor.executeTask({
         job: [
           loadBalancer
         ],

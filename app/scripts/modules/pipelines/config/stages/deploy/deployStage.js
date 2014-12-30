@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     });
   })
   .controller('DeployStageCtrl', function ($scope, stage, viewState,
-                                           awsServerGroupService, serverGroupConfigurationService, orcaService, _) {
+                                           awsServerGroupService, serverGroupConfigurationService, serverGroupTransformer, _) {
     $scope.stage = stage;
 
     function initializeCommand() {
@@ -70,7 +70,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     }
 
     function applyCommandToStage() {
-      var stageCluster = orcaService.convertServerGroupCommandToDeployConfiguration($scope.command);
+      var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration($scope.command);
       $scope.stage.cluster = stageCluster;
       $scope.stage.account = stageCluster.credentials;
       delete stageCluster.credentials;

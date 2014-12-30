@@ -4,8 +4,8 @@
 angular.module('deckApp')
   .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
-                                                 accountService, loadBalancerService, securityGroupService, mortService,
-                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
+                                                 accountService, loadBalancerService, securityGroupService,
+                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
 
     var ctrl = this;
 
@@ -119,7 +119,7 @@ angular.module('deckApp')
     function getAvailableSubnets() {
       var account = $scope.loadBalancer.credentials,
           region = $scope.loadBalancer.region;
-      return mortService.listSubnets().then(function(subnets) {
+      return subnetReader.listSubnets().then(function(subnets) {
         return _(subnets)
           .filter({account: account, region: region})
           .reject({'target': 'ec2'})

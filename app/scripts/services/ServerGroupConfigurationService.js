@@ -3,7 +3,7 @@
 angular.module('deckApp')
   .factory('serverGroupConfigurationService', function(imageService, accountService, securityGroupService,
                                                        instanceTypeService,
-                                                       oortService, mortService, $q) {
+                                                       oortService, $q, subnetReader, keyPairsReader) {
 
 
     function configureCommand(application, command) {
@@ -18,9 +18,9 @@ angular.module('deckApp')
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount(),
         securityGroups: securityGroupService.getAllSecurityGroups(),
         loadBalancers: oortService.listAWSLoadBalancers(),
-        subnets: mortService.listSubnets(),
+        subnets: subnetReader.listSubnets(),
         preferredZones: accountService.getPreferredZonesByAccount(),
-        keyPairs: mortService.listKeyPairs(),
+        keyPairs: keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
         instanceTypes: instanceTypeService.getAllTypesByRegion(),
       }).then(function(loader) {

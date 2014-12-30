@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.caches.initializer', [])
-  .factory('cacheInitializer', function(accountService, instanceTypeService, oortService, securityGroupService, mortService) {
+angular.module('deckApp.caches.initializer', ['deckApp.subnet.read.service'])
+  .factory('cacheInitializer', function(accountService, instanceTypeService, oortService, securityGroupService,subnetReader, vpcReader, keyPairsReader) {
     return {
       initialize: function() {
         accountService.getRegionsKeyedByAccount();
@@ -9,9 +9,9 @@ angular.module('deckApp.caches.initializer', [])
         instanceTypeService.getAllTypesByRegion('aws');
         oortService.listAWSLoadBalancers();
         securityGroupService.getAllSecurityGroups();
-        mortService.listSubnets();
-        mortService.listVpcs();
-        mortService.listKeyPairs();
+        subnetReader.listSubnets();
+        vpcReader.listVpcs();
+        keyPairsReader.listKeyPairs();
       }
     };
   });

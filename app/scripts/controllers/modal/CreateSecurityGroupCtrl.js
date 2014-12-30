@@ -3,9 +3,9 @@
 
 angular.module('deckApp')
   .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
-                                                  accountService, orcaService, securityGroupService, mortService,
+                                                  accountService, securityGroupService,
                                                   taskMonitorService,
-                                                  _, application, securityGroup) {
+                                                  _, application, securityGroup, securityGroupWriter, vpcReader) {
 
     var ctrl = this;
 
@@ -51,7 +51,7 @@ angular.module('deckApp')
     };
 
     this.regionUpdated = function() {
-      mortService.listVpcs().then(function(vpcs) {
+      vpcReader.listVpcs().then(function(vpcs) {
         var account = $scope.securityGroup.credentials,
             region = $scope.securityGroup.region,
             availableVpcs = _(vpcs)
@@ -131,7 +131,7 @@ angular.module('deckApp')
     this.upsert = function () {
       $scope.taskMonitor.submit(
         function() {
-          return orcaService.upsertSecurityGroup($scope.securityGroup, application.name, 'Create');
+          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application.name, 'Create');
         }
       );
     };
