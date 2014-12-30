@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.validation')
   .directive('validationError', function () {
     return {
       restrict: 'E',
-      templateUrl: 'views/validationError.html',
+      templateUrl: 'scripts/modules/validation/validationError.html',
       scope: {
         message: '@'
       }

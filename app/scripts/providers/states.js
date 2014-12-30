@@ -411,14 +411,6 @@ angular.module('deckApp')
       var home = {
         name: 'home',
         abstract: true,
-        views: {
-          'main@': {
-            templateUrl: 'views/main.html',
-            controller: 'MainCtrl',
-            controllerAs: 'ctrl'
-
-          }
-        },
         children: [
           notFound,
           applications,
