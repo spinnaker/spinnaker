@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.pageTitle', ['ui.router'])
   .factory('pageTitleService', function($rootScope, $stateParams) {
 
     function handleRoutingStart() {
