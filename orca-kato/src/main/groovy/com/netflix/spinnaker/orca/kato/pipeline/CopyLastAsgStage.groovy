@@ -52,7 +52,7 @@ class CopyLastAsgStage extends DeployStrategyStage {
   protected ClusterConfig determineClusterForCleanup(Stage stage) {
     def names = Names.parseName(stage.context.source.asgName)
     def region = stage.context.source.region
-    return new ClusterConfig(stage.context.source.account, names.app, names.cluster, region)
+    return new ClusterConfig(stage.context.source.account, names.app, names.cluster, region, stage.context.providerType ?: "aws")
   }
 
   @Override

@@ -85,7 +85,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.oortService.getCluster("front50", "test", "front50") >> contsructResponse(200, '''
+    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> contsructResponse(200, '''
 {
     "serverGroups": [
         {

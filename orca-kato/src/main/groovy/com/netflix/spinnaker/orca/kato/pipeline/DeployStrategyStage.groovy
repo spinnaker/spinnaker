@@ -148,7 +148,7 @@ abstract class DeployStrategyStage extends LinearStage {
 
     @CompileDynamic
     Map getLatestAsg() {
-      DeployStrategyStage.this.getExistingAsgs(clusterConfig.app, clusterConfig.account, clusterConfig.cluster)
+      DeployStrategyStage.this.getExistingAsgs(clusterConfig.app, clusterConfig.account, clusterConfig.cluster, clusterConfig.providerType)
         .findAll { it.region == clusterConfig.region }
         .sort { a, b -> b.name <=> a.name }?.getAt(0)
     }
@@ -159,7 +159,7 @@ abstract class DeployStrategyStage extends LinearStage {
     def steps = basicSteps()
 
     def clusterConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(clusterConfig.app, clusterConfig.account, clusterConfig.cluster)
+    def existingAsgs = getExistingAsgs(clusterConfig.app, clusterConfig.account, clusterConfig.cluster, clusterConfig.providerType)
     if (existingAsgs) {
       def destroyAsgDescriptions = []
       for (asg in existingAsgs) {
@@ -172,9 +172,9 @@ abstract class DeployStrategyStage extends LinearStage {
     steps
   }
 
-  List<Map> getExistingAsgs(String app, String account, String cluster) {
+  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
     try {
-      def response = oort.getCluster(app, account, cluster)
+      def response = oort.getCluster(app, account, cluster, providerType)
       def json = response.body.in().text
       def map = mapper.readValue(json, Map)
       map.serverGroups as List<Map>
@@ -189,6 +189,7 @@ abstract class DeployStrategyStage extends LinearStage {
     String app
     String cluster
     String region
+    String providerType
 
     @CompileDynamic
     static ClusterConfig fromContext(Map context) {
@@ -204,8 +205,9 @@ abstract class DeployStrategyStage extends LinearStage {
         throw new IllegalArgumentException("Cowardishly failing because couldn't ascertain the target region.")
       }
       String cluster = "$app${stack ? '-' + stack : ''}"
+      String providerType = context.providerType ?: "aws"
 
-      new ClusterConfig(account, app, cluster, region)
+      new ClusterConfig(account, app, cluster, region, providerType)
     }
 
     static def fromClusterOrContext(Map context, String property) {

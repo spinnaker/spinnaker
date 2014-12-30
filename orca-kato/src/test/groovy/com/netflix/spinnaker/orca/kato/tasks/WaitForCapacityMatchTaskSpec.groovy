@@ -36,7 +36,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale up operation"() {
     setup:
       oort = Stub(OortService)
-      oort.getCluster("kato", "test", "kato-main") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
+      oort.getCluster("kato", "test", "kato-main", "aws") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
       task.oortService = oort
       def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
       def stage = new OrchestrationStage(new Orchestration(), "resizeAsg", context)
@@ -78,7 +78,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
   void "should properly wait for a scale down operation"() {
     setup:
     oort = Stub(OortService)
-    oort.getCluster("kato", "test", "kato-main") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
+    oort.getCluster("kato", "test", "kato-main", "aws") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
     task.oortService = oort
     def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
     def stage = new OrchestrationStage(new Orchestration(), "resizeAsg", context)
