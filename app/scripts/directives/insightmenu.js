@@ -3,7 +3,7 @@
 
 /**
  * @ngdoc directive
- * @name scumApp.directive:insightMenu
+ * @name deckApp.directive:insightMenu
  * @description
  * # insightMenu
  */
