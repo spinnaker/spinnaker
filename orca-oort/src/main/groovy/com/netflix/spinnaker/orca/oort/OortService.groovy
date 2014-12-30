@@ -28,6 +28,10 @@ interface OortService {
   @GET("/applications/{app}/clusters/{account}/{cluster}/aws")
   Response getCluster(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster)
 
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{type}")
+  Response getCluster(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster,
+                      @Path("type") String type)
+
   @GET("/applications/{app}/clusters/{account}/{cluster}/aws/serverGroups/{serverGroup}")
   Response getServerGroup(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster,
                           @Path("serverGroup") String serverGroup, @Query("region") String region)

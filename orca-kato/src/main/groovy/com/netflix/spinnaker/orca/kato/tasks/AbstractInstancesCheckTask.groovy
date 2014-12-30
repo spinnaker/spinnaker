@@ -58,7 +58,8 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
     try {
-      def response = oortService.getCluster(names.app, account, names.cluster)
+      def response = oortService.getCluster(names.app, account, names.cluster, stage.context.providerType ?: "aws")
+
       if (response.status != 200) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
