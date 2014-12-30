@@ -32,7 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-
+import org.springframework.context.annotation.Primary
 import org.springframework.core.env.AbstractEnvironment
 import org.springframework.core.env.MapPropertySource
 
@@ -107,8 +107,9 @@ class AmazonConfig {
   }
 
   @Bean
+  @Primary
   @ConditionalOnExpression('${bastion.enabled:false}')
-  AWSCredentialsProvider awsCredentialsProvider(BastionConfiguration bastionConfiguration) {
+  AWSCredentialsProvider bastionAWSCredentialsProvider(BastionConfiguration bastionConfiguration) {
     def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
         bastionConfiguration.proxyRegion, bastionConfiguration.accountIamRole)
     provider.refresh()

@@ -31,6 +31,12 @@ allprojects { project ->
 
   group = "com.netflix.spinnaker.front50"
 
+  configurations.all {
+    resolutionStrategy {
+      force 'com.google.guava:guava:15.0'
+    }
+  }
+
   dependencies {
     compile spinnaker.dependency("groovy")
     spinnaker.group("test")
