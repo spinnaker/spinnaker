@@ -2,7 +2,7 @@
 
 describe('Service: pageTitleService', function() {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(module('deckApp.pageTitle'));
 
   beforeEach(inject(function (pageTitleService, $stateParams, $rootScope) {
     this.pageTitleService = pageTitleService;

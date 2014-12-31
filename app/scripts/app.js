@@ -28,6 +28,7 @@ angular.module('deckApp', [
     'deckApp.scheduler',
     'deckApp.urlBuilder',
     'deckApp.cluster',
+    'deckApp.pageTitle',
     'deckApp.pipelines',
     'deckApp.pipelines.trigger',
     'deckApp.pipelines.trigger.jenkins',
