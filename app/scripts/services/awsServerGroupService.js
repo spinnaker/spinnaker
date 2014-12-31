@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('awsServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, mortService) {
+  .factory('awsServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader) {
     function buildNewServerGroupCommand(application) {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount();
@@ -88,7 +88,7 @@ angular.module('deckApp')
     function buildServerGroupCommandFromExisting(application, serverGroup, mode, parseServerGroupName) {
       mode = mode || 'clone';
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
-      var subnetsLoader = mortService.listSubnets();
+      var subnetsLoader = subnetReader.listSubnets();
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, subnets: subnetsLoader});
 
       return asyncLoader.then(function(asyncData) {

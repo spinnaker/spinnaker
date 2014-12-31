@@ -22,13 +22,22 @@ angular.module('deckApp', [
     'deckApp.templates',
     'deckApp.aws',
     'deckApp.gce',
+    'deckApp.subnet',
     'deckApp.utils',
     'deckApp.caches',
     'deckApp.settings',
     'deckApp.scheduler',
     'deckApp.urlBuilder',
     'deckApp.cluster',
+    'deckApp.applications',
+    'deckApp.securityGroup',
+    'deckApp.serverGroup',
+    'deckApp.instance',
     'deckApp.pageTitle',
+    'deckApp.applications',
+    'deckApp.securityGroup',
+    'deckApp.serverGroup',
+    'deckApp.instance',
     'deckApp.pipelines',
     'deckApp.pipelines.trigger',
     'deckApp.pipelines.trigger.jenkins',
@@ -42,6 +51,8 @@ angular.module('deckApp', [
     'deckApp.tasks',
     'deckApp.validation',
     'deckApp.loadBalancer',
+    'deckApp.vpc',
+    'deckApp.keyPairs'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)

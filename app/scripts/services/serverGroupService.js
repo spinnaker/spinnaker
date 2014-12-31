@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('serverGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, mortService, awsServerGroupService, gceServerGroupService) {
+  .factory('serverGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, awsServerGroupService, gceServerGroupService) {
 
     function getServerGroupEndpoint(application, account, clusterName, serverGroupName) {
       return Restangular.one('applications', application).all('clusters').all(account).all(clusterName).one('serverGroups', serverGroupName);

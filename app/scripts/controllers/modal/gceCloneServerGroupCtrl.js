@@ -3,9 +3,9 @@
 
 angular.module('deckApp.gce')
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
-                                                  accountService, orcaService, mortService, oortService,
+                                                  accountService, serverGroupWriter, oortService,
                                                   instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
-                                                  imageService, serverGroupCommand, application, title) {
+                                                  imageService, serverGroupCommand, application, title, subnetReader) {
     $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
@@ -39,7 +39,7 @@ angular.module('deckApp.gce')
       $scope.loadBalancers = loadBalancers;
     });
 
-    var subnetLoader = mortService.listSubnets().then(function(subnets) {
+    var subnetLoader = subnetReader.listSubnets().then(function(subnets) {
       $scope.subnets = subnets;
     });
 
@@ -310,7 +310,7 @@ angular.module('deckApp.gce')
         function() {
           transformInstanceMetadata();
 
-          return orcaService.cloneServerGroup($scope.command, application.name);
+          return serverGroupWriter.cloneServerGroup($scope.command, application.name);
         }
       );
     };

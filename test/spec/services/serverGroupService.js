@@ -5,12 +5,12 @@ describe('serverGroupService', function() {
     loadDeckWithoutCacheInitializer();
   });
 
-  beforeEach(inject(function(serverGroupService, accountService, mortService, $q, $rootScope) {
+  beforeEach(inject(function(serverGroupService, accountService,$q, $rootScope, subnetReader) {
     this.serverGroupService = serverGroupService;
     this.$scope = $rootScope;
     spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when(AccountServiceFixture.preferredZonesByAccount));
     spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when(AccountServiceFixture.regionsKeyedByAccount));
-    spyOn(mortService, 'listSubnets').and.returnValue($q.when([]));
+    spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
   }));
 
   describe('parseServerGroupName', function() {

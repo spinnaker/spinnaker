@@ -2,7 +2,7 @@
 
 
 angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'])
-  .controller('AllClustersCtrl', function($scope, application, $modal, mortService,
+  .controller('AllClustersCtrl', function($scope, application, $modal,
                                           securityGroupService, accountService, oortService,
                                           _, $stateParams, $location, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupService) {
 

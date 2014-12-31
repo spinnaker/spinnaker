@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, orcaService, taskMonitorService,
+  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -39,7 +39,7 @@ angular.module('deckApp')
       }
 
       var submitMethod = function() {
-        return orcaService.resizeServerGroup(serverGroup, capacity, application.name);
+        return serverGroupWriter.resizeServerGroup(serverGroup, capacity, application.name);
       };
 
       var taskMonitorConfig = {

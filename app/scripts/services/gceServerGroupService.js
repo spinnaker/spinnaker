@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('gceServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, mortService, gceInstanceTypeService) {
+  .factory('gceServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, gceInstanceTypeService) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.

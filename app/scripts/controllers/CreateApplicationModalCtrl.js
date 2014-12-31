@@ -2,7 +2,7 @@
 
 angular
   .module('deckApp')
-  .controller('CreateApplicationModalCtrl', function($scope, $log, $state, $modalInstance, orcaService) {
+  .controller('CreateApplicationModalCtrl', function($scope, $log, $state, $modalInstance, applicationWriter) {
     var vm = this;
 
     vm.appNameList = _.pluck($scope.applications, 'name');
@@ -21,7 +21,7 @@ angular
 
       vm.application.name = vm.application.name.toLowerCase();
 
-      orcaService.createApplication(vm.application)
+      applicationWriter.createApplication(vm.application)
         .then(function(taskResponse) {
           taskResponse
             .watchForTaskComplete()

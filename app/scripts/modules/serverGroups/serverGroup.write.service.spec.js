@@ -1,15 +1,15 @@
 'use strict';
 
-describe('orcaService', function () {
+describe('serverGroupWriter', function () {
 
-  var orcaService,
+  var serverGroupWriter,
     $httpBackend,
     settings;
 
   beforeEach(function () {
     loadDeckWithoutCacheInitializer();
-    inject(function (_orcaService_, _$httpBackend_, _settings_) {
-      orcaService = _orcaService_;
+    inject(function (_serverGroupWriter_, _$httpBackend_, _settings_) {
+      serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
       settings = _settings_;
     });
@@ -26,7 +26,7 @@ describe('orcaService', function () {
 
       $httpBackend.expectGET(settings.gateUrl + '/applications/appName/tasks/1').respond({});
 
-      orcaService.cloneServerGroup(command, 'appName');
+      serverGroupWriter.cloneServerGroup(command, 'appName');
       $httpBackend.flush();
 
       return submitted;
