@@ -2,5 +2,6 @@
 
 angular
   .module('deckApp.applications', [
-    'deckApp.applications.write.service'
+    'deckApp.applications.write.service',
+    'deckApp.applications.read.service'
   ]);

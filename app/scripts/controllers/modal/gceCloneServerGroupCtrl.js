@@ -3,9 +3,9 @@
 
 angular.module('deckApp.gce')
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
-                                                  accountService, serverGroupWriter, oortService,
+                                                  accountService, serverGroupWriter,
                                                   instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
-                                                  imageService, serverGroupCommand, application, title, subnetReader) {
+                                                  imageService, serverGroupCommand, application, title, subnetReader, loadBalancerReader) {
     $scope.title = title;
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
@@ -35,7 +35,7 @@ angular.module('deckApp.gce')
       $scope.securityGroups = securityGroups;
     });
 
-    var loadBalancerLoader = oortService.listGCELoadBalancers().then(function(loadBalancers) {
+    var loadBalancerLoader = loadBalancerReader.listGCELoadBalancers().then(function(loadBalancers) {
       $scope.loadBalancers = loadBalancers;
     });
 

@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('ClusterCtrl', function($scope, cluster, application, oortService, _) {
+  .controller('ClusterCtrl', function($scope, cluster, application,_) {
 
     $scope.account = cluster.account;
 
