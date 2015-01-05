@@ -29,6 +29,7 @@ import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.MachineTypeList
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
@@ -110,6 +111,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
                                                                   accountName: ACCOUNT_NAME,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.deployDefaults = new GceConfig.DeployDefaults()
             operation.operate([])
           }
         }
