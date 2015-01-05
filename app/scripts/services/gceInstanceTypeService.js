@@ -39,8 +39,8 @@ angular.module('deckApp')
           cpu: 4,
           memory: 15,
           storage: {
-            size: 40,
-            count: 2
+            size: 80,
+            count: 1
           },
           costFactor: 2
         },
@@ -50,8 +50,8 @@ angular.module('deckApp')
           cpu: 8,
           memory: 30,
           storage: {
-            size: 80,
-            count: 2
+            size: 160,
+            count: 1
           },
           costFactor: 3
         },
@@ -61,8 +61,8 @@ angular.module('deckApp')
           cpu: 16,
           memory: 60,
           storage: {
-            size: 160,
-            count: 2
+            size: 320,
+            count: 1
           },
           costFactor: 3
         }
@@ -162,8 +162,8 @@ angular.module('deckApp')
           cpu: 2,
           memory: 1.80,
           storage: {
-            size: 20,
-            count: 2
+            size: 40,
+            count: 1
           },
           costFactor: 1
         },
@@ -173,8 +173,8 @@ angular.module('deckApp')
           cpu: 4,
           memory: 3.60,
           storage: {
-            size: 40,
-            count: 2
+            size: 80,
+            count: 1
           },
           costFactor: 2
         },
@@ -184,8 +184,8 @@ angular.module('deckApp')
           cpu: 8,
           memory: 7.20,
           storage: {
-            size: 80,
-            count: 2
+            size: 160,
+            count: 1
           },
           costFactor: 2
         },
@@ -195,8 +195,8 @@ angular.module('deckApp')
           cpu: 16,
           memory: 14.4,
           storage: {
-            size: 160,
-            count: 2
+            size: 320,
+            count: 1
           },
           costFactor: 3
         }
