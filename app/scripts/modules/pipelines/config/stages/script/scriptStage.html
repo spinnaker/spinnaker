@@ -1,0 +1,28 @@
+<div ng-if="viewState.loading">
+  <h4 ng-if="viewState.loading" class="text-center">
+    <span us-spinner="{radius:20, width:6, length: 12}"></span>
+  </h4>
+</div>
+<form class="form-horizontal" ng-if="!viewState.loading">
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Command</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.command"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Image</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.image"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Credentials</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.credentials"/>
+    </div>
+  </div>
+</form>
