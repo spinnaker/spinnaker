@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
-                                           oortService ,urlBuilder, $state) {
+                                           urlBuilder, $state, applicationReader) {
 
     $scope.applicationsLoaded = false;
 
@@ -74,7 +74,7 @@ angular.module('deckApp')
 
     var ctrl = this;
 
-    oortService.listApplications().then(function(applications) {
+    applicationReader.listApplications().then(function(applications) {
       $scope.applications = applications;
       ctrl.filterApplications();
       $scope.applicationsLoaded = true;

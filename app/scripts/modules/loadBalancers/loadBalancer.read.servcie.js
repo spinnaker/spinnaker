@@ -2,8 +2,8 @@
 
 
 angular
-  .module('deckApp.loadBalancer.read.service', [])
-  .factory('loadBalancerReader', function ($q, Restangular, searchService) {
+  .module('deckApp.loadBalancer.read.service', ['deckApp.caches.infrastructure'])
+  .factory('loadBalancerReader', function ($q, Restangular, searchService, infrastructureCaches) {
 
     function loadLoadBalancersByApplicationName(applicationName) {
       return searchService.search('gate', {q: applicationName, type: 'loadBalancers', pageSize: 10000}).then(function(searchResults) {
@@ -64,11 +64,25 @@ angular
       return Restangular.one('loadBalancers').one(account).one(region).one(name).get({'provider': provider});
     }
 
+    function listAWSLoadBalancers() {
+      return Restangular
+        .all('loadBalancers')
+        .withHttpConfig({cache: infrastructureCaches.loadBalancers})
+        .getList({provider: 'aws'});
+    }
+
+    function listGCELoadBalancers() {
+      return Restangular
+        .all('loadBalancers')
+        .getList({provider: 'gce'});
+    }
 
     return {
       loadLoadBalancersByApplicationName: loadLoadBalancersByApplicationName,
       loadLoadBalancers: loadLoadBalancers,
-      getLoadBalancerDetails: getLoadBalancerDetails
+      getLoadBalancerDetails: getLoadBalancerDetails,
+      listAWSLoadBalancers: listAWSLoadBalancers,
+      listGCELoadBalancers: listGCELoadBalancers
     };
 
   });

@@ -353,8 +353,8 @@ angular.module('deckApp')
           },
         },
         resolve: {
-          application: ['$stateParams', 'oortService', function($stateParams, oortService) {
-            return oortService.getApplication($stateParams.application);
+          application: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
+            return applicationReader.getApplication($stateParams.application);
           }]
         },
         data: {

@@ -3,7 +3,7 @@
 
 angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'])
   .controller('AllClustersCtrl', function($scope, application, $modal,
-                                          securityGroupService, accountService, oortService,
+                                          securityGroupService, accountService,
                                           _, $stateParams, $location, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupService) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;

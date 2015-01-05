@@ -3,7 +3,7 @@
 
 angular.module('deckApp')
   .controller('InstanceDetailsCtrl', function ($scope, $state, notificationsService, instance, application,
-                                               instanceWriter, oortService, confirmationModalService) {
+                                               instanceWriter, confirmationModalService, instanceReader) {
 
     $scope.state = {
       loading: true
@@ -37,7 +37,7 @@ angular.module('deckApp')
       });
 
       if (instanceSummary && account && region) {
-        oortService.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+        instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           $scope.state.loading = false;
           $scope.instance = angular.extend(details.plain(), instanceSummary);
           extractHealthMetrics(details);

@@ -15,15 +15,15 @@ describe('Controller: Applications', function () {
 
     // Initialize the controller and a mock scope
     beforeEach(inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService,
-                                oortService, urlBuilder, $state, $timeout, settings) {
+                                urlBuilder, $state, $timeout, settings, applicationReader) {
 
       this.$scope = $rootScope.$new();
-      this.oortService = oortService;
       this.settings = settings;
       this.$q = $q;
       this.accountService = accountService;
+      this.applicationReader = applicationReader;
 
-      spyOn(this.oortService, 'listApplications').and.callFake(function () {
+      spyOn(this.applicationReader, 'listApplications').and.callFake(function () {
         return $q.when(applicationList);
       });
 
@@ -37,7 +37,6 @@ describe('Controller: Applications', function () {
         $log: $log,
         $filter: $filter,
         accountService: accountService,
-        oortService: oortService,
         urlBuilder: urlBuilder,
         $state: $state,
         $timeout: $timeout
