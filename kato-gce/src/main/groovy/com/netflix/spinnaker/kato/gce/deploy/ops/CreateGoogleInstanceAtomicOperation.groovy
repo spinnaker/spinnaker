@@ -70,9 +70,11 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     task.updateStatus BASE_PHASE, "Composing instance..."
 
-    def persistentDisk = deployDefaults.determinePersistentDisk(description.instanceType)
-
-    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, persistentDisk.size, persistentDisk.type)
+    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage,
+                                              description.diskSizeGb,
+                                              description.diskType,
+                                              description.instanceType,
+                                              deployDefaults)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 

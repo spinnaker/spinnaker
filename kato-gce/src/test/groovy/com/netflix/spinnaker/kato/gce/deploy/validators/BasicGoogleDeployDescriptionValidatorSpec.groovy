@@ -33,6 +33,8 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   private static final INITIAL_NUM_REPLICAS = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
+  private static final DISK_TYPE = "pd-standard"
+  private static final DISK_SIZE_GB = 10
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -57,6 +59,8 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                        initialNumReplicas: INITIAL_NUM_REPLICAS,
                                                        image: IMAGE,
                                                        instanceType: INSTANCE_TYPE,
+                                                       diskType: DISK_TYPE,
+                                                       diskSizeGb: DISK_SIZE_GB,
                                                        zone: ZONE,
                                                        accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -97,6 +101,29 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
 
     then:
     1 * errors.rejectValue("initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.invalid")
+  }
+
+  void "invalid diskSizeGb fails validation"() {
+    setup:
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], new BasicGoogleDeployDescription(diskSizeGb: -1), errors)
+
+    then:
+    1 * errors.rejectValue("diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid")
+
+    when:
+    validator.validate([], new BasicGoogleDeployDescription(diskSizeGb: 0), errors)
+
+    then:
+    1 * errors.rejectValue("diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid")
+
+    when:
+    validator.validate([], new BasicGoogleDeployDescription(diskSizeGb: 9), errors)
+
+    then:
+    1 * errors.rejectValue("diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid")
   }
 
   void "null input fails validation"() {

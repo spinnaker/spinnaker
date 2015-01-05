@@ -29,6 +29,8 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
   private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
+  private static final DISK_TYPE = "pd-standard"
+  private static final DISK_SIZE_GB = 10
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -51,6 +53,8 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
     def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                           image: IMAGE,
                                                           instanceType: INSTANCE_TYPE,
+                                                          diskType: DISK_TYPE,
+                                                          diskSizeGb: DISK_SIZE_GB,
                                                           zone: ZONE,
                                                           accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -60,6 +64,29 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
     then:
       0 * errors._
+  }
+
+  void "invalid diskSizeGb fails validation"() {
+    setup:
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], new CreateGoogleInstanceDescription(diskSizeGb: -1), errors)
+
+    then:
+    1 * errors.rejectValue("diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid")
+
+    when:
+    validator.validate([], new CreateGoogleInstanceDescription(diskSizeGb: 0), errors)
+
+    then:
+    1 * errors.rejectValue("diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid")
+
+    when:
+    validator.validate([], new CreateGoogleInstanceDescription(diskSizeGb: 9), errors)
+
+    then:
+    1 * errors.rejectValue("diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid")
   }
 
   void "null input fails validation"() {

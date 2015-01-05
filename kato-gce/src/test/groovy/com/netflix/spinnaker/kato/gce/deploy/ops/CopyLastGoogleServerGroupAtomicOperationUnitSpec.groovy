@@ -23,6 +23,7 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Network
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
@@ -92,7 +93,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     sourceImage = new Image(selfLink: IMAGE)
     network = new Network(selfLink: NETWORK_NAME)
-    attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, DISK_SIZE_GB, DISK_TYPE)
+    attachedDisk = GCEUtil.buildAttachedDisk(sourceImage,
+                                             DISK_SIZE_GB,
+                                             DISK_TYPE,
+                                             INSTANCE_TYPE,
+                                             new GceConfig.DeployDefaults())
     networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
     instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
@@ -114,6 +119,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          initialNumReplicas: 4,
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
+                                                         diskType: "pd-ssd",
+                                                         diskSizeGb: 250,
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          networkLoadBalancers: ["testlb-west-1", "testlb-west-2"],
@@ -155,6 +162,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.initialNumReplicas = 2
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
+      newDescription.diskType = DISK_TYPE
+      newDescription.diskSizeGb = DISK_SIZE_GB
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.networkLoadBalancers = NETWORK_LOAD_BALANCERS

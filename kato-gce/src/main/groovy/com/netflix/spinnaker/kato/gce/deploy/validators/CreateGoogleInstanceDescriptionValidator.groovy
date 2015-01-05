@@ -47,6 +47,10 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
       errors.rejectValue "instanceName", "createGoogleInstanceDescription.instanceName"
     }
 
+    if (description.diskSizeGb != null && description.diskSizeGb < 10) {
+      errors.rejectValue "diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid"
+    }
+
     // TODO(duftler): Also validate against set of supported GCE images.
     if (!description.image) {
       errors.rejectValue "image", "createGoogleInstanceDescription.image.empty"

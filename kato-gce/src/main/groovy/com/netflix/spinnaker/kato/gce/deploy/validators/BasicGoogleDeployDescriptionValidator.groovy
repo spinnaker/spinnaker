@@ -57,6 +57,10 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
       errors.rejectValue "initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.invalid"
     }
 
+    if (description.diskSizeGb != null && description.diskSizeGb < 10) {
+      errors.rejectValue "diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid"
+    }
+
     // TODO(duftler): Also validate against set of supported GCE images.
     if (!description.image) {
       errors.rejectValue "image", "basicGoogleDeployDescription.image.empty"

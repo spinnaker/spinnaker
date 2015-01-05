@@ -23,6 +23,8 @@ class CreateGoogleInstanceDescription implements DeployDescription {
   String instanceName
   String image
   String instanceType
+  String diskType
+  Long diskSizeGb
   String zone
   String accountName
   GoogleCredentials credentials

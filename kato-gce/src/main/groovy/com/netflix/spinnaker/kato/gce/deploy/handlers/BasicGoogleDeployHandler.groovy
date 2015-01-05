@@ -105,9 +105,11 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
-    def persistentDisk = deployDefaults.determinePersistentDisk(description.instanceType)
-
-    def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, persistentDisk.size, persistentDisk.type)
+    def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage,
+                                                 description.diskSizeGb,
+                                                 description.diskType,
+                                                 description.instanceType,
+                                                 deployDefaults)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
