@@ -51,7 +51,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String ZONE = "us-central1-b"
 
   private static final long DISK_SIZE_GB = 100
-  private static final String DISK_TYPE = "PERSISTENT";
+  private static final String DISK_TYPE = "pd-standard";
   private static final String NETWORK_NAME = "default"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"

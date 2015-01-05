@@ -39,6 +39,9 @@ class GCEUtil {
     }
   }
 
+  private static final String DISK_TYPE_PD_STANDARD = "pd-standard"
+  private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
+
   public static final String APPLICATION_NAME = "Spinnaker"
   public static final long OPERATIONS_POLLING_INTERVAL_FRACTION = 5
   public static final String TARGET_POOL_NAME_PREFIX = "target-pool"
@@ -208,10 +211,19 @@ class GCEUtil {
   }
 
   static AttachedDisk buildAttachedDisk(Image sourceImage, long diskSizeGb, String diskType) {
-    def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
-                                                                        diskSizeGb: diskSizeGb,)
+    // API seems to prefer 'pd-standard' not be passed.
+    if (diskType == DISK_TYPE_PD_STANDARD) {
+      diskType = null
+    }
 
-    return new AttachedDisk(boot: true, autoDelete: true, type: diskType, initializeParams: attachedDiskInitializeParams)
+    def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
+                                                                        diskSizeGb: diskSizeGb,
+                                                                        diskType: diskType)
+
+    return new AttachedDisk(boot: true,
+                            autoDelete: true,
+                            type: DISK_TYPE_PERSISTENT,
+                            initializeParams: attachedDiskInitializeParams)
   }
 
   static NetworkInterface buildNetworkInterface(Network network, String accessConfigName, String accessConfigType) {

@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
@@ -36,11 +38,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private static final String BASE_PHASE = "DEPLOY"
 
   // TODO(duftler): These should be exposed/configurable.
-  private static final long diskSizeGb = 100
-  private static final String diskType = "PERSISTENT";
   private static final String networkName = "default"
   private static final String accessConfigName = "External NAT"
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
+
+  @Autowired
+  private GceConfig.DeployDefaults deployDefaults
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -102,7 +105,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
-    def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, diskSizeGb, diskType)
+    def persistentDisk = deployDefaults.determinePersistentDisk(description.instanceType)
+
+    def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage, persistentDisk.size, persistentDisk.type)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 

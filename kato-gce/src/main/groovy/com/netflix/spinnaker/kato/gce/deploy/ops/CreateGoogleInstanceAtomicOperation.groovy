@@ -17,22 +17,25 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.model.Instance
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
 
   // TODO(duftler): These should be exposed/configurable.
-  private static final long diskSizeGb = 100
-  private static final String diskType = "PERSISTENT";
   private static final String networkName = "default"
   private static final String accessConfigName = "External NAT"
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
+
+  @Autowired
+  private GceConfig.DeployDefaults deployDefaults
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -66,7 +69,10 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Composing instance..."
-    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, diskSizeGb, diskType)
+
+    def persistentDisk = deployDefaults.determinePersistentDisk(description.instanceType)
+
+    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, persistentDisk.size, persistentDisk.type)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
