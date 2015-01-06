@@ -55,7 +55,8 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
           details: [
               source     : "Orca",
               type       : "orca:task:starting",
-              application: stage.execution.application
+              application: stage.execution.application,
+              id         : stage.execution.id
           ],
           content: stage.context
       )
@@ -70,7 +71,8 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
         details: [
             source     : "Orca",
             type       : "orca:task:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
-            application: stage.execution.application
+            application: stage.execution.application,
+            id         : stage.execution.id
         ],
         content: stage.context
     )

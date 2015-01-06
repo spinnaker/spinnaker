@@ -26,9 +26,9 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
         details: [
             source     : "Orca",
             type       : "orca:pipeline:starting",
-            application: execution.application
+            application: execution.application,
+            id         : execution.id
         ]
-        // TODO: need some actual identifying data here
     )
   }
 
@@ -39,9 +39,9 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
         details: [
             source     : "Orca",
             type       : "orca:pipeline:${(wasSuccessful(jobExecution) ? "complete" : "failed")}".toString(),
-            application: execution.application
+            application: execution.application,
+            id         : execution.id
         ]
-        // TODO: need some actual identifying data here
     )
   }
 
