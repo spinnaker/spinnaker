@@ -44,6 +44,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage',
     'deckApp.pipelines.stage.bake',
     'deckApp.pipelines.stage.deploy',
+    'deckApp.pipelines.stage.script',
     'deckApp.authentication',
     'deckApp.delivery',
     'deckApp.search',
