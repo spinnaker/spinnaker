@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -44,6 +45,7 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
   @Autowired protected JobBuilderFactory jobs
   @Autowired protected StepBuilderFactory steps
   @Autowired protected ObjectMapper mapper
+  protected List<JobExecutionListener> pipelineListeners
 
   protected final Map<String, StageBuilder> stages = [:]
 
@@ -89,5 +91,10 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
       params.addString("description", config.description as String, false)
     }
     params.toJobParameters()
+  }
+
+  @Autowired(required = false)
+  void setPipelineListeners(List<JobExecutionListener> pipelineListeners) {
+    this.pipelineListeners = pipelineListeners
   }
 }

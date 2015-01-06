@@ -16,15 +16,12 @@
 
 package com.netflix.spinnaker.orca.echo.config
 
-import com.netflix.spinnaker.orca.notifications.ManualTriggerNotificationHandler
-import com.netflix.spinnaker.orca.notifications.ManualTriggerPollingNotificationAgent
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.notifications.BuildJobNotificationHandler
-import com.netflix.spinnaker.orca.notifications.BuildJobPollingNotificationAgent
-import com.netflix.spinnaker.orca.notifications.NotificationHandler
+import com.netflix.spinnaker.orca.notifications.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,7 +45,8 @@ class EchoConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint echoEndpoint(@Value('${echo.baseUrl:http://echo.prod.netflix.net}') String echoBaseUrl) {
+  @Bean Endpoint echoEndpoint(
+      @Value('${echo.baseUrl:http://echo.prod.netflix.net}') String echoBaseUrl) {
     newFixedEndpoint(echoBaseUrl)
   }
 
@@ -84,5 +82,12 @@ class EchoConfiguration {
       ExecutionRepository executionRepository,
       EchoService echoService) {
     new EchoNotifyingStageExecutionListener(executionRepository, echoService)
+  }
+
+  @Bean
+  EchoNotifyingPipelineExecutionListener echoNotifyingPipelineExecutionListener(
+      ExecutionRepository executionRepository,
+      EchoService echoService) {
+    new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
   }
 }

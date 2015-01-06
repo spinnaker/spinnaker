@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.orca.echo.spring
 
-import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -38,7 +36,7 @@ class EchoEventSpec extends Specification {
   def echoService = Mock(EchoService)
 
   @Autowired AbstractApplicationContext applicationContext
-  @Autowired PipelineStarter jobStarter
+  @Autowired PipelineStarter pipelineStarter
   @Autowired ExecutionRepository executionRepository
 
   def task1 = Mock(Task)
@@ -56,7 +54,8 @@ class EchoEventSpec extends Specification {
 
   def setup() {
     applicationContext.beanFactory.with {
-      registerSingleton "echoListener", new EchoNotifyingStageExecutionListener(executionRepository, echoService)
+      registerSingleton "echoPipelineListener", new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
+      registerSingleton "echoTaskListener", new EchoNotifyingStageExecutionListener(executionRepository, echoService)
 
       [task1, task2].eachWithIndex { task, i ->
         def name = "stage${i + 1}"
@@ -64,8 +63,9 @@ class EchoEventSpec extends Specification {
         autowireBean stage
         registerSingleton name, stage
       }
+      autowireBean pipelineStarter
     }
-    jobStarter.initialize()
+    pipelineStarter.initialize()
   }
 
   def "events are raised in the correct order"() {
@@ -77,10 +77,13 @@ class EchoEventSpec extends Specification {
     task2.execute(_) >> taskSuccess
 
     when:
-    jobStarter.start(json)
+    pipelineStarter.start(json)
 
     then:
-    events.details.type == ["orca:task:starting", "orca:task:complete"] * 2
+    events.details.type == ["orca:pipeline:starting"] +
+        (["orca:task:starting", "orca:task:complete"] * 2) +
+        ["orca:pipeline:complete"]
+//    events.details.type == ["orca:stage:starting", "orca:task:starting", "orca:task:complete", "orca:stage:complete"] * 2
   }
 
   def "when tasks repeat they don't send duplicate start events"() {
@@ -92,10 +95,12 @@ class EchoEventSpec extends Specification {
     task2.execute(_) >> taskSuccess
 
     when:
-    jobStarter.start(json)
+    pipelineStarter.start(json)
 
     then:
-    events.details.type == ["orca:task:starting", "orca:task:complete"] * 2
+    events.details.type == ["orca:pipeline:starting"] +
+        (["orca:task:starting", "orca:task:complete"] * 2) +
+        ["orca:pipeline:complete"]
   }
 
   def "when tasks fail they still send end events"() {
@@ -106,13 +111,16 @@ class EchoEventSpec extends Specification {
     task1.execute(_) >> taskFailed
 
     when:
-    jobStarter.start(json)
+    pipelineStarter.start(json)
 
     then:
     0 * task2.execute(_)
 
     and:
-    events.details.type == ["orca:task:starting", "orca:task:failed"]
+    events.details.type == ["orca:pipeline:starting",
+                            "orca:task:starting",
+                            "orca:task:failed",
+                            "orca:pipeline:failed"]
   }
 
   /**

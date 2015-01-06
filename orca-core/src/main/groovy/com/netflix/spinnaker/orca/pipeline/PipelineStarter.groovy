@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 @Component
-@CompileStatic
+//@CompileStatic
 class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
   @Autowired ExecutionRepository executionRepository
@@ -55,7 +55,10 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    */
   protected Job build(Map<String, Object> config, Pipeline pipeline) {
     def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
-                         .flow(initializationStep(steps, pipeline)) as JobFlowBuilder
+    pipelineListeners.each {
+      jobBuilder = jobBuilder.listener(it)
+    }
+    jobBuilder = jobBuilder.flow(initializationStep(steps, pipeline)) as JobFlowBuilder
     buildFlow(jobBuilder, pipeline).build().build()
   }
 

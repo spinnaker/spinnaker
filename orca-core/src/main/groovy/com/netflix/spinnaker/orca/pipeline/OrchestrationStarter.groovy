@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -28,7 +27,7 @@ import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.c
 import static java.util.UUID.randomUUID
 
 @Component
-@CompileStatic
+//@CompileStatic
 class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration> {
 
   @Autowired
@@ -72,7 +71,10 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   @Override
   protected Job build(Map<String, Object> config, Orchestration orchestration) {
     def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
-      .flow(createTasklet(steps, orchestration)) as JobFlowBuilder
+    pipelineListeners.each {
+      jobBuilder = jobBuilder.listener(it)
+    }
+    jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
     orchestration.stages.each { stage ->
       stages.get(stage.type).build(jobBuilder, stage)
     }

@@ -24,15 +24,38 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     this.echoService = echoService
   }
 
+//  @Override
+//  void beforeStage(Stage stage, StepExecution stepExecution) {
+//    echoService.recordEvent(
+//        details: [
+//            source     : "Orca",
+//            type       : "orca:stage:starting",
+//            application: stage.execution.application
+//        ],
+//        content: stage.context
+//    )
+//  }
+//
+//  @Override
+//  void afterStage(Stage stage, StepExecution stepExecution) {
+//    echoService.recordEvent(
+//        details: [
+//            source     : "Orca",
+//            type       : "orca:stage:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
+//            application: stage.execution.application
+//        ],
+//        content: stage.context
+//    )
+//  }
+
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
     if (stepExecution.status == BatchStatus.STARTED) {
-      def execution = stage.execution
       echoService.recordEvent(
           details: [
               source     : "Orca",
               type       : "orca:task:starting",
-              application: execution.application
+              application: stage.execution.application
           ],
           content: stage.context
       )
@@ -43,12 +66,11 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     if (stepExecution.status.running) {
       return
     }
-    def execution = stage.execution
     echoService.recordEvent(
         details: [
             source     : "Orca",
             type       : "orca:task:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
-            application: execution.application
+            application: stage.execution.application
         ],
         content: stage.context
     )

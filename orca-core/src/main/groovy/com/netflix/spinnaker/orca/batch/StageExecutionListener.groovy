@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import groovy.transform.CompileStatic
+import java.util.regex.Pattern
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -14,10 +15,18 @@ import org.springframework.batch.core.listener.StepExecutionListenerSupport
 @CompileStatic
 abstract class StageExecutionListener extends StepExecutionListenerSupport {
 
+  private final Pattern TASK_NAME_PATTERN = ~/(?<=[\.])(\S+)(?=\.)/
+
   protected final ExecutionRepository executionRepository
 
   protected StageExecutionListener(ExecutionRepository executionRepository) {
     this.executionRepository = executionRepository
+  }
+
+  void beforeStage(Stage stage, StepExecution stepExecution) {
+  }
+
+  void afterStage(Stage stage, StepExecution stepExecution) {
   }
 
   void beforeTask(Stage stage, StepExecution stepExecution) {
@@ -29,6 +38,9 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
   @Override
   final void beforeStep(StepExecution stepExecution) {
     def stage = currentStage(stepExecution)
+    if (isFirstTaskInStage(stage, stepExecution)) {
+      beforeStage(stage, stepExecution)
+    }
     beforeTask(stage, stepExecution)
   }
 
@@ -36,11 +48,18 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
   final ExitStatus afterStep(StepExecution stepExecution) {
     def stage = currentStage(stepExecution)
     afterTask(stage, stepExecution)
+    if (isLastTaskInStage(stage, stepExecution)) {
+      afterStage(stage, stepExecution)
+    }
     return super.afterStep(stepExecution)
   }
 
   protected final String stageName(StepExecution stepExecution) {
     stepExecution.stepName.tokenize(".").first()
+  }
+
+  private String taskName(StepExecution stepExecution) {
+    stepExecution.stepName.tokenize(".").get(1)
   }
 
   protected final Execution currentExecution(StepExecution stepExecution) {
@@ -55,5 +74,20 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
 
   protected final Stage currentStage(StepExecution stepExecution) {
     currentExecution(stepExecution).namedStage(stageName(stepExecution))
+  }
+
+  // TODO this won't work for a number of reasons:
+  // 1: stage.tasks is empty until StageTaskPropagationListener runs
+  // 2: stage.tasks will be incomplete for non-linear stages
+  // 3: multiple tasks with the same name will break the logic
+  // We need to have a better way to mark the first and last tasks in a stage
+  // Maybe a special listener or a special task.
+
+  private boolean isFirstTaskInStage(Stage stage, StepExecution stepExecution) {
+    !stage.tasks.empty && stage.tasks.first().name == taskName(stepExecution)
+  }
+
+  private boolean isLastTaskInStage(Stage stage, StepExecution stepExecution) {
+    !stage.tasks.empty && stage.tasks.last().name == taskName(stepExecution)
   }
 }
