@@ -73,8 +73,9 @@ angular.module('deckApp')
         };
 
         var viewOverrides = {
+          region: region,
           credentials: account,
-          availabilityZones: cluster.availabilityZones[command.region],
+          availabilityZones: cluster.availabilityZones[region],
           viewState: viewState,
         };
 
