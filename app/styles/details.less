@@ -114,15 +114,20 @@
     .actions {
       &.insights {
         .dropdown {
-          .pull-left;
           &:first-child {
-            margin-right: 15px;
+            margin-bottom: 5px;
+          }
+          @media(min-width: 1400px) {
+            .pull-left;
+            &:first-child {
+              margin: 0 15px 0 0;
+            }
           }
         }
       }
 
       .dropdown-menu {
-        min-width: 120px;
+        min-width: 80px;
       }
 
       button {
