@@ -34,6 +34,8 @@ import java.util.List;
  * @author Dan Woods
  */
 public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
+    private static final String PROVIDER = "aws";
+
     private final String name;
     private final String accountId;
     private final String defaultKeyPair;
@@ -148,4 +150,6 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         return credentialsProvider.getCredentials();
     }
 
+    @Override
+    public String getProvider() { return PROVIDER; }
 }

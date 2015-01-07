@@ -34,6 +34,7 @@ import java.security.PrivateKey
 
 class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
   private static final String APPLICATION_NAME = "Spinnaker"
+  private static final String PROVIDER = "gce";
 
   private final String kmsServer
   private final String pkcs12Password
@@ -111,5 +112,10 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     def urlParts = fullUrl.split("/")
 
     return urlParts[urlParts.length - 1]
+  }
+
+  @Override
+  public String getProvider() {
+    return PROVIDER;
   }
 }

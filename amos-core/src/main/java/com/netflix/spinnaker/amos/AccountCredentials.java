@@ -40,4 +40,11 @@ public interface AccountCredentials<T> {
      * @return typed credentials object
      */
     @JsonIgnore T getCredentials();
+
+    /**
+     * Provides the name of the cloud provider. Typically something like 'aws', 'gce' or 'docker'.
+     *
+     * @return the name of the cloud provider
+     */
+    String getProvider();
 }
