@@ -12,9 +12,20 @@ angular.module('deckApp')
         });
     }
 
+    function addHealthStatusCheck(serverGroup) {
+      serverGroup.instances.forEach(function (instance) {
+        var healthList = instance.health;
+        instance.hasHealthStatus = _.some(healthList, function(health) {
+          return _.contains(['LoadBalancer', 'Discovery'], health.type);
+        });
+      });
+    }
+
     function addHealthyCountsToServerGroup(serverGroup) {
+      addHealthStatusCheck(serverGroup);
       serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
       serverGroup.downCount = _.filter(serverGroup.instances, {isHealthy: false}).length;
+      serverGroup.missingHealthCount = _.filter(serverGroup.instances, {hasHealthStatus: false}).length;
       serverGroup.unknownCount = 0;
     }
 
@@ -32,6 +43,7 @@ angular.module('deckApp')
         cluster.upCount += serverGroup.upCount;
         cluster.downCount += serverGroup.downCount;
         cluster.unknownCount += serverGroup.unknownCount;
+        cluster.missingHealthCount += serverGroup.missingHealthCount;
       });
     }
 

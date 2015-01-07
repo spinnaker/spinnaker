@@ -88,6 +88,11 @@
       border-color: @mid_grey;
     }
 
+    &.health-status-MissingHealthStatus{
+      background-color: @missing_health;
+      border-color: @missing_health_border;
+    }
+
     &.active {
       border-color: @dark_grey;
       background-color: @healthy_green_border;
@@ -98,6 +103,10 @@
       &.health-status-Unknown {
         background-color: @mid_grey;
         border-color: @dark_grey;
+      }
+
+      &.health-status-MissingHealthStatus{
+        background-color: @missing_health_border;
       }
     }
 
