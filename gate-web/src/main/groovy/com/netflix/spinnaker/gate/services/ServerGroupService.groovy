@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.OortService
 import groovy.transform.CompileStatic
@@ -31,6 +32,9 @@ class ServerGroupService {
   @Autowired
   OortService oortService
 
+  @Autowired
+  InsightConfiguration insightConfiguration
+
   List getForApplication(String applicationName) {
     HystrixFactory.newListCommand(GROUP, "serverGroups-${applicationName}", true) {
       oortService.getServerGroups(applicationName)
@@ -39,7 +43,14 @@ class ServerGroupService {
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
     HystrixFactory.newMapCommand(GROUP, "serverGroups-${applicationName}-${account}-${region}-${serverGroupName}", true) {
-      oortService.getServerGroupDetails(applicationName, account, region, serverGroupName)
+      def context = getContext(applicationName, account, region, serverGroupName)
+      return oortService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
+          "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }
+      ]
     } execute()
+  }
+
+  static Map<String, String> getContext(String application, String account, String region, String serverGroup) {
+    return ["application": application, "account": account, "region": region, "serverGroup": serverGroup]
   }
 }
