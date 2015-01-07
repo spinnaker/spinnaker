@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.gate.retrofit.*
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
