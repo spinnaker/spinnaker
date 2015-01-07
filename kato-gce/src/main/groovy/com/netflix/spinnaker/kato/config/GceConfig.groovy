@@ -18,7 +18,7 @@ class GceConfig {
 
   @Bean
   @ConfigurationProperties('gce.defaults')
-  DeployDefaults deployDefaults() {
+  DeployDefaults gceDeployDefaults() {
     new DeployDefaults()
   }
 

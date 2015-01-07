@@ -210,7 +210,13 @@ class GCEUtil {
     return null
   }
 
-  static AttachedDisk buildAttachedDisk(Image sourceImage,
+  static String buildDiskTypeUrl(String projectName, String zone, String diskType) {
+    return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/diskTypes/$diskType"
+  }
+
+  static AttachedDisk buildAttachedDisk(String projectName,
+                                        String zone,
+                                        Image sourceImage,
                                         Long diskSizeGb,
                                         String diskType,
                                         String instanceType,
@@ -227,9 +233,11 @@ class GCEUtil {
       }
     }
 
+    def diskTypeUrl = GCEUtil.buildDiskTypeUrl(projectName, zone, diskType)
+
     def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
                                                                         diskSizeGb: diskSizeGb,
-                                                                        diskType: diskType)
+                                                                        diskType: diskTypeUrl)
 
     return new AttachedDisk(boot: true,
                             autoDelete: true,

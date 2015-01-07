@@ -43,7 +43,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
 
   @Autowired
-  private GceConfig.DeployDefaults deployDefaults
+  private GceConfig.DeployDefaults gceDeployDefaults
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -105,11 +105,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
-    def attachedDisk = GCEUtil.buildAttachedDisk(sourceImage,
+    def attachedDisk = GCEUtil.buildAttachedDisk(project,
+                                                 zone,
+                                                 sourceImage,
                                                  description.diskSizeGb,
                                                  description.diskType,
                                                  description.instanceType,
-                                                 deployDefaults)
+                                                 gceDeployDefaults)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
