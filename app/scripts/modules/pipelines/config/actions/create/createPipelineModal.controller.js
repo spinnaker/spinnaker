@@ -3,7 +3,7 @@
 angular.module('deckApp.pipelines.create')
   .controller('CreatePipelineModalCtrl', function($scope, application, _, pipelineConfigService, $modalInstance, $log) {
 
-    var noTemplate = {name: 'None'};
+    var noTemplate = {name: 'None', stages: [], triggers: [], application: application.name};
 
     $scope.viewState = {};
 
@@ -19,15 +19,15 @@ angular.module('deckApp.pipelines.create')
     this.cancel = $modalInstance.dismiss;
 
     this.createPipeline = function() {
-      var pipeline = angular.copy($scope.command.template);
-      pipeline.name = $scope.command.name;
-      pipeline.application = application.name;
-      pipeline.stages = [];
-      pipeline.triggers = [];
+      var template = $scope.command.template;
+      if (template.fromServer) {
+        template = angular.copy(template.plain());
+      }
+      template.name = $scope.command.name;
 
-      return pipelineConfigService.savePipeline(pipeline).then(
+      return pipelineConfigService.savePipeline(template).then(
         function() {
-          application.pipelines.splice(0, 0, pipeline);
+          application.pipelines.splice(0, 0, template);
           $modalInstance.close();
         },
         function(response) {
