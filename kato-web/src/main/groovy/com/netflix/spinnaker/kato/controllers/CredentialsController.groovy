@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.kato.controllers
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,13 +34,27 @@ class CredentialsController {
   AccountCredentialsProvider accountCredentialsProvider
 
   @RequestMapping(method = RequestMethod.GET)
-  List<String> list() {
-    accountCredentialsProvider.all.collect { it.name }
+  List<Map> list() {
+    accountCredentialsProvider.all.collect {[
+      name: it.name,
+      // TODO(duftler): Switch to using amos/AccountCredentials.provider when it's available in kato.
+      type: getType(it)
+    ]}
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   AccountCredentials getAccount(@PathVariable("name") String name) {
     accountCredentialsProvider.getCredentials name
+  }
+
+  private static String getType(AccountCredentials accountCredentials) {
+    if (accountCredentials instanceof AmazonCredentials) {
+      "aws"
+    } else if (accountCredentials instanceof GoogleNamedAccountCredentials) {
+      "gce"
+    } else {
+      "unknown"
+    }
   }
 
 }

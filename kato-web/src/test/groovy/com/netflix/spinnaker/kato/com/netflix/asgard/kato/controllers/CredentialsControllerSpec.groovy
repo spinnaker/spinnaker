@@ -21,6 +21,7 @@ import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.controllers.CredentialsController
+import groovy.json.JsonSlurper
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -46,7 +47,14 @@ class CredentialsControllerSpec extends Specification {
 
     then:
     result.response.status == 200
-    result.response.contentAsString == '["test"]'
+
+    List<Map> parsedResponse = new JsonSlurper().parseText(result.response.contentAsString) as List
+
+    parsedResponse == [[name: "test", type: "unknown"]]
+
+
+    // TODO(duftler): Switch to this when updated amos is available in kato.
+//    parsedResponse == [[name: "test", type: "testProvider"]]
   }
 
   static class TestNamedAccountCredentials implements AccountCredentials<Map> {
@@ -56,6 +64,12 @@ class CredentialsControllerSpec extends Specification {
     @Override
     Map getCredentials() {
       [access: "a", secret: "b"]
+    }
+
+    // TODO(duftler): Uncomment this when updated amos is available in kato.
+//    @Override
+    String getProvider() {
+      "testProvider"
     }
   }
 
