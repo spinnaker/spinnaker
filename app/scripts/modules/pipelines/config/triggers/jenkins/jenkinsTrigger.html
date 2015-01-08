@@ -14,11 +14,15 @@
     <label class="col-md-3 sm-label-left">Job</label>
     <div class="col-md-8">
       <p class="form-control-static" ng-if="!trigger.master">(Select a master)</p>
-      <ui-select class="form-control input-sm"
-                 ng-model="trigger.job"
-                 ng-if="trigger.master">
-        <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
-      </ui-select>
+      <div ng-if="trigger.master && viewState.jobsLoaded">
+        <ui-select class="form-control input-sm"
+                   ng-model="trigger.job">
+          <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
+        </ui-select>
+      </div>
+      <div class="text-center" ng-if="trigger.master && !viewState.jobsLoaded">
+        <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+      </div>
     </div>
   </div>
