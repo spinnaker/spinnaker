@@ -31,6 +31,8 @@ class BasicGoogleDeployDescription implements DeployDescription {
   int initialNumReplicas
   String image
   String instanceType
+  String diskType
+  Long diskSizeGb
   String zone
   Map<String, String> instanceMetadata
   List<String> networkLoadBalancers

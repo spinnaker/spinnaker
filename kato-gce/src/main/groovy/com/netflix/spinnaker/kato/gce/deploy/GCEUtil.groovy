@@ -25,6 +25,7 @@ import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
@@ -39,7 +40,6 @@ class GCEUtil {
     }
   }
 
-  private static final String DISK_TYPE_PD_STANDARD = "pd-standard"
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
 
   public static final String APPLICATION_NAME = "Spinnaker"
@@ -210,15 +210,34 @@ class GCEUtil {
     return null
   }
 
-  static AttachedDisk buildAttachedDisk(Image sourceImage, long diskSizeGb, String diskType) {
-    // API seems to prefer 'pd-standard' not be passed.
-    if (diskType == DISK_TYPE_PD_STANDARD) {
-      diskType = null
+  static String buildDiskTypeUrl(String projectName, String zone, String diskType) {
+    return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/diskTypes/$diskType"
+  }
+
+  static AttachedDisk buildAttachedDisk(String projectName,
+                                        String zone,
+                                        Image sourceImage,
+                                        Long diskSizeGb,
+                                        String diskType,
+                                        String instanceType,
+                                        GceConfig.DeployDefaults deployDefaults) {
+    if (!diskSizeGb || !diskType) {
+      def defaultPersistentDisk = deployDefaults.determinePersistentDisk(instanceType)
+
+      if (!diskSizeGb) {
+        diskSizeGb = defaultPersistentDisk.size
+      }
+
+      if (!diskType) {
+        diskType = defaultPersistentDisk.type
+      }
     }
+
+    def diskTypeUrl = GCEUtil.buildDiskTypeUrl(projectName, zone, diskType)
 
     def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
                                                                         diskSizeGb: diskSizeGb,
-                                                                        diskType: diskType)
+                                                                        diskType: diskTypeUrl)
 
     return new AttachedDisk(boot: true,
                             autoDelete: true,

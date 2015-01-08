@@ -111,7 +111,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
                                                                   accountName: ACCOUNT_NAME,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
-            operation.deployDefaults = new GceConfig.DeployDefaults()
+            operation.gceDeployDefaults = new GceConfig.DeployDefaults()
             operation.operate([])
           }
         }

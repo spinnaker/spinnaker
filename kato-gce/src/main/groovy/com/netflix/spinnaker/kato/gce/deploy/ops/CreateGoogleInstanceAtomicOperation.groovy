@@ -35,7 +35,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
 
   @Autowired
-  private GceConfig.DeployDefaults deployDefaults
+  private GceConfig.DeployDefaults gceDeployDefaults
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -70,9 +70,13 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     task.updateStatus BASE_PHASE, "Composing instance..."
 
-    def persistentDisk = deployDefaults.determinePersistentDisk(description.instanceType)
-
-    def rootDrive = GCEUtil.buildAttachedDisk(sourceImage, persistentDisk.size, persistentDisk.type)
+    def rootDrive = GCEUtil.buildAttachedDisk(project,
+                                              zone,
+                                              sourceImage,
+                                              description.diskSizeGb,
+                                              description.diskType,
+                                              description.instanceType,
+                                              gceDeployDefaults)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
