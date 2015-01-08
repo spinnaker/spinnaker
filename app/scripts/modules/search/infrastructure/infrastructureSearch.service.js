@@ -38,7 +38,7 @@ angular.module('deckApp.search')
           }
           return RxService.Observable.fromPromise(searchService.search('gate', {
             q: query,
-            type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancerServerGroups'],
+            type: ['applications', 'clusters', /* 'instances', */ 'serverGroups', 'loadBalancerServerGroups'],
           }));
         })
         .subscribe(function(result) {
