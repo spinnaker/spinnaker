@@ -10,7 +10,7 @@ angular.module('deckApp.search')
         instances: 'Instances',
         clusters: 'Clusters',
         applications: 'Applications',
-        loadBalancerServerGroups: 'Load Balancers'
+        loadBalancers: 'Load Balancers'
       };
 
       function simpleField(field) {
@@ -26,7 +26,7 @@ angular.module('deckApp.search')
         },
         clusters: simpleField('cluster'),
         applications: simpleField('application'),
-        loadBalancerServerGroups: simpleField('loadBalancer')
+        loadBalancers: simpleField('loadBalancer')
       };
 
       var querySubject = new RxService.Subject();
@@ -38,7 +38,7 @@ angular.module('deckApp.search')
           }
           return RxService.Observable.fromPromise(searchService.search('gate', {
             q: query,
-            type: ['applications', 'clusters', /* 'instances', */ 'serverGroups', 'loadBalancerServerGroups'],
+            type: ['applications', 'clusters', /* 'instances', */ 'serverGroups', 'loadBalancers'],
           }));
         })
         .subscribe(function(result) {

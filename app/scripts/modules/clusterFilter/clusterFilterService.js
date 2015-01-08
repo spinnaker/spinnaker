@@ -161,9 +161,15 @@ angular
           if (!filter) {
             return true;
           }
-          return filter.split(' ').every(function(testWord) {
-            return serverGroup.searchField.indexOf(testWord) !== -1;
-          });
+
+          if(filter.indexOf('cluster:') !== -1) {
+              var clusterName = /cluster:([\w-]*)/.exec(filter);
+              return serverGroup.cluster === clusterName[1];
+          } else {
+            return filter.split(' ').every(function(testWord) {
+              return serverGroup.searchField.indexOf(testWord) !== -1;
+            });
+          }
         })
         .filter(checkAgainstActiveFilters)
         .filter(checkAccountFilters)
