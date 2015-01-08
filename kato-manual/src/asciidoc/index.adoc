@@ -301,14 +301,14 @@ GET /task/e1jbn3
 
 === Credentials
 
-NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts that are configured with Kato. Descriptions that are POST'ed to the +/ops+ endpoint may require a credential's name to resolve it internally.
+NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts that are configured with Kato, along with the cloud provider each account is associated with. Descriptions that are POST'ed to the +/ops+ endpoint may require a credential's name to resolve it internally.
 
 ==== Endpoints
 
 [width="100%",frame="topbot",options="header,footer"]
 |======================
 |Request Type | Endpoint            | Description
-|GET          | /credentials        | Returns an array of strings that represent the configured credential account names
+|GET          | /credentials        | Returns an array of maps describing the configured credential account names and provider types
 |GET          | /credentials/:name  | Returns the details of the specified credentials
 |======================
 
@@ -319,8 +319,14 @@ NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts t
 ----
 GET /credentials
 [
-	"test",
-	"prod"
+  {
+    name: "test",
+    type: "aws"
+  },
+  {
+    name: "prod",
+    type: "gce"
+  }
 ]
 
 GET /credentials/test
