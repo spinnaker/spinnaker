@@ -8,35 +8,12 @@
   </a>
   <ul class="dropdown-menu" role="menu" ng-show="notifications.hasActive">
     <li ng-repeat="notification in notifications.active | orderBy:'-timestamp'">
-      <progressbar animate="true" value="100" class="progress-striped active" ng-hide="notification.$done"></progressbar>
-      <span>{{ notification.title }}</span>
-      <span>
-        <a href="{{ notification.href }}">
-          {{ notification.message }}
-        </a>
-      </span>
-      <span class="navbar-right">
-        <span>{{ notification.timestamp | date: 'HH:mm:ss' }}</span>
-        <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss($event)"></span>
-      </span>
+      <notification notification="notification"></notification>
     </li>
   </ul>
   <ul class="dropdown-menu" style="z-index: 999" ng-class="{'show-ephemeral': showEphemeral()}" role="menu">
     <li ng-repeat="notification in notifications.ephemeral | orderBy:'-timestamp'" ng-class="{strong: notification.strong}">
-      <progressbar animate="true" value="100" class="progress-striped active" ng-hide="notification.$done"></progressbar>
-      <span>{{ notification.title }}</span>
-      <span ng-if="notification.href">
-        <a href="{{ notification.href }}">
-          {{ notification.message }}
-        </a>
-      </span>
-      <span ng-if="!notification.href">
-        {{ notification.message }}
-      </span>
-      <span class="navbar-right">
-        <span ng-if="notification.timestamp">{{ notification.timestamp | date: 'HH:mm:ss' }}</span>
-        <span class="glyphicon glyphicon-remove" ng-click="notification.dismiss($event)"></span>
-      </span>
+      <notification notification="notification"></notification>
     </li>
   </ul>
 </li>
