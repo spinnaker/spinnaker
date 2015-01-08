@@ -1,3 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.trigger.jenkins', ['deckApp.pipelines.trigger']);
+angular.module('deckApp.pipelines.trigger.jenkins', [
+  'deckApp.pipelines.trigger',
+  'restangular',
+]);

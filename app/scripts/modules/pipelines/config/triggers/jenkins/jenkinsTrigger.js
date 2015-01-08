@@ -12,15 +12,28 @@ angular.module('deckApp.pipelines.trigger.jenkins')
     });
   })
   .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService) {
+    $scope.viewState = {
+      mastersLoaded: false,
+      jobsLoaded: false
+    };
+
     $scope.trigger = trigger;
+
     igorService.listMasters().then(function(masters) {
       $scope.masters = masters;
+      $scope.viewState.mastersLoaded = true;
     });
 
     function updateJobsList() {
       if ($scope.trigger && $scope.trigger.master) {
+        $scope.viewState.jobsLoaded = false;
+        $scope.jobs = [];
         igorService.listJobsForMaster($scope.trigger.master).then(function(jobs) {
+          $scope.viewState.jobsLoaded = true;
           $scope.jobs = jobs;
+          if ($scope.jobs.indexOf($scope.trigger.job) === -1) {
+            $scope.trigger.job = '';
+          }
         });
       }
     }
