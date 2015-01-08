@@ -2,17 +2,13 @@
 
 
 angular.module('deckApp')
-  .controller('ProviderSelectCtrl', function($scope, $modalInstance, settings) {
+  .controller('ProviderSelectCtrl', function($scope, $modalInstance, settings, providerOptions) {
 
     $scope.command = {
       provider: ''
     };
 
-    $scope.providerOptions = settings.providers;
-
-    if (!settings.providers || (settings.providers.length && settings.providers.length === 1)) {
-      $modalInstance.resolve(settings.providers[0]);
-    }
+    $scope.providerOptions = providerOptions;
 
     this.selectProvider = function() {
       $modalInstance.close($scope.command.provider);
