@@ -28,9 +28,9 @@ class CredentialsService {
   @Autowired
   KatoService katoService
 
-  List<String> getAccountNames() {
-    HystrixFactory.newListCommand(GROUP, "getAccountNames", true) {
-      katoService.accountNames
+  List<Map> getAccounts() {
+    HystrixFactory.newListCommand(GROUP, "getAccounts", true) {
+      katoService.accounts
     } execute()
   }
 

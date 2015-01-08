@@ -28,8 +28,8 @@ class CredentialsController {
   CredentialsService credentialsService
 
   @RequestMapping(method = RequestMethod.GET)
-  List<String> getAccountNames() {
-    credentialsService.accountNames
+  List<Map> getAccounts() {
+    credentialsService.accounts
   }
 
   @RequestMapping(value = '/{account}', method = RequestMethod.GET)
