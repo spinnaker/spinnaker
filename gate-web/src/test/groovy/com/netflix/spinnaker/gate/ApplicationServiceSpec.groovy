@@ -49,7 +49,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
       1 * front50.credentials >> { [] }
-      1 * credentialsService.getAccountNames() >> { [account] }
+      1 * credentialsService.getAccounts() >> [[name: account, type: providerType]]
       1 * oort.getApplication(name) >> oortApp
       1 * front50.getMetaData(account, name) >> front50App
 
@@ -61,6 +61,7 @@ class ApplicationServiceSpec extends Specification {
       owner = "danw"
       cluster = "cluster1"
       account = "test"
+      providerType = "aws"
   }
 
   void "should return null when no application attributes are available"() {
@@ -82,7 +83,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccountNames() >> { [account] }
+    1 * credentialsService.getAccounts() >> [[name: account, type: providerType]]
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> null
 
@@ -91,6 +92,7 @@ class ApplicationServiceSpec extends Specification {
     where:
     name = "foo"
     account = "test"
+    providerType = "google"
   }
 
   void "should favor available global registries when building application list retrievers"() {
@@ -104,7 +106,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
       1 * front50Service.credentials >> [[name: account, global: true]]
-      0 * credentialsService.getAccountNames()
+      0 * credentialsService.getAccounts()
       applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
           .collect { it.@account }.unique() == [account]
 
@@ -159,7 +161,7 @@ class ApplicationServiceSpec extends Specification {
 
       2 == apps.size()
       apps*.name.containsAll(oortName, name)
-      0 * credentialsService.getAccountNames()
+      0 * credentialsService.getAccounts()
 
     where:
       oortName = "barapp"

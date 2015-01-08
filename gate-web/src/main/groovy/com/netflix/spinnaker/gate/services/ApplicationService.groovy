@@ -132,8 +132,8 @@ class ApplicationService {
       } as Collection<Callable<List<Map>>>
     }
 
-    return (credentialsService.accountNames.collectMany {
-      [new ApplicationListRetriever(it, front50Service), new OortApplicationsRetriever(oortService)]
+    return (credentialsService.accounts.collectMany {
+      [new ApplicationListRetriever((String) it.name, front50Service), new OortApplicationsRetriever(oortService)]
     } as Collection<Callable<List<Map>>>)
   }
 
@@ -148,9 +148,9 @@ class ApplicationService {
       } as Collection<Callable<Map>>
     }
 
-    return (credentialsService.accountNames.collectMany {
+    return (credentialsService.accounts.collectMany {
       [
-          new Front50ApplicationRetriever(it, applicationName, front50Service),
+          new Front50ApplicationRetriever((String) it.name, applicationName, front50Service),
           new OortApplicationRetriever(applicationName, oortService)
       ]
     } as Collection<Callable<Map>>)
