@@ -67,8 +67,7 @@ angular.module('deckApp.tasks.tracker', [
         // generate notifications
         notificationsService.create({
           title: that.getApplicationNameFromTask(task),
-          message: that.getDescriptionFromTask(task) + ' ' + appendedMessage,
-          href: '/',
+          message: that.getDescriptionFromTask(task) + ' ' + appendedMessage
         });
       });
     };
