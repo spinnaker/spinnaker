@@ -36,7 +36,7 @@ class GoogleSearchProvider implements SearchProvider {
   private static final String LOAD_BALANCERS_TYPE = "loadBalancers"
   private static final String CLUSTERS_TYPE = "clusters"
   private static final String SERVER_GROUPS_TYPE = "serverGroups"
-  private static final String SERVER_GROUP_INSTANCES_TYPE = "serverGroupInstances"
+  private static final String SERVER_GROUP_INSTANCES_TYPE = "instances"
 
   private static final List<String> DEFAULT_TYPES = [
     APPLICATIONS_TYPE,

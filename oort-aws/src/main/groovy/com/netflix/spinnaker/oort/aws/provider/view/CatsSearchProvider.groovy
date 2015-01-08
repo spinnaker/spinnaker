@@ -61,6 +61,22 @@ class CatsSearchProvider implements SearchProvider {
       urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}')
   ]
 
+  static Map<String, Closure> searchResultHydrators = [
+    (INSTANCES.ns): { Cache cacheView, Map<String, String> result, String instanceCacheKey ->
+      def item = cacheView.get(INSTANCES.ns, instanceCacheKey)
+      if (!item.relationships["serverGroups"]) {
+        return result
+      }
+
+      def serverGroup = Keys.parse(item.relationships["serverGroups"][0])
+      return result + [
+        application: serverGroup.application as String,
+        cluster: serverGroup.cluster as String,
+        serverGroup: serverGroup.serverGroup as String
+      ]
+    }
+  ]
+
   private final Cache cacheView
 
   @Autowired
@@ -91,12 +107,13 @@ class CatsSearchProvider implements SearchProvider {
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
     List<String> matches = findMatches(query, types, filters)
-    generateResultSet(query, matches, pageNumber, pageSize)
+    generateResultSet(cacheView, query, matches, pageNumber, pageSize)
   }
 
-  private static SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize) {
+  private static SearchResultSet generateResultSet(Cache cacheView, String query, List<String> matches, Integer pageNumber, Integer pageSize) {
     List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).collect {
-      Keys.parse(it)
+      Map<String, String> result = Keys.parse(it)
+      return searchResultHydrators.containsKey(result.type) ? searchResultHydrators[result.type](cacheView, result, it) : result
     }
     SearchResultSet resultSet = new SearchResultSet(
       totalMatches: matches.size(),
