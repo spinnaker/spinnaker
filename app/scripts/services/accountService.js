@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('accountService', function(settings, Restangular, $q, scheduledCache, infrastructureCaches) {
+  .factory('accountService', function(settings, _, Restangular, $q, scheduledCache, infrastructureCaches) {
 
     var preferredZonesByAccount = {
       prod: {
@@ -68,13 +68,19 @@ angular.module('deckApp')
         .getList();
     }
 
+    function listProviders() {
+      return listAccounts().then(function(accounts) {
+        return _.pluck(accounts, 'type');
+      });
+    }
+
     function getRegionsKeyedByAccount() {
       var deferred = $q.defer();
       listAccounts().then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
-          acc[account] = Restangular
+          acc[account.name] = Restangular
             .all('credentials')
-            .one(account)
+            .one(account.name)
             .withHttpConfig({cache: infrastructureCaches.credentials})
             .get();
           return acc;
@@ -104,6 +110,7 @@ angular.module('deckApp')
     return {
       challengeDestructiveActions: challengeDestructiveActions,
       listAccounts: listAccounts,
+      listProviders: listProviders,
       getAccountDetails: getAccountDetails,
       getRegionsForAccount: getRegionsForAccount,
       getRegionsKeyedByAccount: getRegionsKeyedByAccount,
