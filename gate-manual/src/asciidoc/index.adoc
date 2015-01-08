@@ -223,14 +223,14 @@ include::upsertSecurityGroupStage.adoc[]
 
 == Accessing Credentials Detail
 
-NOTE: The endpoint mapped to `/credentials` provides the names of the accounts that are configured within Spinnaker. Descriptions that are POST'ed to an application's Task endpoint may require a credential's name to resolve it internally.
+NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts that are configured within Spinnaker, along with the cloud provider each account is associated with. Descriptions that are POST'ed to an application's Task endpoint may require a credential's name to resolve it internally.
 
 ==== Endpoints
 
 [width="100%",frame="topbot",options="header,footer"]
 |======================
 |Request Type | Endpoint            | Description
-|GET          | /credentials        | Returns an array of strings that represent the configured credential account names
+|GET          | /credentials        | Returns an array of maps describing the configured credential account names and provider types
 |======================
 
 ==== Example
@@ -240,8 +240,14 @@ NOTE: The endpoint mapped to `/credentials` provides the names of the accounts t
 ----
 GET /credentials
 [
-  "test",
-  "prod"
+  {
+    name: "test",
+    type: "aws"
+  },
+  {
+    name: "prod",
+    type: "gce"
+  }
 ]
 ----
 
