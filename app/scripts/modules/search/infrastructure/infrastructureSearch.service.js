@@ -7,7 +7,7 @@ angular.module('deckApp.search')
 
       var categoryNameLookup = {
         serverGroups: 'Server Groups',
-        serverGroupInstances: 'Instances',
+        instances: 'Instances',
         clusters: 'Clusters',
         applications: 'Applications',
         loadBalancerServerGroups: 'Load Balancers'
@@ -21,7 +21,7 @@ angular.module('deckApp.search')
 
       var displayNameFormatter = {
         serverGroups: simpleField('serverGroup'),
-        serverGroupInstances: function(entry) {
+        instances: function(entry) {
           return entry.instanceId + ' (' + entry.serverGroup + ')';
         },
         clusters: simpleField('cluster'),
@@ -38,7 +38,7 @@ angular.module('deckApp.search')
           }
           return RxService.Observable.fromPromise(searchService.search('gate', {
             q: query,
-            type: ['applications', 'clusters', 'serverGroupInstances', 'serverGroups', 'loadBalancerServerGroups'],
+            type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancerServerGroups'],
           }));
         })
         .subscribe(function(result) {

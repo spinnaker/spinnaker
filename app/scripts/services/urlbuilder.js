@@ -20,7 +20,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
         );
       },
       // url for a single instance
-      'serverGroupInstances': function(input) {
+      'instances': function(input) {
         return $state.href(
           'home.applications.application.insight.clusters.cluster.instanceDetails',
           {
