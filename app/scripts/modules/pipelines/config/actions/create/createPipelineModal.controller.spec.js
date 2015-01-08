@@ -24,9 +24,13 @@ describe('Controller: createPipelineModal', function() {
   describe('template instantiation', function() {
 
     it('provides a default value when no templates exist',function() {
-      this.initializeController({});
+      this.initializeController({name: 'the-app'});
+      var template = this.$scope.templates[0];
       expect(this.$scope.templates.length).toBe(1);
-      expect(this.$scope.templates[0].name).toBe('None');
+      expect(template.name).toBe('None');
+      expect(template.application).toBe('the-app');
+      expect(template.triggers).toEqual([]);
+      expect(template.stages).toEqual([]);
     });
 
     it('includes the default value when templates exist', function() {
@@ -72,6 +76,43 @@ describe('Controller: createPipelineModal', function() {
       expect(submitted.application).toBe('the_app');
       expect(submitted.stages).toEqual([]);
       expect(submitted.triggers).toEqual([]);
+    });
+
+    it('uses copy of plain version of pipeline', function() {
+      // Instead of introducing Restangular as a dependency, mock out the `fromServer` and `plain` fields
+      // and verify `plain` is called
+      var $q = this.$q;
+      var submitted = null;
+      var toCopy = {
+        application: 'the_app',
+        name: 'old_name',
+        stages: [ { name: 'the_stage' } ],
+        triggers: [ { name: 'the_trigger' } ],
+        fromServer: true,
+        plain: angular.noop
+      };
+      spyOn(toCopy, 'plain').and.callFake(function() {
+        toCopy.isPlainNow = true;
+        return toCopy;
+      });
+      this.initializeController({name:'the_app', pipelines: [toCopy]});
+      spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function (pipeline) {
+        submitted = pipeline;
+        return $q.when(null);
+      });
+      spyOn(this.$modalInstance, 'close');
+
+      this.$scope.command.name = 'new pipeline';
+      this.$scope.command.template = toCopy;
+
+      this.controller.createPipeline();
+      this.$scope.$digest();
+
+      expect(submitted.name).toBe('new pipeline');
+      expect(submitted.application).toBe('the_app');
+      expect(submitted.stages.length).toBe(1);
+      expect(submitted.triggers.length).toBe(1);
+      expect(submitted.isPlainNow).toBe(true);
     });
 
     it('should insert new pipeline as first one in application', function() {
