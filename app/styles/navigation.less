@@ -17,14 +17,14 @@
 @import "app/styles/imports/commonImports.less";
 
 .secondary-panel {
-  .nav, .nav-content {
-    min-height: 300px;
-  }
   .nav {
     padding: 0 0 0 10px;
     background-color: @secondary_panel_grey;
     border: 1px solid @mid_light_grey;
     border-radius: 5px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-width: 0;
 
     h3 {
       margin-right: 10px;

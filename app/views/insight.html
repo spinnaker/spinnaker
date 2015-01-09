@@ -1,13 +1,13 @@
-<div class="row">
+<div class="row insight">
   <div class="col-md-9 col-sm-8">
     <div class="row">
 
-      <div class="col-md-3 nav hidden-sm hidden-xs" ng-hide="insight.isSideNavHideable">
-        <div ui-view="nav"></div>
+      <div class="col-md-3 hidden-sm hidden-xs" ng-hide="insight.isSideNavHideable">
+        <div ui-view="nav" class="nav"></div>
       </div>
 
-      <div class="col-md-9 nav-content">
-        <div ui-view="master"></div>
+      <div class="col-md-9">
+        <div ui-view="master" class="nav-content"></div>
       </div>
     </div>
   </div>
