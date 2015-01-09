@@ -31,28 +31,35 @@ class AmazonInstanceTest extends Specification {
     instance = new AmazonInstance()
   }
 
-  def "test getHealthState for up instance"() {
+  def "test getHealthState for ALL UP health states"() {
     given:
-      instance.isHealthy = true
+      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: HealthState.Up], [type: "LoadBalancer", state: HealthState.Up]]
     when:
       HealthState healthState = instance.getHealthState()
     then:
       healthState == HealthState.Up
   }
 
-  void "test getHealthState for unhealthy with health status"() {
+  void "test getHealthState for ONE DOWN & One UP health state"() {
     given:
-      instance.isHealthy = false
-      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: "Up"], [type: "LoadBalancer", state: "Up"]]
+      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: HealthState.Up], [type: "LoadBalancer", state: HealthState.Down]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
       heathState == HealthState.Down
   }
 
-  void "test getHealthState for unhealthy with no health status"() {
+  void "test getHealthState for ALL DOWN  health state"() {
     given:
-      instance.isHealthy = false
+    instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: HealthState.Down], [type: "LoadBalancer", state: HealthState.Down]]
+    when:
+    HealthState heathState = instance.getHealthState()
+    then:
+    heathState == HealthState.Down
+  }
+
+  void "test getHealthState for unhealthy with no UP or DOWN health status"() {
+    given:
       instance.health = [[type: "Amazon", state: HealthState.Unknown]]
 
     when:
