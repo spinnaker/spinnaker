@@ -1,19 +1,20 @@
 <div class="row rollup-entry"
-     ng-class="{active: $state.includes('**.loadBalancer.**', {region: loadBalancer.region, account: loadBalancer.account, loadBalancer: loadBalancer.name})}">
+     ng-class="{active: $state.includes('**.loadBalancerDetails', {region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})}"
+     ng-click="loadDetails($event)">
   <div class="rollup-summary">
     <a class="rollup-title-cell"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})">
       <span class="icon icon-elb"></span> {{loadBalancer.name}}
       <account-tag account="loadBalancer.account" pad="left"></account-tag>
       <span ng-if="!displayOptions.showServerGroups">
-        <health-counts container="loadBalancer.health"></health-counts>
+        <health-counts container="loadBalancer.healthCounts"></health-counts>
       </span>
     </a>
   </div>
   <div class="rollup-details">
     <div ng-if="displayOptions.showServerGroups">
       <load-balancer-server-group
-        ng-if="ctrl.displayServerGroup(serverGroup)"
+        ng-if="displayServerGroup(serverGroup)"
         ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'-name'"
         display-options="displayOptions"
         server-group="serverGroup"></load-balancer-server-group>

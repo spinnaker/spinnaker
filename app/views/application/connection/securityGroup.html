@@ -1,6 +1,7 @@
-<div class="rollup-entry">
+<div class="rollup-entry"
+     ng-class="{active: $state.includes('**.securityGroupDetails', {region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name})}">
   <div class="container-fluid"
-       ng-class="{active: $state.includes('**.connections.**', {region: securityGroup.region, account: securityGroup.account, securityGroup: securityGroup.name})}">
+       ng-click="loadDetails($event)">
     <div class="row">
       <div class="rollup-summary col-sm-12">
       <a class="rollup-title-cell"
