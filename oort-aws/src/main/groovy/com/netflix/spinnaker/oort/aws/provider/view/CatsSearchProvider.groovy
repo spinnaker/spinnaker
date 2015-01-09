@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.oort.aws.provider.view
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.search.SearchProvider
@@ -78,10 +81,12 @@ class CatsSearchProvider implements SearchProvider {
   ]
 
   private final Cache cacheView
+  private final AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
-  public CatsSearchProvider(Cache cacheView) {
+  public CatsSearchProvider(Cache cacheView, AccountCredentialsProvider accountCredentialsProvider) {
     this.cacheView = cacheView
+    this.accountCredentialsProvider = accountCredentialsProvider
   }
 
   @Override
@@ -140,7 +145,7 @@ class CatsSearchProvider implements SearchProvider {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      matches.addAll(cacheView.filterIdentifiers(cache, "${cache}:*${normalizedWord}*").findAll { String key ->
+      matches.addAll(buildFilterIdentifiers(accountCredentialsProvider, cache, normalizedWord).findAll { String key ->
         try {
           if (!filters) {
             return true
@@ -164,6 +169,29 @@ class CatsSearchProvider implements SearchProvider {
       def indexA = aKey.indexOf(q)
       def indexB = bKey.indexOf(q)
       return indexA == indexB ? aKey <=> bKey : indexA - indexB
+    }
+  }
+
+  /**
+   * Perform an exact match against the instances cache, vs. *glob* searches for everything else
+   */
+  private Collection<String> buildFilterIdentifiers(AccountCredentialsProvider accountCredentialsProvider, String cache, String query) {
+    switch (cache) {
+      case INSTANCES.ns:
+        Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
+          it instanceof NetflixAmazonCredentials
+        } as Set<NetflixAmazonCredentials>
+
+        def possibleInstanceIdentifiers = []
+        amazonCredentials.each { NetflixAmazonCredentials credentials ->
+          credentials.regions.each { AmazonCredentials.AWSRegion region ->
+            possibleInstanceIdentifiers << Keys.getInstanceKey(query, credentials.name, region.name)
+          }
+        }
+        return cacheView.getAll(INSTANCES.ns, possibleInstanceIdentifiers)*.id
+
+      default:
+        return cacheView.filterIdentifiers(cache, "${cache}:*${query}*")
     }
   }
 
