@@ -185,30 +185,6 @@ angular.module('deckApp')
             serverGroupDetails,
             instanceDetails,
             securityGroupDetails,
-            {
-              name: 'cluster',
-              url: '/:account/:cluster',
-              views: {
-                'master@home.applications.application.insight': {
-                  templateUrl: 'views/application/cluster/single.html',
-                  controller: 'ClusterCtrl',
-                  controllerAs: 'ctrl'
-                }
-              },
-              resolve: {
-                cluster: ['$stateParams', function ($stateParams) {
-                  return {account: $stateParams.account, clusterName: $stateParams.cluster};
-                }]
-              },
-              data: {
-                pageTitleSection: {
-                  title: 'Cluster',
-                  nameParam: 'cluster',
-                  accountParam: 'account'
-                }
-              },
-              children: [loadBalancerDetails, serverGroupDetails, instanceDetails],
-            }
           ],
         },
         {

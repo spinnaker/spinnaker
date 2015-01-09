@@ -7,13 +7,14 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       // url for a single serverGroup
       'serverGroups': function(input) {
         return $state.href(
-          'home.applications.application.insight.clusters.cluster.serverGroup',
+          'home.applications.application.insight.clusters.serverGroup',
           {
             application: input.application,
             cluster: input.cluster,
             account: input.account,
             accountId: input.account,
             region: input.region,
+            q: input.serverGroup,
             serverGroup: input.serverGroup,
           },
           { inherit: false }
@@ -22,7 +23,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       // url for a single instance
       'instances': function(input) {
         return $state.href(
-          'home.applications.application.insight.clusters.cluster.instanceDetails',
+          'home.applications.application.insight.clusters.instanceDetails',
           {
             application: input.application,
             cluster: input.cluster,
@@ -35,11 +36,13 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       },
       // url for a single cluster
       'clusters': function(input) {
+        console.log(input);
         return $state.href(
-          'home.applications.application.insight.clusters.cluster',
+          'home.applications.application.insight.clusters',
           {
             application: input.application,
-            cluster: input.cluster,
+            q: ['cluster:', input.cluster].join(''),
+            acct:input.account,
             account: input.account,
           },
           { inherit: false }
@@ -56,14 +59,15 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
         );
       },
       // url for a single load balancer
-      'loadBalancerServerGroups': function(input) {
+      'loadBalancers': function(input) {
         return $state.href(
           'home.applications.application.insight.loadBalancers.loadBalancerDetails',
           {
             application: input.application,
             name: input.loadBalancer,
             region: input.region,
-            accountId: input.account
+            accountId: input.account,
+            vpcId: input.vpcId
           },
           { inherit: false }
         );
@@ -128,7 +132,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       }
       if (!asgName.match(pushVersion)) { return '/'; }
       return $state.href(
-        'home.applications.application.insight.clusters.cluster.serverGroup',
+        'home.applications.application.insight.clusters.serverGroup',
         {
           application: asgName.split('-')[0],
           cluster: asgName.replace(pushVersion, ''),
