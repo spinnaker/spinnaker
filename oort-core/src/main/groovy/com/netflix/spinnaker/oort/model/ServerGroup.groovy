@@ -122,5 +122,10 @@ interface ServerGroup {
      * Total number of "down" instances (which are unhealthy)
      */
     Integer down
+
+    /**
+     * Total number of "unknown" instances (which have a questionable health status)
+     */
+    Integer unknown
   }
 }
