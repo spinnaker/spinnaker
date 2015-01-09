@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.utils.scrollTrigger', [])
+angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
   .factory('scrollTriggerService', function($window, $) {
     var eventRegistry = Object.create(null), // creates {} with no prototype; ES6 Maps would be preferable (available in Chrome 38?)
         registryCounter = 0,
-        scrollEventActive,
+        scrollEventActive = Object.create(null),
         $$window = $($window);
 
     /**
@@ -14,11 +14,16 @@ angular.module('deckApp.utils.scrollTrigger', [])
      * that I think it's better to handle here
      * @param elementScope the scope of the directive
      * @param element the element
+     * @param targetId the value of the data-scroll-id attribute on a DOM node that should be watched for scroll
+     *                 events. If null, the window's scroll event will be used. If not null, the value should be
+     *                 unique within the DOM for that data attribute
      * @param method the method to be called, generally populating a collection. The method should be wrapped in $evalAsync
      *               if it's going to affect the scope - otherwise Angular won't notice it.
      */
-    function register(elementScope, element, method) {
+    function register(elementScope, element, targetId, method) {
       var eventToRegister = { element: $(element), method: method };
+
+      var scrollTarget = targetId ? '[data-scroll-id=' + targetId + ']' : 'window';
 
       if (eventIsInView(eventToRegister)) {
         method();
@@ -26,18 +31,19 @@ angular.module('deckApp.utils.scrollTrigger', [])
       }
 
       var id = registryCounter++;
-      eventRegistry[id] = eventToRegister;
+      eventRegistry[scrollTarget] = eventRegistry[scrollTarget] || Object.create(null);
+      eventRegistry[scrollTarget][id] = eventToRegister;
       elementScope.$on('$destroy', function() {
-        deregister(id);
+        deregister(scrollTarget, id);
       });
-      activateScrollEvent();
+      activateScrollEvent(scrollTarget);
     }
 
-    function deregister(registeredEventId) {
-      if (eventRegistry[registeredEventId]) {
-        delete eventRegistry[registeredEventId];
-        if (!Object.keys(eventRegistry).length) {
-          disableScrollEvent();
+    function deregister(scrollTarget, registeredEventId) {
+      if (eventRegistry[scrollTarget] && eventRegistry[scrollTarget][registeredEventId]) {
+        delete eventRegistry[scrollTarget][registeredEventId];
+        if (!Object.keys(eventRegistry[scrollTarget]).length) {
+          disableScrollEvent(scrollTarget);
         }
       }
     }
@@ -51,31 +57,31 @@ angular.module('deckApp.utils.scrollTrigger', [])
       return registeredEvent && elementTop < scrollBottom;
     }
 
-    function fireEvents() {
+    function fireEvents(scrollTarget) {
       var scrollBottom = $$window.scrollTop() + $window.innerHeight,
           executed = [];
 
-      for (var registeredEventId in eventRegistry) {
-        var registeredEvent = eventRegistry[registeredEventId];
+      for (var registeredEventId in eventRegistry[scrollTarget]) {
+        var registeredEvent = eventRegistry[scrollTarget][registeredEventId];
         if (eventIsInView(registeredEvent, scrollBottom)) {
           registeredEvent.method();
           executed.push(registeredEventId);
         }
       }
-      executed.forEach(deregister);
+      executed.forEach(function(executed) { deregister(scrollTarget, executed); });
     }
 
-    function activateScrollEvent() {
-      if (!scrollEventActive) {
-        $$window.bind('scroll.triggeredEvents resize.triggeredEvents', fireEvents);
-        scrollEventActive = true;
+    function activateScrollEvent(scrollTarget) {
+      if (!scrollEventActive[scrollTarget]) {
+        $(scrollTarget).bind('scroll.triggeredEvents resize.triggeredEvents', function() { fireEvents(scrollTarget); });
+        scrollEventActive[scrollTarget] = true;
       }
     }
 
-    function disableScrollEvent() {
-      if (scrollEventActive) {
-        $$window.unbind('scroll.triggeredEvents resize.triggeredEvents');
-        scrollEventActive = false;
+    function disableScrollEvent(scrollTarget) {
+      if (scrollEventActive[scrollTarget]) {
+        $(scrollTarget).unbind('scroll.triggeredEvents resize.triggeredEvents');
+        scrollEventActive[scrollTarget] = false;
       }
     }
 

@@ -10,7 +10,8 @@ angular.module('deckApp')
       scope: {
         instances: '=',
         renderInstancesOnScroll: '=',
-        highlight: '='
+        highlight: '=',
+        scrollTarget: '@',
       },
       link: function (scope, elem) {
         scope.$state = scope.$parent.$state;
@@ -25,7 +26,7 @@ angular.module('deckApp')
 
         if (scope.renderInstancesOnScroll) {
           scope.displayedInstances = [];
-          scrollTriggerService.register(scope, elem, showAllInstances);
+          scrollTriggerService.register(scope, elem, scope.scrollTarget, showAllInstances);
         } else {
           showAllInstances();
         }

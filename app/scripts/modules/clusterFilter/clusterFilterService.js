@@ -228,7 +228,7 @@ angular
 
     function setDisplayOptions(totalInstancesDisplayed) {
       var newOptions =  {
-        renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
+        renderInstancesOnScroll: totalInstancesDisplayed > 1000, // TODO: move to config
         totalInstancesDisplayed: totalInstancesDisplayed,
         showInstances: ClusterFilterModel.sortFilter.showAllInstances,
         hideHealthy: ClusterFilterModel.sortFilter.hideHealthy,
