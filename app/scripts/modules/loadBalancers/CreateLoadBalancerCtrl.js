@@ -211,7 +211,7 @@ angular.module('deckApp')
     };
 
     this.addListener = function() {
-      $scope.loadBalancer.listeners.push({});
+      $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP'});
     };
 
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
