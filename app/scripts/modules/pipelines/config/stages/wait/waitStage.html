@@ -1,0 +1,14 @@
+<div ng-if="viewState.loading">
+  <h4 ng-if="viewState.loading" class="text-center">
+    <span us-spinner="{radius:20, width:6, length: 12}"></span>
+  </h4>
+</div>
+<form class="form-horizontal" ng-if="!viewState.loading">
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Wait Time</label>
+    <div class="col-md-6">
+      <input type="number" class="form-control input-sm"
+             ng-model="stage.waitTime" placeholder="seconds"/>
+    </div>
+  </div>
+</form>
