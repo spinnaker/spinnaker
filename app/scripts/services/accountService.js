@@ -70,7 +70,7 @@ angular.module('deckApp')
 
     function listProviders() {
       return listAccounts().then(function(accounts) {
-        return _.pluck(accounts, 'type');
+        return _.uniq(_.pluck(accounts, 'type'));
       });
     }
 

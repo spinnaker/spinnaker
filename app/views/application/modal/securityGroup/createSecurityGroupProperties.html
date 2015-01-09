@@ -35,12 +35,7 @@
       <div class="form-group">
         <div class="col-md-4 sm-label-left">Account</div>
         <div class="col-md-8">
-          <select class="form-control input-sm"
-                  ng-model="securityGroup.credentials"
-                  ng-options="account for account in accounts"
-                  ng-change="ctrl.accountUpdated()"
-                  required>
-          </select>
+          <account-select-field component="securityGroup" field="credentials" accounts="accounts" on-change="ctrl.accountUpdated()"></account-select-field>
         </div>
       </div>
       <div class="form-group">
