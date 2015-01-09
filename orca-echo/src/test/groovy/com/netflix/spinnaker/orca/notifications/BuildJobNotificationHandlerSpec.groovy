@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -56,18 +57,16 @@ class BuildJobNotificationHandlerSpec extends Specification {
     stages  : []
   ]
 
-  @Shared ApplicationInfoManager applicationInfoManager = Stub(ApplicationInfoManager)
+  @Shared DiscoveryClient discoveryClient = Stub(DiscoveryClient)
 
   void setup() {
-    applicationInfoManager.getInfo() >> Stub(InstanceInfo) {
-      getStatus() >> InstanceInfo.InstanceStatus.UP
-    }
+    discoveryClient.getInstanceRemoteStatus() >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should pick up stages subsequent to build job completing"() {
     setup:
     PipelineStarter pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(applicationInfoManager: applicationInfoManager, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
+    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
 
     when:
@@ -94,7 +93,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     setup:
     def pipelineConfigService = Mock(PipelineConfigurationService)
     def pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(applicationInfoManager: applicationInfoManager, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
+    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
 
     when:
     handler.run()
@@ -111,7 +110,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
   void "should only trigger targets from the same master "() {
     given:
     PipelineStarter pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(applicationInfoManager: applicationInfoManager, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
+    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
 
