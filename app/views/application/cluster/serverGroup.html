@@ -38,7 +38,7 @@
       <span ng-if="serverGroup.isDisabled" class="badge badge-disabled">disabled</span>
     </div>
     <div ng-if="displayOptions.showInstances">
-      <instances highlight="displayOptions.filter" instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
+      <instances highlight="displayOptions.filter" scroll-target="nav-content" instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
     </div>
   </div>
 </div>
