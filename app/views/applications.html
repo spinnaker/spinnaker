@@ -1,26 +1,28 @@
-<div class="row applications global-search-header">
-  <div class="col-md-2">
-    <h3 data-purpose="view-header">Applications</h3>
-  </div>
-  <div class="col-md-4">
-    <form class="form form-horizontal">
-      <div class="form-group">
-        <div class="col-md-12">
-          <input type="search"
-                 placeholder="Search applications"
-                 class="form-control input-md"
-                 focus
-                 ng-model="applicationFilter"
-                 ng-change="ctrl.filterApplications()"/>
+<div class="container applications global-search-header navbar-fixed-top">
+  <div class="row">
+    <div class="col-md-2">
+      <h2 data-purpose="view-header">Applications</h2>
+    </div>
+    <div class="col-md-4">
+      <form class="form form-horizontal">
+        <div class="form-group">
+          <div class="col-md-12">
+            <input type="search"
+                   placeholder="Search applications"
+                   class="form-control input-md"
+                   focus
+                   ng-model="applicationFilter"
+                   ng-change="ctrl.filterApplications()"/>
+          </div>
         </div>
-      </div>
-    </form>
-  </div>
-  <div class="col-md-offset-4 col-md-2 pull-right">
-    <insight-menu data-purpose="applications-menu"
-                  actions="menuActions"
-                  right-align="true">
-    </insight-menu>
+      </form>
+    </div>
+    <div class="col-md-offset-4 col-md-2 pull-right">
+      <insight-menu data-purpose="applications-menu"
+                    actions="menuActions"
+                    right-align="true">
+      </insight-menu>
+    </div>
   </div>
 </div>
 <div class="row">
