@@ -41,7 +41,7 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
     if(isHealthy()) {
       return HealthState.Up
     } else {
-      List knownStateList = healthList.findAll { it.state.toLowerCase() != "unknown"}
+      List knownStateList = healthList.findAll { it.state != HealthState.Unknown}
       if (knownStateList.size() == 0) {
         return HealthState.Unknown
       }

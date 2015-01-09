@@ -43,7 +43,7 @@ class AmazonInstanceTest extends Specification {
   void "test getHealthState for unhealthy with health status"() {
     given:
       instance.isHealthy = false
-      instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: "Up"], [type: "LoadBalancer", state: "Up"]]
+      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: "Up"], [type: "LoadBalancer", state: "Up"]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
@@ -53,7 +53,7 @@ class AmazonInstanceTest extends Specification {
   void "test getHealthState for unhealthy with no health status"() {
     given:
       instance.isHealthy = false
-      instance.health = [[type: "Amazon", state: "Unknown"]]
+      instance.health = [[type: "Amazon", state: HealthState.Unknown]]
 
     when:
       HealthState heathState = instance.getHealthState()
