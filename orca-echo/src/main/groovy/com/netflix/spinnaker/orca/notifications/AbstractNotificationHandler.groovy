@@ -17,13 +17,16 @@
 package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractNotificationHandler implements NotificationHandler {
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
   PipelineStarter pipelineStarter
@@ -34,8 +37,9 @@ abstract class AbstractNotificationHandler implements NotificationHandler {
   @Autowired
   ObjectMapper objectMapper
 
-  @Autowired
-  ApplicationInfoManager applicationInfoManager
+  //TODO(cfieber) we aren't currently injecting a full discovery client in kork-core
+  @Autowired(required = false)
+  DiscoveryClient discoveryClient
 
   abstract String getHandlerType()
 
@@ -52,7 +56,13 @@ abstract class AbstractNotificationHandler implements NotificationHandler {
   }
 
   boolean isInService() {
-    def info = applicationInfoManager.info
-    info && info.status == InstanceInfo.InstanceStatus.UP
+    if (discoveryClient == null) {
+      log.info("no DiscoveryClient, assuming InService")
+      true
+    } else {
+      def remoteStatus = discoveryClient.instanceRemoteStatus
+      log.info("current remote status ${remoteStatus}")
+      remoteStatus == InstanceInfo.InstanceStatus.UP
+    }
   }
 }

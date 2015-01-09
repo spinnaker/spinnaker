@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.notifications
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -39,12 +40,10 @@ class ManualTriggerNotificationHandlerSpec extends Specification {
                [type: "deploy", cluster: [name: "bar"]]]
   ]
 
-  @Shared ApplicationInfoManager applicationInfoManager = Stub(ApplicationInfoManager)
+  @Shared DiscoveryClient discoveryClient = Stub(DiscoveryClient)
 
   void setup() {
-    applicationInfoManager.getInfo() >> Stub(InstanceInfo) {
-      getStatus() >> InstanceInfo.InstanceStatus.UP
-    }
+    discoveryClient.instanceRemoteStatus >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should trigger pipelines from manual event"() {
@@ -53,7 +52,7 @@ class ManualTriggerNotificationHandlerSpec extends Specification {
     PipelineStarter pipelineStarter = Mock(PipelineStarter)
     def handler = new ManualTriggerNotificationHandler(objectMapper: new ObjectMapper(),
       pipelineStarter: pipelineStarter, pipelineConfigurationService: pipelineConfigurationService,
-      applicationInfoManager: applicationInfoManager)
+      discoveryClient: discoveryClient)
     handler.indexedPipelines = [(new ManualTriggerNotificationHandler.PipelineId(app, pipeline1.name)): pipeline1]
 
     when:
