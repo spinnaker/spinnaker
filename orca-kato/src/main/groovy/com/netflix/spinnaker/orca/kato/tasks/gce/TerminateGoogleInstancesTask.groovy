@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class TerminateGoogleInstancesTask implements Task {
   @Autowired
@@ -38,12 +40,12 @@ class TerminateGoogleInstancesTask implements Task {
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"     : "terminategoogleinstances",
-      "terminate.account.name": stage.context.credentials,
-      "terminate.region"      : stage.context.zone,
-      "kato.last.task.id"     : taskId,
-      "kato.task.id"          : taskId, // TODO retire this.
-      "terminate.instance.ids": stage.context.instanceIds,
+        "notification.type"     : "terminategoogleinstances",
+        "terminate.account.name": stage.context.credentials,
+        "terminate.region"      : stage.context.zone,
+        "kato.last.task.id"     : taskId,
+        "kato.task.id"          : taskId, // TODO retire this.
+        "terminate.instance.ids": stage.context.instanceIds,
     ])
   }
 }

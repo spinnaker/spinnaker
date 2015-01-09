@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -24,8 +23,11 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.UpsertAmazonLoadBalancerStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class UpsertAmazonDNSTask implements Task {
 
@@ -34,7 +36,7 @@ class UpsertAmazonDNSTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = [type: stage.context.recordType, name: stage.context.name, hostedZoneName: stage.context.hostedZone,
+    def operation = [type       : stage.context.recordType, name: stage.context.name, hostedZoneName: stage.context.hostedZone,
                      credentials: stage.context.credentials]
 
     def upsertElbStage = stage.preceding(UpsertAmazonLoadBalancerStage.MAYO_CONFIG_TYPE)
@@ -47,8 +49,8 @@ class UpsertAmazonDNSTask implements Task {
     def taskId = kato.requestOperations([[upsertAmazonDNSDescription: operation]]).toBlocking().first()
 
     Map outputs = [
-      "notification.type": "upsertamazondns",
-      "kato.last.task.id": taskId
+        "notification.type": "upsertamazondns",
+        "kato.last.task.id": taskId
     ]
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)

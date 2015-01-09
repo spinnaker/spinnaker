@@ -25,8 +25,10 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.client.Response
 
+@Component
 class UpsertSecurityGroupTask implements Task {
 
   @Autowired
@@ -49,12 +51,12 @@ class UpsertSecurityGroupTask implements Task {
                      .toBlocking()
                      .first()
     Map outputs = [
-      "notification.type": "upsertsecuritygroup",
-      "kato.last.task.id": taskId,
-      "kato.task.id"     : taskId, // TODO retire this.
-      "upsert.account"   : upsertSecurityGroupOperation.credentials,
-      "upsert.name"      : upsertSecurityGroupOperation.name,
-      "upsert.region"    : upsertSecurityGroupOperation.region
+        "notification.type": "upsertsecuritygroup",
+        "kato.last.task.id": taskId,
+        "kato.task.id"     : taskId, // TODO retire this.
+        "upsert.account"   : upsertSecurityGroupOperation.credentials,
+        "upsert.name"      : upsertSecurityGroupOperation.name,
+        "upsert.region"    : upsertSecurityGroupOperation.region
     ]
     if (currentValue) {
       outputs.put("upsert.pre.response", currentValue)

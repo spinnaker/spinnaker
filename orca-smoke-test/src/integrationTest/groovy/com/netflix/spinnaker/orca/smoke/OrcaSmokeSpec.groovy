@@ -15,9 +15,11 @@
  */
 
 package com.netflix.spinnaker.orca.smoke
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
+import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -29,12 +31,11 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.IgnoreIf
 import spock.lang.Specification
-
 import static com.netflix.spinnaker.orca.test.net.Network.notReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
 @IgnoreIf({ notReachable("http://bakery.test.netflix.net:7001") })
-@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration])
+@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, MortConfiguration, OortConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
@@ -58,7 +59,7 @@ class OrcaSmokeSpec extends Specification {
 
     jobExecutions.size == 1
 
-    with (jobExecutions[0]) {
+    with(jobExecutions[0]) {
       status == BatchStatus.COMPLETED
       exitStatus == ExitStatus.COMPLETED
     }
@@ -67,28 +68,28 @@ class OrcaSmokeSpec extends Specification {
     app = "mimirdemo"
     region = "us-west-1"
     config = [
-      application: app,
-      name       : "my-pipeline",
-      stages     : [
-        [
-          type     : "bake",
-          region   : region,
-          user     : "danw",
-          package  : app,
-          baseOs   : "ubuntu",
-          baseLabel: "release"
-        ], [
-          type             : "deploy",
-          application      : app,
-          stack            : "test",
-          instanceType     : "m3.large",
-          securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
-          subnetType       : "internal",
-          availabilityZones: [(region): []],
-          capacity         : [min: 1, max: 1, desired: 1],
-          credentials      : "test"
+        application: app,
+        name       : "my-pipeline",
+        stages     : [
+            [
+                type     : "bake",
+                region   : region,
+                user     : "danw",
+                package  : app,
+                baseOs   : "ubuntu",
+                baseLabel: "release"
+            ], [
+                type             : "deploy",
+                application      : app,
+                stack            : "test",
+                instanceType     : "m3.large",
+                securityGroups   : ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
+                subnetType       : "internal",
+                availabilityZones: [(region): []],
+                capacity         : [min: 1, max: 1, desired: 1],
+                credentials      : "test"
+            ]
         ]
-      ]
     ]
   }
 
@@ -107,24 +108,24 @@ class OrcaSmokeSpec extends Specification {
 
     jobExecutions.size == 1
 
-    with (jobExecutions[0]) {
+    with(jobExecutions[0]) {
       status == BatchStatus.COMPLETED
       exitStatus == ExitStatus.COMPLETED
     }
 
     where:
     config = [
-      application: "mimirdemo",
-      name       : "my-pipeline",
-      stages     : [
-        [
-          type             : "copyLastAsg",
-          application      : "mimirdemo",
-          stack            : "test",
-          availabilityZones: ["us-east-1": []],
-          credentials      : "test"
+        application: "mimirdemo",
+        name       : "my-pipeline",
+        stages     : [
+            [
+                type             : "copyLastAsg",
+                application      : "mimirdemo",
+                stack            : "test",
+                availabilityZones: ["us-east-1": []],
+                credentials      : "test"
+            ]
         ]
-      ]
     ]
   }
 }

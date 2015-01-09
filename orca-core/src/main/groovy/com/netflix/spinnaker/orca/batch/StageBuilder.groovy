@@ -25,13 +25,14 @@ import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.spring.AutowiredComponentBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import static java.util.Collections.EMPTY_LIST
 import static java.util.UUID.randomUUID
 
@@ -43,13 +44,14 @@ import static java.util.UUID.randomUUID
  * {@link org.springframework.batch.core.job.flow.Flow}
  */
 @CompileStatic
-abstract class StageBuilder implements AutowiredComponentBuilder {
+abstract class StageBuilder implements ApplicationContextAware {
 
   final String type
 
   private StepBuilderFactory steps
   private TaskTaskletAdapter taskTaskletAdapter
   private List<StepExecutionListener> taskListeners
+  private ApplicationContext applicationContext
 
   StageBuilder(String type) {
     this.type = type
@@ -74,7 +76,7 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
    * @return a +Step+ that will execute an instance of the required +Task+.
    */
   protected Step buildStep(String taskName, Class<? extends Task> taskType) {
-    buildStep taskName, buildTask(taskType)
+    buildStep taskName, applicationContext.getBean(taskType)
   }
 
   /**
@@ -99,19 +101,6 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
     } as StepBuilder
   }
 
-  /**
-   * Builds and autowires a task.
-   *
-   * @param taskType The +Task+ implementation class.
-   * @return a +Tasklet+ that wraps the task implementation. This can be appended to the job as a tasklet step.
-   * @see org.springframework.batch.core.step.builder.StepBuilder#tasklet(org.springframework.batch.core.step.tasklet.Tasklet)
-   */
-  private Task buildTask(Class<? extends Task> taskType) {
-    def task = taskType.newInstance()
-    autowire task
-    return task
-  }
-
   private String stepName(String taskName) {
     "${type}.${taskName}.${randomUUID().toString()}"
   }
@@ -129,6 +118,11 @@ abstract class StageBuilder implements AutowiredComponentBuilder {
   @Autowired
   void setTaskListeners(List<StepExecutionListener> taskListeners) {
     this.taskListeners = taskListeners
+  }
+
+  @Override
+  void setApplicationContext(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext
   }
 
   @VisibleForTesting

@@ -24,7 +24,9 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class CreateCopyLastGoogleServerGroupTask implements Task {
 
   @Autowired
@@ -35,12 +37,12 @@ class CreateCopyLastGoogleServerGroupTask implements Task {
     def operation = convert(stage)
     def taskId = deploy(operation)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
-      [
-        "notification.type"  : "createcopylastasg",
-        "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
-        "deploy.account.name": operation.credentials,
-      ]
+        [
+            "notification.type"  : "createcopylastasg",
+            "kato.last.task.id"  : taskId,
+            "kato.task.id"       : taskId, // TODO retire this.
+            "deploy.account.name": operation.credentials,
+        ]
     )
   }
 

@@ -23,7 +23,9 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class ResizeGoogleReplicaPoolTask implements Task {
   @Autowired
   KatoService kato
@@ -35,11 +37,11 @@ class ResizeGoogleReplicaPoolTask implements Task {
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"   : "resizegooglereplicapool",
-      "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
-      "kato.last.task.id"   : taskId,
-      "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.region): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
+        "notification.type"   : "resizegooglereplicapool",
+        "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
+        "kato.last.task.id"   : taskId,
+        "kato.task.id"        : taskId, // TODO retire this.
+        "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.region): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
     ])
   }
 

@@ -23,10 +23,12 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Created by aglover on 9/29/14.
  */
+@Component
 public class SecurityGroupForceCacheRefreshTask implements Task {
   static final String REFRESH_TYPE = "AmazonSecurityGroup"
 

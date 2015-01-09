@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.kato.config
 
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +38,10 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
-@ComponentScan("com.netflix.spinnaker.orca.kato.pipeline")
+@ComponentScan([
+    "com.netflix.spinnaker.orca.kato.pipeline",
+    "com.netflix.spinnaker.orca.kato.tasks"
+])
 @CompileStatic
 class KatoConfiguration {
 
@@ -49,7 +52,8 @@ class KatoConfiguration {
     new OrcaObjectMapper()
   }
 
-  @Bean Endpoint katoEndpoint(@Value('${kato.baseUrl:http://kato.prod.netflix.net}') String katoBaseUrl) {
+  @Bean Endpoint katoEndpoint(
+      @Value('${kato.baseUrl:http://kato.prod.netflix.net}') String katoBaseUrl) {
     newFixedEndpoint(katoBaseUrl)
   }
 

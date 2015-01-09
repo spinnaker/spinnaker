@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.kato.tasks
 
+import org.springframework.stereotype.Component
+
+@Component
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override

@@ -17,14 +17,18 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.model.Application
+import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Component
 class DeleteApplicationTask extends AbstractFront50Task {
   @Override
   void performRequest(String account, Application application) {
     front50Service.delete(account, application.name)
 
-    front50Service.credentials.findAll { it.global }.collect { it.name }.each { String globalAccountName ->
+    front50Service.credentials.findAll { it.global }.collect {
+      it.name
+    }.each { String globalAccountName ->
       try {
         def existingGlobalApplication = front50Service.get(globalAccountName, application.name)
         if (existingGlobalApplication) {

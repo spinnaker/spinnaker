@@ -36,7 +36,10 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
-@ComponentScan("com.netflix.spinnaker.orca.bakery.pipeline")
+@ComponentScan([
+    "com.netflix.spinnaker.orca.bakery.pipeline",
+    "com.netflix.spinnaker.orca.bakery.tasks"
+])
 @CompileStatic
 class BakeryConfiguration {
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -26,8 +25,11 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class MonitorKatoTask implements RetryableTask {
 
@@ -56,7 +58,7 @@ class MonitorKatoTask implements RetryableTask {
       if (stage.context.containsKey("kato.tasks")) {
         katoTasks = stage.context."kato.tasks" as List<Map<String, Object>>
       }
-      Map<String, Object> m = [id: katoTask.id, status: katoTask.status, history: katoTask.history,
+      Map<String, Object> m = [id           : katoTask.id, status: katoTask.status, history: katoTask.history,
                                resultObjects: katoTask.resultObjects]
       if (katoTask.resultObjects.find { it.type == "EXCEPTION" }) {
         def exception = katoTask.resultObjects.find { it.type == "EXCEPTION" }
@@ -70,7 +72,8 @@ class MonitorKatoTask implements RetryableTask {
     new DefaultTaskResult(status, outputs)
   }
 
-  private static ExecutionStatus katoStatusToTaskStatus(Task.Status katoStatus) {
+  private
+  static ExecutionStatus katoStatusToTaskStatus(Task.Status katoStatus) {
     if (katoStatus.failed) {
       return ExecutionStatus.TERMINAL
     } else if (katoStatus.completed) {

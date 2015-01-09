@@ -23,7 +23,9 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class DisableGoogleServerGroupTask implements Task {
   @Autowired
   KatoService kato
@@ -36,11 +38,11 @@ class DisableGoogleServerGroupTask implements Task {
                      .first()
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"   : "disablegoogleservergroup",
-      "deploy.account.name" : operation.credentials,
-      "kato.last.task.id"   : taskId,
-      "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": [(operation.region): [operation.replicaPoolName]],
+        "notification.type"   : "disablegoogleservergroup",
+        "deploy.account.name" : operation.credentials,
+        "kato.last.task.id"   : taskId,
+        "kato.task.id"        : taskId, // TODO retire this.
+        "deploy.server.groups": [(operation.region): [operation.replicaPoolName]],
     ])
   }
 

@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.stereotype.Component
 
+@Component
 class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(Stage stage) {

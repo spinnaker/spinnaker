@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,8 +29,10 @@ import com.netflix.spinnaker.orca.front50.pipeline.UpdateApplicationStage
 import com.netflix.spinnaker.orca.front50.pipeline.UpsertApplicationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Component
 class WaitForMultiAccountPropagationTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 35000
@@ -52,10 +53,18 @@ class WaitForMultiAccountPropagationTask implements RetryableTask {
     def allAccounts = [targetAccount] + globalAccounts
     def status = ExecutionStatus.SUCCEEDED
 
-    def isCreate = stage.execution.stages.find { it.type == CreateApplicationStage.MAYO_CONFIG_TYPE } != null
-    def isUpdate = stage.execution.stages.find { it.type == UpdateApplicationStage.MAYO_CONFIG_TYPE } != null
-    def isDelete = stage.execution.stages.find { it.type == DeleteApplicationStage.MAYO_CONFIG_TYPE } != null
-    def isUpsert = stage.execution.stages.find { it.type == UpsertApplicationStage.MAYO_CONFIG_TYPE } != null
+    def isCreate = stage.execution.stages.find {
+      it.type == CreateApplicationStage.MAYO_CONFIG_TYPE
+    } != null
+    def isUpdate = stage.execution.stages.find {
+      it.type == UpdateApplicationStage.MAYO_CONFIG_TYPE
+    } != null
+    def isDelete = stage.execution.stages.find {
+      it.type == DeleteApplicationStage.MAYO_CONFIG_TYPE
+    } != null
+    def isUpsert = stage.execution.stages.find {
+      it.type == UpsertApplicationStage.MAYO_CONFIG_TYPE
+    } != null
 
     if (isCreate || isUpdate || isUpsert) {
       allAccounts.each {

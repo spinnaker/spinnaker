@@ -24,8 +24,10 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Component
 class WaitForRecreatedGoogleInstancesTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 600000

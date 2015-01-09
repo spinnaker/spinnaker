@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.front50.config
 
 import groovy.transform.CompileStatic
@@ -38,7 +34,10 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
-@ComponentScan("com.netflix.spinnaker.orca.front50.pipeline")
+@ComponentScan([
+    "com.netflix.spinnaker.orca.front50.pipeline",
+    "com.netflix.spinnaker.orca.front50.tasks"
+])
 @CompileStatic
 class Front50Configuration {
 
@@ -46,17 +45,17 @@ class Front50Configuration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint front50Endpoint(
-    @Value('${front50.baseUrl:http://front50.prod.netflix.net}') String front50BaseUrl) {
+      @Value('${front50.baseUrl:http://front50.prod.netflix.net}') String front50BaseUrl) {
     newFixedEndpoint(front50BaseUrl)
   }
 
   @Bean Front50Service front50Service(Endpoint front50Endpoint, Gson gson) {
     new RestAdapter.Builder()
-      .setEndpoint(front50Endpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setConverter(new GsonConverter(gson))
-      .build()
-      .create(Front50Service)
+        .setEndpoint(front50Endpoint)
+        .setClient(retrofitClient)
+        .setLogLevel(retrofitLogLevel)
+        .setConverter(new GsonConverter(gson))
+        .build()
+        .create(Front50Service)
   }
 }

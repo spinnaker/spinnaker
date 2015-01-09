@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import groovy.transform.CompileStatic
 import java.util.concurrent.TimeUnit
-
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
+import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
+@Component
 @CompileStatic
 class WaitTask implements RetryableTask {
   long backoffPeriod = 1000
@@ -42,7 +43,7 @@ class WaitTask implements RetryableTask {
 
     if (!stage.context.containsKey("waitTaskState") || !stage.context.waitTaskState instanceof Map) {
       new DefaultTaskResult(RUNNING, [waitTaskState: [startTime: now]])
-    } else if (now - ((Long)((Map)stage.context.waitTaskState).startTime) > waitTimeMs) {
+    } else if (now - ((Long) ((Map) stage.context.waitTaskState).startTime) > waitTimeMs) {
       new DefaultTaskResult(SUCCEEDED)
     } else {
       new DefaultTaskResult(RUNNING)

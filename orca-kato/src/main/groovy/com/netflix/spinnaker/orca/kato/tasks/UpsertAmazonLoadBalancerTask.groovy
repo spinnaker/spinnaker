@@ -24,7 +24,9 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class UpsertAmazonLoadBalancerTask implements Task {
 
   @Autowired
@@ -40,11 +42,11 @@ class UpsertAmazonLoadBalancerTask implements Task {
                      .first()
 
     Map outputs = [
-      "notification.type": "upsertamazonloadbalancer",
-      "kato.last.task.id": taskId,
-      "kato.task.id"     : taskId, // TODO retire this.
-      "upsert.account"   : stage.context.credentials,
-      "upsert.regions": ((Map) stage.context.availabilityZones).keySet().join(',')
+        "notification.type": "upsertamazonloadbalancer",
+        "kato.last.task.id": taskId,
+        "kato.task.id"     : taskId, // TODO retire this.
+        "upsert.account"   : stage.context.credentials,
+        "upsert.regions"   : ((Map) stage.context.availabilityZones).keySet().join(',')
     ]
 
     if (stage.context.clusterName) {

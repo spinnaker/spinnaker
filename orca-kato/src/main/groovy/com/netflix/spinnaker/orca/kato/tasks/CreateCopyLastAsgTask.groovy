@@ -25,7 +25,9 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
+@Component
 class CreateCopyLastAsgTask implements Task {
 
   @Autowired
@@ -46,10 +48,10 @@ class CreateCopyLastAsgTask implements Task {
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"  : "createcopylastasg",
-      "kato.last.task.id"  : taskId,
-      "kato.task.id"       : taskId, // TODO retire this.
-      "deploy.account.name": operation.credentials,
+        "notification.type"  : "createcopylastasg",
+        "kato.last.task.id"  : taskId,
+        "kato.task.id"       : taskId, // TODO retire this.
+        "deploy.account.name": operation.credentials,
     ])
   }
 
@@ -58,12 +60,12 @@ class CreateCopyLastAsgTask implements Task {
     if (operation.credentials != defaultBakeAccount) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
-          allowLaunchDescription: [
-            account: operation.credentials,
-            credentials: defaultBakeAccount,
-            region: region,
-            amiName: operation.amiName
-          ]
+            allowLaunchDescription: [
+                account    : operation.credentials,
+                credentials: defaultBakeAccount,
+                region     : region,
+                amiName    : operation.amiName
+            ]
         ]
       }
       descriptions.addAll(allowLaunchDescriptions)

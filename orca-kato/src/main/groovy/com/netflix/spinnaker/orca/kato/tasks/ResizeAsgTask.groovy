@@ -24,7 +24,9 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class ResizeAsgTask implements Task {
 
   @Autowired
@@ -37,11 +39,13 @@ class ResizeAsgTask implements Task {
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"   : "resizeasg",
-      "deploy.account.name" : resizeAsgOperation.credentials,
-      "kato.last.task.id"   : taskId,
-      "kato.task.id"        : taskId, // TODO retire this.
-      "deploy.server.groups": resizeAsgOperation.regions.collectEntries { [(it): [resizeAsgOperation.asgName]] }
+        "notification.type"   : "resizeasg",
+        "deploy.account.name" : resizeAsgOperation.credentials,
+        "kato.last.task.id"   : taskId,
+        "kato.task.id"        : taskId, // TODO retire this.
+        "deploy.server.groups": resizeAsgOperation.regions.collectEntries {
+          [(it): [resizeAsgOperation.asgName]]
+        }
     ])
   }
 

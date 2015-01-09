@@ -46,7 +46,9 @@ class CopyLastAsgStageSpec extends Specification {
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
 
   void setup() {
-    copyLastAsgStage.applicationContext = Stub(ApplicationContext)
+    copyLastAsgStage.applicationContext = Stub(ApplicationContext) {
+      getBean(_) >> { Class type -> type.newInstance() }
+    }
     copyLastAsgStage.mapper = objectMapper
     copyLastAsgStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     copyLastAsgStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])

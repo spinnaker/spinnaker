@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.front50.tasks
 
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -26,10 +26,11 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Component
 @Slf4j
 class VerifyApplicationHasNoDependenciesTask implements Task {
   @Autowired
@@ -60,7 +61,9 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
       }
 
       def mortResults = getMortResults(application.name as String, "securityGroups")
-      if (mortResults.find { it.application.equalsIgnoreCase(application.name) && it.account == account }) {
+      if (mortResults.find {
+        it.application.equalsIgnoreCase(application.name) && it.account == account
+      }) {
         existingDependencyTypes << "security groups"
       }
     } catch (RetrofitError e) {
@@ -81,10 +84,12 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
     }
 
     return new DefaultTaskResult(ExecutionStatus.TERMINAL, [exception: [
-      details: [
-        error : "Application has outstanding dependencies",
-        errors: existingDependencyTypes.collect { "Application is associated with one or more ${it}" as String }
-      ]
+        details: [
+            error: "Application has outstanding dependencies",
+            errors: existingDependencyTypes.collect {
+              "Application is associated with one or more ${it}" as String
+            }
+        ]
     ]])
   }
 

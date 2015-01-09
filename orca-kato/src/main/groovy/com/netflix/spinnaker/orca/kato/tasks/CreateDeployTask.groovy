@@ -16,21 +16,28 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class CreateDeployTask implements Task {
 
-  static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
-  static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
+  static
+  final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
+  static
+  final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
 
   @Autowired
   KatoService kato
@@ -52,10 +59,10 @@ class CreateDeployTask implements Task {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"  : "createdeploy",
-      "kato.last.task.id"  : taskId,
-      "kato.task.id"       : taskId, // TODO retire this.
-      "deploy.account.name": deployOperations.credentials,
+        "notification.type"  : "createdeploy",
+        "kato.last.task.id"  : taskId,
+        "kato.task.id"       : taskId, // TODO retire this.
+        "deploy.account.name": deployOperations.credentials,
     ])
   }
 
@@ -96,7 +103,8 @@ class CreateDeployTask implements Task {
     result
   }
 
-  private static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
+  private
+  static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
     [account: targetAccount, credentials: sourceAccount, region: region, amiName: ami]
   }
 }

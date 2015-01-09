@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.rush.tasks
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -24,9 +25,10 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.rush.api.RushService
 import com.netflix.spinnaker.orca.rush.api.ScriptRequest
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class RunScriptTask implements Task {
 
@@ -42,7 +44,7 @@ class RunScriptTask implements Task {
     def scriptId = rushService.runScript(script).toBlocking().single()
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "rush.task.id": scriptId
+        "rush.task.id": scriptId
     ])
   }
 

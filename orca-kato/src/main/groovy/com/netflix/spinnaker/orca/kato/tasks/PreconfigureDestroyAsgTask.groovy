@@ -16,25 +16,27 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class PreconfigureDestroyAsgTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "resizeAsg.credentials"     : stage.context.credentials,
-      "resizeAsg.regions"         : stage.context.regions,
-      "resizeAsg.asgName"         : stage.context.asgName,
-      "resizeAsg.capacity.min"    : 0,
-      "resizeAsg.capacity.max"    : 0,
-      "resizeAsg.capacity.desired": 0
+        "resizeAsg.credentials"     : stage.context.credentials,
+        "resizeAsg.regions"         : stage.context.regions,
+        "resizeAsg.asgName"         : stage.context.asgName,
+        "resizeAsg.capacity.min"    : 0,
+        "resizeAsg.capacity.max"    : 0,
+        "resizeAsg.capacity.desired": 0
     ])
   }
 }

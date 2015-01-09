@@ -22,10 +22,12 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Created by aglover on 9/26/14.
  */
+@Component
 class DeleteAmazonLoadBalancerTask implements Task {
 
   @Autowired
@@ -37,12 +39,12 @@ class DeleteAmazonLoadBalancerTask implements Task {
                      .toBlocking()
                      .first()
     Map outputs = [
-      "notification.type"  : "deleteamazonloadbalancer",
-      "kato.last.task.id"  : taskId,
-      "kato.task.id"       : taskId, // TODO retire this.
-      "delete.name"        : stage.context.loadBalancerName,
-      "delete.regions"     : stage.context.regions.join(','),
-      "delete.account.name": stage.context.credentials
+        "notification.type"  : "deleteamazonloadbalancer",
+        "kato.last.task.id"  : taskId,
+        "kato.task.id"       : taskId, // TODO retire this.
+        "delete.name"        : stage.context.loadBalancerName,
+        "delete.regions"     : stage.context.regions.join(','),
+        "delete.account.name": stage.context.credentials
     ]
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }

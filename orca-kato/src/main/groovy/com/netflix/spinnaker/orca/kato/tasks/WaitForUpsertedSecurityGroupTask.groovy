@@ -24,11 +24,13 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Note: this is a bit buggy. It only checks if the security group has changed in any way,
  * not that the security group has changed to the requested state
  */
+@Component
 class WaitForUpsertedSecurityGroupTask implements RetryableTask {
 
   long backoffPeriod = 1000

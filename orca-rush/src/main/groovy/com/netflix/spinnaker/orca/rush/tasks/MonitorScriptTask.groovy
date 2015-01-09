@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.rush.tasks
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -24,9 +25,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.rush.api.RushService
 import com.netflix.spinnaker.orca.rush.api.ScriptExecution
 import com.netflix.spinnaker.orca.rush.api.ScriptId
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class MonitorScriptTask implements RetryableTask {
 
@@ -43,7 +45,8 @@ class MonitorScriptTask implements RetryableTask {
     new DefaultTaskResult(rushStatusToTaskStatus(execution), [execution: execution])
   }
 
-  private static ExecutionStatus rushStatusToTaskStatus(ScriptExecution execution) {
+  private
+  static ExecutionStatus rushStatusToTaskStatus(ScriptExecution execution) {
     if (execution.status == 'SUCCESSFUL') {
       return ExecutionStatus.SUCCEEDED
     } else if (execution.status == 'FAILURE') {

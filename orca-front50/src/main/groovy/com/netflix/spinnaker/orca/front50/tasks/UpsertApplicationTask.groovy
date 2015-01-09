@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.model.Application
+import org.springframework.stereotype.Component
 
+@Component
 class UpsertApplicationTask extends AbstractFront50Task {
   @Override
   void performRequest(String account, Application application) {
     /*
      * Upsert application to all global registries.
      */
-    def existingGlobalApplication = front50Service.credentials.findAll { it.global }.collect {
+    def existingGlobalApplication = front50Service.credentials.findAll {
+      it.global
+    }.collect {
       def existingGlobalApplication = fetchApplication(it.name, application.name)
       if (existingGlobalApplication) {
         // update all global applications with the new application metadata

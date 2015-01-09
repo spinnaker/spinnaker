@@ -19,6 +19,7 @@ dependencies {
   testCompile project(":orca-bakery")
   testCompile project(":orca-front50")
   testCompile project(":orca-kato")
+  testCompile project(":orca-mort")
   testCompile project(":orca-oort")
   testCompile spinnaker.dependency('batchTest')
   spinnaker.group('test')
