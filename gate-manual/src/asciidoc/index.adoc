@@ -220,6 +220,8 @@ include::upsertAmazonLoadBalancerStage.adoc[]
 - - -
 include::upsertSecurityGroupStage.adoc[]
 - - -
+include::waitStage.adoc[]
+- - -
 
 == Accessing Credentials Detail
 
@@ -230,7 +232,7 @@ NOTE: The endpoint mapped to +/credentials+ provides the names of the accounts t
 [width="100%",frame="topbot",options="header,footer"]
 |======================
 |Request Type | Endpoint            | Description
-|GET          | /credentials        | Returns an array of maps describing the configured credential account names and provider types
+|GET          | /credentials        | Returns an array of objects describing the configured credential account names and provider types
 |======================
 
 ==== Example
