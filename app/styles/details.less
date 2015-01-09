@@ -28,30 +28,8 @@
 }
 
 .details-panel {
-  position: fixed;
-  top: 150px;
-  bottom: 0;
-  overflow-y: hidden;
-  width: 240px;
-
-  @media (max-width:768px) {
-    top: 130px;
-    margin-left: -25px;
-    width: 95%;
-  }
-
-  @media(min-width: 768px) and (max-width: 992px) {
-    top: 190px;
-    width: 210px;
-  }
-
-  @media(min-width: 992px) {
-    width: 220px;
-  }
-  @media(min-width: 1200px) {
-    width: 240px;
-  }
-
+  display: flex;
+  flex-direction: column;
   border: 1px solid #aaaaaa;
   border-bottom-width: 0;
   border-top-left-radius: 5px;
@@ -75,13 +53,12 @@
   }
 
   .content {
+    flex: 1 0 100px;
     overflow-y: auto;
-    padding-bottom: 135px;
-    height: 100%;
-
   }
 
   .header {
+    flex: none;
     padding: 20px 15px 0 15px;
     margin-bottom: 10px;
     .header-text {
