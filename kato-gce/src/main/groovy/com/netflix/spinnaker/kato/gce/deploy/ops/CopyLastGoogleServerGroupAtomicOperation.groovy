@@ -96,7 +96,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
           if (attachedDisks) {
             newDescription.image = description.image ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.sourceImage)
-            newDescription.diskType = description.diskType ?: attachedDisks[0].initializeParams.diskType
+            newDescription.diskType = description.diskType ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.diskType)
             newDescription.diskSizeGb = description.diskSizeGb ?: attachedDisks[0].initializeParams.diskSizeGb
           }
 
