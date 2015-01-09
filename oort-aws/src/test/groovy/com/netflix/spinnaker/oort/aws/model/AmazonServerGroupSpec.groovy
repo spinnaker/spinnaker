@@ -24,7 +24,7 @@ import spock.lang.Specification
 /**
  * Created by zthrash on 1/7/15.
  */
-class AmazonServerGroupTest extends Specification {
+class AmazonServerGroupSpec extends Specification {
 
   ServerGroup serverGroup
 

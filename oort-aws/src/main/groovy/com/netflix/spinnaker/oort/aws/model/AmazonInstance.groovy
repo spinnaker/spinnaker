@@ -38,8 +38,8 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   HealthState getHealthState() {
     List<Map<String, String>> healthList = getHealth()
 
-    if(allUpAndNoDown(healthList))  return HealthState.Up
-    if(anyDown(healthList))  return HealthState.Down
+    if(anyUpAndNoDown(healthList)) return HealthState.Up
+    if(anyDown(healthList)) return HealthState.Down
     if(allUnknown(healthList)) return HealthState.Unknown
   }
 
@@ -51,8 +51,9 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
     healthList.any { it.state == HealthState.Down }
   }
 
-  private boolean allUpAndNoDown(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.Up } && !healthList.any { it.state == HealthState.Down }
+  private boolean anyUpAndNoDown(List<Map<String, String>> healthList) {
+    List knownHealthList = healthList.findAll{ it.state != HealthState.Unknown }
+    knownHealthList ? knownHealthList.every { it.state == HealthState.Up } : false
   }
 
   @Override

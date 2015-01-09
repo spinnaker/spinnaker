@@ -23,7 +23,7 @@ import spock.lang.Specification
 /**
  * Created by zthrash on 1/7/15.
  */
-class AmazonInstanceTest extends Specification {
+class AmazonInstanceSpec extends Specification {
 
   Instance instance
 
@@ -67,5 +67,16 @@ class AmazonInstanceTest extends Specification {
 
     then:
       heathState == HealthState.Unknown
+  }
+
+  void "test getHealthState for empty health collection"() {
+    given:
+    instance.health = []
+
+    when:
+    HealthState heathState = instance.getHealthState()
+
+    then:
+    heathState == HealthState.Unknown
   }
 }
