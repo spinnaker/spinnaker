@@ -1,17 +1,21 @@
-<div class="row infrastructure global-search-header">
-  <div class="col-md-2">
-    <h3>Infrastructure</h3>
-  </div>
-  <div class="col-md-4">
-    <form class="form form-horizontal">
-      <div class="col-md-12">
-        <input type="search"
-               class="form-control input-md"
-               placeholder="Search infrastructure"
-               focus
-               ng-model="query">
-      </div>
-    </form>
+<div class="container infrastructure global-search-header navbar-fixed-top">
+  <div class="row">
+    <div class="col-md-2">
+      <h2>Infrastructure</h2>
+    </div>
+    <div class="col-md-4">
+      <form class="form form-horizontal">
+        <div class="form-group">
+          <div class="col-md-12">
+            <input type="search"
+                   class="form-control input-md"
+                   placeholder="Search infrastructure"
+                   focus
+                   ng-model="query">
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 <span ng-if="ctrl.hasResults()">
