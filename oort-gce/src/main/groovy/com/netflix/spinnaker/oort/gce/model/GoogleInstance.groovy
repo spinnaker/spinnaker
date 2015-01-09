@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 
 class GoogleInstance extends HashMap implements Instance, Serializable {
@@ -52,6 +53,21 @@ class GoogleInstance extends HashMap implements Instance, Serializable {
   boolean isHealthy() {
     getProperty "isHealthy"
   }
+
+  @Override
+  HealthState getHealthState() {
+    List<Map<String, String>> healthList = getHealth()
+
+    if(isHealthy()) {
+      return HealthState.Up
+    } else {
+      List knownStateList = healthList.findAll { it.state.toLowerCase() != "unknown"}
+      if (knownStateList.size() == 0) {
+        return HealthState.Unknown
+      }
+      return HealthState.Down
+    }
+l  }
 
   @Override
   Long getLaunchTime() {

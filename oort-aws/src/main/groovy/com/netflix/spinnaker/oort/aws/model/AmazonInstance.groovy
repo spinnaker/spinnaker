@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.aws.model
 
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 
 class AmazonInstance extends HashMap implements Instance, Serializable {
@@ -31,6 +32,21 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
 
   boolean isHealthy() {
     getProperty "isHealthy"
+  }
+
+  @Override
+  HealthState getHealthState() {
+    List<Map<String, String>> healthList = getHealth()
+
+    if(isHealthy()) {
+      return HealthState.Up
+    } else {
+      List knownStateList = healthList.findAll { it.state != HealthState.Unknown}
+      if (knownStateList.size() == 0) {
+        return HealthState.Unknown
+      }
+      return HealthState.Down
+    }
   }
 
   @Override

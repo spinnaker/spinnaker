@@ -37,6 +37,12 @@ interface Instance {
   boolean isHealthy()
 
   /**
+   * A status of the health of the instance
+   * @return HealthState
+   */
+  HealthState getHealthState()
+
+  /**
    * A timestamp indicating when the instance was launched
    *
    * @return the number of milliseconds after the beginning of time (1 January, 1970 UTC) when
