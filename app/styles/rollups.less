@@ -34,14 +34,11 @@
   border-radius: 3px;
   padding: 0;
   margin: 15px 0;
-  background-color: #f1f1f1;
+  background-color: @mid_grey;
 
   &.disabled {
     opacity: 0.4;
     border: 1px dashed #aaaaaa;
-    .glyphicon-th {
-      color: @mid_grey;
-    }
     &:hover {
       opacity: .75;
     }
@@ -54,9 +51,6 @@
   &.active, &:hover {
     border-color: #121212;
     box-shadow: 0 0 8px 0px #999999;
-    .rollup-summary {
-      font-weight: 600;
-    }
   }
 
   &.unhealthy {
@@ -128,9 +122,9 @@
 .rollup-title-cell {
   display: table-cell;
   width: auto;
-  color: @text-color;
+  color: @lightest_grey;
   &:active, &:hover {
-    color: @text-color;
+    color: @lighter_grey;
     text-decoration: none;
     font-weight: 600;
   }
@@ -140,7 +134,6 @@
   .text-right;
 
   .icon-elb {
-    color: @text-color;
     position: relative;
     font-size: 120%;
   }
@@ -151,12 +144,8 @@
     margin-right: 5px;
     line-height: 0;
     &.active, &:focus {
-      color: #2a6496;
       outline: 0;
       box-shadow: none;
-    }
-    &:focus {
-      color: #428bca;
     }
   }
 }
@@ -233,7 +222,7 @@
     top: 6px;
     width: 0;
     &::before {
-      text-shadow: #fff 0 0 1px, #fff 0 0 2px, #fff 0 0 3px;
+      text-shadow: #2A6496 0 0 1px, #2A6496 0 0 2px, #2A6496 0 0 3px;
     }
   }
   .counter {
