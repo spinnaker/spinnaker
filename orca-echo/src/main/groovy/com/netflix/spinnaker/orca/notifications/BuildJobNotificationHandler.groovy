@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.notifications
 
-import com.google.common.annotations.VisibleForTesting
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
+import com.google.common.annotations.VisibleForTesting
 
-class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable  {
+class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable {
   static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
   static final String TRIGGER_MASTER = "master"
@@ -66,7 +66,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
         def pipelineConfigs = interestingPipelines[key]
         for (Map pipelineConfig in pipelineConfigs) {
           Map trigger = pipelineConfig.triggers.find {
-            it.type == "jenkins" && it.job == input.name && it.master == input.master
+            it.type == TRIGGER_TYPE && it.job == input.name && it.master == input.master
           } as Map
           def pipelineConfigClone = new HashMap(pipelineConfig)
           pipelineConfigClone.trigger = new HashMap(trigger)

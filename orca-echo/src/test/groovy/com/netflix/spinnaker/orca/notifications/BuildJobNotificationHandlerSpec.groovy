@@ -14,47 +14,44 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.notifications
 
-import com.netflix.appinfo.ApplicationInfoManager
+import groovy.json.JsonSlurper
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import groovy.json.JsonSlurper
 import spock.lang.Shared
 import spock.lang.Specification
 
 class BuildJobNotificationHandlerSpec extends Specification {
 
-
   def pipeline1 = [
-    name    : "pipeline1",
-    triggers: [[type  : "jenkins",
-                job   : "SPINNAKER-package-pond",
-                master: "master1"]],
-    stages  : [[type: "bake"],
-               [type: "deploy", cluster: [name: "bar"]]]
+      name    : "pipeline1",
+      triggers: [[type  : "jenkins",
+                  job   : "SPINNAKER-package-pond",
+                  master: "master1"]],
+      stages  : [[type: "bake"],
+                 [type: "deploy", cluster: [name: "bar"]]]
   ]
 
   def pipeline2 = [
-    name    : "pipeline2",
-    triggers: [[type  : "jenkins",
-                job   : "SPINNAKER-package-pond",
-                master: "master1"]],
-    stages  : [[type: "bake"],
-               [type: "deploy", cluster: [name: "foo"]]]
+      name    : "pipeline2",
+      triggers: [[type  : "jenkins",
+                  job   : "SPINNAKER-package-pond",
+                  master: "master1"]],
+      stages  : [[type: "bake"],
+                 [type: "deploy", cluster: [name: "foo"]]]
   ]
 
   def pipeline3 = [
-    name    : "pipeline3",
-    triggers: [[type  : "jenkins",
-                job   : "SPINNAKER-package-pond",
-                master: "master2"]],
-    stages  : []
+      name    : "pipeline3",
+      triggers: [[type  : "jenkins",
+                  job   : "SPINNAKER-package-pond",
+                  master: "master2"]],
+      stages  : []
   ]
 
   @Shared DiscoveryClient discoveryClient = Stub(DiscoveryClient)
@@ -65,7 +62,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   void "should pick up stages subsequent to build job completing"() {
     setup:
-    PipelineStarter pipelineStarter = Mock(PipelineStarter)
+    def pipelineStarter = Mock(PipelineStarter)
     def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
 
@@ -91,16 +88,16 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   void "should add multiple pipeline targets to single trigger type"() {
     setup:
-    def pipelineConfigService = Mock(PipelineConfigurationService)
-    def pipelineStarter = Mock(PipelineStarter)
+    def pipelineConfigService = Stub(PipelineConfigurationService) {
+      getPipelines() >> [pipeline1, pipeline2]
+    }
+    def pipelineStarter = Stub(PipelineStarter)
     def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
 
     when:
     handler.run()
 
     then:
-    1 * pipelineConfigService.getPipelines() >> [pipeline1, pipeline2]
-    2 == handler.interestingPipelines[key].size()
     handler.interestingPipelines[key].name == ["pipeline1", "pipeline2"]
 
     where:
@@ -109,7 +106,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   void "should only trigger targets from the same master "() {
     given:
-    PipelineStarter pipelineStarter = Mock(PipelineStarter)
+    def pipelineStarter = Mock(PipelineStarter)
     def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
     handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
