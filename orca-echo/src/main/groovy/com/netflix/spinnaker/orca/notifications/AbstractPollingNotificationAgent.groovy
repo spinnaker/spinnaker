@@ -21,17 +21,16 @@ import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
-import org.springframework.beans.factory.annotation.Autowired
+import net.greghaines.jesque.Job
+import net.greghaines.jesque.client.Client
 
 abstract class AbstractPollingNotificationAgent implements Runnable {
 
-  @Autowired
-  EchoService echoService
+  private final EchoService echoService
+  private final ObjectMapper objectMapper
+  private final Client jesqueClient
 
-  @Autowired
-  ObjectMapper objectMapper
-
-  private long lastCheck = System.currentTimeMillis()
+  private transient long lastCheck = System.currentTimeMillis()
 
   abstract long getPollingInterval()
 
@@ -39,20 +38,14 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
 
   abstract void handleNotification(List<Map> input)
 
-  final List<NotificationHandler> allNotificationHandler
-  final List<NotificationHandler> agentNotificationHandlers = []
-
-  AbstractPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    this.allNotificationHandler = notificationHandlers
+  AbstractPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, Client jesqueClient) {
+    this.objectMapper = objectMapper
+    this.echoService = echoService
+    this.jesqueClient = jesqueClient
   }
 
   @PostConstruct
   void init() {
-    for (handler in allNotificationHandler) {
-      if (handler.handles(getNotificationType())) {
-        agentNotificationHandlers << handler
-      }
-    }
     Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
   }
 
@@ -68,9 +61,7 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
     }
   }
 
-  void notify(Map input) {
-    for (handler in agentNotificationHandlers) {
-      handler.handle input
-    }
+  void notify(input) {
+    jesqueClient.enqueue(notificationType, new Job())
   }
 }

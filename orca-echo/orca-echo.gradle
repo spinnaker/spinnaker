@@ -19,5 +19,6 @@ dependencies {
   compile project(":orca-mayo")
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('bootAutoConfigure')
+  compile "net.greghaines:jesque:2.0.0"
   testCompile project(":orca-test")
 }

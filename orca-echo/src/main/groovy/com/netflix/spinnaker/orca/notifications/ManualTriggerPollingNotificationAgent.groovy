@@ -16,26 +16,31 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.echo.EchoService
+import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
-  static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
+  public static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
   long pollingInterval = 10
+
+  @Autowired
+  ManualTriggerPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, Client jesqueClient) {
+    super(objectMapper, echoService, jesqueClient)
+  }
+
+  @Override
   String getNotificationType() {
     NOTIFICATION_TYPE
   }
 
-  @Autowired
-  ManualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    super(notificationHandlers)
-  }
-
   @Override
-  void handleNotification(List<Map> resp) {
-    for (event in resp) {
+  void handleNotification(List<Map> response) {
+    for (event in response) {
       notify event.content
     }
   }

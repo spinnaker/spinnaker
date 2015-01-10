@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.notifications
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.echo.EchoService
+import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -28,13 +30,13 @@ class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent 
   String notificationType = NOTIFICATION_TYPE
 
   @Autowired
-  BuildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    super(notificationHandlers)
+  BuildJobPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, Client jesqueClient) {
+    super(objectMapper, echoService, jesqueClient)
   }
 
   @Override
-  void handleNotification(List<Map> resp) {
-    for (event in resp) {
+  void handleNotification(List<Map> response) {
+    for (event in response) {
       if (event.content.containsKey("project") && event.content.containsKey("master")) {
         Map input = event.content.project as Map
         input.master = event.content.master

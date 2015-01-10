@@ -17,13 +17,18 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.notifications.*
+import com.netflix.spinnaker.orca.notifications.BuildJobNotificationHandler
+import com.netflix.spinnaker.orca.notifications.BuildJobPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.ManualTriggerNotificationHandler
+import com.netflix.spinnaker.orca.notifications.ManualTriggerPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import net.greghaines.jesque.client.Client as JesqueClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -65,8 +70,8 @@ class EchoConfiguration {
   }
 
   @Bean
-  BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    new BuildJobPollingNotificationAgent(notificationHandlers)
+  BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, JesqueClient jesqueClient) {
+    new BuildJobPollingNotificationAgent(objectMapper, echoService, jesqueClient)
   }
 
   @Bean ManualTriggerNotificationHandler manualTriggerNotificationHandler() {
@@ -74,8 +79,8 @@ class EchoConfiguration {
   }
 
   @Bean
-  ManualTriggerPollingNotificationAgent manualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    new ManualTriggerPollingNotificationAgent(notificationHandlers)
+  ManualTriggerPollingNotificationAgent manualTriggerPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, JesqueClient jesqueClient) {
+    new ManualTriggerPollingNotificationAgent(objectMapper, echoService, jesqueClient)
   }
 
   @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
