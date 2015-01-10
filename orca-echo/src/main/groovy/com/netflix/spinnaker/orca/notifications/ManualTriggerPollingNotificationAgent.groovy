@@ -29,8 +29,11 @@ class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationA
   long pollingInterval = 10
 
   @Autowired
-  ManualTriggerPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, Client jesqueClient) {
-    super(objectMapper, echoService, jesqueClient)
+  ManualTriggerPollingNotificationAgent(ObjectMapper objectMapper,
+                                        EchoService echoService,
+                                        Client jesqueClient,
+                                        List<NotificationHandler> handlers) {
+    super(objectMapper, echoService, jesqueClient, handlers)
   }
 
   @Override

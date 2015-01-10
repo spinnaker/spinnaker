@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import groovy.transform.CompileStatic
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
@@ -24,11 +25,13 @@ import com.netflix.spinnaker.orca.echo.EchoService
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
 
+@CompileStatic
 abstract class AbstractPollingNotificationAgent implements Runnable {
 
   private final EchoService echoService
   private final ObjectMapper objectMapper
   private final Client jesqueClient
+  private final Collection<NotificationHandler> handlers
 
   private transient long lastCheck = System.currentTimeMillis()
 
@@ -38,15 +41,20 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
 
   abstract void handleNotification(List<Map> input)
 
-  AbstractPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, Client jesqueClient) {
+  AbstractPollingNotificationAgent(ObjectMapper objectMapper,
+                                   EchoService echoService,
+                                   Client jesqueClient,
+                                   List<NotificationHandler> handlers) {
     this.objectMapper = objectMapper
     this.echoService = echoService
     this.jesqueClient = jesqueClient
+    this.handlers = handlers.findAll { it.handles(notificationType) }
   }
 
   @PostConstruct
   void init() {
-    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
+    Executors.newSingleThreadScheduledExecutor()
+             .scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
   }
 
   @Override
@@ -54,14 +62,20 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
     try {
       def response = echoService.getEvents(notificationType, lastCheck)
       lastCheck = System.currentTimeMillis()
-      def maps = objectMapper.readValue(response.body.in().text, List)
+      // TODO: should base this off the Date header from echo
+      List<Map> maps = objectMapper.readValue(response.body.in().text, List)
       handleNotification maps
     } catch (e) {
       e.printStackTrace()
     }
   }
 
-  void notify(input) {
-    jesqueClient.enqueue(notificationType, new Job())
+  void notify(Map<String, ?> input) {
+    for (handler in handlers) {
+      jesqueClient.enqueue(
+          notificationType,
+          new Job(handler.getClass().name, input)
+      )
+    }
   }
 }

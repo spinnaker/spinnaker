@@ -30,8 +30,11 @@ class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent 
   String notificationType = NOTIFICATION_TYPE
 
   @Autowired
-  BuildJobPollingNotificationAgent(ObjectMapper objectMapper, EchoService echoService, Client jesqueClient) {
-    super(objectMapper, echoService, jesqueClient)
+  BuildJobPollingNotificationAgent(ObjectMapper objectMapper,
+                                   EchoService echoService,
+                                   Client jesqueClient,
+                                   List<NotificationHandler> handlers) {
+    super(objectMapper, echoService, jesqueClient, handlers)
   }
 
   @Override
