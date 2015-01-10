@@ -1,6 +1,5 @@
 <div class="row execution-bar">
   <div class="col-md-12">
-    <div class="pre-execution-stage-border"></div>
     <div ng-repeat="stage in execution.stages | stages:filter"
          class="execution-stage"
          ng-class="{glowing: stage.isRunning }"
