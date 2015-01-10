@@ -96,7 +96,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       if (e.response.status == 404) {
         new DefaultTaskResult(ExecutionStatus.RUNNING)
       } else {
-        throw e
+        new DefaultTaskResult(ExecutionStatus.FAILED)
       }
     }
   }
