@@ -37,13 +37,15 @@ angular.module('deckApp.pipelines')
           var config = stageConfig[0];
           $scope.description = config.description;
 
-          var ctrl = config.controller.split(' as ');
-          var controller = $controller(ctrl[0], {$scope: stageScope, stage: $scope.stage, viewState: $scope.viewState});
-          if (ctrl.length === 2) {
-            stageScope[ctrl[1]] = controller;
-          }
-          if (config.controllerAs) {
-            stageScope[config.controllerAs] = controller;
+          if (config.controller) {
+            var ctrl = config.controller.split(' as ');
+            var controller = $controller(ctrl[0], {$scope: stageScope, stage: $scope.stage, viewState: $scope.viewState});
+            if (ctrl.length === 2) {
+              stageScope[ctrl[1]] = controller;
+            }
+            if (config.controllerAs) {
+              stageScope[config.controllerAs] = controller;
+            }
           }
 
           var template = $templateCache.get(config.templateUrl);
