@@ -51,19 +51,12 @@
         <dt>Running time</dt>
         <dd>{{ step.runningTime }}</dd>
       </dl>
-    </collapsible-section>
-    <collapsible-section heading="Kato Log" expanded="true">
-      <h5 ng-repeat-start="step in taskDetail.task.katoTasks">
-        {{ step.status }}
-      </h5>
-      <dl class="well" style="padding: 10px;" ng-repeat-end>
-        <dt>Started</dt>
-        <dd>{{ step.startTime | relativeTime }}</dd>
-        <dt>Completed</dt>
-        <dd>{{ step.endTime | relativeTime }}</dd>
-        <!--<dt>Running time</dt> // TODO: include running time
-          <dd>{{ step.runningTime }}</dd>-->
-      </dl>
+      <div class="alert alert-danger" ng-if="taskDetail.task.failureMessage">
+        <h4>Exception Details:</h4>
+        <p>
+          {{taskDetail.task.failureMessage}}
+        </p>
+      </div>
     </collapsible-section>
   </div>
 </div>
