@@ -39,7 +39,7 @@
   &.disabled {
     opacity: 0.4;
     border: 1px dashed #aaaaaa;
-    &:hover {
+    &:hover, &.active {
       opacity: .75;
     }
   }
@@ -117,36 +117,72 @@
   .tooltip {
     text-transform: none;
   }
-}
-
-.rollup-title-cell {
-  display: table-cell;
-  width: auto;
-  color: @lightest_grey;
-  &:active, &:hover, &:focus {
-    color: @lighter_grey;
-    text-decoration: none;
-    font-weight: 600;
-  }
-}
-
-.rollup-title-cell-load-balancers {
-  .text-right;
-
-  .icon-elb {
-    position: relative;
-    font-size: 120%;
-  }
-
   button {
     padding: 0;
     display: inline-block;
     margin-right: 5px;
-    line-height: 0;
+    line-height: 1;
     &.active, &:focus {
       outline: 0;
       box-shadow: none;
     }
+    .icon {
+      position: relative;
+      font-size: 120%;
+    }
+    .icon-spinner {
+      font-size: 20px;
+    }
+
+  }
+}
+
+.rollup-title-cell {
+  cursor: default;
+  color: @lightest_grey;
+  &:active, &:hover, &:focus {
+    color: @lighter_grey;
+    text-decoration: none;
+  }
+}
+
+running-tasks-tag {
+  position: relative;
+}
+
+.menu-running-tasks {
+  text-align: left;
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  background-color: #ffffff;
+  margin-top: 12px;
+  border: 1px solid #777777;
+  padding: 5px 10px;
+  border-radius: 3px;
+  box-shadow: 0px 0px 5px 2px #eeeeee;
+  text-transform: none;
+  color: @text-color;
+  font-weight: 400;
+  font-size: 80%;
+  width: 350px;
+
+  &::before, &::after {
+    width: 0;
+    height: 0;
+    content: ' ';
+    right: 12px;
+    position: absolute;
+    border: 10px solid transparent;
+    border-top-width: 0;
+  }
+  &::after {
+    top: -10px;
+    border-bottom-color: #ffffff;
+  }
+  &::before {
+    top: -11px;
+    border-bottom-color: #5b5b5b;
   }
 }
 
@@ -190,7 +226,6 @@
     width: 0;
     height: 0;
     content: ' ';
-    top: -14px;
     right: 15px;
     position: absolute;
     border: 8px solid transparent;
@@ -200,6 +235,7 @@
   &::after {
     margin-left: -10px;
     border-width: 8px;
+    top: -14px;
     border-bottom-color: #5b5b5b;
   }
   &::before {
@@ -280,7 +316,7 @@
   }
 
   .instances {
-    padding: 5px 10px;
+    padding: 0px 10px 5px 10px;
   }
 
   &.instances-only {
@@ -289,6 +325,6 @@
 
   .build-title {
     font-size: 110%;
-    padding: 10px 10px 3px 10px;
+    padding: 10px 10px 8px 10px;
   }
 }

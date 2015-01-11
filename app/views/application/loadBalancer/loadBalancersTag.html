@@ -1,4 +1,4 @@
-<div ng-if="loadBalancers.length" class="rollup-title-cell rollup-title-cell-load-balancers" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
+<span ng-if="loadBalancers.length" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
   <button
       class="btn btn-link btn-multiple-load-balancers clearfix link-inverse"
       ng-if="loadBalancers.length > maxDisplay"
@@ -19,14 +19,16 @@
       >{{loadBalancer.name}}
     </a>
   </div>
-  <div class="btn-load-balancer" ng-if="loadBalancers.length <= maxDisplay">
+  <span class="btn-load-balancer" ng-if="loadBalancers.length <= maxDisplay">
     <button
        class="btn btn-link link-inverse"
        ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})"
        ui-sref-active="active"
        tooltip="ELB: {{loadBalancer.name}}">
-      <span class="icon-elb"></span>
+      <span class="icon">
+        <span class="icon-elb"></span>
+      </span>
     </button>
-  </div>
-</div>
+  </span>
+</span>

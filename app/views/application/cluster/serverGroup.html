@@ -5,13 +5,21 @@
         disabled: serverGroup.isDisabled
      }">
   <div class="rollup-summary">
-    <a class="rollup-title-cell"
-       ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})">
-      <span class="glyphicon glyphicon-th"></span>
-      {{serverGroup.name}}
-      <account-tag account="serverGroup.account" pad="both"></account-tag>
-    </a>
-    <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
+    <div class="container-fluid no-padding">
+      <div class="row">
+        <div class="col-md-9">
+          <div class="rollup-title-cell">
+            <span class="glyphicon glyphicon-th"></span>
+            {{serverGroup.name}}
+            <account-tag account="serverGroup.account" pad="both"></account-tag>
+          </div>
+        </div>
+        <div class="col-md-3 text-right">
+          <running-tasks-tag application="application" tasks="serverGroup.runningTasks"></running-tasks-tag>
+          <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="rollup-details">
     <div class="build-title">

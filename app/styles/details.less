@@ -130,13 +130,18 @@
       }
     }
     .content-body {
-      padding-left: 17px;
+      padding: 0 17px;
       ul {
         list-style-type: none;
         padding-left: 0;
       }
       .instance-health-counts {
         .pull-left;
+      }
+      &.details-running-tasks {
+        background-color: @light_blue_background;
+        margin: 0;
+        padding: 10px 17px 20px;
       }
     }
     padding: 0;
@@ -152,3 +157,4 @@
     }
   }
 }
+

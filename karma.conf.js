@@ -24,7 +24,7 @@ module.exports = function(config) {
       'test/poly/**/*.js',
       'test/mock/**/*.js',
       'test/spec/**/*.js',
-      'app/scripts/modules/**/*.spec.js',
+      'app/scripts/**/*.spec.js',
       'test/fixture/**/*.js',
     ],
 

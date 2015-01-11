@@ -35,6 +35,74 @@ angular.module('deckApp')
       });
     }
 
+    function baseTaskMatcher(task, serverGroup) {
+      var taskRegion = task.getValueFor('regions') ? task.getValueFor('regions')[0] : null;
+      return serverGroup.account === task.getValueFor('credentials') &&
+        serverGroup.region === taskRegion &&
+        serverGroup.name === task.getValueFor('asgName');
+    }
+
+    var taskMatchers = {
+      'createcopylastasg': function(task, serverGroup) {
+        var source = task.getValueFor('source'),
+            targetAccount = task.getValueFor('deploy.account.name'),
+            targetRegion = task.getValueFor('availabilityZones') ? Object.keys(task.getValueFor('availabilityZones'))[0] : null,
+            targetServerGroup = task.getValueFor('deploy.server.groups') ? task.getValueFor('deploy.server.groups')[targetRegion][0] : null,
+            sourceServerGroup = source.asgName,
+            sourceAccount = source.account,
+            sourceRegion = source.region;
+
+        if (serverGroup.account === targetAccount && serverGroup.region === targetRegion && serverGroup.name === targetServerGroup) {
+          return true;
+        }
+        if (serverGroup.account === sourceAccount && serverGroup.region === sourceRegion && serverGroup.name === sourceServerGroup) {
+          return true;
+        }
+        return false;
+      },
+      'createdeploy': function(task, serverGroup) {
+        var account = task.getValueFor('deploy.account.name'),
+            region = task.getValueFor('deploy.server.groups') ? Object.keys(task.getValueFor('deploy.server.groups'))[0] : null,
+            serverGroupName = serverGroup ? task.getValueFor('deploy.server.groups')[region][0] : null;
+
+        if (account && serverGroup && region) {
+          return serverGroup.account === account && serverGroup.region === region && serverGroup.name === serverGroupName;
+        }
+        return false;
+      },
+      'terminateinstances': function(task, serverGroup) {
+        if (task.getValueFor('region') === serverGroup.region && task.getValueFor('credentials') === serverGroup.account) {
+          return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('instanceids')).length > 0;
+        }
+        return false;
+      },
+      'resizeasg': baseTaskMatcher,
+      'disableasg': baseTaskMatcher,
+      'destroyasg': baseTaskMatcher,
+      'enableasg': baseTaskMatcher
+
+    };
+
+    function taskMatches(task, serverGroup) {
+      var matcher = taskMatchers[task.getValueFor('notification.type')];
+      return matcher ? matcher(task, serverGroup) : false;
+    }
+
+    function addTasksToServerGroups(application) {
+      var runningTasks = _.where(application.tasks, {status: 'RUNNING'});
+      if (!application.serverGroups) {
+        return;
+      }
+      application.serverGroups.forEach(function(serverGroup) {
+        serverGroup.runningTasks = [];
+        runningTasks.forEach(function(task) {
+          if (taskMatches(task, serverGroup)) {
+            serverGroup.runningTasks.push(task);
+          }
+        });
+      });
+    }
+
     function collateServerGroupsIntoClusters(serverGroups) {
       var clusters = [];
       var groupedByAccount = _.groupBy(serverGroups, 'account');
@@ -64,7 +132,8 @@ angular.module('deckApp')
     return {
       loadServerGroups: loadServerGroups,
       createServerGroupClusters: collateServerGroupsIntoClusters,
-      normalizeServerGroupsWithLoadBalancers: normalizeServerGroupsWithLoadBalancers
+      normalizeServerGroupsWithLoadBalancers: normalizeServerGroupsWithLoadBalancers,
+      addTasksToServerGroups: addTasksToServerGroups
     };
 
   });

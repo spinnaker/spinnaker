@@ -10,7 +10,8 @@ angular.module('deckApp')
       scope: {
         cluster: '=',
         serverGroup: '=',
-        displayOptions: '='
+        displayOptions: '=',
+        application: '=',
       },
       link: function (scope, el) {
         // stolen from uiSref directive

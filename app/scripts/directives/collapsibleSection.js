@@ -9,7 +9,8 @@ angular.module('deckApp')
       transclude: true,
       scope: {
         heading: '@',
-        expanded: '@?'
+        expanded: '@?',
+        bodyClass: '@?'
       },
       templateUrl: 'views/collapsibleSection.html',
       link: function(scope) {

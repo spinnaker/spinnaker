@@ -77,7 +77,6 @@ angular
         application.disableAutoRefresh = disableAutoRefresh;
         application.enableAutoRefresh = enableAutoRefresh;
         application.getCluster = getCluster;
-        application.tasks = [];
         application.reloadTasks = reloadTasks;
 
         if (application.fromServer && application.clusters) {
@@ -94,14 +93,18 @@ angular
 
     function addTasksToApplication(application, tasks) {
       application.tasks = angular.isArray(tasks) ? tasks : [];
+      clusterService.addTasksToServerGroups(application);
     }
 
     function deepCopyApplication(original, newApplication) {
+      // tasks are handled out of band and will not be part of the newApplication
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
       original.serverGroups = newApplication.serverGroups;
       original.loadBalancers = newApplication.loadBalancers;
       original.securityGroups = newApplication.securityGroups;
+      clusterService.addTasksToServerGroups(original);
+
       newApplication.accounts = null;
       newApplication.clusters = null;
       newApplication.loadBalancers = null;
@@ -155,6 +158,10 @@ angular
               application.loadBalancers = results.loadBalancers;
               loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
+              // If the tasks were loaded already, add them to the server groups
+              if (application.tasks) {
+                clusterService.addTasksToServerGroups(application);
+              }
               securityGroupService.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
 
               return application;
