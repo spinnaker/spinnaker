@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.manual
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
+import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 
 class ManualTriggerNotificationHandler extends AbstractNotificationHandler implements Runnable {
   String handlerType = ManualTriggerPollingNotificationAgent.NOTIFICATION_TYPE

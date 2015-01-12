@@ -22,7 +22,11 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.notifications.*
+import com.netflix.spinnaker.orca.notifications.NotificationHandler
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotificationHandler
+import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import net.greghaines.jesque.client.Client as JesqueClient

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.jenkins
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 
 class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable {
   static final String TRIGGER_TYPE = "jenkins"

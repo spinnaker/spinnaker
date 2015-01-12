@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.jenkins
 
 import groovy.json.JsonSlurper
 import com.netflix.appinfo.InstanceInfo
@@ -123,7 +123,10 @@ class BuildJobNotificationHandlerSpec extends Specification {
     }) >> new Pipeline()
 
     where:
-    master << ['master1', 'master2']
+    master    | _
+    "master1" | _
+    "master2" | _
+
     input = [name: "SPINNAKER-package-pond", master: master, lastBuildStatus: "Success"]
 
   }

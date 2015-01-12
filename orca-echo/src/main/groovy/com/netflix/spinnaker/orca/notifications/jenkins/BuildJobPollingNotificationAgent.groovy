@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.jenkins
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

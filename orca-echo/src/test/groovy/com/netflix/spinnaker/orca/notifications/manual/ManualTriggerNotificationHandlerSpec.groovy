@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.manual
 
 import groovy.json.JsonSlurper
 import com.fasterxml.jackson.databind.ObjectMapper

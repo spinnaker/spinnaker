@@ -1,7 +1,9 @@
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.manual
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
 import retrofit.client.Header
@@ -9,7 +11,7 @@ import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
-import static com.netflix.spinnaker.orca.notifications.ManualTriggerPollingNotificationAgent.NOTIFICATION_TYPE
+import static com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPollingNotificationAgent.NOTIFICATION_TYPE
 
 class ManualTriggerPollingNotificationAgentSpec extends Specification {
 
@@ -92,7 +94,8 @@ class ManualTriggerPollingNotificationAgentSpec extends Specification {
 
   private Response success(content) {
     def body = mapper.writeValueAsString(content)
-    new Response("http://echo", 200, "OK", [APPLICATION_JSON], new TypedString(body))
+    new Response("http://echo", 200, "OK",
+        [APPLICATION_JSON], new TypedString(body))
   }
 
 }
