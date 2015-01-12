@@ -27,9 +27,9 @@
   <div class="col-md-5 sm-label-left"><b>Termination Policies</b></div>
   <div class="col-md-6">
 
-    <ui-select ng-model="command.terminationPolicies" class="form-control input-sm">
-      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="terminationPolicy in terminationPolicies | filter: $select.search">
+    <ui-select multiple ng-model="command.terminationPolicies" class="form-control input-sm">
+      <ui-select-match>{{$item}}</ui-select-match>
+      <ui-select-choices repeat="terminationPolicy in terminationPolicies | filter: $select.search | orderBy: 'toString()'">
         <span ng-bind-html="terminationPolicy | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
