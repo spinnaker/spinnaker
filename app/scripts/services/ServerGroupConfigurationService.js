@@ -142,6 +142,7 @@ angular.module('deckApp')
       var currentOptions = command.backingData.filtered.securityGroups;
       var newRegionalSecurityGroups = _(command.backingData.securityGroups[command.credentials].aws[command.region])
         .filter({vpcId: command.vpcId || null})
+        .sortBy('name')
         .valueOf();
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
@@ -186,7 +187,8 @@ angular.module('deckApp')
         .filter({vpcId: command.vpcId})
         .pluck('name')
         .unique()
-        .valueOf();
+        .valueOf()
+        .sort();
 
       if (current && command.loadBalancers) {
         var matched = _.intersection(newLoadBalancers, command.loadBalancers);
