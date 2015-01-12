@@ -37,9 +37,14 @@ public class CompositeCache implements Cache {
 
     @Override
     public CacheData get(String type, String id) {
+        return get(type, id, null);
+    }
+
+    @Override
+    public CacheData get(String type, String id, CacheFilter cacheFilter) {
         Collection<CacheData> elements = new ArrayList<>(caches.size());
         for (Cache cache : caches) {
-            CacheData element = cache.get(type, id);
+            CacheData element = cache.get(type, id, cacheFilter);
             if (element != null) {
                 elements.add(element);
             }
@@ -52,9 +57,15 @@ public class CompositeCache implements Cache {
 
     @Override
     public Collection<CacheData> getAll(String type) {
+        return getAll(type, (CacheFilter) null);
+
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, CacheFilter cacheFilter) {
         Map<String, CacheData> allItems = new HashMap<>();
         for (Cache cache : caches) {
-            allItems = merge(allItems, cache.getAll(type));
+            allItems = merge(allItems, cache.getAll(type, cacheFilter));
         }
         return allItems.values();
     }
@@ -79,9 +90,14 @@ public class CompositeCache implements Cache {
 
     @Override
     public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        return getAll(type, identifiers, null);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers, CacheFilter cacheFilter) {
         Map<String, CacheData> allItems = new HashMap<>();
         for (Cache cache : caches) {
-            allItems = merge(allItems, cache.getAll(type, identifiers));
+            allItems = merge(allItems, cache.getAll(type, identifiers, cacheFilter));
         }
         return allItems.values();
     }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.redis.JedisSource;
@@ -129,22 +130,33 @@ public class RedisCache implements WriteableCache {
 
     @Override
     public CacheData get(String type, String id) {
-        Collection<CacheData> result = getAll(type, Arrays.asList(id));
+        return get(type, id, null);
+    }
+
+    @Override
+    public CacheData get(String type, String id, CacheFilter cacheFilter) {
+        Collection<CacheData> result = getAll(type, Arrays.asList(id), cacheFilter);
         if (result.isEmpty()) {
             return null;
         }
         return result.iterator().next();
     }
 
-    @Override
-    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+    public Collection<CacheData> getAll(String type,
+                                        Collection<String> identifiers,
+                                        CacheFilter cacheFilter) {
         if (identifiers.isEmpty()) {
             return Collections.emptySet();
         }
         Collection<String> ids = new LinkedHashSet<>(identifiers);
         final List<String> knownRels;
         try (Jedis jedis = source.getJedis()) {
-            knownRels = new ArrayList<>(jedis.smembers(allRelationshipsId(type)));
+            Set<String> allRelationships = jedis.smembers(allRelationshipsId(type));
+            if (cacheFilter == null) {
+                knownRels = new ArrayList<>(allRelationships);
+            } else {
+                knownRels = new ArrayList<>(cacheFilter.filter(CacheFilter.Type.RELATIONSHIP, allRelationships));
+            }
         }
 
         final int singleResultSize = knownRels.size() + 1;
@@ -181,12 +193,22 @@ public class RedisCache implements WriteableCache {
     }
 
     @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        return getAll(type, identifiers, null);
+    }
+
+    @Override
     public Collection<CacheData> getAll(String type) {
+        return getAll(type, (CacheFilter) null);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, CacheFilter cacheFilter) {
         final Set<String> allIds;
         try (Jedis jedis = source.getJedis()) {
             allIds = jedis.smembers(allOfTypeId(type));
         }
-        return getAll(type, allIds);
+        return getAll(type, allIds, cacheFilter);
     }
 
     @Override

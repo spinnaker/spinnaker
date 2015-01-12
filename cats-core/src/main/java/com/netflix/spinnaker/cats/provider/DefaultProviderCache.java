@@ -18,6 +18,7 @@ package com.netflix.spinnaker.cats.provider;
 
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 
@@ -52,11 +53,16 @@ public class DefaultProviderCache implements ProviderCache {
 
     @Override
     public CacheData get(String type, String id) {
+        return get(type, id, null);
+    }
+
+    @Override
+    public CacheData get(String type, String id, CacheFilter cacheFilter) {
         validateTypes(type);
         if (ALL_ID.equals(id)) {
             return null;
         }
-        CacheData item = backingStore.get(type, id);
+        CacheData item = backingStore.get(type, id, cacheFilter);
         if (item == null) {
             return null;
         }
@@ -66,15 +72,25 @@ public class DefaultProviderCache implements ProviderCache {
 
     @Override
     public Collection<CacheData> getAll(String type) {
+        return getAll(type, (CacheFilter) null);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, CacheFilter cacheFilter) {
         validateTypes(type);
-        Collection<CacheData> all = backingStore.getAll(type);
+        Collection<CacheData> all = backingStore.getAll(type, cacheFilter);
         return buildResponse(all);
     }
 
     @Override
     public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        return getAll(type, identifiers, null);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers, CacheFilter cacheFilter) {
         validateTypes(type);
-        Collection<CacheData> byId = backingStore.getAll(type, identifiers);
+        Collection<CacheData> byId = backingStore.getAll(type, identifiers, cacheFilter);
         return buildResponse(byId);
     }
 
