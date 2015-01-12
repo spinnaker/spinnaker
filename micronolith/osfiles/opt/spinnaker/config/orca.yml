@@ -1,0 +1,18 @@
+server:
+  port: 8083
+
+default:
+  bake:
+    account: default
+
+front50:
+  baseUrl: http://localhost:8080
+oort:
+  baseUrl: http://localhost:8081
+mort:
+  baseUrl: http://localhost:8082
+kato:
+  baseUrl: http://localhost:8501
+
+redis:
+  connection: redis://localhost:6379

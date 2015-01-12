@@ -3,6 +3,7 @@ server:
 
 aws:
   enabled: ${AWS_ENABLED:false}
+  defaultSimpleDBDomain: CLOUD_REGISTRY
 
 google:
   enabled: ${GOOGLE_ENABLED:false}
