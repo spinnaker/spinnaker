@@ -28,6 +28,8 @@ import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.retrofit.gson.GsonOptionalDeserializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
 import retrofit.client.OkClient
@@ -49,7 +51,7 @@ class RetrofitConfiguration {
         .create()
   }
 
-  @Bean RetrofitExceptionHandler retrofitExceptionHandler() {
+  @Bean @Order(Ordered.HIGHEST_PRECEDENCE) RetrofitExceptionHandler retrofitExceptionHandler() {
     new RetrofitExceptionHandler()
   }
 
