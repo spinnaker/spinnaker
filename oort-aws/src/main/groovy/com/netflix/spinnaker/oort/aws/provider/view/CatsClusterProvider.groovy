@@ -19,6 +19,8 @@ package com.netflix.spinnaker.oort.aws.provider.view
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.*
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
@@ -95,7 +97,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
     if (includeDetails) {
       Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(clusterData, LOAD_BALANCERS.ns)
-      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns)
+      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(INSTANCES.ns))
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
       serverGroups = translateServerGroups(allServerGroups)
@@ -136,7 +138,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   private Map<String, AmazonServerGroup> translateServerGroups(Collection<CacheData> serverGroupData) {
-    Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, INSTANCES.ns)
+    Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, INSTANCES.ns, RelationshipCacheFilter.none())
 
     Map<String, AmazonInstance> instances = translateInstances(allInstances)
 
@@ -225,7 +227,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       }
     }
 
-    Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet())
+    Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
     healths.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
       instances[instanceId].health << healthEntry.attributes
@@ -236,9 +238,9 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     }
   }
 
-  private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship) {
+  private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
     Collection<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
-    relationships ? cacheView.getAll(relationship, relationships) : []
+    relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
   private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
@@ -252,7 +254,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   @Override
   Set<AmazonCluster> getClusters(String applicationName, String account) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName), RelationshipCacheFilter.include(CLUSTERS.ns))
     if (application == null) {
       return [] as Set
     }

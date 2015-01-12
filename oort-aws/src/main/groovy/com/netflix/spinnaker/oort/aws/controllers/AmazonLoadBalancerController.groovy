@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.aws.controllers
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -80,7 +81,7 @@ class AmazonLoadBalancerController {
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collectEntries { [(it.id): it] }
+    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.none()).collectEntries { [(it.id): it] }
     for (lb in loadBalancerKeys) {
       CacheData loadBalancerFromCache = loadBalancers[lb]
       if (loadBalancerFromCache) {

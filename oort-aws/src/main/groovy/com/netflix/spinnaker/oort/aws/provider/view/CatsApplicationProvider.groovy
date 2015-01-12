@@ -21,14 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 
 @Component
 class CatsApplicationProvider implements ApplicationProvider {
@@ -44,7 +44,7 @@ class CatsApplicationProvider implements ApplicationProvider {
 
   @Override
   Set<Application> getApplications() {
-    Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns)
+    Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns, RelationshipCacheFilter.include(CLUSTERS.ns))
 
     applications.collect this.&translate
   }
