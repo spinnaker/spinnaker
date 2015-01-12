@@ -1,0 +1,26 @@
+<div>
+  <div ng-if="!state.loaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <modal-wizard ng-show="state.loaded" heading="{{title}}">
+    <wizard-page key="location" label="Basic Settings">
+      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/basicSettings.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="load-balancers" label="Load Balancers">
+      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/loadBalancers.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="instance-profile" label="Instance Profile">
+      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/instanceArchetype.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="instance-type" label="Instance Type" render="false">
+      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/instanceType.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="capacity" label="Capacity">
+      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/capacity.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="advanced" label="Advanced Settings" mandatory="false">
+      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/advancedSettings.html'"></ng-include>
+    </wizard-page>
+  </modal-wizard>
+
+</div>

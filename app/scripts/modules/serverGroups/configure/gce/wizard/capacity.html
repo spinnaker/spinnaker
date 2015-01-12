@@ -1,0 +1,10 @@
+<form ng-controller="ServerGroupCapacityCtrl" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <gce-server-group-capacity-selector command="command"></gce-server-group-capacity-selector>
+    <button class="btn btn-default"
+            ng-disabled="form.$invalid"
+            ng-click="wizard.nextPage(form.$valid)">
+      Advanced Settings <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</form>

@@ -1,0 +1,30 @@
+<div>
+  <div ng-if="!state.loaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <modal-wizard ng-show="state.loaded" heading="{{title}}">
+    <wizard-page key="location" label="Basic Settings" hide-subheading="true">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/basicSettings.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="load-balancers" label="Load Balancers">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/loadBalancers.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="security-groups" label="Security Groups">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/securityGroups.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="instance-profile" label="Instance Profile">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/instanceArchetype.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="instance-type" label="Instance Type" render="false">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/instanceType.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="capacity" label="Capacity/Zones">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/capacity.html'"></ng-include>
+    </wizard-page>
+    <wizard-page key="advanced" label="Advanced Settings" mandatory="false">
+      <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/advancedSettings.html'"></ng-include>
+    </wizard-page>
+
+  </modal-wizard>
+
+</div>

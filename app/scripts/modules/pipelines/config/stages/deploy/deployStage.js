@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     });
   })
   .controller('DeployStageCtrl', function ($scope, stage, viewState,
-                                           awsServerGroupService, serverGroupConfigurationService, serverGroupTransformer, _) {
+                                           awsServerGroupService, awsServerGroupConfigurationService, serverGroupTransformer, _) {
     $scope.stage = stage;
 
     function initializeCommand() {
@@ -21,10 +21,10 @@ angular.module('deckApp.pipelines.stage.deploy')
         $scope.stage.uninitialized = true;
       } else {
         awsServerGroupService.buildServerGroupCommandFromPipeline($scope.application, stage.cluster, $scope.stage.account).then(function (command) {
-          serverGroupConfigurationService.configureCommand({name: stage.application}, command).then(function () {
+          awsServerGroupConfigurationService.configureCommand({name: stage.application}, command).then(function () {
             command.credentialsChanged();
             command.regionChanged();
-            serverGroupConfigurationService.configureSubnetPurposes(command);
+            awsServerGroupConfigurationService.configureSubnetPurposes(command);
             $scope.viewState.commandInitialized = true;
             $scope.command = command;
             initializeWatches();

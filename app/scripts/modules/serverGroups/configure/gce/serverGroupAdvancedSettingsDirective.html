@@ -1,0 +1,31 @@
+<div class="form-group">
+  <div class="col-md-12">
+    <table class="table table-condensed packed">
+      <thead>
+      <tr>
+        <th style="width: 25%">Key</th>
+        <th style="width: 75%">Value</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="instanceMetadataPair in command.instanceMetadata">
+        <td><input class="form-control input-sm" type="text" ng-model="instanceMetadataPair.key" required/></td>
+        <td><input class="form-control input-sm" type="text" ng-model="instanceMetadataPair.value" required/></td>
+        <td><a class="btn btn-link sm-label"
+               ng-click="settingsCtrl.removeInstanceMetadata($index)"><span
+          class="glyphicon glyphicon-trash"></span></a></td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td colspan="2">
+          <button class="add-new col-md-12" ng-click="settingsCtrl.addInstanceMetadata()"><span
+            class="glyphicon glyphicon-plus-sign"></span> Add New Metadata
+          </button>
+        </td>
+      </tr>
+      </tfoot>
+    </table>
+
+  </div>
+</div>
