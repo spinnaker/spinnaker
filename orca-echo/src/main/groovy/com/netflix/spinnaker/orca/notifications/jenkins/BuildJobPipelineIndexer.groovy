@@ -15,13 +15,12 @@ import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 @CompileStatic
 class BuildJobPipelineIndexer implements PipelineIndexer, Runnable {
 
-  static final String TRIGGER_TYPE = "jenkins"
-  static final String TRIGGER_KEY = "job"
-  static final String TRIGGER_MASTER = "master"
+  private static final String TRIGGER_KEY = "job"
+  private static final String TRIGGER_MASTER = "master"
 
   final long pollingInterval = 60
   private final PipelineConfigurationService pipelineConfigurationService
-  private Map<String, Collection<Map>> interestingPipelines = [:]
+  private Map<Trigger, Collection<Map>> interestingPipelines = [:]
 
   BuildJobPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
     this.pipelineConfigurationService = pipelineConfigurationService
@@ -40,12 +39,12 @@ class BuildJobPipelineIndexer implements PipelineIndexer, Runnable {
   @Override
   void run() {
     try {
-      Map<String, Collection<Map>> _interestingPipelines = [:]
+      Map<Trigger, Collection<Map>> _interestingPipelines = [:]
       for (Map pipeline in pipelineConfigurationService.pipelines) {
         def triggers = pipeline.triggers as List<Map>
         for (trigger in triggers) {
-          if (trigger.type == TRIGGER_TYPE) {
-            String key = generateKey(trigger[TRIGGER_MASTER] as String, trigger[TRIGGER_KEY] as String)
+          if (trigger.type == BuildJobNotificationHandler.TRIGGER_TYPE) {
+            def key = new Trigger(trigger[TRIGGER_MASTER] as String, trigger[TRIGGER_KEY] as String)
             if (!_interestingPipelines.containsKey(key)) {
               _interestingPipelines[key] = []
             }
@@ -57,9 +56,5 @@ class BuildJobPipelineIndexer implements PipelineIndexer, Runnable {
     } catch (e) {
       e.printStackTrace()
     }
-  }
-
-  private static String generateKey(String master, String job) {
-    "$master:$job"
   }
 }

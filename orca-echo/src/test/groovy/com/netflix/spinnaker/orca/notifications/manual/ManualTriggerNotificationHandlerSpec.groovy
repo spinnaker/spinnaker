@@ -57,7 +57,7 @@ class ManualTriggerNotificationHandlerSpec extends Specification {
   void "should trigger pipelines from manual event"() {
     given:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        new ManualTriggerNotificationHandler.PipelineId(app, pipeline1.name), [pipeline1]
+        new PipelineId(app, pipeline1.name), [pipeline1]
     )
 
     when:

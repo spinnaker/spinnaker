@@ -14,7 +14,7 @@ class ManualTriggerPipelineIndexer implements PipelineIndexer, Runnable {
   long pollingInterval = 15
 
   private final PipelineConfigurationService pipelineConfigurationService
-  private Map<ManualTriggerNotificationHandler.PipelineId, Collection<Map>> indexedPipelines = [:]
+  private Map<PipelineId, Collection<Map>> indexedPipelines = [:]
 
   ManualTriggerPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
     this.pipelineConfigurationService = pipelineConfigurationService
@@ -35,7 +35,7 @@ class ManualTriggerPipelineIndexer implements PipelineIndexer, Runnable {
     try {
       def _indexedPipelines = [:]
       for (pipeline in pipelineConfigurationService.pipelines) {
-        def id = new ManualTriggerNotificationHandler.PipelineId(pipeline.application as String, pipeline.name as String)
+        def id = new PipelineId(pipeline.application as String, pipeline.name as String)
         _indexedPipelines[id] = [pipeline]
       }
       indexedPipelines = _indexedPipelines

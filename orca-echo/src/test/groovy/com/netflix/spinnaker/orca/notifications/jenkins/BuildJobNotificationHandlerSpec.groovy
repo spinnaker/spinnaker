@@ -71,7 +71,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
   void "should pick up stages subsequent to build job completing"() {
     given:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        BuildJobNotificationHandler.generateKey(input.master, input.name), [pipeline1]
+        new Trigger(input.master, input.name), [pipeline1]
     )
 
     when:
@@ -97,8 +97,8 @@ class BuildJobNotificationHandlerSpec extends Specification {
   void "should only trigger targets from the same master "() {
     given:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        BuildJobNotificationHandler.generateKey(input.master, input.name), [pipeline1],
-        BuildJobNotificationHandler.generateKey("master2", input.name), [pipeline3]
+        new Trigger(input.master, input.name), [pipeline1],
+        new Trigger("master2", input.name), [pipeline3]
     )
 
     expect:

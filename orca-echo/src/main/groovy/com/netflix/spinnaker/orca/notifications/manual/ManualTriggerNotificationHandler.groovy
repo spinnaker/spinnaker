@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.notifications.manual
 
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.Immutable
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 
@@ -46,12 +44,5 @@ class ManualTriggerNotificationHandler extends AbstractNotificationHandler imple
       def json = objectMapper.writeValueAsString(config)
       pipelineStarter.start(json)
     }
-  }
-
-  @Immutable
-  @EqualsAndHashCode
-  static class PipelineId implements Serializable {
-    String application
-    String name
   }
 }

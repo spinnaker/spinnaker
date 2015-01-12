@@ -5,7 +5,7 @@ import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 
 class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable {
 
-  static final String TRIGGER_TYPE = "jenkins"
+  public static final String TRIGGER_TYPE = "jenkins"
 
   final String handlerType = BuildJobPollingNotificationAgent.NOTIFICATION_TYPE
 
@@ -24,7 +24,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
   void handleInternal(Map input) {
     try {
       def pipelines = pipelineIndexer.pipelines
-      String key = generateKey(input.master as String, input.name as String)
+      def key = new Trigger(input.master as String, input.name as String)
       if (pipelines.containsKey(key)) {
         if (input.lastBuildStatus != "Success") return
         def pipelineConfigs = pipelines[key]
@@ -43,9 +43,5 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
       e.printStackTrace()
       throw e
     }
-  }
-
-  private static String generateKey(String master, String job) {
-    "$master:$job"
   }
 }

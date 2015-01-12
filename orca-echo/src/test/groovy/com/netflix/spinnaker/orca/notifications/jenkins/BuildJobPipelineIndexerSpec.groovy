@@ -48,6 +48,6 @@ class BuildJobPipelineIndexerSpec extends Specification {
     pipelineIndexer.pipelines[key].name == ["pipeline1", "pipeline2"]
 
     where:
-    key = "master1:SPINNAKER-package-pond"
+    key = new Trigger("master1", "SPINNAKER-package-pond")
   }
 }
