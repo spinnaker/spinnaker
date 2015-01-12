@@ -41,8 +41,22 @@ abstract class AbstractFront50Task implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def application = mapper.convertValue(stage.context.application, Application)
+    def account = (stage.context.account as String)?.toLowerCase()
 
-    def account = (stage.context.account as String).toLowerCase()
+    def missingInputs = []
+    if (!account) {
+      missingInputs << 'account'
+    }
+
+    if (!application.name) {
+      missingInputs << 'application.name'
+    }
+
+    if (missingInputs) {
+      throw new IllegalArgumentException("Missing one or more required task parameters (${missingInputs.join(", ")})")
+    }
+
+
     def outputs = [
       "notification.type": getNotificationType(),
       "application.name": application.name,

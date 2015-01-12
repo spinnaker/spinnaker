@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.NoopExceptionHandler
 import groovy.transform.CompileStatic
@@ -44,6 +45,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.orca.pipeline")
@@ -94,8 +97,8 @@ class OrcaConfiguration {
     new NoopNotificationHandler()
   }
 
-  @Bean NoopExceptionHandler noopExceptionHandler() {
-    new NoopExceptionHandler()
+  @Bean @Order(Ordered.LOWEST_PRECEDENCE) DefaultExceptionHandler defaultExceptionHandler() {
+    new DefaultExceptionHandler()
   }
 
   @Bean
