@@ -18,6 +18,7 @@ package com.netflix.spinnaker.cats.cache
 
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 abstract class CacheSpec extends Specification {
 
@@ -114,6 +115,25 @@ abstract class CacheSpec extends Specification {
         results.size() == 2
         results.find { it.id == 'bar' }
         results.find { it.id == 'baz' }
+    }
 
+    @Unroll
+    def 'relationship filtering behaviour'() {
+        setup:
+        populateOne('foo', 'bar', createData('bar', [bar: "bar"], [rel1: ["rel1"], rel2: ["rel2"]]))
+
+        expect:
+        cache.get('foo', 'bar').relationships.keySet() == ["rel1", "rel2"] as Set
+        cache.get('foo', 'bar', filter).relationships.keySet() == expectedRelationships as Set
+
+        cache.getAll('foo').iterator().next().relationships.keySet() == ["rel1", "rel2"] as Set
+        cache.getAll('foo', filter).iterator().next().relationships.keySet() == expectedRelationships as Set
+
+        where:
+        filter                                          || expectedRelationships
+        RelationshipCacheFilter.include("rel1")         || ["rel1"]
+        RelationshipCacheFilter.include("rel1", "rel2") || ["rel1", "rel2"]
+        RelationshipCacheFilter.include("rel3")         || []
+        RelationshipCacheFilter.none()                  || []
     }
 }

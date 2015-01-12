@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.cats.mem;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 
@@ -67,21 +68,31 @@ public class InMemoryCache implements WriteableCache {
 
     @Override
     public CacheData get(String type, String id) {
+        return get(type, id, null);
+    }
+
+    @Override
+    public CacheData get(String type, String id, CacheFilter cacheFilter) {
         CacheData existing = getTypeMap(type).get(id);
         if (existing != null) {
-            return wrap(existing);
+            return wrap(existing, cacheFilter);
         }
         return null;
     }
 
     @Override
     public Collection<CacheData> getAll(String type) {
+        return getAll(type, (CacheFilter) null);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, CacheFilter cacheFilter) {
         ConcurrentMap<String, CacheData> map = getTypeMap(type);
         Collection<CacheData> values = new LinkedList<>();
         for (CacheData data : map.values()) {
-            CacheData toReturn = wrap(data);
+            CacheData toReturn = wrap(data, cacheFilter);
             if (toReturn != null) {
-                values.add(wrap(data));
+                values.add(wrap(data, cacheFilter));
             }
         }
         return values;
@@ -89,10 +100,15 @@ public class InMemoryCache implements WriteableCache {
 
     @Override
     public Collection<CacheData> getAll(String type, Collection<String> identifiers) {
+        return getAll(type, identifiers, null);
+    }
+
+    @Override
+    public Collection<CacheData> getAll(String type, Collection<String> identifiers, CacheFilter cacheFilter) {
         ConcurrentMap<String, CacheData> map = getTypeMap(type);
         Collection<CacheData> values = new ArrayList<>(identifiers.size());
         for (String id : identifiers) {
-            CacheData toReturn = wrap(map.get(id));
+            CacheData toReturn = wrap(map.get(id), cacheFilter);
             if (toReturn != null) {
                 values.add(toReturn);
             }
@@ -134,11 +150,20 @@ public class InMemoryCache implements WriteableCache {
         return existing;
     }
 
-    private CacheData wrap(CacheData data) {
+    private CacheData wrap(CacheData data, CacheFilter cacheFilter) {
         if (data == null || data.getAttributes().isEmpty()) {
             return null;
         }
-        return new DefaultCacheData(data.getId(), data.getAttributes(), data.getRelationships());
+
+        Map<String, Collection<String>> relationships = data.getRelationships();
+        if (cacheFilter != null) {
+            relationships = new HashMap<>();
+            for (String relationship : cacheFilter.filter(CacheFilter.Type.RELATIONSHIP, data.getRelationships().keySet())) {
+                relationships.put(relationship, data.getRelationships().get(relationship));
+            }
+        }
+
+        return new DefaultCacheData(data.getId(), data.getAttributes(), relationships);
     }
 
     private CacheData getCacheData(ConcurrentMap<String, CacheData> map, String id) {

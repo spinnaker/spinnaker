@@ -30,6 +30,8 @@ public interface Cache {
      */
     CacheData get(String type, String id);
 
+    CacheData get(String type, String id, CacheFilter cacheFilter);
+
     /**
      * Retrieves all the identifiers for a type
      * @param type the type for which to retrieve identifiers
@@ -52,6 +54,8 @@ public interface Cache {
      */
     Collection<CacheData> getAll(String type);
 
+    Collection<CacheData> getAll(String type, CacheFilter cacheFilter);
+
     /**
      * Retrieves the items for the specified type matching the provided identifiers
      * @param type the type for which to retrieve items
@@ -59,6 +63,8 @@ public interface Cache {
      * @return the items matching the type and identifiers
      */
     Collection<CacheData> getAll(String type, Collection<String> identifiers);
+
+    Collection<CacheData> getAll(String type, Collection<String> identifiers, CacheFilter cacheFilter);
 
     /**
      * Retrieves the items for the specified type matching the provided identifiers
