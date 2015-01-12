@@ -7,11 +7,13 @@ import javax.annotation.PostConstruct
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
+import org.springframework.stereotype.Component
 
 /**
  * Indexes pipelines known by mayo for consumption by a
  * {@link BuildJobNotificationHandler}.
  */
+@Component
 @CompileStatic
 class BuildJobPipelineIndexer implements PipelineIndexer, Runnable {
 

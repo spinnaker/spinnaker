@@ -1,27 +1,26 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
+import groovy.transform.InheritConstructors
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Scope
+import org.springframework.stereotype.Component
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
-class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable {
+@Component
+@Scope(SCOPE_PROTOTYPE)
+@InheritConstructors
+class BuildJobNotificationHandler extends AbstractNotificationHandler {
 
   public static final String TRIGGER_TYPE = "jenkins"
 
   final String handlerType = BuildJobPollingNotificationAgent.NOTIFICATION_TYPE
 
-  private final PipelineIndexer pipelineIndexer
-
-  BuildJobNotificationHandler(PipelineIndexer pipelineIndexer) {
-    this.pipelineIndexer = pipelineIndexer
-  }
+  @Autowired PipelineIndexer pipelineIndexer
 
   @Override
-  void run() {
-
-  }
-
-  @Override
-  void handleInternal(Map input) {
+  void handle(Map input) {
     try {
       def pipelines = pipelineIndexer.pipelines
       def key = new Trigger(input.master as String, input.name as String)

@@ -37,17 +37,22 @@ abstract class AbstractNotificationHandler implements NotificationHandler {
   @Autowired(required = false)
   DiscoveryClient discoveryClient
 
-  abstract String getHandlerType()
+  private final Map input
 
-  abstract void handleInternal(Map input)
+  AbstractNotificationHandler(Map input) {
+    this.input = input
+  }
+
+  abstract String getHandlerType()
 
   boolean handles(String type) {
     type == handlerType
   }
 
-  void handle(Map input) {
+  @Override
+  final void run() {
     if (inService) {
-      handleInternal(input)
+      handle(input)
     }
   }
 

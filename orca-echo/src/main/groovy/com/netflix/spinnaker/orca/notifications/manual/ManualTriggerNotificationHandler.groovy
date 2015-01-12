@@ -16,26 +16,25 @@
 
 package com.netflix.spinnaker.orca.notifications.manual
 
+import groovy.transform.InheritConstructors
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Scope
+import org.springframework.stereotype.Component
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
-class ManualTriggerNotificationHandler extends AbstractNotificationHandler implements Runnable {
+@Component
+@Scope(SCOPE_PROTOTYPE)
+@InheritConstructors
+class ManualTriggerNotificationHandler extends AbstractNotificationHandler {
 
   String handlerType = ManualTriggerPollingNotificationAgent.NOTIFICATION_TYPE
 
-  private final PipelineIndexer pipelineIndexer
-
-  ManualTriggerNotificationHandler(PipelineIndexer pipelineIndexer) {
-    this.pipelineIndexer = pipelineIndexer
-  }
+  @Autowired PipelineIndexer pipelineIndexer
 
   @Override
-  void run() {
-
-  }
-
-  @Override
-  void handleInternal(Map input) {
+  void handle(Map input) {
     def id = new PipelineId(input.application as String, input.name as String)
     def pipelines = pipelineIndexer.pipelines
     if (pipelines.containsKey(id)) {

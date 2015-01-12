@@ -27,4 +27,9 @@ class NoopNotificationHandler implements NotificationHandler {
   void handle(Map input) {
 
   }
+
+  @Override
+  void run() {
+
+  }
 }

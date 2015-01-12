@@ -7,7 +7,9 @@ import javax.annotation.PostConstruct
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class ManualTriggerPipelineIndexer implements PipelineIndexer, Runnable {
 

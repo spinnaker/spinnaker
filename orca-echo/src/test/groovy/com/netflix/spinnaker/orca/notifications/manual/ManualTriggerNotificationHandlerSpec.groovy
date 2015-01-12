@@ -44,24 +44,31 @@ class ManualTriggerNotificationHandlerSpec extends Specification {
   def pipelineIndexer = Stub(PipelineIndexer)
   def discoveryClient = Stub(DiscoveryClient)
   def pipelineStarter = Mock(PipelineStarter)
-  @Subject def handler = new ManualTriggerNotificationHandler(pipelineIndexer)
 
-  void setup() {
+  private ManualTriggerNotificationHandler handlerFor(Map input) {
+    def handler = new ManualTriggerNotificationHandler(input)
     handler.objectMapper = new ObjectMapper()
     handler.pipelineStarter = pipelineStarter
     handler.discoveryClient = discoveryClient
+    handler.pipelineIndexer = pipelineIndexer
+    return handler
+  }
 
+  def setup() {
     discoveryClient.instanceRemoteStatus >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should trigger pipelines from manual event"() {
     given:
+    @Subject handler = handlerFor(application: app, name: pipeline1.name, user: user)
+
+    and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
         new PipelineId(app, pipeline1.name), [pipeline1]
     )
 
     when:
-    handler.handle(application: app, name: pipeline1.name, user: user)
+    handler.run()
 
     then:
     1 * pipelineStarter.start(_) >> { json ->

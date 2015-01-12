@@ -17,26 +17,17 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
-import com.netflix.spinnaker.orca.notifications.NotificationHandler
-import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
-import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPipelineIndexer
-import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
-import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotificationHandler
-import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPipelineIndexer
-import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import net.greghaines.jesque.client.Client as JesqueClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
@@ -48,6 +39,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Configuration
 @Import(RetrofitConfiguration)
 @ConditionalOnProperty(value = 'echo.baseUrl')
+@ComponentScan("com.netflix.spinnaker.orca.notifications")
 @CompileStatic
 class EchoConfiguration {
 
@@ -67,44 +59,6 @@ class EchoConfiguration {
         .setConverter(new GsonConverter(gson))
         .build()
         .create(EchoService)
-  }
-
-  @Bean
-  BuildJobPipelineIndexer buildJobPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
-    new BuildJobPipelineIndexer(pipelineConfigurationService)
-  }
-
-  @Bean
-  BuildJobNotificationHandler buildJobNotificationHandler(BuildJobPipelineIndexer pipelineIndexer) {
-    new BuildJobNotificationHandler(pipelineIndexer)
-  }
-
-  @Bean
-  BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(
-      ObjectMapper objectMapper,
-      EchoService echoService,
-      JesqueClient jesqueClient,
-      List<NotificationHandler> notificationHandlers) {
-    new BuildJobPollingNotificationAgent(objectMapper, echoService, jesqueClient, notificationHandlers)
-  }
-
-  @Bean
-  ManualTriggerPipelineIndexer manualTriggerPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
-    new ManualTriggerPipelineIndexer(pipelineConfigurationService)
-  }
-
-  @Bean
-  ManualTriggerNotificationHandler manualTriggerNotificationHandler(ManualTriggerPipelineIndexer pipelineIndexer) {
-    new ManualTriggerNotificationHandler(pipelineIndexer)
-  }
-
-  @Bean
-  ManualTriggerPollingNotificationAgent manualTriggerPollingNotificationAgent(
-      ObjectMapper objectMapper,
-      EchoService echoService,
-      JesqueClient jesqueClient,
-      List<NotificationHandler> notificationHandlers) {
-    new ManualTriggerPollingNotificationAgent(objectMapper, echoService, jesqueClient, notificationHandlers)
   }
 
   @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(

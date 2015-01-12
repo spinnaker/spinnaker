@@ -58,24 +58,31 @@ class BuildJobNotificationHandlerSpec extends Specification {
   def discoveryClient = Stub(DiscoveryClient)
   def pipelineIndexer = Stub(PipelineIndexer)
   def pipelineStarter = Mock(PipelineStarter)
-  @Subject handler = new BuildJobNotificationHandler(pipelineIndexer)
 
-  void setup() {
+  private BuildJobNotificationHandler handlerFor(Map input) {
+    def handler = new BuildJobNotificationHandler(input)
     handler.discoveryClient = discoveryClient
     handler.pipelineStarter = pipelineStarter
     handler.objectMapper = new OrcaObjectMapper()
+    handler.pipelineIndexer = pipelineIndexer
+    return handler
+  }
 
+  void setup() {
     discoveryClient.getInstanceRemoteStatus() >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should pick up stages subsequent to build job completing"() {
     given:
+    @Subject handler = handlerFor(input)
+
+    and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
         new Trigger(input.master, input.name), [pipeline1]
     )
 
     when:
-    handler.handle(input)
+    handler.run()
 
     then:
     1 * pipelineStarter.start(_) >> { json ->
@@ -96,6 +103,9 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   void "should only trigger targets from the same master "() {
     given:
+    @Subject handler = handlerFor(input)
+
+    and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
         new Trigger(input.master, input.name), [pipeline1],
         new Trigger("master2", input.name), [pipeline3]
@@ -105,7 +115,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     pipeline1.triggers.master != pipeline3.triggers.master
 
     when:
-    handler.handle(input)
+    handler.run()
 
     then:
     1 * pipelineStarter.start({

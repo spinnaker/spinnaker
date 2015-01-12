@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.notifications
 
-interface NotificationHandler {
+interface NotificationHandler extends Runnable {
   boolean handles(String type)
+
   void handle(Map input)
 }
