@@ -97,7 +97,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
     if (includeDetails) {
       Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(clusterData, LOAD_BALANCERS.ns)
-      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(INSTANCES.ns))
+      Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(INSTANCES.ns, LAUNCH_CONFIGS.ns))
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
       serverGroups = translateServerGroups(allServerGroups)
