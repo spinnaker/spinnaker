@@ -18,13 +18,15 @@ package com.netflix.spinnaker.orca.notifications.manual
 
 import groovy.json.JsonSlurper
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableMap
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ManualTriggerNotificationHandlerSpec extends Specification {
 
@@ -39,20 +41,24 @@ class ManualTriggerNotificationHandlerSpec extends Specification {
                     [type: "deploy", cluster: [name: "bar"]]]
   ]
 
-  @Shared DiscoveryClient discoveryClient = Stub(DiscoveryClient)
+  def pipelineIndexer = Stub(PipelineIndexer)
+  def discoveryClient = Stub(DiscoveryClient)
+  def pipelineStarter = Mock(PipelineStarter)
+  @Subject def handler = new ManualTriggerNotificationHandler(pipelineIndexer)
 
   void setup() {
+    handler.objectMapper = new ObjectMapper()
+    handler.pipelineStarter = pipelineStarter
+    handler.discoveryClient = discoveryClient
+
     discoveryClient.instanceRemoteStatus >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should trigger pipelines from manual event"() {
-    setup:
-    def pipelineConfigurationService = Stub(PipelineConfigurationService)
-    def pipelineStarter = Mock(PipelineStarter)
-    def handler = new ManualTriggerNotificationHandler(objectMapper: new ObjectMapper(),
-        pipelineStarter: pipelineStarter, pipelineConfigurationService: pipelineConfigurationService,
-        discoveryClient: discoveryClient)
-    handler.indexedPipelines = [(new ManualTriggerNotificationHandler.PipelineId(app, pipeline1.name)): pipeline1]
+    given:
+    pipelineIndexer.getPipelines() >> ImmutableMap.of(
+        new ManualTriggerNotificationHandler.PipelineId(app, pipeline1.name), [pipeline1]
+    )
 
     when:
     handler.handle(application: app, name: pipeline1.name, user: user)

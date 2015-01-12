@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.notifications
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,9 +29,6 @@ abstract class AbstractNotificationHandler implements NotificationHandler {
 
   @Autowired
   PipelineStarter pipelineStarter
-
-  @Autowired
-  PipelineConfigurationService pipelineConfigurationService
 
   @Autowired
   ObjectMapper objectMapper

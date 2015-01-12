@@ -22,10 +22,13 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
+import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPipelineIndexer
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotificationHandler
+import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPipelineIndexer
 import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
@@ -66,8 +69,14 @@ class EchoConfiguration {
         .create(EchoService)
   }
 
-  @Bean BuildJobNotificationHandler buildJobNotificationHandler() {
-    new BuildJobNotificationHandler()
+  @Bean
+  BuildJobPipelineIndexer buildJobPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
+    new BuildJobPipelineIndexer(pipelineConfigurationService)
+  }
+
+  @Bean
+  BuildJobNotificationHandler buildJobNotificationHandler(BuildJobPipelineIndexer pipelineIndexer) {
+    new BuildJobNotificationHandler(pipelineIndexer)
   }
 
   @Bean
@@ -79,8 +88,14 @@ class EchoConfiguration {
     new BuildJobPollingNotificationAgent(objectMapper, echoService, jesqueClient, notificationHandlers)
   }
 
-  @Bean ManualTriggerNotificationHandler manualTriggerNotificationHandler() {
-    new ManualTriggerNotificationHandler()
+  @Bean
+  ManualTriggerPipelineIndexer manualTriggerPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
+    new ManualTriggerPipelineIndexer(pipelineConfigurationService)
+  }
+
+  @Bean
+  ManualTriggerNotificationHandler manualTriggerNotificationHandler(ManualTriggerPipelineIndexer pipelineIndexer) {
+    new ManualTriggerNotificationHandler(pipelineIndexer)
   }
 
   @Bean

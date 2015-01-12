@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
 import groovy.json.JsonSlurper
+import com.google.common.collect.ImmutableMap
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class BuildJobNotificationHandlerSpec extends Specification {
 
@@ -54,17 +55,24 @@ class BuildJobNotificationHandlerSpec extends Specification {
       stages  : []
   ]
 
-  @Shared DiscoveryClient discoveryClient = Stub(DiscoveryClient)
+  def discoveryClient = Stub(DiscoveryClient)
+  def pipelineIndexer = Stub(PipelineIndexer)
+  def pipelineStarter = Mock(PipelineStarter)
+  @Subject handler = new BuildJobNotificationHandler(pipelineIndexer)
 
   void setup() {
+    handler.discoveryClient = discoveryClient
+    handler.pipelineStarter = pipelineStarter
+    handler.objectMapper = new OrcaObjectMapper()
+
     discoveryClient.getInstanceRemoteStatus() >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should pick up stages subsequent to build job completing"() {
-    setup:
-    def pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
-    handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
+    given:
+    pipelineIndexer.getPipelines() >> ImmutableMap.of(
+        BuildJobNotificationHandler.generateKey(input.master, input.name), [pipeline1]
+    )
 
     when:
     handler.handle(input)
@@ -86,30 +94,12 @@ class BuildJobNotificationHandlerSpec extends Specification {
     input = [name: "SPINNAKER-package-pond", master: "master1", lastBuildStatus: "Success"]
   }
 
-  void "should add multiple pipeline targets to single trigger type"() {
-    setup:
-    def pipelineConfigService = Stub(PipelineConfigurationService) {
-      getPipelines() >> [pipeline1, pipeline2]
-    }
-    def pipelineStarter = Stub(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
-
-    when:
-    handler.run()
-
-    then:
-    handler.interestingPipelines[key].name == ["pipeline1", "pipeline2"]
-
-    where:
-    key = "master1:SPINNAKER-package-pond"
-  }
-
   void "should only trigger targets from the same master "() {
     given:
-    def pipelineStarter = Mock(PipelineStarter)
-    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
-    handler.interestingPipelines[BuildJobNotificationHandler.generateKey(input.master, input.name)] = [pipeline1]
-    handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
+    pipelineIndexer.getPipelines() >> ImmutableMap.of(
+        BuildJobNotificationHandler.generateKey(input.master, input.name), [pipeline1],
+        BuildJobNotificationHandler.generateKey("master2", input.name), [pipeline3]
+    )
 
     expect:
     pipeline1.triggers.master != pipeline3.triggers.master
@@ -125,10 +115,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     where:
     master    | _
     "master1" | _
-    "master2" | _
 
     input = [name: "SPINNAKER-package-pond", master: master, lastBuildStatus: "Success"]
-
   }
-
 }

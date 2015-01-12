@@ -20,5 +20,6 @@ dependencies {
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('bootAutoConfigure')
   compile "net.greghaines:jesque:2.0.0"
+  compile "net.lariverosc:jesque-spring:1.0.0"
   testCompile project(":orca-test")
 }
