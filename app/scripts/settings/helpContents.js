@@ -2,13 +2,13 @@
 
 angular.module('deckApp')
   .constant('helpContents', {
-    'aws.serverGroup.subnet': 'This is the VPC in which your server group will run. Options vary by account and region; the most common ones are:' +
+    'aws.serverGroup.subnet': 'The subnet selection determines the VPC in which your server group will run. Options vary by account and region; the most common ones are:' +
       '<ul>' +
       '<li><b>None (EC2 Classic)</b>: instances will not run in a VPC</li>' +
       '<li><b>internal</b> instances will be restricted to internal clients (i.e. require VPN access)</li>' +
       '<li><b>external</b> instances will be publicly accessible and running in VPC</li>' +
       '</ul>',
-    'aws.loadBalancer.subnet': 'This is the VPC in which your load balancer will run.<br/>' +
+    'aws.loadBalancer.subnet': 'The subnet selection determines the VPC in which your load balancer will run.<br/>' +
       ' This also restricts the server groups which can be serviced by the load balancer.' +
       ' Options vary by account and region; the most common ones are:' +
       '<ul>' +
@@ -22,6 +22,9 @@ angular.module('deckApp')
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
     'aws.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
+    'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +
+      '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
+      '<p>If you do not wish to use VPC, select "None".</p>',
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
       '<ul>' +
       '<li>Region</li>' +
