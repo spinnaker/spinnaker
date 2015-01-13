@@ -224,7 +224,7 @@ angular.module('deckApp')
         var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
         var result = { dirty: {} };
         if (command.viewState.usePreferredZones) {
-          command.availabilityZones = command.backingData.preferredZones[command.credentials][command.region].sort();
+          command.availabilityZones = angular.copy(command.backingData.preferredZones[command.credentials][command.region].sort());
         }
         if (!command.viewState.usePreferredZones) {
           command.availabilityZones = _.intersection(command.availabilityZones, command.backingData.filtered.availabilityZones);

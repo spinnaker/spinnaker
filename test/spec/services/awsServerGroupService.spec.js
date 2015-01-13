@@ -54,6 +54,7 @@ describe('Service: awsServerGroup', function () {
             'us-east-1': ['d', 'e'],
           },
           prod: {
+            'us-west-1': ['d','g'],
             'us-east-1': ['d','e'],
             'eu-west-1': ['a','m']
           }
@@ -79,6 +80,25 @@ describe('Service: awsServerGroup', function () {
 
       expect(command.credentials).toBe('prod');
       expect(command.region).toBe('us-west-1');
+    });
+
+    it('sets usePreferredZones', function() {
+      var command = null;
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster, 'prod').then(function(result) {
+        command = result;
+      });
+
+      this.$scope.$digest();
+      expect(command.viewState.usePreferredZones).toBe(true);
+
+      // remove an availability zone, should be false
+      this.cluster.availabilityZones['us-west-1'].pop();
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster, 'prod').then(function(result) {
+        command = result;
+      });
+
+      this.$scope.$digest();
+      expect(command.viewState.usePreferredZones).toBe(false);
     });
 
   });

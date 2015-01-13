@@ -3,14 +3,14 @@
 
 angular.module('deckApp')
   .factory('awsServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader) {
-    function buildNewServerGroupCommand(application) {
+    function buildNewServerGroupCommand(application, account, region) {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount();
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, regionsKeyedByAccount: regionsKeyedByAccountLoader});
 
       return asyncLoader.then(function(asyncData) {
-        var defaultCredentials = settings.defaults.account;
-        var defaultRegion = settings.defaults.region;
+        var defaultCredentials = account || settings.defaults.account;
+        var defaultRegion = region || settings.defaults.region;
 
         var defaultZones = asyncData.preferredZones[defaultCredentials];
         if (!defaultZones) {
@@ -55,18 +55,18 @@ angular.module('deckApp')
       });
     }
 
-    function buildServerGroupCommandFromPipeline(application, cluster, account) {
+    function buildServerGroupCommandFromPipeline(application, pipelineCluster, account) {
 
-      return buildNewServerGroupCommand(application).then(function(command) {
+      var region = Object.keys(pipelineCluster.availabilityZones)[0];
+      return buildNewServerGroupCommand(application, account, region).then(function(command) {
 
-        var region = Object.keys(cluster.availabilityZones)[0];
-        var zones = cluster.availabilityZones[region];
+        var zones = pipelineCluster.availabilityZones[region];
         var usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
 
         var viewState = {
           instanceProfile: 'custom',
           disableImageSelection: true,
-          useSimpleCapacity: cluster.capacity.minSize === cluster.capacity.maxSize,
+          useSimpleCapacity: pipelineCluster.capacity.minSize === pipelineCluster.capacity.maxSize,
           usePreferredZones: usePreferredZones,
           mode: 'clone',
           isNew: false,
@@ -75,13 +75,13 @@ angular.module('deckApp')
         var viewOverrides = {
           region: region,
           credentials: account,
-          availabilityZones: cluster.availabilityZones[region],
+          availabilityZones: pipelineCluster.availabilityZones[region],
           viewState: viewState,
         };
 
-        cluster.strategy = cluster.strategy || '';
+        pipelineCluster.strategy = pipelineCluster.strategy || '';
 
-        return angular.extend({}, command, cluster, viewOverrides);
+        return angular.extend({}, command, pipelineCluster, viewOverrides);
       });
 
     }
