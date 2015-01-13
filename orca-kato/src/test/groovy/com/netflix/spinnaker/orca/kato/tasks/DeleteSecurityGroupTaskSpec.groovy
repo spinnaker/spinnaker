@@ -34,12 +34,33 @@ class DeleteSecurityGroupTaskSpec extends Specification {
     credentials       : "fzlem"
   ]
 
-  def setup() {
+  def "creates a delete security group task based on job parameters"() {
     stage.context.putAll(config)
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        rx.Observable.from(taskId)
+      }
+    }
+
+    when:
+    task.execute(stage.asImmutable())
+
+    then:
+    operations.size() == 1
+    with(operations[0].deleteSecurityGroupDescription) {
+      it instanceof Map
+      securityGroupName == this.config.securityGroupName
+      vpcId == this.config.vpcId
+      regions == this.config.regions
+      credentials == this.config.credentials
+    }
   }
 
-  def "creates a delete security group task based on job parameters"() {
-    given:
+  def "creates a delete security group task without optional parameters"() {
+    config.remove("vpcId")
+    stage.context.putAll(config)
     def operations
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
@@ -63,7 +84,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
   }
 
   def "returns a success status with the kato task id"() {
-    given:
+    stage.context.putAll(config)
     task.kato = Stub(KatoService) {
       requestOperations(*_) >> rx.Observable.from(taskId)
     }
