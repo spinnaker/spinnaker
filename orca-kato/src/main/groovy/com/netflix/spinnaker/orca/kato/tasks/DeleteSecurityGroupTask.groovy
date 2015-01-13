@@ -41,10 +41,12 @@ class DeleteSecurityGroupTask implements Task {
         "kato.last.task.id"  : taskId,
         "kato.task.id"       : taskId, // TODO retire this.
         "delete.name"        : stage.context.securityGroupName,
-        "delete.vpcId"       : stage.context.vpcId,
         "delete.regions"     : stage.context.regions.join(','),
         "delete.account.name": stage.context.credentials
     ]
+    if (stage.context.vpcId) {
+      outputs["delete.vpcId"] = stage.context.vpcId
+    }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }
