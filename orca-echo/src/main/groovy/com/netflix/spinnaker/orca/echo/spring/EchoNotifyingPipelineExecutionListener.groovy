@@ -24,7 +24,7 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
     def execution = currentExecution(jobExecution)
     echoService.recordEvent(
         details: [
-            source     : "Orca",
+            source     : "orca",
             type       : "orca:pipeline:starting",
             application: execution.application,
         ],
@@ -40,7 +40,7 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
     def execution = currentExecution(jobExecution)
     echoService.recordEvent(
         details: [
-            source     : "Orca",
+            source     : "orca",
             type       : "orca:pipeline:${(wasSuccessful(jobExecution) ? "complete" : "failed")}".toString(),
             application: execution.application,
         ],
