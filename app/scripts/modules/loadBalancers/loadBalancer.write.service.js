@@ -5,8 +5,7 @@ angular
   .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, applicationName) {
-      infrastructureCaches.loadBalancers.removeAll();
-      return taskExecutor.executeTask({
+      var operation = taskExecutor.executeTask({
         job: [
           {
             type: 'deleteLoadBalancer',
@@ -19,6 +18,10 @@ angular
         application: applicationName,
         description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
       });
+
+      operation.then(infrastructureCaches.loadBalancers.removeAll);
+
+      return operation;
     }
 
 
@@ -35,14 +38,17 @@ angular
       if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
         loadBalancer.securityGroups = null;
       }
-      scheduledCache.removeAll();
-      return taskExecutor.executeTask({
+      var operation = taskExecutor.executeTask({
         job: [
           loadBalancer
         ],
         application: applicationName,
         description: descriptor + ' Load Balancer: ' + name
       });
+
+      operation.then(infrastructureCaches.loadBalancers.removeAll);
+
+      return operation;
     }
 
     return {
