@@ -28,37 +28,37 @@ class AmazonInstanceSpec extends Specification {
   Instance instance
 
   def setup() {
-    instance = new AmazonInstance()
+    instance = new AmazonInstance('foo')
   }
 
-  def "test getHealthState for ALL UP health states"() {
+  def "getHealthState for ALL UP health states"() {
     given:
-      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: HealthState.Up], [type: "LoadBalancer", state: HealthState.Up]]
+      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: 'Up'], [type: "LoadBalancer", state: "Up"]]
     when:
       HealthState healthState = instance.getHealthState()
     then:
       healthState == HealthState.Up
   }
 
-  void "test getHealthState for ONE DOWN & One UP health state"() {
+  def "getHealthState for ONE DOWN & One UP health state"() {
     given:
-      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: HealthState.Up], [type: "LoadBalancer", state: HealthState.Down]]
+      instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: "Up"], [type: "LoadBalancer", state: "Down"]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
       heathState == HealthState.Down
   }
 
-  void "test getHealthState for ALL DOWN  health state"() {
+  def "getHealthState for ALL DOWN  health state"() {
     given:
-    instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: HealthState.Down], [type: "LoadBalancer", state: HealthState.Down]]
+    instance.health = [[type: "Amazon", state: HealthState.Unknown], [type: "Discovery", state: "Down"], [type: "LoadBalancer", state: "Down"]]
     when:
     HealthState heathState = instance.getHealthState()
     then:
     heathState == HealthState.Down
   }
 
-  void "test getHealthState for unhealthy with no UP or DOWN health status"() {
+  def "getHealthState for unhealthy with no UP or DOWN health status"() {
     given:
       instance.health = [[type: "Amazon", state: HealthState.Unknown]]
 
@@ -69,7 +69,7 @@ class AmazonInstanceSpec extends Specification {
       heathState == HealthState.Unknown
   }
 
-  void "test getHealthState for empty health collection"() {
+  def "getHealthState for empty health collection"() {
     given:
     instance.health = []
 
