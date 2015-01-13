@@ -53,12 +53,14 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     if (stepExecution.status == BatchStatus.STARTED) {
       echoService.recordEvent(
           details: [
-              source     : "Orca",
+              source     : "orca",
               type       : "orca:task:starting",
-              application: stage.execution.application,
-              id         : stage.execution.id
+              application: stage.execution.application
           ],
-          content: stage.context
+          content: [
+              context    : stage.context,
+              executionId: stage.execution.id
+          ]
       )
     }
   }
@@ -69,12 +71,13 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     }
     echoService.recordEvent(
         details: [
-            source     : "Orca",
+            source     : "orca",
             type       : "orca:task:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
-            application: stage.execution.application,
-            id         : stage.execution.id
-        ],
-        content: stage.context
+            application: stage.execution.application
+        ], content: [
+            context    : stage.context,
+            executionId: stage.execution.id
+        ]
     )
   }
 

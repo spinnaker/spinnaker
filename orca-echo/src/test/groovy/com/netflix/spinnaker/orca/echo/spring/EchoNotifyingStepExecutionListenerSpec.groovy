@@ -109,7 +109,7 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     echoListener.afterTask(stage, stepExecution)
 
     then:
-    message.details.source == "Orca"
+    message.details.source == "orca"
     message.details.application == pipeline.application
     message.details.type == "orca:task:$echoMessage"
     message.details.type instanceof String
