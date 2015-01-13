@@ -330,7 +330,7 @@ angular.module('deckApp')
         },
         resolve: {
           application: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
-            return applicationReader.getApplication($stateParams.application);
+            return applicationReader.getApplication($stateParams.application, {tasks: true});
           }]
         },
         data: {

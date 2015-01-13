@@ -26,7 +26,7 @@ describe('serverGroupWriter', function () {
 
       $httpBackend.expectGET(settings.gateUrl + '/applications/appName/tasks/1').respond({});
 
-      serverGroupWriter.cloneServerGroup(command, 'appName');
+      serverGroupWriter.cloneServerGroup(command, { name: 'appName', reloadTasks: angular.noop });
       $httpBackend.flush();
 
       return submitted;
@@ -38,7 +38,8 @@ describe('serverGroupWriter', function () {
             mode: 'create',
             useAllImageSelection: true,
             allImageSelection: 'something-packagebase',
-          }
+          },
+          application: { name: 'theApp'}
         };
 
       var submitted = postTask(command);
@@ -55,6 +56,7 @@ describe('serverGroupWriter', function () {
             allImageSelection: 'something-packagebase',
           },
           subnetType: null,
+          application: { name: 'theApp'}
         };
 
       var submitted = postTask(command);
@@ -70,6 +72,7 @@ describe('serverGroupWriter', function () {
           viewState: {
             mode: 'create',
           },
+          application: { name: 'theApp'}
         };
 
       var submitted = postTask(command);
@@ -96,7 +99,8 @@ describe('serverGroupWriter', function () {
           },
           source: {
             asgName: 'appName-v002',
-          }
+          },
+          application: { name: 'theApp'}
         };
 
       var submitted = postTask(command);

@@ -134,7 +134,7 @@ angular.module('deckApp.aws')
       } else {
         $scope.taskMonitor.submit(
           function() {
-            return serverGroupWriter.cloneServerGroup($scope.command, application.name);
+            return serverGroupWriter.cloneServerGroup($scope.command, application);
           }
         );
       }

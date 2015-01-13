@@ -39,7 +39,7 @@ angular.module('deckApp')
       }
 
       var submitMethod = function() {
-        return serverGroupWriter.resizeServerGroup(serverGroup, capacity, application.name);
+        return serverGroupWriter.resizeServerGroup(serverGroup, capacity, application);
       };
 
       var taskMonitorConfig = {

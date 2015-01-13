@@ -131,7 +131,7 @@ angular.module('deckApp')
     this.upsert = function () {
       $scope.taskMonitor.submit(
         function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application.name, 'Create');
+          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
         }
       );
     };

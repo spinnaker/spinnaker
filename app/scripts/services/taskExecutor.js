@@ -6,6 +6,9 @@ angular.module('deckApp')
 
 
     function executeTask(taskCommand) {
+      var application = taskCommand.application;
+      taskCommand.application = application.name;
+
       if (taskCommand.job[0].providerType === 'aws') {
         delete taskCommand.job[0].providerType;
       }
@@ -20,16 +23,17 @@ angular.module('deckApp')
 
           if(!taskCommand.supressNotification) {
             notificationsService.create({
-              title: taskCommand.application,
+              title: application.name,
               message: taskCommand.description,
               href: urlBuilder.buildFromMetadata({
                 type: 'task',
-                application: taskCommand.application,
+                application: application.name,
                 taskId: taskId
               })
             });
           }
-          return tasksReader.getOneTaskForApplication(taskCommand.application, taskId);
+          application.reloadTasks();
+          return tasksReader.getOneTaskForApplication(application.name, taskId);
         },
         function(response) {
           var error = {

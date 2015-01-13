@@ -310,7 +310,7 @@ angular.module('deckApp.gce')
         function() {
           transformInstanceMetadata();
 
-          return serverGroupWriter.cloneServerGroup($scope.command, application.name);
+          return serverGroupWriter.cloneServerGroup($scope.command, application);
         }
       );
     };

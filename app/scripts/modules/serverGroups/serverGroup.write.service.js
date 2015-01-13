@@ -4,7 +4,7 @@ angular
   .module('deckApp.serverGroup.write.service', ['deckApp.serverGroup.transformer.service'])
   .factory('serverGroupWriter', function (taskExecutor, serverGroupTransformer) {
 
-    function destroyServerGroup(serverGroup, applicationName) {
+    function destroyServerGroup(serverGroup, application) {
       return taskExecutor.executeTask({
         job: [
           {
@@ -16,7 +16,7 @@ angular
             providerType: serverGroup.type
           }
         ],
-        application: applicationName,
+        application: application,
         description: 'Destroy Server Group: ' + serverGroup.name
       });
     }
@@ -38,7 +38,7 @@ angular
       });
     }
 
-    function enableServerGroup(serverGroup, applicationName) {
+    function enableServerGroup(serverGroup, application) {
       return taskExecutor.executeTask({
         job: [
           {
@@ -50,12 +50,12 @@ angular
             providerType: serverGroup.type
           }
         ],
-        application: applicationName,
+        application: application,
         description: 'Enable Server Group: ' + serverGroup.name
       });
     }
 
-    function resizeServerGroup(serverGroup, capacity, applicationName) {
+    function resizeServerGroup(serverGroup, capacity, application) {
       return taskExecutor.executeTask({
         job: [
           {
@@ -68,12 +68,12 @@ angular
             providerType: serverGroup.type
           }
         ],
-        application: applicationName,
+        application: application,
         description: 'Resize Server Group: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
       });
     }
 
-    function cloneServerGroup(command, applicationName) {
+    function cloneServerGroup(command, application) {
 
       var description;
       if (command.viewState.mode === 'clone') {
@@ -81,7 +81,7 @@ angular
         command.type = 'copyLastAsg';
       } else {
         command.type = 'deploy';
-        var asgName = applicationName;
+        var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;
         }
@@ -98,7 +98,7 @@ angular
         job: [
           serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)
         ],
-        application: applicationName,
+        application: application,
         description: description
       });
     }
