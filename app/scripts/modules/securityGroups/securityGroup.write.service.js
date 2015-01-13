@@ -4,16 +4,20 @@ angular
   .module('deckApp.securityGroup.write.service', ['deckApp.caches.infrastructure'])
   .factory('securityGroupWriter' ,function (taskExecutor, infrastructureCaches) {
 
-    function upsertSecurityGroup(securityGroup, applicationName, descriptor) {
-      securityGroup.type = 'upsertSecurityGroup';
-      infrastructureCaches.securityGroups.removeAll();
-      return taskExecutor.executeTask({
+    function upsertSecurityGroup(command, applicationName, descriptor) {
+      command.type = 'upsertSecurityGroup';
+
+      var operation = taskExecutor.executeTask({
         job: [
-          securityGroup
+          command
         ],
         application: applicationName,
-        description: descriptor + ' Security Group: ' + securityGroup.name
+        description: descriptor + ' Security Group: ' + command.name
       });
+
+      operation.then(infrastructureCaches.securityGroups.removeAll);
+
+      return operation;
     }
 
 
