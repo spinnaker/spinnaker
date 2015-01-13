@@ -31,6 +31,7 @@ import com.netflix.spinnaker.oort.search.NoopSearchProvider
 import com.netflix.spinnaker.oort.search.SearchProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -59,8 +60,21 @@ class DefaultConfig {
 
   @Bean
   @ConditionalOnMissingBean(AgentScheduler)
+  @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
   AgentScheduler agentScheduler() {
     new DefaultAgentScheduler(60, TimeUnit.SECONDS)
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = 'caching.writeEnabled', havingValue = 'false')
+  @ConditionalOnMissingBean(AgentScheduler)
+  AgentScheduler noopAgentScheduler() {
+    new AgentScheduler() {
+      @Override
+      void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+        //do nothing
+      }
+    }
   }
 
   @Bean
