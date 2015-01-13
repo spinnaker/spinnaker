@@ -38,6 +38,7 @@ angular.module('deckApp')
     }
 
     function initializeCreateMode() {
+      $scope.state.maxStackLength = 32 - application.name.length - '-frontend'.length - 1;
       preloadSecurityGroups();
       accountService.listAccounts().then(function (accounts) {
         $scope.accounts = accounts;
