@@ -330,6 +330,10 @@ class GCEUtil {
   }
 
   public static String getLocalName(String fullUrl) {
+    if (!fullUrl) {
+      return fullUrl
+    }
+
     def urlParts = fullUrl.split("/")
 
     return urlParts[urlParts.length - 1]
