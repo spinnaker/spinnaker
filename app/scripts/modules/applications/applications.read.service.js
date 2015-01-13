@@ -18,12 +18,8 @@ angular
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
         function refreshApplication() {
+          application.reloadTasks();
           return getApplication(application.name).then(function (newApplication) {
-            taskTracker.handleTaskUpdates(
-              application.tasks,
-              newApplication.tasks
-            );
-
             deepCopyApplication(application, newApplication);
             application.autoRefreshHandlers.forEach(function(handler) {
               handler.call();
@@ -68,12 +64,21 @@ angular
           return matches.length ? matches[0] : null;
         }
 
+        function reloadTasks() {
+          tasksReader.listAllTasksForApplication(application.name).then(function(tasks) {
+            taskTracker.handleTaskUpdates(application.tasks, tasks);
+            addTasksToApplication(application, tasks);
+          });
+        }
+
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.autoRefreshHandlers = [];
         application.refreshImmediately = refreshApplication;
         application.disableAutoRefresh = disableAutoRefresh;
         application.enableAutoRefresh = enableAutoRefresh;
         application.getCluster = getCluster;
+        application.tasks = [];
+        application.reloadTasks = reloadTasks;
 
         if (application.fromServer && application.clusters) {
           application.accounts = Object.keys(application.clusters);
@@ -87,26 +92,27 @@ angular
       return gateEndpoint.one('applications', application);
     }
 
+    function addTasksToApplication(application, tasks) {
+      application.tasks = angular.isArray(tasks) ? tasks : [];
+    }
+
     function deepCopyApplication(original, newApplication) {
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
       original.serverGroups = newApplication.serverGroups;
       original.loadBalancers = newApplication.loadBalancers;
-      original.tasks = newApplication.tasks;
       original.securityGroups = newApplication.securityGroups;
       newApplication.accounts = null;
       newApplication.clusters = null;
       newApplication.loadBalancers = null;
-      newApplication.tasks = null;
       newApplication.securityGroups = null;
     }
 
-    function getApplication(applicationName) {
+    function getApplication(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(applicationName),
         loadBalancersByApplicationNameLoader = loadBalancerReader.loadLoadBalancersByApplicationName(applicationName),
         applicationLoader = getApplicationEndpoint(applicationName).get(),
-        serverGroupLoader = clusterService.loadServerGroups(applicationName),
-        taskLoader = tasksReader.listAllTasksForApplication(applicationName);
+        serverGroupLoader = clusterService.loadServerGroups(applicationName);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
@@ -115,8 +121,7 @@ angular
       return $q.all({
         securityGroups: securityGroupsByApplicationNameLoader,
         loadBalancersByApplicationName: loadBalancersByApplicationNameLoader,
-        application: applicationLoader,
-        tasks: taskLoader
+        application: applicationLoader
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
@@ -127,7 +132,12 @@ angular
             .compact()
             .unique()
             .value();
-          application.tasks = angular.isArray(applicationLoader.tasks) ? applicationLoader.tasks : [];
+
+          if (options && options.tasks) {
+            tasksReader.listAllTasksForApplication(applicationName).then(function(tasks) {
+              addTasksToApplication(application, tasks);
+            });
+          }
 
           loadBalancerLoader = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersByApplicationName);
           securityGroupLoader = securityGroupService.loadSecurityGroups(application);

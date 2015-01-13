@@ -78,7 +78,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return instanceWriter.terminateInstance(instance, $scope.application.name);
+        return instanceWriter.terminateInstance(instance, $scope.application);
       };
 
       confirmationModalService.confirm({

@@ -235,7 +235,7 @@ angular.module('deckApp')
 
       $scope.taskMonitor.submit(
         function() {
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application.name, descriptor);
+          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
         }
       );
     };

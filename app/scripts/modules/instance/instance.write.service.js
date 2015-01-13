@@ -4,7 +4,7 @@ angular
   .module('deckApp.instance.write.service', [])
   .factory('instanceWriter', function (taskExecutor) {
 
-    function terminateInstance(instance, applicationName) {
+    function terminateInstance(instance, application) {
       return taskExecutor.executeTask({
         job: [
           {
@@ -17,7 +17,7 @@ angular
             providerType: instance.providerType
           }
         ],
-        application: applicationName,
+        application: application,
         description: 'Terminate instance: ' + instance.instanceId
       });
     }

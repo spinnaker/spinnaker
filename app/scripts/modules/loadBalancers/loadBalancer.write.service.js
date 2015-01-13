@@ -4,7 +4,7 @@ angular
   .module('deckApp.loadBalancer.write.service', [])
   .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
 
-    function deleteLoadBalancer(loadBalancer, applicationName) {
+    function deleteLoadBalancer(loadBalancer, application) {
       var operation = taskExecutor.executeTask({
         job: [
           {
@@ -15,7 +15,7 @@ angular
             providerType: loadBalancer.providerType
           }
         ],
-        application: applicationName,
+        application: application,
         description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
       });
 
@@ -25,7 +25,7 @@ angular
     }
 
 
-    function upsertLoadBalancer(loadBalancer, applicationName, descriptor) {
+    function upsertLoadBalancer(loadBalancer, application, descriptor) {
       var name = loadBalancer.clusterName || loadBalancer.name;
       if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {
         loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
@@ -42,7 +42,7 @@ angular
         job: [
           loadBalancer
         ],
-        application: applicationName,
+        application: application,
         description: descriptor + ' Load Balancer: ' + name
       });
 

@@ -76,7 +76,7 @@ angular.module('deckApp')
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application.name);
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application);
       };
 
       confirmationModalService.confirm({

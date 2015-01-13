@@ -65,7 +65,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.destroyServerGroup(serverGroup, application.name);
+        return serverGroupWriter.destroyServerGroup(serverGroup, application);
       };
 
       var stateParams = {
@@ -103,7 +103,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.disableServerGroup(serverGroup, application.name);
+        return serverGroupWriter.disableServerGroup(serverGroup, application);
       };
 
       confirmationModalService.confirm({
@@ -128,7 +128,7 @@ angular.module('deckApp')
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.enableServerGroup(serverGroup, application.name);
+        return serverGroupWriter.enableServerGroup(serverGroup, application);
       };
 
       confirmationModalService.confirm({
