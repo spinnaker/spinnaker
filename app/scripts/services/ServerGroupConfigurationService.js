@@ -41,6 +41,9 @@ angular.module('deckApp')
     function loadImagesFromAmi(command) {
       return imageService.getAmi(command.selectedProvider, command.viewState.imageId, command.region, command.credentials).then(
         function (namedImage) {
+          if (!namedImage) {
+            return [];
+          }
           command.amiName = namedImage.imageName;
 
           var packageRegex = /((nf(lx)?-)?\w+)-?\w+/;
