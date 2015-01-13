@@ -11,7 +11,7 @@ describe('Controller: CreateLoadBalancerCtrl', function () {
     this.ctrl = $controller('CreateLoadBalancerCtrl', {
       $scope: this.$scope,
       $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
-      application: {},
+      application: {name: 'app'},
       loadBalancer: null,
       isNew: true
     });
@@ -35,5 +35,10 @@ describe('Controller: CreateLoadBalancerCtrl', function () {
     loadBalancer.healthCheckProtocol = 'TCP';
     expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
 
+  });
+
+  it('sets maximum length of stack based on application name', function() {
+    // 19 === 32 - 3 (application name length) - 9 ("-frontend" length) - 1 (dash separator)
+    expect(this.$scope.state.maxStackLength).toEqual(19);
   });
 });
