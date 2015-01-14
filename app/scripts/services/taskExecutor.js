@@ -32,7 +32,9 @@ angular.module('deckApp')
               })
             });
           }
-          application.reloadTasks();
+          if (application.reloadTasks) {
+            application.reloadTasks();
+          }
           return tasksReader.getOneTaskForApplication(application.name, taskId);
         },
         function(response) {

@@ -6,7 +6,7 @@ angular
 
     function createApplication(app) {
       return taskExecutor.executeTask({
-        supressNotification: true,
+        suppressNotification: true,
         job: [
           {
             type: 'createApplication',
@@ -26,7 +26,7 @@ angular
             }
           }
         ],
-        application: app.name,
+        application: app,
         description: 'Create Application: ' + app.name
       });
     }
