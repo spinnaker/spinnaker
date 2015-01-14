@@ -16,22 +16,19 @@
 
 package com.netflix.spinnaker.orca.notifications.manual
 
-import groovy.transform.InheritConstructors
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Scope
-import org.springframework.stereotype.Component
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
-@Component
-@Scope(SCOPE_PROTOTYPE)
-@InheritConstructors
 class ManualTriggerNotificationHandler extends AbstractNotificationHandler {
 
   String handlerType = ManualTriggerPollingNotificationAgent.NOTIFICATION_TYPE
 
   @Autowired PipelineIndexer pipelineIndexer
+
+  ManualTriggerNotificationHandler(Map input) {
+    super(input)
+  }
 
   @Override
   void handle(Map input) {

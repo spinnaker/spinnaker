@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.notifications.jenkins
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "build"
@@ -34,12 +37,17 @@ class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent 
   @Autowired
   BuildJobPollingNotificationAgent(ObjectMapper objectMapper,
                                    EchoService echoService,
-                                   Client jesqueClient,
-                                   List<NotificationHandler> handlers) {
-    super(objectMapper, echoService, jesqueClient, handlers)
+                                   Client jesqueClient) {
+    super(objectMapper, echoService, jesqueClient)
   }
 
   @Override
+  Class<? extends NotificationHandler> handlerType() {
+    BuildJobNotificationHandler
+  }
+
+  @Override
+  @CompileDynamic
   void handleNotification(List<Map> response) {
     for (event in response) {
       if (event.content.containsKey("project") && event.content.containsKey("master")) {

@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
@@ -18,6 +19,7 @@ class ManualTriggerPipelineIndexer implements PipelineIndexer, Runnable {
   private final PipelineConfigurationService pipelineConfigurationService
   private Map<PipelineId, Collection<Map>> indexedPipelines = [:]
 
+  @Autowired
   ManualTriggerPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
     this.pipelineConfigurationService = pipelineConfigurationService
   }

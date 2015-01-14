@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.notifications.manual
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
@@ -33,9 +36,13 @@ class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationA
   @Autowired
   ManualTriggerPollingNotificationAgent(ObjectMapper objectMapper,
                                         EchoService echoService,
-                                        Client jesqueClient,
-                                        List<NotificationHandler> handlers) {
-    super(objectMapper, echoService, jesqueClient, handlers)
+                                        Client jesqueClient) {
+    super(objectMapper, echoService, jesqueClient)
+  }
+
+  @Override
+  Class<? extends NotificationHandler> handlerType() {
+    ManualTriggerNotificationHandler
   }
 
   @Override
@@ -44,6 +51,7 @@ class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationA
   }
 
   @Override
+  @CompileDynamic
   void handleNotification(List<Map> response) {
     for (event in response) {
       notify event.content

@@ -21,25 +21,27 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
+import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.*
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
-@ConditionalOnProperty(value = 'echo.baseUrl')
-@ComponentScan("com.netflix.spinnaker.orca.notifications")
+//@ConditionalOnProperty(value = 'echo.baseUrl')
+@ComponentScan([
+    "com.netflix.spinnaker.orca.notifications.jenkins",
+    "com.netflix.spinnaker.orca.notifications.manual"
+])
 @CompileStatic
 class EchoConfiguration {
 
@@ -72,5 +74,15 @@ class EchoConfiguration {
       ExecutionRepository executionRepository,
       EchoService echoService) {
     new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
+  }
+
+  @Bean @Scope(SCOPE_PROTOTYPE)
+  BuildJobNotificationHandler buildJobNotificationHandler(Map input) {
+    new BuildJobNotificationHandler(input)
+  }
+
+  @Bean @Scope(SCOPE_PROTOTYPE)
+  ManualTriggerNotificationHandler manualTriggerNotificationHandler(Map input) {
+    new ManualTriggerNotificationHandler(input)
   }
 }

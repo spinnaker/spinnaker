@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
@@ -24,6 +25,7 @@ class BuildJobPipelineIndexer implements PipelineIndexer, Runnable {
   private final PipelineConfigurationService pipelineConfigurationService
   private Map<Trigger, Collection<Map>> interestingPipelines = [:]
 
+  @Autowired
   BuildJobPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
     this.pipelineConfigurationService = pipelineConfigurationService
   }

@@ -31,7 +31,6 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
   private final EchoService echoService
   private final ObjectMapper objectMapper
   private final Client jesqueClient
-  private final Collection<NotificationHandler> handlers
 
   private transient long lastCheck = System.currentTimeMillis()
 
@@ -43,12 +42,10 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
 
   AbstractPollingNotificationAgent(ObjectMapper objectMapper,
                                    EchoService echoService,
-                                   Client jesqueClient,
-                                   List<NotificationHandler> handlers) {
+                                   Client jesqueClient) {
     this.objectMapper = objectMapper
     this.echoService = echoService
     this.jesqueClient = jesqueClient
-    this.handlers = handlers.findAll { it.handles(notificationType) }
   }
 
   @PostConstruct
@@ -70,12 +67,13 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
     }
   }
 
+  // TODO: can we just use logical names rather than handler classes?
+  abstract Class<? extends NotificationHandler> handlerType()
+
   void notify(Map<String, ?> input) {
-    for (handler in handlers) {
-      jesqueClient.enqueue(
-          notificationType,
-          new Job(handler.getClass().name, input)
-      )
-    }
+    jesqueClient.enqueue(
+        notificationType,
+        new Job(handlerType().name, input)
+    )
   }
 }
