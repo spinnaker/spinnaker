@@ -57,7 +57,7 @@ angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
       return registeredEvent && elementTop < scrollBottom;
     }
 
-    function fireEvents(scrollTarget) {
+    var fireEvents = _.debounce(function fireEvents(scrollTarget) {
       var scrollBottom = $$window.scrollTop() + $window.innerHeight,
           executed = [];
 
@@ -69,7 +69,7 @@ angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
         }
       }
       executed.forEach(function(executed) { deregister(scrollTarget, executed); });
-    }
+    }, 50);
 
     function activateScrollEvent(scrollTarget) {
       if (!scrollEventActive[scrollTarget]) {
