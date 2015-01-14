@@ -191,6 +191,16 @@ describe('Service: ServerGroupConfiguration', function () {
       expect(result).toEqual({ dirty: { }});
     });
 
+    it('matches on name or id, converting to id when name encountered', function() {
+      this.command.securityGroups = ['sg1', 'sg-2a'];
+      this.command.region = 'us-east-1';
+
+      var result = this.service.configureSecurityGroupOptions(this.command);
+
+      expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
+      expect(result).toEqual({ dirty: {}});
+    });
+
     it('sets dirty all unmatched security groups - no VPC', function () {
       this.command.securityGroups.push('sg-3a');
       this.command.region = 'us-east-1';
