@@ -31,7 +31,9 @@ import org.springframework.stereotype.Component
 class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "manualPipelineTrigger"
-  long pollingInterval = 10
+
+  final long pollingInterval = 10
+  final String notificationType = NOTIFICATION_TYPE
 
   @Autowired
   ManualTriggerPollingNotificationAgent(ObjectMapper objectMapper,
@@ -43,11 +45,6 @@ class ManualTriggerPollingNotificationAgent extends AbstractPollingNotificationA
   @Override
   Class<? extends NotificationHandler> handlerType() {
     ManualTriggerNotificationHandler
-  }
-
-  @Override
-  String getNotificationType() {
-    NOTIFICATION_TYPE
   }
 
   @Override

@@ -30,9 +30,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
-  static final String NOTIFICATION_TYPE = "build"
-  long pollingInterval = 30
-  String notificationType = NOTIFICATION_TYPE
+  public static final String NOTIFICATION_TYPE = "build"
+
+  final long pollingInterval = 30
+  final String notificationType = NOTIFICATION_TYPE
 
   @Autowired
   BuildJobPollingNotificationAgent(ObjectMapper objectMapper,

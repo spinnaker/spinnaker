@@ -21,10 +21,13 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import net.greghaines.jesque.Config
+import net.lariverosc.jesquespring.SpringWorker
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.*
@@ -85,4 +88,24 @@ class EchoConfiguration {
   ManualTriggerNotificationHandler manualTriggerNotificationHandler(Map input) {
     new ManualTriggerNotificationHandler(input)
   }
+
+  @Bean(initMethod = "init", destroyMethod = "destroy")
+  SpringWorker worker(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
+    new SpringWorker(jesqueConfig, notificationAgents.collect {
+      it.notificationType
+    })
+  }
+
+//  @Bean
+//  SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
+//    new SpringWorkerFactory(jesqueConfig, notificationAgents.collect {
+//      it.notificationType
+//    })
+//  }
+//
+//  @Bean
+//  SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
+//                              @Value('${jesque.numWorkers:1}') int numWorkers) {
+//    new SpringWorkerPool(workerFactory, numWorkers)
+//  }
 }

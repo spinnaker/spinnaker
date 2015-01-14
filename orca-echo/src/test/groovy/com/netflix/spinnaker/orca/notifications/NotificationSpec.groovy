@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.orca.notifications
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
@@ -9,6 +11,7 @@ import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
 import net.greghaines.jesque.client.Client
 import net.greghaines.jesque.client.ClientImpl
@@ -38,11 +41,20 @@ class NotificationSpec extends Specification {
   }
 
   def "manual trigger causes a pipeline to start"() {
+    given:
+    def latch = new CountDownLatch(1)
+    pipelineStarter.start(*_) >> { latch.countDown() }
+
+    expect:
+    applicationContext.getBean(PipelineStarter) != null
+
     when:
-    notificationAgent.handleNotification([[content: [pipeline: "foo"]]])
+    notificationAgent.handleNotification([
+        [content: [pipeline: "foo"]]
+    ])
 
     then:
-    1 * pipelineStarter.start(*_)
+    latch.await(1, TimeUnit.SECONDS)
   }
 }
 
@@ -80,11 +92,15 @@ class JedisConfiguration {
   }
 
   @Bean
-  Client jesqueClient(EmbeddedRedis redis) {
-    def jesqueConfig = new ConfigBuilder()
+  Config jesqueConfig(EmbeddedRedis redis) {
+    new ConfigBuilder()
         .withHost("localhost")
         .withPort(redis.redisServer.port)
         .build()
+  }
+
+  @Bean
+  Client jesqueClient(Config jesqueConfig) {
     new ClientImpl(jesqueConfig)
   }
 }
