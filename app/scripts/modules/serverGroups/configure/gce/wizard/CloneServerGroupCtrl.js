@@ -72,7 +72,7 @@ angular.module('deckApp.serverGroup.configure.gce')
     this.isValid = function () {
       return $scope.command && ($scope.command.image !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
-        ($scope.command.region !== null) && ($scope.command.availabilityZones !== null) &&
+        ($scope.command.region !== null) && ($scope.command.zone !== null) &&
         ($scope.command.capacity.desired !== null) &&
         modalWizardService.getWizard().isComplete();
     };

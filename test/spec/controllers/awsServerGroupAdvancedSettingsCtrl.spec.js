@@ -13,7 +13,7 @@ describe('Controller: ServerGroupAdvancedSettings', function () {
       suspendedProcesses: [],
     };
 
-    this.ctrl = $controller('ServerGroupAdvancedSettingsCtrl', {
+    this.ctrl = $controller('awsServerGroupAdvancedSettingsSelectorCtrl', {
       $scope: this.scope,
     });
   }));
