@@ -8,10 +8,10 @@ angular.module('deckApp.serverGroup.configure.aws')
         command: '=',
       },
       templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupAdvancedSettingsDirective.html',
-      controller: 'ServerGroupAdvancedSettingsCtrl as advancedSettingsCtrl',
+      controller: 'awsServerGroupAdvancedSettingsSelectorCtrl as advancedSettingsCtrl',
     };
   })
-  .controller('ServerGroupAdvancedSettingsCtrl', function($scope) {
+  .controller('awsServerGroupAdvancedSettingsSelectorCtrl', function($scope) {
     $scope.healthCheckTypes = ['EC2', 'ELB'];
     $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 

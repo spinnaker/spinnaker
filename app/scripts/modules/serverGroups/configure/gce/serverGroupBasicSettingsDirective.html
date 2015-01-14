@@ -7,7 +7,7 @@
   </div>
 </div>
 <gce-region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></gce-region-select-field>
-<gce-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="command.backingData.zones"></gce-zone-select-field>
+<gce-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="command.backingData.filtered.zones"></gce-zone-select-field>
 <div class="form-group">
   <div class="col-md-2 sm-label-left">
     <b>Stack</b>
@@ -33,7 +33,7 @@
             ng-model="command.image"
             ng-change="onChange()"
             required>
-      <option ng-repeat="image in command.backingData.imageNames"
+      <option ng-repeat="image in command.backingData.filtered.imageNames"
               value="{{image}}"
               ng-selected="command.image === image">{{image}}</option>
     </select>

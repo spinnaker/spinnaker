@@ -207,22 +207,26 @@ angular.module('deckApp')
       {
         type: 'general',
         label: 'General Purpose',
-        families: [ n1standard ]
+        families: [ n1standard ],
+        icon: 'hdd'
       },
       {
         type: 'memory',
         label: 'High Memory',
-        families: [ n1highmem ]
+        families: [ n1highmem ],
+        icon: 'hdd'
       },
       {
         type: 'cpu',
         label: 'High CPU',
-        families: [ n1highcpu ]
+        families: [ n1highcpu ],
+        icon: 'hdd'
       },
       {
         type: 'micro',
         label: 'Micro Utility',
-        families: [f1micro]
+        families: [f1micro],
+        icon: 'hdd'
       }
     ];
 

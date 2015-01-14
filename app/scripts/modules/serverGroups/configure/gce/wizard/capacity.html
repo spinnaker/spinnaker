@@ -1,10 +1,19 @@
-<form ng-controller="ServerGroupCapacityCtrl" class="container-fluid form-horizontal" name="form" novalidate>
+<form ng-controller="gceServerGroupCapacityCtrl" class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
     <gce-server-group-capacity-selector command="command"></gce-server-group-capacity-selector>
-    <button class="btn btn-default"
-            ng-disabled="form.$invalid"
-            ng-click="wizard.nextPage(form.$valid)">
-      Advanced Settings <span class="glyphicon glyphicon-chevron-right"></span>
-    </button>
+    <div class="modal-footer">
+      <button class="btn btn-default pull-left"
+              ng-click="wizard.previousPage(form.$valid)">
+        <span class="glyphicon glyphicon-chevron-left"></span> Back
+      </button>
+      <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+      <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
+                     submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
+      <button class="btn btn-primary"
+              ng-disabled="!command.viewState.instanceProfile || form.$invalid"
+              ng-click="wizard.nextPage(form.$valid)">
+        Advanced Settings <span class="glyphicon glyphicon-chevron-right"></span>
+      </button>
+    </div>
   </div>
 </form>

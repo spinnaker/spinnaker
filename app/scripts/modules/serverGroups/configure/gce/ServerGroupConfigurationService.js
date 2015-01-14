@@ -3,7 +3,7 @@
 angular.module('deckApp.serverGroup.configure.gce')
   .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupService,
                                                           instanceTypeService,
-                                                          $q, subnetReader, keyPairsReader, loadBalancerReader) {
+                                                          $q, loadBalancerReader) {
 
 
     function configureCommand(command) {
@@ -11,7 +11,6 @@ angular.module('deckApp.serverGroup.configure.gce')
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount(),
         loadBalancers: loadBalancerReader.listGCELoadBalancers(),
-        preferredZones: accountService.getPreferredZonesByAccount(),
         instanceTypes: instanceTypeService.getAllTypesByRegion('gce'),
         images: imageService.findImages({provider: 'gce'})
       }).then(function(loader) {
@@ -41,7 +40,6 @@ angular.module('deckApp.serverGroup.configure.gce')
     function configureImages(command) {
       var result = { dirty: {} };
       // TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project
-      // TODO - Big one - make "account" optional in Oort endpoint
       if (command.viewState.disableImageSelection) {
         return result;
       }
@@ -53,13 +51,13 @@ angular.module('deckApp.serverGroup.configure.gce')
           command.image = null;
           result.dirty.imageName = true;
         }
-        return result;
       }
+      return result;
     }
 
-    function configureAvailabilityZones(command) {
-      command.backingData.filtered.availabilityZones =
-        _.find(command.backingData.regionsKeyedByAccount[command.credentials].regions, {name: command.region}).availabilityZones;
+    function configureZones(command) {
+      command.backingData.filtered.zones =
+        command.backingData.regionsKeyedByAccount[command.credentials].regions[command.region];
     }
 
     function configureLoadBalancerOptions(command) {
@@ -101,35 +99,18 @@ angular.module('deckApp.serverGroup.configure.gce')
 
     function attachEventHandlers(command) {
 
-      command.usePreferredZonesChanged = function usePreferredZonesChanged() {
-        var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
-        var result = { dirty: {} };
-        if (command.viewState.usePreferredZones) {
-          command.availabilityZones = command.backingData.preferredZones[command.credentials][command.region].sort();
-        }
-        if (!command.viewState.usePreferredZones) {
-          command.availabilityZones = _.intersection(command.availabilityZones, command.backingData.filtered.availabilityZones);
-          var newZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
-          if (currentZoneCount !== newZoneCount) {
-            result.dirty.availabilityZones = true;
-          }
-        }
-        return result;
-      };
-
       command.regionChanged = function regionChanged() {
         var result = { dirty: {} };
         var filteredData = command.backingData.filtered;
         if (command.region) {
-          angular.extend(result.dirty, command.subnetChanged().dirty);
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
 
-          configureAvailabilityZones(command);
-          angular.extend(result.dirty, command.usePreferredZonesChanged().dirty);
+          configureZones(command);
 
+          angular.extend(result.dirty, configureLoadBalancerOptions(command).dirty);
           angular.extend(result.dirty, configureImages(command).dirty);
         } else {
-          filteredData.regionalAvailabilityZones = null;
+          filteredData.zones = null;
         }
 
         return result;
@@ -139,16 +120,7 @@ angular.module('deckApp.serverGroup.configure.gce')
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          backingData.filtered.regionToZonesMap = backingData.regionsKeyedByAccount[command.credentials].regions;
-          if (!backingData.filtered.regionToZonesMap) {
-            // TODO(duftler): Move these default values to settings.js and/or accountService.js.
-            backingData.filtered.regionToZonesMap = {
-              'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-f'],
-              'europe-west1': ['europe-west1-a', 'europe-west1-b', 'europe-west1-c'],
-              'asia-east1': ['asia-east1-a', 'asia-east1-b', 'asia-east1-c']
-            };
-          }
-          backingData.filtered.regions = Object.keys(backingData.filtered.regionToZonesMap);
+          backingData.filtered.regions = Object.keys(backingData.regionsKeyedByAccount[command.credentials].regions);
           if (backingData.filtered.regions.indexOf(command.region) === -1) {
             command.region = null;
             result.dirty.region = true;
@@ -182,7 +154,7 @@ angular.module('deckApp.serverGroup.configure.gce')
       configureCommand: configureCommand,
       configureInstanceTypes: configureInstanceTypes,
       configureImages: configureImages,
-      configureAvailabilityZones: configureAvailabilityZones,
+      configureZones: configureZones,
       configureLoadBalancerOptions: configureLoadBalancerOptions,
     };
 

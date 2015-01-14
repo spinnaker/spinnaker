@@ -8,10 +8,10 @@ angular.module('deckApp.serverGroup.configure.gce')
         command: '=',
       },
       templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupAdvancedSettingsDirective.html',
-      controller: 'gceServerGroupAdvancedSettingsCtrl as advancedSettingsCtrl',
+      controller: 'gceServerGroupAdvancedSettingsSelectorCtrl as advancedSettingsCtrl',
     };
   })
-  .controller('gceServerGroupAdvancedSettingsCtrl', function($scope) {
+  .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function($scope) {
     this.addInstanceMetadata = function() {
       $scope.command.instanceMetadata.push({});
     };
