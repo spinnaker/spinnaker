@@ -34,6 +34,14 @@ class NotificationSpec extends Specification {
   @Autowired AbstractApplicationContext applicationContext
   @Autowired ManualTriggerPollingNotificationAgent notificationAgent
 
+  def setupSpec() {
+    System.setProperty("echo.baseUrl", "http://echo")
+  }
+
+  def cleanupSpec() {
+    System.clearProperty("echo.baseUrl")
+  }
+
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "pipelineStarter", pipelineStarter

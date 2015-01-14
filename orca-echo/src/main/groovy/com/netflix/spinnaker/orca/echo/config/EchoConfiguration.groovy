@@ -31,6 +31,7 @@ import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.*
 import retrofit.Endpoint
 import retrofit.RestAdapter
@@ -41,7 +42,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
-//@ConditionalOnProperty(value = 'echo.baseUrl')
+@ConditionalOnProperty(value = 'echo.baseUrl')
 @ComponentScan([
     "com.netflix.spinnaker.orca.notifications.jenkins",
     "com.netflix.spinnaker.orca.notifications.manual"
