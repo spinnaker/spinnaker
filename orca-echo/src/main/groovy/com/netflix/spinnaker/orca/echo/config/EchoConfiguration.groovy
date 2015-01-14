@@ -27,7 +27,8 @@ import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotification
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import net.greghaines.jesque.Config
-import net.lariverosc.jesquespring.SpringWorker
+import net.lariverosc.jesquespring.SpringWorkerFactory
+import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.*
@@ -89,23 +90,16 @@ class EchoConfiguration {
     new ManualTriggerNotificationHandler(input)
   }
 
-  @Bean(initMethod = "init", destroyMethod = "destroy")
-  SpringWorker worker(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
-    new SpringWorker(jesqueConfig, notificationAgents.collect {
+  @Bean
+  SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
+    new SpringWorkerFactory(jesqueConfig, notificationAgents.collect {
       it.notificationType
     })
   }
 
-//  @Bean
-//  SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
-//    new SpringWorkerFactory(jesqueConfig, notificationAgents.collect {
-//      it.notificationType
-//    })
-//  }
-//
-//  @Bean
-//  SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
-//                              @Value('${jesque.numWorkers:1}') int numWorkers) {
-//    new SpringWorkerPool(workerFactory, numWorkers)
-//  }
+  @Bean(initMethod = "init", destroyMethod = "destroy")
+  SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
+                              @Value('${jesque.numWorkers:1}') int numWorkers) {
+    new SpringWorkerPool(workerFactory, numWorkers)
+  }
 }
