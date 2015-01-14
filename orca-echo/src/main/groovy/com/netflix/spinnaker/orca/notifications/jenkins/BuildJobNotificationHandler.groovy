@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
+import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 
 class BuildJobNotificationHandler extends AbstractNotificationHandler {
 
@@ -9,7 +11,8 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler {
 
   final String handlerType = BuildJobPollingNotificationAgent.NOTIFICATION_TYPE
 
-  @Autowired BuildJobPipelineIndexer pipelineIndexer
+  @Autowired @Qualifier("buildJobPipelineIndexer")
+  PipelineIndexer pipelineIndexer
 
   BuildJobNotificationHandler(Map input) {
     super(input)

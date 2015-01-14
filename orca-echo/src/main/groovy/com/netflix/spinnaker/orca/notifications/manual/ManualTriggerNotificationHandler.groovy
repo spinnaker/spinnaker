@@ -17,13 +17,16 @@
 package com.netflix.spinnaker.orca.notifications.manual
 
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
+import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 
 class ManualTriggerNotificationHandler extends AbstractNotificationHandler {
 
   String handlerType = ManualTriggerPollingNotificationAgent.NOTIFICATION_TYPE
 
-  @Autowired ManualTriggerPipelineIndexer pipelineIndexer
+  @Autowired @Qualifier("manualTriggerPipelineIndexer")
+  PipelineIndexer pipelineIndexer
 
   ManualTriggerNotificationHandler(Map input) {
     super(input)

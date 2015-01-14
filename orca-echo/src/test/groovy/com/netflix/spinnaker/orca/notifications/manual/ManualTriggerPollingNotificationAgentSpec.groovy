@@ -3,7 +3,6 @@ package com.netflix.spinnaker.orca.notifications.manual
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
-import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
 import retrofit.client.Header
@@ -19,7 +18,7 @@ class ManualTriggerPollingNotificationAgentSpec extends Specification {
   def echoService = Stub(EchoService)
   def jesqueClient = Mock(Client)
   @Subject agent = new ManualTriggerPollingNotificationAgent(
-      mapper, echoService, jesqueClient, [new ManualTriggerNotificationHandler()]
+      mapper, echoService, jesqueClient
   )
 
   def "incoming notifications are placed on a task queue"() {
@@ -28,7 +27,7 @@ class ManualTriggerPollingNotificationAgentSpec extends Specification {
 
     then:
     1 * jesqueClient.enqueue(NOTIFICATION_TYPE, { Job job ->
-      job.vars == event[0].content
+      job.args[0] == event[0].content
     })
 
     where:
@@ -48,38 +47,16 @@ class ManualTriggerPollingNotificationAgentSpec extends Specification {
     event = [[content: [pipeline: "foo"]]]
   }
 
-  def "if there are multiple cooperating handlers the task is queued for each"() {
-    given:
-    @Subject agent = new ManualTriggerPollingNotificationAgent(
-        mapper,
-        echoService,
-        jesqueClient,
-        [new ManualTriggerNotificationHandler(), new BuildJobNotificationHandler(), new TestNotificationHandler()]
-    )
-
-    def jobNames = []
-    jesqueClient.enqueue(*_) >> { String queue, Job job -> jobNames << job.className; return }
-
-    when:
-    agent.handleNotification(event)
-
-    then:
-    jobNames == [ManualTriggerNotificationHandler.name, TestNotificationHandler.name]
-
-    where:
-    event = [[content: [pipeline: "foo"]]]
-  }
-
   def "a notification for multiple triggers is enqueued multiple times"() {
     when:
     agent.handleNotification(event)
 
     then:
     1 * jesqueClient.enqueue(NOTIFICATION_TYPE, { Job job ->
-      job.vars == event[0].content
+      job.args[0] == event[0].content
     })
     1 * jesqueClient.enqueue(NOTIFICATION_TYPE, { Job job ->
-      job.vars == event[1].content
+      job.args[0] == event[1].content
     })
 
     where:
