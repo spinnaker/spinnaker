@@ -151,7 +151,7 @@ angular.module('deckApp')
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
           var match = _(currentOptions).find({id: groupId});
-          return match ? match.name : null;
+          return match ? match.name : groupId;
         });
 
         var matchedGroups = command.securityGroups.map(function(groupId) {
