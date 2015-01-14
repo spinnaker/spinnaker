@@ -24,7 +24,6 @@ angular.module('deckApp.serverGroup.configure.common')
           } else {
             scope.min = getUsage(scope.range.min);
             scope.max = getUsage(scope.range.max);
-            console.warn('usage min:', scope.min);
           }
         }
         applyFactors();

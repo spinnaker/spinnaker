@@ -132,9 +132,26 @@ angular.module('deckApp')
       return command;
     }
 
+    function buildSubmittableCommand(original) {
+      var command = angular.copy(original);
+      var transformedInstanceMetadata = {};
+      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
+      command.instanceMetadata.forEach(function(metadataPair) {
+        transformedInstanceMetadata[metadataPair.key] = metadataPair.value;
+      });
+
+      // We use this list of load balancer names when 'Enabling' a server group.
+      if (command.loadBalancers.length > 0) {
+        transformedInstanceMetadata['load-balancer-names'] = command.loadBalancers.toString();
+      }
+      command.instanceMetadata = transformedInstanceMetadata;
+      return command;
+    }
+
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
-      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting
+      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
+      buildSubmittableCommand: buildSubmittableCommand
     };
 });
 
