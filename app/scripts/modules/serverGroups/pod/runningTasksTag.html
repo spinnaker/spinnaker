@@ -1,0 +1,26 @@
+<span ng-if="tasks.length">
+  <button class="btn btn-link link-inverse"
+          ng-click="popover.show = !popover.show; $event.stopPropagation();"
+          tooltip="{{popover.show ? 'Hide' : 'Show'}} running task{{tasks.length > 1 ? 's' : ''}}">
+    <span class="icon"><span class="icon-spinner glyphicon-spinning"></span></span>
+  </button>
+  <div class="menu-running-tasks" ng-if="popover.show">
+    <div class="container-fluid" ng-repeat="task in tasks | orderBy:'-startTime'">
+      <div class="row">
+        <div class="col-md-12">
+          <strong>
+            {{task.name}}
+          </strong>
+        </div>
+      </div>
+      <div class="row" ng-repeat="step in task.steps">
+        <div class="col-md-7 col-md-offset-0">
+          <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
+        </div>
+        <div class="col-md-4 text-right">
+          {{step.runningTimeInMs | numericDuration }}
+        </div>
+      </div>
+    </div>
+  </div>
+</span>
