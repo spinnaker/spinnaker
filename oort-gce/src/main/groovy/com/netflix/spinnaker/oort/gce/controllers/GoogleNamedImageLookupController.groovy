@@ -35,14 +35,25 @@ class GoogleNamedImageLookupController {
   GoogleResourceRetriever googleResourceRetriever
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
-  List<Map> find(@RequestParam(value = "account") String account) {
+  List<Map> find(@RequestParam(value = "account", required = false) String account) {
     def imageMap = googleResourceRetriever.imageMap
-    def imageList = imageMap?.get(account) ?: []
 
-    return imageList.collect {
-      [
-        imageName: it
-      ]
+    if (account) {
+      def imageList = imageMap?.get(account) ?: []
+
+      return imageList.collect {
+        [ imageName: it ]
+      }
+    } else {
+      def results = []
+
+      imageMap?.entrySet().each { Map.Entry<String, List<String>> accountNameToImageNamesEntry ->
+        accountNameToImageNamesEntry.value.each {
+          results << [ account: accountNameToImageNamesEntry.key, imageName: it ]
+        }
+      }
+
+      return results
     }
   }
 }
