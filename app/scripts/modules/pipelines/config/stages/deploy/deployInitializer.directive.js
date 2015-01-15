@@ -23,14 +23,21 @@ angular.module('deckApp.pipelines.stage.deploy')
 
     $scope.templates = [
       { label: 'None', serverGroup: null, cluster: null }
-    ].concat($scope.application.clusters.map(function(cluster) {
-        var latest = _.sortBy(cluster.serverGroups, 'name').pop();
-        return {
-          cluster: cluster,
-          label: cluster.name + ' (' + latest.account + ' - ' + latest.region + ')',
-          serverGroup: latest.name
-        };
-      }));
+    ];
+
+    var allClusters = _.groupBy($scope.application.serverGroups, function(serverGroup) {
+      return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
+    });
+
+    _.forEach(allClusters, function(cluster) {
+      var latest = _.sortBy(cluster, 'name').pop();
+      $scope.templates.push({
+        cluster: latest.cluster,
+        label: latest.cluster + ' (' + latest.account + ' - ' + latest.region + ')',
+        serverGroupName: latest.name,
+        serverGroup: latest
+      });
+    });
 
     deploymentStrategiesService.listAvailableStrategies().then(function (strategies) {
       $scope.deploymentStrategies = strategies;
@@ -62,10 +69,8 @@ angular.module('deckApp.pipelines.stage.deploy')
 
     controller.selectTemplate = function (selection) {
       selection = selection || $scope.command.template;
-      if (selection && selection.cluster && selection.cluster.serverGroups) {
-        var cluster = selection.cluster;
-        var serverGroups = _.sortBy(cluster.serverGroups, 'name'),
-          latest = serverGroups.pop();
+      if (selection && selection.cluster && selection.serverGroup) {
+        var latest = selection.serverGroup;
         serverGroupService.getServerGroup($scope.application.name, latest.account, latest.region, latest.name).then(function (details) {
           angular.extend(details, latest);
           serverGroupService.buildServerGroupCommandFromExisting($scope.application, details).then(function (command) {

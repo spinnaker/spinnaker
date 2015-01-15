@@ -26,10 +26,10 @@
         <ui-select-match placeholder="Select...">
           <span>{{$select.selected.label}}</span>
         </ui-select-match>
-        <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroup: $select.search}">
+        <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroupName: $select.search}">
           <h5>{{template.label}}</h5>
           <div ng-if="template.serverGroup">
-            <b>Most recent server group: </b> {{template.serverGroup}}
+            <b>Most recent server group: </b> {{template.serverGroupName}}
           </div>
         </ui-select-choices>
       </ui-select>
