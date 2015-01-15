@@ -129,8 +129,11 @@ public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
     }
 
     private void agentCompleted(String agentType, long nextExecutionTime) {
-        releaseRunKey(agentType, nextExecutionTime);
-        activeAgents.remove(agentType);
+        try {
+            releaseRunKey(agentType, nextExecutionTime);
+        } finally {
+            activeAgents.remove(agentType);
+        }
     }
 
     @Override
