@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- This is more of an integration test between ServerGroupConfigurationService and awsCloneServerGroupCtrl.
+ This is more of an integration test between awsServerGroupConfigurationService and awsCloneServerGroupCtrl.
  ServerGroupConfigurationService is not mocked out to verify behavior that existed before it was refactored into
  existence.
  */

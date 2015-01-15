@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('gceInstanceTypeService', function ($http, $q, settings, _, $window) {
+  .factory('gceInstanceTypeService', function ($http, $q, settings, _) {
 
     var cachedResult = null;
 
@@ -207,22 +207,26 @@ angular.module('deckApp')
       {
         type: 'general',
         label: 'General Purpose',
-        families: [ n1standard ]
+        families: [ n1standard ],
+        icon: 'hdd'
       },
       {
         type: 'memory',
         label: 'High Memory',
-        families: [ n1highmem ]
+        families: [ n1highmem ],
+        icon: 'hdd'
       },
       {
         type: 'cpu',
         label: 'High CPU',
-        families: [ n1highcpu ]
+        families: [ n1highcpu ],
+        icon: 'hdd'
       },
       {
         type: 'micro',
         label: 'Micro Utility',
-        families: [f1micro]
+        families: [f1micro],
+        icon: 'hdd'
       }
     ];
 
@@ -232,55 +236,38 @@ angular.module('deckApp')
 
     function getAllTypesByRegion() {
 
-      // TODO: This mostly goes away when we serve up instance types via mort
       if (cachedResult) {
         return $q.when(cachedResult);
       }
 
       var deferred = $q.defer();
 
-      $window.callback = function(data) {
-        var regions = data.config.regions;
-        var typesByRegion = [];
-        regions.forEach(function(region) {
-          var sizes = [];
-          region.instanceTypes.forEach(function(instanceType) {
-            instanceType.sizes.forEach(function(size) {
-              sizes.push(size.size);
-            });
-          });
-          var regionName = region.region;
-          if (regionName.search(/-[1-9]/) === -1) {
-            regionName = regionName + '-1';
-          }
-          typesByRegion.push({region: regionName, sizes: sizes});
-        });
-        cachedResult = typesByRegion;
-        deferred.resolve(typesByRegion);
-      };
-
-      $http.jsonp('http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js');
+      deferred.resolve(_(categories)
+          .pluck('families')
+          .flatten()
+          .pluck('instanceTypes')
+          .flatten()
+          .pluck('name')
+          .valueOf()
+      );
 
       return deferred.promise;
 
     }
 
     function getAvailableTypesForRegions(availableRegions, selectedRegions) {
-      selectedRegions = selectedRegions || [];
-      var availableTypes = [];
+      if (availableRegions || selectedRegions) {
+        var availableTypes = _(categories)
+          .pluck('families')
+          .flatten()
+          .pluck('instanceTypes')
+          .flatten()
+          .pluck('name')
+          .valueOf();
 
-      var regions = availableRegions.filter(function(region) {
-        return selectedRegions.indexOf(region.region) !== -1;
-      });
-      if (regions.length) {
-        availableTypes = regions[0].sizes;
+        return availableTypes.sort();
       }
-
-      regions.forEach(function(region) {
-        availableTypes = _.intersection(availableTypes, region.sizes);
-      });
-
-      return availableTypes.sort();
+      return [];
     }
 
     return {

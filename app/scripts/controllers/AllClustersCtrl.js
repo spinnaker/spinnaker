@@ -85,7 +85,7 @@ angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'
 
         provider.then(function(selectedProvider) {
           $modal.open({
-            templateUrl: 'views/application/modal/serverGroup/' + selectedProvider + '/serverGroupWizard.html',
+            templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
             controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
             resolve: {
               title: function() { return 'Create New Server Group'; },
