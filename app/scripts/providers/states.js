@@ -6,6 +6,12 @@ angular.module('deckApp')
       $urlRouterProvider.otherwise('/');
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
       $urlRouterProvider.when('/', '/applications');
+      $urlRouterProvider.when(
+        '/applications/{application}/clusters/{acct}/{q}?reg',
+        ['$match', function ($match) {
+          return '/applications/' + $match.application + '/clusters?q=cluster:' + $match.q + '&acct=' + $match.acct + '&reg=' + $match.reg;
+        }]
+      );
 
       var instanceDetails = {
         name: 'instanceDetails',
