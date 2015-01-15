@@ -71,9 +71,6 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   @Override
   protected Job build(Map<String, Object> config, Orchestration orchestration) {
     def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
-    pipelineListeners.each {
-      jobBuilder = jobBuilder.listener(it)
-    }
     jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
     orchestration.stages.each { stage ->
       stages.get(stage.type).build(jobBuilder, stage)
