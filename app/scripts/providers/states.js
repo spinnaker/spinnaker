@@ -324,6 +324,23 @@ angular.module('deckApp')
         children: [taskDetails],
       };
 
+      var config = {
+        name: 'config',
+        url: '/config',
+        views: {
+          'insight': {
+            templateUrl: 'scripts/modules/config/config.html',
+            controller: 'ConfigController',
+            controllerAs: 'config'
+          },
+        },
+        data: {
+          pageTitleSection: {
+            title: 'Config'
+          }
+        }
+      };
+
       var application = {
         name: 'application',
         url: '/:application',
@@ -348,7 +365,8 @@ angular.module('deckApp')
           insight,
           tasks,
           deliveryStates.executions,
-          deliveryStates.configure
+          deliveryStates.configure,
+          config
         ],
       };
 

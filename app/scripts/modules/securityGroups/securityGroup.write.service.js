@@ -1,7 +1,10 @@
 'use strict';
 
 angular
-  .module('deckApp.securityGroup.write.service', ['deckApp.caches.infrastructure'])
+  .module('deckApp.securityGroup.write.service', [
+    'deckApp.caches.infrastructure',
+    'deckApp.taskExecutor.service'
+  ])
   .factory('securityGroupWriter' ,function (taskExecutor, infrastructureCaches) {
 
     function upsertSecurityGroup(command, application, descriptor) {

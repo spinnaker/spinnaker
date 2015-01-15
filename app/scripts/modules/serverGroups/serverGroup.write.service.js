@@ -1,7 +1,10 @@
 'use strict';
 
 angular
-  .module('deckApp.serverGroup.write.service', ['deckApp.serverGroup.transformer.service'])
+  .module('deckApp.serverGroup.write.service', [
+    'deckApp.serverGroup.transformer.service',
+    'deckApp.taskExecutor.service'
+  ])
   .factory('serverGroupWriter', function (taskExecutor, serverGroupTransformer) {
 
     function destroyServerGroup(serverGroup, application) {

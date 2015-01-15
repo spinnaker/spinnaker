@@ -34,7 +34,6 @@ angular.module('deckApp', [
     'deckApp.serverGroup',
     'deckApp.instance',
     'deckApp.pageTitle',
-    'deckApp.applications',
     'deckApp.securityGroup',
     'deckApp.serverGroup',
     'deckApp.instance',
@@ -55,7 +54,8 @@ angular.module('deckApp', [
     'deckApp.validation',
     'deckApp.loadBalancer',
     'deckApp.vpc',
-    'deckApp.keyPairs'
+    'deckApp.keyPairs',
+    'deckApp.config'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)

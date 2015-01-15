@@ -1,7 +1,9 @@
 'use strict';
 
 angular
-  .module('deckApp.instance.write.service', [])
+  .module('deckApp.instance.write.service', [
+    'deckApp.taskExecutor.service'
+  ])
   .factory('instanceWriter', function (taskExecutor) {
 
     function terminateInstance(instance, application) {

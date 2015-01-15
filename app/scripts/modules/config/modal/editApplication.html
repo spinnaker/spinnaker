@@ -1,0 +1,96 @@
+<div class="modal-page">
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3 data-purpose="modal-header">Edit Application</h3>
+  </div>
+
+  <form role="form" class="container-fluid" novalidate name="editApplicationForm">
+    <div class="modal-body">
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Name</div>
+        <div class="col-sm-9">
+          <p class="form-control-static">{{editApp.applicationAttributes.name}}</p>
+        </div>
+      </div>
+
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Owner Email</div>
+        <div class="col-sm-9">
+          <input type="email"
+                 name="email"
+                 ng-class="{'ng-invalid ng-dirty':newAppModal.emailErrorMsg.length > 0 }"
+                 class="form-control input-sm "
+                 data-purpose="application-email"
+                 ng-model="editApp.applicationAttributes.email"
+                 placeholder="Enter an email address"
+                 required
+                 id="ownerEmail">
+          </input>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-if="editApplicationForm.email.$dirty && editApplicationForm.email.$invalid">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Please enter a valid email address</span>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-if="editApp.emailErrorMsg">
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.emailErrorMsg">
+          {{errorMsg}} <small><span class="glyphicon glyphicon-remove" ng-click="editApp.clearEmailMsg()" style="cursor: pointer; padding-left: 10px"></span></small>
+
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="pagerDutyApiKeyLabel">PagerDuty API Key</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="editApp.applicationAttributes.pdApiKey"
+                 placeholder="Enter your PagerDuty API key"
+                 id="pagerDutyApiKey">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Description</div>
+        <div class="col-sm-9">
+          <textarea
+                 class="form-control input-sm"
+                 ng-model="editApp.applicationAttributes.description"
+                 placeholder="Enter a description"
+                 data-purpose="application-description"
+                 id="applicationDescription">
+          </textarea>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-md-3 sm-label-left">Account</div>
+        <div class="col-md-9">
+          <p class="form-control-static">{{editApp.applicationAttributes.accounts}}</p>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="form-group row slide-in" ng-if="editApp.errorMsgs">
+      <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.errorMsgs">
+        {{errorMsg}}
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <span ng-show="editApp.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>
+      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <button type="submit"
+              class="btn btn-primary"
+              data-purpose="submit"
+              ng-disabled="!editApplicationForm.$valid || editApp.submitting"
+              ng-click="editApp.submit()">
+        <span class="glyphicon glyphicon-ok-circle"></span> Update
+      </button>
+    </div>
+  </form>
+</div>
