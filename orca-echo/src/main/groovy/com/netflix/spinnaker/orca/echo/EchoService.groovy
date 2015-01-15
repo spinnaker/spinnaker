@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo
 
-import javax.xml.ws.Response
+import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
 import retrofit.http.POST
@@ -24,10 +24,9 @@ import retrofit.http.Path
 
 interface EchoService {
 
-  @POST('/')
+  @POST("/")
   Response recordEvent(@Body Map<String, ?> notification)
 
-  @GET('/events/recent/{type}/{time}/')
-  retrofit.client.Response getEvents(
-      @Path("type") String type, @Path("time") Long time)
+  @GET("/events/recent/{type}/{since}/")
+  Response getEvents(@Path("type") String type, @Path("since") Long since)
 }

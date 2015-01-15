@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.notifications.jenkins
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.echo.EchoEventPoller
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import net.greghaines.jesque.client.Client
@@ -37,9 +37,9 @@ class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent 
 
   @Autowired
   BuildJobPollingNotificationAgent(ObjectMapper objectMapper,
-                                   EchoService echoService,
+                                   EchoEventPoller echoEventPoller,
                                    Client jesqueClient) {
-    super(objectMapper, echoService, jesqueClient)
+    super(objectMapper, echoEventPoller, jesqueClient)
   }
 
   @Override

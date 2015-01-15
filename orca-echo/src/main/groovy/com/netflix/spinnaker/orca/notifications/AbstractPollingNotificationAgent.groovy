@@ -21,18 +21,16 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.echo.EchoEventPoller
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
 
 @CompileStatic
 abstract class AbstractPollingNotificationAgent implements Runnable {
 
-  private final EchoService echoService
   private final ObjectMapper objectMapper
   private final Client jesqueClient
-
-  private transient long lastCheck = System.currentTimeMillis()
+  private final EchoEventPoller echoEventPoller
 
   abstract long getPollingInterval()
 
@@ -41,10 +39,10 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
   abstract void handleNotification(List<Map> input)
 
   AbstractPollingNotificationAgent(ObjectMapper objectMapper,
-                                   EchoService echoService,
+                                   EchoEventPoller echoEventPoller,
                                    Client jesqueClient) {
     this.objectMapper = objectMapper
-    this.echoService = echoService
+    this.echoEventPoller = echoEventPoller
     this.jesqueClient = jesqueClient
   }
 
@@ -57,9 +55,7 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
   @Override
   void run() {
     try {
-      def response = echoService.getEvents(notificationType, lastCheck)
-      lastCheck = System.currentTimeMillis()
-      // TODO: should base this off the Date header from echo
+      def response = echoEventPoller.getEvents(notificationType)
       List<Map> maps = objectMapper.readValue(response.body.in().text, List)
       handleNotification maps
     } catch (e) {

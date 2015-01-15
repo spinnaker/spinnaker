@@ -44,6 +44,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Import(RetrofitConfiguration)
 @ConditionalOnProperty(value = 'echo.baseUrl')
 @ComponentScan([
+    "com.netflix.spinnaker.orca.echo",
     "com.netflix.spinnaker.orca.notifications.jenkins",
     "com.netflix.spinnaker.orca.notifications.manual"
 ])

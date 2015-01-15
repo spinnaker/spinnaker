@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.notifications.manual
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.echo.EchoEventPoller
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
@@ -15,10 +15,10 @@ import static com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPolli
 class ManualTriggerPollingNotificationAgentSpec extends Specification {
 
   def mapper = new ObjectMapper()
-  def echoService = Stub(EchoService)
+  def echoEventPoller = Stub(EchoEventPoller)
   def jesqueClient = Mock(Client)
   @Subject agent = new ManualTriggerPollingNotificationAgent(
-      mapper, echoService, jesqueClient
+      mapper, echoEventPoller, jesqueClient
   )
 
   def "incoming notifications are placed on a task queue"() {

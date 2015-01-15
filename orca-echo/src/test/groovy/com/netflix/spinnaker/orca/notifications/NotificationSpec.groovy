@@ -4,6 +4,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.orca.echo.EchoEventPoller
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
@@ -76,6 +77,10 @@ class TestConfiguration {
     new OrcaObjectMapper()
   }
 
+  @Bean EchoEventPoller echoEventPoller() {
+    [:] as EchoEventPoller
+  }
+
   @Bean MayoService mayoService() {
     [:] as MayoService
   }
@@ -94,7 +99,6 @@ class TestConfiguration {
 @Configuration
 class JedisConfiguration {
   @Bean
-//    @ConditionalOnExpression('\'${redis.connection}\' == null')
   EmbeddedRedis redisServer() {
     EmbeddedRedis.embed()
   }
