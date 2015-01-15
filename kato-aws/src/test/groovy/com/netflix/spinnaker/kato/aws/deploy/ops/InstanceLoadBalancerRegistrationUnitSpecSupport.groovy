@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
-import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
-import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
+import com.netflix.spinnaker.kato.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
 
-abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification {
+class InstanceLoadBalancerRegistrationUnitSpecSupport extends Specification {
   @Shared
-  def description = new EnableDisableAsgDescription([
-      asgName    : "kato-main-v000",
-      regions    : ["us-west-1"],
-      credentials: TestCredential.named('foo')
+  def description = new InstanceLoadBalancerRegistrationDescription([
+      asgName: "oort-main-v000",
+      region: "us-west-1",
+      credentials: TestCredential.named('test')
   ])
 
   @Shared
-  AbstractEnableDisableAtomicOperation op
-
-  @Shared
-  Task task
-
-  @Shared
-  RestTemplate restTemplate
+  AbstractInstanceLoadBalancerRegistrationAtomicOperation op
 
   @Shared
   AsgService asgService
@@ -53,23 +44,22 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   AmazonElasticLoadBalancing loadBalancing
 
   def setup() {
-    task = Mock(Task)
-    TaskRepository.threadLocalTask.set(task)
-    restTemplate = Mock(RestTemplate)
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
     wireOpMocks(op)
   }
 
-  def wireOpMocks(AbstractEnableDisableAtomicOperation op) {
-    op.discoverySupport = new DiscoverySupport(restTemplate: restTemplate)
-    def rspf = Mock(RegionScopedProviderFactory)
+  def wireOpMocks(AbstractInstanceLoadBalancerRegistrationAtomicOperation op) {
     def rsp = Mock(RegionScopedProviderFactory.RegionScopedProvider)
     rsp.getAsgService() >> asgService
+
+    def rspf = Mock(RegionScopedProviderFactory)
     rspf.forRegion(_, _) >> rsp
     op.regionScopedProviderFactory = rspf
-    def provider = Mock(AmazonClientProvider)
-    provider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+
+    def provider = Mock(AmazonClientProvider) {
+      1 * getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+    }
     op.amazonClientProvider = provider
   }
 }
