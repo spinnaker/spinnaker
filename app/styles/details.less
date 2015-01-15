@@ -25,6 +25,11 @@
     background-color: @unhealthy_red;
     border-color: @unhealthy_red_border;
   }
+
+  &.health-status-UnknownStatus{
+    background-color: @missing_health;
+    border-color: @missing_health_border;
+  }
 }
 
 .details-panel {
@@ -73,6 +78,9 @@
         font-size: 300%;
         &.unhealthy {
           color: @unhealthy_red;
+        }
+        &.unknown {
+          color: @missing_health;
         }
         &.disabled {
           color: @mid_light_grey;

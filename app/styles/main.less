@@ -172,6 +172,7 @@ body {
   &:before {
     content: "\25B2";
     color: @healthy_green_border;
+    font-size: 75%;
   }
 }
 
@@ -179,14 +180,18 @@ body {
   &:before {
     content: "\25BC";
     color: @unhealthy_red;
+    font-size: 75%;
   }
 }
 .glyphicon-unknown-triangle {
   &:before {
-    content: "?";
+    content: "\2666";
     font-weight: 900;
-    color: @mid_lighter_grey;
+    color: @missing_health;
+    font-size: 120%;
   }
+  display: inline-block;
+  padding-bottom: 3px;
 }
 
 dl {
@@ -211,6 +216,16 @@ dl {
     }
   }
 }
+
+.tooltip-table {
+  width: 120px;
+  td, th {
+    text-align: left;
+    vertical-align: top;
+    padding: 2px;
+  }
+}
+
 
 body > .container {
   margin-top: 20px;

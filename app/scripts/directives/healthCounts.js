@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .directive('healthCounts', function () {
+  .directive('healthCounts', function ($templateCache) {
     return {
       templateUrl: 'views/application/healthCounts.html',
       restrict: 'E',
@@ -11,6 +11,9 @@ angular.module('deckApp')
         container: '='
       },
       link: function(scope) {
+
+        var template = $templateCache.get('views/directives/healthLegend.html');
+        scope.legend = template;
 
         function calculateHealthPercent() {
           var container = scope.container,

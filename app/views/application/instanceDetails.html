@@ -20,7 +20,7 @@
       </a>
     </div>
     <div class="header-text">
-      <span class="glyphicon glyphicon-hdd {{instance.isHealthy ? 'healthy' : 'unhealthy'}}" ng-class="{disabled: instance.healthStatus === 'Disabled'}"></span>
+      <span class="glyphicon glyphicon-hdd {{instance.isHealthy ? 'healthy' : instance.hasHealthStatus ? 'unhealthy' : 'unknown'}}" ng-class="{disabled: instance.healthStatus === 'Disabled'}"></span>
       <h3>
         {{instance.instanceId}}
       </h3>

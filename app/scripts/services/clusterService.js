@@ -12,10 +12,23 @@ angular.module('deckApp')
         });
     }
 
+    function addHealthStatusCheck(serverGroup) {
+      serverGroup.instances.forEach(function (instance) {
+        var healthList = instance.health;
+        var activeHealth = _.filter(healthList, function(health) {
+          return health.state !== 'Unknown';
+        });
+
+        instance.hasHealthStatus = Boolean(activeHealth.length);
+      });
+    }
+
     function addHealthyCountsToServerGroup(serverGroup) {
-      serverGroup.upCount = _.filter(serverGroup.instances, {isHealthy: true}).length;
-      serverGroup.downCount = _.filter(serverGroup.instances, {isHealthy: false}).length;
-      serverGroup.unknownCount = 0;
+      addHealthStatusCheck(serverGroup);
+      serverGroup.totalCount = serverGroup.instanceCounts.total;
+      serverGroup.upCount = serverGroup.instanceCounts.up;
+      serverGroup.downCount = serverGroup.instanceCounts.down;
+      serverGroup.unknownCount = serverGroup.instanceCounts.unknown;
     }
 
     function addHealthCountsToCluster(cluster) {
@@ -32,6 +45,7 @@ angular.module('deckApp')
         cluster.upCount += serverGroup.upCount;
         cluster.downCount += serverGroup.downCount;
         cluster.unknownCount += serverGroup.unknownCount;
+        cluster.missingHealthCount += serverGroup.missingHealthCount;
       });
     }
 
