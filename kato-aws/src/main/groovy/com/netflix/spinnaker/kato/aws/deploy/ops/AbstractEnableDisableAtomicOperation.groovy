@@ -19,16 +19,14 @@ import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFrom
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.client.RestTemplate
 
 abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
   private static final long THROTTLE_MS = 150
@@ -41,7 +39,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   RegionScopedProviderFactory regionScopedProviderFactory
 
   @Autowired
-  RestTemplate restTemplate
+  DiscoverySupport discoverySupport
 
   @Autowired
   AmazonClientProvider amazonClientProvider
@@ -89,9 +87,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         }
 
         if (description.credentials.discoveryEnabled) {
-          def status = disable ? DiscoveryStatus.Disable : DiscoveryStatus.Enable
+          def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
           task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
-          doDiscoveryStatusCall region, status, asg.autoScalingGroupName, asg.instances*.instanceId
+          discoverySupport.updateDiscoveryStatusForInstances(
+              description, task, phaseName, region, status, asg.autoScalingGroupName, asg.instances*.instanceId
+          )
         }
         task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
       } catch (e) {
@@ -103,25 +103,6 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       task.fail()
     }
     null
-  }
-
-  private void doDiscoveryStatusCall(String region, DiscoveryStatus discoveryStatus, String asgName, List<String> instanceIds) {
-    if (!description.credentials.discoveryEnabled) {
-      throw new DiscoveryNotConfiguredException()
-    }
-    def names = Names.parseName(asgName)
-    if (!names.app) {
-      task.updateStatus phaseName, "Could not derive application name from ASG name and unable to ${discoveryStatus.name().toLowerCase()} in Eureka!"
-    } else {
-      instanceIds.eachWithIndex { instanceId, index ->
-        if (index > 0) {
-          sleep THROTTLE_MS
-        }
-        task.updateStatus phaseName, "Attempting to ${discoveryStatus.name().toLowerCase()} instance '$instanceId'."
-        def discovery = String.format(description.credentials.discovery, region)
-        restTemplate.put("$discovery/v2/apps/$names.app/$instanceId/status?value=$discoveryStatus.value", [:])
-      }
-    }
   }
 
   private static void changeRegistrationOfInstancesWithLoadBalancer(Collection<String> loadBalancerNames, Collection<String> instanceIds, Closure actOnInstancesAndLoadBalancer) {
@@ -139,18 +120,4 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
-
-  enum DiscoveryStatus {
-    Enable('UP'),
-    Disable('OUT_OF_SERVICE')
-
-    String value
-
-    DiscoveryStatus(String value) {
-      this.value = value
-    }
-  }
-
-  @InheritConstructors
-  static class DiscoveryNotConfiguredException extends RuntimeException {}
 }

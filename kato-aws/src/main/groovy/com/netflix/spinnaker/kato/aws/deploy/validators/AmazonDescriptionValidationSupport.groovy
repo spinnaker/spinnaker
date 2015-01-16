@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentia
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 
-public abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {
+public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
 
@@ -55,6 +55,24 @@ public abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazo
       def allowedRegions = description.credentials?.regions?.name
       if (allowedRegions && !allowedRegions.containsAll(regionNames)) {
         errors.rejectValue(attributeName, "${errorKey}.${attributeName}.not.configured")
+      }
+    }
+  }
+
+  void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
+    def key = description.class.simpleName
+    if (description.asgName) {
+      validateAsgName(description, errors)
+    }
+
+    validateRegion(description, description.region, key, errors)
+    if (!description.instanceIds) {
+      errors.rejectValue("instanceIds", "${key}.instanceIds.empty")
+    } else {
+      description.instanceIds.each {
+        if (!it) {
+          errors.rejectValue("instanceIds", "${key}.instanceId.invalid")
+        }
       }
     }
   }

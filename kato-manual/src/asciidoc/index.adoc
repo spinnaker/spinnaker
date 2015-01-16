@@ -116,11 +116,19 @@ include::src/asciidoc/ops/deleteAmazonLoadBalancerDescription.adoc[]
 - - -
 include::src/asciidoc/ops/deleteSecurityGroupDescription.adoc[]
 - - -
+include::src/asciidoc/ops/registerInstancesWithLoadBalancerDescription.adoc[]
+- - -
+include::src/asciidoc/ops/deregisterInstancesFromLoadBalancerDescription.adoc[]
+- - -
 include::src/asciidoc/ops/destroyAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/enableAsgDescription.adoc[]
 - - -
 include::src/asciidoc/ops/disableAsgDescription.adoc[]
+- - -
+include::src/asciidoc/ops/enableInstancesInDiscoveryDescription.adoc[]
+- - -
+include::src/asciidoc/ops/disableInstancesInDiscoveryDescription.adoc[]
 - - -
 include::src/asciidoc/ops/resumeAsgProcessesDescription.adoc[]
 - - -
@@ -133,6 +141,8 @@ include::src/asciidoc/ops/shrinkClusterDescription.adoc[]
 include::src/asciidoc/ops/upsertAsgTagsDescription.adoc[]
 - - -
 include::src/asciidoc/ops/deleteAsgTagsDescription.adoc[]
+- - -
+include::src/asciidoc/ops/rebootInstancesDescription.adoc[]
 - - -
 include::src/asciidoc/ops/terminateInstanceAndDecrementAsgDescription.adoc[]
 - - -
