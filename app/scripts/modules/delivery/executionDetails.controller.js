@@ -25,6 +25,14 @@ angular.module('deckApp.delivery')
       $state.go('.', { stage: null });
     };
 
+    controller.getKatoException = function(stage) {
+      if (stage.context && stage.context['kato.tasks'] && stage.context['kato.tasks'].length) {
+        var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length-1];
+        return lastTask.exception ? lastTask.exception.message : null;
+      }
+      return null;
+    };
+
     controller.getDetailsSourceUrl = function() {
       if ($stateParams.stage) {
         var stage = _.find($scope.execution.stages, { name: $stateParams.stage });

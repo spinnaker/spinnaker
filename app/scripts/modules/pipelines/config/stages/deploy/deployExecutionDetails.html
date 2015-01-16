@@ -30,10 +30,10 @@
     <div class="col-md-12">
       <div class="alert alert-danger">
         <h5>Exception:</h5>
-        <p ng-if="stage.context['kato.tasks'][0].exception.message">
-          {{stage.context['kato.tasks'][0].exception.message}}
+        <p ng-if="ctrl.getKatoException(stage)">
+          {{ctrl.getKatoException(stage)}}
         </p>
-        <p ng-if="!stage.context['kato.tasks'][0].exception.message">
+        <p ng-if="!ctrl.getKatoException(stage)">
           No reason provided.
         </p>
       </div>
