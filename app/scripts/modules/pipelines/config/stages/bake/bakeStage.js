@@ -31,6 +31,12 @@ angular.module('deckApp.pipelines.stage.bake')
       $scope.regions = results.regions;
       $scope.baseOsOptions = results.baseOsOptions;
       $scope.baseLabelOptions = results.baseLabelOptions;
+      if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
+        $scope.stage.baseOs = $scope.baseOsOptions[0];
+      }
+      if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
+        $scope.stage.baseLabel = $scope.baseLabelOptions[0];
+      }
       $scope.viewState.loading = false;
     });
   });
