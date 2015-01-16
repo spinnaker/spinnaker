@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
+import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
@@ -58,7 +59,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   MortConfiguration,
   OortConfiguration,
   MayoConfiguration,
-  RushConfiguration
+  RushConfiguration,
+  IgorConfiguration
 ])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [

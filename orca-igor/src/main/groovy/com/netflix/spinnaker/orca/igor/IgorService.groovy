@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-igor",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-smoke-test",
-  "orca-rush",
-  "orca-web"
+package com.netflix.spinnaker.orca.igor
 
-rootProject.name = "orca"
+import retrofit.http.GET
+import retrofit.http.PUT
+import retrofit.http.Path
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+interface IgorService {
 
-rootProject.children.each {
-  setBuildFile it
+  @PUT("/masters/{name}/jobs/{jobName}")
+  Map<String, Object> build(@Path("name") String master, @Path("jobName") String jobName)
+
+  @GET("/jobs/{master}/{job}/{buildNumber}")
+  Map<String, Object> getBuild(@Path("master") String master,
+                               @Path("job") String job,
+                               @Path("buildNumber") Integer buildNumber)
 }
