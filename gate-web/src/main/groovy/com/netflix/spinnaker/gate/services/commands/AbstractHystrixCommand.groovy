@@ -21,8 +21,8 @@ import com.netflix.hystrix.HystrixCommandKey
 import groovy.transform.CompileStatic
 
 
-import static HystrixFactory.createHystrixCommandPropertiesSetter
-import static HystrixFactory.toGroupKey
+import static com.netflix.spinnaker.gate.services.commands.HystrixFactory.createHystrixCommandPropertiesSetter
+import static com.netflix.spinnaker.gate.services.commands.HystrixFactory.toGroupKey
 
 @CompileStatic
 abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {

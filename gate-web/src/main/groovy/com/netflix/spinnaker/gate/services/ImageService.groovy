@@ -32,13 +32,13 @@ class ImageService {
   OortService oortService
 
   List<Map> getForAccountAndRegion(String provider, String account, String region, String imageId) {
-    HystrixFactory.newListCommand(GROUP, "images-${provider}-${account}-${region}-${imageId}", true) {
+    HystrixFactory.newListCommand(GROUP, "getImagesForAccountAndRegion", true) {
       oortService.getImageDetails(provider, account, region, imageId)
     } execute()
   }
 
   List<Map> search(String provider, String query, String region, String account) {
-    HystrixFactory.newListCommand(GROUP, "images-${provider}-${query}-${region}-${account}", true) {
+    HystrixFactory.newListCommand(GROUP, "searchImages", true) {
       oortService.findImages(provider, query, region, account)
     } execute()
   }

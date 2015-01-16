@@ -39,13 +39,13 @@ class TaskService {
   }
 
   Map getTask(String id) {
-    HystrixFactory.newMapCommand(GROUP, "tasks-${id}", true) {
+    HystrixFactory.newMapCommand(GROUP, "getTask", true) {
       orcaService.getTask(id)
     } execute()
   }
 
   Map getTaskDetails(String taskDetailsId) {
-    HystrixFactory.newMapCommand(GROUP, "taskDetails-${taskDetailsId}", true) {
+    HystrixFactory.newMapCommand(GROUP, "getTaskDetails", true) {
       katoService.getTaskDetails(taskDetailsId)
     } execute()
   }

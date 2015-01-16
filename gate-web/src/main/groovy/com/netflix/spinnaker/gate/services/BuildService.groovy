@@ -35,7 +35,7 @@ class BuildService {
     if (!igorService) {
       return []
     }
-    HystrixFactory.newListCommand(GROUP, "masters".toString(), true) {
+    HystrixFactory.newListCommand(GROUP, "masters", true) {
       igorService.getBuildMasters()
     } execute()
   }
@@ -45,7 +45,7 @@ class BuildService {
     if (!igorService) {
       return []
     }
-    HystrixFactory.newListCommand(GROUP, "jobs-${buildMaster}".toString(), true) {
+    HystrixFactory.newListCommand(GROUP, "jobsForBuildMaster",true) {
       igorService.getJobsForBuildMaster(buildMaster)
     } execute()
   }

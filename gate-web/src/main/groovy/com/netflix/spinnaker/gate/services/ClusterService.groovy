@@ -34,19 +34,19 @@ class ClusterService {
   TagService tagService
 
   Map getClusters(String app) {
-    HystrixFactory.newMapCommand(GROUP, "getClusters-${app}".toString(), true) {
+    HystrixFactory.newMapCommand(GROUP, "getClustersForApplication", true) {
       oortService.getClusters(app)
     } execute()
   }
 
   List<Map> getClustersForAccount(String app, String account) {
-    HystrixFactory.newListCommand(GROUP, "clusters-${app}-${account}".toString(), true) {
+    HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount", true) {
       oortService.getClustersForAccount(app, account)
     } execute()
   }
 
   Map getCluster(String app, String account, String clusterName) {
-    HystrixFactory.newMapCommand(GROUP, "clusters-${app}-${account}-${clusterName}".toString(), true) {
+    HystrixFactory.newMapCommand(GROUP, "getCluster", true) {
       oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
     } execute()
   }
@@ -65,7 +65,7 @@ class ClusterService {
   }
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region) {
-    HystrixFactory.newListCommand(GROUP, "scalingActivities-${app}-${account}-${clusterName}-${provider}-${serverGroupName}-${region}", true) {
+    HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster", true) {
       oortService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
     } execute()
   }

@@ -70,7 +70,7 @@ class ApplicationService {
   Map get(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
 
-    HystrixFactory.newMapCommand(GROUP, "getApp-${name}".toString(), true) {
+    HystrixFactory.newMapCommand(GROUP, "getAppByName", true) {
       def futures = executorService.invokeAll(applicationRetrievers)
       List<Map> applications = (List<Map>) futures.collect { it.get() }
 
@@ -94,7 +94,7 @@ class ApplicationService {
       return []
     }
 
-    HystrixFactory.newListCommand(GROUP, "getPipelineConfigs-${app}".toString(), true) {
+    HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication", true) {
       mayoService.getPipelineConfigs(app)
     } execute()
   }
@@ -103,7 +103,7 @@ class ApplicationService {
     if (!mayoService) {
       return null
     }
-    HystrixFactory.newMapCommand(GROUP, "getPipelineConfig-${app}-${pipelineName}".toString(), true) {
+    HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline", true) {
       mayoService.getPipelineConfig(app, pipelineName)
     } execute()
   }

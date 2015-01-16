@@ -36,13 +36,13 @@ class ServerGroupService {
   InsightConfiguration insightConfiguration
 
   List getForApplication(String applicationName) {
-    HystrixFactory.newListCommand(GROUP, "serverGroups-${applicationName}", true) {
+    HystrixFactory.newListCommand(GROUP, "getServerGroupsForApplication", true) {
       oortService.getServerGroups(applicationName)
     } execute()
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
-    HystrixFactory.newMapCommand(GROUP, "serverGroups-${applicationName}-${account}-${region}-${serverGroupName}", true) {
+    HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion", true) {
       def context = getContext(applicationName, account, region, serverGroupName)
       return oortService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
           "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }

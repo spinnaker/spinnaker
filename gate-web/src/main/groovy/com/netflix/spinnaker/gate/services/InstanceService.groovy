@@ -36,7 +36,7 @@ class InstanceService {
   InsightConfiguration insightConfiguration
 
   Map getForAccountAndRegion(String account, String region, String instanceId) {
-    HystrixFactory.newMapCommand(GROUP, "instances-${account}-${region}-${instanceId}", true) {
+    HystrixFactory.newMapCommand(GROUP, "getInstancesForAccountAndRegion", true) {
       def context = getContext(account, region, instanceId)
       return oortService.getInstanceDetails(account, region, instanceId) + [
           "insightActions": insightConfiguration.instance.collect { it.applyContext(context) }
