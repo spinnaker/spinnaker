@@ -36,13 +36,20 @@
     </div>
   </div>
 
-  <div class="form-group" ng-if="command.template">
+  <div class="form-group" ng-if="command.template.serverGroup">
     <div class="col-md-12">
       <deploy-preview stage="stage"></deploy-preview>
     </div>
     <div class="col-md-12 text-right">
       <button class="btn btn-primary" ng-click="deployInitializerCtrl.useTemplate()">
         Use this template
+      </button>
+    </div>
+  </div>
+  <div class="form-group" ng-if="!command.template.serverGroup">
+    <div class="col-md-9 text-right">
+      <button class="btn btn-primary" ng-click="deployInitializerCtrl.useTemplate()">
+        Continue without a template
       </button>
     </div>
   </div>
