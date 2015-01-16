@@ -113,23 +113,23 @@ angular
 
     function getApplication(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(applicationName),
-        loadBalancersByApplicationNameLoader = loadBalancerReader.loadLoadBalancersByApplicationName(applicationName),
+        loadBalancersFromSearch = loadBalancerReader.loadLoadBalancersByApplicationName(applicationName),
         applicationLoader = getApplicationEndpoint(applicationName).get(),
         serverGroupLoader = clusterService.loadServerGroups(applicationName);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
-      var loadBalancerLoader, securityGroupLoader;
+      var securityGroupLoader;
 
       return $q.all({
         securityGroups: securityGroupsByApplicationNameLoader,
-        loadBalancersByApplicationName: loadBalancersByApplicationNameLoader,
+        loadBalancersFromSearch: loadBalancersFromSearch,
         application: applicationLoader
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
           securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
-          loadBalancerAccounts = _(applicationLoader.loadBalancersByApplicationName).pluck('account').unique().value();
+          loadBalancerAccounts = _(applicationLoader.loadBalancersFromSearch).pluck('account').unique().value();
           application.accounts = _([applicationLoader.application.accounts, securityGroupAccounts, loadBalancerAccounts])
             .flatten()
             .compact()
@@ -142,20 +142,18 @@ angular
             });
           }
 
-          loadBalancerLoader = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersByApplicationName);
           securityGroupLoader = securityGroupService.loadSecurityGroups(application);
 
           return $q.all({
-            loadBalancers: loadBalancerLoader,
+            serverGroups: serverGroupLoader,
             securityGroups: securityGroupLoader,
-            serverGroups: serverGroupLoader
           })
             .then(function(results) {
               serverGroups = results.serverGroups.plain();
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
 
-              application.loadBalancers = results.loadBalancers;
+              application.loadBalancers = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersFromSearch);
               loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               // If the tasks were loaded already, add them to the server groups
@@ -170,11 +168,6 @@ angular
             });
         });
     }
-
-
-
-
-
 
 
     return {
