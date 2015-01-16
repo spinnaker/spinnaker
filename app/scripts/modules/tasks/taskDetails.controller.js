@@ -29,7 +29,7 @@ angular.module('deckApp.tasks.detail', [])
 
     vm.retry = angular.noop;
     vm.cancel = function() {
-      tasksWriter.cancelTask(application.name, taskId);
+      tasksWriter.cancelTask(application.name, taskId).then(application.reloadTasks);
     };
 
     return vm;

@@ -30,6 +30,11 @@ angular.module('deckApp')
             return item.status === 'NOT_STARTED';
           }
         },
+        isCanceled: {
+          get: function() {
+            return item.status === 'CANCELED';
+          }
+        },
         status: {
           // Returns either COMPLETED, RUNNING, FAILED, or NOT_STARTED
           get: function() { return normalizeStatus(item); },
@@ -69,6 +74,8 @@ angular.module('deckApp')
           return 'FAILED';
         case 'NOT_STARTED':
           return 'NOT_STARTED';
+        case 'CANCELED':
+          return 'CANCELED';
         default:
           $log.warn('Unrecognized status:', item.originalStatus);
           return item.originalStatus;
