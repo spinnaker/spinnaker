@@ -16,14 +16,13 @@ angular.module('deckApp.pipelines.stage.deploy')
   .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategiesService, _) {
     var controller = this;
 
+    var noTemplate = { label: 'None', serverGroup: null, cluster: null };
     $scope.command = {
-      strategy: null,
-      template: null
+      strategy: '',
+      template: noTemplate,
     };
 
-    $scope.templates = [
-      { label: 'None', serverGroup: null, cluster: null }
-    ];
+    $scope.templates = [ noTemplate ];
 
     var allClusters = _.groupBy($scope.application.serverGroups, function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
