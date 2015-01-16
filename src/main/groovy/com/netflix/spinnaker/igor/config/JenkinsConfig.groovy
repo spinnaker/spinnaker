@@ -56,7 +56,6 @@ class JenkinsConfig {
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
             .setClient(new OkClient())
-            .setLogLevel(RestAdapter.LogLevel.FULL)
             .setConverter(new SimpleXMLConverter())
             .build()
             .create(JenkinsClient)
