@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.tasks.detail', [])
-  .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notificationsService) {
+  .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notificationsService, tasksWriter) {
 
     var vm = this;
 
@@ -28,7 +28,9 @@ angular.module('deckApp.tasks.detail', [])
     application.registerAutoRefreshHandler(extractTaskDetails, $scope);
 
     vm.retry = angular.noop;
-    vm.cancel = angular.noop;
+    vm.cancel = function() {
+      tasksWriter.cancelTask(application.name, taskId);
+    };
 
     return vm;
   });
