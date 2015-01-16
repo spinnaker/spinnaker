@@ -41,6 +41,8 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
   public static GoogleServerGroup newInstance(GoogleServerGroup originalGoogleServerGroup) {
     GoogleServerGroup copyGoogleServerGroup = new GoogleServerGroup()
 
+    copyGoogleServerGroup.setDisabled(originalGoogleServerGroup.isDisabled())
+
     originalGoogleServerGroup.getMetaClass().getProperties().each { metaProperty ->
       def propertyName = metaProperty.name
 

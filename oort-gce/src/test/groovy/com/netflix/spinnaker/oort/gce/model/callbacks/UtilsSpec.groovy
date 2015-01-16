@@ -195,4 +195,30 @@ class UtilsSpec extends Specification {
     then:
       retrievedAgainCluster.is(retrievedCluster)
   }
+
+  void "deep-copied application maps do not lose disabled status of server groups"() {
+    setup:
+      def originalServerGroup = new GoogleServerGroup(name: SERVER_GROUP_NAME)
+      originalServerGroup.instances << new GoogleInstance(name: INSTANCE_NAME)
+      originalServerGroup.setDisabled(false)
+      def originalClusterDev = new GoogleCluster(name: CLUSTER_DEV_NAME)
+      originalClusterDev.serverGroups << originalServerGroup
+      originalClusterDev.loadBalancers << new GoogleLoadBalancer(LOAD_BALANCER_NAME, REGION)
+      def originalClusterProd = new GoogleCluster(name: CLUSTER_PROD_NAME)
+      def originalApplication = new GoogleApplication(name: APPLICATION_NAME)
+      originalApplication.clusterNames[ACCOUNT_NAME] = [CLUSTER_DEV_NAME, CLUSTER_PROD_NAME] as Set
+      originalApplication.clusters[ACCOUNT_NAME] = new HashMap<String, GoogleCluster>()
+      originalApplication.clusters[ACCOUNT_NAME][CLUSTER_DEV_NAME] = originalClusterDev
+      originalApplication.clusters[ACCOUNT_NAME][CLUSTER_PROD_NAME] = originalClusterProd
+      Map<String, GoogleApplication> originalAppMap = new HashMap<String, GoogleApplication>()
+      originalAppMap[APPLICATION_NAME] = originalApplication
+
+    when:
+      Map<String, GoogleApplication> copyAppMap = Utils.deepCopyApplicationMap(originalAppMap)
+      def retrievedCopyClusterDev =
+        Utils.retrieveOrCreatePathToCluster(copyAppMap, ACCOUNT_NAME, APPLICATION_NAME, CLUSTER_DEV_NAME)
+
+    then:
+      !(retrievedCopyClusterDev.serverGroups.find { it.name == SERVER_GROUP_NAME }.isDisabled())
+  }
 }
