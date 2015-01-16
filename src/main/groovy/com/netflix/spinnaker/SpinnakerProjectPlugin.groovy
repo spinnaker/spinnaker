@@ -17,6 +17,7 @@ package com.netflix.spinnaker
 
 import com.jfrog.bintray.gradle.BintrayExtension
 import com.netflix.spinnaker.internal.IdeaConfig
+import com.netflix.spinnaker.publishing.InternalPublishingTask
 import groovy.util.logging.Log4j
 import nebula.plugin.bintray.NebulaBintrayPublishingPlugin
 import nebula.plugin.bintray.NebulaOJOPublishingPlugin
@@ -49,6 +50,7 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     configureSnapshot(project)
     configureRelease(project)
 
+    project.tasks.create('internalPublish', InternalPublishingTask)
     project.configure(project) {
       def ideaConfig = project.extensions.create("ideaConfig", IdeaConfig)
 
