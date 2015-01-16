@@ -49,4 +49,16 @@ class TaskService {
       katoService.getTaskDetails(taskDetailsId)
     } execute()
   }
+
+  Map cancelTask(String id) {
+    HystrixFactory.newMapCommand(GROUP, "cancelTask", true) {
+      orcaService.cancelTask(id)
+    } execute()
+  }
+
+  Map cancelPipeline(String id) {
+    HystrixFactory.newMapCommand(GROUP, "cancelPipeline", true) {
+      orcaService.cancelPipeline(id)
+    } execute()
+  }
 }

@@ -91,6 +91,11 @@ class ApplicationController {
     applicationService.getPipelines(name)
   }
 
+  @RequestMapping(value = "/{name}/pipelines/{id}/cancel", method = RequestMethod.PUT)
+  Map cancelPipeline(@PathVariable("id") String id) {
+    taskService.cancelPipeline(id)
+  }
+
   @RequestMapping(value = "/{name}/pipelineConfigs", method = RequestMethod.GET)
   List getPipelineConfigs(@PathVariable("name") String name) {
     applicationService.getPipelineConfigs(name)
@@ -119,6 +124,11 @@ class ApplicationController {
   @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
   Map getTask(@PathVariable("id") String id) {
     taskService.getTask(id)
+  }
+
+  @RequestMapping(value = "/{name}/tasks/{id}/cancel", method = RequestMethod.PUT)
+  Map cancelTask(@PathVariable("id") String id) {
+    taskService.cancelTask(id)
   }
 
   @RequestMapping(value = "/{name}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
