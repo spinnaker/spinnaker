@@ -9,7 +9,7 @@
     <div class="header-text">
       <h3>{{ taskDetail.task.name }}</h3>
     </div>
-    <div class="actions">
+    <div class="actions" ng-if="taskDetail.task.isRunning">
       <div class="dropdown">
         <button type="button"
                 class="btn btn-sm btn-primary dropdown-toggle"
@@ -17,15 +17,18 @@
           Task Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" role="menu">
-          <li ng-if="taskDetail.task.isCompleted"><a href ng-click="taskDetail.retry()">Retry</a></li>
-          <li ng-if="taskDetail.task.isRunning"><a href ng-click="taskDetail.cancel()">Cancel</a></li>
+          <!--<li ng-if="taskDetail.task.isCompleted"><a href ng-click="taskDetail.retry()">Retry</a></li>-->
+          <li ng-if="taskDetail.task.isRunning"><a href ng-click="taskDetail.cancel()">
+            <span class="glyphicon glyphicon-stop"></span>
+            Cancel Task
+          </a></li>
         </ul>
       </div>
     </div>
   </div>
   <div class="content">
     <collapsible-section heading="Status" expanded="true">
-      <status-glyph item="task"></status-glyph>
+      <status-glyph item="taskDetail.task"></status-glyph>
       {{ taskDetail.task.status}}
       <dl>
         <dt>Started</dt>

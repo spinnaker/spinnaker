@@ -14,8 +14,13 @@ angular
       return getEndpoint(taskCommand.application).post(taskCommand);
     }
 
+    function cancelTask(application, taskId) {
+      return getEndpoint(application).one(taskId).one('cancel').put();
+    }
+
     return {
-      postTaskCommand: postTaskCommand
+      postTaskCommand: postTaskCommand,
+      cancelTask: cancelTask,
     };
 
   });

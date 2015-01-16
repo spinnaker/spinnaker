@@ -18,6 +18,10 @@ angular.module('deckApp')
           return tasks.filter(function(task) {
             return task.status === 'FAILED';
           });
+        case 'Canceled':
+          return tasks.filter(function(task) {
+            return task.status === 'CANCELED';
+          });
         default:
           return tasks;
       }
