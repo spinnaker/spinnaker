@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
+import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 
@@ -99,11 +100,16 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   ServerGroup.InstanceCounts getInstanceCounts() {
-    def instances = getInstances()
+    Set<Instance> instances = getInstances()
     def total = instances.size()
-    def up = instances.findAll { it.healthy }?.size() ?: 0
-    def down = instances.findAll { !it.healthy }?.size() ?: 0
-    new ServerGroup.InstanceCounts(total: total, up: up, down: down)
+    def up = filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0
+    def down = filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0
+    def unknown = filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0
+    new ServerGroup.InstanceCounts(total: total, up: up, down: down, unknown: unknown)
+  }
+
+  static Set filterInstancesByHealthState(Set instances, HealthState healthState) {
+    instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
 
   @Override
