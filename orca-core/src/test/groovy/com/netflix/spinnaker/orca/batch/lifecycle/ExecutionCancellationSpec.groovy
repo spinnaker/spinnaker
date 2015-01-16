@@ -33,7 +33,7 @@ import org.springframework.batch.core.job.builder.JobBuilder
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
-  def startTask = Stub(Task)
+  def startTask = Mock(Task)
   def endTask = Mock(Task)
 
   void "should cancel a pipeline and not invoke subsequent tasks"() {
@@ -53,8 +53,12 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
     and:
     jobExecution.exitStatus == ExitStatus.STOPPED
 
-    and:
+    when:
+    pipeline = pipelineStore.retrieve(pipeline.id)
+
+    then:
     pipeline.status == ExecutionStatus.CANCELED
+    pipeline.stages[0].status == ExecutionStatus.CANCELED
   }
 
   @Override

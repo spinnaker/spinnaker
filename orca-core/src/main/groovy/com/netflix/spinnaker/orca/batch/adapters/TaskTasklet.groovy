@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -58,34 +59,44 @@ class TaskTasklet implements Tasklet {
     try {
       if (stage.execution.canceled) {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
-        return BatchStepStatus.mapResult(new DefaultTaskResult(ExecutionStatus.CANCELED)).repeatStatus
+        return cancel(stage)
+      } else {
+        def result = executeTask(stage)
+
+        // we should reload the execution now, in case it has been affected
+        // by a parallel process
+        stage = currentStage(chunkContext)
+
+        if (result.status == ExecutionStatus.TERMINAL) {
+          setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
+        }
+
+        stage.context.putAll result.outputs
+
+        def batchStepStatus = BatchStepStatus.mapResult(result)
+        chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
+        contribution.exitStatus = batchStepStatus.exitStatus
+        stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
+
+        return batchStepStatus.repeatStatus
       }
-      def result = executeTask(stage)
-
-      // we should reload the execution now, in case it has been affected
-      // by a parallel process
-      stage = currentStage(chunkContext)
-
-      if (result.status == ExecutionStatus.TERMINAL) {
-        setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
-      }
-
-      stage.context.putAll result.outputs
-
-      def batchStepStatus = BatchStepStatus.mapResult(result)
-      chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
-      contribution.exitStatus = batchStepStatus.exitStatus
-      stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
-
-      return batchStepStatus.repeatStatus
     } finally {
-      // because groovy...
-      def execution = stage.execution
-      if (execution instanceof Orchestration) {
-        executionRepository.store(execution)
-      } else if (execution instanceof Pipeline) {
-        executionRepository.store(execution)
-      }
+      save(stage.execution)
+    }
+  }
+
+  private RepeatStatus cancel(Stage stage) {
+    stage.status = ExecutionStatus.CANCELED
+    stage.endTime = System.currentTimeMillis()
+    stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }
+    return BatchStepStatus.mapResult(new DefaultTaskResult(ExecutionStatus.CANCELED)).repeatStatus
+  }
+
+  private void save(Execution execution) {
+    if (execution instanceof Orchestration) {
+      executionRepository.store(execution)
+    } else if (execution instanceof Pipeline) {
+      executionRepository.store(execution)
     }
   }
 
