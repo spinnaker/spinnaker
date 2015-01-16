@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
+import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable

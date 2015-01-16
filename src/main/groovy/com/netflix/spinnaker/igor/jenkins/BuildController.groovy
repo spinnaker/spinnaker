@@ -39,6 +39,14 @@ class BuildController {
     @Autowired
     ExecutorService executor
 
+    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}')
+    Build getJobStatus(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        masters.map[master].getBuild(job, buildNumber)
+    }
+
     @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
     Build build(@PathVariable("name") String master, @PathVariable String job) {
         if (!masters.map.containsKey(master)) {
