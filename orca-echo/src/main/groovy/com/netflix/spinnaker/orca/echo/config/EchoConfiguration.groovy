@@ -60,20 +60,26 @@ class EchoConfiguration {
         .create(EchoService)
   }
 
-  @Bean BuildJobNotificationHandler buildJobNotificationHandler() {
+  @Bean
+  @ConditionalOnProperty(value = 'mayo.baseUrl')
+  BuildJobNotificationHandler buildJobNotificationHandler() {
     new BuildJobNotificationHandler()
   }
 
   @Bean
+  @ConditionalOnProperty(value = 'mayo.baseUrl')
   BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     new BuildJobPollingNotificationAgent(notificationHandlers)
   }
 
-  @Bean ManualTriggerNotificationHandler manualTriggerNotificationHandler() {
+  @Bean
+  @ConditionalOnProperty(value = 'mayo.baseUrl')
+  ManualTriggerNotificationHandler manualTriggerNotificationHandler() {
     new ManualTriggerNotificationHandler()
   }
 
   @Bean
+  @ConditionalOnProperty(value = 'mayo.baseUrl')
   ManualTriggerPollingNotificationAgent manualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     new ManualTriggerPollingNotificationAgent(notificationHandlers)
   }
