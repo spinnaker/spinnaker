@@ -11,52 +11,37 @@ angular
       });
     }
 
-    function getLoadBalancer(loadBalancer) {
-      var promise = Restangular.one('loadBalancers', loadBalancer.loadBalancer).get({provider: loadBalancer.provider});
-      return promise.then(function(loadBalancerRollup) {
-        if (angular.isUndefined(loadBalancerRollup.accounts)) { return []; }
-        var loadBalancers = [];
-        loadBalancerRollup.accounts.forEach(function (account) {
-          account.regions.forEach(function (region) {
-            region.loadBalancers.forEach(function (loadBalancer) {
-              loadBalancer.account = account.name;
-              loadBalancers.push(loadBalancer);
-            });
-          });
-        });
-        return loadBalancers;
-      });
-    }
+    function loadLoadBalancers(application, loadBalancersFromSearch) {
 
-
-    function loadLoadBalancers(application, loadBalancersByApplicationName) {
-      var loadBalancerResults = loadBalancersByApplicationName;
-
-      loadBalancerResults = _.map(loadBalancerResults, function(individualResult) {
-        return _.pick(individualResult, 'loadBalancer', 'provider');
-      });
-
-      application.accounts.forEach(function(account) {
-        var accountClusters = application.clusters[account] || [];
-
-        accountClusters.forEach(function(cluster) {
-          cluster.loadBalancers.forEach(function(loadBalancerName) {
-            loadBalancerResults.push({loadBalancer: loadBalancerName, provider: cluster.provider});
+      var allLoadBalancers = [];
+      application.serverGroups.forEach(function(serverGroup) {
+        serverGroup.loadBalancers.forEach(function(loadBalancer) {
+          allLoadBalancers.push({
+            name: loadBalancer,
+            vpcId: serverGroup.vpcId,
+            provider: serverGroup.type,
+            account: serverGroup.account,
+            region: serverGroup.region
           });
         });
       });
-
-      loadBalancerResults = _.unique(_.flatten(loadBalancerResults), 'loadBalancer');
-
-      var loadBalancerPromises = [];
-
-      loadBalancerResults.forEach(function(loadBalancer) {
-        var loadBalancerPromise = getLoadBalancer(loadBalancer);
-
-        loadBalancerPromises.push(loadBalancerPromise);
+      loadBalancersFromSearch.forEach(function(loadBalancer) {
+        allLoadBalancers.push({
+          name: loadBalancer.loadBalancer,
+          vpcId: loadBalancer.vpcId,
+          provider: loadBalancer.provider,
+          account: loadBalancer.account,
+          region: loadBalancer.region
+        });
       });
 
-      return $q.all(loadBalancerPromises).then(_.flatten);
+      if (allLoadBalancers) {
+        return _.uniq(allLoadBalancers, function(lb) {
+          return [lb.name, lb.vpcId, lb.provider, lb.account, lb.region].join(':');
+        });
+      }
+
+      return [];
     }
 
 
