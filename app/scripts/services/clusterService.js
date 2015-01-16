@@ -16,7 +16,7 @@ angular.module('deckApp')
       serverGroup.instances.forEach(function (instance) {
         var healthList = instance.health;
         var activeHealth = _.filter(healthList, function(health) {
-          return health.state !== 'Unknown';
+          return health.state !== 'Unknown' && health.type !== 'Amazon';
         });
 
         instance.hasHealthStatus = Boolean(activeHealth.length);
