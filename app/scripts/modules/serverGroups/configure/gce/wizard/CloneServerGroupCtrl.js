@@ -94,7 +94,7 @@ angular.module('deckApp.serverGroup.configure.gce')
             $state.go('^.^.^.clusters.serverGroup', newStateParams);
           } else {
             if ($state.includes('**.serverGroup')) {
-              $state.go('^.^.serverGroup', newStateParams);
+              $state.go('^.serverGroup', newStateParams);
             } else {
               if ($state.includes('**.clusters.*')) {
                 $state.go('^.serverGroup', newStateParams);

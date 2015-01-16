@@ -61,7 +61,7 @@ angular.module('deckApp')
         var source = task.getValueFor('source'),
             targetAccount = task.getValueFor('deploy.account.name'),
             targetRegion = task.getValueFor('availabilityZones') ? Object.keys(task.getValueFor('availabilityZones'))[0] : null,
-            targetServerGroup = task.getValueFor('deploy.server.groups') ? task.getValueFor('deploy.server.groups')[targetRegion][0] : null,
+            targetServerGroup = targetRegion && task.getValueFor('deploy.server.groups') ? task.getValueFor('deploy.server.groups')[targetRegion][0] : null,
             sourceServerGroup = source.asgName,
             sourceAccount = source.account,
             sourceRegion = source.region;
@@ -93,7 +93,11 @@ angular.module('deckApp')
       'resizeasg': baseTaskMatcher,
       'disableasg': baseTaskMatcher,
       'destroyasg': baseTaskMatcher,
-      'enableasg': baseTaskMatcher
+      'enableasg': baseTaskMatcher,
+      'destroygooglereplicapool': baseTaskMatcher,
+      'enablegoogleservergroup': baseTaskMatcher,
+      'disablegoogleservergroup': baseTaskMatcher,
+      'resizegooglereplicapool': baseTaskMatcher,
 
     };
 
