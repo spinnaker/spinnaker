@@ -25,9 +25,7 @@ angular.module('deckApp.pipelines.stage.jenkins')
     });
 
     function updateJobsList() {
-      console.log('here');
       if ($scope.stage && $scope.stage.master) {
-        console.log('here1');
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
         jenkinsService.listJobsForMaster($scope.stage.master).then(function(jobs) {
