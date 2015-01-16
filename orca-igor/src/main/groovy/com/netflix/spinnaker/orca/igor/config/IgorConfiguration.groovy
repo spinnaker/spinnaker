@@ -50,7 +50,7 @@ class IgorConfiguration {
     newFixedEndpoint(igorBaseUrl)
   }
 
-  @Bean IgorService echoService(Endpoint igorEndpoint, Gson gson) {
+  @Bean IgorService igorService(Endpoint igorEndpoint, Gson gson) {
     new RestAdapter.Builder()
       .setEndpoint(igorEndpoint)
       .setClient(retrofitClient)
