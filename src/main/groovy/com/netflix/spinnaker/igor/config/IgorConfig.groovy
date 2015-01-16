@@ -19,21 +19,21 @@ package com.netflix.spinnaker.igor.config
 import cz.jirutka.spring.exhandler.RestHandlerExceptionResolver
 import cz.jirutka.spring.exhandler.support.HttpMessageConverterUtils
 import groovy.transform.CompileStatic
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.web.servlet.HandlerExceptionResolver
-import org.springframework.web.servlet.config.annotation.EnableWebMvc
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
 
 /**
  * Converts validation errors into REST Messages
  */
-@EnableWebMvc
 @Configuration
 @CompileStatic
-class RestContextConfig extends WebMvcConfigurerAdapter {
+class IgorConfig extends WebMvcConfigurerAdapter {
 
     @Override
     void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
@@ -54,5 +54,10 @@ class RestContextConfig extends WebMvcConfigurerAdapter {
         ExceptionHandlerExceptionResolver resolver = new ExceptionHandlerExceptionResolver()
         resolver.setMessageConverters(HttpMessageConverterUtils.defaultHttpMessageConverters)
         resolver
+    }
+
+    @Bean
+    ExecutorService executorService() {
+        Executors.newCachedThreadPool()
     }
 }

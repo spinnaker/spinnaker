@@ -14,5 +14,3 @@ jenkins:
 spinnaker:
   build:
     pollInterval: 30
-  echo:
-    host: 'none'

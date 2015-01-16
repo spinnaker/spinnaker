@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.netflix.spinnaker.igor.history.EchoService
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
@@ -28,6 +29,7 @@ import retrofit.client.OkClient
 /**
  * history service configuration
  */
+@ConditionalOnProperty('spinnaker.echo.host')
 @Configuration
 class EchoConfig {
 

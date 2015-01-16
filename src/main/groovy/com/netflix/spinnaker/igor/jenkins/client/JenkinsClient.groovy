@@ -19,7 +19,10 @@ package com.netflix.spinnaker.igor.jenkins.client
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
+import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
+import retrofit.client.Response
 import retrofit.http.GET
+import retrofit.http.POST
 import retrofit.http.Path
 
 /**
@@ -43,4 +46,9 @@ interface JenkinsClient {
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
     Build getLatestBuild(@Path('jobName') String jobName)
 
+    @GET('/queue/item/{itemNumber}/api/xml')
+    QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
+
+    @POST('/job/{jobName}/build')
+    Response build(@Path('jobName') String jobName)
 }

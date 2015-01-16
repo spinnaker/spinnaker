@@ -18,14 +18,17 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
-import com.squareup.okhttp.OkAuthenticator
-import com.squareup.okhttp.OkAuthenticator.Credential
+import com.squareup.okhttp.Authenticator
+import com.squareup.okhttp.Credentials
 import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.Request
+import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.SimpleXMLConverter
@@ -42,47 +45,38 @@ class JenkinsConfig {
 
     @Bean
     JenkinsMasters jenkinsMasters(@Valid JenkinsProperties jenkinsProperties) {
-        new JenkinsMasters(map: jenkinsProperties?.masters?.collectEntries { host ->
+        new JenkinsMasters(map: jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsClient(host.address, host.username, host.password)]
         })
     }
 
     JenkinsClient jenkinsClient(String address, String username, String password) {
-
-        OkHttpClient httpClient = new OkHttpClient()
-
-        httpClient.setAuthenticator(
-            new OkAuthenticator() {
-                @Override
-                Credential authenticate(
-                    Proxy proxy,
-                    URL url,
-                    List<OkAuthenticator.Challenge> challenges)
-                    throws IOException {
-                    Credential.basic(username, password)
-                }
-
-                @Override
-                Credential authenticateProxy(
-                    Proxy proxy,
-                    URL url,
-                    List<OkAuthenticator.Challenge> challenges)
-                    throws IOException {
-                    null
-                }
-            }
-        )
-
-        OkClient client = new OkClient(httpClient)
-
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setClient(client)
+            .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
+            .setClient(new OkClient())
+            .setLogLevel(RestAdapter.LogLevel.FULL)
             .setConverter(new SimpleXMLConverter())
             .build()
             .create(JenkinsClient)
 
+    }
+
+    static class BasicAuthRequestInterceptor implements RequestInterceptor {
+
+        private final String username
+        private final String password
+
+        BasicAuthRequestInterceptor(String username, String password) {
+            this.username = username
+            this.password = password
+        }
+
+        @Override
+        void intercept(RequestInterceptor.RequestFacade request) {
+            request.addHeader("Authorization", Credentials.basic(username, password))
+        }
     }
 
 }

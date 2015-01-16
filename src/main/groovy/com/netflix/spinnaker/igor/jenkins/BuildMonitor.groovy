@@ -52,7 +52,7 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
     @Autowired
     JenkinsCache cache
 
-    @Autowired
+    @Autowired(required = false)
     EchoService echoService
 
     @Autowired

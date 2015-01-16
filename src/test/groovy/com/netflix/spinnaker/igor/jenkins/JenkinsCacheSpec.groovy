@@ -18,7 +18,7 @@ package com.netflix.spinnaker.igor.jenkins
 
 import static com.netflix.spinnaker.igor.jenkins.network.Network.isReachable
 
-import com.netflix.spinnaker.igor.Application
+import com.netflix.spinnaker.igor.Main
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
@@ -30,7 +30,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @WebAppConfiguration
-@ContextConfiguration(classes = [Application])
+@ContextConfiguration(classes = [Main])
 @SuppressWarnings(['DuplicateNumberLiteral', 'UnnecessaryBooleanExpression', 'DuplicateListLiteral'])
 @Slf4j
 @IgnoreIf( {!isReachable('redis://localhost:6379')} )
