@@ -91,6 +91,14 @@ class ImmutableStageSupport {
 
     }
 
+    boolean equals(o) {
+      return self.equals(o)
+    }
+
+    int hashCode() {
+      return self.hashCode()
+    }
+
     @Override
     Stage preceding(String type) {
       self.preceding(type)?.asImmutable()

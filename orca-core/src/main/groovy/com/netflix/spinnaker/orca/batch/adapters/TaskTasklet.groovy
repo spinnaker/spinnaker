@@ -56,13 +56,18 @@ class TaskTasklet implements Tasklet {
     def stage = currentStage(chunkContext)
 
     try {
+      if (stage.execution.canceled) {
+        setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
+        return BatchStepStatus.mapResult(new DefaultTaskResult(ExecutionStatus.CANCELED)).repeatStatus
+      }
       def result = executeTask(stage)
+
+      // we should reload the execution now, in case it has been affected
+      // by a parallel process
+      stage = currentStage(chunkContext)
+
       if (result.status == ExecutionStatus.TERMINAL) {
-        chunkContext.stepContext.stepExecution.with {
-          setTerminateOnly()
-          executionContext.put("orcaTaskStatus", result.status)
-          exitStatus = ExitStatus.FAILED
-        }
+        setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
       }
 
       stage.context.putAll result.outputs
@@ -81,6 +86,14 @@ class TaskTasklet implements Tasklet {
       } else if (execution instanceof Pipeline) {
         executionRepository.store(execution)
       }
+    }
+  }
+
+  private static void setStopStatus(ChunkContext chunkContext, ExitStatus exitStatus, ExecutionStatus executionStatus) {
+    chunkContext.stepContext.stepExecution.with {
+      setTerminateOnly()
+      executionContext.put("orcaTaskStatus", executionStatus)
+      it.exitStatus = exitStatus
     }
   }
 
