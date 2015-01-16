@@ -14,8 +14,6 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
-import net.greghaines.jesque.client.Client
-import net.greghaines.jesque.client.ClientImpl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
 import org.springframework.context.annotation.Bean
@@ -109,11 +107,6 @@ class JedisConfiguration {
         .withHost("localhost")
         .withPort(redis.redisServer.port)
         .build()
-  }
-
-  @Bean
-  Client jesqueClient(Config jesqueConfig) {
-    new ClientImpl(jesqueConfig)
   }
 }
 

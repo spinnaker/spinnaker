@@ -27,6 +27,9 @@ import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotification
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import net.greghaines.jesque.Config
+import net.greghaines.jesque.ConfigBuilder
+import net.greghaines.jesque.client.Client as JesqueClient
+import net.greghaines.jesque.client.ClientImpl
 import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +38,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.*
 import retrofit.Endpoint
 import retrofit.RestAdapter
-import retrofit.client.Client
+import retrofit.client.Client as RetrofitClient
 import retrofit.converter.GsonConverter
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import static retrofit.Endpoints.newFixedEndpoint
@@ -51,7 +54,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 class EchoConfiguration {
 
-  @Autowired Client retrofitClient
+  @Autowired RetrofitClient retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint echoEndpoint(
@@ -80,6 +83,22 @@ class EchoConfiguration {
       ExecutionRepository executionRepository,
       EchoService echoService) {
     new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
+  }
+
+  @Bean
+  @ConditionalOnProperty("redis.connection")
+  Config jesqueConfig(@Value('${redis.connection:redis://localhost:6379}')
+                          String connection) {
+    def jedisConnection = URI.create(connection)
+    new ConfigBuilder()
+        .withHost(jedisConnection.host)
+        .withPort(jedisConnection.port)
+        .build()
+  }
+
+  @Bean
+  JesqueClient jesqueClient(Config jesqueConfig) {
+    new ClientImpl(jesqueConfig)
   }
 
   @Bean @Scope(SCOPE_PROTOTYPE)
