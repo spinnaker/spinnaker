@@ -2,30 +2,6 @@
 
 angular.module('deckApp.delivery')
   .factory('executionsService', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, appendTransform) {
-    function getCurrentExecution() {
-      var deferred = $q.defer();
-      getExecutions().then(function(executions) {
-        // pipelines/:pipeline endpoint doesn't appear to work ATM
-        deferred.resolve(executions.filter(function(execution) {
-          return execution.id === $stateParams.executionId;
-        })[0]);
-      });
-      return deferred.promise;
-    }
-
-    function getCurrentStage() {
-      var deferred = $q.defer();
-      getCurrentExecution().then(function(execution) {
-        deferred.resolve(execution.stages.reduce(function(acc, stage) {
-          if (stage.name === $stateParams.stageName) {
-            acc = stage;
-          }
-          return acc;
-        }, {}));
-      }, function() {
-      });
-      return deferred.promise;
-    }
 
     function getExecutions() {
       var deferred = $q.defer();
@@ -79,6 +55,26 @@ angular.module('deckApp.delivery')
       return deferred.promise;
     }
 
+    function waitUntilNewTriggeredPipelineAppears(pipelineName, ignoreList) {
+
+      return getExecutions().then(function(executions) {
+        var match = executions.filter(function(execution) {
+          return (execution.status === 'RUNNING' || execution.status === 'NOT_STARTED') &&
+            execution.name === pipelineName &&
+            ignoreList.indexOf(execution.id) === -1;
+        });
+        var deferred = $q.defer();
+        if (match && match.length) {
+          deferred.resolve();
+          return deferred.promise;
+        } else {
+          return $timeout(function() {
+            return waitUntilNewTriggeredPipelineAppears(pipelineName, ignoreList);
+          }, 1000);
+        }
+      });
+    }
+
     return {
       getAll: getExecutions,
       forceRefresh: scheduler.scheduleImmediate,
@@ -90,23 +86,6 @@ angular.module('deckApp.delivery')
           })
           .subscribe(fn);
       },
-      getCurrentExecution: getCurrentExecution,
-      subscribeToCurrentExecution: function(fn) {
-        return scheduler
-          .get()
-          .flatMap(function() {
-            return RxService.Observable.fromPromise(getCurrentExecution());
-          })
-          .subscribe(fn);
-      },
-      getCurrentStage: getCurrentStage,
-      subscribeToCurrentStage: function(fn) {
-        return scheduler
-          .get()
-          .flatMap(function() {
-            return RxService.Observable.fromPromise(getCurrentStage());
-          })
-          .subscribe(fn);
-      },
+      waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
     };
   });

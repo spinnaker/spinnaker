@@ -1,13 +1,20 @@
 'use strict';
 
 angular.module('deckApp.delivery')
-  .controller('executionGroupHeading', function($scope, pipelineConfigService, $stateParams, executionsService, _) {
+  .controller('executionGroupHeading', function($scope, pipelineConfigService, $stateParams, executionsService, _, $timeout) {
     var controller = this;
 
     $scope.viewState = {
       triggeringExecution: false,
-      open: true
+      open: true,
+      poll: null
     };
+
+    $scope.$on('$destroy', function() {
+      if ($scope.viewState.poll) {
+        $timeout.cancel($scope.viewState.poll);
+      }
+    });
 
     controller.toggle = function() {
       $scope.viewState.open = !$scope.viewState.open;
@@ -19,10 +26,18 @@ angular.module('deckApp.delivery')
 
     controller.triggerPipeline = function() {
       $scope.viewState.triggeringExecution = true;
+      var toIgnore = ($scope.executions || []).filter(function(execution) {
+        return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
+      });
+      var ignoreList = _.pluck(toIgnore, 'id');
       pipelineConfigService.triggerPipeline($stateParams.application, $scope.value).then(
         function() {
-          executionsService.forceRefresh();
-          $scope.viewState.triggeringExecution = false;
+          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.value, ignoreList);
+          monitor.then(function() {
+            executionsService.forceRefresh();
+            $scope.viewState.triggeringExecution = false;
+          });
+          $scope.viewState.poll = monitor;
         },
         function() {
           $scope.viewState.triggeringExecution = false;
