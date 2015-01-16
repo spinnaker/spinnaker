@@ -16,8 +16,7 @@
 
 package com.netflix.amazoncomponents.security;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.*;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -46,6 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
 import com.netflix.amazoncomponents.model.RetryCallback;
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -56,9 +56,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.*;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Provider of Amazon Clients.
@@ -85,6 +83,8 @@ public class AmazonClientProvider {
     }
   };
 
+  private static final ThreadLocal<Map<String, List<String>>> lastResponseHeaders = new ThreadLocal<>();
+
   public AmazonClientProvider() {
     this((HttpClient) null);
   }
@@ -104,6 +104,15 @@ public class AmazonClientProvider {
 
   public void setRetryCallback(RetryCallback retryCallback) {
     this.retryCallback = retryCallback;
+  }
+
+  /**
+   * When edda serves the request, http headers are captured and available to the calling thread.
+   * Header names are lower-case.
+   * @return the HTTP headers from the last response for the requesting thread, if available.
+   */
+  public Map<String, List<String>> getLastResponseHeaders() {
+    return lastResponseHeaders.get();
   }
 
   public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -240,7 +249,11 @@ public class AmazonClientProvider {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      return invoke(proxy, method, args, 1);
+      try {
+        return invoke(proxy, method, args, 1);
+      } finally {
+        lastResponseHeaders.remove();
+      }
     }
 
     private Object invoke(Object proxy, Method method, Object[] args, int attempts) throws Throwable {
@@ -362,7 +375,7 @@ public class AmazonClientProvider {
       return new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancerDescriptions);
     }
 
-    public <T> T describe(Object request, String idKey, final String object, final Class singleType, TypeReference<T> collectionType) {
+    public <T> T describe(AmazonWebServiceRequest request, String idKey, final String object, final Class singleType, TypeReference<T> collectionType) {
       try {
         if (request != null) {
           try {
@@ -409,6 +422,17 @@ public class AmazonClientProvider {
         key : edda + "/REST/v2/aws/" + objectName + ";_expand";
       HttpGet get = new HttpGet(url);
       HttpResponse response = httpClient.execute(get);
+      Map<String, List<String>> headers = new HashMap<>();
+      for (Header h : response.getAllHeaders()) {
+        String headerName = h.getName().toLowerCase();
+        List<String> values = headers.get(headerName);
+        if (values == null) {
+          values = new ArrayList<>();
+          headers.put(headerName, values);
+        }
+        values.add(h.getValue());
+      }
+      lastResponseHeaders.set(headers);
       HttpEntity entity = response.getEntity();
       try {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
