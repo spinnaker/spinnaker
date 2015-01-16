@@ -149,11 +149,16 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   @Override
   CacheResult loadData() {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
+
     def request = new DescribeAutoScalingGroupsRequest()
+    Long start = null
 
     List<AutoScalingGroup> asgs = []
     while (true) {
       def resp = autoScaling.describeAutoScalingGroups(request)
+      if (!start) {
+        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+      }
       asgs.addAll(resp.autoScalingGroups)
       if (resp.nextToken) {
         request.withNextToken(resp.nextToken)
@@ -161,7 +166,12 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         break
       }
     }
-    buildCacheResult(asgs, getSubnetToVpcIdMap())
+    CacheResult result = buildCacheResult(asgs, getSubnetToVpcIdMap())
+    if (start) {
+      long drift = new Date().time - start
+      log.info("${agentType}/drift - $drift milliseconds")
+    }
+    result
   }
 
   private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs, Map<String, String> subnetMap) {

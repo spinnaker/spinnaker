@@ -91,10 +91,15 @@ class InstanceCachingAgent implements CachingAgent {
   CacheResult loadData() {
 
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
+
+    Long start = null
     def request = new DescribeInstancesRequest()
     List<Instance> awsInstances = []
     while (true) {
       def resp = amazonEC2.describeInstances(request)
+      if (!start) {
+        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+      }
       awsInstances.addAll(resp.reservations.collectMany { it.instances })
       if (resp.nextToken) {
         request.withNextToken(request.nextToken)
@@ -121,6 +126,10 @@ class InstanceCachingAgent implements CachingAgent {
       }
     }
 
+    if (start) {
+      long drift = new Date().time - start
+      log.info("${agentType}/drift - $drift milliseconds")
+    }
     new DefaultCacheResult(
       (SERVER_GROUPS.ns): serverGroups.values(),
       (INSTANCES.ns): instances.values(),

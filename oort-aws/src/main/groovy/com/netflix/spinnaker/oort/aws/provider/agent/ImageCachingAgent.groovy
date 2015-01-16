@@ -81,6 +81,7 @@ class ImageCachingAgent implements CachingAgent {
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 
     List<Image> images = amazonEC2.describeImages().images
+    long start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
 
     Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
     Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
@@ -93,6 +94,8 @@ class ImageCachingAgent implements CachingAgent {
       namedImageCacheData.add(new DefaultCacheData(namedImageId, [name: image.name], [(IMAGES.ns):[imageId]]))
     }
 
+    long drift = new Date().time - start
+    log.info("${agentType}/drift - $drift milliseconds")
     new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
   }
 

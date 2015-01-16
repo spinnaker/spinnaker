@@ -78,10 +78,15 @@ class LaunchConfigCachingAgent implements CachingAgent {
   @Override
   CacheResult loadData() {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
+
+    Long start = null
     List<LaunchConfiguration> launchConfigs = []
     def request = new DescribeLaunchConfigurationsRequest()
     while (true) {
       def resp = autoScaling.describeLaunchConfigurations(request)
+      if (!start) {
+        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+      }
       launchConfigs.addAll(resp.launchConfigurations)
       if (resp.nextToken) {
         request.withNextToken(resp.nextToken)
@@ -96,6 +101,10 @@ class LaunchConfigCachingAgent implements CachingAgent {
       new DefaultCacheData(Keys.getLaunchConfigKey(lc.launchConfigurationName, account.name, region), attributes, relationships)
     }
 
+    if (start) {
+      long drift = new Date().time - start
+      log.info("${agentType}/drift - $drift milliseconds")
+    }
     new DefaultCacheResult((LAUNCH_CONFIGS.ns): launchConfigData)
   }
 }

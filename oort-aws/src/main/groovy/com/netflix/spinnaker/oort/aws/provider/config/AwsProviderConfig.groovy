@@ -23,12 +23,10 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.oort.aws.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import com.netflix.spinnaker.oort.aws.provider.agent.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

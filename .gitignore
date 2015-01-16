@@ -10,4 +10,4 @@ TestScript.groovy
 dist/
 vendor/
 .bundle/
-dump.rdb
+*.rdb
