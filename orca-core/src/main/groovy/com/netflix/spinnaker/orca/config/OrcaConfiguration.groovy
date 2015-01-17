@@ -70,7 +70,7 @@ class OrcaConfiguration {
   }
 
   @Bean ObjectMapper mapper() {
-    new OrcaObjectMapper()
+    OrcaObjectMapper.DEFAULT
   }
 
   @Bean @ConditionalOnMissingBean(name = "orchestrationStore")

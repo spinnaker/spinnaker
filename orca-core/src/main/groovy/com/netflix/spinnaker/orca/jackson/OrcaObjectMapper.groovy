@@ -27,6 +27,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 class OrcaObjectMapper extends ObjectMapper {
   private static final SimpleModule simpleModule = new SimpleModule().addSerializer(Stage, new StageSerializer())
     .addDeserializer(Stage, new StageDeserializer())
+  public static final OrcaObjectMapper DEFAULT = new OrcaObjectMapper()
 
   OrcaObjectMapper() {
     super()
