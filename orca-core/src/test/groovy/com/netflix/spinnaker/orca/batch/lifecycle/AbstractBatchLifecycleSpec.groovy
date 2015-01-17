@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
