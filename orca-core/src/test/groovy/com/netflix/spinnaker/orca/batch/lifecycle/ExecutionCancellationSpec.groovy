@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
 
 
