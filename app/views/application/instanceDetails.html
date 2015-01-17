@@ -32,6 +32,12 @@
             Instance Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
+            <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Down')">Enable in Discovery</a></li>
+            <li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="instance.loadBalancers.length > 0 && ctrl.hasHealthState('LoadBalancer', 'Up')">Deregister from Load Balancer</a></li>
+            <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
+            <li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="instance.loadBalancers.length > 0 && !ctrl.hasHealthState('LoadBalancer', 'Up')">Register with Load Balancer</a></li>
+            <li role="presentation" class="divider"></li>
+            <li><a href ng-click="ctrl.rebootInstance()">Reboot Instance</a></li>
             <li><a href ng-click="ctrl.terminateInstance()">Terminate Instance</a></li>
           </ul>
         </div>

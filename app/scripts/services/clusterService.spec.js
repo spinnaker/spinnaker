@@ -109,101 +109,105 @@ describe('Service: InstanceType', function () {
       });
     });
 
-    describe('terminateinstances', function() {
-      it ('finds instance within server group', function() {
-        var app = this.application;
-        app.serverGroups[2].instances = [
-          { id: 'in-1' },
-          { id: 'in-2' },
-        ];
-        app.serverGroups[4].instances = [
-          { id: 'in-3'}
-        ];
-        app.tasks = [
-          this.buildTask({status: 'RUNNING', variables: [
-            { key: 'notification.type', value: 'terminateinstances'},
-            { key: 'credentials', value: 'test'},
-            { key: 'region', value: 'us-east-1'},
-            { key: 'instanceids', value: ['in-2']}
-          ]})
-        ];
-
-        this.clusterService.addTasksToServerGroups(app);
-        expect(app.serverGroups[0].runningTasks.length).toBe(0);
-        expect(app.serverGroups[1].runningTasks.length).toBe(0);
-        expect(app.serverGroups[2].runningTasks.length).toBe(1);
-        expect(app.serverGroups[3].runningTasks.length).toBe(0);
-        expect(app.serverGroups[4].runningTasks.length).toBe(0);
-
-      });
-
-      describe('resizeasg, disableasg, destroyasg, enableasg', function() {
-        beforeEach(function() {
-          this.validateTaskAttached = function() {
+    describe('can find task in server groups by instance id', function() {
+      _.each([
+        'terminateinstances', 'rebootinstances',
+        'registerinstanceswithloadbalancer', 'deregisterinstancesfromloadbalancer',
+        'enableinstancesindiscovery', 'disableinstancesindiscovery'
+        ], function(name) {
+        describe(name, function() {
+          it ('finds instance within server group (' + name + ')', function() {
             var app = this.application;
+            app.serverGroups[2].instances = [
+              { id: 'in-1' },
+              { id: 'in-2' },
+            ];
+            app.serverGroups[4].instances = [
+              { id: 'in-3'},
+              { id: 'in-2'},
+            ];
+            app.tasks = [
+              this.buildTask({status: 'RUNNING', variables: [
+                { key: 'notification.type', value: name},
+                { key: 'credentials', value: 'test'},
+                { key: 'region', value: 'us-east-1'},
+                { key: 'instanceIds', value: ['in-2']}
+              ]})
+            ];
+
             this.clusterService.addTasksToServerGroups(app);
             expect(app.serverGroups[0].runningTasks.length).toBe(0);
             expect(app.serverGroups[1].runningTasks.length).toBe(0);
             expect(app.serverGroups[2].runningTasks.length).toBe(1);
             expect(app.serverGroups[3].runningTasks.length).toBe(0);
-            expect(app.serverGroups[4].runningTasks.length).toBe(0);
-          };
-
-          this.buildCommonTask = function(type) {
-            this.application.tasks = [
-              this.buildTask({status: 'RUNNING', variables: [
-                { key: 'notification.type', value: type},
-                { key: 'credentials', value: 'test'},
-                { key: 'regions', value: ['us-east-1']},
-                { key: 'asgName', value: 'the-target'},
-              ]})
-            ];
-          };
-        });
-
-        it('resizeasg', function() {
-          this.buildCommonTask('resizeasg');
-          this.validateTaskAttached();
-        });
-
-        it('disableasg', function() {
-          this.buildCommonTask('resizeasg');
-          this.validateTaskAttached();
-        });
-
-        it('destroyasg', function() {
-          this.buildCommonTask('resizeasg');
-          this.validateTaskAttached();
-        });
-
-        it('enableasg', function() {
-          this.buildCommonTask('resizeasg');
-          this.validateTaskAttached();
-        });
-
-        it('ignores non-running tasks', function() {
-          var app = this.application;
-          this.buildCommonTask('resizeasg');
-          app.tasks[0].status = 'COMPLETED';
-          this.clusterService.addTasksToServerGroups(app);
-          app.serverGroups.forEach(function(serverGroup) {
-            expect(serverGroup.runningTasks.length).toBe(0);
-          });
-        });
-
-        it('some unknown task', function() {
-          var app = this.application;
-          this.buildCommonTask('someuknownthing');
-          this.clusterService.addTasksToServerGroups(app);
-          app.serverGroups.forEach(function(serverGroup) {
-            expect(serverGroup.runningTasks.length).toBe(0);
+            expect(app.serverGroups[4].runningTasks.length).toBe(1);
           });
         });
       });
+    });
 
+    describe('resizeasg, disableasg, destroyasg, enableasg', function() {
+      beforeEach(function() {
+        this.validateTaskAttached = function() {
+          var app = this.application;
+          this.clusterService.addTasksToServerGroups(app);
+          expect(app.serverGroups[0].runningTasks.length).toBe(0);
+          expect(app.serverGroups[1].runningTasks.length).toBe(0);
+          expect(app.serverGroups[2].runningTasks.length).toBe(1);
+          expect(app.serverGroups[3].runningTasks.length).toBe(0);
+          expect(app.serverGroups[4].runningTasks.length).toBe(0);
+        };
 
+        this.buildCommonTask = function(type) {
+          this.application.tasks = [
+            this.buildTask({status: 'RUNNING', variables: [
+              { key: 'notification.type', value: type},
+              { key: 'credentials', value: 'test'},
+              { key: 'regions', value: ['us-east-1']},
+              { key: 'asgName', value: 'the-target'},
+            ]})
+          ];
+        };
+      });
+
+      it('resizeasg', function() {
+        this.buildCommonTask('resizeasg');
+        this.validateTaskAttached();
+      });
+
+      it('disableasg', function() {
+        this.buildCommonTask('resizeasg');
+        this.validateTaskAttached();
+      });
+
+      it('destroyasg', function() {
+        this.buildCommonTask('resizeasg');
+        this.validateTaskAttached();
+      });
+
+      it('enableasg', function() {
+        this.buildCommonTask('resizeasg');
+        this.validateTaskAttached();
+      });
+
+      it('ignores non-running tasks', function() {
+        var app = this.application;
+        this.buildCommonTask('resizeasg');
+        app.tasks[0].status = 'COMPLETED';
+        this.clusterService.addTasksToServerGroups(app);
+        app.serverGroups.forEach(function(serverGroup) {
+          expect(serverGroup.runningTasks.length).toBe(0);
+        });
+      });
+
+      it('some unknown task', function() {
+        var app = this.application;
+        this.buildCommonTask('someuknownthing');
+        this.clusterService.addTasksToServerGroups(app);
+        app.serverGroups.forEach(function(serverGroup) {
+          expect(serverGroup.runningTasks.length).toBe(0);
+        });
+      });
     });
   });
-
-
 });

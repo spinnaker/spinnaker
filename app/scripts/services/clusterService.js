@@ -56,6 +56,13 @@ angular.module('deckApp')
         serverGroup.name === task.getValueFor('asgName');
     }
 
+    function instanceIdsTaskMatcher(task, serverGroup) {
+      if (task.getValueFor('region') === serverGroup.region && task.getValueFor('credentials') === serverGroup.account) {
+        return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('instanceIds')).length > 0;
+      }
+      return false;
+    }
+
     var taskMatchers = {
       'createcopylastasg': function(task, serverGroup) {
         var source = task.getValueFor('source'),
@@ -84,12 +91,12 @@ angular.module('deckApp')
         }
         return false;
       },
-      'terminateinstances': function(task, serverGroup) {
-        if (task.getValueFor('region') === serverGroup.region && task.getValueFor('credentials') === serverGroup.account) {
-          return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('instanceids')).length > 0;
-        }
-        return false;
-      },
+      'enableinstancesindiscovery': instanceIdsTaskMatcher,
+      'disableinstancesindiscovery': instanceIdsTaskMatcher,
+      'registerinstanceswithloadbalancer': instanceIdsTaskMatcher,
+      'deregisterinstancesfromloadbalancer': instanceIdsTaskMatcher,
+      'terminateinstances': instanceIdsTaskMatcher,
+      'rebootinstances': instanceIdsTaskMatcher,
       'resizeasg': baseTaskMatcher,
       'disableasg': baseTaskMatcher,
       'destroyasg': baseTaskMatcher,
@@ -97,8 +104,7 @@ angular.module('deckApp')
       'destroygooglereplicapool': baseTaskMatcher,
       'enablegoogleservergroup': baseTaskMatcher,
       'disablegoogleservergroup': baseTaskMatcher,
-      'resizegooglereplicapool': baseTaskMatcher,
-
+      'resizegooglereplicapool': baseTaskMatcher
     };
 
     function taskMatches(task, serverGroup) {
