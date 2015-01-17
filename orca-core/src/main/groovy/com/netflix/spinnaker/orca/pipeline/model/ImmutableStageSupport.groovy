@@ -132,6 +132,26 @@ class ImmutableStageSupport {
       ImmutableList.copyOf(self.tasks)
     }
 
+    @Override
+    def <O> O mapTo(Class<O> type) {
+      self.mapTo(type)
+    }
+
+    @Override
+    def <O> O mapTo(String pointer, Class<O> type) {
+      self.mapTo(pointer, type)
+    }
+
+    @Override
+    void commit(Object obj) {
+      throw new IllegalStateException("Stage is currently immutable")
+    }
+
+    @Override
+    void commit(String pointer, Object obj) {
+      throw new IllegalStateException("Stage is currently immutable")
+    }
+
     Stage<T> unwrap() {
       self
     }

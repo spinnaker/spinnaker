@@ -17,7 +17,13 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TreeTraversingParser
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.transform.CompileStatic
 
 
@@ -36,6 +42,9 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Map<String, Object> context = [:]
   boolean immutable = false
   List<Task> tasks = []
+
+  @JsonIgnore
+  ObjectMapper objectMapper = OrcaObjectMapper.DEFAULT
 
   /**
    * yolo
@@ -73,7 +82,78 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
     ImmutableStageSupport.toImmutable(this)
   }
 
+  @Override
   Stage<T> getSelf() {
     this
+  }
+
+  @Override
+  public <O> O mapTo(Class<O> type) {
+    mapTo(null, type)
+  }
+
+  @Override
+  public <O> O mapTo(String pointer, Class<O> type) {
+    objectMapper.readValue(new TreeTraversingParser(getPointer(pointer ?: ""), objectMapper), type)
+  }
+
+  @Override
+  public void commit(Object obj) {
+    commit "", obj
+  }
+
+  @Override
+  void commit(String pointer, Object obj) {
+    def rootNode = contextToNode()
+    def ptr = getPointer(pointer, rootNode)
+    if (ptr == null || ptr.isMissingNode()) {
+      ptr = rootNode.setAll(createAndMap(pointer, obj))
+    }
+    mergeCommit ptr, obj
+    context = objectMapper.convertValue(rootNode, LinkedHashMap)
+  }
+
+  private JsonNode getPointer(String pointer, ObjectNode rootNode = contextToNode()) {
+    pointer ? rootNode.at(pointer) : rootNode
+  }
+
+  private ObjectNode contextToNode() {
+    (ObjectNode)objectMapper.valueToTree(context)
+  }
+
+  private void mergeCommit(JsonNode node, Object obj) {
+    merge objectMapper.valueToTree(obj), node
+  }
+
+  private ObjectNode createAndMap(String pointer, Object obj) {
+    if (!pointer.startsWith("/")) {
+      throw new IllegalArgumentException("Not allowed to create a root node")
+    }
+    def pathParts = pointer.substring(1).split("/").reverse() as Stack
+    def node = objectMapper.createObjectNode()
+    def last = expand(pathParts, node)
+    mergeCommit(last, obj)
+    node
+  }
+
+  private ObjectNode expand(Stack<String> path, ObjectNode node) {
+    def ptr = path.pop()
+    def next = objectMapper.createObjectNode()
+    node.set(ptr, next)
+    path.empty() ? next : expand(path, next)
+  }
+
+  private void merge(JsonNode sourceNode, JsonNode destNode) {
+    Iterator<String> fieldNames = sourceNode.fieldNames()
+    while (fieldNames.hasNext()) {
+      String fieldName = fieldNames.next()
+      JsonNode sourceFieldValue = sourceNode.get(fieldName)
+      JsonNode destFieldValue = destNode.get(fieldName)
+      if (destFieldValue != null && destFieldValue.isObject()) {
+        merge(sourceFieldValue, destFieldValue)
+      } else if (destNode instanceof ObjectNode) {
+        ((ObjectNode) destNode).replace(fieldName, sourceFieldValue)
+      }
+    }
   }
 }
