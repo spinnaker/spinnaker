@@ -32,7 +32,7 @@ angular.module('deckApp.taskExecutor.service', [
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
 
-          if(!taskCommand.supressNotification) {
+          if(!taskCommand.suppressNotification) {
             notificationsService.create({
               title: application.name,
               message: taskCommand.description,
