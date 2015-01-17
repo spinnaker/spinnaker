@@ -1,7 +1,11 @@
 'use strict';
 
 angular
-  .module('deckApp.loadBalancer.write.service', [])
+  .module('deckApp.loadBalancer.write.service', [
+    'deckApp.taskExecutor.service',
+    'deckApp.caches.infrastructure',
+    'deckApp.caches.scheduled'
+  ])
   .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, application) {

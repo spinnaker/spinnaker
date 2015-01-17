@@ -1,7 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.kato.service', [
+  'restangular',
+  'deckApp.utils.lodash',
+  'deckApp.settings'
+])
   .factory('kato', function(settings, Restangular, $timeout, $q, _) {
 
     function updateTask(original, updated) {

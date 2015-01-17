@@ -1,7 +1,18 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.taskExecutor.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.scheduler',
+  'deckApp.urlBuilder',
+  'deckApp.authentication',
+  'deckApp.notifications',
+  'deckApp.caches.scheduled',
+  'deckApp.caches.infrastructure',
+  'deckApp.tasks.read.service',
+  'deckApp.tasks.write.service',
+])
   .factory('taskExecutor', function(settings, Restangular, scheduler, notificationsService, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
 
 

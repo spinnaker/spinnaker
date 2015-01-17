@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.orchestratedItem.service', [
+  'deckApp.utils.moment'
+])
   .factory('orchestratedItem', function(momentService, $log) {
     function defineProperties(item) {
       var testDescriptor = Object.getOwnPropertyDescriptor(item, 'runningTime');
