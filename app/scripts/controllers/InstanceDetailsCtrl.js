@@ -6,7 +6,7 @@ angular.module('deckApp')
                                                instanceWriter, confirmationModalService, instanceReader) {
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     function extractHealthMetrics(instance) {
@@ -23,18 +23,25 @@ angular.module('deckApp')
 
     function retrieveInstance() {
       var instanceSummary, account, region;
-      application.clusters.some(function (cluster) {
-        return cluster.serverGroups.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
-            if (possibleInstance.id === instance.instanceId) {
-              instanceSummary = possibleInstance;
-              account = serverGroup.account;
-              region = serverGroup.region;
-              return true;
-            }
+      if (!application.clusters) {
+        // standalone instance
+        instanceSummary = {};
+        account = instance.account;
+        region = instance.region;
+      } else {
+        application.clusters.some(function (cluster) {
+          return cluster.serverGroups.some(function (serverGroup) {
+            return serverGroup.instances.some(function (possibleInstance) {
+              if (possibleInstance.id === instance.instanceId) {
+                instanceSummary = possibleInstance;
+                account = serverGroup.account;
+                region = serverGroup.region;
+                return true;
+              }
+            });
           });
         });
-      });
+      }
 
       if (instanceSummary && account && region) {
         instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
