@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
@@ -37,6 +38,7 @@ abstract class DeployStrategyStage extends LinearStage {
   @Autowired ResizeAsgStage resizeAsgStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyAsgStage destroyAsgStage
+  @Autowired ModifyScalingProcessStage modifyScalingProcessStage
 
   DeployStrategyStage(String name) {
     super(name)
@@ -110,6 +112,10 @@ abstract class DeployStrategyStage extends LinearStage {
           injectAfter("scaleDown", resizeAsgStage, nextStageContext)
         }
         injectAfter("disable", disableAsgStage, nextStageContext)
+        if (stageData.scaleDown) {
+          nextStageContext.putAll([action: "resume", processes: ["Terminate"]])
+          injectAfter("enableTerminate", modifyScalingProcessStage, nextStageContext)
+        }
       }
     }
   }

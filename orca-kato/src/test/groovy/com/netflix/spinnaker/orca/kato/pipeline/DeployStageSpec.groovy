@@ -82,15 +82,17 @@ class DeployStageSpec extends Specification {
   @Shared DisableAsgStage disableAsgStage
   @Shared DestroyAsgStage destroyAsgStage
   @Shared ResizeAsgStage resizeAsgStage
+  @Shared ModifyScalingProcessStage modifyScalingProcessStage
 
   def setup() {
     oortService = Mock(OortService)
     disableAsgStage = Mock(DisableAsgStage)
     destroyAsgStage = Mock(DestroyAsgStage)
     resizeAsgStage = Mock(ResizeAsgStage)
+    modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
-        resizeAsgStage: resizeAsgStage, mapper: mapper)
+        resizeAsgStage: resizeAsgStage, modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
     deployStage.applicationContext = Stub(ApplicationContext) {
@@ -138,7 +140,7 @@ class DeployStageSpec extends Specification {
     deployStage.afterStages[0].context.regions == config.cluster.availabilityZones.keySet().toList()
   }
 
-  void "should create stages of deploy, resizeAsg, and disableAsg when strategy is redblack and scaleDown is true"() {
+  void "should create stages of deploy, resizeAsg, disableAsg, and enableTerminate when strategy is redblack and scaleDown is true"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
@@ -164,8 +166,11 @@ class DeployStageSpec extends Specification {
           )
       )
     }
-    2 == deployStage.afterStages.size()
-    deployStage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
+    3 == deployStage.afterStages.size()
+    deployStage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage]
+    deployStage.afterStages[2].context.action == "resume"
+    deployStage.afterStages[2].context.processes == ["Terminate"]
+
   }
 
   void "should create stages of deploy and destroyAsg when strategy is highlander"() {
