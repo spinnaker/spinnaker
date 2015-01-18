@@ -35,7 +35,7 @@ angular.module('deckApp.pipelines.stage.enableAsg')
 
     $scope.toggleRegion = function(region) {
       if (!$scope.stage.regions) {
-        $scope.stage.regions = []
+        $scope.stage.regions = [];
       }
       var idx = $scope.stage.regions.indexOf(region);
       if (idx > -1) {
