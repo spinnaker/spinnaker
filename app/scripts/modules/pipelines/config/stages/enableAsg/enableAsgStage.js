@@ -15,7 +15,8 @@ angular.module('deckApp.pipelines.stage.enableAsg')
     $scope.stage = stage;
 
     $scope.state = {
-      accounts: false
+      accounts: false,
+      regionsLoaded: false
     };
 
     accountService.listAccounts().then(function (accounts) {
@@ -24,7 +25,6 @@ angular.module('deckApp.pipelines.stage.enableAsg')
     });
 
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
-    $scope.regionsLoaded = false;
 
     $scope.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
@@ -34,6 +34,9 @@ angular.module('deckApp.pipelines.stage.enableAsg')
     };
 
     $scope.toggleRegion = function(region) {
+      if (!$scope.stage.regions) {
+        $scope.stage.regions = []
+      }
       var idx = $scope.stage.regions.indexOf(region);
       if (idx > -1) {
         $scope.stage.regions.splice(idx,1);
@@ -54,9 +57,6 @@ angular.module('deckApp.pipelines.stage.enableAsg')
     ];
 
     (function() {
-      if (!$scope.stage.regions) {
-        $scope.stage.regions = [];
-      }
       if ($scope.stage.credentials) {
         $scope.accountUpdated();
       }
