@@ -9,6 +9,7 @@
 This stage provides the ability to enable or disable autoscaling processes on an Amazon AutoScaling Group.
 
 AutoScaling Process Types:
+
  * Launch - _Controls if new instances should be launched into the ASG. If this is disabled, scale-up events will not produce new instances._
  * Terminate - _Controls if instances should be terminated during a scale-down event._
  * AddToLoadBalancer - _Controls if new instances should be added to the ASG's ELB._
