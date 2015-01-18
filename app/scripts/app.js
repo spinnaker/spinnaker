@@ -53,7 +53,6 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.resizeAsg',
     'deckApp.pipelines.stage.enableAsg',
     'deckApp.pipelines.stage.modifyScalingProcess',
-    'deckApp.pipelines.stage.enableAsg',
     'deckApp.authentication',
     'deckApp.delivery',
     'deckApp.search',
