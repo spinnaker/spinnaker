@@ -51,6 +51,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.wait',
     'deckApp.pipelines.stage.jenkins',
     'deckApp.pipelines.stage.resizeAsg',
+    'deckApp.pipelines.stage.enableAsg',
     'deckApp.pipelines.stage.modifyScalingProcess',
     'deckApp.authentication',
     'deckApp.delivery',
