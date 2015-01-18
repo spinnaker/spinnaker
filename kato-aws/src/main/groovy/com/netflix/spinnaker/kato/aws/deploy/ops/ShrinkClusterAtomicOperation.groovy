@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
@@ -71,7 +73,16 @@ class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
 
   List<String> getInactiveAsgs(AmazonAutoScaling autoScaling) {
     DescribeAutoScalingGroupsResult result = autoScaling.describeAutoScalingGroups()
-    result.autoScalingGroups.findAll {
+    List<AutoScalingGroup> asgs = []
+    while (true) {
+      asgs.addAll(result.autoScalingGroups)
+      if (result.nextToken) {
+        result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest(nextToken: result.nextToken))
+      } else {
+        break
+      }
+    }
+    asgs.findAll {
       def names = Names.parseName(it.autoScalingGroupName)
       description.clusterName == names.cluster && description.application == names.app
     }.findAll {
