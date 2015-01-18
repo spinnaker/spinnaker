@@ -46,7 +46,6 @@
       </ui-select-choices>
     </ui-select>
         <span ng-if="command.backingData.filtered.images.length > 0">
-          <a href ng-click="command.viewState.useAllImageSelection = false">Only show images matching "{{packageBase || application.name}}"</a>
           <help-field key="aws.serverGroup.filterImages"></help-field>
         </span>
   </div>
@@ -61,6 +60,7 @@
     <a href ng-click="command.viewState.useAllImageSelection = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
   </div>
 </div>
+<deployment-strategy-selector command="command"></deployment-strategy-selector>
 <div class="form-group" ng-if="deploymentStrategies.length">
   <div class="col-md-2 sm-label-left">
     <b>Strategy</b>
