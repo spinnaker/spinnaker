@@ -208,6 +208,8 @@ include::enableAsgStage.adoc[]
 - - -
 include::jenkinsStage.adoc[]
 - - -
+include::modifyScalingProcessStage.adoc[]
+- - -
 include::resizeAsgStage.adoc[]
 - - -
 include::scriptStage.adoc[]
