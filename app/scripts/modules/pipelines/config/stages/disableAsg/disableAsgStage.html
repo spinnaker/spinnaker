@@ -1,0 +1,48 @@
+<form class="form-horizontal">
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Cluster</b>
+      <help-field key="pipeline.config.disableAsg.cluster"></help-field>
+    </div>
+    <div class="col-md-6">
+      <input type="text" required ng-model="stage.cluster"
+        class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Target</label>
+    <div class="col-md-6">
+      <ui-select class="form-control input-sm"
+                 ng-model="target"
+                 on-select=updateTarget($item)>
+        <ui-select-match placeholder="Select a target...">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="t in targets">
+          <span ng-bind-html="t.label"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
+    <div class="col-md-6">
+      <account-select-field component="stage" field="credentials" accounts="accounts" on-change="accountUpdated" required></account-select-field>
+    </div>
+  </div>
+  <div class="form-group" ng-if="stage.credentials">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
+    <div class="col-md-6">
+      <div class="col-md-4" style="padding-left:0">
+        <label ng-repeat="r in regions">
+          <input
+            type="checkbox"
+            name="regions[]"
+            value="{{r}}"
+            ng-disabled="!regionsLoaded"
+            ng-checked="stage.regions.indexOf(r) > -1"
+            ng-click="toggleRegion(r)"
+          > {{r}}
+        </label>
+      </div>
+    </div>
+  </div>
+</form>
