@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.ShrinkClusterStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -38,6 +40,7 @@ abstract class DeployStrategyStage extends LinearStage {
   @Autowired ResizeAsgStage resizeAsgStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyAsgStage destroyAsgStage
+  @Autowired ShrinkClusterStage shrinkClusterStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
 
   DeployStrategyStage(String name) {
@@ -116,6 +119,12 @@ abstract class DeployStrategyStage extends LinearStage {
           nextStageContext.putAll([action: "resume", processes: ["Terminate"]])
           injectAfter("enableTerminate", modifyScalingProcessStage, nextStageContext)
         }
+        if (stageData.shrinkCluster) {
+          Names names = Names.parseName(latestAsg.name)
+          def shrinkContext = [application: names.app, clusterName: names.cluster,
+                               forceDelete: true, regions: [region], credentials: cleanupConfig.account]
+          injectAfter("shrinkCluster", shrinkClusterStage, shrinkContext)
+        }
       }
     }
   }
@@ -158,6 +167,7 @@ abstract class DeployStrategyStage extends LinearStage {
     String stack
     String providerType = "aws"
     boolean scaleDown
+    boolean shrinkCluster
     Map<String, List<String>> availabilityZones
 
     String getCluster() {
