@@ -112,7 +112,7 @@ class TargetReferenceSupport {
     targetReferences
   }
 
-  private List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
+  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
     try {
       def response = oort.getCluster(app, account, cluster, providerType)
       def json = response.body.in().text
