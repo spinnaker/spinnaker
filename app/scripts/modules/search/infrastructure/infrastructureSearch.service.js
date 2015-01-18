@@ -22,7 +22,7 @@ angular.module('deckApp.search')
       var displayNameFormatter = {
         serverGroups: simpleField('serverGroup'),
         instances: function(entry) {
-          return entry.instanceId + ' (' + entry.serverGroup + ')';
+          return entry.instanceId + ' (' + (entry.serverGroup || 'standalone instance') + ')';
         },
         clusters: simpleField('cluster'),
         applications: simpleField('application'),

@@ -408,13 +408,48 @@ angular.module('deckApp')
         }
       };
 
+      var standaloneInstance = {
+        name: 'standaloneInstance',
+        url: '/instance/:account/:region/:instanceId',
+        views: {
+          'main@': {
+            templateUrl: 'scripts/modules/instance/standalone.html',
+            controller: 'InstanceDetailsCtrl',
+            controllerAs: 'ctrl'
+          }
+        },
+        resolve: {
+          instance: ['$stateParams', function($stateParams) {
+            return {
+              instanceId: $stateParams.instanceId,
+              account: $stateParams.account,
+              region: $stateParams.region,
+              noApplication: true
+            };
+          }],
+          application: function() {
+            return {
+              name: '(standalone instance)',
+              registerAutoRefreshHandler: angular.noop
+            };
+          }
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Instance Details',
+            nameParam: 'instanceId'
+          }
+        }
+      };
+
       var home = {
         name: 'home',
         abstract: true,
         children: [
           notFound,
           applications,
-          infrastructure
+          infrastructure,
+          standaloneInstance
         ],
       };
 
