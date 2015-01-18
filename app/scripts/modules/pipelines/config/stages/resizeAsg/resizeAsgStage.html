@@ -1,0 +1,120 @@
+<form class="form-horizontal">
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Cluster</b>
+      <help-field key="pipeline.config.resizeAsg.cluster"></help-field>
+    </div>
+    <div class="col-md-6">
+      <input type="text" required ng-model="stage.cluster"
+        class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
+    <div class="col-md-6">
+      <account-select-field component="stage" field="credentials" accounts="accounts" on-change="accountUpdated" required></account-select-field>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
+    <div class="col-md-6">
+      <div class="col-md-4" style="padding-left:0">
+        <label ng-repeat="r in regions">
+          <input
+            type="checkbox"
+            name="regions[]"
+            value="{{r}}"
+            ng-disabled="!regionsLoaded"
+            ng-checked="stage.regions.indexOf(r) > -1"
+            ng-click="toggleRegion(r)"
+          > {{r}}
+        </label>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Target</label>
+    <div class="col-md-6">
+      <ui-select class="form-control input-sm"
+                 ng-model="resizeTarget"
+                 on-select=updateResizeTarget($item)>
+        <ui-select-match placeholder="Select a target...">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="r in resizeTargets">
+          <span ng-bind-html="r.label"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Action</label>
+    <div class="col-md-6">
+      <ui-select class="form-control input-sm"
+                 ng-model="scaleAction"
+                 on-select=updateScaleAction($item)>
+        <ui-select-match placeholder="Select an action...">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="s in scaleActions">
+          <span ng-bind-html="s.label"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Type</label>
+    <div class="col-md-6">
+      <ui-select class="form-control input-sm"
+                 ng-model="resizeType"
+                 on-select=updateResizeType($item)>
+        <ui-select-match placeholder="Select a type...">{{$select.selected.label}}</ui-select-match>
+        <ui-select-choices repeat="r in resizeTypes">
+          <span ng-bind-html="r.label"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group" ng-if="resizeType.val == 'pct'">
+    <div class="col-md-9 col-md-offset-3">
+      <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Resize Percentage</label>
+      <div class="col-md-2">
+        <input type="number" ng-model="stage.scalePct"
+          class="form-control input-sm" />
+      </div>
+    </div>
+    <div class="col-md-9 col-md-offset-3">
+      <em class="subinput-note">This is the percentage by which the target ASG's capacity will be increased</em>
+    </div>
+
+  </div>
+  <div class="form-group" ng-if="resizeType.val == 'incr'">
+    <div class="col-md-9 col-md-offset-3">
+      <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Resize-by Amount</label>
+      <div class="col-md-2">
+        <input type="number" ng-model="stage.scaleNum"
+          class="form-control input-sm" />
+      </div>
+    </div>
+
+    <div class="col-md-9 col-md-offset-3">
+      <em class="subinput-note">This is the exact amount by which the target ASG's capacity will be increased</em>
+    </div>
+  </div>
+  <div class="form-group" ng-if="resizeType.val == 'exact'">
+    <div class="col-md-9 col-md-offset-3">
+      <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Match Capacity</label>
+      <div class="col-md-9">
+        <div class="col-md-4">
+          <input type="number" ng-model="stage.capacity.min" placeholder="Min"
+            class="form-control input-sm" />
+        </div>
+        <div class="col-md-4">
+          <input type="number" ng-model="stage.capacity.max" placeholder="Max"
+            class="form-control input-sm" />
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-9 col-md-offset-3">
+      <em class="subinput-note">This is the exact amount to which the target ASG will be scaled</em>
+    </div>
+  </div>
+</form>
