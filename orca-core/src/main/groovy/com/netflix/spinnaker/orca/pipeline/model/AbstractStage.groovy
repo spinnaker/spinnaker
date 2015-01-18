@@ -43,8 +43,12 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   boolean immutable = false
   List<Task> tasks = []
 
+  transient ObjectMapper objectMapper = OrcaObjectMapper.DEFAULT
+
   @JsonIgnore
-  ObjectMapper objectMapper = OrcaObjectMapper.DEFAULT
+  ObjectMapper getObjectMapper() {
+    return this.objectMapper
+  }
 
   /**
    * yolo

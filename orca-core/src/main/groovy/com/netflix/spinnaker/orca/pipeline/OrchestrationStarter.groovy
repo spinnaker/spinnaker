@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobFlowBuilder
@@ -72,7 +73,9 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   protected Job build(Map<String, Object> config, Orchestration orchestration) {
     def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
     jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
-    orchestration.stages.each { stage ->
+    List<Stage<Orchestration>> orchestrationStages = []
+    orchestrationStages.addAll(orchestration.stages)
+    orchestrationStages.each { stage ->
       stages.get(stage.type).build(jobBuilder, stage)
     }
 

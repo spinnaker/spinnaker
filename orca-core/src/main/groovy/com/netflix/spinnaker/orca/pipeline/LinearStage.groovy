@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
@@ -34,8 +35,8 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder
 @CompileStatic
 abstract class LinearStage extends StageBuilder {
 
-  private List<InjectedStage> beforeStages = []
-  private List<InjectedStage> afterStages = []
+  @VisibleForTesting protected List<InjectedStage> beforeStages = []
+  @VisibleForTesting protected List<InjectedStage> afterStages = []
 
   LinearStage(String name) {
     super(name)
