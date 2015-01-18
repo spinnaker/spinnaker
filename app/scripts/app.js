@@ -46,6 +46,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.script',
     'deckApp.pipelines.stage.wait',
     'deckApp.pipelines.stage.jenkins',
+    'deckApp.pipelines.stage.resizeAsg',
     'deckApp.authentication',
     'deckApp.delivery',
     'deckApp.search',
