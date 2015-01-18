@@ -23,6 +23,25 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
       $scope.state.accounts = true;
     });
 
+    $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
+    $scope.regionsLoaded = false;
+
+    $scope.accountUpdated = function() {
+      accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
+        $scope.regions = _.map(regions, function(v) { return v.name; });
+        $scope.regionsLoaded = true;
+      });
+    };
+
+    $scope.toggleRegion = function(region) {
+      var idx = $scope.stage.regions.indexOf(region);
+      if (idx > -1) {
+        $scope.stage.regions.splice(idx,1);
+      } else {
+        $scope.stage.regions.push(region);
+      }
+    };
+
     $scope.resizeTargets = [
       {
         label: 'Last ASG',
@@ -64,7 +83,12 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
       if (!$scope.stage.capacity) {
         $scope.stage.capacity = {};
       }
-
+      if (!$scope.stage.regions) {
+        $scope.stage.regions = [];
+      }
+      if ($scope.stage.credentials) {
+        $scope.accountUpdated();
+      }
       if ($scope.stage.target) {
         $scope.resizeTarget = _.groupBy($scope.resizeTargets, 'val')[$scope.stage.target][0];
       } else {
