@@ -22,6 +22,16 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       },
       // url for a single instance
       'instances': function(input) {
+        if (!input.application) {
+          return $state.href(
+            'home.standaloneInstance',
+            {
+              account: input.account,
+              region: input.region,
+              instanceId: input.instanceId,
+            }
+          );
+        }
         return $state.href(
           'home.applications.application.insight.clusters.instanceDetails',
           {
