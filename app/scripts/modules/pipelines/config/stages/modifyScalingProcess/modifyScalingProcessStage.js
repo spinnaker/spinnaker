@@ -78,13 +78,17 @@ angular.module('deckApp.pipelines.stage.modifyScalingProcess')
         $scope.accountUpdated();
       }
       if ($scope.stage.action) {
-        $scope.stage.action = _.groupBy($scope.action, 'val')[$scope.stage.action][0];
+        var action = _.groupBy($scope.actions, 'val')[$scope.stage.action][0];
+        $scope.action = action;
+        $scope.stage.action = action.val;
       } else {
         $scope.action = $scope.actions[0];
         $scope.stage.action = $scope.action.val;
       }
       if ($scope.stage.target) {
-        $scope.stage.target = _.groupBy($scope.targets, 'val')[$scope.stage.target][0];
+        var target = _.groupBy($scope.targets, 'val')[$scope.stage.target][0];
+        $scope.target = target;
+        $scope.stage.target = target.val;
       } else {
         $scope.target = $scope.targets[0];
         $scope.stage.target = $scope.target.val;

@@ -61,7 +61,9 @@ angular.module('deckApp.pipelines.stage.disableAsg')
         $scope.accountUpdated();
       }
       if ($scope.stage.target) {
-        $scope.stage.target = _.groupBy($scope.targets, 'val')[$scope.stage.target][0];
+        var target = _.groupBy($scope.targets, 'val')[$scope.stage.target][0];
+        $scope.target = target;
+        $scope.stage.target = target.val;
       } else {
         $scope.target = $scope.targets[0];
         $scope.stage.target = $scope.target.val;
