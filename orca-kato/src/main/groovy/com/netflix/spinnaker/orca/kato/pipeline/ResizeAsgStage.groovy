@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
 import com.netflix.spinnaker.orca.oort.OortService
@@ -35,10 +37,7 @@ class ResizeAsgStage extends LinearStage {
   static final String MAYO_CONFIG_TYPE = "resizeAsg"
 
   @Autowired
-  OortService oort
-
-  @Autowired
-  ObjectMapper mapper
+  TargetReferenceSupport targetReferenceSupport
 
   ResizeAsgStage() {
     super(MAYO_CONFIG_TYPE)
@@ -57,43 +56,20 @@ class ResizeAsgStage extends LinearStage {
 
   @CompileDynamic
   private void configureTargets(Stage stage) {
-    def optionalConfig = stage.mapTo(OptionalConfiguration)
-    def requiredConfig = stage.mapTo(RequiredConfiguration)
+    def targetReferences = targetReferenceSupport.getTargetAsgReferences(stage)
+    if (!targetReferences) {
+      throw new RuntimeException("Could not determine target ASGs!")
+    }
 
+    def optionalConfig = stage.mapTo(OptionalConfiguration)
     Map<String, Map<String, Object>> descriptions = [:]
 
-    if (optionalConfig.cluster && !optionalConfig.target) {
-      throw new RuntimeException("Stage configuration failed: cluster was provided but no target specified")
-    }
-    if (!optionalConfig.cluster && !optionalConfig.asgName) {
-      throw new RuntimeException("No target was able to be derived!")
-    }
+    for (TargetReference target : targetReferences) {
+      def region = target.region
+      def asg = target.asg
 
-    def names = Names.parseName(optionalConfig.cluster ?: optionalConfig.asgName)
-    def existingAsgs = getExistingAsgs(names.app, requiredConfig.credentials, names.cluster,
-      optionalConfig.providerType)
-
-    if (!existingAsgs) {
-      throw new RuntimeException("Could not find cluster!")
-    }
-    Map<String, List<Map>> asgsByRegion = (Map<String, List<Map>>)existingAsgs.groupBy { Map asg -> asg.region }
-    for (Map.Entry<String, List<Map>> entry in asgsByRegion) {
-      def region = entry.key
-      if (!requiredConfig.regions.contains(region)) {
-        continue
-      }
-
-      def sortedAsgs = entry.value.sort { a, b -> b.name <=> a.name }
       def description = new HashMap(stage.context)
 
-      def asg
-      if (optionalConfig.cluster && optionalConfig.target == ResizeTarget.current_asg) {
-        asg = sortedAsgs.get(0)
-      } else if (optionalConfig.cluster && sortedAsgs.size() >= 2 && optionalConfig.target == ResizeTarget.ancestor_asg) {
-        asg = sortedAsgs.get(1)
-      } else {
-        asg = sortedAsgs.find { it.name == optionalConfig.asgName }
-      }
       if (descriptions.containsKey(asg.name)) {
         descriptions[asg.name].regions.add(region)
         continue
@@ -107,10 +83,10 @@ class ResizeAsgStage extends LinearStage {
 
       int newMin, newDesired, newMax
       if (optionalConfig.scalePct) {
-        def factor = Math.ceil(optionalConfig.scalePct / 100)
-        def minDiff = currentMin * factor
-        def desiredDiff = currentDesired * factor
-        def maxDiff = currentMax * factor
+        def factor = optionalConfig.scalePct / 100
+        def minDiff = Math.ceil(currentMin * factor)
+        def desiredDiff = Math.ceil(currentDesired * factor)
+        def maxDiff = Math.ceil(currentMax * factor)
         newMin = currentMin + minDiff
         newDesired = currentDesired + desiredDiff
         newMax = currentMax + maxDiff
@@ -126,9 +102,9 @@ class ResizeAsgStage extends LinearStage {
         newMax = currentMax + optionalConfig.scaleNum
 
         if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = currentMin - optionalConfig.scaleNum
-          newDesired = currentDesired - optionalConfig.scaleNum
-          newMax = currentMax - optionalConfig.scaleNum
+          newMin = Math.min(currentMin - optionalConfig.scaleNum, 0)
+          newDesired = Math.min(currentDesired - optionalConfig.scaleNum, 0)
+          newMax = Math.min(currentMax - optionalConfig.scaleNum, 0)
         }
       }
 
@@ -152,37 +128,13 @@ class ResizeAsgStage extends LinearStage {
     }
   }
 
-  private List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
-    try {
-      def response = oort.getCluster(app, account, cluster, providerType)
-      def json = response.body.in().text
-      def map = mapper.readValue(json, Map)
-      map.serverGroups as List<Map>
-    } catch (e) {
-      null
-    }
-  }
-
   enum ResizeAction {
     scale_up, scale_down
   }
 
-  enum ResizeTarget {
-    current_asg, ancestor_asg
-  }
-
   static class OptionalConfiguration {
     ResizeAction action
-    ResizeTarget target
     Integer scalePct
     Integer scaleNum
-    String asgName
-    String cluster
-    String providerType = "aws"
-  }
-
-  static class RequiredConfiguration {
-    String credentials
-    List<String> regions
   }
 }
