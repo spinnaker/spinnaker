@@ -114,8 +114,8 @@ class ApplicationController {
                                   @PathVariable("pipelineName") String pipelineName,
                                   @RequestParam("user") String user) {
     try {
-      pipelineService.trigger(application, pipelineName, user)
-      new ResponseEntity(HttpStatus.ACCEPTED)
+      def body = pipelineService.trigger(application, pipelineName, user)
+      new ResponseEntity(body, HttpStatus.ACCEPTED)
     } catch (e) {
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
     }

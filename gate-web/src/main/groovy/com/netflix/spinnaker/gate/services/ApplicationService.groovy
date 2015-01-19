@@ -104,7 +104,7 @@ class ApplicationService {
       return null
     }
     HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline", true) {
-      mayoService.getPipelineConfig(app, pipelineName)
+      mayoService.getPipelineConfigs(app).find { it.name == pipelineName }
     } execute()
   }
 

@@ -19,10 +19,14 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.MayoService
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.ResponseStatus
 
 @CompileStatic
 @Component
@@ -33,6 +37,12 @@ class PipelineService {
 
   @Autowired(required = false)
   EchoService echoService
+
+  @Autowired
+  OrcaService orcaService
+
+  @Autowired
+  ApplicationService applicationService
 
   void deleteForApplication(String applicationName, String pipelineName) {
     mayoService.deletePipelineConfig(applicationName, pipelineName)
@@ -46,8 +56,15 @@ class PipelineService {
     mayoService.move(moveCommand)
   }
 
-  void trigger(String application, String pipelineName, String user) {
-    echoService.postEvent(EchoService.EventBuilder.builder().withSource('gate').withType('manualPipelineTrigger')
-        .withContent([application: application, name: pipelineName, user: user]).build())
+  Map trigger(String application, String pipelineName, String user) {
+    def pipelineConfig = applicationService.getPipelineConfig(application, pipelineName)
+    if (!pipelineConfig) {
+      throw new PipelineConfigNotFoundException()
+    }
+    orcaService.startPipeline(pipelineConfig, user)
   }
+
+  @InheritConstructors
+  @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "pipeline config not found!")
+  static class PipelineConfigNotFoundException extends RuntimeException {}
 }
