@@ -39,6 +39,8 @@ abstract class AbstractBatchLifecycleSpec extends BatchExecutionSpec {
 
   @Override
   JobExecution launchJob() {
-    super.launchJob(pipeline: pipeline.id)
+    def exec = super.launchJob(pipeline: pipeline.id)
+    pipeline.stages[0].startTime = System.currentTimeMillis()
+    exec
   }
 }

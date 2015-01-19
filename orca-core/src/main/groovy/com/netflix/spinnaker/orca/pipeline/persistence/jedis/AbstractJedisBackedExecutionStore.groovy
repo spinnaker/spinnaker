@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import redis.clients.jedis.JedisCommands
 

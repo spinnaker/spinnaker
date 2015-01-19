@@ -61,6 +61,8 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures destroy ASG tasks for all pre-existing clusters if strategy is #strategy"() {
     given:
     def config = [
+        application: "deck",
+        availabilityZones: [(region): []],
         source  : [
             account: account,
             asgName: asgNames.last(),
@@ -92,10 +94,13 @@ class CopyLastAsgStageSpec extends Specification {
     }
 
     and:
-    3 * destroyAsgStage.buildSteps(_) >> []
+    3 == copyLastAsgStage.afterStages.size()
 
     and:
-    stage.context.destroyAsgDescriptions == asgNames.collect { name ->
+    copyLastAsgStage.afterStages*.stageBuilder.unique() == [destroyAsgStage]
+
+    and:
+    copyLastAsgStage.afterStages*.context == asgNames.collect { name ->
       [asgName: name, credentials: account, regions: [region]]
     }
 
@@ -109,12 +114,14 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures disable ASG task for last cluster if strategy is redblack"() {
     given:
     def config = [
-        source  : [
-            account: account,
-            asgName: asgNames.last(),
-            region : region
-        ],
-        strategy: strategy
+      application: "deck",
+      availabilityZones: [(region): []],
+      source  : [
+        account: account,
+        asgName: asgNames.last(),
+        region : region
+      ],
+      strategy: strategy
     ]
 
     and:
@@ -126,28 +133,29 @@ class CopyLastAsgStageSpec extends Specification {
     then:
     1 * oort.getCluster("deck", account, "deck-prestaging", "aws") >> {
       def responseBody = [
-          serverGroups: asgNames.collect { name ->
-            [name: name, region: region]
-          }
+        serverGroups: asgNames.collect { name ->
+          [name: name, region: region]
+        }
       ]
       new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(responseBody)
-          )
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          objectMapper.writeValueAsBytes(responseBody)
+        )
       )
     }
 
     and:
-    1 * disableAsgStage.buildSteps(_) >> []
+    1 == copyLastAsgStage.afterStages.size()
 
     and:
-    stage.context.disableAsg == [
-        asgName    : asgNames.last(),
-        credentials: account,
-        regions    : [region]
-    ]
+    copyLastAsgStage.afterStages[0].stageBuilder == disableAsgStage
+
+    and:
+    copyLastAsgStage.afterStages[0].context == [asgName: asgNames.sort().reverse().first(),
+                                                credentials: account,
+                                                regions: [region]]
 
     where:
     strategy = "redblack"
@@ -159,12 +167,14 @@ class CopyLastAsgStageSpec extends Specification {
   def "doesn't configure any cleanup steps if no strategy is specified"() {
     given:
     def config = [
-        source  : [
-            account: account,
-            asgName: asgName,
-            region : region
-        ],
-        strategy: strategy
+      application: "deck",
+      availabilityZones: [(region): []],
+      source  : [
+        account: account,
+        asgName: asgName,
+        region : region
+      ],
+      strategy: strategy
     ]
 
     and:
@@ -177,8 +187,7 @@ class CopyLastAsgStageSpec extends Specification {
     0 * oort._
 
     and:
-    0 * destroyAsgStage.buildSteps(_)
-    0 * disableAsgStage.buildSteps(_)
+    0 == copyLastAsgStage.afterStages.size()
 
     where:
     strategy = ""

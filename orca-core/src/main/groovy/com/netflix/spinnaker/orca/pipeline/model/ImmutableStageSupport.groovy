@@ -91,6 +91,14 @@ class ImmutableStageSupport {
 
     }
 
+    boolean equals(o) {
+      return self.equals(o)
+    }
+
+    int hashCode() {
+      return self.hashCode()
+    }
+
     @Override
     Stage preceding(String type) {
       self.preceding(type)?.asImmutable()
@@ -122,6 +130,26 @@ class ImmutableStageSupport {
     @Override
     List<Task> getTasks() {
       ImmutableList.copyOf(self.tasks)
+    }
+
+    @Override
+    def <O> O mapTo(Class<O> type) {
+      self.mapTo(type)
+    }
+
+    @Override
+    def <O> O mapTo(String pointer, Class<O> type) {
+      self.mapTo(pointer, type)
+    }
+
+    @Override
+    void commit(Object obj) {
+      throw new IllegalStateException("Stage is currently immutable")
+    }
+
+    @Override
+    void commit(String pointer, Object obj) {
+      throw new IllegalStateException("Stage is currently immutable")
     }
 
     Stage<T> unwrap() {

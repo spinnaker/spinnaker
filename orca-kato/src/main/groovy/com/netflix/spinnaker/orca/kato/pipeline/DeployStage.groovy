@@ -16,21 +16,19 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileDynamic
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 class DeployStage extends DeployStrategyStage {
-
   public static final String MAYO_CONFIG_TYPE = "deploy"
 
   DeployStage() {
@@ -46,16 +44,5 @@ class DeployStage extends DeployStrategyStage {
     def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
     def step5 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     [step1, step2, step3, step4, step5]
-  }
-
-  @Override
-  protected ClusterConfig determineClusterForCleanup(Stage stage) {
-    ClusterConfig.fromContext(stage.context)
-  }
-
-  @Override
-  @CompileDynamic
-  protected String strategy(Stage stage) {
-    stage.context.containsKey("cluster") ? stage.context.cluster?.strategy : stage.context.strategy
   }
 }

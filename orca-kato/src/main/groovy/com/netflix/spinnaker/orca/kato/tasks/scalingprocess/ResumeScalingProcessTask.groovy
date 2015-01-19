@@ -1,7 +1,7 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline
+package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
-class JenkinsStage extends LinearStage {
-
-  JenkinsStage() {
-    super("jenkins")
-  }
-
-  @Override
-  protected List<Step> buildSteps(Stage stage) {
-    []
-  }
+class ResumeScalingProcessTask extends AbstractScalingProcessTask {
+  String type = "resumeAsgProcessesDescription"
 }

@@ -81,7 +81,9 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
   // static compiler doesn't seem to know what to do here anymore...
   @CompileStatic(TypeCheckingMode.SKIP)
   private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
-    pipeline.stages.inject(jobBuilder, this.&createStage)
+    def stages = []
+    stages.addAll(pipeline.stages)
+    stages.inject(jobBuilder, this.&createStage)
   }
 
   protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {

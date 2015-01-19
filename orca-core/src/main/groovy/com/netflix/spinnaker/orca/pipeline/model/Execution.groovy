@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
@@ -33,6 +34,7 @@ abstract class Execution<T> implements Serializable {
   Long startTime
   Long endTime
   List<Stage<T>> stages = []
+  boolean canceled
 
   Stage namedStage(String type) {
     stages.find {
@@ -63,6 +65,9 @@ abstract class Execution<T> implements Serializable {
   }
 
   ExecutionStatus getStatus() {
+    if (canceled) {
+      return CANCELED
+    }
     def status = stages.status.reverse().find {
       it != NOT_STARTED
     }

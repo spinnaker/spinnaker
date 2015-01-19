@@ -82,15 +82,20 @@ class DeployStageSpec extends Specification {
   @Shared DisableAsgStage disableAsgStage
   @Shared DestroyAsgStage destroyAsgStage
   @Shared ResizeAsgStage resizeAsgStage
+  @Shared ShrinkClusterStage shrinkClusterStage
+  @Shared ModifyScalingProcessStage modifyScalingProcessStage
 
   def setup() {
     oortService = Mock(OortService)
     disableAsgStage = Mock(DisableAsgStage)
     destroyAsgStage = Mock(DestroyAsgStage)
     resizeAsgStage = Mock(ResizeAsgStage)
+    shrinkClusterStage = Mock(ShrinkClusterStage)
+    modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
-        resizeAsgStage: resizeAsgStage, mapper: mapper)
+        resizeAsgStage: resizeAsgStage, shrinkClusterStage: shrinkClusterStage,
+        modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
     deployStage.applicationContext = Stub(ApplicationContext) {
@@ -98,16 +103,15 @@ class DeployStageSpec extends Specification {
     }
   }
 
-  void "should create tasks of basicDeploy and disableAsg when strategy is redblack"() {
+  void "should create stages for deploy and disableAsg when strategy is redblack"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
-    def disableAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
-    def steps = deployStage.buildSteps(stage)
+    deployStage.buildSteps(stage)
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
@@ -115,8 +119,8 @@ class DeployStageSpec extends Specification {
       def cluster = [serverGroups: [[name: "pond-prestaging-v000", region: "us-west-1"]]]
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
     }
-    1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
-    steps[-1] == disableAsgTask
+    1 == deployStage.afterStages.size()
+    deployStage.afterStages[0].stageBuilder == disableAsgStage
   }
 
   void "should choose the ancestor asg from the same region when redblack is selected"() {
@@ -125,7 +129,6 @@ class DeployStageSpec extends Specification {
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
-    def disableAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
     deployStage.buildSteps(stage)
@@ -137,58 +140,22 @@ class DeployStageSpec extends Specification {
                                     [name: "pond-prestaging-v000", region: "us-west-1"]]]
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
     }
-    1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
-    stage.context."disableAsg".regions[0] == config.cluster.availabilityZones.keySet()[0]
+    deployStage.afterStages[0].context.regions == config.cluster.availabilityZones.keySet().toList()
   }
 
-  void "should create tasks of basicDeploy, resizeAsg, and disableAsg when strategy is redblack and scaleDown is true"() {
+  void "should create stages of deploy, resizeAsg, disableAsg, and enableTerminate when strategy is redblack and scaleDown is true"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
     config.cluster.scaleDown = true
     config.cluster.strategy = "redblack"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
-    def resizeAsgTask = deployStage.buildStep("resize", TestTask)
-    def disableAsgTask = deployStage.buildStep("foo", TestTask)
 
     when:
-    def steps = deployStage.buildSteps(stage)
+    deployStage.buildSteps(stage)
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: [[
-                                        name  : "pond-prestaging-v000",
-                                        region: "us-west-1"
-                                    ]]]
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(cluster)
-          )
-      )
-    }
-    1 * disableAsgStage.buildSteps(stage) >> [disableAsgTask]
-    1 * resizeAsgStage.buildSteps(stage) >> [resizeAsgTask]
-    steps[-1] == disableAsgTask
-  }
-
-  void "should create tasks of basicDeploy and destroyAsg when strategy is highlander"() {
-    setup:
-    def pipeline = new Pipeline()
-    def config = mapper.readValue(configJson, Map)
-    config.cluster.strategy = "highlander"
-    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
-    def destroyAsgTask = deployStage.buildStep("foo", TestTask)
-
-    when:
-    def steps = deployStage.buildSteps(stage)
-
-    then:
-    "should call to oort to get the last ASG so that we know what to disable"
-    stage.context.containsKey("destroyAsgDescriptions")
-    1 == stage.context.destroyAsgDescriptions.size()
     1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
       def cluster = [serverGroups: [[
                                         name  : "pond-prestaging-v000",
@@ -202,8 +169,70 @@ class DeployStageSpec extends Specification {
           )
       )
     }
-    1 * destroyAsgStage.buildSteps(stage) >> [destroyAsgTask]
-    steps[-1] == destroyAsgTask
+    3 == deployStage.afterStages.size()
+    deployStage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage]
+    deployStage.afterStages[2].context.action == "resume"
+    deployStage.afterStages[2].context.processes == ["Terminate"]
+  }
+
+  void "should create stages of deploy, resizeAsg, disableAsg, enableTerminate, and shrinkCluster stages when strategy is redblack and scaleDown is true and shrinkCluster is true"() {
+    setup:
+    def pipeline = new Pipeline()
+    def config = mapper.readValue(configJson, Map)
+    config.cluster.scaleDown = true
+    config.cluster.strategy = "redblack"
+    config.cluster.shrinkCluster = true
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+
+    when:
+    deployStage.buildSteps(stage)
+
+    then:
+    "should call to oort to get the last ASG so that we know what to disable"
+    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      def cluster = [serverGroups: [[
+                                      name  : "pond-prestaging-v000",
+                                      region: "us-west-1"
+                                    ]]]
+      new Response(
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          objectMapper.writeValueAsBytes(cluster)
+        )
+      )
+    }
+    4 == deployStage.afterStages.size()
+    deployStage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage, shrinkClusterStage]
+  }
+
+  void "should create stages of deploy and destroyAsg when strategy is highlander"() {
+    setup:
+    def pipeline = new Pipeline()
+    def config = mapper.readValue(configJson, Map)
+    config.cluster.strategy = "highlander"
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+
+    when:
+    deployStage.buildSteps(stage)
+
+    then:
+    "should call to oort to get the last ASG so that we know what to disable"
+    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      def cluster = [serverGroups: [[
+                                        name  : "pond-prestaging-v000",
+                                        region: "us-west-1"
+                                    ]]]
+      new Response(
+          "foo", 200, "ok", [],
+          new TypedByteArray(
+              "application/json",
+              objectMapper.writeValueAsBytes(cluster)
+          )
+      )
+    }
+    1 == deployStage.afterStages.size()
+    deployStage.afterStages[0].stageBuilder == destroyAsgStage
   }
 
   void "should create basicDeploy tasks when no strategy is chosen"() {
@@ -219,13 +248,5 @@ class DeployStageSpec extends Specification {
     steps*.name.collect {
       it.tokenize('.')[1]
     } == deployStage.basicSteps()*.name.collect { it.tokenize('.')[1] }
-  }
-
-  static class TestTask implements Task {
-
-    @Override
-    TaskResult execute(Stage stage) {
-      return null
-    }
   }
 }

@@ -54,7 +54,12 @@ enum ExecutionStatus {
    * The task failed and the failure was terminal. The pipeline will not
    * progress any further.
    */
-    TERMINAL(true)
+    TERMINAL(true),
+
+  /**
+   * The task was canceled. The pipeline will not progress any further.
+   */
+  CANCELED(true)
 
   final boolean complete
 

@@ -96,6 +96,35 @@ interface Stage<T extends Execution> {
   @JsonIgnore
   Stage<T> getSelf()
 
+  /**
+   * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
+   * Because tasks can be dynamically composed, this list is open updated during a stage's execution.
+   *
+   * @see com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
+   */
   List<Task> getTasks()
+
+  /**
+   * Maps the stage's context to a typed object
+   */
+  public <O> O mapTo(Class<O> type)
+
+  /**
+   * Maps the stage's context to a typed object at a provided pointer. Uses
+   * <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> notation for determining the pointer's position
+   */
+  public <O> O mapTo(String pointer, Class<O> type)
+
+  /**
+   * Commits a typed object back to the stage's context. The context is recreated during this operation, so callers
+   * will need to re-reference the context object to have the new values reflected
+   */
+  public void commit(Object obj)
+
+  /**
+   * Commits a typed object back to the stage's context at a provided pointer. Uses <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
+   * notation for detremining the pointer's position
+   */
+  void commit(String pointer, Object obj)
 
 }

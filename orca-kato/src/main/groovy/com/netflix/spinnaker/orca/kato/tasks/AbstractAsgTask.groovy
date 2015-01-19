@@ -39,7 +39,7 @@ abstract class AbstractAsgTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = operationFromContext(stage)
+    def operation = new HashMap(stage.context)
     def taskId = kato.requestOperations([
       [("${asgAction}Description".toString()): operation]
     ]).toBlocking().first()
@@ -51,9 +51,5 @@ abstract class AbstractAsgTask implements Task {
       ("targetop.asg.${asgAction}.name".toString())   : operation.asgName,
       ("targetop.asg.${asgAction}.regions".toString()): operation.regions
     ])
-  }
-
-  private Map operationFromContext(Stage stage) {
-    mapper.convertValue(stage.context.containsKey(asgAction) ? stage.context[asgAction] : stage.context, Map)
   }
 }

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
@@ -47,16 +47,17 @@ class CopyLastAsgStage extends DeployStrategyStage {
     [step1, step2, step3, step4, step5]
   }
 
-  @CompileDynamic
   @Override
-  protected ClusterConfig determineClusterForCleanup(Stage stage) {
-    def names = Names.parseName(stage.context.source.asgName)
-    def region = stage.context.source.region
-    return new ClusterConfig(stage.context.source.account, names.app, names.cluster, region, stage.context.providerType ?: "aws")
+  protected CleanupConfig determineClusterForCleanup(Stage stage) {
+    // if may be copying from a different region (OR EVEN CLUSTER!), so use the provided "source" map instead of the
+    // target configuration.
+    def source = stage.mapTo("/source", Source)
+    return new CleanupConfig(source.account, Names.parseName(source.asgName).cluster, [source.region])
   }
 
-  @Override
-  protected String strategy(Stage stage) {
-    stage.context.strategy
+  static class Source {
+    String account
+    String asgName
+    String region
   }
 }

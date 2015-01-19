@@ -43,9 +43,26 @@ class TaskController {
     convert executionRepository.retrieveOrchestration(id)
   }
 
+  @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
+  OrchestrationViewModel cancelTask(@PathVariable String id) {
+    def orchestration = executionRepository.retrieveOrchestration(id)
+    orchestration.canceled = true
+    executionRepository.store(orchestration)
+    convert orchestration
+  }
+
+
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   Pipeline getPipeline(@PathVariable String id) {
     executionRepository.retrievePipeline(id)
+  }
+
+  @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
+  Pipeline cancel(@PathVariable String id) {
+    def pipeline = executionRepository.retrievePipeline(id)
+    pipeline.canceled = true
+    executionRepository.store(pipeline)
+    pipeline
   }
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
