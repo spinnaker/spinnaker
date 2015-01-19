@@ -89,40 +89,21 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
       if ($scope.stage.credentials) {
         $scope.accountUpdated();
       }
-      if ($scope.stage.target) {
-        $scope.resizeTarget = _.groupBy($scope.resizeTargets, 'val')[$scope.stage.target][0];
-      } else {
-        $scope.resizeTarget = $scope.resizeTargets[0];
-        $scope.stage.target = $scope.resizeTarget.val;
+      if (!$scope.stage.target) {
+        $scope.stage.target = $scope.resizeTargets[0].val;
       }
-      if ($scope.stage.action) {
-        $scope.scaleAction = _.groupBy($scope.scaleActions, 'val')[$scope.stage.action][0];
-      } else {
-        $scope.scaleAction = $scope.scaleActions[0];
-        $scope.stage.action = $scope.scaleAction.val;
+      if (!$scope.stage.action) {
+        $scope.stage.action = $scope.scaleActions[0].val;
       }
-      if ($scope.stage.resizeType) {
-        $scope.resizeType = _.groupBy($scope.resizeTypes, 'val')[$scope.stage.resizeType][0];
-      } else {
-        $scope.resizeType = $scope.resizeTypes[0];
-        $scope.stage.resizeType = $scope.resizeType.val; 
+      if (!$scope.stage.resizeType) {
+        $scope.stage.resizeType = $scope.resizeTypes[0].val;
       }
     })();
-  
+
 
     function updateCapacity() {
       $scope.stage.capacity.desired = $scope.stage.capacity.max;
     }
-
-    $scope.updateResizeTarget = function(type) {
-      $scope.resizeTarget = type;
-      $scope.stage.target = type.val;
-    };
-
-    $scope.updateScaleAction = function(type) {
-      $scope.scaleAction = type;
-      $scope.stage.action = type.val;
-    };
 
     $scope.updateResizeType = function(type) {
       $scope.stage.capacity = {};

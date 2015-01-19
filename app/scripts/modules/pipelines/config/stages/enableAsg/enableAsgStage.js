@@ -7,7 +7,7 @@ angular.module('deckApp.pipelines.stage.enableAsg')
       description: 'Enables an ASG',
       key: 'enableAsg',
       controller: 'EnableAsgStageCtrl',
-      controlelrAs: 'enableAsgStageCtrl',
+      controllerAs: 'enableAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
     });
@@ -60,20 +60,10 @@ angular.module('deckApp.pipelines.stage.enableAsg')
       if ($scope.stage.credentials) {
         $scope.accountUpdated();
       }
-      if ($scope.stage.target) {
-        var target = _.groupBy($scope.targets, 'val')[$scope.stage.target][0];
-        $scope.target = target;
-        $scope.stage.target = target.val;
-      } else {
-        $scope.target = $scope.targets[0];
-        $scope.stage.target = $scope.target.val;
+      if (!$scope.stage.target) {
+        $scope.stage.target = $scope.targets[0].val;
       }
     })();
-  
-    $scope.updateTarget = function(type) {
-      $scope.target = type;
-      $scope.stage.target = type.val;
-    };
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });

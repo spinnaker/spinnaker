@@ -18,61 +18,53 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
     <div class="col-md-6">
-      <div class="col-md-4" style="padding-left:0">
-        <label ng-repeat="r in regions">
-          <input
-            type="checkbox"
-            name="regions[]"
-            value="{{r}}"
-            ng-disabled="!regionsLoaded"
-            ng-checked="stage.regions.indexOf(r) > -1"
-            ng-click="toggleRegion(r)"
-          > {{r}}
-        </label>
-      </div>
+      <label class="checkbox-inline" ng-repeat="r in regions">
+        <input
+          type="checkbox"
+          name="regions[]"
+          value="{{r}}"
+          ng-disabled="!regionsLoaded"
+          ng-checked="stage.regions.indexOf(r) > -1"
+          ng-click="toggleRegion(r)">
+        {{r}}
+      </label>
     </div>
   </div>
   </div>
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Target</label>
     <div class="col-md-6">
-      <ui-select class="form-control input-sm"
-                 ng-model="resizeTarget"
-                 on-select=updateResizeTarget($item)>
-        <ui-select-match placeholder="Select a target...">{{$select.selected.label}}</ui-select-match>
-        <ui-select-choices repeat="r in resizeTargets">
-          <span ng-bind-html="r.label"></span>
-        </ui-select-choices>
-      </ui-select>
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.target"
+              ng-options="r.val as r.label for r in resizeTargets">
+        <option>Select a target...</option>
+      </select>
     </div>
   </div>
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Action</label>
     <div class="col-md-6">
-      <ui-select class="form-control input-sm"
-                 ng-model="scaleAction"
-                 on-select=updateScaleAction($item)>
-        <ui-select-match placeholder="Select an action...">{{$select.selected.label}}</ui-select-match>
-        <ui-select-choices repeat="s in scaleActions">
-          <span ng-bind-html="s.label"></span>
-        </ui-select-choices>
-      </ui-select>
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.action"
+              ng-options="a.val as a.label for a in scaleActions">
+        <option>Select an action...</option>
+      </select>
     </div>
   </div>
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Type</label>
     <div class="col-md-6">
-      <ui-select class="form-control input-sm"
-                 ng-model="resizeType"
-                 on-select=updateResizeType($item)>
-        <ui-select-match placeholder="Select a type...">{{$select.selected.label}}</ui-select-match>
-        <ui-select-choices repeat="r in resizeTypes">
-          <span ng-bind-html="r.label"></span>
-        </ui-select-choices>
-      </ui-select>
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.resizeType"
+              ng-options="t.val as t.label for t in resizeTypes">
+        <option>Select an action...</option>
+      </select>
     </div>
   </div>
-  <div class="form-group" ng-if="resizeType.val == 'pct'">
+  <div class="form-group" ng-if="stage.resizeType === 'pct'">
     <div class="col-md-9 col-md-offset-3">
       <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Resize Percentage</label>
       <div class="col-md-2">
@@ -85,7 +77,7 @@
     </div>
 
   </div>
-  <div class="form-group" ng-if="resizeType.val == 'incr'">
+  <div class="form-group" ng-if="stage.resizeType === 'incr'">
     <div class="col-md-9 col-md-offset-3">
       <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Resize-by Amount</label>
       <div class="col-md-2">
@@ -98,7 +90,7 @@
       <em class="subinput-note">This is the exact amount by which the target ASG's capacity will be increased</em>
     </div>
   </div>
-  <div class="form-group" ng-if="resizeType.val == 'exact'">
+  <div class="form-group" ng-if="stage.resizeType === 'exact'">
     <div class="col-md-9 col-md-offset-3">
       <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Match Capacity</label>
       <div class="col-md-9">
