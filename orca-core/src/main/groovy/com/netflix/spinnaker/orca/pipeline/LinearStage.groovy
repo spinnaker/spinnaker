@@ -75,7 +75,7 @@ abstract class LinearStage extends StageBuilder {
   private void processAfterStages(JobFlowBuilder jobBuilder, Stage stage) {
     if (afterStages) {
       for (afterStage in afterStages) {
-        def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name, afterStage.context)
+        def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name, new HashMap(afterStage.context))
         stage.execution.stages.add(newStage)
         wireSteps(jobBuilder, afterStage.stageBuilder.buildSteps(newStage))
       }
