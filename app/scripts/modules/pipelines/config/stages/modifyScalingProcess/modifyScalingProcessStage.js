@@ -77,24 +77,14 @@ angular.module('deckApp.pipelines.stage.modifyScalingProcess')
       if ($scope.stage.credentials) {
         $scope.accountUpdated();
       }
-      if ($scope.stage.action) {
-        var action = _.groupBy($scope.actions, 'val')[$scope.stage.action][0];
-        $scope.action = action;
-        $scope.stage.action = action.val;
-      } else {
-        $scope.action = $scope.actions[0];
-        $scope.stage.action = $scope.action.val;
+      if (!$scope.stage.action) {
+        $scope.stage.action = $scope.actions[0].val;
       }
-      if ($scope.stage.target) {
-        var target = _.groupBy($scope.targets, 'val')[$scope.stage.target][0];
-        $scope.target = target;
-        $scope.stage.target = target.val;
-      } else {
-        $scope.target = $scope.targets[0];
-        $scope.stage.target = $scope.target.val;
+      if (!$scope.stage.target) {
+        $scope.stage.target = $scope.targets[0].val;
       }
     })();
-  
+
     $scope.toggleProcess = function(process) {
       if (!$scope.stage.processes) {
         $scope.stage.processes = [];
@@ -106,18 +96,6 @@ angular.module('deckApp.pipelines.stage.modifyScalingProcess')
         $scope.stage.processes.push(process);
       }
     };
-
-    $scope.updateTarget = function(type) {
-      $scope.target = type;
-      $scope.stage.target = type.val;
-    };
-
-    $scope.updateAction = function(type) {
-      $scope.action = type;
-      $scope.stage.action = type.val;
-    };
-
-
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });

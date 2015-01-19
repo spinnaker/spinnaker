@@ -12,27 +12,23 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Target</label>
     <div class="col-md-6">
-      <ui-select class="form-control input-sm"
-                 ng-model="target"
-                 on-select=updateTarget($item)>
-        <ui-select-match placeholder="Select a target...">{{$select.selected.label}}</ui-select-match>
-        <ui-select-choices repeat="t in targets">
-          <span ng-bind-html="t.label"></span>
-        </ui-select-choices>
-      </ui-select>
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.target"
+              ng-options="t.val as t.label for t in targets">
+        <option>Select an action...</option>
+      </select>
     </div>
   </div>
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Action</label>
     <div class="col-md-6">
-      <ui-select class="form-control input-sm"
-                 ng-model="action"
-                 on-select=updateAction($item)>
-        <ui-select-match placeholder="Select an action...">{{$select.selected.label}}</ui-select-match>
-        <ui-select-choices repeat="a in actions">
-          <span ng-bind-html="a.label"></span>
-        </ui-select-choices>
-      </ui-select>
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.action"
+              ng-options="a.val as a.label for a in actions">
+        <option>Select an action...</option>
+      </select>
     </div>
   </div>
 
@@ -45,24 +41,22 @@
   <div class="form-group" ng-if="stage.credentials">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
     <div class="col-md-8" style="border-top: 1px solid #ccc">
-      <div class="col-md-4" style="padding-left:0">
-        <label ng-repeat="r in regions">
-          <input
-            type="checkbox"
-            name="regions[]"
-            value="{{r}}"
-            ng-disabled="!regionsLoaded"
-            ng-checked="stage.regions.indexOf(r) > -1"
-            ng-click="toggleRegion(r)"
-          > {{r}}
-        </label>
-      </div>
+      <label class="checkbox-inline" ng-repeat="r in regions">
+        <input
+          type="checkbox"
+          name="regions[]"
+          value="{{r}}"
+          ng-disabled="!regionsLoaded"
+          ng-checked="stage.regions.indexOf(r) > -1"
+          ng-click="toggleRegion(r)">
+        {{r}}
+      </label>
     </div>
   </div>
   <div class="form-group" ng-if="stage.credentials">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Processes</label>
     <div class="col-md-8" style="border-top: 1px solid #ccc">
-      <div class="col-md-8" style="padding-left:0;">
+      <div class="col-md-8 checkbox" style="padding-left:0;">
         <label ng-repeat="p in processes" style="display: block">
           <input
             type="checkbox"
