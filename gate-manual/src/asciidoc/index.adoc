@@ -200,17 +200,27 @@ include::deleteApplicationStage.adoc[]
 - - -
 include::deployStage.adoc[]
 - - -
+include::deregisterInstancesFromLoadBalancerStage.adoc[]
+- - -
 include::destroyAsgStage.adoc[]
 - - -
 include::disableAsgStage.adoc[]
 - - -
+include::disableInstancesInDiscoveryStage.adoc[]
+- - -
 include::enableAsgStage.adoc[]
+- - -
+include::enableInstancesInDiscoveryStage.adoc[]
 - - -
 include::jenkinsStage.adoc[]
 - - -
 include::modifyScalingProcessStage.adoc[]
 - - -
 include::resizeAsgStage.adoc[]
+- - -
+include::rebootInstancesStage.adoc[]
+- - -
+include::registerInstancesWithLoadBalancerStage.adoc[]
 - - -
 include::scriptStage.adoc[]
 - - -
