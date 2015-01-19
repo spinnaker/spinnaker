@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.help')
   .constant('helpContents', {
     'aws.serverGroup.subnet': 'The subnet selection determines the VPC in which your server group will run. Options vary by account and region; the most common ones are:' +
       '<ul>' +

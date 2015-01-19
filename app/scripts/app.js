@@ -41,6 +41,7 @@ angular.module('deckApp', [
     'deckApp.securityGroup',
     'deckApp.serverGroup',
     'deckApp.instance',
+    'deckApp.help',
     'deckApp.pipelines',
     'deckApp.pipelines.trigger',
     'deckApp.pipelines.trigger.jenkins',

@@ -17,11 +17,11 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.help')
   .directive('helpField', function (helpContents) {
     return {
       restrict: 'E',
-      templateUrl: 'views/directives/helpField.html',
+      templateUrl: 'scripts/modules/help/helpField.html',
       scope: {
         key: '@',
         fallback: '@',
@@ -30,13 +30,20 @@ angular.module('deckApp')
       },
       link: {
         pre: function (scope) {
-          if (!scope.content && scope.key) {
-            scope.content = helpContents[scope.key] || scope.fallback;
+          function applyContents() {
+            if (!scope.content && scope.key) {
+              scope.content = helpContents[scope.key] || scope.fallback;
+            }
+            scope.contents = {
+              content: scope.content,
+              placement: scope.placement || 'top'
+            };
           }
-          scope.contents = {
-            content: scope.content,
-            placement: scope.placement || 'top'
-          };
+          applyContents();
+
+          scope.$watch('key', applyContents);
+          scope.$watch('fallback', applyContents);
+          scope.$watch('content', applyContents);
         }
       }
     };

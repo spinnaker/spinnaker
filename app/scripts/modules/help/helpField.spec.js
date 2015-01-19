@@ -19,12 +19,7 @@
 describe('Directives: helpField', function () {
 
   beforeEach(function() {
-    module('deckApp', function($provide) {
-      $provide.decorator('cacheInitializer', function() {
-        return {
-          initialize: angular.noop
-        };
-      });
+    module('deckApp.help', function($provide) {
       $provide.constant('helpContents', {'aws.serverGroup.stack': 'expected stack help'});
     });
   });
@@ -66,6 +61,6 @@ describe('Directives: helpField', function () {
 
   it('overrides position to "left"', function() {
     this.executeTest('<help-field content="some content" placement="left"></help-field>', 'left', 'popover-placement');
-  })
+  });
 
 });
