@@ -220,7 +220,7 @@ angular.module('deckApp')
         return health.type === healthProviderType && health.state === state;
       })
       );
-    }
+    };
 
     retrieveInstance();
 
