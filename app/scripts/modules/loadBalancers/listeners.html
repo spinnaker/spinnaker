@@ -16,11 +16,11 @@
           <tbody>
           <tr ng-repeat="listener in loadBalancer.listeners">
             <td><select class="form-control input-sm" ng-model="listener.internalProtocol"
-                        ng-options="protocol for protocol in ['HTTP','TCP']"></select></td>
+                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP']"></select></td>
             <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.internalPort"
                        required/></td>
             <td><select class="form-control input-sm" ng-model="listener.externalProtocol"
-                        ng-options="protocol for protocol in ['HTTP','TCP']"></select></td>
+                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP']"></select></td>
             <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.externalPort"
                        required/></td>
             <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
