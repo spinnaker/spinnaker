@@ -59,7 +59,7 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
     JenkinsMasters jenkinsMasters
 
     @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.build.pollInterval:43200}')
+    @Value('${spinnaker.build.pollInterval:60}')
     int pollInterval
 
     @Override
