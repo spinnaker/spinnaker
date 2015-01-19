@@ -163,7 +163,7 @@ angular.module('deckApp')
       confirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
-        destructive: false,
+        destructive: true,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
@@ -207,7 +207,7 @@ angular.module('deckApp')
       confirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
-        destructive: false,
+        destructive: true,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
