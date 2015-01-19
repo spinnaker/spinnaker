@@ -16,10 +16,15 @@ import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.context.ContextConfiguration
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 import spock.lang.Specification
 
 /**
@@ -94,19 +99,31 @@ class TestConfiguration {
   }
 }
 
+/**
+ * This configuration class sets up embedded Redis for Jesque if a Redis URL is
+ * not specified in system properties.
+ */
 @Configuration
 class JedisConfiguration {
   @Bean
+  @ConditionalOnExpression("#{systemProperties['redis.connection'] == null}")
   EmbeddedRedis redisServer() {
     EmbeddedRedis.embed()
   }
 
   @Bean
+  @ConditionalOnBean(EmbeddedRedis)
   Config jesqueConfig(EmbeddedRedis redis) {
     new ConfigBuilder()
         .withHost("localhost")
         .withPort(redis.redisServer.port)
         .build()
+  }
+
+  @Bean
+  @ConditionalOnBean(EmbeddedRedis)
+  Pool<Jedis> jedisPool(EmbeddedRedis redis) {
+    new JedisPool("localhost", redis.redisServer.port)
   }
 }
 
