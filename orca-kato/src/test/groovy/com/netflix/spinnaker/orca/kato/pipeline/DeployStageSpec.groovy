@@ -140,7 +140,7 @@ class DeployStageSpec extends Specification {
                                     [name: "pond-prestaging-v000", region: "us-west-1"]]]
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
     }
-    deployStage.afterStages[0].context.regions == config.cluster.availabilityZones.keySet().toList()
+    deployStage.afterStages[0].context.regions == config.availabilityZones.keySet().toList()
   }
 
   void "should create stages of deploy, resizeAsg, disableAsg, and enableTerminate when strategy is redblack and scaleDown is true"() {
