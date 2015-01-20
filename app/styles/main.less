@@ -835,45 +835,22 @@ feedback {
   display: inline-block;
 }
 
-.modal-backdrop {
-  &.modal-backdrop-no-animate {
+.modal {
+  &.no-animate {
     transition: none;
+    .modal-dialog {
+      transition: none;
+    }
   }
 }
 
-feedback {
-  margin-right: 20px;
-  float: right;
-  display: inline-block;
-}
-
 .modal-backdrop {
   &.modal-backdrop-no-animate {
+    background-color: @lightest_grey;
     transition: none;
-  }
-}
-
-feedback {
-  margin-right: 20px;
-  float: right;
-  display: inline-block;
-}
-
-.modal-backdrop {
-  &.modal-backdrop-no-animate {
-    transition: none;
-  }
-}
-
-feedback {
-  margin-right: 20px;
-  float: right;
-  display: inline-block;
-}
-
-.modal-backdrop {
-  &.modal-backdrop-no-animate {
-    transition: none;
+    &.fade .modal-dialog {
+      transition: none;
+    }
   }
 }
 

@@ -22,7 +22,7 @@ angular.module('deckApp.authentication')
       $rootScope.authenticating = true;
       var modal = $modal.open({
         templateUrl: 'scripts/modules/authentication/authenticating.html',
-        windowClass: 'modal fade in',
+        windowClass: 'modal no-animate',
         backdropClass: 'modal-backdrop-no-animate',
         backdrop: 'static',
         keyboard: false
@@ -32,17 +32,17 @@ angular.module('deckApp.authentication')
           if (data.email) {
             setAuthenticatedUser(data.email);
           }
+          $rootScope.authenticating = false;
           modal.dismiss();
         })
         .error(function (data, status, headers) {
           var redirect = headers('X-AUTH-REDIRECT-URL');
           if (status === 401 && redirect) {
             redirectService.redirect(settings.gateUrl + redirect + '?callback=' + $window.location.origin + '&path=' + $location.path());
+          } else {
+            $rootScope.authenticating = false;
           }
           modal.dismiss();
-        })
-        .finally(function() {
-          $rootScope.authenticating = false;
         });
     }
 

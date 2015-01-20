@@ -46,7 +46,7 @@ describe('authenticationProvider: application startup', function() {
       this.$timeout.flush();
       this.$http.flush();
 
-      expect(this.$rootScope.authenticating).toBe(false);
+      expect(this.$rootScope.authenticating).toBe(true);
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(false);
       expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + this.$window.location.origin + '&path=' + this.$location.path());
