@@ -98,7 +98,7 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
         @RequestParam(value = "callback", required = false) String cb,
         @RequestParam(value = "path", required = false) String hash,
         HttpServletRequest request, HttpServletResponse response) {
-      def redirect = new URL(request.scheme, request.serverName, request.serverPort, '/auth/signIn')
+      def redirect = new URL(request.scheme, request.serverName, request.serverPort, request.contextPath + '/auth/signIn')
       def appSettings = new AppSettings(issuer: url, assertionConsumerServiceUrl: redirect)
       def authReq = new AuthRequest(appSettings)
       def samlReq = URLEncoder.encode(authReq.request, 'UTF-8')
