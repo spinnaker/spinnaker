@@ -25,4 +25,18 @@ angular.module('deckApp')
   .config(function(RestangularProvider, settings) {
     RestangularProvider.setBaseUrl(settings.gateUrl);
   })
+  .config(function($httpProvider){
+    $httpProvider.interceptors.push('ajaxErrorInterceptor');
+  })
+  .config(function($provide) {
+    $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
+      return function (exception, cause) {
+        var action = 'msg: ' + exception.message + ' url: ' + window.location;
+        var label = exception.stack.toString();
+
+        $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
+        $delegate(exception, cause);
+      };
+    });
+  })
 ;
