@@ -24,7 +24,7 @@ angular.module('deckApp.validation')
         };
 
         ctrl.$parsers.push(uniqueValidator);
-        ctrl.$formatters.unshift(uniqueValidator);
+        ctrl.$formatters.push(uniqueValidator);
       }
     };
   }

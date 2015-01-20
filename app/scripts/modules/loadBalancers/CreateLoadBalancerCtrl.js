@@ -38,7 +38,6 @@ angular.module('deckApp')
     }
 
     function initializeCreateMode() {
-      $scope.state.maxStackLength = 32 - application.name.length - '-frontend'.length - 1;
       preloadSecurityGroups();
       accountService.listAccounts().then(function (accounts) {
         $scope.accounts = accounts;
@@ -76,6 +75,7 @@ angular.module('deckApp')
           }
           allLoadBalancerNames[result.account][result.region].push(result.loadBalancer.toLowerCase());
           $scope.state.loadBalancerNamesLoaded = true;
+          updateLoadBalancerNames();
         });
       });
     }
@@ -174,10 +174,8 @@ angular.module('deckApp')
     };
 
     this.updateName = function() {
-      var elb = $scope.loadBalancer,
-          name = application.name + '-' + (elb.stack || '');
-      elb.clusterName = name;
-      $scope.namePreview = name + '-frontend';
+      var elb = $scope.loadBalancer;
+      elb.name = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
     };
 
     this.accountUpdated = function() {
@@ -218,7 +216,7 @@ angular.module('deckApp')
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
       $modalInstance.close();
       var newStateParams = {
-        name: $scope.loadBalancer.name || $scope.loadBalancer.clusterName + '-frontend',
+        name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
         region: $scope.loadBalancer.region
       };

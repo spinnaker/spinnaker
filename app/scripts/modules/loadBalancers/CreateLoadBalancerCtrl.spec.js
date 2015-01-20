@@ -37,8 +37,4 @@ describe('Controller: CreateLoadBalancerCtrl', function () {
 
   });
 
-  it('sets maximum length of stack based on application name', function() {
-    // 19 === 32 - 3 (application name length) - 9 ("-frontend" length) - 1 (dash separator)
-    expect(this.$scope.state.maxStackLength).toEqual(19);
-  });
 });
