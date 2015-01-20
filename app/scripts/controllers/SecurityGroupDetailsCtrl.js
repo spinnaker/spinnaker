@@ -2,7 +2,9 @@
 
 
 angular.module('deckApp')
-  .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application, securityGroupService, $modal) {
+  .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application,
+                                                    confirmationModalService, securityGroupWriter, securityGroupService,
+                                                    $modal) {
 
     $scope.state = {
       loading: true
@@ -13,8 +15,8 @@ angular.module('deckApp')
         $scope.state.loading = false;
         $scope.securityGroup = details;
 
-        var restanularlessDetails = details.plain();
-        if (_.isEmpty(restanularlessDetails)) {
+        var restangularlessDetails = details.plain();
+        if (_.isEmpty(restangularlessDetails)) {
           fourOhFour();
         }
       },
@@ -49,5 +51,30 @@ angular.module('deckApp')
         }
       });
     };
+
+    this.deleteSecurityGroup = function deleteSecurityGroup() {
+      var taskMonitor = {
+        application: application,
+        title: 'Deleting ' + securityGroup.name,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true
+      };
+
+      var submitMethod = function () {
+        securityGroup.providerType = $scope.securityGroup.type;
+        return securityGroupWriter.deleteSecurityGroup($scope.securityGroup, application);
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really delete ' + securityGroup.name + '?',
+        buttonText: 'Delete ' + securityGroup.name,
+        destructive: true,
+        account: securityGroup.accountId,
+        applicationName: application.name,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
   }
 );

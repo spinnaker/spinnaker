@@ -23,9 +23,31 @@ angular
       return operation;
     }
 
+    function deleteSecurityGroup(securityGroup, application) {
+      var operation = taskExecutor.executeTask({
+        job: [
+          {
+            type: 'deleteSecurityGroup',
+            securityGroupName: securityGroup.name,
+            regions: [securityGroup.region],
+            credentials: securityGroup.accountId,
+            providerType: securityGroup.providerType,
+            vpcId: securityGroup.vpcId
+          }
+        ],
+        application: application,
+        description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountId + ':' + securityGroup.region
+      });
+
+      operation.then(infrastructureCaches.securityGroups.removeAll);
+
+      return operation;
+    }
+
 
     return {
-      upsertSecurityGroup: upsertSecurityGroup
+      upsertSecurityGroup: upsertSecurityGroup,
+      deleteSecurityGroup: deleteSecurityGroup,
     };
 
   });
