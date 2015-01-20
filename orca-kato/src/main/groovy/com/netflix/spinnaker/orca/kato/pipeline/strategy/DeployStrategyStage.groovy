@@ -86,11 +86,7 @@ abstract class DeployStrategyStage extends LinearStage {
    */
   private static void correctContext(Stage stage) {
     if (stage.context.containsKey("cluster")) {
-      // darn, we left the account at the top-level >:-[
-      def account = stage.context.account
-      def stageData = stage.mapTo("/cluster", StageData)
-      stageData.account = account
-      stage.commit(stageData)
+      stage.context.putAll(stage.context.cluster as Map)
     }
     stage.context.remove("cluster")
   }
