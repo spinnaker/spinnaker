@@ -61,21 +61,6 @@
   </div>
 </div>
 <deployment-strategy-selector command="command"></deployment-strategy-selector>
-<div class="form-group" ng-if="deploymentStrategies.length">
-  <div class="col-md-2 sm-label-left">
-    <b>Strategy</b>
-    <help-field key="aws.serverGroup.strategy"></help-field>
-  </div>
-  <div class="col-md-10">
-    <ui-select ng-model="command.strategy" class="form-control input-sm">
-      <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
-      <ui-select-choices repeat="strategy.key as strategy in deploymentStrategies | filter: $select.search">
-        <strong ng-bind-html="strategy.label | highlight: $select.search"></strong>
-        <div ng-bind-html="strategy.description"></div>
-      </ui-select-choices>
-    </ui-select>
-  </div>
-</div>
 <div class="form-group" ng-if="!hideClusterNamePreview">
   <div class="col-md-9 col-md-offset-2">
     <div class="well-compact" ng-class="basicSettingsCtrl.createsNewCluster() ? 'alert alert-warning' : 'well'">

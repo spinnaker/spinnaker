@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       controllerAs: 'deployInitializerCtrl'
     };
   })
-  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategiesService, _) {
+  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategyService, _) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };
@@ -38,9 +38,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       });
     });
 
-    deploymentStrategiesService.listAvailableStrategies().then(function (strategies) {
-      $scope.deploymentStrategies = strategies;
-    });
+    $scope.deploymentStrategies = deploymentStrategyService.listAvailableStrategies();
 
     function transformCommandToStage(command) {
       // this is awful but this is the world we live in
