@@ -128,13 +128,19 @@ interface Stage<T extends Execution> {
   void commit(String pointer, Object obj)
 
   /**
-   * Stages can be synthetically injected into the pipeline by a StageBuilder. This flag indicates that a stage was
-   * generated synthetically
+   * Stages can be synthetically injected into the pipeline by a StageBuilder. This flag indicates the relationship
+   * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
+   * traverse the graph until the first non-synthetic stage is found. If this property is null, the stage is not
+   * synthetic.
    */
-  boolean isSynthetic()
+  SyntheticStageOwner getSyntheticStageOwner()
 
   /**
-   * @see {@link #isSynthetic()} 
+   * @see {@link #getSyntheticStageOwner()}
    */
-  void setSynthetic(boolean synthetic)
+  void setSyntheticStageOwner(SyntheticStageOwner syntheticStageOwner)
+
+  enum SyntheticStageOwner {
+    STAGE_BEFORE, STAGE_AFTER
+  }
 }

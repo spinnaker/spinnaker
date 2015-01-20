@@ -73,7 +73,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     then:
     1 * task1.execute(_) >> { Stage stage ->
-      assert stage.synthetic
+      assert stage.syntheticStageOwner == Stage.SyntheticStageOwner.STAGE_BEFORE
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
     1 * task2.execute(_) >> { Stage stage ->
@@ -81,7 +81,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
     1 * task3.execute(_) >> { Stage stage ->
-      assert stage.synthetic
+      assert stage.syntheticStageOwner == Stage.SyntheticStageOwner.STAGE_AFTER
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
   }

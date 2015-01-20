@@ -66,7 +66,7 @@ abstract class LinearStage extends StageBuilder {
     if (beforeStages) {
       for (beforeStage in beforeStages.reverse()) {
         def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name, beforeStage.context)
-        newStage.synthetic = true
+        newStage.syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_BEFORE
         stage.execution.stages.add(stageIdx, newStage)
         wireSteps(jobBuilder, beforeStage.stageBuilder.buildSteps(newStage))
       }
@@ -77,7 +77,7 @@ abstract class LinearStage extends StageBuilder {
     if (afterStages) {
       for (afterStage in afterStages) {
         def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name, new HashMap(afterStage.context))
-        newStage.synthetic = true
+        newStage.syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_AFTER
         stage.execution.stages.add(newStage)
         wireSteps(jobBuilder, afterStage.stageBuilder.buildSteps(newStage))
       }

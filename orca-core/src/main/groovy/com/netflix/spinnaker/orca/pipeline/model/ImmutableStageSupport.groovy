@@ -153,12 +153,12 @@ class ImmutableStageSupport {
     }
 
     @Override
-    boolean isSynthetic() {
-      self.synthetic
+    Stage.SyntheticStageOwner getSyntheticStageOwner() {
+      self.syntheticStageOwner
     }
 
     @Override
-    void setSynthetic(boolean synthetic) {
+    void setSyntheticStageOwner(Stage.SyntheticStageOwner syntheticStageOwner) {
       fail()
     }
 
