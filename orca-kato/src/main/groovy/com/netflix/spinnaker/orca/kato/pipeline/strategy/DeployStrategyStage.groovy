@@ -92,6 +92,7 @@ abstract class DeployStrategyStage extends LinearStage {
       stageData.account = account
       stage.commit(stageData)
     }
+    stage.context.remove("cluster")
   }
 
   @VisibleForTesting
