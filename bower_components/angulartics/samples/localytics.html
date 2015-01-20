@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>Localytics sample | Angulartics</title>
+	<link rel="stylesheet" href="//bootswatch.com/cosmo/bootstrap.min.css">
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
+ 	<script type="text/javascript" src="//web.localytics.com/latest/localytics.min.js"></script>
+	<script>
+		var key = '758b4899aef4adc4d7bbe9c-0953a2cc-5afc-11e4-2710-004a77f8b47f';
+		// Enable logging and a short timeout for testing purposes
+		var opt = {logger: true, sessionTimeoutSeconds: 1};
+		window.localytics = LocalyticsSession(key, opt);
+	</script>
+	<script src="../src/angulartics.js"></script>
+	<script src="../src/angulartics-localytics.js"></script>
+
+
+</head>
+<body ng-app="sample">
+
+<div class="navbar navbar-default">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="#/">My App</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li><a href="#/a">Page A</a></li>
+			<li><a href="#/b">Page B</a></li>
+			<li><a href="#/c">Page C</a></li>
+		</ul>
+	</div>
+</div>
+
+<div class="container">
+	<div ng-view></div>
+	<hr>
+
+	<button analytics-on="click" analytics-event="Button 1" analytics-category="Commands" class="btn btn-default">Button 1</button>
+
+	<!-- same as analytics-on="click", because 'click' is the default -->
+	<button analytics-on analytics-event="Button 2" analytics-category="Commands" class="btn btn-primary">Button 2</button>
+
+	<!-- same as analytics-event="Button 3", because is inferred from innerText -->
+	<button analytics-on analytics-category="Commands" class="btn btn-success">Button 3</button>
+
+	<button analytics-on analytics-label="Button4 label" analytics-value="1" class="btn btn-info">Button 4</button>
+	<hr>
+
+	<p class="alert alert-success">
+		Open the network inspector or console in your browser, click any of the nav options or buttons above and you'll see the analyticsrequest being executed.</a>.
+	</p>
+</div>
+
+<script>
+	angular.module('sample', ['angulartics', 'angulartics.localytics'])
+	.config(function ($routeProvider, $analyticsProvider) {
+		$routeProvider
+			.when('/', { templateUrl: '/samples/partials/root.tpl.html', controller: 'SampleCtrl' })
+			.when('/a', { templateUrl: '/samples/partials/a.tpl.html', controller: 'SampleCtrl' })
+			.when('/b', { templateUrl: '/samples/partials/b.tpl.html', controller: 'SampleCtrl' })
+			.when('/c', { templateUrl: '/samples/partials/c.tpl.html', controller: 'SampleCtrl' })
+			.otherwise({ redirectTo: '/' });
+	})
+	.controller('SampleCtrl', function () {});
+</script>
+</body>
+</html>

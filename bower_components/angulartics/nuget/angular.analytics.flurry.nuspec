@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.Flurry</id>
+        <version>0.17.2</version>        <title>Angulartics for Flurry</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Flurry module for Angulartics.
+See Angular.Analytics.Core for more details
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>Flurry for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics flurry</tags>
+        <dependencies>
+            <dependency id="Angular.Analytics.Core" version="0.17.2" />        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics-flurry.js" target="content\Scripts\angulartics-flurry.js" />
+        <file src="..\dist\angulartics-flurry.min.js" target="content\Scripts\angulartics-flurry.min.js" />
+    </files>
+</package>
