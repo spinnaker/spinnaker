@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.notifications
 
-import com.netflix.appinfo.ApplicationInfoManager
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -33,31 +32,62 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   def pipeline1 = [
     name    : "pipeline1",
-    triggers: [[type  : "jenkins",
-                job   : "SPINNAKER-package-pond",
-                master: "master1"]],
+    triggers: [[type   : "jenkins",
+                job    : "SPINNAKER-package-pond",
+                master : "master1",
+                enabled: true]],
     stages  : [[type: "bake"],
                [type: "deploy", cluster: [name: "bar"]]]
   ]
 
   def pipeline2 = [
     name    : "pipeline2",
-    triggers: [[type  : "jenkins",
-                job   : "SPINNAKER-package-pond",
-                master: "master1"]],
+    triggers: [[type   : "jenkins",
+                job    : "SPINNAKER-package-pond",
+                master : "master1",
+                enabled: true]],
     stages  : [[type: "bake"],
                [type: "deploy", cluster: [name: "foo"]]]
   ]
 
   def pipeline3 = [
     name    : "pipeline3",
-    triggers: [[type  : "jenkins",
-                job   : "SPINNAKER-package-pond",
-                master: "master2"]],
+    triggers: [[type   : "jenkins",
+                job    : "SPINNAKER-package-pond",
+                master : "master2",
+                enabled: true]],
     stages  : []
   ]
 
-  @Shared DiscoveryClient discoveryClient = Stub(DiscoveryClient)
+  def disabledPipeline = [
+    name    : "pipeline4",
+    triggers: [[type   : "jenkins",
+                job    : "SPINNAKER-package-foo",
+                master : "master2",
+                enabled: false]],
+    stages  : []
+  ]
+
+  def disabledPipeline2 = [
+    name    : "pipeline5",
+    triggers: [[type   : "jenkins",
+                job    : "SPINNAKER-package-foo2",
+                master : "master2",
+                enabled: false]],
+    stages  : []
+  ]
+
+  def enabledPipeline = [
+    name    : "enabledPipeline",
+    triggers: [[type   : "jenkins",
+                job    : "SPINNAKER-package-foo2",
+                master : "master2",
+                enabled: true]],
+    stages  : []
+  ]
+
+  @Shared
+  DiscoveryClient discoveryClient = Stub(DiscoveryClient)
 
   void setup() {
     discoveryClient.getInstanceRemoteStatus() >> InstanceInfo.InstanceStatus.UP
@@ -128,6 +158,21 @@ class BuildJobNotificationHandlerSpec extends Specification {
     where:
     master << ['master1', 'master2']
     input = [name: "SPINNAKER-package-pond", master: master, lastBuildStatus: "Success"]
+
+  }
+
+  void "should ignore disabled triggers"() {
+    def pipelineConfigService = Mock(PipelineConfigurationService)
+    def pipelineStarter = Mock(PipelineStarter)
+    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
+
+    when:
+    handler.run()
+
+    then:
+    1 * pipelineConfigService.getPipelines() >> [pipeline1, disabledPipeline, disabledPipeline2, enabledPipeline]
+    handler.interestingPipelines.size() == 2
+    handler.interestingPipelines.values()*.name.flatten() == ["pipeline1", "enabledPipeline"]
 
   }
 

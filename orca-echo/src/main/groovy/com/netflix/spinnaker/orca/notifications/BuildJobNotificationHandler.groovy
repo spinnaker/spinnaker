@@ -42,7 +42,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
       for (Map pipeline in pipelineConfigurationService.pipelines) {
         List<Map> triggers = pipeline.triggers
         for (Map trigger in triggers) {
-          if (trigger.type == TRIGGER_TYPE) {
+          if (trigger.type == TRIGGER_TYPE && trigger.enabled == true) {
             String key = generateKey(trigger[TRIGGER_MASTER], trigger[TRIGGER_KEY])
             if (!_interestingPipelines.containsKey(key)) {
               _interestingPipelines[key] = []
