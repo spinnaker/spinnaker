@@ -63,9 +63,10 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> describeResult
-    1 * describeResult.getSecurityGroups() >> initialGroups
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null), _)
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
+    2 * describeResult.getSecurityGroups() >> initialGroups
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA, keyGroupB]
+    1 * cacheService.put(keyGroupA, _)
+    1 * cacheService.put(keyGroupB, _)
     0 * _
   }
 
@@ -79,8 +80,9 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> initialDescribe
-    1 * initialDescribe.getSecurityGroups() >> [securityGroupA]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null), _)
+    2 * initialDescribe.getSecurityGroups() >> [securityGroupA]
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA]
+    1 * cacheService.put(keyGroupA, _)
     0 * _
 
     when:
@@ -88,8 +90,37 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> secondDescribe
-    1 * secondDescribe.getSecurityGroups() >> [securityGroupB]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
+    2 * secondDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA, keyGroupB]
+    1 * cacheService.put(keyGroupB, _)
+    0 * _
+  }
+
+  void "should evict security groups when not found on subsequent runs"() {
+    given:
+    DescribeSecurityGroupsResult initialDescribe = Mock(DescribeSecurityGroupsResult)
+    DescribeSecurityGroupsResult secondDescribe = Mock(DescribeSecurityGroupsResult)
+
+    when:
+    agent.call()
+
+    then:
+    1 * ec2.describeSecurityGroups() >> initialDescribe
+    2 * initialDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
+    1 * cacheService.put(keyGroupA, _)
+    1 * cacheService.put(keyGroupB, _)
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA, keyGroupB]
+    0 * _
+
+    when:
+    securityGroupB.description = 'changed'
+    agent.call()
+
+    then:
+    1 * ec2.describeSecurityGroups() >> secondDescribe
+    2 * secondDescribe.getSecurityGroups() >> [securityGroupA]
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA, keyGroupB]
+    1 * cacheService.free(keyGroupB)
     0 * _
   }
 
@@ -103,19 +134,21 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> initialDescribe
-    1 * initialDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null), _)
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
+    2 * initialDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA, keyGroupB]
+    1 * cacheService.put(keyGroupA, _)
+    1 * cacheService.put(keyGroupB, _)
     0 * _
 
     when:
-    securityGroupB.description = 'changed'
+    securityGroupB.description = 'changed for the worse'
     agent.call()
 
     then:
     1 * ec2.describeSecurityGroups() >> secondDescribe
-    1 * secondDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
-    1 * cacheService.put(Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null), _)
+    2 * secondDescribe.getSecurityGroups() >> [securityGroupA, securityGroupB]
+    1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> [keyGroupA, keyGroupB]
+    1 * cacheService.put(keyGroupB, _)
     0 * _
   }
 
@@ -148,7 +181,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> describeResult
-    1 * describeResult.getSecurityGroups() >> [mixedRangedGroupA]
+    2 * describeResult.getSecurityGroups() >> [mixedRangedGroupA]
     1 * cacheService.put(Keys.getSecurityGroupKey(mixedRangedGroupA.groupName, mixedRangedGroupA.groupId, region, account, null), _) >> { args -> cachedValue = args[1] }
     cachedValue.inboundRules.size() == 3
     securityGroupRules.size() == 1
@@ -190,7 +223,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> describeResult
-    1 * describeResult.getSecurityGroups() >> [group]
+    2 * describeResult.getSecurityGroups() >> [group]
     1 * cacheService.put(Keys.getSecurityGroupKey(group.groupName, group.groupId, region, account, null), _) >> { args -> cachedValue = args[1] }
     cachedValue.inboundRules.size() == 2
     cachedValue.inboundRules.protocol == ['tcp', 'tcp']
@@ -206,6 +239,13 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
 
   @Shared
+  String keyGroupA = Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null)
+
+  @Shared
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
+
+  @Shared
+  String keyGroupB = Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null)
+
 
 }

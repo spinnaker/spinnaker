@@ -58,7 +58,25 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       thisRun.put(it.groupId, it.hashCode())
       cacheOne it
     }
+    evictDeletedSecurityGroups(result.securityGroups)
     lastRun = thisRun
+  }
+
+  void evictDeletedSecurityGroups(List<SecurityGroup> currentSecurityGroups) {
+    def relevantKeys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns).findAll {
+      def parts = Keys.parse(it)
+      parts.account == account && parts.region == region
+    }
+    relevantKeys.each { relevantKey ->
+      def parts = Keys.parse(relevantKey)
+      def match = currentSecurityGroups.find {
+        it.groupName == parts.name && (it.vpcId ?: 'null') == parts.vpcId
+      }
+      if (!match) {
+        log.info("Security group ${relevantKey} not found; removing from cache")
+        cacheService.free(relevantKey)
+      }
+    }
   }
 
   void cacheOne(SecurityGroup securityGroup) {
