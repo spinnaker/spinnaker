@@ -13,7 +13,7 @@ angular.module('deckApp.serverGroup.configure.gce')
       controller: 'gceServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, deploymentStrategiesService, serverGroupService) {
+  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, serverGroupService) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
@@ -60,14 +60,4 @@ angular.module('deckApp.serverGroup.configure.gce')
       return serverGroupService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
 
-    // Use undefined to check for the presence of the 'strategy' field, which is added to the command
-    // on "clone" operations, but not "create new" operations, where it doesn't seem valid to have a strategy
-    // (assuming "create new" is used to create a brand new cluster).
-    //
-    // The field is hidden on the form if no deployment strategies are present on the scope.
-    if ($scope.command.strategy !== undefined) {
-      deploymentStrategiesService.listAvailableStrategies().then(function (strategies) {
-        $scope.deploymentStrategies = strategies;
-      });
-    }
   });

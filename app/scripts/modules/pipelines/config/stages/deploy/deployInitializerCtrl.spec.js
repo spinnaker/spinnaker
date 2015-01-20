@@ -8,7 +8,7 @@ describe('DeployInitializerCtrl', function() {
     this.$controller = $controller;
     this.serverGroupService = {};
     this.securityGroupService = {};
-    this.deploymentStrategiesService = {};
+    this.deploymentStrategyService = {};
     this._ = _;
     this.$scope = $rootScope.$new();
     this.$q = $q;
@@ -29,7 +29,7 @@ describe('DeployInitializerCtrl', function() {
           $scope: $scope,
           serverGroupService: this.serverGroupService,
           securityGroupService: this.securityGroupService,
-          deploymentStrategiesService: deploymentStrategiesMock,
+          deploymentStrategyService: deploymentStrategiesMock,
           _: _
         });
       };
