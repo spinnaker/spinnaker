@@ -44,7 +44,7 @@ dependencies {
     compile project(':echo-model')
     compile project(':echo-cassandra')
     compile project(':echo-elasticsearch')
-    compile project(':echo-stomp')
+    // compile project(':echo-stomp')
     compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('bootWeb')
     compile commonDependencies.springWeb
