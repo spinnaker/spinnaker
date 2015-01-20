@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.CNZZ</id>
+        <version>0.17.2</version>
+        <title>Angulartics for CNZZ</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>CNZZ module for Angulartics.
+See Angular.Analytics.Core for more details
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>CNZZ for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics cnzz</tags>
+        <dependencies>
+            <dependency id="Angular.Analytics.Core" version="0.17.2" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics-cnzz.js" target="content\Scripts\angulartics-cnzz.js" />
+        <file src="..\dist\angulartics-cnzz.min.js" target="content\Scripts\angulartics-cnzz.min.js" />
+    </files>
+</package>

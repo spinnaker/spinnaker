@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.Baidu</id>
+        <version>0.17.2</version>
+        <title>Angulartics for Baidu</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Baidu module for Angulartics.
+See Angular.Analytics.Core for more details
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>Baidu for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics chartbeat</tags>
+        <dependencies>
+            <dependency id="Angular.Analytics.Core" version="0.17.2" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics-baidu.js" target="content\Scripts\angulartics-baidu.js" />
+        <file src="..\dist\angulartics-baidu.min.js" target="content\Scripts\angulartics-baidu.min.js" />
+    </files>
+</package>

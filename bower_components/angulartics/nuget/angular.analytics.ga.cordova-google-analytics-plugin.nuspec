@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.google.analytics.cordova</id>
+        <version>0.17.2</version>
+        <title>Angulartics for google analytics cordova</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>google.analytics.cordova module for Angulartics.
+See Angular.Analytics.Core for more details
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>google.analytics.cordova for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics chartbeat</tags>
+        <dependencies>
+            <dependency id="Angular.Analytics.Core" version="0.17.2" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics-ga-cordova-google-analytics-plugin.js.js" target="content\Scripts\angulartics-ga-cordova-google-analytics-plugin.js.js" />
+        <file src="..\dist\angulartics-ga-cordova-google-analytics-plugin.js.min.js" target="content\Scripts\angulartics-ga-cordova-google-analytics-plugin.js.min.js" />
+    </files>
+</package>

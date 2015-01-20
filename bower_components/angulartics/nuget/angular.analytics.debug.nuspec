@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.Debug</id>
+        <version>0.17.2</version>        <title>Angulartics for Debug</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Debug module for Angulartics.
+See Angular.Analytics.Core for more details
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>Debug for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics debug</tags>
+        <dependencies>
+            <dependency id="Angular.Analytics.Core" version="0.17.2" />        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics-debug.js" target="content\Scripts\angulartics-debug.js" />
+        <file src="..\dist\angulartics-debug.min.js" target="content\Scripts\angulartics-debug.min.js" />
+    </files>
+</package>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>CNZZ sample | Angulartics</title>
+	<link rel="stylesheet" href="//bootswatch.com/cosmo/bootstrap.min.css">
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-route.min.js"></script>
+	<script src="../src/angulartics.js"></script>
+	<script src="../src/angulartics-cnzz.js"></script>
+</head>
+<body ng-app="sample">
+
+<div class="navbar navbar-default">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="#/">My App</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li><a href="#/a">Page A</a></li>
+			<li><a href="#/b">Page B</a></li>
+			<li><a href="#/c">Page C</a></li>
+		</ul>
+	</div>
+</div>
+
+<div class="container">
+	<div ng-view></div>
+	<hr>
+
+	<button analytics-on="click" analytics-event="Button 1" analytics-category="Commands" class="btn btn-default">Button 1</button>
+
+	<!-- same as analytics-on="click", because 'click' is the default -->
+	<button analytics-on analytics-event="Button 2" analytics-category="Commands" class="btn btn-primary">Button 2</button>
+
+	<!-- same as analytics-event="Button 3", because is inferred from innerText -->
+	<button analytics-on analytics-category="Commands" class="btn btn-success">Button 3</button>
+
+	<button analytics-on analytics-label="Button4 label" analytics-value="1" class="btn btn-info">Button 4</button>
+	<hr>
+
+	<p class="alert alert-success">
+		Open the network inspector in your browser, click any of the nav options or buttons above and you'll see the analytics
+		request being executed. Then check <a class="alert-link" href="http://tongji.cnzz.com/main.php?c=site&a=show">your CNZZ dashboard</a>.
+	</p>
+</div>
+
+<script>
+	angular.module('sample', ['ngRoute', 'angulartics', 'angulartics.cnzz'])
+	.config(function ($routeProvider, $analyticsProvider) {
+		$routeProvider
+			.when('/', { templateUrl: '/samples/partials/root.tpl.html' })
+	  	.when('/a', { templateUrl: '/samples/partials/a.tpl.html' })
+		  .when('/b', { templateUrl: '/samples/partials/b.tpl.html' })
+		  .when('/c', { templateUrl: '/samples/partials/c.tpl.html' })
+		  .otherwise({ redirectTo: '/' });
+	});
+</script>
+
+<script>var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1252962685'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s19.cnzz.com/z_stat.php%3Fid%3D1252962685'%3E%3C/script%3E"));</script>
+</body>
+</html>
