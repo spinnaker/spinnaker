@@ -11,6 +11,9 @@
 
 
 angular.module('deckApp', [
+    'angulartics',
+    'angulartics.google.analytics',
+    'deckApp.ajaxError.interceptor',
     'ngAnimate',
     'ngSanitize',
     'ui.router',
