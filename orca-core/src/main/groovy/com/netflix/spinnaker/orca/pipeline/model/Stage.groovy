@@ -127,4 +127,14 @@ interface Stage<T extends Execution> {
    */
   void commit(String pointer, Object obj)
 
+  /**
+   * Stages can be synthetically injected into the pipeline by a StageBuilder. This flag indicates that a stage was
+   * generated synthetically
+   */
+  boolean isSynthetic()
+
+  /**
+   * @see {@link #isSynthetic()} 
+   */
+  void setSynthetic(boolean synthetic)
 }

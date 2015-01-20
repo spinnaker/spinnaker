@@ -144,11 +144,25 @@ class ImmutableStageSupport {
 
     @Override
     void commit(Object obj) {
-      throw new IllegalStateException("Stage is currently immutable")
+      fail()
     }
 
     @Override
     void commit(String pointer, Object obj) {
+      fail()
+    }
+
+    @Override
+    boolean isSynthetic() {
+      self.synthetic
+    }
+
+    @Override
+    void setSynthetic(boolean synthetic) {
+      fail()
+    }
+
+    private static void fail() {
       throw new IllegalStateException("Stage is currently immutable")
     }
 

@@ -67,6 +67,25 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     pos == [1, 2, 3]
   }
 
+  void "should properly mark injected stages as synthetic"() {
+    when:
+    launchJob()
+
+    then:
+    1 * task1.execute(_) >> { Stage stage ->
+      assert stage.synthetic
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+    1 * task2.execute(_) >> { Stage stage ->
+      assert !stage.synthetic
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+    1 * task3.execute(_) >> { Stage stage ->
+      assert stage.synthetic
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+  }
+
   @Override
   Pipeline createPipeline() {
     Pipeline.builder().withStage("stage2").build()

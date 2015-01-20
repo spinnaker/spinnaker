@@ -42,6 +42,7 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Map<String, Object> context = [:]
   boolean immutable = false
   List<Task> tasks = []
+  boolean synthetic
 
   transient ObjectMapper objectMapper = OrcaObjectMapper.DEFAULT
 
