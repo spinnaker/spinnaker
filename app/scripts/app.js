@@ -35,6 +35,7 @@ angular.module('deckApp', [
     'deckApp.deploymentStrategy',
     'deckApp.deploymentStrategy.redblack',
     'deckApp.deploymentStrategy.none',
+    'deckApp.deploymentStrategy.highlander',
     'deckApp.applications',
     'deckApp.securityGroup',
     'deckApp.serverGroup',
