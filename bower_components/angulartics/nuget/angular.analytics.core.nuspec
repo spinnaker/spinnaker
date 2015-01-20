@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.Core</id>
+        <version>0.17.2</version>
+        <title>Angulartics Core</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Web analytics for AngularJS applications
+
+Vendor-agnostic &amp; extensible:
+Avoid dealing with vendor-specific code. If your provider of choice is not among the existing plugins, just write your own.
+
+Ready to use:
+Google Analytics, Kissmetrics, Mixpanel, Chartbeat and Segment.io are supported out of the box.
+
+1-line setup:
+Just add Angulartics to your app dependencies and you'll get automatic pageview tracking for your application routes.
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>Web analytics core for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics</tags>
+        <dependencies>
+            <dependency id="AngularJS.Core" version="1.1.5" />
+            <dependency id="AngularJS.Route" version="1.1.5" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics.js" target="content\Scripts\angulartics.js" />
+        <file src="..\dist\angulartics.min.js" target="content\Scripts\angulartics.min.js" />
+    </files>
+</package>

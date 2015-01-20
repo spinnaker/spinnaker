@@ -1,0 +1,24 @@
+{
+  "name": "sha-1",
+  "version": "0.1.1",
+  "description": "This is a SHA-1 hash generator by JavaScript.",
+  "main": "sha1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/linkgod/SHA-1.git"
+  },
+  "keywords": [
+    "SHA-1",
+    "sha1",
+    "hash",
+    "encryption"
+  ],
+  "author": "linkgod <linkgod@qq.com> (http://www.linkgod.net/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/linkgod/SHA-1/issues"
+  }
+}

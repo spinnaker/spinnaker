@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Angular.Analytics.Marketo</id>
+        <version>0.17.2</version>        <title>Angulartics for Marketo</title>
+        <authors>luisfarzati,ADAPTByDesign</authors>
+        <projectUrl>http://luisfarzati.github.io/angulartics/</projectUrl>
+        <iconUrl>http://luisfarzati.github.io/angulartics/images/angularjs.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Marketo module for Angulartics.
+See Angular.Analytics.Core for more details
+
+[NuGet packaging by ADAPTByDesign]
+</description>
+        <summary>Marketo for AngularJS applications</summary>
+        <releaseNotes />
+        <copyright />
+        <tags>angularjs analytics marketo</tags>
+        <dependencies>
+            <dependency id="Angular.Analytics.Core" version="0.17.2" />        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\src\angulartics-marketo.js" target="content\Scripts\angulartics-marketo.js" />
+        <file src="..\dist\angulartics-marketo.min.js" target="content\Scripts\angulartics-marketo.min.js" />
+    </files>
+</package>

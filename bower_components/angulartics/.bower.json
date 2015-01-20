@@ -1,0 +1,44 @@
+{
+  "name": "angulartics",
+  "version": "0.17.2",
+  "main": [
+    "src/angulartics.js",
+    "src/angulartics-adobe.js",
+    "src/angulartics-chartbeat.js",
+    "src/angulartics-cnzz.js",
+    "src/angulartics-flurry.js",
+    "src/angulartics-ga-cordova.js",
+    "src/angulartics-ga.js",
+    "src/angulartics-gtm.js",
+    "src/angulartics-kissmetrics.js",
+    "src/angulartics-mixpanel.js",
+    "src/angulartics-piwik.js",
+    "src/angulartics-scroll.js",
+    "src/angulartics-segmentio.js",
+    "src/angulartics-splunk.js",
+    "src/angulartics-woopra.js",
+    "src/angulartics-marketo.js",
+    "src/angulartics-intercom.js"
+  ],
+  "dependencies": {
+    "angular": ">= 1.1.5",
+    "waypoints": "~2.0.3",
+    "SHA-1": "*"
+  },
+  "devDependencies": {
+    "angular-mocks": ">= 1.1.5",
+    "angular-route": "~1.2",
+    "angular-ui-router": "~0.2"
+  },
+  "homepage": "https://github.com/luisfarzati/angulartics",
+  "_release": "0.17.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.17.2",
+    "commit": "1b8bbf0608bec2c23105e2b31e86293e9c0ed5d6"
+  },
+  "_source": "git://github.com/luisfarzati/angulartics.git",
+  "_target": "~0.17.2",
+  "_originalSource": "angulartics",
+  "_direct": true
+}

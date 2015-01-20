@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>Segment.io sample | Angulartics</title>
+	<link rel="stylesheet" href="//bootswatch.com/cosmo/bootstrap.min.css">
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
+	<script src="../src/angulartics.js"></script>
+	<script src="../src/angulartics-woopra.js"></script>
+	<script type="text/javascript">
+            var t,i,e,n=window,o=document,a=arguments,s="script",r=["config","track","identify","visit","push","call"],c=function(){var t,i=this;for(i._e=[],t=0;r.length>t;t++)(function(t){i[t]=function(){return i._e.push([t].concat(Array.prototype.slice.call(arguments,0))),i}})(r[t])};for(n._w=n._w||{},t=0;a.length>t;t++)n._w[a[t]]=n[a[t]]=n[a[t]]||new c;i=o.createElement(s),i.async=1,i.src="//static.woopra.com/js/w.js",e=o.getElementsByTagName(s)[0],e.parentNode.insertBefore(i,e)})("woopra");
+            woopra.config({
+                domain: 'yourdomain.com',
+                idle_timeout: 1800000
+            });
+        </script>
+</head>
+<body ng-app="sample">
+
+<div class="navbar navbar-default">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="#/">My App</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li><a href="#/a">Page A</a></li>
+			<li><a href="#/b">Page B</a></li>
+			<li><a href="#/c">Page C</a></li>
+		</ul>
+	</div>
+</div>
+
+<div class="container">
+	<div ng-view></div>
+	<hr>
+
+	<button analytics-on="click" analytics-event="Button 1" analytics-category="Commands" class="btn btn-default">Button 1</button>
+
+	<!-- same as analytics-on="click", because 'click' is the default -->
+	<button analytics-on analytics-event="Button 2" analytics-category="Commands" class="btn btn-primary">Button 2</button>
+
+	<!-- same as analytics-event="Button 3", because is inferred from innerText -->
+	<button analytics-on analytics-category="Commands" class="btn btn-success">Button 3</button>
+
+	<button analytics-on analytics-label="Button4 label" analytics-value="1" class="btn btn-info">Button 4</button>
+	<hr>
+
+	<p class="alert alert-success">
+		Open the network inspector in your browser, click any of the nav options or buttons above and you'll see the analytics
+		request being executed. Then check <a class="alert-link" href="http://www.woopra.com/live">your Woopra dashboard</a>.
+	</p>
+</div>
+
+<script>
+	angular.module('sample', ['angulartics', 'angulartics.woopra'])
+	.config(function ($routeProvider, $analyticsProvider) {
+		$routeProvider
+			.when('/', { templateUrl: '/samples/partials/root.tpl.html', controller: 'SampleCtrl' })
+			.when('/a', { templateUrl: '/samples/partials/a.tpl.html', controller: 'SampleCtrl' })
+			.when('/b', { templateUrl: '/samples/partials/b.tpl.html', controller: 'SampleCtrl' })
+			.when('/c', { templateUrl: '/samples/partials/c.tpl.html', controller: 'SampleCtrl' })
+			.otherwise({ redirectTo: '/' });
+	})
+	.controller('SampleCtrl', function () {});
+</script>
+</body>
+</html>
