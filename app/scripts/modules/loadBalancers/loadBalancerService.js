@@ -88,6 +88,8 @@ angular.module('deckApp')
 
     function constructNewLoadBalancerTemplate() {
       return {
+        stack: '',
+        detail: 'frontend',
         credentials: settings.defaults.account,
         region: settings.defaults.region,
         vpcId: null,
