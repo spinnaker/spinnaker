@@ -2,9 +2,14 @@
 
 
 angular
-  .module('deckApp.config.controller', [])
-  .controller('ConfigController', function ($scope, $modal, application) {
+  .module('deckApp.config.controller', [
+    'deckApp.applications.write.service'
+  ])
+  .controller('ConfigController', function ($modal, $state, applicationWriter, application) {
     var vm = this;
+    vm.serverGroupCount = application.serverGroups.length;
+    vm.hasServerGroups = Boolean(vm.serverGroupCount);
+    vm.error = '';
 
     vm.editApplication = function() {
       $modal.open({
@@ -17,6 +22,22 @@ angular
       });
 
     };
+
+    vm.deleteApplication = function() {
+      return applicationWriter
+        .deleteApplication(application.attributes).then(
+          returnToApplicationsList,
+          showErrors
+        );
+    };
+
+    function returnToApplicationsList() {
+      $state.go('home.applications');
+    }
+
+    function showErrors(error) {
+      vm.error = error.message;
+    }
 
     return vm;
 
