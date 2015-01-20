@@ -25,3 +25,8 @@ dependencies {
     testCompile commonDependencies.spockSpring
     testCompile commonDependencies.springTest
 }
+
+test {
+    // jamm is required when using prepared statements with in-memory C*
+    jvmArgs "-javaagent:${project.configurations.compile.find { it.name.startsWith('jamm') }}"
+}
