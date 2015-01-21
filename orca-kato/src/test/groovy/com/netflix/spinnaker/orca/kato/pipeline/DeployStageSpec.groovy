@@ -109,6 +109,8 @@ class DeployStageSpec extends Specification {
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     deployStage.buildSteps(stage)
@@ -119,8 +121,8 @@ class DeployStageSpec extends Specification {
       def cluster = [serverGroups: [[name: "pond-prestaging-v000", region: "us-west-1"]]]
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
     }
-    1 == deployStage.afterStages.size()
-    deployStage.afterStages[0].stageBuilder == disableAsgStage
+    1 == stage.afterStages.size()
+    stage.afterStages[0].stageBuilder == disableAsgStage
   }
 
   void "should choose the ancestor asg from the same region when redblack is selected"() {
@@ -129,6 +131,8 @@ class DeployStageSpec extends Specification {
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "redblack"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     deployStage.buildSteps(stage)
@@ -140,7 +144,7 @@ class DeployStageSpec extends Specification {
                                     [name: "pond-prestaging-v000", region: "us-west-1"]]]
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
     }
-    deployStage.afterStages[0].context.regions == config.availabilityZones.keySet().toList()
+    stage.afterStages[0].context.regions == config.availabilityZones.keySet().toList()
   }
 
   void "should create stages of deploy, resizeAsg, disableAsg, and enableTerminate when strategy is redblack and scaleDown is true"() {
@@ -150,6 +154,8 @@ class DeployStageSpec extends Specification {
     config.cluster.scaleDown = true
     config.cluster.strategy = "redblack"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     deployStage.buildSteps(stage)
@@ -169,10 +175,10 @@ class DeployStageSpec extends Specification {
           )
       )
     }
-    3 == deployStage.afterStages.size()
-    deployStage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage]
-    deployStage.afterStages[2].context.action == "resume"
-    deployStage.afterStages[2].context.processes == ["Terminate"]
+    3 == stage.afterStages.size()
+    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage]
+    stage.afterStages[2].context.action == "resume"
+    stage.afterStages[2].context.processes == ["Terminate"]
   }
 
   void "should create stages of deploy, resizeAsg, disableAsg, enableTerminate, and shrinkCluster stages when strategy is redblack and scaleDown is true and shrinkCluster is true"() {
@@ -183,6 +189,8 @@ class DeployStageSpec extends Specification {
     config.cluster.strategy = "redblack"
     config.cluster.shrinkCluster = true
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     deployStage.buildSteps(stage)
@@ -202,8 +210,8 @@ class DeployStageSpec extends Specification {
         )
       )
     }
-    4 == deployStage.afterStages.size()
-    deployStage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage, shrinkClusterStage]
+    4 == stage.afterStages.size()
+    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage, shrinkClusterStage]
   }
 
   void "should create stages of deploy and destroyAsg when strategy is highlander"() {
@@ -212,6 +220,8 @@ class DeployStageSpec extends Specification {
     def config = mapper.readValue(configJson, Map)
     config.cluster.strategy = "highlander"
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     deployStage.buildSteps(stage)
@@ -231,8 +241,8 @@ class DeployStageSpec extends Specification {
           )
       )
     }
-    1 == deployStage.afterStages.size()
-    deployStage.afterStages[0].stageBuilder == destroyAsgStage
+    1 == stage.afterStages.size()
+    stage.afterStages[0].stageBuilder == destroyAsgStage
   }
 
   void "should create basicDeploy tasks when no strategy is chosen"() {

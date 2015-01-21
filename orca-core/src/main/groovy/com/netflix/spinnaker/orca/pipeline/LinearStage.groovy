@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import groovy.transform.Immutable
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 
@@ -34,9 +33,6 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder
  */
 @CompileStatic
 abstract class LinearStage extends StageBuilder {
-
-  @VisibleForTesting protected List<InjectedStage> beforeStages = []
-  @VisibleForTesting protected List<InjectedStage> afterStages = []
 
   LinearStage(String name) {
     super(name)
@@ -51,20 +47,22 @@ abstract class LinearStage extends StageBuilder {
     processBeforeStages(jobBuilder, stageIdx, stage)
     wireSteps(jobBuilder, steps)
     processAfterStages(jobBuilder, stage)
+    stage.beforeStages.clear()
+    stage.afterStages.clear()
     jobBuilder
   }
 
-  protected void injectBefore(String name, LinearStage stageBuilder, Map<String, Object> context) {
-    beforeStages << new InjectedStage(stageBuilder, name, context)
+  protected void injectBefore(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+    stage.beforeStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
-  protected void injectAfter(String name, LinearStage stageBuilder, Map<String, Object> context) {
-    afterStages << new InjectedStage(stageBuilder, name, context)
+  protected void injectAfter(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+    stage.afterStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
   private void processBeforeStages(JobFlowBuilder jobBuilder, int stageIdx, Stage stage) {
-    if (beforeStages) {
-      for (beforeStage in beforeStages.reverse()) {
+    if (stage.beforeStages) {
+      for (beforeStage in stage.beforeStages.reverse()) {
         def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name, beforeStage.context)
         newStage.syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_BEFORE
         stage.execution.stages.add(stageIdx, newStage)
@@ -74,8 +72,8 @@ abstract class LinearStage extends StageBuilder {
   }
 
   private void processAfterStages(JobFlowBuilder jobBuilder, Stage stage) {
-    if (afterStages) {
-      for (afterStage in afterStages) {
+    if (stage.afterStages) {
+      for (afterStage in stage.afterStages) {
         def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name, new HashMap(afterStage.context))
         newStage.syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_AFTER
         stage.execution.stages.add(newStage)
@@ -96,12 +94,5 @@ abstract class LinearStage extends StageBuilder {
     } else {
       new PipelineStage((Pipeline)execution, type, name, context)
     }
-  }
-
-  @Immutable(knownImmutables = ["stageBuilder"])
-  private static class InjectedStage {
-    LinearStage stageBuilder
-    String name
-    Map<String, Object> context
   }
 }

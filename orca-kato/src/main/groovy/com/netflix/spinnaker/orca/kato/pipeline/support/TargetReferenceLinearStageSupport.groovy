@@ -60,7 +60,7 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
 
     if (descriptionList.size()) {
       for (description in descriptionList) {
-        injectAfter(this.type, this, description)
+        injectAfter(stage, this.type, this, description)
       }
     }
   }

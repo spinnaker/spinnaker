@@ -73,6 +73,8 @@ class CopyLastAsgStageSpec extends Specification {
 
     and:
     def stage = new PipelineStage(null, "copyLastAsg", config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     copyLastAsgStage.buildSteps(stage)
@@ -94,13 +96,13 @@ class CopyLastAsgStageSpec extends Specification {
     }
 
     and:
-    3 == copyLastAsgStage.afterStages.size()
+    3 == stage.afterStages.size()
 
     and:
-    copyLastAsgStage.afterStages*.stageBuilder.unique() == [destroyAsgStage]
+    stage.afterStages*.stageBuilder.unique() == [destroyAsgStage]
 
     and:
-    copyLastAsgStage.afterStages*.context == asgNames.collect { name ->
+    stage.afterStages*.context == asgNames.collect { name ->
       [asgName: name, credentials: account, regions: [region]]
     }
 
@@ -126,6 +128,8 @@ class CopyLastAsgStageSpec extends Specification {
 
     and:
     def stage = new PipelineStage(null, "copyLastAsg", config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     copyLastAsgStage.buildSteps(stage)
@@ -147,13 +151,13 @@ class CopyLastAsgStageSpec extends Specification {
     }
 
     and:
-    1 == copyLastAsgStage.afterStages.size()
+    1 == stage.afterStages.size()
 
     and:
-    copyLastAsgStage.afterStages[0].stageBuilder == disableAsgStage
+    stage.afterStages[0].stageBuilder == disableAsgStage
 
     and:
-    copyLastAsgStage.afterStages[0].context == [asgName: asgNames.sort().reverse().first(),
+    stage.afterStages[0].context == [asgName: asgNames.sort().reverse().first(),
                                                 credentials: account,
                                                 regions: [region]]
 
@@ -179,6 +183,8 @@ class CopyLastAsgStageSpec extends Specification {
 
     and:
     def stage = new PipelineStage(null, "copyLastAsg", config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
 
     when:
     copyLastAsgStage.buildSteps(stage)
@@ -187,7 +193,7 @@ class CopyLastAsgStageSpec extends Specification {
     0 * oort._
 
     and:
-    0 == copyLastAsgStage.afterStages.size()
+    0 == stage.afterStages.size()
 
     where:
     strategy = ""

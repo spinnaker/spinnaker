@@ -77,7 +77,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
     1 * task2.execute(_) >> { Stage stage ->
-      assert !stage.synthetic
+      assert !stage.syntheticStageOwner
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
     1 * task3.execute(_) >> { Stage stage ->
@@ -131,8 +131,8 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     @Override
     protected List<Step> buildSteps(Stage stage) {
-      injectBefore("before", stageBuilder1, ctx1)
-      injectAfter("after", stageBuilder2, ctx2)
+      injectBefore(stage, "before", stageBuilder1, ctx1)
+      injectAfter(stage, "after", stageBuilder2, ctx2)
       [buildStep("myTask", task2)]
     }
   }

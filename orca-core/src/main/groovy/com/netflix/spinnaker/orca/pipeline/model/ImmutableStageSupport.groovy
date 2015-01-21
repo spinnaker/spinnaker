@@ -162,6 +162,16 @@ class ImmutableStageSupport {
       fail()
     }
 
+    @Override
+    List<InjectedStageConfiguration> getBeforeStages() {
+      ImmutableList.of(self.beforeStages)
+    }
+
+    @Override
+    List<InjectedStageConfiguration> getAfterStages() {
+      ImmutableList.of(self.afterStages)
+    }
+
     private static void fail() {
       throw new IllegalStateException("Stage is currently immutable")
     }

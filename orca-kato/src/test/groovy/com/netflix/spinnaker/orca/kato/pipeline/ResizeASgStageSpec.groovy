@@ -64,8 +64,8 @@ class ResizeAsgStageSpec extends Specification {
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> asgs.collect {
       new TargetReference(region: it.region, asg: it)
     }
-    0 == stageBuilder.beforeStages.size()
-    0 == stageBuilder.afterStages.size()
+    0 == stage.beforeStages.size()
+    0 == stage.afterStages.size()
     stage.context == config
 
     where:

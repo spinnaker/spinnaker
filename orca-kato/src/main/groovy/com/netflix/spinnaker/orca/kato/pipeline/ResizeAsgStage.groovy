@@ -71,7 +71,7 @@ class ResizeAsgStage extends LinearStage {
       def description = new HashMap(stage.context)
 
       if (descriptions.containsKey(asg.name)) {
-        descriptions[asg.name].regions.add(region)
+        descriptions[asg.name as String].regions.add(region)
         continue
       }
       description.asgName = asg.name
@@ -113,7 +113,7 @@ class ResizeAsgStage extends LinearStage {
       }
 
 
-      descriptions[asg.name] = description
+      descriptions[asg.name as String] = description
     }
 
     def descriptionList = descriptions.values()
@@ -123,7 +123,7 @@ class ResizeAsgStage extends LinearStage {
 
     if (descriptionList.size()) {
       for (description in descriptionList) {
-        injectAfter("resizeAsg", this, description)
+        injectAfter(stage, "resizeAsg", this, description)
       }
     }
   }

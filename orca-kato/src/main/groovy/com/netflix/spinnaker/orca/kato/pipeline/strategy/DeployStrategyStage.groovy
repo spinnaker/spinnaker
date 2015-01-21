@@ -112,7 +112,7 @@ abstract class DeployStrategyStage extends LinearStage {
         def nextStageContext = [asgName: latestAsg.name, regions: [region], credentials: cleanupConfig.account]
 
         if (nextStageContext.asgName) {
-          def names = Names.parseName(nextStageContext.asgName)
+          def names = Names.parseName(nextStageContext.asgName as String)
           if (stageData.application != names.app) {
             logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextStageContext)}")
             continue
@@ -121,18 +121,18 @@ abstract class DeployStrategyStage extends LinearStage {
 
         if (stageData.scaleDown) {
           nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter("scaleDown", resizeAsgStage, nextStageContext)
+          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
         }
-        injectAfter("disable", disableAsgStage, nextStageContext)
+        injectAfter(stage, "disable", disableAsgStage, nextStageContext)
         if (stageData.scaleDown) {
           nextStageContext.putAll([action: "resume", processes: ["Terminate"]])
-          injectAfter("enableTerminate", modifyScalingProcessStage, nextStageContext)
+          injectAfter(stage, "enableTerminate", modifyScalingProcessStage, nextStageContext)
         }
         if (stageData.shrinkCluster) {
-          Names names = Names.parseName(latestAsg.name)
+          Names names = Names.parseName(latestAsg.name as String)
           def shrinkContext = [application: names.app, clusterName: names.cluster,
                                forceDelete: true, regions: [region], credentials: cleanupConfig.account]
-          injectAfter("shrinkCluster", shrinkClusterStage, shrinkContext)
+          injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
         }
       }
     }
@@ -153,14 +153,14 @@ abstract class DeployStrategyStage extends LinearStage {
         for (asg in existingAsgs) {
           def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
           if (nextContext.asgName) {
-            def names = Names.parseName(nextContext.asgName)
+            def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {
               logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextContext)}")
               continue
             }
           }
 
-          injectAfter("destroyAsg", destroyAsgStage, nextContext)
+          injectAfter(stage, "destroyAsg", destroyAsgStage, nextContext)
         }
       }
     }

@@ -18,7 +18,9 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 
 @CompileStatic
 interface Stage<T extends Execution> {
@@ -143,4 +145,10 @@ interface Stage<T extends Execution> {
   enum SyntheticStageOwner {
     STAGE_BEFORE, STAGE_AFTER
   }
+
+  @JsonIgnore
+  List<InjectedStageConfiguration> getBeforeStages()
+
+  @JsonIgnore
+  List<InjectedStageConfiguration> getAfterStages()
 }
