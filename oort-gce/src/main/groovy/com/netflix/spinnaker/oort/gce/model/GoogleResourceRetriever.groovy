@@ -18,6 +18,8 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.google.api.services.replicapool.model.InstanceGroupManagerList
@@ -90,10 +92,10 @@ class GoogleResourceRetriever {
           def project = credentials.project
           def compute = credentials.compute
 
-          BatchRequest regionsBatch = compute.batch()
-          BatchRequest migsBatch = compute.batch()
-          BatchRequest resourceViewsBatch = compute.batch()
-          BatchRequest instancesBatch = compute.batch()
+          BatchRequest regionsBatch = buildBatchRequest(compute)
+          BatchRequest migsBatch = buildBatchRequest(compute)
+          BatchRequest resourceViewsBatch = buildBatchRequest(compute)
+          BatchRequest instancesBatch = buildBatchRequest(compute)
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
           def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
@@ -164,6 +166,17 @@ class GoogleResourceRetriever {
     }
   }
 
+  private static BatchRequest buildBatchRequest(def compute) {
+    return compute.batch(
+      new HttpRequestInitializer() {
+        @Override
+        void initialize(HttpRequest request) throws IOException {
+          request.headers.setUserAgent(Utils.APPLICATION_NAME);
+        }
+      }
+    )
+  }
+
   Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects() {
     def accountNameToSetOfGoogleCredentialsMap = new HashMap<String, Set<GoogleCredentials>>()
 
@@ -201,8 +214,8 @@ class GoogleResourceRetriever {
           def project = credentials.project
           def compute = credentials.compute
 
-          BatchRequest resourceViewsBatch = compute.batch()
-          BatchRequest instancesBatch = compute.batch()
+          BatchRequest resourceViewsBatch = buildBatchRequest(compute)
+          BatchRequest instancesBatch = buildBatchRequest(compute)
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
           def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
