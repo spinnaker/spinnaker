@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.netflix.spinnaker.cats.provider.ProviderCache;
+
 import java.util.Collection;
 
 /**
@@ -46,7 +48,8 @@ public interface CachingAgent {
     /**
      * Triggered by an AgentScheduler to tell this Agent to load its data.
      *
+     * @param providerCache Cache associated with this Agent's provider
      * @return the complete set of data for this Agent.
      */
-    CacheResult loadData();
+    CacheResult loadData(ProviderCache providerCache);
 }

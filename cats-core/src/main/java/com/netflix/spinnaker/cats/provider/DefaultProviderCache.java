@@ -139,6 +139,11 @@ public class DefaultProviderCache implements ProviderCache {
         }
     }
 
+    @Override
+    public void putCacheData(String sourceAgentType, CacheData cacheData) {
+        backingStore.merge(sourceAgentType, cacheData);
+    }
+
     private void validateTypes(String... types) {
         validateTypes(Arrays.asList(types));
     }

@@ -56,7 +56,7 @@ public class AgentController {
         public void executeAgent(CachingAgent agent) {
             ProviderCache cache = providerRegistry.getProviderCache(agent.getProviderName());
 
-            CacheResult result = agent.loadData();
+            CacheResult result = agent.loadData(cache);
             Collection<AgentDataType> providedTypes = agent.getProvidedDataTypes();
             Collection<String> authoritative = new HashSet<>(providedTypes.size());
             for (AgentDataType type : providedTypes) {
