@@ -38,6 +38,11 @@ class TaskService {
     orcaService.doOperation(body)
   }
 
+  Map createAppTask(String app, Map body) {
+    body.application = app
+    orcaService.doOperation(body)
+  }
+
   Map getTask(String id) {
     HystrixFactory.newMapCommand(GROUP, "getTask", true) {
       orcaService.getTask(id)

@@ -137,8 +137,8 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
-  Map task(@RequestBody Map map) {
-    taskService.create(map)
+  Map task(@PathVariable String name, @RequestBody Map map) {
+    taskService.createAppTask(name, map)
   }
 
   @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
