@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('CreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
+  .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
                                                  accountService, loadBalancerService, securityGroupService,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
