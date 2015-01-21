@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.account')
   .factory('accountService', function(settings, _, Restangular, $q, scheduledCache, infrastructureCaches) {
 
     var preferredZonesByAccount = {

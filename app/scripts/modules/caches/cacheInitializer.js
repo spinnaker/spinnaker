@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('deckApp.caches.initializer', ['deckApp.subnet.read.service', 'deckApp.loadBalancer.read.service'])
+angular.module('deckApp.caches.initializer', [
+  'deckApp.subnet.read.service',
+  'deckApp.loadBalancer.read.service',
+  'deckApp.account',
+])
   .factory('cacheInitializer', function(accountService, instanceTypeService, securityGroupService,subnetReader, vpcReader, keyPairsReader, loadBalancerReader) {
     return {
       initialize: function() {

@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'])
+angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model', 'deckApp.account', 'deckApp.providerSelection'])
   .controller('AllClustersCtrl', function($scope, application, $modal,
-                                          securityGroupService, accountService,
+                                          securityGroupService, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupService) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
@@ -66,35 +66,17 @@ angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'
     }
 
     this.createServerGroup = function createServerGroup() {
-      accountService.listProviders().then(function(providers) {
-        var provider;
-
-        if (providers.length > 1) {
-          provider = $modal.open({
-            templateUrl: 'views/modal/providerSelection.html',
-            controller: 'ProviderSelectCtrl as ctrl',
-            resolve: {
-              providerOptions: function() { return providers; }
-            }
-          }).result;
-        } else if (providers.length === 1) {
-          provider = $q.when(providers[0]);
-        } else {
-          provider = $q.when('aws');
-        }
-
-        provider.then(function(selectedProvider) {
-          $modal.open({
-            templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
-            controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
-            resolve: {
-              title: function() { return 'Create New Server Group'; },
-              application: function() { return application; },
-              serverGroup: function() { return null; },
-              serverGroupCommand: function() { return serverGroupService.buildNewServerGroupCommand(application, selectedProvider); },
-              provider: function() { return selectedProvider; }
-            }
-          });
+      providerSelectionService.selectProvider().then(function(selectedProvider) {
+        $modal.open({
+          templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
+          controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
+          resolve: {
+            title: function() { return 'Create New Server Group'; },
+            application: function() { return application; },
+            serverGroup: function() { return null; },
+            serverGroupCommand: function() { return serverGroupService.buildNewServerGroupCommand(application, selectedProvider); },
+            provider: function() { return selectedProvider; }
+          }
         });
       });
     };

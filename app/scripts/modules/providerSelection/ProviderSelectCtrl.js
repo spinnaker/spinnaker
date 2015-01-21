@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.providerSelection')
   .controller('ProviderSelectCtrl', function($scope, $modalInstance, settings, providerOptions) {
 
     $scope.command = {
