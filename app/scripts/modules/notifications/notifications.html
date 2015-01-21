@@ -1,7 +1,7 @@
 <li class="dropdown notifications" on-toggle="notifications.onView()" is-open="open">
   <!--TODO: make template root not an li -->
   <a class="dropdown-toggle" href>
-    <span class="glyphicon glyphicon-bell"></span> Notifications
+    <span class="glyphicon glyphicon-bell"></span> <span class="hidden-xs hidden-sm">Notifications</span>
     <span class="badge" ng-if="notifications.active.unread > 0">
       {{ notifications.active.unread }}
     </span>
