@@ -1,13 +1,13 @@
 <div class="row">
   <div class="col-md-12 divider">
     <h4 style="display: inline"><span class="glyphicon glyphicon-{{ icon }}"></span> {{ title }}</h4>
-    <div class="dropdown" style="float: right;">
-      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-disabled="disabled">
+    <div class="dropdown" style="float: right;" analytics-on>
+      <button analytics-on="click" analytics-category="Application Events" analytics-label="Actions Clicked" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-disabled="disabled">
         Actions <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" ng-class="{'dropdown-menu-right': rightAlign}" role="menu">
         <li ng-repeat="action in actions" style="float: right;">
-          <a href ng-click="action.action()">{{ action.displayName }}</a>
+          <a href ng-click="action.action()" analytics-on="click" analytics-category="Application Events" analytics-label="{{action.displayName}} Clicked">{{ action.displayName }}</a>
         </li>
       </ul>
     </div>

@@ -96,12 +96,13 @@
 
     <div class="modal-footer">
       <span ng-show="newAppModal.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>
-      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <a href class="btn btn-default" ng-click="$dismiss()" analytics-on="click" analytics-category="New Application"
+         analytics-label="Cancel">Cancel</a>
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
               ng-disabled="!newApplicationForm.$valid || newAppModal.submitting"
-              ng-click="newAppModal.submit()">
+              ng-click="newAppModal.submit()" analytics-on="click" analytics-category="New Application" analytics-label="Create">
         <span class="glyphicon glyphicon-ok-circle"></span> Create
       </button>
     </div>
