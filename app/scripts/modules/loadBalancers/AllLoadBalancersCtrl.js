@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .controller('AllLoadBalancersCtrl', function($scope, application, _, $filter, $modal) {
+  .controller('AllLoadBalancersCtrl', function($scope, application, _, $filter, $modal, accountService, $q) {
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -108,14 +108,36 @@ angular.module('deckApp')
     }
 
     this.createLoadBalancer = function createLoadBalancer() {
-      $modal.open({
-        templateUrl: 'scripts/modules/loadBalancers/createLoadBalancer.html',
-        controller: 'CreateLoadBalancerCtrl as ctrl',
-        resolve: {
-          application: function() { return application; },
-          loadBalancer: function() { return null; },
-          isNew: function() { return true; }
+      var providerSelection = accountService.listProviders().then(function(providers) {
+        var provider;
+
+        if (providers.length > 1) {
+          provider = $modal.open({
+            templateUrl: 'views/modal/providerSelection.html',
+            controller: 'ProviderSelectCtrl as ctrl',
+            resolve: {
+              providerOptions: function () {
+                return providers;
+              }
+            }
+          }).result;
+        } else if (providers.length === 1) {
+          provider = $q.when(providers[0]);
+        } else {
+          provider = $q.when('aws');
         }
+        return provider;
+      });
+      providerSelection.then(function(provider) {
+        $modal.open({
+          templateUrl: 'scripts/modules/loadBalancers/' + provider + '/createLoadBalancer.html',
+          controller: provider + 'CreateLoadBalancerCtrl as ctrl',
+          resolve: {
+            application: function() { return application; },
+            loadBalancer: function() { return null; },
+            isNew: function() { return true; }
+          }
+        });
       });
     };
 
