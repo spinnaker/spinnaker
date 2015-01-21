@@ -30,11 +30,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import java.util.logging.Logger
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
 abstract class DeployStrategyStage extends LinearStage {
+  Logger logger = Logger.getLogger(DeployStrategyStage.simpleName)
+
   @Autowired OortService oort
   @Autowired ObjectMapper mapper
   @Autowired ResizeAsgStage resizeAsgStage
@@ -107,6 +110,15 @@ abstract class DeployStrategyStage extends LinearStage {
         }
         def latestAsg = existingAsgs.findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
         def nextStageContext = [asgName: latestAsg.name, regions: [region], credentials: cleanupConfig.account]
+
+        if (nextStageContext.asgName) {
+          def names = Names.parseName(nextStageContext.asgName)
+          if (stageData.application != names.app) {
+            logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextStageContext)}")
+            continue
+          }
+        }
+
         if (stageData.scaleDown) {
           nextStageContext.capacity = [min: 0, max: 0, desired: 0]
           injectAfter("scaleDown", resizeAsgStage, nextStageContext)
@@ -140,6 +152,14 @@ abstract class DeployStrategyStage extends LinearStage {
         }
         for (asg in existingAsgs) {
           def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
+          if (nextContext.asgName) {
+            def names = Names.parseName(nextContext.asgName)
+            if (stageData.application != names.app) {
+              logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextContext)}")
+              continue
+            }
+          }
+
           injectAfter("destroyAsg", destroyAsgStage, nextContext)
         }
       }
