@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.amazonaws.services.ec2.model.Subnet
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -28,7 +29,10 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
+import org.codehaus.jackson.annotate.JsonCreator
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
@@ -85,9 +89,20 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     final String id
     final Map<String, Object> attributes = [:]
     final Map<String, Collection<String>> relationships = [:].withDefault { [] as Set }
+
     public MutableCacheData(String id) {
       this.id = id
     }
+
+    @JsonCreator
+    public MutableCacheData(@JsonProperty("id") String id,
+                            @JsonProperty("attributes") Map<String, Object> attributes,
+                            @JsonProperty("relationships") Map<String, Collection<String>> relationships) {
+      this(id);
+      this.attributes.putAll(attributes);
+      this.relationships.putAll(relationships);
+    }
+
   }
 
   @Override
@@ -98,31 +113,43 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   @Override
   OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
     if (!data.containsKey("asgName")) {
-      return
+      return null
     }
     if (!data.containsKey("account")) {
-      return
+      return null
     }
     if (!data.containsKey("region")) {
-      return
+      return null
     }
 
     if (account.name != data.account) {
-      return
+      return null
     }
 
     if (region != data.region) {
-      return
+      return null
     }
 
     def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
-    List<AutoScalingGroup> asg = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName)).autoScalingGroups
+    List<AutoScalingGroup> asgs = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName as String)).autoScalingGroups
+
     Map<String, String> subnetMap = [:]
-    if (asg.loadBalancerNames.collectMany() && asg.vPCZoneIdentifier.findResults()) {
-      subnetMap = getSubnetToVpcIdMap(asg.vPCZoneIdentifier.findResults().collectMany { it.split(',') })
+    asgs.each {
+      if (it.getVPCZoneIdentifier()) {
+        subnetMap.putAll(getSubnetToVpcIdMap(it.getVPCZoneIdentifier().split(',')))
+      }
     }
-    CacheResult result = buildCacheResult(asg, subnetMap)
-    new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: result)
+
+    def cacheData = new DefaultCacheData(
+      Keys.getServerGroupKey(data.asgName as String, account.name, region),
+      [
+        cacheTime   : new Date(),
+        cacheResults: objectMapper.writeValueAsString(buildCacheResult(asgs, subnetMap, [:]).cacheResults)
+      ],
+      [:]
+    )
+
+    return new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheType: ON_DEMAND.ns, cacheData: cacheData)
   }
 
   private Map<String, CacheData> cache() {
@@ -147,7 +174,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   @Override
-  CacheResult loadData() {
+  CacheResult loadData(ProviderCache providerCache) {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
 
     def request = new DescribeAutoScalingGroupsRequest()
@@ -166,7 +193,23 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         break
       }
     }
-    CacheResult result = buildCacheResult(asgs, getSubnetToVpcIdMap())
+
+    def evictableOnDemandCacheDatas = []
+    def usableOnDemandCacheDatas = []
+    providerCache.getAll(ON_DEMAND.ns, asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) }).each {
+      if (it.attributes.cacheTime < start) {
+        evictableOnDemandCacheDatas << it
+      } else {
+        usableOnDemandCacheDatas << it
+      }
+    }
+
+    if (evictableOnDemandCacheDatas) {
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas*.id.join(", ")})")
+      providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
+    }
+
+    CacheResult result = buildCacheResult(asgs, getSubnetToVpcIdMap(), usableOnDemandCacheDatas.collectEntries { [it.id, it] })
     if (start) {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
@@ -174,8 +217,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     result
   }
 
-  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs, Map<String, String> subnetMap) {
-
+  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs, Map<String, String> subnetMap, Map<String, CacheData> onDemandCacheDataByAsg) {
     Map<String, CacheData> applications = cache()
     Map<String, CacheData> clusters = cache()
     Map<String, CacheData> serverGroups = cache()
@@ -184,14 +226,26 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     Map<String, CacheData> instances = cache()
 
     for (AutoScalingGroup asg : asgs) {
-      AsgData data = new AsgData(asg, account.name, region, subnetMap)
+      def onDemandCacheData = onDemandCacheDataByAsg ? onDemandCacheDataByAsg[Keys.getServerGroupKey(asg.autoScalingGroupName, account.name, region)] : null
+      if (onDemandCacheData) {
+        log.info("Using onDemand cache value (${onDemandCacheData.id})")
 
-      cacheApplication(data, applications)
-      cacheCluster(data, clusters)
-      cacheServerGroup(data, serverGroups)
-      cacheLaunchConfig(data, launchConfigs)
-      cacheInstances(data, instances)
-      cacheLoadBalancers(data, loadBalancers)
+        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {})
+        cache(cacheResults["applications"], applications)
+        cache(cacheResults["clusters"], clusters)
+        cache(cacheResults["serverGroups"], serverGroups)
+        cache(cacheResults["loadBalancers"], loadBalancers)
+        cache(cacheResults["launchConfigs"], launchConfigs)
+        cache(cacheResults["instances"], instances)
+      } else {
+        AsgData data = new AsgData(asg, account.name, region, subnetMap)
+        cacheApplication(data, applications)
+        cacheCluster(data, clusters)
+        cacheServerGroup(data, serverGroups)
+        cacheLaunchConfig(data, launchConfigs)
+        cacheInstances(data, instances)
+        cacheLoadBalancers(data, loadBalancers)
+      }
     }
 
     new DefaultCacheResult(
@@ -201,7 +255,10 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       (LOAD_BALANCERS.ns): loadBalancers.values(),
       (LAUNCH_CONFIGS.ns): launchConfigs.values(),
       (INSTANCES.ns): instances.values())
+  }
 
+  private void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {
+    cacheDataById.putAll(data.collectEntries { [it.id, it] })
   }
 
   private void cacheApplication(AsgData data, Map<String, CacheData> applications) {
@@ -278,8 +335,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       this.asg = asg
 
       name = Names.parseName(asg.autoScalingGroupName)
-
-
       appName = Keys.getApplicationKey(name.app)
       cluster = Keys.getClusterKey(name.cluster, name.app, account)
       serverGroup = Keys.getServerGroupKey(asg.autoScalingGroupName, account, region)

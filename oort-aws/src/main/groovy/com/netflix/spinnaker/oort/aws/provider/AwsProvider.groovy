@@ -18,7 +18,9 @@ package com.netflix.spinnaker.oort.aws.provider
 
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
+import com.netflix.spinnaker.oort.aws.provider.agent.ClusterCachingAgent
 import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.LoadBalancerCachingAgent
 import org.springframework.beans.factory.annotation.Autowired
 
 class AwsProvider implements Provider {

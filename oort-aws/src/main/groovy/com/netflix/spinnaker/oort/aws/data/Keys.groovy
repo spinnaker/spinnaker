@@ -31,7 +31,8 @@ class Keys {
     LOAD_BALANCERS,
     CLUSTERS,
     APPLICATIONS,
-    HEALTH
+    HEALTH,
+    ON_DEMAND
 
     final String ns
 
