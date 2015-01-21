@@ -1,14 +1,14 @@
 <modal-wizard heading="Create New Load Balancer">
   <wizard-page key="Location" label="Location">
-    <ng-include src="'scripts/modules/loadBalancers/aws/createLoadBalancerProperties.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/gce/createLoadBalancerProperties.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Security Groups" label="Security Groups" render="false" done="true">
-    <ng-include src="'scripts/modules/loadBalancers/aws/securityGroups.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/gce/securityGroups.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Listeners" label="Listeners" done="true">
-    <ng-include src="'scripts/modules/loadBalancers/aws/listeners.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/gce/listeners.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Health Check" label="Health Check" done="true" hide-subheading="true">
-    <ng-include src="'scripts/modules/loadBalancers/aws/healthCheck.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/gce/healthCheck.html'"></ng-include>
   </wizard-page>
 </modal-wizard>

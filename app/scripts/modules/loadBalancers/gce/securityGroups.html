@@ -1,0 +1,35 @@
+<form class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body" ng-if="!state.securityGroupsLoaded">
+    <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
+  </div>
+  <div class="modal-body" ng-if="state.securityGroupsLoaded">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Security Groups</div>
+      <div class="col-md-9">
+        <ui-select multiple ng-model="loadBalancer.securityGroups" class="form-control input-sm">
+          <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
+          <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+            <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
+            (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()"
+            ng-if="!wizard.isFirstPage('Security Groups')">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+
+    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || taskMonitor.submitting"
+                   submitting="state.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+    <button class="btn btn-primary"
+          ng-disabled="form.$invalid"
+          ng-click="wizard.markComplete('Security Groups'); wizard.nextPage()">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</form>
