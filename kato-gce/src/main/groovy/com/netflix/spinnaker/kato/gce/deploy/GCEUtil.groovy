@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.kato.gce.deploy
 
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.google.api.services.replicapool.ReplicapoolScopes
@@ -69,7 +72,7 @@ class GCEUtil {
     def imageProjects = [projectName] + baseImageProjects
     def sourceImage = null
 
-    def imageListBatch = compute.batch()
+    def imageListBatch = buildBatchRequest(compute)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -97,6 +100,17 @@ class GCEUtil {
     } else {
       updateStatusAndThrowException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
     }
+  }
+
+  private static BatchRequest buildBatchRequest(def compute) {
+    return compute.batch(
+      new HttpRequestInitializer() {
+        @Override
+        void initialize(HttpRequest request) throws IOException {
+          request.headers.setUserAgent(APPLICATION_NAME);
+        }
+      }
+    )
   }
 
   static Network queryNetwork(String projectName, String networkName, Compute compute, Task task, String phase) {
