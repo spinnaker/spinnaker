@@ -18,6 +18,8 @@ package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifactList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
@@ -86,6 +88,23 @@ class JenkinsClientSpec extends Specification {
         expect:
         dependencies.size() == 1
         dependencies[0].name == 'SPINNAKER-volt-netflix'
+    }
+
+    void 'gets build artifacts'() {
+        given:
+        final BUILD_NUMBER = 24
+        setResponse '<freeStyleBuild><artifact><displayPath>api-4.1871-h2519.9184b37.txt</displayPath><fileName>api-4.1871-h2519.9184b37.txt</fileName><relativePath>apiweb/build/api-4.1871-h2519.9184b37.txt</relativePath></artifact><artifact><displayPath>api_4.1871-h2519.9184b37_all.txt</displayPath><fileName>api_4.1871-h2519.9184b37_all.txt</fileName><relativePath>apiweb/build/api_4.1871-h2519.9184b37_all.txt</relativePath></artifact><artifact><displayPath>deb.properties</displayPath><fileName>deb.properties</fileName><relativePath>apiweb/build/deb.properties</relativePath></artifact><artifact><displayPath>api_4.1871-h2519.9184b37_all.deb</displayPath><fileName>api_4.1871-h2519.9184b37_all.deb</fileName><relativePath>apiweb/build/distributions/api_4.1871-h2519.9184b37_all.deb</relativePath></artifact><artifact><displayPath>dependencies.lock</displayPath><fileName>dependencies.lock</fileName><relativePath>apiweb/dependencies.lock</relativePath></artifact></freeStyleBuild>'
+        BuildArtifactList artifacts = client.getArtifacts('SPINNAKER-igor-netflix', BUILD_NUMBER)
+        List<BuildArtifact> artifactList = artifacts.artifactList
+        expect:
+        artifactList.size() == 5
+        artifactList[0].displayPath == 'api-4.1871-h2519.9184b37.txt'
+        artifactList[0].fileName == 'api-4.1871-h2519.9184b37.txt'
+        artifactList[0].relativePath == 'apiweb/build/api-4.1871-h2519.9184b37.txt'
+
+        artifactList[4].displayPath == 'dependencies.lock'
+        artifactList[4].fileName == 'dependencies.lock'
+        artifactList[4].relativePath == 'apiweb/dependencies.lock'
     }
 
     private void setResponse(String body) {

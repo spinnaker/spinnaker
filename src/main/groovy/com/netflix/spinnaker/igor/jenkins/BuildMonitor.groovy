@@ -20,6 +20,8 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildDetails
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
+import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -95,7 +97,6 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
 
             List<String> cachedBuilds = cache.getJobNames(master)
             List<Project> builds = jenkinsMasters.map[master].projects?.list
-
             List<String> buildNames = builds*.name
             Observable.from(cachedBuilds).filter { String name ->
                 !(name in buildNames)
@@ -128,6 +129,8 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                     if (addToCache) {
                         cache.setLastBuild(master, project.name, project.lastBuildLabel, project.lastBuildStatus)
                         if (echoService) {
+                            project.artifacts = jenkinsMasters.map[master].getArtifacts(project.name, project.lastBuildLabel).artifactList
+
                             echoService.postBuild(
                                 new BuildDetails(content: new BuildContent(project: project, master: master))
                             )

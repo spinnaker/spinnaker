@@ -18,14 +18,19 @@ package com.netflix.spinnaker.igor.jenkins.client.model
 
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
+import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root
 
 /**
  * Represents a build artifact
  */
-@Default
 @CompileStatic
-@Root(name = 'artifact', strict = false)
+@Root(name = 'artifact')
 class BuildArtifact {
+    @Element(required = false)
     String fileName
+    @Element(required = false)
+    String displayPath
+    @Element(required = false)
+    String relativePath
 }

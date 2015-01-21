@@ -41,7 +41,7 @@ class Build {
     @Element(required = false)
     String builtOn
 
-    @ElementList(inline = true, required = false)
+    @ElementList(required = false)
     List<BuildArtifact> artifacts
 
 }
