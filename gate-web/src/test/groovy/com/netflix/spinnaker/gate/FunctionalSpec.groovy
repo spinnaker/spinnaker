@@ -148,7 +148,7 @@ class FunctionalSpec extends Specification {
       api.createTask("foo", task)
 
     then:
-      1 * taskService.createAppTask(task) >> [:]
+      1 * taskService.createAppTask('foo', task) >> [:]
 
     where:
       name = "foo"
