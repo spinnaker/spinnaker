@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class TargetReferenceLinearStageSupport extends LinearStage {
+  @Autowired
+  ObjectMapper objectMapper
+
   @Autowired
   TargetReferenceSupport targetReferenceSupport
 
@@ -31,7 +35,7 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   void composeTargets(Stage stage) {
     def targets = targetReferenceSupport.getTargetAsgReferences(stage)
     if (!targets) {
-      throw new RuntimeException("Could not ascertain targets!")
+      throw new RuntimeException("Could not ascertain targets! ${objectMapper.writeValueAsString(stage.context)}")
     }
 
     Map<String, Map<String, Object>> descriptions = [:]
