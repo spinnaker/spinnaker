@@ -29,6 +29,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import org.slf4j.Logger
@@ -76,7 +77,7 @@ class LaunchConfigCachingAgent implements CachingAgent {
   }
 
   @Override
-  CacheResult loadData() {
+  CacheResult loadData(ProviderCache providerCache) {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
 
     Long start = null

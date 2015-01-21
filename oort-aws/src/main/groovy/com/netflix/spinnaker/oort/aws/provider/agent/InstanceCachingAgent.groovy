@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import org.slf4j.Logger
@@ -88,7 +89,7 @@ class InstanceCachingAgent implements CachingAgent {
   }
 
   @Override
-  CacheResult loadData() {
+  CacheResult loadData(ProviderCache providerCache) {
 
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 

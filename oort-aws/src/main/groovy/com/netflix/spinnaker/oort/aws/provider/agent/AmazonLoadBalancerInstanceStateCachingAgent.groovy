@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.oort.aws.model.edda.LoadBalancerInstance
@@ -77,7 +78,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCach
   }
 
   @Override
-  CacheResult loadData() {
+  CacheResult loadData(ProviderCache providerCache) {
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     def loadBalancerKeys = getCacheView().getIdentifiers(LOAD_BALANCERS.ns)
 

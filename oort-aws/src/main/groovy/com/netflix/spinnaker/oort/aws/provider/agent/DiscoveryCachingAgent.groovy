@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.oort.aws.provider.agent
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.discovery.DiscoveryApi
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryApplication
@@ -33,8 +32,6 @@ import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryApplications
 import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryInstance
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
@@ -70,7 +67,7 @@ class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
   }
 
   @Override
-  CacheResult loadData() {
+  CacheResult loadData(ProviderCache providerCache) {
 
     DiscoveryApplications disco = discoveryApi.loadDiscoveryApplications()
 

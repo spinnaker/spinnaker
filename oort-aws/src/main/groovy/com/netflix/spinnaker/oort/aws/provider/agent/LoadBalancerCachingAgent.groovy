@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -28,14 +29,22 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
+import groovy.util.logging.Slf4j
+import org.codehaus.jackson.annotate.JsonCreator
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 
+@Slf4j
 class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
@@ -78,6 +87,15 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     public MutableCacheData(String id) {
       this.id = id
     }
+
+    @JsonCreator
+    public MutableCacheData(@JsonProperty("id") String id,
+                            @JsonProperty("attributes") Map<String, Object> attributes,
+                            @JsonProperty("relationships") Map<String, Collection<String>> relationships) {
+      this(id);
+      this.attributes.putAll(attributes);
+      this.relationships.putAll(relationships);
+    }
   }
 
   @Override
@@ -88,31 +106,36 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   @Override
   OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
     if (!data.containsKey("loadBalancerName")) {
-      return
+      return null
     }
     if (!data.containsKey("account")) {
-      return
+      return null
     }
     if (!data.containsKey("region")) {
-      return
+      return null
     }
 
     if (account.name != data.account) {
-      return
+      return null
     }
 
     if (region != data.region) {
-      return
+      return null
     }
 
-    if (data.evict as boolean) {
-      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), evictions: [(LOAD_BALANCERS.ns): [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId)]])
-    } else {
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
-      def lb = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)).loadBalancerDescriptions
+    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
+    def loadBalancers = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)).loadBalancerDescriptions
 
-      new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheResult: buildCacheResult(lb))
-    }
+    def cacheData = new DefaultCacheData(
+      Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
+      [
+        cacheTime   : new Date(),
+        cacheResults: objectMapper.writeValueAsString(buildCacheResult(loadBalancers, [:]).cacheResults)
+      ],
+      [:]
+    )
+
+    return new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheType: ON_DEMAND.ns, cacheData: cacheData)
   }
 
   private Map<String, CacheData> cache() {
@@ -120,12 +143,18 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   }
 
   @Override
-  CacheResult loadData() {
+  CacheResult loadData(ProviderCache providerCache) {
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     List<LoadBalancerDescription> allLoadBalancers = []
     def request = new DescribeLoadBalancersRequest()
+    Long start = null
+
     while (true) {
       def resp = loadBalancing.describeLoadBalancers(request)
+      if (!start) {
+        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+      }
+
       allLoadBalancers.addAll(resp.loadBalancerDescriptions)
       if (resp.nextMarker) {
         request.withMarker(resp.nextMarker)
@@ -133,25 +162,50 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
         break
       }
     }
-    buildCacheResult(allLoadBalancers)
+
+    def evictableOnDemandCacheDatas = []
+    def usableOnDemandCacheDatas = []
+    providerCache.getAll(ON_DEMAND.ns, allLoadBalancers.collect { Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVPCId()) }).each {
+      if (it.attributes.cacheTime < start) {
+        evictableOnDemandCacheDatas << it
+      } else {
+        usableOnDemandCacheDatas << it
+      }
+    }
+
+    if (evictableOnDemandCacheDatas) {
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas*.id.join(", ")})")
+      providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
+    }
+
+    buildCacheResult(allLoadBalancers, usableOnDemandCacheDatas.collectEntries { [it.id, it] })
   }
 
-  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers) {
+  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, CacheData> onDemandCacheDataByLb) {
 
     Map<String, CacheData> instances = cache()
     Map<String, CacheData> loadBalancers = cache()
 
-    for (LoadBalancerDescription loadBalancer : allLoadBalancers) {
-      Collection<String> instanceIds = loadBalancer.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
-      Map<String, Object> lbAttributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
-      String loadBalancerId = Keys.getLoadBalancerKey(loadBalancer.loadBalancerName, account.name, region, loadBalancer.getVPCId())
-      loadBalancers[loadBalancerId].with {
-        attributes.putAll(lbAttributes)
-        relationships[INSTANCES.ns].addAll(instanceIds)
-      }
-      for (String instanceId : instanceIds) {
-        instances[instanceId].with {
-          relationships[LOAD_BALANCERS.ns].add(loadBalancerId)
+    for (LoadBalancerDescription lb : allLoadBalancers) {
+      def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId())] : null
+      if (onDemandCacheData) {
+        log.info("Using onDemand cache value (${onDemandCacheData.id})")
+
+        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {})
+        instances.putAll(cacheResults.instances.collectEntries { [it.id, it] })
+        loadBalancers.putAll(cacheResults.loadBalancers.collectEntries { [it.id, it] })
+      } else {
+        Collection<String> instanceIds = lb.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
+        Map<String, Object> lbAttributes = objectMapper.convertValue(lb, ATTRIBUTES)
+        String loadBalancerId = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId())
+        loadBalancers[loadBalancerId].with {
+          attributes.putAll(lbAttributes)
+          relationships[INSTANCES.ns].addAll(instanceIds)
+        }
+        for (String instanceId : instanceIds) {
+          instances[instanceId].with {
+            relationships[LOAD_BALANCERS.ns].add(loadBalancerId)
+          }
         }
       }
     }
