@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifactList
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
