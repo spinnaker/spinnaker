@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -50,7 +51,7 @@ class TestAgent implements CachingAgent {
     }
 
     @Override
-    CacheResult loadData() {
+    CacheResult loadData(ProviderCache cache) {
         new DefaultCacheResult(results)
     }
 }

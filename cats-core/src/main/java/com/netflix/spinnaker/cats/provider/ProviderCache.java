@@ -18,11 +18,15 @@ package com.netflix.spinnaker.cats.provider;
 
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.cache.CacheData;
 
 import java.util.Collection;
 
 public interface ProviderCache extends Cache {
     void putCacheResult(String source, Collection<String> authoritativeTypes, CacheResult cacheResult);
+    void putCacheData(String type, CacheData cacheData);
+
+    Collection<CacheData> getAll(String type, Collection<String> identifiers);
 
     void evictDeletedItems(String type, Collection<String> ids);
 }
