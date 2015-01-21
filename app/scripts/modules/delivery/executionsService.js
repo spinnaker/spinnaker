@@ -8,6 +8,9 @@ angular.module('deckApp.delivery')
       $http({
         method: 'GET',
         transformResponse: appendTransform(function(executions) {
+          if (!executions || !executions.length) {
+            return [];
+          }
           executions.forEach(function(execution) {
             orchestratedItem.defineProperties(execution);
             execution.stages.forEach(function(stage) {
@@ -49,9 +52,14 @@ angular.module('deckApp.delivery')
           $stateParams.application,
           'pipelines',
         ].join('/'),
-      }).then(function(resp) {
-        deferred.resolve(resp.data);
-      });
+      }).then(
+        function(resp) {
+          deferred.resolve(resp.data);
+        },
+        function(resp) {
+          deferred.reject(resp);
+        }
+      );
       return deferred.promise;
     }
 

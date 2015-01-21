@@ -27,7 +27,7 @@
     </div>
   </div>
 </div>
-<div class="row pipelines executions" ng-if="!executions.length && !configurations.length && !viewState.loading">
+<div class="row pipelines executions" ng-if="!executions.length && !configurations.length && !viewState.loading && !viewState.initializationError">
   <div class="col-md-8 text-center">
     <h4>We couldn't find any pipelines execution history for {{application.name}}.</h4>
     <a ui-sref="^.pipelineConfig" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
@@ -39,4 +39,7 @@
       <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </h2>
   </div>
+</div>
+<div class="row" ng-if="viewState.initializationError">
+  <h4 class="text-center">There was a server error loading pipelines. Please try again later.</h4>
 </div>
