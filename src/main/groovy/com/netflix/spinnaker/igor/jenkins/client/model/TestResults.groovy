@@ -32,4 +32,6 @@ class TestResults {
     int skipCount
     @Element(required = false)
     int totalCount
+    @Element(required = false)
+    String urlName
 }
