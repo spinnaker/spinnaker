@@ -205,7 +205,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
 
     if (evictableOnDemandCacheDatas) {
-      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas*.id.join(", ")})")
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms"}.join(", ")})")
       providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
     }
 

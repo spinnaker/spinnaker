@@ -35,8 +35,6 @@ import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
 import org.codehaus.jackson.annotate.JsonCreator
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -174,7 +172,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     }
 
     if (evictableOnDemandCacheDatas) {
-      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas*.id.join(", ")})")
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms"}.join(", ")})")
       providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
     }
 
