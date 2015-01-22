@@ -1,10 +1,17 @@
 <div class="row page-header application-header navbar-fixed-top navbar">
   <div class="container">
-    <h2><a ui-sref="home.applications"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>{{application.name}}
+    <h2>
+      <a ui-sref="home.applications"
+           analytics-on="click" analytics-category="Application View" analytics-label="Blue arrow clicked">
+        <span class="glyphicon glyphicon-circle-arrow-left"></span>
+      </a>
+      {{application.name}}
     </h2>
     <ul class="nav nav-pills">
       <li>
-        <a ui-sref=".executions" ng-class="{active: $state.includes('**.executions.**')}">
+        <a ui-sref=".executions"
+           analytics-on="click" analytics-category="Application View" analytics-label="Delivery tab selected"
+           ng-class="{active: $state.includes('**.executions.**')}">
           Delivery <span class="badge"
                          ng-if="( executions | filter:{isRunning:'true'}).length > 0">
             {{ (executions | filter:{isRunning:'true'}).length }}
@@ -12,37 +19,40 @@
         </a>
       </li>
       <li>
-        <a ui-sref=".insight.clusters" ng-class="{active: $state.includes('**.clusters.**')}">
-          <!--<span class="glyphicon glyphicon-th"></span>-->
+        <a ui-sref=".insight.clusters"
+           analytics-on="click" analytics-category="Application View" analytics-label="Clusters tab selected"
+           ng-class="{active: $state.includes('**.clusters.**')}">
           Clusters
         </a>
       </li>
       <li>
         <a ui-sref=".insight.loadBalancers"
+           analytics-on="click" analytics-category="Application View" analytics-label="Load Balancers tab selected"
            ng-class="{active: $state.includes('**.loadBalancers.**') || $state.includes('*.loadBalancer')}">
-          <!--<span class="glyphicon glyphicon-elb"></span>-->
           Load Balancers
         </a>
       </li>
       <li>
-        <a ui-sref=".insight.connections" ng-class="{active: $state.includes('**.connections.**')}">
-          <!--<span class="glyphicon glyphicon-transfer"></span>-->
+        <a ui-sref=".insight.connections"
+           analytics-on="click" analytics-category="Application View" analytics-label="Security Groups tab selected"
+           ng-class="{active: $state.includes('**.connections.**')}">
           Security Groups
         </a>
       <li>
       <li>
-        <a ui-sref=".tasks" ng-class="{active: $state.includes('**.tasks.**')}">
-          <!--<span class="glyphicon glyphicon-align-justify"></span>-->
+        <a ui-sref=".tasks"
+           analytics-on="click" analytics-category="Application View" analytics-label="Tasks tab selected"
+           ng-class="{active: $state.includes('**.tasks.**')}">
           Tasks <span class="badge" ng-if="application.tasks.runningCount">
           {{ application.tasks.runningCount }}
         </span>
         </a>
       </li>
       <li>
-        <a ui-sref=".config" ng-class="{active: $state.includes('**.config.**')}">
-          <!--<span class="glyphicon glyphicon-align-justify"></span>-->
+        <a ui-sref=".config"
+           analytics-on="click" analytics-category="Application View" analytics-label="Config tab selected"
+           ng-class="{active: $state.includes('**.config.**')}">
           Config
-        </span>
         </a>
       </li>
     </ul>
