@@ -50,8 +50,8 @@ class Build {
     We need to dump this into a list first since the Jenkins query returns
     multiple action elements, with all but the test run one empty.  We then filter it into a testResults var
      */
-    @Element(required = false, name="action")
-    TestResults testResults
+    @ElementList(required = false, name="action", inline = true)
+    List<TestResults> testResults
 }
 
 

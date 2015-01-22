@@ -110,12 +110,13 @@ class JenkinsClientSpec extends Specification {
         given:
         setResponse getBuildsWithArtifactsAndTests()
         ProjectsList projects = client.getProjects()
-        TestResults testResults = projects.list[0].lastBuild.testResults
+        List testResults = projects.list[0].lastBuild.testResults
 
         expect:
-        testResults.failCount == 0
-        testResults.skipCount == 1
-        testResults.totalCount == 111
+        testResults.size() == 2
+        testResults[0].failCount == 0
+        testResults[0].skipCount == 1
+        testResults[0].totalCount == 111
     }
 
     private void setResponse(String body) {
@@ -134,6 +135,7 @@ class JenkinsClientSpec extends Specification {
                 '<name>uno</name>' +
                 '<lastBuild>' +
                 '<action><failCount>0</failCount><skipCount>1</skipCount><totalCount>111</totalCount></action>' +
+                '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>123</totalCount></action>' +
                 '<artifact><displayPath>libs/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/libs/myProject-1.601.0-sources.jar</relativePath></artifact>' +
                 '<artifact><displayPath>libs/myProject-1.601.0.jar</displayPath><fileName>myProject-1.601.0.jar</fileName><relativePath>build/libs/myProject-1.601.0.jar</relativePath></artifact>' +
                 '<artifact><displayPath>publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/tmp/publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</relativePath></artifact>' +
@@ -148,6 +150,7 @@ class JenkinsClientSpec extends Specification {
                 '<job>' +
                 '<name>dos</name>' +
                 '<lastBuild>' +
+                '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>222</totalCount></action>' +
                 '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>222</totalCount></action>' +
                 '<artifact><displayPath>libs/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/libs/myProject-1.601.0-sources.jar</relativePath></artifact>' +
                 '<artifact><displayPath>libs/myProject-1.601.0.jar</displayPath><fileName>myProject-1.601.0.jar</fileName><relativePath>build/libs/myProject-1.601.0.jar</relativePath></artifact>' +
