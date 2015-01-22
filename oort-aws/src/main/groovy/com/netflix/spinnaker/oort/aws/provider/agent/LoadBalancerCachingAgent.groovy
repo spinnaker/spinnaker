@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -125,9 +126,12 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     }
 
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
-    def loadBalancers = loadBalancing.describeLoadBalancers(
-      new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
-    ).loadBalancerDescriptions
+    def loadBalancers = []
+    try {
+      loadBalancers = loadBalancing.describeLoadBalancers(
+        new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
+      ).loadBalancerDescriptions
+    } catch (LoadBalancerNotFoundException ignored) {}
 
     def cacheResult = buildCacheResult(loadBalancers, [:])
     def cacheData = new DefaultCacheData(
