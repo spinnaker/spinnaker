@@ -159,6 +159,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       ]
     ]
 
+    log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions})")
     return new OnDemandAgent.OnDemandResult(
       sourceAgentType: getAgentType(), cacheResult: cacheResult, evictions: evictions
     )
