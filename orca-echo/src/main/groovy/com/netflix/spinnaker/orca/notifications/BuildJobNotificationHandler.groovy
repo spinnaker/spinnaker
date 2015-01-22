@@ -62,7 +62,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
     try {
       String key = generateKey(input.master as String, input.name as String)
       if (interestingPipelines.containsKey(key)) {
-        if (input.lastBuildStatus != "Success") return
+        if (input.lastBuild?.result != "SUCCESS" || input.lastBuild?.building != "false") return
         def pipelineConfigs = interestingPipelines[key]
         for (Map pipelineConfig in pipelineConfigs) {
           Map trigger = pipelineConfig.triggers.find {
