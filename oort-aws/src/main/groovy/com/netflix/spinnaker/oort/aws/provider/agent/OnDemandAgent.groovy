@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.oort.aws.provider.agent
 
-import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.provider.ProviderCache
 
 interface OnDemandAgent {
   static class OnDemandResult {
     String sourceAgentType
-    String cacheType
-    CacheData cacheData
+    Collection<String> authoritativeTypes = []
+    CacheResult cacheResult
     Map<String, Collection<String>> evictions = [:]
   }
 
   boolean handles(String type)
 
-  OnDemandResult handle(Map<String, ? extends Object> data)
+  OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 }

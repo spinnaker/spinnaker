@@ -71,7 +71,10 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   final String region
   final ObjectMapper objectMapper
 
-  LoadBalancerCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
+  LoadBalancerCachingAgent(AmazonClientProvider amazonClientProvider,
+                           NetflixAmazonCredentials account,
+                           String region,
+                           ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
@@ -102,7 +105,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   }
 
   @Override
-  OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
+  OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
     if (!data.containsKey("loadBalancerName")) {
       return null
     }
@@ -122,18 +125,30 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     }
 
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
-    def loadBalancers = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)).loadBalancerDescriptions
+    def loadBalancers = loadBalancing.describeLoadBalancers(
+      new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
+    ).loadBalancerDescriptions
 
+    def cacheResult = buildCacheResult(loadBalancers, [:])
     def cacheData = new DefaultCacheData(
       Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
       [
         cacheTime   : new Date(),
-        cacheResults: objectMapper.writeValueAsString(buildCacheResult(loadBalancers, [:]).cacheResults)
+        cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
       ],
       [:]
     )
+    providerCache.putCacheData(ON_DEMAND.ns, cacheData)
 
-    return new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheType: ON_DEMAND.ns, cacheData: cacheData)
+    Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
+      (LOAD_BALANCERS.ns): [
+        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String)
+      ]
+    ]
+
+    return new OnDemandAgent.OnDemandResult(
+      sourceAgentType: getAgentType(), cacheResult: cacheResult, evictions: evictions
+    )
   }
 
   private Map<String, CacheData> cache() {

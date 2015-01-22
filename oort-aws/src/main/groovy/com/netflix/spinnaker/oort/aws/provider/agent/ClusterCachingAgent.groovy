@@ -111,7 +111,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   @Override
-  OnDemandAgent.OnDemandResult handle(Map<String, ? extends Object> data) {
+  OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
     if (!data.containsKey("asgName")) {
       return null
     }
@@ -131,7 +131,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
 
     def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
-    List<AutoScalingGroup> asgs = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName as String)).autoScalingGroups
+    List<AutoScalingGroup> asgs = autoScaling.describeAutoScalingGroups(
+      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName as String)
+    ).autoScalingGroups
 
     Map<String, String> subnetMap = [:]
     asgs.each {
@@ -140,16 +142,26 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       }
     }
 
+    def cacheResult = buildCacheResult(asgs, subnetMap, [:])
     def cacheData = new DefaultCacheData(
       Keys.getServerGroupKey(data.asgName as String, account.name, region),
       [
         cacheTime   : new Date(),
-        cacheResults: objectMapper.writeValueAsString(buildCacheResult(asgs, subnetMap, [:]).cacheResults)
+        cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
       ],
       [:]
     )
+    providerCache.putCacheData(ON_DEMAND.ns, cacheData)
 
-    return new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), cacheType: ON_DEMAND.ns, cacheData: cacheData)
+    Map<String, Collection<String>> evictions = asgs ? [:] : [
+      (SERVER_GROUPS.ns): [
+        Keys.getServerGroupKey(data.asgName as String, account.name, region)
+      ]
+    ]
+
+    return new OnDemandAgent.OnDemandResult(
+      sourceAgentType: getAgentType(), cacheResult: cacheResult, evictions: evictions
+    )
   }
 
   private Map<String, CacheData> cache() {
