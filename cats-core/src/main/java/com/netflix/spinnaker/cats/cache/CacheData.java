@@ -27,6 +27,8 @@ import java.util.Map;
 public interface CacheData {
     String getId();
 
+    int getTtlSeconds();
+
     Map<String, Object> getAttributes();
 
     /**

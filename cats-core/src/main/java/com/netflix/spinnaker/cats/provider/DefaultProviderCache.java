@@ -189,15 +189,20 @@ public class DefaultProviderCache implements ProviderCache {
     private void cacheDataType(String type, String sourceAgentType, Collection<CacheData> items) {
         Collection<String> idSet = new HashSet<>();
 
+        int ttlSeconds = -1;
         Collection<CacheData> toStore = new ArrayList<>(items.size() + 1);
         for (CacheData item : items) {
             idSet.add(item.getId());
             toStore.add(uniqueifyRelationships(item, sourceAgentType));
+
+            if (item.getTtlSeconds() > ttlSeconds) {
+                ttlSeconds = item.getTtlSeconds();
+            }
         }
         Map<String, Collection<String>> allRelationship = new HashMap<>();
         allRelationship.put(sourceAgentType, idSet);
-        toStore.add(new DefaultCacheData(ALL_ID, ALL_ATTRIBUTE, allRelationship));
 
+        toStore.add(new DefaultCacheData(ALL_ID, ttlSeconds, ALL_ATTRIBUTE, allRelationship));
         backingStore.mergeAll(type, toStore);
     }
 
@@ -206,7 +211,7 @@ public class DefaultProviderCache implements ProviderCache {
         for (Map.Entry<String, Collection<String>> entry : source.getRelationships().entrySet()) {
             relationships.put(entry.getKey() + ':' + sourceAgentType, entry.getValue());
         }
-        return new DefaultCacheData(source.getId(), source.getAttributes(), relationships);
+        return new DefaultCacheData(source.getId(), source.getTtlSeconds(), source.getAttributes(), relationships);
     }
 
     private CacheData mergeRelationships(CacheData source) {

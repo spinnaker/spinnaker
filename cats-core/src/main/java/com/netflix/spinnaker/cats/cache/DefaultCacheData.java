@@ -25,18 +25,29 @@ import java.util.Map;
  */
 public class DefaultCacheData implements CacheData {
     private final String id;
+    private final int ttlSeconds;
     private final Map<String, Object> attributes;
     private final Map<String, Collection<String>> relationships;
 
     public DefaultCacheData(String id, Map<String, Object> attributes, Map<String, Collection<String>> relationships) {
+        this(id, -1, attributes, relationships);
+    }
+
+    public DefaultCacheData(String id, int ttlSeconds, Map<String, Object> attributes, Map<String, Collection<String>> relationships) {
         this.id = id;
-        this.attributes = Collections.unmodifiableMap(attributes);
-        this.relationships = Collections.unmodifiableMap(relationships);
+        this.ttlSeconds = ttlSeconds;
+        this.attributes = attributes;
+        this.relationships = relationships;
     }
 
     @Override
     public String getId() {
         return id;
+    }
+
+    @Override
+    public int getTtlSeconds() {
+        return ttlSeconds;
     }
 
     @Override

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.cats.redis.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
@@ -71,6 +72,32 @@ class RedisCacheSpec extends WriteableCacheSpec {
         new Bean('value', 10)      | [key: 'value', key2: 10]   | "Java object"
         [key: 'value', key2: null] | [key: 'value']             | "Map with null"
         new Bean('value', null)    | [key: 'value', key2: null] | "Java object with null"
+    }
+
+    @Unroll
+    def 'cache data will expire if ttl specified'() {
+        setup:
+        def mergeData = new DefaultCacheData('ttlTest', ttl, [test: 'test'], [:])
+        cache.merge('test', mergeData);
+
+        when:
+        def cacheData = cache.get('test', 'ttlTest')
+
+        then:
+        cacheData.id == mergeData.id
+
+        when:
+        Thread.sleep(Math.abs(ttl) * 1500)
+        cacheData = cache.get('test', 'ttlTest')
+
+        then:
+        cacheData?.id == (ttl > 0 ? null : mergeData.id)
+
+        where:
+        ttl || _
+        -1  || _
+        1   || _
+
     }
 
     private static class Bean {

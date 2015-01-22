@@ -233,6 +233,11 @@ public class InMemoryCache implements WriteableCache {
         }
 
         @Override
+        public int getTtlSeconds() {
+            return -1;
+        }
+
+        @Override
         public Map<String, Object> getAttributes() {
             return attributes;
         }
