@@ -15,9 +15,6 @@
 <div class="transition-overlay" ng-if="!authenticating && routing">
   <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
 </div>
-<div class="transition-opaque" ng-if="authenticating">
-
-</div>
 <div class="navbar navbar-inverse navbar-fixed-top navbar-fixed-primary">
   <div class="container">
     <div class="row">
@@ -52,7 +49,7 @@
   </div>
 </div>
 
-<div class="container">
+<div class="container" ng-if="!authenticating">
   <div class="container-liquid" ui-view="main"></div>
 </div>
 
