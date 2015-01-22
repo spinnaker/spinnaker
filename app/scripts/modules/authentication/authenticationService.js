@@ -20,29 +20,27 @@ angular.module('deckApp.authentication')
 
     function authenticateUser() {
       $rootScope.authenticating = true;
-      var modal = $modal.open({
-        templateUrl: 'scripts/modules/authentication/authenticating.html',
-        windowClass: 'modal no-animate',
-        backdropClass: 'modal-backdrop-no-animate',
-        backdrop: 'static',
-        keyboard: false
-      });
       $http.get(settings.gateUrl + '/auth/info')
         .success(function (data) {
           if (data.email) {
             setAuthenticatedUser(data.email);
           }
           $rootScope.authenticating = false;
-          modal.dismiss();
         })
         .error(function (data, status, headers) {
           var redirect = headers('X-AUTH-REDIRECT-URL');
           if (status === 401 && redirect) {
+            $modal.open({
+              templateUrl: 'scripts/modules/authentication/authenticating.html',
+              windowClass: 'modal no-animate',
+              backdropClass: 'modal-backdrop-no-animate',
+              backdrop: 'static',
+              keyboard: false
+            });
             redirectService.redirect(settings.gateUrl + redirect + '?callback=' + $window.location.origin + '&path=' + $location.path());
           } else {
             $rootScope.authenticating = false;
           }
-          modal.dismiss();
         });
     }
 

@@ -33,11 +33,10 @@ describe('authenticationProvider: application startup', function() {
       expect(this.$rootScope.authenticating).toBe(false);
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('joe!');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(true);
-      expect(this.$modal.open.calls.count()).toBe(1);
-      expect(this.modal.dismiss.calls.count()).toBe(1);
+      expect(this.$modal.open.calls.count()).toBe(0);
     });
 
-    it('requests authentication from gate, then redirects on 401', function() {
+    it('requests authentication from gate, then opens modal and redirects on 401', function() {
       var redirectUrl = 'abc';
       spyOn(this.redirectService, 'redirect').and.callFake(function(url) {
         redirectUrl = url;
@@ -51,7 +50,7 @@ describe('authenticationProvider: application startup', function() {
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(false);
       expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + this.$window.location.origin + '&path=' + this.$location.path());
       expect(this.$modal.open.calls.count()).toBe(1);
-      expect(this.modal.dismiss.calls.count()).toBe(1);
+      expect(this.modal.dismiss.calls.count()).toBe(0);
     });
   });
 
