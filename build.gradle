@@ -37,8 +37,8 @@ allprojects {
     compile spinnaker.dependency("groovy")
     compile spinnaker.dependency("rxJava")
     compile spinnaker.dependency('amos')
-    compile 'com.netflix.spinnaker.cats:cats-core:0.12'
-    compile 'com.netflix.spinnaker.cats:cats-redis:0.12'
+    compile 'com.netflix.spinnaker.cats:cats-core:0.14'
+    compile 'com.netflix.spinnaker.cats:cats-redis:0.14'
   }
 }
 

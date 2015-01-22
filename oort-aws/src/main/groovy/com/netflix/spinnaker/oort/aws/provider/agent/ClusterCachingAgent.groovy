@@ -81,12 +81,18 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   @Override
+  String getOnDemandAgentType() {
+    "${getAgentType()}-OnDemand"
+  }
+
+  @Override
   Collection<AgentDataType> getProvidedDataTypes() {
     types
   }
 
   static class MutableCacheData implements CacheData {
     final String id
+    int ttlSeconds = NO_TTL
     final Map<String, Object> attributes = [:]
     final Map<String, Collection<String>> relationships = [:].withDefault { [] as Set }
 
@@ -102,7 +108,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       this.attributes.putAll(attributes);
       this.relationships.putAll(relationships);
     }
-
   }
 
   @Override
@@ -145,6 +150,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     def cacheResult = buildCacheResult(asgs, subnetMap, [:])
     def cacheData = new DefaultCacheData(
       Keys.getServerGroupKey(data.asgName as String, account.name, region),
+      ONE_HOUR_TTL,
       [
         cacheTime   : new Date(),
         cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
@@ -152,6 +158,12 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       [:]
     )
     providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+
+    cacheResult.cacheResults.values().each { Collection<CacheData> cacheDatas ->
+      cacheDatas.each {
+        ((MutableCacheData) it).ttlSeconds = ONE_MINUTE_TTL
+      }
+    }
 
     Map<String, Collection<String>> evictions = asgs ? [:] : [
       (SERVER_GROUPS.ns): [
@@ -161,7 +173,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
     log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions})")
     return new OnDemandAgent.OnDemandResult(
-      sourceAgentType: getAgentType(), cacheResult: cacheResult, evictions: evictions
+      sourceAgentType: getOnDemandAgentType(), cacheResult: cacheResult, evictions: evictions
     )
   }
 

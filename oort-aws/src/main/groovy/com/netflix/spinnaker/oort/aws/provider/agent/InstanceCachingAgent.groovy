@@ -81,6 +81,7 @@ class InstanceCachingAgent implements CachingAgent {
 
   static class MutableCacheData implements CacheData {
     final String id
+    int ttlSeconds = OnDemandAgent.NO_TTL
     final Map<String, Object> attributes = [:]
     final Map<String, Collection<String>> relationships = [:].withDefault { [] as Set }
     public MutableCacheData(String id) {
