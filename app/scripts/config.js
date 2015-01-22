@@ -31,11 +31,15 @@ angular.module('deckApp')
   .config(function($provide) {
     $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
       return function (exception, cause) {
-        var action = 'msg: ' + exception.message + ' url: ' + window.location;
-        var label = exception.stack.toString();
+        try {
+          var action = 'msg: ' + exception.message + ' url: ' + window.location;
+          var label = exception.stack;
 
-        $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
-        $delegate(exception, cause);
+          $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
+          $delegate(exception, cause);
+        } catch(e) {
+          // eat it to permit a endless exception loop from happening
+        }
       };
     });
   })

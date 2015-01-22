@@ -30,13 +30,13 @@ angular
             type: 'deleteSecurityGroup',
             securityGroupName: securityGroup.name,
             regions: [securityGroup.region],
-            credentials: securityGroup.accountId,
+            credentials: securityGroup.accountName,
             providerType: securityGroup.providerType,
             vpcId: securityGroup.vpcId
           }
         ],
         application: application,
-        description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountId + ':' + securityGroup.region
+        description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountName + ':' + securityGroup.region
       });
 
       operation.then(infrastructureCaches.securityGroups.removeAll);

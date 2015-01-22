@@ -24,8 +24,11 @@ module.exports = function(config) {
       'test/poly/**/*.js',
       'test/mock/**/*.js',
       'test/spec/**/*.js',
-      'app/scripts/**/*.spec.js',
+      'app/scripts/testHelpers/*.js',
+      'app/scripts/modules/**/*.spec.js',
       'test/fixture/**/*.js',
+      'app/views/**/*.html',
+      'app/scripts/modules/**/*.html'
     ],
 
     // list of files / patterns to exclude
@@ -52,8 +55,19 @@ module.exports = function(config) {
       'karma-chrome-launcher',
       'karma-junit-reporter',
       'karma-mocha-reporter',
-      'karma-jasmine'
+      'karma-jasmine',
+      'karma-ng-html2js-preprocessor'
     ],
+
+    preprocessors: {
+      '**/[modules|views]**/*.html': ['ng-html2js'],
+    },
+
+
+    ngHtml2JsPreprocessor: {
+      // strip this from the file path
+      stripPrefix: 'app/'
+    },
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
