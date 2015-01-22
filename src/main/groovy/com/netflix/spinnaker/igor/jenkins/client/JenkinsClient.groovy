@@ -40,7 +40,7 @@ interface JenkinsClient {
     @GET('/job/{jobName}/api/xml?tree=name,url,actions[processes[name]],downstreamProjects[name,url],upstreamProjects[name,url]')
     BuildDependencies getDependencies(@Path('jobName') String jobName)
 
-    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=freeStyleBuild/action')
+    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]')
     Build getBuild(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')

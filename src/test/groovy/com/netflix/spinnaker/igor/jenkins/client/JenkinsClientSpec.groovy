@@ -125,6 +125,25 @@ class JenkinsClientSpec extends Specification {
         testResults[1].urlName == 'testngreports'
     }
 
+    void 'gets a single build'() {
+        given:
+        setResponse getSingleBuild()
+        Build build = client.getBuild("FOO",2542)
+
+        expect:
+        build.artifacts.size() == 4
+        !build.building
+        build.duration == 532271
+        build.number == 2542
+        build.result == 'SUCCESS'
+        build.timestamp == "1421961940704"
+        build.url == "http:///my.jenkins.net/job/FOO/2542/"
+        build.testResults[0].failCount == 0
+        build.testResults[0].skipCount == 9
+        build.testResults[0].totalCount == 465
+        build.testResults[0].urlName == 'testReport'
+    }
+
     private void setResponse(String body) {
         server.enqueue(
             new MockResponse()
@@ -133,6 +152,23 @@ class JenkinsClientSpec extends Specification {
         )
         server.play()
         client = new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password')
+    }
+
+    private String getSingleBuild() {
+        return '<?xml version="1.0" encoding="UTF-8"?>' +
+                '<freeStyleBuild>' +
+                '<action><failCount>0</failCount><skipCount>9</skipCount><totalCount>465</totalCount><urlName>testReport</urlName></action>' +
+                '<artifact><displayPath>api.txt</displayPath><fileName>api.txt</fileName><relativePath>apiweb/build/api.txt</relativePath></artifact>' +
+                '<artifact><displayPath>deb.properties</displayPath><fileName>deb.properties</fileName><relativePath>foo/build/deb.properties</relativePath></artifact>' +
+                '<artifact><displayPath>api.deb</displayPath><fileName>api.deb</fileName><relativePath>foo/build/distributions/api.deb</relativePath></artifact>' +
+                '<artifact><displayPath>dependencies.lock</displayPath><fileName>dependencies.lock</fileName><relativePath>foo/dependencies.lock</relativePath></artifact>' +
+                '<building>false</building>' +
+                '<duration>532271</duration>' +
+                '<number>2542</number>' +
+                '<result>SUCCESS</result>' +
+                '<timestamp>1421961940704</timestamp>' +
+                '<url>http:///my.jenkins.net/job/FOO/2542/</url>' +
+                '</freeStyleBuild>'
     }
 
     private String getBuildsWithArtifactsAndTests() {

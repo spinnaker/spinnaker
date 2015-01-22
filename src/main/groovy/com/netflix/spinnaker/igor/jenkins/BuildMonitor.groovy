@@ -124,6 +124,17 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                             (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel)) ||
                                 (project.lastBuild.result && (project.lastBuild.result != cachedBuild.lastBuildStatus))) {
                             log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number}"
+
+                            if(echoService && cachedBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+                                // we cached a build in progress, but missed the build result (a new build is underway or complete)
+                                // fetch the final old build status and post the final result to echo
+                                log.info "fetching missed completed build info for ${cachedBuild.lastBuildLabel}"
+                                Build finishedBuild = jenkinsMasters.map[master].getBuild(project.name, Integer.valueOf(cachedBuild.lastBuildLabel))
+                                Project oldProject = new Project(name: project.name, lastBuild: finishedBuild)
+                                    echoService.postBuild(
+                                        new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
+                                   // don't add to cache since we already have a newer build to cache
+                            }
                             addToCache = true
                         }
                     } else {
