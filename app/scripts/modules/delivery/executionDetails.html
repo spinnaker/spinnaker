@@ -24,8 +24,8 @@
         </thead>
         <tbody>
           <tr ng-repeat="stage in execution.stages"
-              ng-class="{ info: ctrl.isStageCurrent(stage) }"
-              ng-click="ctrl.toggleDetails(stage)"
+              ng-class="{ info: ctrl.isStageCurrent($index) }"
+              ng-click="ctrl.toggleDetails($index)"
             >
             <td>{{ stage.name != "null" ? stage.name : stage.type }}</td>
             <td>{{ stage.startTime | simpleTime }}</td>
