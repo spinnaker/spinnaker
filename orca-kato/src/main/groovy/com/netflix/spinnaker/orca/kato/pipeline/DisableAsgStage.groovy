@@ -38,8 +38,9 @@ class DisableAsgStage extends TargetReferenceLinearStageSupport {
 
     def step1 = buildStep("disableAsg", DisableAsgTask)
     def step2 = buildStep("monitorAsg", MonitorKatoTask)
-    def step3 = buildStep("waitForDownInstances", WaitForDownInstancesTask)
-    [step1, step2, step3]
+    def step3 = buildStep("sendNotification", NotifyEchoTask)
+    def step4 = buildStep("waitForDownInstances", WaitForDownInstancesTask)
+    [step1, step2, step3, step4]
   }
 
 }

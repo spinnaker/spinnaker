@@ -19,5 +19,6 @@ dependencies {
   compile project(":orca-retrofit")
   compile project(":orca-oort")
   compile project(":orca-mort")
+  compile project(":orca-echo")
   testCompile project(":orca-test")
 }
