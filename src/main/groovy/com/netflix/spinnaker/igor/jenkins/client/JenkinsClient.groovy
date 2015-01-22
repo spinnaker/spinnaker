@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifactList
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
@@ -32,7 +31,7 @@ import retrofit.http.Path
 @SuppressWarnings('LineLength')
 interface JenkinsClient {
 
-    @GET('/view/All/cc.xml')
+    @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]]]')
     ProjectsList getProjects()
 
     @GET('/job/{jobName}/api/xml?tree=builds[number,url,duration,timestamp,result,culprits[fullName],actions[failCount,skipCount,totalCount,causes[*]]]')
@@ -41,7 +40,7 @@ interface JenkinsClient {
     @GET('/job/{jobName}/api/xml?tree=name,url,actions[processes[name]],downstreamProjects[name,url],upstreamProjects[name,url]')
     BuildDependencies getDependencies(@Path('jobName') String jobName)
 
-    @GET('/job/{jobName}/{buildNumber}/api/xml')
+    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=freeStyleBuild/action')
     Build getBuild(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
@@ -52,7 +51,4 @@ interface JenkinsClient {
 
     @POST('/job/{jobName}/build')
     Response build(@Path('jobName') String jobName)
-
-    @GET('/job/{jobName}/{buildNumber}/api/xml?tree=artifacts[displayPath,fileName,relativePath]')
-    BuildArtifactList getArtifacts(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 }

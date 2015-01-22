@@ -21,7 +21,6 @@ import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildDetails
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,6 +62,8 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.build.pollInterval:60}')
     int pollInterval
+
+    static final String BUILD_IN_PROGRESS = "BUILDING"
 
     @Override
     void onApplicationEvent(ContextRefreshedEvent event) {
@@ -113,24 +114,31 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                 { Project project ->
                     boolean addToCache = false
                     Map cachedBuild = null
-                    if (cachedBuilds.contains(project.name)) {
+                    log.debug "processing build : ${project?.name} : building? ${project?.lastBuild?.building}"
+                    if(!project?.lastBuild) {
+                        log.debug "no builds found for ${project.name}, skipping"
+                    } else if (cachedBuilds.contains(project.name)) {
                         cachedBuild = cache.getLastBuild(master, project.name)
-                        if ((project.lastBuildStatus != cachedBuild.lastBuildStatus) ||
-                            (project.lastBuildLabel > cachedBuild.lastBuildLabel)) {
-                            log.info "Build changed: ${master}: ${project.name} : ${project.lastBuildStatus} :" +
-                                "${project.lastBuildLabel}"
+                        boolean cachedBuilding = cachedBuild.lastBuildStatus.equals(BUILD_IN_PROGRESS)
+                        if ((project.lastBuild.building != cachedBuilding) ||
+                            (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel)) ||
+                                (project.lastBuild.result && (project.lastBuild.result != cachedBuild.lastBuildStatus))) {
+                            log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number}"
                             addToCache = true
                         }
                     } else {
-                        log.info "New Build: ${master}: ${project.name} : ${project.lastBuildStatus} : " +
-                            "${project.lastBuildLabel}"
+                        log.info "New Build: ${master}: ${project.name} : ${project.lastBuild.number} : " +
+                            "${project.lastBuild.result}"
                         addToCache = true
                     }
                     if (addToCache) {
-                        cache.setLastBuild(master, project.name, project.lastBuildLabel, project.lastBuildStatus)
+                        String result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
+                        cache.setLastBuild(master, project.name, project.lastBuild.number, result)
                         if (echoService) {
-                            project.artifacts = jenkinsMasters.map[master].getArtifacts(project.name, project.lastBuildLabel).artifactList
-
+                            project.lastBuild.testResults // FIXME: force population of test results
+                            if(project.lastBuild.building) {
+                                project.lastBuild.result = BUILD_IN_PROGRESS // for consistency
+                            }
                             echoService.postBuild(
                                 new BuildDetails(content: new BuildContent(project: project, master: master))
                             )
@@ -142,12 +150,9 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
             }, {
             } as Action0
             )
-
         } catch (e) {
             log.error("failed to update master $master", e)
         }
-
         results
     }
-
 }

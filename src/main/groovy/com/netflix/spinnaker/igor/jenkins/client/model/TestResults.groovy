@@ -17,16 +17,19 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Default
-import org.simpleframework.xml.ElementList
+import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root
 
 /**
  * Represents a build artifact
  */
-@Root(name = 'freeStyleBuild')
 @CompileStatic
-class BuildArtifactList {
-    @ElementList(required = false, inline=true, name = "artifact")
-    List<BuildArtifact> artifactList
+@Root(name = 'action')
+class TestResults {
+    @Element(required = false)
+    int failCount
+    @Element(required = false)
+    int skipCount
+    @Element(required = false)
+    int totalCount
 }

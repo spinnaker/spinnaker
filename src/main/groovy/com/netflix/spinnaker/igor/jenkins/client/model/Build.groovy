@@ -21,6 +21,7 @@ import org.simpleframework.xml.Default
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Root
+import org.simpleframework.xml.Transient
 
 /**
  * Represents a build in Jenkins
@@ -29,19 +30,46 @@ import org.simpleframework.xml.Root
 @CompileStatic
 @Root(strict = false)
 class Build {
-
+    boolean building
     Integer number
-    Integer duration
-    Integer estimatedDuration
     @Element(required = false)
     String result
-    String id
     String timestamp
+    @Element(required = false)
+    Integer duration
+    @Element(required = false)
+    Integer estimatedDuration
+    @Element(required = false)
+    String id
     String url
     @Element(required = false)
     String builtOn
-
-    @ElementList(required = false)
+    @ElementList(required = false, name="artifact", inline = true)
     List<BuildArtifact> artifacts
+    /*
+    We need to dump this into a list first since the Jenkins query returns
+    multiple action elements, with all but the test run one empty.  We then filter it into a testResults var
+     */
+    @ElementList(required = false, name="action", inline = true)
+    private List<TestResults> testResultsList
 
+    @Transient
+    TestResults testResults
+
+    TestResults getTestResults() {
+        if(!testResults) {
+            testResultsList?.any {
+                TestResults testResults1 ->
+                if (testResults1.totalCount > 0) {
+                    testResults = testResults1
+                    return true
+                }
+            }
+        }
+        testResultsList = null
+        return testResults
+    }
 }
+
+
+

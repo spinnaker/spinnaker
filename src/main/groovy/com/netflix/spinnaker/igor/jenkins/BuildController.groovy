@@ -85,7 +85,6 @@ class BuildController {
                     def queue = client.getQueuedItem(item)
                     if (queue && queue.number) {
                         this.build = client.getBuild(job, queue.number)
-                        this.build.artifacts = client.getArtifacts(job, queue.number).artifactList
                         break
                     }
                     sleep 500
