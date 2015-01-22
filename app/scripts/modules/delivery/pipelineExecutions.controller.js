@@ -100,10 +100,7 @@ angular.module('deckApp.delivery')
       $scope.detailsTarget = toParams.executionId;
     });
 
-    $q.all({
-      configurations: pipelineConfigService.getPipelinesForApplication($scope.application.name),
-      executions: executionsService.getAll()
-    }).then(function(results) {
+    function dataInitializationSuccess(results) {
       $scope.viewState.loading = false;
       $scope.configurations = results.configurations.plain();
       updateExecutions(results.executions);
@@ -115,5 +112,15 @@ angular.module('deckApp.delivery')
       if ($scope.detailsTarget) {
         scrollToService.scrollTo('execution-' + $scope.detailsTarget, 250);
       }
-    });
+    }
+
+    function dataInitializationFailure() {
+      $scope.viewState.loading = false;
+      $scope.viewState.initializationError = true;
+    }
+
+    $q.all({
+      configurations: pipelineConfigService.getPipelinesForApplication($scope.application.name),
+      executions: executionsService.getAll()
+    }).then(dataInitializationSuccess, dataInitializationFailure);
   });
