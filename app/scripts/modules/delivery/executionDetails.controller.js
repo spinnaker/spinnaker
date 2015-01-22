@@ -4,21 +4,25 @@ angular.module('deckApp.delivery')
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig, _) {
     var controller = this;
 
+    function getCurrentStage() {
+      return parseInt($stateParams.stage);
+    }
+
     controller.close = function() {
       $state.go('home.applications.application.executions', {
         application: $stateParams.application,
       });
     };
 
-    controller.toggleDetails = function(stage) {
-      var newStageDetails = $stateParams.stage === stage.name ? null : stage.name;
+    controller.toggleDetails = function(index) {
+      var newStageDetails = getCurrentStage() === index ? null : index;
       $state.go('.', {
         stage: newStageDetails
       });
     };
 
-    controller.isStageCurrent = function(stage) {
-      return stage.name === $stateParams.stage;
+    controller.isStageCurrent = function(index) {
+      return index === getCurrentStage();
     };
 
     controller.closeDetails = function(){
@@ -35,7 +39,7 @@ angular.module('deckApp.delivery')
 
     controller.getDetailsSourceUrl = function() {
       if ($stateParams.stage) {
-        var stage = _.find($scope.execution.stages, { name: $stateParams.stage });
+        var stage = $scope.execution.stages[getCurrentStage()];
         if (stage) {
           $scope.stage = stage;
           pipelineConfig.getStageTypes();
