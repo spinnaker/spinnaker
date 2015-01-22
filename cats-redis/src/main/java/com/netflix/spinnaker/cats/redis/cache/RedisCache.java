@@ -71,11 +71,20 @@ public class RedisCache implements WriteableCache {
         final Set<String> relationshipNames = new HashSet<>();
         final List<String> keysToSet = new LinkedList<>();
         final Set<String> idSet = new HashSet<>();
+
+        final Map<String, Integer> ttlSecondsByKey = new HashMap<>();
+
         for (CacheData item : items) {
             MergeOp op = buildMergeOp(type, item);
             relationshipNames.addAll(op.relNames);
             keysToSet.addAll(op.keysToSet);
             idSet.add(item.getId());
+
+            if (item.getTtlSeconds() > 0) {
+                for (String key : op.keysToSet) {
+                    ttlSecondsByKey.put(key, item.getTtlSeconds());
+                }
+            }
         }
 
         final String[] relationships = relationshipNames.toArray(new String[relationshipNames.size()]);
@@ -88,6 +97,10 @@ public class RedisCache implements WriteableCache {
                 jedis.mset(mset);
                 if (relationships.length > 0) {
                     jedis.sadd(allRelationshipsId(type), relationships);
+                }
+
+                for (Map.Entry<String, Integer> ttlEntry : ttlSecondsByKey.entrySet()) {
+                    jedis.expire(ttlEntry.getKey(), ttlEntry.getValue());
                 }
             }
         }
