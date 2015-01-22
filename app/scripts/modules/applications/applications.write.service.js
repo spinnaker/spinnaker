@@ -70,50 +70,26 @@ angular
 
 
     function deleteApplication(app) {
-      var taskList = [];
+      //var taskList = [];
       var accounts = app.accounts && app.accounts.length ? app.accounts.split(',') : [];
 
-      accounts.forEach(function(account) {
-        taskList.push(taskExecutor.executeTask({
-          suppressNotification: true,
-          job: [
-            {
-              type: 'deleteApplication',
-              account: account,
-              application: {
-                name: app.name,
-              }
+      return taskExecutor.executeTask({
+        suppressNotification: true,
+        job: [
+          {
+            type: 'deleteApplication',
+            account: accounts[0],
+            application: {
+              name: app.name,
             }
-          ],
-          application: app,
-          description: 'Deleting Application: ' + app.name
-        }));
+          }
+        ],
+        application: app,
+        description: 'Deleting Application: ' + app.name
       });
 
-      return $q.all(taskList).then(
-        handleSuccessfulTaskComplete,
-        handleTaskFailure
-      );
-
     }
 
-    /**
-     * Handles the success of all the posted tasks
-     * @param taskResponseList
-     * @returns $q.promise
-     */
-    function handleSuccessfulTaskComplete(taskResponseList) {
-      return _.first(taskResponseList).watchForTaskComplete();
-    }
-
-
-    /**
-     * Handles the failure for all the posted task, and pass it up to handle in the controller code.
-     * @param errors
-     */
-    function handleTaskFailure(error) {
-      throw error;
-    }
 
     return {
       createApplication: createApplication,

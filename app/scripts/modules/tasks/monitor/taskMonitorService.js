@@ -22,7 +22,8 @@ angular.module('deckApp.tasks.monitor')
         onApplicationRefresh: params.onApplicationRefresh || angular.noop,
         onTaskComplete: params.onTaskComplete || angular.noop,
         modalInstance: params.modalInstance,
-        katoPhaseToMonitor: params.katoPhaseToMonitor || null
+        katoPhaseToMonitor: params.katoPhaseToMonitor || null,
+        hasKatoTask: _.isBoolean(params.hasKatoTask) ? params.hasKatoTask : true
       };
 
       monitor.onModalClose = function() {
@@ -63,14 +64,18 @@ angular.module('deckApp.tasks.monitor')
         monitor.forceRefreshing = true;
       };
 
-      monitor.handleTaskSuccess = function(task) {
+      monitor.handleTaskSuccess = function (task) {
         monitor.task = task;
-        task.getCompletedKatoTask(monitor.katoPhaseToMonitor).then(
-          function() {
-            handleKatoRefreshSuccess(task);
-          },
-          handleKatoFailure
-        );
+        if(monitor.hasKatoTask) {
+          task.getCompletedKatoTask(monitor.katoPhaseToMonitor).then(
+            function () {
+              processSuccessfulTask(task);
+            },
+            handleKatoFailure
+          );
+        } else {
+          processSuccessfulTask(task);
+        }
       };
 
       monitor.submit = function(method) {
@@ -78,7 +83,7 @@ angular.module('deckApp.tasks.monitor')
         method.call().then(monitor.handleTaskSuccess, monitor.setError);
       };
 
-      function handleKatoRefreshSuccess(task) {
+      function processSuccessfulTask(task) {
         task.get().then(function() {
           if (monitor.forceRefreshEnabled) {
             task.watchForForceRefresh().then(handleForceRefreshComplete, handleApplicationRefreshComplete);

@@ -5,7 +5,7 @@ angular
   .module('deckApp.config.controller', [
     'deckApp.applications.write.service'
   ])
-  .controller('ConfigController', function ($modal, $state, applicationWriter, application) {
+  .controller('ConfigController', function ($modal, $state, applicationWriter, confirmationModalService,  application) {
     var vm = this;
     vm.serverGroupCount = application.serverGroups.length;
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
@@ -24,20 +24,28 @@ angular
     };
 
     vm.deleteApplication = function() {
-      return applicationWriter
-        .deleteApplication(application.attributes).then(
-          returnToApplicationsList,
-          showErrors
-        );
+
+      var submitMethod = function() {
+        return applicationWriter.deleteApplication(application.attributes);
+      };
+
+      var taskMonitor = {
+        application: application,
+        title: 'Deleting ' + application.name,
+        hasKatoTask: false,
+        onTaskComplete: function() {
+          $state.go('home.applications');
+        }
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really delete ' + application.name + '?',
+        buttonText: 'Delete ' + application.name,
+        destructive: true,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
     };
-
-    function returnToApplicationsList() {
-      $state.go('home.applications');
-    }
-
-    function showErrors(error) {
-      vm.error = error.message;
-    }
 
     return vm;
 
