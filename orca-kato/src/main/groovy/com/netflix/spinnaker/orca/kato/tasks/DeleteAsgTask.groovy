@@ -43,7 +43,7 @@ class DeleteAsgTask implements Task {
          "kato.last.task.id": taskId,
          "kato.task.id": taskId, // TODO retire this.
          "deploy.server.groups": ((Iterable) stage.context.regions).collectEntries {
-           [(it): stage.context.asgName]
+           [(it): [stage.context.asgName]]
          }
         ])
   }
