@@ -51,9 +51,10 @@ angular.module('deckApp')
     application.registerAutoRefreshHandler(extractLoadBalancer, $scope);
 
     this.editLoadBalancer = function editLoadBalancer() {
+      var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: 'scripts/modules/loadBalancers/editLoadBalancer.html',
-        controller: 'CreateLoadBalancerCtrl as ctrl',
+        templateUrl: 'scripts/modules/loadBalancers/' + provider + '/editLoadBalancer.html',
+        controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
