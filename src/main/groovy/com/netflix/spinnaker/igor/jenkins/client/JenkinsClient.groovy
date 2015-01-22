@@ -31,7 +31,7 @@ import retrofit.http.Path
 @SuppressWarnings('LineLength')
 interface JenkinsClient {
 
-    @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]]]')
+    @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]]]&exclude=/*/*/*/action[not(totalCount)]')
     ProjectsList getProjects()
 
     @GET('/job/{jobName}/api/xml?tree=builds[number,url,duration,timestamp,result,culprits[fullName],actions[failCount,skipCount,totalCount,causes[*]]]')

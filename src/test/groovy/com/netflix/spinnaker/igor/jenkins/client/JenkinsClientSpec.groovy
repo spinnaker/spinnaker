@@ -133,9 +133,7 @@ class JenkinsClientSpec extends Specification {
                 '<job>' +
                 '<name>uno</name>' +
                 '<lastBuild>' +
-                '<action/><action/><action/><action/><action/><action/><action/><action/>' +
                 '<action><failCount>0</failCount><skipCount>1</skipCount><totalCount>111</totalCount></action>' +
-                '<action/><action/>' +
                 '<artifact><displayPath>libs/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/libs/myProject-1.601.0-sources.jar</relativePath></artifact>' +
                 '<artifact><displayPath>libs/myProject-1.601.0.jar</displayPath><fileName>myProject-1.601.0.jar</fileName><relativePath>build/libs/myProject-1.601.0.jar</relativePath></artifact>' +
                 '<artifact><displayPath>publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/tmp/publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</relativePath></artifact>' +
@@ -150,9 +148,7 @@ class JenkinsClientSpec extends Specification {
                 '<job>' +
                 '<name>dos</name>' +
                 '<lastBuild>' +
-                '<action/><action/><action/><action/><action/><action/><action/><action/>' +
                 '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>222</totalCount></action>' +
-                '<action/><action/>' +
                 '<artifact><displayPath>libs/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/libs/myProject-1.601.0-sources.jar</relativePath></artifact>' +
                 '<artifact><displayPath>libs/myProject-1.601.0.jar</displayPath><fileName>myProject-1.601.0.jar</fileName><relativePath>build/libs/myProject-1.601.0.jar</relativePath></artifact>' +
                 '<artifact><displayPath>publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/tmp/publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</relativePath></artifact>' +

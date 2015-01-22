@@ -30,13 +30,4 @@ class Project {
     @Element String name
     @Element(required = false)
     Build lastBuild
-
-/*
-    @Attribute String webUrl
-    @Attribute Integer lastBuildLabel
-    @Attribute String lastBuildTime
-    @Attribute String lastBuildStatus
-    @Attribute(required=false) String activity
-    @Attribute(required=false) List<BuildArtifact> artifacts
- */
 }

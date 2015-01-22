@@ -50,25 +50,8 @@ class Build {
     We need to dump this into a list first since the Jenkins query returns
     multiple action elements, with all but the test run one empty.  We then filter it into a testResults var
      */
-    @ElementList(required = false, name="action", inline = true)
-    private List<TestResults> testResultsList
-
-    @Transient
+    @Element(required = false, name="action")
     TestResults testResults
-
-    TestResults getTestResults() {
-        if(!testResults) {
-            testResultsList?.any {
-                TestResults testResults1 ->
-                if (testResults1.totalCount > 0) {
-                    testResults = testResults1
-                    return true
-                }
-            }
-        }
-        testResultsList = null
-        return testResults
-    }
 }
 
 

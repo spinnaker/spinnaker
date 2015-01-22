@@ -135,7 +135,6 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         String result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
                         cache.setLastBuild(master, project.name, project.lastBuild.number, result)
                         if (echoService) {
-                            project.lastBuild.testResults // FIXME: force population of test results
                             if(project.lastBuild.building) {
                                 project.lastBuild.result = BUILD_IN_PROGRESS // for consistency
                             }
