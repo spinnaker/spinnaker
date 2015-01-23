@@ -15,9 +15,14 @@ angular.module('deckApp.pipelines.stage.bake')
       return $q.when(['release', 'candidate']);
     }
 
+    function getVmTypes() {
+      return $q.when(['pv', 'hvm']);
+    }
+
     return {
       getRegions: getRegions,
       getBaseOsOptions: getBaseOsOptions,
-      getBaseLabelOptions: getBaseLabelOptions
+      getVmTypes: getVmTypes,
+      getBaseLabelOptions: getBaseLabelOptions,
     };
   });
