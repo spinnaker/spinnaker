@@ -38,7 +38,7 @@ angular.module('deckApp.orchestratedItem.service', [
           }
         },
         status: {
-          // Returns either COMPLETED, RUNNING, FAILED, or NOT_STARTED
+          // Returns either COMPLETED, RUNNING, FAILED, CANCELED, or NOT_STARTED
           get: function() { return normalizeStatus(item); },
           set: function(status) {
             item.originalStatus = status;

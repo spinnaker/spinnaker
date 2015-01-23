@@ -38,7 +38,7 @@ angular.module('deckApp.delivery')
     };
 
     controller.getDetailsSourceUrl = function() {
-      if ($stateParams.stage) {
+      if ($stateParams.stage !== undefined) {
         var stage = $scope.execution.stages[getCurrentStage()];
         if (stage) {
           $scope.stage = stage;

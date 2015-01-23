@@ -15,6 +15,7 @@ angular.module('deckApp.delivery')
           completed: true,
           failed: true,
           'not_started': true,
+          canceled: false,
         },
         triggers: {
           jenkins: true,
@@ -45,6 +46,7 @@ angular.module('deckApp.delivery')
       'not_started': 'Not Started',
       running: 'Running',
       completed: 'Completed',
+      canceled: 'Canceled',
     };
 
     $scope.scale = {
@@ -54,7 +56,7 @@ angular.module('deckApp.delivery')
       status: d3Service
         .scale
         .ordinal()
-        .domain(['completed', 'failed', 'running', 'not_started'])
+        .domain(['completed', 'failed', 'running', 'not_started', 'canceled'])
         .range(['#769D3E', '#b82525','#2275b8', '#cccccc']),
     };
 
@@ -70,7 +72,7 @@ angular.module('deckApp.delivery')
 
     controller.updateLegend = function() {
       var stageNames = Object.keys($scope.executions.reduce(function(acc, cur) {
-        cur.stages.forEach(function(stage) {
+        cur.stageSummaries.forEach(function(stage) {
           acc[stage.name] = true;
         });
         return acc;
@@ -87,7 +89,7 @@ angular.module('deckApp.delivery')
 
     function updateExecutions(executions) {
       $scope.filter.stage.max = executions.reduce(function(acc, execution) {
-        return execution.stages.length > acc ? execution.stages.length : acc;
+        return execution.stageSummaries.length > acc ? execution.stageSummaries.length : acc;
       }, 0);
       $scope.executions = executions;
       controller.updateLegend();
