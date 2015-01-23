@@ -75,7 +75,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl>
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created:</dt>
         <dd>{{serverGroup.launchConfig.createdTime | relativeTime}}</dd>
         <dt>In:</dt>
@@ -83,6 +83,8 @@
           {{serverGroup.cluster}}:{{serverGroup.region}}
           <account-tag account="serverGroup.account" pad="left"></account-tag>
         </dd>
+        <dt>Subnet:</dt>
+        <dd>{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">

@@ -4,7 +4,8 @@
 
 angular.module('deckApp')
   .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
-                                                  serverGroupService, $modal, confirmationModalService, _, serverGroupWriter) {
+                                                  serverGroupService, $modal, confirmationModalService, _, serverGroupWriter,
+                                                  subnetReader) {
 
     $scope.state = {
       loading: true
@@ -26,6 +27,15 @@ angular.module('deckApp')
         angular.extend(restangularlessDetails, summary);
 
         $scope.serverGroup = restangularlessDetails;
+        var vpc = $scope.serverGroup && $scope.serverGroup.asg ? $scope.serverGroup.asg.vpczoneIdentifier : '';
+        if (vpc !== '') {
+          var subnetId = vpc.split(',')[0];
+          subnetReader.listSubnets().then(function(subnets) {
+            var subnet = _(subnets).find({'id': subnetId});
+            $scope.serverGroup.subnetType = subnet.purpose;
+          });
+        }
+
         if (details.launchConfig && details.launchConfig.securityGroups) {
           $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
             return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
