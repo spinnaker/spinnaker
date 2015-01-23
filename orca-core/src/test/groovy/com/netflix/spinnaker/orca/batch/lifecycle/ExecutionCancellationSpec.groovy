@@ -82,8 +82,8 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
 
     @Override
     protected List<Step> buildSteps(Stage stage) {
-      def step1 = buildStep("startTask", startTask)
-      def step2 = buildStep("endTask", endTask)
+      def step1 = buildStep(stage, "startTask", startTask)
+      def step2 = buildStep(stage, "endTask", endTask)
       [step1, step2]
     }
   }

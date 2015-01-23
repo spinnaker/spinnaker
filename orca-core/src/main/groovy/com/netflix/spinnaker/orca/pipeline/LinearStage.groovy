@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Step
@@ -63,8 +64,8 @@ abstract class LinearStage extends StageBuilder {
   private void processBeforeStages(JobFlowBuilder jobBuilder, int stageIdx, Stage stage) {
     if (stage.beforeStages) {
       for (beforeStage in stage.beforeStages.reverse()) {
-        def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name, beforeStage.context)
-        newStage.syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_BEFORE
+        def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name,
+          new HashMap(beforeStage.context), stage, SyntheticStageOwner.STAGE_BEFORE)
         stage.execution.stages.add(stageIdx, newStage)
         wireSteps(jobBuilder, beforeStage.stageBuilder.buildSteps(newStage))
       }
@@ -74,8 +75,8 @@ abstract class LinearStage extends StageBuilder {
   private void processAfterStages(JobFlowBuilder jobBuilder, Stage stage) {
     if (stage.afterStages) {
       for (afterStage in stage.afterStages) {
-        def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name, new HashMap(afterStage.context))
-        newStage.syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_AFTER
+        def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name,
+          new HashMap(afterStage.context), stage, SyntheticStageOwner.STAGE_AFTER)
         stage.execution.stages.add(newStage)
         wireSteps(jobBuilder, afterStage.stageBuilder.buildSteps(newStage))
       }
@@ -88,11 +89,16 @@ abstract class LinearStage extends StageBuilder {
     }
   }
 
-  private static Stage newStage(Execution execution, String type, String name, Map<String, Object> context) {
+  private static Stage newStage(Execution execution, String type, String name, Map<String, Object> context,
+                                Stage parent, SyntheticStageOwner stageOwner) {
+    def stage
     if (execution instanceof Orchestration) {
-      new OrchestrationStage(execution, type, context)
+      stage = new OrchestrationStage(execution, type, context)
     } else {
-      new PipelineStage((Pipeline)execution, type, name, context)
+      stage = new PipelineStage((Pipeline)execution, type, name, context)
     }
+    stage.parentStageId = parent.id
+    stage.syntheticStageOwner = stageOwner
+    stage
   }
 }

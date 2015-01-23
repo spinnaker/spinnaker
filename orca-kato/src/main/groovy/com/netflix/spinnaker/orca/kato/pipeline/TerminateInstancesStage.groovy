@@ -37,9 +37,9 @@ class TerminateInstancesStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("terminateInstances", TerminateInstancesTask)
-    def step2 = buildStep("monitorTermination", MonitorKatoTask)
-    def step3 = buildStep("waitForTerminatedInstances", WaitForTerminatedInstancesTask)
+    def step1 = buildStep(stage, "terminateInstances", TerminateInstancesTask)
+    def step2 = buildStep(stage, "monitorTermination", MonitorKatoTask)
+    def step3 = buildStep(stage, "waitForTerminatedInstances", WaitForTerminatedInstancesTask)
     [step1, step2, step3]
   }
 }

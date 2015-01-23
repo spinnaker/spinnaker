@@ -21,10 +21,12 @@ import com.netflix.spinnaker.orca.kato.tasks.shrink.ShrinkClusterTask
 import com.netflix.spinnaker.orca.kato.tasks.shrink.WaitForShrunkenClusterTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class ShrinkClusterStage extends LinearStage {
   static final String MAYO_CONFIG_TYPE = "shrinkCluster"
 
@@ -38,9 +40,9 @@ class ShrinkClusterStage extends LinearStage {
       stage.context.application = stage.execution.application
     }
     [
-        buildStep("shrink", ShrinkClusterTask),
-        buildStep("monitorShrink", MonitorKatoTask),
-        buildStep("waitForShrunkenCluster", WaitForShrunkenClusterTask)
+        buildStep(stage, "shrink", ShrinkClusterTask),
+        buildStep(stage, "monitorShrink", MonitorKatoTask),
+        buildStep(stage, "waitForShrunkenCluster", WaitForShrunkenClusterTask)
     ]
   }
 }

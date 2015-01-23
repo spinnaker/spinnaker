@@ -86,6 +86,25 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     }
   }
 
+  void "should specify parent stage"() {
+    when:
+    launchJob()
+
+    then:
+    1 * task1.execute(_) >> { Stage stage ->
+      assert stage.parentStageId == pipeline.stages[1].id
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+    1 * task2.execute(_) >> { Stage stage ->
+      assert stage.parentStageId == null
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+    1 * task3.execute(_) >> { Stage stage ->
+      assert stage.parentStageId == pipeline.stages[1].id
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+  }
+
   @Override
   Pipeline createPipeline() {
     Pipeline.builder().withStage("stage2").build()
@@ -109,7 +128,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     @Override
     protected List<Step> buildSteps(Stage stage) {
-      return [buildStep("step", task)]
+      return [buildStep(stage, "step", task)]
     }
   }
 
@@ -133,7 +152,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     protected List<Step> buildSteps(Stage stage) {
       injectBefore(stage, "before", stageBuilder1, ctx1)
       injectAfter(stage, "after", stageBuilder2, ctx2)
-      [buildStep("myTask", task2)]
+      [buildStep(stage, "myTask", task2)]
     }
   }
 }

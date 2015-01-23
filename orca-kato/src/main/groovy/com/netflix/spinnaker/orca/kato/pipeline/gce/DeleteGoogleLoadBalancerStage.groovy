@@ -36,10 +36,10 @@ class DeleteGoogleLoadBalancerStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("deleteGoogleLoadBalancer", DeleteGoogleLoadBalancerTask)
+    def step1 = buildStep(stage, "deleteGoogleLoadBalancer", DeleteGoogleLoadBalancerTask)
     // TODO(duftler): Implement DeleteGoogleLoadBalancerForceRefreshTask.
 //    def step2 = buildStep("forceCacheRefresh", DeleteGoogleLoadBalancerForceRefreshTask)
-    def step3 = buildStep("monitorDelete", MonitorKatoTask)
+    def step3 = buildStep(stage, "monitorDelete", MonitorKatoTask)
     [step1, step3]
   }
 }

@@ -63,7 +63,7 @@ class TaskTaskletSpec extends Specification {
       "whatever", random.nextLong(), random.nextLong(),
       new JobParametersBuilder().addString("pipeline", pipeline.id).toJobParameters()
     )
-    stepExecution = createStepExecution(jobExecution, "${stage.type}.task1", random.nextLong())
+    stepExecution = createStepExecution(jobExecution, "${stage.id}.${stage.type}.task1", random.nextLong())
     stepContext = new StepContext(stepExecution)
     stepContribution = new StepContribution(stepExecution)
     chunkContext = new ChunkContext(stepContext)

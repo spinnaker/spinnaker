@@ -37,9 +37,9 @@ class BakeStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("createBake", CreateBakeTask)
-    def step2 = buildStep("monitorBake", MonitorBakeTask)
-    def step3 = buildStep("completedBake", CompletedBakeTask)
+    def step1 = buildStep(stage, "createBake", CreateBakeTask)
+    def step2 = buildStep(stage, "monitorBake", MonitorBakeTask)
+    def step3 = buildStep(stage, "completedBake", CompletedBakeTask)
     [step1, step2, step3]
   }
 }

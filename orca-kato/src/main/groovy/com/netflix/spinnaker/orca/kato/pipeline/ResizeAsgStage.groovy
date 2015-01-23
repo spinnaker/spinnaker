@@ -47,10 +47,10 @@ class ResizeAsgStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     configureTargets(stage)
 
-    def step1 = buildStep("resizeAsg", ResizeAsgTask)
-    def step2 = buildStep("monitorAsg", MonitorKatoTask)
-    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step4 = buildStep("waitForCapacityMatch", WaitForCapacityMatchTask)
+    def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
+    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
     [step1, step2, step3, step4]
   }
 

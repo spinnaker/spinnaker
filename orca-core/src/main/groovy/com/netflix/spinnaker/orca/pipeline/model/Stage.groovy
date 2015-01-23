@@ -18,12 +18,16 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import groovy.transform.CompileStatic
-import groovy.transform.Immutable
 
 @CompileStatic
 interface Stage<T extends Execution> {
+
+  /**
+   * A stage's unique identifier
+   */
+  String getId()
+
   /**
    * The type as it corresponds to the Mayo configuration
    */
@@ -151,4 +155,15 @@ interface Stage<T extends Execution> {
 
   @JsonIgnore
   List<InjectedStageConfiguration> getAfterStages()
+
+  /**
+   * This stage's parent stage. Can be used in conjunction with {@link #getBeforeStages()} and {@link #getAfterStages()}
+   * to ascertain this stage's position in the graph.
+   */
+  String getParentStageId()
+
+  /**
+   * @see {@link #getParentStageId()}
+   */
+  void setParentStageId(String id)
 }

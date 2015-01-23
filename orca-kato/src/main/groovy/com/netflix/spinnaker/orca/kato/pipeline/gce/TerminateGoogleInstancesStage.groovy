@@ -37,9 +37,9 @@ class TerminateGoogleInstancesStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("terminateInstances", TerminateGoogleInstancesTask)
-    def step2 = buildStep("monitorTermination", MonitorKatoTask)
-    def step3 = buildStep("waitForRecreatedInstances", WaitForRecreatedGoogleInstancesTask)
+    def step1 = buildStep(stage, "terminateInstances", TerminateGoogleInstancesTask)
+    def step2 = buildStep(stage, "monitorTermination", MonitorKatoTask)
+    def step3 = buildStep(stage, "waitForRecreatedInstances", WaitForRecreatedGoogleInstancesTask)
     [step1, step2, step3]
   }
 }

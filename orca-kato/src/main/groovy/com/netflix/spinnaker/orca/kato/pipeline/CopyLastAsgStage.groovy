@@ -39,13 +39,13 @@ class CopyLastAsgStage extends DeployStrategyStage {
   }
 
   @Override
-  List<Step> basicSteps() {
-    def step1 = buildStep("createCopyLastAsg", CreateCopyLastAsgTask)
-    def step2 = buildStep("monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep("sendNotification", NotifyEchoTask)
-    def step4 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step5 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
-    def step6 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+  List<Step> basicSteps(Stage stage) {
+    def step1 = buildStep(stage, "createCopyLastAsg", CreateCopyLastAsgTask)
+    def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
+    def step3 = buildStep(stage, "sendNotification", NotifyEchoTask)
+    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step5 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
+    def step6 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     [step1, step2, step3, step4, step5, step6]
   }
 

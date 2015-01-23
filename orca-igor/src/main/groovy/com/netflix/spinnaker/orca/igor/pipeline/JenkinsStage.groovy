@@ -20,10 +20,12 @@ import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartJenkinsJobTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class JenkinsStage extends LinearStage {
   public static final String MAYO_CONFIG_TYPE = "jenkins"
 
@@ -33,8 +35,8 @@ class JenkinsStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("startJenkinsJob", StartJenkinsJobTask)
-    def step2 = buildStep("monitorJenkinsJob", MonitorJenkinsJobTask)
+    def step1 = buildStep(stage, "startJenkinsJob", StartJenkinsJobTask)
+    def step2 = buildStep(stage, "monitorJenkinsJob", MonitorJenkinsJobTask)
     [step1, step2]
   }
 }

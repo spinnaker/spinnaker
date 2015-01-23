@@ -33,6 +33,6 @@ class WaitStage extends LinearStage {
 
   @Override
   protected List<Stage> buildSteps(Stage stage) {
-    [buildStep("wait", WaitTask)]
+    [buildStep(stage, "wait", WaitTask)]
   }
 }
