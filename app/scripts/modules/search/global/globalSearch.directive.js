@@ -22,6 +22,14 @@ angular.module('deckApp.search.global')
           });
         });
 
+        window.bind('keyup.globalsearch', function(event) {
+          var $target = $(event.target);
+          if ($target.is('input, textarea') || event.which !== 191) {
+            return;
+          }
+          element.find('input').focus();
+        });
+
         scope.$on('$destroy', function() {
           window.unbind('.globalsearch');
         });
