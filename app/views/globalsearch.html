@@ -8,7 +8,7 @@
           ng-model="query"
           ng-focus="ctrl.displayResults()"
           ng-keyup="ctrl.dispatchQueryInput($event)"/>
-        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+        <span class="glyphicon glyphicon-search form-control-feedback" tooltip-html-unsafe="Keyboard shortcut: <span class='keyboard-key'>/</span>" tooltip-placement="right"></span>
       </div>
     </div>
   </form>
