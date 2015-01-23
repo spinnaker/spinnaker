@@ -5,10 +5,12 @@
       <dl class="dl-narrow dl-horizontal">
         <dt>ASG Name</dt>
         <dd>{{stage.context.asgName}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="stage.context.credentials"></account-tag></dd>
       </dl>
       <dl class="dl-narrow dl-horizontal">
         <dt>Regions</dt>
-        <dd>{{stage.context.regions}}</dd>
+        <dd>{{stage.context.regions.join(', ')}}</dd>
       </dl>
     </div>
 

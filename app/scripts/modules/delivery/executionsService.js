@@ -3,6 +3,42 @@
 angular.module('deckApp.delivery')
   .factory('executionsService', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, applicationLevelScheduledCache, appendTransform) {
 
+    function transformExecution(execution) {
+      var stageSummaries = [],
+          currentStageBuffer = [],
+        currentStageSummary;
+      execution.stages.forEach(function(stage, index) {
+        stage.index = index;
+        var owner = stage.syntheticStageOwner;
+        if (owner === 'STAGE_BEFORE') {
+          currentStageBuffer.push(stage);
+        }
+        if (owner === 'STAGE_AFTER') {
+          currentStageSummary.stages.push(stage);
+        }
+        if (!owner) {
+          var newSummary = {
+            name: stage.name,
+            stages: currentStageBuffer.concat([stage])
+          };
+          stageSummaries.push(newSummary);
+          currentStageBuffer = [];
+          currentStageSummary = newSummary;
+        }
+      });
+      execution.stageSummaries = stageSummaries;
+      execution.stageSummaries.forEach(function(summary) {
+        if (summary.stages.length) {
+          var lastStage = summary.stages[summary.stages.length - 1];
+          summary.startTime = summary.stages[0].startTime;
+          var currentStage = _(summary.stages).findLast(function(stage) { return !stage.hasNotStarted; }) || lastStage;
+          summary.status = currentStage.status;
+          summary.endTime = lastStage.endTime;
+        }
+      });
+      stageSummaries.forEach(orchestratedItem.defineProperties);
+    }
+
     function getExecutions() {
       var deferred = $q.defer();
       $http({
@@ -19,30 +55,7 @@ angular.module('deckApp.delivery')
                 stage.tasks.forEach(orchestratedItem.defineProperties);
               }
             });
-
-            Object.defineProperty(execution, 'currentStage', {
-              get: function() {
-                if (execution.isCompleted) {
-                  return execution.stages.indexOf(
-                    execution.stages[execution.stages.length -1]
-                  );
-                }
-                if (execution.isFailed) {
-                  return execution.stages.indexOf(
-                    execution.stages.filter(function(stage) {
-                      return stage.isFailed;
-                    })[0]
-                  );
-                }
-                if (execution.isRunning) {
-                  return execution.stages.indexOf(
-                    execution.stages.filter(function(stage) {
-                      return stage.isRunning;
-                    })[0]
-                  );
-                }
-              },
-            });
+            transformExecution(execution);
           });
           return executions;
         }),

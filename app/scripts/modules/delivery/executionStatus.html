@@ -17,7 +17,7 @@
           {{ execution.trigger.buildInfo.name }}
         </li>
         <li ng-switch-when="manual">
-          {{ execution.trigger.user }}
+          {{ execution.trigger.user || 'unknown user'}}
         </li>
         <li>
           {{ execution.startTime | relativeTime }}

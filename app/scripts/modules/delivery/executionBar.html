@@ -1,6 +1,6 @@
 <div class="row execution-bar">
   <div class="col-md-12">
-    <div ng-repeat="stage in execution.stages | stages:filter"
+    <div ng-repeat="stage in execution.stageSummaries | stages:filter"
          class="execution-stage"
          ng-class="{glowing: stage.isRunning }"
          ng-style="ctrl.styleStage(stage)">

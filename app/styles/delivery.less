@@ -28,8 +28,19 @@ body, html {
   }
   .execution-details {
     tbody {
-      tr {
+      tr.stage-summary {
+        font-weight: 600;
+      }
+      tr.clickable {
         cursor: pointer;
+        &:hover {
+          background-color: @table-bg-hover;
+        }
+        td{
+          &:first-child, &:last-child {
+            padding-left: 20px;
+          }
+        }
       }
     }
     background-color: @light_grey;
