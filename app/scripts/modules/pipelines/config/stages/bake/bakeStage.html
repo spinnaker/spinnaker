@@ -31,6 +31,17 @@
     </div>
   </div>
   <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">VM Type</label>
+    <div class="col-md-6">
+      <label class="radio-inline" ng-repeat="vmType in vmTypes">
+        <input type="radio"
+               ng-model="stage.vmType"
+               ng-value="vmType"/>
+        {{vmType | uppercase}}
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Base Label</label>
     <div class="col-md-6">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">

@@ -26,16 +26,21 @@ angular.module('deckApp.pipelines.stage.bake')
     $q.all({
       regions: bakeryService.getRegions(),
       baseOsOptions: bakeryService.getBaseOsOptions(),
-      baseLabelOptions: bakeryService.getBaseLabelOptions()
+      baseLabelOptions: bakeryService.getBaseLabelOptions(),
+      vmTypes: bakeryService.getVmTypes(),
     }).then(function(results) {
       $scope.regions = results.regions;
       $scope.baseOsOptions = results.baseOsOptions;
+      $scope.vmTypes = results.vmTypes;
       $scope.baseLabelOptions = results.baseLabelOptions;
       if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
         $scope.stage.baseOs = $scope.baseOsOptions[0];
       }
       if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
         $scope.stage.baseLabel = $scope.baseLabelOptions[0];
+      }
+      if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
+        $scope.stage.vmType = $scope.vmTypes[0];
       }
       $scope.viewState.loading = false;
     });
