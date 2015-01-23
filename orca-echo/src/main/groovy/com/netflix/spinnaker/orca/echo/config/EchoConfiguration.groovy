@@ -72,18 +72,6 @@ class EchoConfiguration {
     new BuildJobPollingNotificationAgent(notificationHandlers)
   }
 
-  @Bean
-  @ConditionalOnProperty(value = 'mayo.baseUrl')
-  ManualTriggerNotificationHandler manualTriggerNotificationHandler() {
-    new ManualTriggerNotificationHandler()
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = 'mayo.baseUrl')
-  ManualTriggerPollingNotificationAgent manualTriggerPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    new ManualTriggerPollingNotificationAgent(notificationHandlers)
-  }
-
   @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
       ExecutionRepository executionRepository,
       EchoService echoService) {
