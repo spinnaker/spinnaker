@@ -23,11 +23,11 @@ import org.simpleframework.xml.Root
 /**
  * Represents a list of projects
  */
-@Root(name = 'Projects')
+@Root(name = 'hudson')
 @CompileStatic
 class ProjectsList {
 
-    @ElementList(inline = true)
+    @ElementList(inline = true, name = "job")
     List<Project> list
 
 }

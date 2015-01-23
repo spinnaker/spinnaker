@@ -17,17 +17,21 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root
 
 /**
- * Represents a Project returned by the Jenkins service in the project list
+ * Represents a build artifact
  */
 @CompileStatic
-@Root(name='job')
-class Project {
-    @Element String name
+@Root(name = 'action')
+class TestResults {
     @Element(required = false)
-    Build lastBuild
+    int failCount
+    @Element(required = false)
+    int skipCount
+    @Element(required = false)
+    int totalCount
+    @Element(required = false)
+    String urlName
 }

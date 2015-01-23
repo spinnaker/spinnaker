@@ -31,7 +31,7 @@ import retrofit.http.Path
 @SuppressWarnings('LineLength')
 interface JenkinsClient {
 
-    @GET('/view/All/cc.xml')
+    @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]]]&exclude=/*/*/*/action[not(totalCount)]')
     ProjectsList getProjects()
 
     @GET('/job/{jobName}/api/xml?tree=builds[number,url,duration,timestamp,result,culprits[fullName],actions[failCount,skipCount,totalCount,causes[*]]]')
@@ -40,7 +40,7 @@ interface JenkinsClient {
     @GET('/job/{jobName}/api/xml?tree=name,url,actions[processes[name]],downstreamProjects[name,url],upstreamProjects[name,url]')
     BuildDependencies getDependencies(@Path('jobName') String jobName)
 
-    @GET('/job/{jobName}/{buildNumber}/api/xml')
+    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]')
     Build getBuild(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
