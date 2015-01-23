@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -135,10 +134,11 @@ class TaskTasklet implements Tasklet {
   }
 
   private Stage currentStage(ChunkContext chunkContext) {
-    currentExecution(chunkContext).namedStage(stageName(chunkContext))
+    def execution = currentExecution(chunkContext)
+    execution.stages.find { it.id == stageId(chunkContext) }
   }
 
-  private static String stageName(ChunkContext chunkContext) {
+  private static String stageId(ChunkContext chunkContext) {
     chunkContext.stepContext.stepName.tokenize(".").first()
   }
 }

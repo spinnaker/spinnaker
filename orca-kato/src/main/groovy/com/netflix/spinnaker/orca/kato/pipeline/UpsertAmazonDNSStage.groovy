@@ -36,8 +36,8 @@ class UpsertAmazonDNSStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("upsertAmazonDNS", UpsertAmazonDNSTask)
-    def step2 = buildStep("monitorUpsertDNS", MonitorKatoTask)
+    def step1 = buildStep(stage, "upsertAmazonDNS", UpsertAmazonDNSTask)
+    def step2 = buildStep(stage, "monitorUpsertDNS", MonitorKatoTask)
     [step1, step2]
   }
 }

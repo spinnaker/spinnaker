@@ -22,10 +22,10 @@ class UpsertAmazonLoadBalancerStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("upsertAmazonLoadBalancer", UpsertAmazonLoadBalancerTask)
-    def step2 = buildStep("monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep("extrapolateUpsertResult", UpsertAmazonLoadBalancerResultObjectExtrapolationTask)
-    def step4 = buildStep("forceCacheRefresh", UpsertAmazonLoadBalancerForceRefreshTask)
+    def step1 = buildStep(stage, "upsertAmazonLoadBalancer", UpsertAmazonLoadBalancerTask)
+    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
+    def step3 = buildStep(stage, "extrapolateUpsertResult", UpsertAmazonLoadBalancerResultObjectExtrapolationTask)
+    def step4 = buildStep(stage, "forceCacheRefresh", UpsertAmazonLoadBalancerForceRefreshTask)
     [step1, step2, step3, step4]
   }
 }

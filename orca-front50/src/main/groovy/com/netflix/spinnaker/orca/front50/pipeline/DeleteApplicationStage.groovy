@@ -21,10 +21,12 @@ import com.netflix.spinnaker.orca.front50.tasks.VerifyApplicationHasNoDependenci
 import com.netflix.spinnaker.orca.front50.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class DeleteApplicationStage extends LinearStage {
   public static final String MAYO_CONFIG_TYPE = "deleteApplication"
 
@@ -34,9 +36,9 @@ class DeleteApplicationStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("verifyNoDependencies", VerifyApplicationHasNoDependenciesTask)
-    def step2 = buildStep("deleteApplication", DeleteApplicationTask)
-    def step3 = buildStep("waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
+    def step1 = buildStep(stage, "verifyNoDependencies", VerifyApplicationHasNoDependenciesTask)
+    def step2 = buildStep(stage, "deleteApplication", DeleteApplicationTask)
+    def step3 = buildStep(stage, "waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
     [step1, step2, step3]
   }
 }

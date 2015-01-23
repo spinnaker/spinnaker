@@ -53,7 +53,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   protected Job configureJob(JobBuilder jobBuilder) {
     pipeline = Pipeline.builder().withStage("retryable").build()
     pipelineStore.store(pipeline)
-    def step = steps.get("retryable.task1")
+    def step = steps.get("${pipeline.stages[0].id}.retryable.task1")
                     .tasklet(taskFactory.decorate(task))
                     .build()
     jobBuilder.start(step).build()

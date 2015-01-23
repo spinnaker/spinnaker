@@ -47,6 +47,11 @@ class ImmutableStageSupport {
     boolean immutable = true
 
     @Override
+    String getId() {
+      self.id
+    }
+
+    @Override
     String getType() {
       self.type
     }
@@ -170,6 +175,16 @@ class ImmutableStageSupport {
     @Override
     List<InjectedStageConfiguration> getAfterStages() {
       ImmutableList.of(self.afterStages)
+    }
+
+    @Override
+    String getParentStageId() {
+      self.parentStageId
+    }
+
+    @Override
+    void setParentStageId(String id) {
+      fail()
     }
 
     private static void fail() {

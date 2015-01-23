@@ -54,7 +54,7 @@ abstract class DeployStrategyStage extends LinearStage {
    * @return the steps for the stage excluding whatever cleanup steps will be
    * handled by the deployment strategy.
    */
-  protected abstract List<Step> basicSteps()
+  protected abstract List<Step> basicSteps(Stage stage)
 
   /**
    * @param stage the stage configuration.
@@ -78,7 +78,7 @@ abstract class DeployStrategyStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     correctContext(stage)
     strategy(stage).composeFlow(this, stage)
-    basicSteps()
+    basicSteps(stage)
   }
 
   /**

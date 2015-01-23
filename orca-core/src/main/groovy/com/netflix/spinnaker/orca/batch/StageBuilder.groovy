@@ -75,8 +75,8 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param taskType The +Task+ implementation class.
    * @return a +Step+ that will execute an instance of the required +Task+.
    */
-  protected Step buildStep(String taskName, Class<? extends Task> taskType) {
-    buildStep taskName, applicationContext.getBean(taskType)
+  protected Step buildStep(Stage stage, String taskName, Class<? extends Task> taskType) {
+    buildStep stage, taskName, applicationContext.getBean(taskType)
   }
 
   /**
@@ -87,22 +87,22 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param task The +Task+ implementation.
    * @return a +Step+ that will execute the specified +Task+.
    */
-  protected Step buildStep(String taskName, Task task) {
-    createStepWithListeners(taskName)
+  protected Step buildStep(Stage stage, String taskName, Task task) {
+    createStepWithListeners(stage, taskName)
         .tasklet(taskTaskletAdapter.decorate(task))
         .build()
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
-  private StepBuilder createStepWithListeners(String taskName) {
-    def stepBuilder = steps.get(stepName(taskName))
+  private StepBuilder createStepWithListeners(Stage stage, String taskName) {
+    def stepBuilder = steps.get(stepName(stage.id, taskName))
     getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
       builder.listener(listener)
     } as StepBuilder
   }
 
-  private String stepName(String taskName) {
-    "${type}.${taskName}.${randomUUID().toString()}"
+  private String stepName(String stageId, String taskName) {
+    "${stageId}.${type}.${taskName}.${randomUUID().toString()}"
   }
 
   @Autowired

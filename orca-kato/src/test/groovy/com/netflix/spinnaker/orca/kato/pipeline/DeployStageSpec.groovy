@@ -257,6 +257,6 @@ class DeployStageSpec extends Specification {
     then:
     steps*.name.collect {
       it.tokenize('.')[1]
-    } == deployStage.basicSteps()*.name.collect { it.tokenize('.')[1] }
+    } == deployStage.basicSteps(stage)*.name.collect { it.tokenize('.')[1] }
   }
 }

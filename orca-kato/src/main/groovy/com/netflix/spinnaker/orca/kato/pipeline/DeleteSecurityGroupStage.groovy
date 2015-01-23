@@ -38,9 +38,9 @@ class DeleteSecurityGroupStage extends LinearStage {
   @Override
   protected List<Step> buildSteps(Stage stage) {
     [
-      buildStep(MAYO_CONFIG_TYPE, DeleteSecurityGroupTask),
-      buildStep("forceCacheRefresh", DeleteSecurityGroupForceRefreshTask),
-      buildStep("monitorDelete", MonitorKatoTask),
+      buildStep(stage, MAYO_CONFIG_TYPE, DeleteSecurityGroupTask),
+      buildStep(stage, "forceCacheRefresh", DeleteSecurityGroupForceRefreshTask),
+      buildStep(stage, "monitorDelete", MonitorKatoTask),
     ]
   }
 }

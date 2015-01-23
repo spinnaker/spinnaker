@@ -38,10 +38,10 @@ class UpsertSecurityGroupStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("upsertSecurityGroup", UpsertSecurityGroupTask)
-    def step2 = buildStep("monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep("forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
-    def step4 = buildStep("waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
+    def step1 = buildStep(stage, "upsertSecurityGroup", UpsertSecurityGroupTask)
+    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
+    def step4 = buildStep(stage, "waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
     [step1, step2, step3, step4]
   }
 }

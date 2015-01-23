@@ -38,7 +38,7 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
 
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
-    def taskName = stepExecution.stepName.find(TASK_NAME_PATTERN)
+    def taskName = taskName(stepExecution)
     def task = stage.tasks.find { it.name == taskName }
     if (!task) {
       task = new DefaultTask(name: taskName, status: ExecutionStatus.RUNNING)
@@ -49,7 +49,7 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
 
   @Override
   void afterTask(Stage stage, StepExecution stepExecution) {
-    def taskName = stepExecution.stepName.find(TASK_NAME_PATTERN)
+    def taskName = taskName(stepExecution)
     def task = stage.tasks.find { it.name == taskName }
     ExecutionStatus executionStatus = mapBatchStatus(stepExecution.status)
     task.status = executionStatus

@@ -46,9 +46,9 @@ class DeregisterInstancesFromLoadBalancerStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("deregisterInstances", DeregisterInstancesFromLoadBalancerTask)
-    def step2 = buildStep("monitorInstances", MonitorKatoTask)
-    def step3 = buildStep("waitForLoadBalancerState", WaitForDownInstanceHealthTask)
+    def step1 = buildStep(stage, "deregisterInstances", DeregisterInstancesFromLoadBalancerTask)
+    def step2 = buildStep(stage, "monitorInstances", MonitorKatoTask)
+    def step3 = buildStep(stage, "waitForLoadBalancerState", WaitForDownInstanceHealthTask)
     [step1, step2, step3]
   }
 }
