@@ -92,7 +92,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   static class MutableCacheData implements CacheData {
     final String id
-    int ttlSeconds = NO_TTL
+    int ttlSeconds = -1
     final Map<String, Object> attributes = [:]
     final Map<String, Collection<String>> relationships = [:].withDefault { [] as Set }
 
