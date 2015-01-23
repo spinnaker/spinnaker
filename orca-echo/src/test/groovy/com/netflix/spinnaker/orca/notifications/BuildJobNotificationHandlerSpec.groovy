@@ -116,7 +116,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     }
 
     where:
-    input = [name: "SPINNAKER-package-pond", master: "master1", lastBuildStatus: "Success"]
+    input = [name: "SPINNAKER-package-pond", master: "master1", lastBuild: [ building: "false", result: "SUCCESS" ]]
   }
 
   void "should add multiple pipeline targets to single trigger type"() {
@@ -157,7 +157,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     where:
     master << ['master1', 'master2']
-    input = [name: "SPINNAKER-package-pond", master: master, lastBuildStatus: "Success"]
+    input = [name: "SPINNAKER-package-pond", master: master, lastBuild: [result:"SUCCESS", building:"false"]]
 
   }
 
@@ -174,6 +174,38 @@ class BuildJobNotificationHandlerSpec extends Specification {
     handler.interestingPipelines.size() == 2
     handler.interestingPipelines.values()*.name.flatten() == ["pipeline1", "enabledPipeline"]
 
+  }
+
+  void "builds that have failed should not kick off the trigger"() {
+    given:
+    PipelineStarter pipelineStarter = Mock(PipelineStarter)
+    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
+    handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
+
+    when:
+    handler.handle(input)
+
+    then:
+    0 * pipelineStarter.start(_)
+
+    where:
+    input = [name: "SPINNAKER-package-pond", master: 'master2', lastBuild: [result:"FAILURE", building:"false"]]
+  }
+
+  void "in progress builds should not kick off the trigger"() {
+    given:
+    PipelineStarter pipelineStarter = Mock(PipelineStarter)
+    def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper())
+    handler.interestingPipelines[BuildJobNotificationHandler.generateKey('master2', input.name)] = [pipeline3]
+
+    when:
+    handler.handle(input)
+
+    then:
+    0 * pipelineStarter.start(_)
+
+    where:
+    input = [name: "SPINNAKER-package-pond", master: 'master2', lastBuild: [result:"SUCCESS", building:"true"]]
   }
 
 }
