@@ -40,10 +40,12 @@ class NotificationSpec extends Specification {
 
   def setupSpec() {
     System.setProperty("echo.baseUrl", "http://echo")
+    System.setProperty("mayo.baseUrl", "http://mayo")
   }
 
   def cleanupSpec() {
     System.clearProperty("echo.baseUrl")
+    System.clearProperty("mayo.baseUrl")
   }
 
   def setup() {
