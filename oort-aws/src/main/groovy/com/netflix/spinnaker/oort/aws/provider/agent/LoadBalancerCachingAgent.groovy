@@ -142,7 +142,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     def cacheResult = buildCacheResult(loadBalancers, [:])
     def cacheData = new DefaultCacheData(
       Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
-      ONE_HOUR_TTL,
+      60 * 60,
       [
         cacheTime   : new Date(),
         cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
@@ -153,7 +153,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
     cacheResult.cacheResults.values().each { Collection<CacheData> cacheDatas ->
       cacheDatas.each {
-        ((MutableCacheData) it).ttlSeconds = ONE_MINUTE_TTL
+        ((MutableCacheData) it).ttlSeconds = 60
       }
     }
 

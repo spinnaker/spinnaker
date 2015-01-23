@@ -150,7 +150,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     def cacheResult = buildCacheResult(asgs, subnetMap, [:])
     def cacheData = new DefaultCacheData(
       Keys.getServerGroupKey(data.asgName as String, account.name, region),
-      ONE_HOUR_TTL,
+      60 * 60,
       [
         cacheTime   : new Date(),
         cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
@@ -161,7 +161,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
     cacheResult.cacheResults.values().each { Collection<CacheData> cacheDatas ->
       cacheDatas.each {
-        ((MutableCacheData) it).ttlSeconds = ONE_MINUTE_TTL
+        ((MutableCacheData) it).ttlSeconds = 60
       }
     }
 

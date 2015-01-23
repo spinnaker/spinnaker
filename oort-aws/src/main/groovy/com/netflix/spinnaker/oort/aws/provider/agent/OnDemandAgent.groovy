@@ -20,10 +20,6 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 
 interface OnDemandAgent {
-  public static final int NO_TTL = -1
-  public static final int ONE_MINUTE_TTL = 60
-  public static final int ONE_HOUR_TTL = 60 * ONE_MINUTE_TTL
-
   String getOnDemandAgentType();
 
   static class OnDemandResult {
