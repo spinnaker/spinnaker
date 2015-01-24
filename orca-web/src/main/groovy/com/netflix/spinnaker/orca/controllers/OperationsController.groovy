@@ -35,8 +35,8 @@ class OperationsController {
   ObjectMapper objectMapper
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
-  Map<String, String> orchestrate(@RequestBody Map pipeline) {
-    pipeline.trigger = [type: "manual", invocation: "/orchestrate endpoint"]
+  Map<String, String> orchestrate(@RequestBody Map pipeline, @RequestParam("user") String user) {
+    pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user]
     startPipeline(pipeline)
   }
 
