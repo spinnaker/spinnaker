@@ -32,11 +32,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
+import org.springframework.session.data.redis.config.annotation.web.http.GateRedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import redis.clients.jedis.JedisShardInfo
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
@@ -46,7 +46,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Configuration
-@EnableRedisHttpSession
+@Import(GateRedisHttpSessionConfiguration)
 class GateConfig {
 
   public static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL"
