@@ -146,7 +146,7 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Immutable
-    static class User {
+    static class User implements Serializable {
       String email
       String firstName
       String lastName

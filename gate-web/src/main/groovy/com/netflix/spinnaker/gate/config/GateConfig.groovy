@@ -26,13 +26,17 @@ import java.util.concurrent.Executors
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.metrics.repository.MetricRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import redis.clients.jedis.JedisShardInfo
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
@@ -42,9 +46,22 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Configuration
+@EnableRedisHttpSession
 class GateConfig {
 
   public static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL"
+
+  @Bean
+  JedisConnectionFactory jedisConnectionFactory(@Value('${redis.connection:redis://localhost:6379}') String connection) {
+    URI redis = URI.create(connection)
+    def factory = new JedisConnectionFactory()
+    factory.hostName = redis.host
+    factory.port = redis.port
+    if (redis.userInfo) {
+      factory.password = redis.userInfo.split(":", 2)[1]
+    }
+    factory
+  }
 
   @Bean
   @ConditionalOnMissingBean(RestTemplate)

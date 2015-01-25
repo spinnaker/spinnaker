@@ -22,3 +22,5 @@ services:
   igor:
     enabled: false
 
+redis:
+  connection: redis://localhost:6379
