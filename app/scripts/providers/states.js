@@ -167,7 +167,6 @@ angular.module('deckApp')
         children: [
           {
           name: 'clusters',
-          reloadOnSearch: false,
           url: '/clusters?q&primary&secondary&hideInstances&hideHealthy&hideDisabled&acct&reg&status&providerType&instanceType',
           views: {
             'nav': {
