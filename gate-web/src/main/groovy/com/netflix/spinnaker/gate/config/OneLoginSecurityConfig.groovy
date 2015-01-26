@@ -30,10 +30,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.RememberMeServices
@@ -60,6 +62,8 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     Boolean enabled
     String url
     String certificate
+    String redirectBase
+    String requiredRole
   }
 
   @Override
@@ -83,11 +87,13 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final String url
     private final String certificate
+    private final OneLoginSecurityConfigProperties oneLoginProperties
 
     @Autowired
     OneLoginSecurityController(OneLoginSecurityConfigProperties properties) {
       this.url = properties.url
       this.certificate = properties.certificate
+      this.oneLoginProperties = properties
     }
 
     @Autowired
@@ -98,7 +104,12 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
         @RequestParam(value = "callback", required = false) String cb,
         @RequestParam(value = "path", required = false) String hash,
         HttpServletRequest request, HttpServletResponse response) {
-      def redirect = new URL(request.scheme, request.serverName, request.serverPort, request.contextPath + '/auth/signIn')
+      URL redirect
+      if (oneLoginProperties.redirectBase) {
+        redirect = (oneLoginProperties.redirectBase + '/auth/signIn').toURI().normalize().toURL()
+      } else {
+        redirect = new URL(request.scheme, request.serverName, request.serverPort, request.contextPath + '/auth/signIn')
+      }
       def appSettings = new AppSettings(issuer: url, assertionConsumerServiceUrl: redirect)
       def authReq = new AuthRequest(appSettings)
       def samlReq = URLEncoder.encode(authReq.request, 'UTF-8')
@@ -120,6 +131,9 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
       def user = new User(resp.nameId, resp.getAttribute("User.FirstName"), resp.getAttribute("User.LastName"),
           resp.getAttribute("memberOf"))
+      if (!hasRequiredRole(user)) {
+        throw new BadCredentialsException("Credentials are bad")
+      }
       def auth = new UsernamePasswordAuthenticationToken(user, "", [new SimpleGrantedAuthority("USER")])
       SecurityContextHolder.context.authentication = auth
       rememberMeServices.loginSuccess(request, response, auth)
@@ -133,10 +147,17 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
       response.sendRedirect callback
     }
 
+    boolean hasRequiredRole(User user) {
+      if (oneLoginProperties.requiredRole) {
+        return user.memberOf.contains(oneLoginProperties.requiredRole)
+      }
+      return true
+    }
+
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     User getUser(HttpServletResponse response) {
       Object whoami = SecurityContextHolder.context.authentication.principal
-      if (!whoami || !(whoami instanceof User)) {
+      if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(whoami))) {
         response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
         response.sendError 401
         null
