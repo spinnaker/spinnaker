@@ -3,7 +3,8 @@
 
 angular
   .module('deckApp.config.controller', [
-    'deckApp.applications.write.service'
+    'deckApp.applications.write.service',
+    'deckApp.confirmationModal.service',
   ])
   .controller('ConfigController', function ($modal, $state, applicationWriter, confirmationModalService,  application) {
     var vm = this;
