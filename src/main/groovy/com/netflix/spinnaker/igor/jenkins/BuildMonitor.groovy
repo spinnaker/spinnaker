@@ -34,6 +34,7 @@ import rx.Observable
 import rx.Scheduler.Worker
 import rx.functions.Action0
 import rx.schedulers.Schedulers
+import com.netflix.appinfo.InstanceInfo
 
 import javax.annotation.PreDestroy
 import java.util.concurrent.TimeUnit
