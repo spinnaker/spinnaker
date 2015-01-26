@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildDetails
@@ -65,13 +66,31 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
 
     static final String BUILD_IN_PROGRESS = "BUILDING"
 
+    @Autowired(required = false)
+    DiscoveryClient discoveryClient
+
+    boolean isInService() {
+        if (discoveryClient == null) {
+            log.info("no DiscoveryClient, assuming InService")
+            true
+        } else {
+            def remoteStatus = discoveryClient.instanceRemoteStatus
+            log.info("current remote status ${remoteStatus}")
+            remoteStatus == InstanceInfo.InstanceStatus.UP
+        }
+    }
+
     @Override
     void onApplicationEvent(ContextRefreshedEvent event) {
         log.info('Started')
         worker.schedulePeriodically(
             {
-                jenkinsMasters.map.keySet().each { master ->
-                    changedBuilds(master)
+                if (isInService()) {
+                    jenkinsMasters.map.keySet().each { master ->
+                        changedBuilds(master)
+                    }
+                } else {
+                    log.info("not in service")
                 }
             } as Action0, 0, pollInterval, TimeUnit.SECONDS
         )
@@ -115,25 +134,25 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                     boolean addToCache = false
                     Map cachedBuild = null
                     log.debug "processing build : ${project?.name} : building? ${project?.lastBuild?.building}"
-                    if(!project?.lastBuild) {
+                    if (!project?.lastBuild) {
                         log.debug "no builds found for ${project.name}, skipping"
                     } else if (cachedBuilds.contains(project.name)) {
                         cachedBuild = cache.getLastBuild(master, project.name)
                         boolean cachedBuilding = cachedBuild.lastBuildStatus.equals(BUILD_IN_PROGRESS)
                         if ((project.lastBuild.building != cachedBuilding) ||
                             (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel)) ||
-                                (project.lastBuild.result && (project.lastBuild.result != cachedBuild.lastBuildStatus))) {
+                            (project.lastBuild.result && (project.lastBuild.result != cachedBuild.lastBuildStatus))) {
                             log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number}"
 
-                            if(echoService && cachedBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+                            if (echoService && cachedBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
                                 // we cached a build in progress, but missed the build result (a new build is underway or complete)
                                 // fetch the final old build status and post the final result to echo
                                 log.info "fetching missed completed build info for ${cachedBuild.lastBuildLabel}"
                                 Build finishedBuild = jenkinsMasters.map[master].getBuild(project.name, Integer.valueOf(cachedBuild.lastBuildLabel))
                                 Project oldProject = new Project(name: project.name, lastBuild: finishedBuild)
-                                    echoService.postBuild(
-                                        new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
-                                   // don't add to cache since we already have a newer build to cache
+                                echoService.postBuild(
+                                    new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
+                                // don't add to cache since we already have a newer build to cache
                             }
                             addToCache = true
                         }
@@ -146,7 +165,7 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         String result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
                         cache.setLastBuild(master, project.name, project.lastBuild.number, result)
                         if (echoService) {
-                            if(project.lastBuild.building) {
+                            if (project.lastBuild.building) {
                                 project.lastBuild.result = BUILD_IN_PROGRESS // for consistency
                             }
                             echoService.postBuild(
