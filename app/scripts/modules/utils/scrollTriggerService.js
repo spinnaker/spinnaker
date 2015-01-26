@@ -21,7 +21,7 @@ angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
      *               if it's going to affect the scope - otherwise Angular won't notice it.
      */
     function register(elementScope, element, targetId, method) {
-      var eventToRegister = { element: $(element), method: method };
+      var eventToRegister = { element: element, method: method };
 
       var scrollTarget = targetId ? '[data-scroll-id=' + targetId + ']' : 'window';
 
