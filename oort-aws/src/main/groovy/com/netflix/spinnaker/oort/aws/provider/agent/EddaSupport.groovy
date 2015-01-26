@@ -20,8 +20,8 @@ import java.text.SimpleDateFormat
 
 class EddaSupport {
 
-  static Long parseLastModified(String lastModified) {
-    if (!lastModified) return null
+  static long parseLastModified(String lastModified) {
+    if (!lastModified) return 0
 
     // SimpleDateFormat isn't thread safe
     SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
