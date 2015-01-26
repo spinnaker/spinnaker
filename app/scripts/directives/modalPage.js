@@ -6,10 +6,9 @@ angular.module('deckApp')
     return {
       restrict: 'EA',
       link: function (scope, elem) {
-        var $elem = $(elem);
         function getTabbableElements() {
           var tagSelector = 'a[href],input,select,button,textarea';
-          return $elem.find(tagSelector).filter(':visible').not(':disabled').not($elem.find('.ng-enter *'));
+          return elem.find(tagSelector).filter(':visible').not(':disabled').not(elem.find('.ng-enter *'));
         }
 
         var ts = Math.floor(Math.random() * 4294967295);

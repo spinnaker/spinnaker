@@ -25,8 +25,8 @@ angular
 
         scope.$on('parent::clearAll', function() {
           $timeout(function() {  // This is needed b/c we don't want to trigger another digest cycle while one is currently in flight.
-            $(elem).find(':checked').trigger('click');
-            $(elem).find('input').val('').trigger('change');
+            elem.find(':checked').trigger('click');
+            elem.find('input').val('').trigger('change');
           }, 0, false);
         });
       },
