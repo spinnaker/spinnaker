@@ -32,6 +32,7 @@ angular.module('deckApp', [
     'deckApp.scheduler',
     'deckApp.urlBuilder',
     'deckApp.cluster',
+    'deckApp.confirmationModal.service',
     'deckApp.deploymentStrategy',
     'deckApp.deploymentStrategy.redblack',
     'deckApp.deploymentStrategy.none',

@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.confirmationModal.service', [
+  'deckApp.tasks.monitor',
+  'deckApp.account',
+])
   .factory('confirmationModalService', function($modal) {
     var defaults = {
       buttonText: 'Confirm'
@@ -11,7 +14,7 @@ angular.module('deckApp')
       params = angular.extend(angular.copy(defaults), params);
 
       var modalArgs = {
-        templateUrl: 'views/modal/confirm.html',
+        templateUrl: 'scripts/modules/confirmationModal/confirm.html',
         controller: 'ConfirmationModalCtrl as ctrl',
         resolve: {
           params: function() {
@@ -46,7 +49,7 @@ angular.module('deckApp')
       verifyAccount: ''
     };
 
-    this.formDisabled = function() {
+    this.formDisabled = function () {
       return $scope.verification.requireAccountEntry && $scope.verification.verifyAccount !== params.account.toUpperCase();
     };
 
