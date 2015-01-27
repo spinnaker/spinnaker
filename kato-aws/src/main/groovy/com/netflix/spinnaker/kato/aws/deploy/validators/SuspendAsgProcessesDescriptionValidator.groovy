@@ -27,7 +27,7 @@ class SuspendAsgProcessesDescriptionValidator extends AmazonDescriptionValidatio
     validateAsgNameAndRegions description, errors
     def invalidProcessTypes = description.processes.findAll { !AutoScalingProcessType.parse(it) }
     if (invalidProcessTypes) {
-      errors.rejectValue "processes", "createNetworkInterfaceDescription.processes.not.valid"
+      errors.rejectValue "processes", "suspendAsgProcessesDescription.processes.not.valid"
     }
   }
 }
