@@ -49,7 +49,7 @@ class SuspendAsgProcessesDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("processes", "createNetworkInterfaceDescription.processes.not.valid")
+    1 * errors.rejectValue("processes", "suspendAsgProcessesDescription.processes.not.valid")
   }
 
 }
