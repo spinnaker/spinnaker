@@ -62,7 +62,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
               standalone : stage.execution instanceof Orchestration,
               context    : stage.context,
               executionId: stage.execution.id,
-              stepName   : stepExecution.stepName
+              taskName   : stepExecution.stepName
           ]
       )
     }
@@ -81,7 +81,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
             standalone : stage.execution instanceof Orchestration,
             context    : stage.context,
             executionId: stage.execution.id,
-            stepName   : stepExecution.stepName
+            taskName   : stepExecution.stepName
         ]
     )
   }

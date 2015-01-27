@@ -175,7 +175,7 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     echoListener.afterTask(stage, stepExecution)
 
     then:
-    message.content.stepName == 'test123.createDeploy'
+    message.content.taskName == 'test123.createDeploy'
   }
 
 }
