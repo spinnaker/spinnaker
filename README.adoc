@@ -1,0 +1,84 @@
+= Spinnaker + Docker
+
+This document shows how to run a local version of Spinnaker inside a docker container.
+
+== Docker
+
+Got Docker? Docker is easiest to run if you have a Linux server sitting around. There are multiple virtual machines available.
+
+NOTE: It's possible to run Docker from Mac OSX, but there are a lot of wrinkles involved. This document assumes you are simply using some virtual server, like VirtualBox or VMWare.
+
+Assuming you are running a Linux server, install docker.
+
+=== In Ubuntu
+
+```
+$ sudo apt-get install docker.io
+```
+
+== Building a docker image of this project
+
+With Docker installed, you are ready to build a Docker image that you can.
+
+```
+$ sudo docker build -t ubuntu:spinnaker .
+```
+
+* `sudo` - Docker commands are run as root. On a Debian derivative, you use sudo to accomplish this
+* `docker build` - build a Docker container using the Dockerfile
+* `-t ubuntu:spinnaker` - tag repository:name, doesn't really matter. Just pick a distinct name
+* `.` - look in the this local path for the `Dockerfile`
+
+== Launching the container
+
+Assuming you built the image, time to launch.
+
+```
+$ sudo docker run -i -p 80 -t ubuntu:spinnaker /bin/bash
+```
+
+* `-i` - launch in interactive mode (we need this so we can fire up the application)
+* `-p 80` - expose the container's port 80 to the outside world (for the external port, see below)
+* `-t ubuntu:spinnaker` - tagged image to run
+* `/bin/bash` - The command it launches is your shell. You'll be *root* at `/`
+
+WARNING: No server processes will have started.
+
+== Running Spinnaker
+
+Time to fire it up the actual application. (HINT: You are now inside the container.)
+
+```
+#/> /opt/run.sh
+```
+
+This will launch all the components needed for Spinnaker.
+
+== Viewing Spinnaker from the outside world
+
+If you type `exit` from that shell, you'll not only exit the container, but you'll shut it down as well. As an alternative, open a new shell tab in the host system. Then do this:
+
+```
+$ sudo docker ps
+```
+
+You should see something like this:
+
+```
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                   NAMES
+99abb500ff0f        ubuntu:spinnaker    /bin/bash           5 seconds ago       Up 4 seconds        0.0.0.0:49153->80/tcp   jovial_heisenberg   
+```
+
+The *CONTAINER ID*, times, and *NAMES* will certainly be different. But notice the *PORTS* column. It says that if visit *localhost:49153*, it will forward that web request to the container's port *80*.
+
+== Viewing Spinnaker from the original guest
+
+Remember setting up Docker inside a virtual machine? If you have things configured properly, you can back up to your actual guest machine and see Spinnaker.
+
+```
+$ ifconfig -a
+```
+
+This should show the IP address of docker as well as the Linux server. Capture the Linux server's IP address.
+
+Now go to actual guest operating system, and open a browser at *<ip address>:49153*. Ta dah!

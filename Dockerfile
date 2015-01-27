@@ -42,3 +42,8 @@ RUN echo "/opt/mort/bin/mort 2>&1 >/logs/mort.log &" >>/opt/run.sh
 RUN echo "/opt/front50/bin/front50-web 2>&1 >/logs/front50.log &" >>/opt/run.sh
 RUN echo "/opt/pond/bin/pond 2>&1 >/logs/pond.log &" >>/opt/run.sh
 RUN chmod +x /opt/run.sh
+RUN /bin/rm -f /etc/apache2/sites-enabled/*.conf
+RUN /bin/rm -f /etc/apache2/sites-available/*.conf
+ADD micronolith/osfiles/etc/apache2/sites-enabled/spinnaker.conf /etc/apache2/sites-available/spinnaker.conf
+RUN a2ensite spinnaker
+EXPOSE 80
