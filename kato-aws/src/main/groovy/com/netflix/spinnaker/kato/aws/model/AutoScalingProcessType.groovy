@@ -24,7 +24,7 @@ package com.netflix.spinnaker.kato.aws.model
  *
  * The remaining Auto Scaling process types relate to specific Auto Scaling features:
  * AddToLoadBalancer
- * AlarmNotifications
+ * AlarmNotification
  * AZRebalance
  * HealthCheck
  * ReplaceUnhealthy
@@ -34,7 +34,7 @@ enum AutoScalingProcessType {
   Launch,
   Terminate,
   AddToLoadBalancer,
-  AlarmNotifications,
+  AlarmNotification,
   AZRebalance,
   HealthCheck,
   ReplaceUnhealthy,
