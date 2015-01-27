@@ -57,7 +57,7 @@ class TestStage extends LinearStage {
   @Override
   protected List<Step> buildSteps(Stage stage) {
     tasks.collect {
-      buildStep randomUUID().toString(), it
+      buildStep stage, randomUUID().toString(), it
     }
   }
 }

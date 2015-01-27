@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionList
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
-import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import net.greghaines.jesque.Config
@@ -51,8 +50,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @ConditionalOnProperty(value = 'echo.baseUrl')
 @ComponentScan([
     "com.netflix.spinnaker.orca.echo",
-    "com.netflix.spinnaker.orca.notifications.jenkins",
-    "com.netflix.spinnaker.orca.notifications.manual"
+    "com.netflix.spinnaker.orca.notifications.jenkins"
 ])
 @CompileStatic
 class EchoConfiguration {
@@ -124,12 +122,7 @@ class EchoConfiguration {
   BuildJobNotificationHandler buildJobNotificationHandler(Map input) {
     new BuildJobNotificationHandler(input)
   }
-
-  @Bean @Scope(SCOPE_PROTOTYPE)
-  ManualTriggerNotificationHandler manualTriggerNotificationHandler(Map input) {
-    new ManualTriggerNotificationHandler(input)
-  }
-
+  
   @Bean
   SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
     new SpringWorkerFactory(jesqueConfig, notificationAgents.collect {

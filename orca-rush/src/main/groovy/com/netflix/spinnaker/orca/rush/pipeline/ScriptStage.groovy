@@ -36,8 +36,8 @@ class ScriptStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("runScript", RunScriptTask)
-    def step2 = buildStep("monitorScript", MonitorScriptTask)
+    def step1 = buildStep(stage, "runScript", RunScriptTask)
+    def step2 = buildStep(stage, "monitorScript", MonitorScriptTask)
     [step1, step2]
   }
 }

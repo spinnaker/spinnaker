@@ -32,6 +32,7 @@ import static java.util.Collections.EMPTY_MAP
 
 @CompileStatic
 abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializable {
+  String id = UUID.randomUUID()
   String type
   String name
   Long startTime
@@ -42,8 +43,13 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Map<String, Object> context = [:]
   boolean immutable = false
   List<Task> tasks = []
+  String parentStageId
+  Stage.SyntheticStageOwner syntheticStageOwner
 
-  transient ObjectMapper objectMapper = OrcaObjectMapper.DEFAULT
+  List<InjectedStageConfiguration> beforeStages = []
+  List<InjectedStageConfiguration> afterStages = []
+
+  transient ObjectMapper objectMapper = new OrcaObjectMapper()
 
   @JsonIgnore
   ObjectMapper getObjectMapper() {

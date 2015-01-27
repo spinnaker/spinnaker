@@ -34,9 +34,9 @@ class ManualInterventionStage extends StageBuilder {
 
   @Override
   JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
-    def step1 = buildStep("preIntervention", preInterventionTask)
-    def step2 = buildStep("postIntervention", postInterventionTask)
-    def step3 = buildStep("final", finalTask)
+    def step1 = buildStep(stage, "preIntervention", preInterventionTask)
+    def step2 = buildStep(stage, "postIntervention", postInterventionTask)
+    def step3 = buildStep(stage, "final", finalTask)
     (JobFlowBuilder) jobBuilder.next(step1)
                                .on(ExitStatus.STOPPED.exitCode).stopAndRestart(step2)
                                .from(step1)

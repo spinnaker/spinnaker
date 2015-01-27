@@ -20,10 +20,12 @@ import com.netflix.spinnaker.orca.front50.tasks.UpsertApplicationTask
 import com.netflix.spinnaker.orca.front50.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class UpdateApplicationStage extends LinearStage {
   public static final String MAYO_CONFIG_TYPE = "updateApplication"
 
@@ -33,8 +35,8 @@ class UpdateApplicationStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("updateApplication", UpsertApplicationTask)
-    def step2 = buildStep("waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
+    def step1 = buildStep(stage, "updateApplication", UpsertApplicationTask)
+    def step2 = buildStep(stage, "waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
     [step1, step2]
   }
 }

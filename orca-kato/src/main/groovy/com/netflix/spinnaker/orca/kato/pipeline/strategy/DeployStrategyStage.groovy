@@ -30,11 +30,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import java.util.logging.Logger
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
 abstract class DeployStrategyStage extends LinearStage {
+  Logger logger = Logger.getLogger(DeployStrategyStage.simpleName)
+
   @Autowired OortService oort
   @Autowired ObjectMapper mapper
   @Autowired ResizeAsgStage resizeAsgStage
@@ -51,7 +54,7 @@ abstract class DeployStrategyStage extends LinearStage {
    * @return the steps for the stage excluding whatever cleanup steps will be
    * handled by the deployment strategy.
    */
-  protected abstract List<Step> basicSteps()
+  protected abstract List<Step> basicSteps(Stage stage)
 
   /**
    * @param stage the stage configuration.
@@ -75,7 +78,7 @@ abstract class DeployStrategyStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     correctContext(stage)
     strategy(stage).composeFlow(this, stage)
-    basicSteps()
+    basicSteps(stage)
   }
 
   /**
@@ -86,12 +89,9 @@ abstract class DeployStrategyStage extends LinearStage {
    */
   private static void correctContext(Stage stage) {
     if (stage.context.containsKey("cluster")) {
-      // darn, we left the account at the top-level >:-[
-      def account = stage.context.account
-      def stageData = stage.mapTo("/cluster", StageData)
-      stageData.account = account
-      stage.commit(stageData)
+      stage.context.putAll(stage.context.cluster as Map)
     }
+    stage.context.remove("cluster")
   }
 
   @VisibleForTesting
@@ -110,20 +110,29 @@ abstract class DeployStrategyStage extends LinearStage {
         }
         def latestAsg = existingAsgs.findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
         def nextStageContext = [asgName: latestAsg.name, regions: [region], credentials: cleanupConfig.account]
+
+        if (nextStageContext.asgName) {
+          def names = Names.parseName(nextStageContext.asgName as String)
+          if (stageData.application != names.app) {
+            logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextStageContext)}")
+            continue
+          }
+        }
+
         if (stageData.scaleDown) {
           nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter("scaleDown", resizeAsgStage, nextStageContext)
+          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
         }
-        injectAfter("disable", disableAsgStage, nextStageContext)
+        injectAfter(stage, "disable", disableAsgStage, nextStageContext)
         if (stageData.scaleDown) {
           nextStageContext.putAll([action: "resume", processes: ["Terminate"]])
-          injectAfter("enableTerminate", modifyScalingProcessStage, nextStageContext)
+          injectAfter(stage, "enableTerminate", modifyScalingProcessStage, nextStageContext)
         }
         if (stageData.shrinkCluster) {
-          Names names = Names.parseName(latestAsg.name)
+          Names names = Names.parseName(latestAsg.name as String)
           def shrinkContext = [application: names.app, clusterName: names.cluster,
                                forceDelete: true, regions: [region], credentials: cleanupConfig.account]
-          injectAfter("shrinkCluster", shrinkClusterStage, shrinkContext)
+          injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
         }
       }
     }
@@ -143,7 +152,15 @@ abstract class DeployStrategyStage extends LinearStage {
         }
         for (asg in existingAsgs) {
           def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
-          injectAfter("destroyAsg", destroyAsgStage, nextContext)
+          if (nextContext.asgName) {
+            def names = Names.parseName(nextContext.asgName as String)
+            if (stageData.application != names.app) {
+              logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextContext)}")
+              continue
+            }
+          }
+
+          injectAfter(stage, "destroyAsg", destroyAsgStage, nextContext)
         }
       }
     }

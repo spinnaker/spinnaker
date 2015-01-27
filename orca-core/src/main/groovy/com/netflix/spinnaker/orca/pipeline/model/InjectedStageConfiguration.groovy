@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch.lifecycle
+package com.netflix.spinnaker.orca.pipeline.model
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import org.springframework.batch.core.Step
+import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 
 @CompileStatic
-class StartAndMonitorStage extends LinearStage {
-
-  Task startTask, monitorTask
-
-  StartAndMonitorStage() {
-    super("startAndMonitor")
-  }
-
-  @Override
-  protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "start", startTask)
-    def step2 = buildStep(stage, "monitor", monitorTask)
-    [step1, step2]
-  }
+@Immutable(knownImmutables = ["stageBuilder"])
+class InjectedStageConfiguration {
+  LinearStage stageBuilder
+  String name
+  Map<String, Object> context
 }

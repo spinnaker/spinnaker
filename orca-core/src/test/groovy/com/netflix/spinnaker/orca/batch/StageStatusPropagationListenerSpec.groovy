@@ -46,7 +46,7 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     and: "a batch execution context"
     def jobExecution = new JobExecution(id, new JobParameters(pipeline: new JobParameter(pipeline.id)))
-    def stepExecution = new StepExecution("${stageType}.task1", jobExecution)
+    def stepExecution = new StepExecution("${pipeline.stages[0].id}.${stageType}.task1", jobExecution)
 
     and: "a task has run"
     executeTaskReturning taskStatus, stepExecution

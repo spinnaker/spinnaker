@@ -22,6 +22,12 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 interface Stage<T extends Execution> {
+
+  /**
+   * A stage's unique identifier
+   */
+  String getId()
+
   /**
    * The type as it corresponds to the Mayo configuration
    */
@@ -127,4 +133,37 @@ interface Stage<T extends Execution> {
    */
   void commit(String pointer, Object obj)
 
+  /**
+   * Stages can be synthetically injected into the pipeline by a StageBuilder. This flag indicates the relationship
+   * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
+   * traverse the graph until the first non-synthetic stage is found. If this property is null, the stage is not
+   * synthetic.
+   */
+  SyntheticStageOwner getSyntheticStageOwner()
+
+  /**
+   * @see {@link #getSyntheticStageOwner()}
+   */
+  void setSyntheticStageOwner(SyntheticStageOwner syntheticStageOwner)
+
+  enum SyntheticStageOwner {
+    STAGE_BEFORE, STAGE_AFTER
+  }
+
+  @JsonIgnore
+  List<InjectedStageConfiguration> getBeforeStages()
+
+  @JsonIgnore
+  List<InjectedStageConfiguration> getAfterStages()
+
+  /**
+   * This stage's parent stage. Can be used in conjunction with {@link #getBeforeStages()} and {@link #getAfterStages()}
+   * to ascertain this stage's position in the graph.
+   */
+  String getParentStageId()
+
+  /**
+   * @see {@link #getParentStageId()}
+   */
+  void setParentStageId(String id)
 }

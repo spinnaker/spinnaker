@@ -50,7 +50,7 @@ class DestroyAsgTask implements Task {
         "kato.last.task.id"   : taskId,
         "kato.task.id"        : taskId, // TODO retire this.
         "deploy.server.groups": ((Iterable) operation.regions).collectEntries {
-          [(it): operation.asgName]
+          [(it): [operation.asgName]]
         }
     ])
   }

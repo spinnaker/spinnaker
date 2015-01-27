@@ -47,10 +47,10 @@ class ResizeAsgStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     configureTargets(stage)
 
-    def step1 = buildStep("resizeAsg", ResizeAsgTask)
-    def step2 = buildStep("monitorAsg", MonitorKatoTask)
-    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step4 = buildStep("waitForCapacityMatch", WaitForCapacityMatchTask)
+    def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
+    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
     [step1, step2, step3, step4]
   }
 
@@ -71,7 +71,7 @@ class ResizeAsgStage extends LinearStage {
       def description = new HashMap(stage.context)
 
       if (descriptions.containsKey(asg.name)) {
-        descriptions[asg.name].regions.add(region)
+        descriptions[asg.name as String].regions.add(region)
         continue
       }
       description.asgName = asg.name
@@ -113,7 +113,7 @@ class ResizeAsgStage extends LinearStage {
       }
 
 
-      descriptions[asg.name] = description
+      descriptions[asg.name as String] = description
     }
 
     def descriptionList = descriptions.values()
@@ -123,7 +123,7 @@ class ResizeAsgStage extends LinearStage {
 
     if (descriptionList.size()) {
       for (description in descriptionList) {
-        injectAfter("resizeAsg", this, description)
+        injectAfter(stage, "resizeAsg", this, description)
       }
     }
   }

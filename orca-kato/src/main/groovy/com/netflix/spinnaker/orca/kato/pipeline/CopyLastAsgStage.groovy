@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
+import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
@@ -38,13 +39,14 @@ class CopyLastAsgStage extends DeployStrategyStage {
   }
 
   @Override
-  List<Step> basicSteps() {
-    def step1 = buildStep("createCopyLastAsg", CreateCopyLastAsgTask)
-    def step2 = buildStep("monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
-    def step5 = buildStep("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4, step5]
+  List<Step> basicSteps(Stage stage) {
+    def step1 = buildStep(stage, "createCopyLastAsg", CreateCopyLastAsgTask)
+    def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
+    def step3 = buildStep(stage, "sendNotification", NotifyEchoTask)
+    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step5 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
+    def step6 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    [step1, step2, step3, step4, step5, step6]
   }
 
   @Override

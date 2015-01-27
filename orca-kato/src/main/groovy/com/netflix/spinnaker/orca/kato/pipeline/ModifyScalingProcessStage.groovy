@@ -21,10 +21,12 @@ import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeScalingProcessTask
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendScalingProcessTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
 
   static final String MAYO_CONFIG_TYPE = "modifyScalingProcess"
@@ -41,13 +43,13 @@ class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
     switch (data.action) {
       case StageAction.suspend:
         return [
-          buildStep("suspend", SuspendScalingProcessTask),
-          buildStep("monitor", MonitorKatoTask)
+          buildStep(stage, "suspend", SuspendScalingProcessTask),
+          buildStep(stage, "monitor", MonitorKatoTask)
         ]
       case StageAction.resume:
         return [
-          buildStep("resume", ResumeScalingProcessTask),
-          buildStep("monitor", MonitorKatoTask)
+          buildStep(stage, "resume", ResumeScalingProcessTask),
+          buildStep(stage, "monitor", MonitorKatoTask)
         ]
     }
     throw new RuntimeException("No action specified!")

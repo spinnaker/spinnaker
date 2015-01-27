@@ -34,9 +34,9 @@ class FailureRecoveryStage extends StageBuilder {
 
   @Override
   JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
-    def step1 = buildStep("startStep", startTask)
-    def step2 = buildStep("recovery", recoveryTask)
-    def step3 = buildStep("end", endTask)
+    def step1 = buildStep(stage, "startStep", startTask)
+    def step2 = buildStep(stage, "recovery", recoveryTask)
+    def step3 = buildStep(stage, "end", endTask)
     (JobFlowBuilder) jobBuilder.next(step1)
                                .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
                                .from(step1).next(step3)

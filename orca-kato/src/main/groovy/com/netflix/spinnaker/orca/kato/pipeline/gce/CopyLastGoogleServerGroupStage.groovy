@@ -38,10 +38,10 @@ class CopyLastGoogleServerGroupStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep("createCopyLastAsg", CreateCopyLastGoogleServerGroupTask)
-    def step2 = buildStep("monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep("forceCacheRefresh", GoogleServerGroupCacheForceRefreshTask)
-    def step4 = buildStep("waitForUpInstances", WaitForUpInstancesTask)
+    def step1 = buildStep(stage, "createCopyLastAsg", CreateCopyLastGoogleServerGroupTask)
+    def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", GoogleServerGroupCacheForceRefreshTask)
+    def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
     [step1, step2, step3, step4]
   }
 

@@ -98,7 +98,11 @@ class BuildJobNotificationHandlerSpec extends Specification {
     }
 
     where:
-    input = [name: "SPINNAKER-package-pond", master: "master1", lastBuildStatus: "Success"]
+    input = [
+        name     : "SPINNAKER-package-pond",
+        master   : "master1",
+        lastBuild: [result: "SUCCESS", building: "false"]
+    ]
   }
 
   void "should only trigger targets from the same master "() {
@@ -126,6 +130,56 @@ class BuildJobNotificationHandlerSpec extends Specification {
     master    | _
     "master1" | _
 
-    input = [name: "SPINNAKER-package-pond", master: master, lastBuildStatus: "Success"]
+    input = [
+        name     : "SPINNAKER-package-pond",
+        master   : master,
+        lastBuild: [result: "SUCCESS", building: "false"]
+    ]
+  }
+
+  void "builds that have failed should not kick off the trigger"() {
+    given:
+    @Subject handler = handlerFor(input)
+
+    and:
+    pipelineIndexer.getPipelines() >> ImmutableMap.of(
+        new Trigger(input.master, input.name), [pipeline3]
+    )
+
+    when:
+    handler.run()
+
+    then:
+    0 * pipelineStarter.start(*_)
+
+    where:
+    input = [
+        name     : "SPINNAKER-package-pond",
+        master   : "master2",
+        lastBuild: [result: "FAILURE", building: "false"]
+    ]
+  }
+
+  void "in progress builds should not kick off the trigger"() {
+    given:
+    @Subject handler = handlerFor(input)
+
+    and:
+    pipelineIndexer.getPipelines() >> ImmutableMap.of(
+        new Trigger(input.master, input.name), [pipeline3]
+    )
+
+    when:
+    handler.run()
+
+    then:
+    0 * pipelineStarter.start(*_)
+
+    where:
+    input = [
+        name     : "SPINNAKER-package-pond",
+        master   : "master2",
+        lastBuild: [result: "SUCCESS", building: "true"]
+    ]
   }
 }

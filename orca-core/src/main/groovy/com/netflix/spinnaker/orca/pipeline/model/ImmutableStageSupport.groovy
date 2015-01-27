@@ -47,6 +47,11 @@ class ImmutableStageSupport {
     boolean immutable = true
 
     @Override
+    String getId() {
+      self.id
+    }
+
+    @Override
     String getType() {
       self.type
     }
@@ -144,11 +149,45 @@ class ImmutableStageSupport {
 
     @Override
     void commit(Object obj) {
-      throw new IllegalStateException("Stage is currently immutable")
+      fail()
     }
 
     @Override
     void commit(String pointer, Object obj) {
+      fail()
+    }
+
+    @Override
+    Stage.SyntheticStageOwner getSyntheticStageOwner() {
+      self.syntheticStageOwner
+    }
+
+    @Override
+    void setSyntheticStageOwner(Stage.SyntheticStageOwner syntheticStageOwner) {
+      fail()
+    }
+
+    @Override
+    List<InjectedStageConfiguration> getBeforeStages() {
+      ImmutableList.of(self.beforeStages)
+    }
+
+    @Override
+    List<InjectedStageConfiguration> getAfterStages() {
+      ImmutableList.of(self.afterStages)
+    }
+
+    @Override
+    String getParentStageId() {
+      self.parentStageId
+    }
+
+    @Override
+    void setParentStageId(String id) {
+      fail()
+    }
+
+    private static void fail() {
       throw new IllegalStateException("Stage is currently immutable")
     }
 

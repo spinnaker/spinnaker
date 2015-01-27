@@ -53,7 +53,7 @@ class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent 
   void handleNotification(List<Map> response) {
     for (event in response) {
       if (event.content.containsKey("project") && event.content.containsKey("master")) {
-        Map input = event.content.project as Map
+        def input = event.content.project as Map
         input.master = event.content.master
         notify(input)
       }

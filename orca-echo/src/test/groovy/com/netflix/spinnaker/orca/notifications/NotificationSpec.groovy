@@ -9,7 +9,9 @@ import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
-import com.netflix.spinnaker.orca.notifications.manual.ManualTriggerPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPipelineIndexer
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.jenkins.Trigger
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.Config
@@ -36,7 +38,8 @@ class NotificationSpec extends Specification {
 
   def pipelineStarter = Mock(PipelineStarter)
   @Autowired AbstractApplicationContext applicationContext
-  @Autowired ManualTriggerPollingNotificationAgent notificationAgent
+  @Autowired BuildJobPollingNotificationAgent notificationAgent
+  @Autowired BuildJobPipelineIndexer pipelineIndexer
 
   def setupSpec() {
     System.setProperty("echo.baseUrl", "http://echo")
@@ -49,6 +52,16 @@ class NotificationSpec extends Specification {
   }
 
   def setup() {
+    def trigger = new Trigger("master1", "SPINNAKER-package-pond")
+    pipelineIndexer.@interestingPipelines[trigger] = [[
+                                                          name    : "pipeline1",
+                                                          triggers: [[type  : "jenkins",
+                                                                      job   : "SPINNAKER-package-pond",
+                                                                      master: "master1"]],
+                                                          stages  : [[type: "bake"],
+                                                                     [type: "deploy", cluster: [name: "bar"]]]
+                                                      ]]
+
     applicationContext.beanFactory.with {
       registerSingleton "pipelineStarter", pipelineStarter
     }
@@ -64,7 +77,15 @@ class NotificationSpec extends Specification {
 
     when:
     notificationAgent.handleNotification([
-        [content: [pipeline: "foo"]]
+        [
+            content: [
+                project: [
+                    name     : "SPINNAKER-package-pond",
+                    lastBuild: [result: "SUCCESS", building: "false"]
+                ],
+                master : "master1"
+            ]
+        ]
     ])
 
     then:

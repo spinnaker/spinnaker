@@ -54,12 +54,12 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
     return super.afterStep(stepExecution)
   }
 
-  protected final String stageName(StepExecution stepExecution) {
-    stepExecution.stepName.tokenize(".").first()
+  protected final String stageId(StepExecution stepExecution) {
+    stepExecution.stepName.tokenize(".").get(0)
   }
 
-  private String taskName(StepExecution stepExecution) {
-    stepExecution.stepName.tokenize(".").get(1)
+  protected final String taskName(StepExecution stepExecution) {
+    stepExecution.stepName.tokenize(".").get(2)
   }
 
   protected final Execution currentExecution(StepExecution stepExecution) {
@@ -73,7 +73,7 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
   }
 
   protected final Stage currentStage(StepExecution stepExecution) {
-    currentExecution(stepExecution).namedStage(stageName(stepExecution))
+    currentExecution(stepExecution).stages.find { it.id == stageId(stepExecution) }
   }
 
   // TODO this won't work for a number of reasons:

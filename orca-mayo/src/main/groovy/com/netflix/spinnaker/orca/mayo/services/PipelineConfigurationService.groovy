@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.mayo.services
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.mayo.MayoService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableList
+import com.netflix.spinnaker.orca.mayo.MayoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -54,7 +53,10 @@ class PipelineConfigurationService {
   private class PipelinePoller implements Runnable {
     void run() {
       try {
-        pipelines = objectMapper.readValue(mayoService.pipelines.body.in().text, new TypeReference<List<Map>>() {})
+        pipelines = objectMapper.readValue(
+            mayoService.pipelines.body.in().text,
+            new TypeReference<List<Map>>() {}
+        )
       } catch (e) {
         e.printStackTrace()
       }
