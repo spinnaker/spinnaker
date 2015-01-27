@@ -44,7 +44,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
   }
 
   @Override
-  protected Pipeline create(Map<String, Object> config) {
+  protected Pipeline create(Map<String, Serializable> config) {
     return parseConfig(config)
   }
 

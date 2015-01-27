@@ -28,7 +28,6 @@ import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.c
 import static java.util.UUID.randomUUID
 
 @Component
-//@CompileStatic
 class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration> {
 
   @Autowired
@@ -39,7 +38,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   }
 
   @Override
-  protected Orchestration create(Map<String, Object> config) {
+  protected Orchestration create(Map<String, Serializable> config) {
     def orchestration = new Orchestration()
     if (config.containsKey("application")) {
       orchestration.application = config.application
@@ -70,7 +69,7 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   }
 
   @Override
-  protected Job build(Map<String, Object> config, Orchestration orchestration) {
+  protected Job build(Map<String, Serializable> config, Orchestration orchestration) {
     def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
     jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
     List<Stage<Orchestration>> orchestrationStages = []

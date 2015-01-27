@@ -25,6 +25,7 @@ class Pipeline extends Execution<Pipeline> {
   String name
   final Map<String, Object> trigger = [:]
   final Map<String, Serializable> appConfig = [:]
+  final Map<String, Serializable> initialConfig = [:]
 
   static Builder builder() {
     new Builder()

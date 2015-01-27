@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.config
 
-import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
-import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.batch.exceptions.NoopExceptionHandler
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.batch.persistence.JedisJobRegistry
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -34,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -58,6 +60,11 @@ class OrcaConfiguration {
   @Bean @ConditionalOnMissingBean(BatchConfigurer)
   BatchConfigurer batchConfigurer() {
     new MultiThreadedBatchConfigurer()
+  }
+
+  @Bean
+  JobRegistry jobRegistry(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineStarter pipelineStarter) {
+    new JedisJobRegistry(jobExplorer, executionRepository, pipelineStarter)
   }
 
   @Bean @ConditionalOnMissingBean(JobOperator)
@@ -99,7 +106,8 @@ class OrcaConfiguration {
     new NoopNotificationHandler()
   }
 
-  @Bean @Order(Ordered.LOWEST_PRECEDENCE) DefaultExceptionHandler defaultExceptionHandler() {
+  @Bean @Order(Ordered.LOWEST_PRECEDENCE)
+  DefaultExceptionHandler defaultExceptionHandler() {
     new DefaultExceptionHandler()
   }
 
@@ -114,7 +122,8 @@ class OrcaConfiguration {
     new StageStatusPropagationListener(executionRepository)
   }
 
-  @Bean StageTaskPropagationListener stageTaskPropagationListener(ExecutionRepository executionRepository) {
+  @Bean
+  StageTaskPropagationListener stageTaskPropagationListener(ExecutionRepository executionRepository) {
     new StageTaskPropagationListener(executionRepository)
   }
 }

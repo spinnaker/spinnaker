@@ -63,7 +63,7 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
   }
 
   T start(String configJson) {
-    Map<String, Object> config = mapper.readValue(configJson, Map)
+    Map<String, Serializable> config = mapper.readValue(configJson, Map)
     def subject = create(config)
     persistExecution(subject)
     def job = build(config, subject)
@@ -74,9 +74,9 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
 
   protected abstract void persistExecution(T subject)
 
-  protected abstract T create(Map<String, Object> config)
+  protected abstract T create(Map<String, Serializable> config)
 
-  protected abstract Job build(Map<String, Object> config, T subject)
+  protected abstract Job build(Map<String, Serializable> config, T subject)
 
   protected JobParameters createJobParameters(T subject, Map<String, Object> config) {
     def params = new JobParametersBuilder()
