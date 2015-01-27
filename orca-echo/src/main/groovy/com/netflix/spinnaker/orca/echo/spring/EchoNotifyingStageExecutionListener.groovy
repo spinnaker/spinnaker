@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -58,8 +59,10 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
               application: stage.execution.application
           ],
           content: [
+              standalone : stage.execution instanceof Orchestration,
               context    : stage.context,
-              executionId: stage.execution.id
+              executionId: stage.execution.id,
+              stepName   : stepExecution.stepName
           ]
       )
     }
@@ -75,8 +78,10 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
             type       : "orca:task:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
             application: stage.execution.application
         ], content: [
+            standalone : stage.execution instanceof Orchestration,
             context    : stage.context,
-            executionId: stage.execution.id
+            executionId: stage.execution.id,
+            stepName   : stepExecution.stepName
         ]
     )
   }
