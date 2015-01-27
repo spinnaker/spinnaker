@@ -3,7 +3,9 @@
     <div class="col-md-6">
       <h5>Bake Configuration</h5>
       <dl class="dl-narrow dl-horizontal">
-        <dt>AMI</dt>
+        <dt>Provider</dt>
+        <dd>{{stage.context.cloudProviderType ? stage.context.cloudProviderType : 'aws'}}</dd>
+        <dt>Image</dt>
         <dd>{{stage.context.ami}}</dd>
         <dt>Region</dt>
         <dd>{{stage.context.region}}</dd>
