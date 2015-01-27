@@ -33,10 +33,11 @@ import com.google.gson.annotations.SerializedName
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static final Default = new BakeRequest(System.getProperty("user.name"), null, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
 
   String user
   @JsonProperty("package") @SerializedName("package") String packageName
+  CloudProviderType cloudProviderType
   Label baseLabel
   OperatingSystem baseOs
   String baseName
@@ -47,19 +48,23 @@ class BakeRequest {
   String amiName
   String amiSuffix
 
-  enum Label {
+  static enum CloudProviderType {
+    aws, gce
+  }
+
+  static enum Label {
     release, candidate, previous, unstable, foundation
   }
 
-  enum OperatingSystem {
+  static enum OperatingSystem {
     centos, ubuntu, trusty
   }
 
-  enum VmType {
+  static enum VmType {
     pv, hvm
   }
 
-  enum StoreType {
+  static enum StoreType {
     ebs, s3, docker
   }
 }
