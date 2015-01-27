@@ -4,7 +4,7 @@
 angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model', 'deckApp.account', 'deckApp.providerSelection'])
   .controller('AllClustersCtrl', function($scope, application, $modal,
                                           securityGroupService, accountService, providerSelectionService,
-                                          _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupService) {
+                                          _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
@@ -74,7 +74,7 @@ angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model'
             title: function() { return 'Create New Server Group'; },
             application: function() { return application; },
             serverGroup: function() { return null; },
-            serverGroupCommand: function() { return serverGroupService.buildNewServerGroupCommand(application, selectedProvider); },
+            serverGroupCommand: function() { return serverGroupCommandBuilder.buildNewServerGroupCommand(application, selectedProvider); },
             provider: function() { return selectedProvider; }
           }
         });

@@ -1,8 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .factory('gceServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, gceInstanceTypeService) {
+angular.module('deckApp.serverGroup.configure.gce')
+  .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, gceInstanceTypeService, namingService) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -72,10 +72,10 @@ angular.module('deckApp')
     };
   }
 
-    function buildServerGroupCommandFromExisting(application, serverGroup, mode, parseServerGroupName) {
+    function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
 
-      var serverGroupName = parseServerGroupName(serverGroup.name);
+      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
 
       var command = {
         application: application.name,

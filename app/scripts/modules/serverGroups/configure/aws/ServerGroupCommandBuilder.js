@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .factory('awsServerGroupService', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader) {
+  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader, namingService) {
     function buildNewServerGroupCommand(application, account, region) {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount();
@@ -86,14 +86,14 @@ angular.module('deckApp')
 
     }
 
-    function buildServerGroupCommandFromExisting(application, serverGroup, mode, parseServerGroupName) {
+    function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var subnetsLoader = subnetReader.listSubnets();
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, subnets: subnetsLoader});
 
       return asyncLoader.then(function(asyncData) {
-        var serverGroupName = parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+        var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
         var zones = serverGroup.asg.availabilityZones.sort();
         var preferredZones = asyncData.preferredZones[serverGroup.account][serverGroup.region].sort();

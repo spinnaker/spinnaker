@@ -6,7 +6,7 @@ describe('DeployInitializerCtrl', function() {
 
   beforeEach(inject(function ($controller, $rootScope, _, $q) {
     this.$controller = $controller;
-    this.serverGroupService = {};
+    this.serverGroupCommandBuilder = {};
     this.securityGroupService = {};
     this.deploymentStrategyService = {};
     this._ = _;
@@ -27,7 +27,7 @@ describe('DeployInitializerCtrl', function() {
 
         this.controller = this.$controller('DeployInitializerCtrl', {
           $scope: $scope,
-          serverGroupService: this.serverGroupService,
+          serverGroupCommandBuilder: this.serverGroupCommandBuilder,
           securityGroupService: this.securityGroupService,
           deploymentStrategyService: deploymentStrategiesMock,
           _: _

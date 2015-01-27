@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       controllerAs: 'deployInitializerCtrl'
     };
   })
-  .controller('DeployInitializerCtrl', function($scope, serverGroupService, securityGroupService, deploymentStrategyService, _) {
+  .controller('DeployInitializerCtrl', function($scope, serverGroupCommandBuilder, serverGroupReader, securityGroupService, deploymentStrategyService, _) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };
@@ -59,7 +59,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     }
 
     function clearTemplate() {
-      serverGroupService.buildNewServerGroupCommand($scope.application).then(function(command) {
+      serverGroupCommandBuilder.buildNewServerGroupCommand($scope.application).then(function(command) {
         transformCommandToStage(command);
       });
     }
@@ -68,9 +68,9 @@ angular.module('deckApp.pipelines.stage.deploy')
       selection = selection || $scope.command.template;
       if (selection && selection.cluster && selection.serverGroup) {
         var latest = selection.serverGroup;
-        serverGroupService.getServerGroup($scope.application.name, latest.account, latest.region, latest.name).then(function (details) {
+        serverGroupReader.getServerGroup($scope.application.name, latest.account, latest.region, latest.name).then(function (details) {
           angular.extend(details, latest);
-          serverGroupService.buildServerGroupCommandFromExisting($scope.application, details).then(function (command) {
+          serverGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details).then(function (command) {
             command.instanceType = details.launchConfig.instanceType;
             transformCommandToStage(command);
           });

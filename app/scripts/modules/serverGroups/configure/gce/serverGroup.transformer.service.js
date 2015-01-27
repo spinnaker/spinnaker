@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.serverGroup.transformer.service', [])
-  .factory('serverGroupTransformer', function () {
+  .module('deckApp.serverGroup.transformer.service')
+  .factory('gceServerGroupTransformer', function () {
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over

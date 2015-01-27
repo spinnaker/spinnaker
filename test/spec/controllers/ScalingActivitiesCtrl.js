@@ -5,21 +5,21 @@ describe('Controller: ScalingActivitiesCtrl', function () {
   beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(function () {
-    inject(function ($controller, $rootScope, serverGroupService, $q) {
+    inject(function ($controller, $rootScope, serverGroupReader, $q) {
       var spec = this;
 
       this.$scope = $rootScope.$new();
       this.$q = $q;
-      this.serverGroupService = serverGroupService;
+      this.serverGroupReader = serverGroupReader;
       this.activities = [];
 
-      spyOn(this.serverGroupService, 'getScalingActivities').and.callFake(function () {
+      spyOn(this.serverGroupReader, 'getScalingActivities').and.callFake(function () {
         return $q.when(spec.activities);
       });
 
       this.ctrl = $controller('ScalingActivitiesCtrl', {
         $scope: this.$scope,
-        serverGroupService: serverGroupService,
+        serverGroupReader: serverGroupReader,
         applicationName: 'app',
         account: 'test',
         clusterName: 'cluster',

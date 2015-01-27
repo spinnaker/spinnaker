@@ -20,8 +20,8 @@ describe('Service: awsServerGroup', function () {
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function (_awsServerGroupService_, _accountService_, _$q_, _settings_, $rootScope) {
-    this.service = _awsServerGroupService_;
+  beforeEach(inject(function (awsServerGroupCommandBuilder, _accountService_, _$q_, _settings_, $rootScope) {
+    this.service = awsServerGroupCommandBuilder;
     this.accountService = _accountService_;
     this.$q = _$q_;
     this.settings = _settings_;

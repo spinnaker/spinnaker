@@ -40,11 +40,16 @@ angular.module('deckApp')
 
       var serverGroupDetails = {
         name: 'serverGroup',
-        url: '/serverGroupDetails?serverGroup&accountId&region',
+        url: '/serverGroupDetails?serverGroup&accountId&region&provider',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'views/application/serverGroupDetails.html',
-            controller: 'ServerGroupDetailsCtrl',
+            templateProvider: function($templateCache, $stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return $templateCache.get('scripts/modules/serverGroups/details/' + provider + '/serverGroupDetails.html'); },
+            controllerProvider: function($stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return provider + 'ServerGroupDetailsCtrl';
+            },
             controllerAs: 'ctrl'
           }
         },

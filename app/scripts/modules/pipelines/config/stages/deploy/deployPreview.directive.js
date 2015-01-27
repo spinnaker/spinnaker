@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.pipelines')
-  .directive('deployPreview', function(serverGroupService) {
+  .directive('deployPreview', function(namingService) {
     return {
       restrict: 'E',
       scope: {
@@ -12,7 +12,7 @@ angular.module('deckApp.pipelines')
 
         function buildClusterName() {
           var cluster = scope.stage.cluster;
-          scope.clusterName = serverGroupService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
+          scope.clusterName = namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
         }
 
         function buildDisplayableRegions() {

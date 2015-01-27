@@ -8,4 +8,5 @@ angular
     'deckApp.serverGroup.configure.gce',
     'deckApp.serverGroup.configure.common',
     'deckApp.serverGroup.display.tasks.tag',
+    'deckApp.serverGroup.details.aws.controller',
   ]);

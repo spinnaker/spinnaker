@@ -2,9 +2,14 @@
 /* jshint camelcase:false */
 
 
-angular.module('deckApp')
-  .controller('ServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
-                                                  serverGroupService, $modal, confirmationModalService, _, serverGroupWriter,
+angular.module('deckApp.serverGroup.details.aws.controller', [
+  'deckApp.notifications',
+  'deckApp.confirmationModal.service',
+  'deckApp.serverGroup.write.service',
+  'deckApp.utils.lodash'
+])
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
+                                                     serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
                                                   subnetReader) {
 
     $scope.state = {
@@ -20,7 +25,7 @@ angular.module('deckApp')
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      serverGroupService.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+      serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
         var restangularlessDetails = details.plain();
@@ -171,7 +176,7 @@ angular.module('deckApp')
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
           serverGroup: function() { return serverGroup; },
-          serverGroupCommand: function() { return serverGroupService.buildServerGroupCommandFromExisting(application, serverGroup); },
+          serverGroupCommand: function() { return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
         }
       });
     };

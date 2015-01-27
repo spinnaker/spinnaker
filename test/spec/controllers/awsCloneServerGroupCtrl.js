@@ -12,7 +12,7 @@ describe('Controller: awsCloneServerGroup', function () {
   beforeEach(function() {
     inject(function ($controller, $rootScope, accountService, serverGroupWriter, imageService, settings,
                      searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
-                     serverGroupService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
+                     awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
       this.$scope = $rootScope.$new();
       this.accountService = accountService;
@@ -22,7 +22,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.instanceTypeService = instanceTypeService;
       this.modalWizardService = modalWizardService;
       this.securityGroupService = securityGroupService;
-      this.serverGroupService = serverGroupService;
+      this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
       this.taskMonitorService = taskMonitorService;
       this.settings = settings;
       this.subnetReader = subnetReader;
@@ -95,7 +95,7 @@ describe('Controller: awsCloneServerGroup', function () {
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
           securityGroupService: this.securityGroupService,
-          serverGroupService: this.serverGroupService,
+          awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
