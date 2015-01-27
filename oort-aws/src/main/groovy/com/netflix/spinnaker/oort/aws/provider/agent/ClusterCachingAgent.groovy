@@ -283,7 +283,17 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   private void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {
-    cacheDataById.putAll(data.collectEntries { [it.id, it] })
+    data.each {
+      def existingCacheData = cacheDataById[it.id]
+      if (!existingCacheData) {
+        cacheDataById[it.id] = it
+      } else {
+        existingCacheData.attributes.putAll(it.attributes)
+        it.relationships.each { String relationshipName, Collection<String> relationships ->
+          existingCacheData.relationships[relationshipName].addAll(relationships)
+        }
+      }
+    }
   }
 
   private void cacheApplication(AsgData data, Map<String, CacheData> applications) {

@@ -223,8 +223,8 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
         log.info("Using onDemand cache value (${onDemandCacheData.id})")
 
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {})
-        instances.putAll(cacheResults.instances.collectEntries { [it.id, it] })
-        loadBalancers.putAll(cacheResults.loadBalancers.collectEntries { [it.id, it] })
+        cache(cacheResults["instances"], instances)
+        cache(cacheResults["loadBalancers"], loadBalancers)
       } else {
         Collection<String> instanceIds = lb.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
         Map<String, Object> lbAttributes = objectMapper.convertValue(lb, ATTRIBUTES)
@@ -244,5 +244,19 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     new DefaultCacheResult(
       (INSTANCES.ns): instances.values(),
       (LOAD_BALANCERS.ns):  loadBalancers.values())
+  }
+
+  private void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {
+    data.each {
+      def existingCacheData = cacheDataById[it.id]
+      if (!existingCacheData) {
+        cacheDataById[it.id] = it
+      } else {
+        existingCacheData.attributes.putAll(it.attributes)
+        it.relationships.each { String relationshipName, Collection<String> relationships ->
+          existingCacheData.relationships[relationshipName].addAll(relationships)
+        }
+      }
+    }
   }
 }
