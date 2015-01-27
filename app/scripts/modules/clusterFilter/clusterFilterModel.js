@@ -2,7 +2,7 @@
 
 angular
   .module('cluster.filter.model', ['ui.router', 'deckApp.utils.lodash'])
-  .factory('ClusterFilterModel', function($rootScope, $stateParams, _) {
+  .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, _) {
 
     var sortFilter = {};
 
@@ -12,6 +12,18 @@ angular
           acc[value] = true;
           return acc;
         }, {});
+      }
+    }
+
+    function convertObjectToParam(obj) {
+      if(obj) {
+        return _.chain(obj)
+          .collect(function(val,key) {
+             if (val){ return key; }
+          })
+          .remove(undefined)
+          .value()
+          .join(',');
       }
     }
 
@@ -44,6 +56,30 @@ angular
       sortFilter.filter = '';
     }
 
+    function clearFilterParams(params) {
+      return _.assign(params, {
+        q: undefined,
+        acct: undefined,
+        reg: undefined,
+        status: undefined,
+        instanceType: undefined
+      });
+    }
+
+    function setParams(params) {
+      clearFilterParams(params);
+      _.defaults(params, {
+        q: sortFilter.filter,
+        acct: convertObjectToParam(sortFilter.account),
+        reg: convertObjectToParam(sortFilter.region),
+        status: convertObjectToParam(sortFilter.status),
+        instanceType: convertObjectToParam(sortFilter.instanceType)
+      });
+
+      return params;
+    }
+
+
     function activate() {
       var defPrimary = 'account', defSecondary = 'region';
 
@@ -67,8 +103,36 @@ angular
       ];
     }
 
-    // this resets the singleton on a state change
-    $rootScope.$on('$stateChangeSuccess', activate);
+    function fromOtherTabToClusterTab(fromState, toState) {
+      return fromState.name.indexOf('clusters') === -1  &&
+             toState.name.indexOf('clusters') > -1;
+    }
+
+    function fromClusterTabToOtherTab(fromState, toState) {
+      return fromState.name.indexOf('clusters') > -1  &&
+        toState.name.indexOf('clusters') === -1;
+    }
+
+    var savedClusterStateName;
+    var savedClusterParams;
+
+    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+      if(fromOtherTabToClusterTab(fromState, toState)) {
+        if(savedClusterStateName && savedClusterParams && toState.name !== savedClusterStateName.name) {
+          event.preventDefault();
+          $state.go(savedClusterStateName.name, savedClusterParams, {reload: true});
+        }
+      }
+
+      if(fromClusterTabToOtherTab(fromState, toState)) {
+        savedClusterStateName = fromState;
+        savedClusterParams = fromParams;
+      }
+
+      if(toState.name.indexOf('clusters') > -1) {
+        setParams(toParams);
+      }
+    });
 
     activate();
 
@@ -77,7 +141,10 @@ angular
       clearFilters: clearSideFilters,
       sortFilter: sortFilter,
       groups: [],
-      displayOptions: {}
+      displayOptions: {},
+      setParams: setParams,
+      convertObjectToParam: convertObjectToParam
+
     };
 
   });
