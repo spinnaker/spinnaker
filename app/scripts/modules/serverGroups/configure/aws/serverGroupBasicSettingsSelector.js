@@ -13,7 +13,7 @@ angular.module('deckApp.serverGroup.configure.aws')
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, serverGroupService) {
+  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
@@ -57,6 +57,6 @@ angular.module('deckApp.serverGroup.configure.aws')
       if (!command) {
         return '';
       }
-      return serverGroupService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      return namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
   });

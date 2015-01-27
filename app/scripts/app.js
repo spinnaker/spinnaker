@@ -28,6 +28,8 @@ angular.module('deckApp', [
     'deckApp.subnet',
     'deckApp.utils',
     'deckApp.caches',
+    'deckApp.naming',
+    'deckApp.delegation',
     'deckApp.settings',
     'deckApp.scheduler',
     'deckApp.urlBuilder',

@@ -4,7 +4,7 @@
 angular.module('deckApp.serverGroup.configure.gce')
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
-                                                  gceServerGroupService, gceServerGroupConfigurationService,
+                                                  gceServerGroupCommandBuilder, gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
     $scope.title = title;
 
@@ -110,7 +110,7 @@ angular.module('deckApp.serverGroup.configure.gce')
     this.clone = function () {
       $scope.taskMonitor.submit(
         function() {
-          var command = gceServerGroupService.buildSubmittableCommand($scope.command);
+          var command = gceServerGroupCommandBuilder.buildSubmittableCommand($scope.command);
 
           return serverGroupWriter.cloneServerGroup(command, application);
         }

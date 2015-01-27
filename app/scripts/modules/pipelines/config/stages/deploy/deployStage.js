@@ -13,14 +13,14 @@ angular.module('deckApp.pipelines.stage.deploy')
     });
   })
   .controller('DeployStageCtrl', function ($scope, stage, viewState,
-                                           awsServerGroupService, awsServerGroupConfigurationService, serverGroupTransformer, _) {
+                                           awsServerGroupCommandBuilder, awsServerGroupConfigurationService, awsServerGroupTransformer, _) {
     $scope.stage = stage;
 
     function initializeCommand() {
       if (!$scope.stage.cluster || $scope.stage.uninitialized) {
         $scope.stage.uninitialized = true;
       } else {
-        awsServerGroupService.buildServerGroupCommandFromPipeline($scope.application, stage.cluster, $scope.stage.account).then(function (command) {
+        awsServerGroupCommandBuilder.buildServerGroupCommandFromPipeline($scope.application, stage.cluster, $scope.stage.account).then(function (command) {
           awsServerGroupConfigurationService.configureCommand({name: stage.application}, command).then(function () {
             command.credentialsChanged();
             command.regionChanged();
@@ -70,7 +70,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     }
 
     function applyCommandToStage() {
-      var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration($scope.command);
+      var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration($scope.command);
       $scope.stage.cluster = stageCluster;
       $scope.stage.account = stageCluster.credentials;
       delete stageCluster.credentials;

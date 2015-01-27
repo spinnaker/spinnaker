@@ -1,11 +1,11 @@
 'use strict';
 
 angular.module('deckApp.pipelines')
-  .filter('clusterName', function(serverGroupService) {
+  .filter('clusterName', function(namingService) {
     return function(input) {
       if (!input) {
         return 'n/a';
       }
-      return serverGroupService.getClusterName(input.application, input.stack, input.freeFormDetails);
+      return namingService.getClusterName(input.application, input.stack, input.freeFormDetails);
     };
   });

@@ -13,7 +13,7 @@ angular.module('deckApp.serverGroup.configure.gce')
       controller: 'gceServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, serverGroupService) {
+  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
@@ -57,7 +57,7 @@ angular.module('deckApp.serverGroup.configure.gce')
       if (!command) {
         return '';
       }
-      return serverGroupService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      return namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
 
   });
