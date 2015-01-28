@@ -137,6 +137,16 @@
         <dd ng-if="!serverGroup.launchConfig.userData">[none]</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Scaling Processes">
+      <ul class="scaling-processes">
+        <li ng-repeat="process in autoScalingProcesses">
+          <span is-visible="process.enabled" class="glyphicon glyphicon-ok small"></span>
+          <span ng-class="{'text-disabled': !process.enabled}">{{process.name}}</span>
+          <help-field content="{{process.description}}" placement="right"></help-field>
+        </li>
+      </ul>
+      <a href ng-click="ctrl.toggleScalingProcesses()">Edit Scaling Processes</a>
+    </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
         <li ng-repeat="securityGroup in securityGroups">

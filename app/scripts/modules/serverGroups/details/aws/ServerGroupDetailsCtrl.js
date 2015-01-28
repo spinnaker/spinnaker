@@ -6,15 +6,29 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
   'deckApp.notifications',
   'deckApp.confirmationModal.service',
   'deckApp.serverGroup.write.service',
-  'deckApp.utils.lodash'
+  'deckApp.utils.lodash',
+  'deckApp.serverGroup.details.aws.autoscaling.process',
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
-                                                  subnetReader) {
+                                                  subnetReader, autoScalingProcessService) {
 
     $scope.state = {
       loading: true
     };
+
+    function applyAutoScalingProcesses() {
+      var disabled = _.pluck($scope.serverGroup.asg.suspendedProcesses, 'processName');
+      $scope.autoScalingProcesses = [];
+      var allProcesses = autoScalingProcessService.listProcesses();
+      allProcesses.forEach(function(process) {
+        $scope.autoScalingProcesses.push({
+          name: process.name,
+          enabled: disabled.indexOf(process.name) === -1,
+          description: process.description,
+        });
+      });
+    }
 
     function extractServerGroupSummary() {
       var found = application.serverGroups.filter(function (toCheck) {
@@ -32,23 +46,25 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         angular.extend(restangularlessDetails, summary);
 
         $scope.serverGroup = restangularlessDetails;
-        var vpc = $scope.serverGroup && $scope.serverGroup.asg ? $scope.serverGroup.asg.vpczoneIdentifier : '';
-        if (vpc !== '') {
-          var subnetId = vpc.split(',')[0];
-          subnetReader.listSubnets().then(function(subnets) {
-            var subnet = _(subnets).find({'id': subnetId});
-            $scope.serverGroup.subnetType = subnet.purpose;
-          });
-        }
+        if (!_.isEmpty($scope.serverGroup)) {
+          var vpc = $scope.serverGroup.asg ? $scope.serverGroup.asg.vpczoneIdentifier : '';
+          if (vpc !== '') {
+            var subnetId = vpc.split(',')[0];
+            subnetReader.listSubnets().then(function(subnets) {
+              var subnet = _(subnets).find({'id': subnetId});
+              $scope.serverGroup.subnetType = subnet.purpose;
+            });
+          }
 
-        if (details.launchConfig && details.launchConfig.securityGroups) {
-          $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
-            return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-              _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
-          }).compact().value();
-        }
+          if (details.launchConfig && details.launchConfig.securityGroups) {
+            $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
+              return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+            }).compact().value();
+          }
 
-        if (_.isEmpty($scope.serverGroup)) {
+          applyAutoScalingProcesses();
+        } else {
           notificationsService.create({
             message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
             autoDismiss: true,
@@ -155,6 +171,18 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         submitMethod: submitMethod
       });
 
+    };
+
+    this.toggleScalingProcesses = function toggleScalingProcesses() {
+      $modal.open({
+        templateUrl: 'scripts/modules/serverGroups/details/aws/modifyScalingProcesses.html',
+        controller: 'ModifyScalingProcessesCtrl as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; },
+          application: function() { return application; },
+          processes: function() { return $scope.autoScalingProcesses; },
+        }
+      });
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
