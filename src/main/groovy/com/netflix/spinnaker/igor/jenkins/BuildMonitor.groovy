@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
@@ -34,7 +35,6 @@ import rx.Observable
 import rx.Scheduler.Worker
 import rx.functions.Action0
 import rx.schedulers.Schedulers
-import com.netflix.appinfo.InstanceInfo
 
 import javax.annotation.PreDestroy
 import java.util.concurrent.TimeUnit
@@ -149,11 +149,15 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                                 // we cached a build in progress, but missed the build result (a new build is underway or complete)
                                 // fetch the final old build status and post the final result to echo
                                 log.info "fetching missed completed build info for ${cachedBuild.lastBuildLabel}"
-                                Build finishedBuild = jenkinsMasters.map[master].getBuild(project.name, Integer.valueOf(cachedBuild.lastBuildLabel))
-                                Project oldProject = new Project(name: project.name, lastBuild: finishedBuild)
-                                echoService.postBuild(
-                                    new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
-                                // don't add to cache since we already have a newer build to cache
+                                try {
+                                    Build finishedBuild = jenkinsMasters.map[master].getBuild(project.name, Integer.valueOf(cachedBuild.lastBuildLabel))
+                                    Project oldProject = new Project(name: project.name, lastBuild: finishedBuild)
+                                    echoService.postBuild(
+                                        new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
+                                    // don't add to cache since we already have a newer build to cache
+                                } catch (e) {
+                                    log.error("An error occurred fetching ${master}:${project.name}:${cachedBuild.lastBuildLabel}", e)
+                                }
                             }
                             addToCache = true
                         }
