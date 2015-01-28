@@ -26,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
+import rx.schedulers.Schedulers
 import spock.lang.Specification
 
 /**
@@ -61,12 +62,14 @@ class NotificationSpec extends Specification {
                                                                    [type: "deploy", cluster: [name: "bar"]]]
                                                     ]]
 
+    notificationAgent.scheduler = Schedulers.test()
+
     applicationContext.beanFactory.with {
       registerSingleton "pipelineStarter", pipelineStarter
     }
   }
 
-  def "manual trigger causes a pipeline to start"() {
+  def "jenkins trigger causes a pipeline to start"() {
     given:
     def latch = new CountDownLatch(1)
     pipelineStarter.start(*_) >> { latch.countDown() }
@@ -75,7 +78,7 @@ class NotificationSpec extends Specification {
     applicationContext.getBean(PipelineStarter) != null
 
     when:
-    notificationAgent.handleNotification([
+    notificationAgent.filterEvents([
         [
             content: [
                 project: [

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
@@ -50,13 +49,15 @@ class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent 
 
   @Override
   @CompileDynamic
-  void handleNotification(List<Map> response) {
+  protected List<Map> filterEvents(List<Map> response) {
+    def events = []
     for (event in response) {
       if (event.content.containsKey("project") && event.content.containsKey("master")) {
         def input = event.content.project as Map
         input.master = event.content.master
-        notify(input)
+        events << input
       }
     }
+    return events
   }
 }
