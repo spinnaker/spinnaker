@@ -244,7 +244,7 @@ angular.module('deckApp.tasks.api', [
         runningCount: {
           get: function() {
             return taskCollection.reduce(function(acc, current) {
-              return current.status === 'RUNNING' ? acc + 1 : acc;
+              return ['NOT_STARTED', 'RUNNING'].indexOf(current.status) !== -1 ? acc + 1 : acc;
             }, 0);
           }
         }
