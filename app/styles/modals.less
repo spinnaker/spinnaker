@@ -283,8 +283,16 @@ select.select2 {
 
       &:before {
         content: 'Select...';
-        padding-left: 8px;
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
         opacity: 0.5;
+        z-index: 2;
+      }
+
+      input {
+        position: relative;
+        z-index: 3;
       }
     }
 
