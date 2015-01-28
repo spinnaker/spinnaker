@@ -16,21 +16,20 @@
 
 package com.netflix.spinnaker.orca.mayo.config
 
+import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.mayo.MayoService
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.*
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
-
-
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
@@ -45,23 +44,19 @@ class MayoConfiguration {
   RestAdapter.LogLevel retrofitLogLevel
 
   @Bean
-  Endpoint mayoEndpoint(@Value('${mayo.baseUrl:http://mayo.prod.netflix.net}') String url) {
+  Endpoint mayoEndpoint(
+      @Value('${mayo.baseUrl:http://mayo.prod.netflix.net}') String url) {
     newFixedEndpoint(url)
-  }
-
-  @Bean
-  PipelineConfigurationService pipelineConfigurationService() {
-    new PipelineConfigurationService()
   }
 
   @Bean
   MayoService notificationService(Endpoint mayoEndpoint, Gson gson) {
     new RestAdapter.Builder()
-      .setEndpoint(mayoEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setConverter(new GsonConverter(gson))
-      .build()
-      .create(MayoService)
+        .setEndpoint(mayoEndpoint)
+        .setClient(retrofitClient)
+        .setLogLevel(retrofitLogLevel)
+        .setConverter(new GsonConverter(gson))
+        .build()
+        .create(MayoService)
   }
 }

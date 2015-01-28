@@ -8,7 +8,6 @@ import com.netflix.spinnaker.orca.echo.EchoEventPoller
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.mayo.MayoService
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPipelineIndexer
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.jenkins.Trigger
@@ -53,14 +52,14 @@ class NotificationSpec extends Specification {
 
   def setup() {
     def trigger = new Trigger("master1", "SPINNAKER-package-pond")
-    pipelineIndexer.@interestingPipelines[trigger] = [[
-                                                          name    : "pipeline1",
-                                                          triggers: [[type  : "jenkins",
-                                                                      job   : "SPINNAKER-package-pond",
-                                                                      master: "master1"]],
-                                                          stages  : [[type: "bake"],
-                                                                     [type: "deploy", cluster: [name: "bar"]]]
-                                                      ]]
+    pipelineIndexer.@pipelinesByTrigger[trigger] = [[
+                                                        name    : "pipeline1",
+                                                        triggers: [[type  : "jenkins",
+                                                                    job   : "SPINNAKER-package-pond",
+                                                                    master: "master1"]],
+                                                        stages  : [[type: "bake"],
+                                                                   [type: "deploy", cluster: [name: "bar"]]]
+                                                    ]]
 
     applicationContext.beanFactory.with {
       registerSingleton "pipelineStarter", pipelineStarter
@@ -109,12 +108,6 @@ class TestConfiguration {
 
   @Bean MayoService mayoService() {
     [:] as MayoService
-  }
-
-  @Bean PipelineConfigurationService pipelineConfigurationService() {
-    new PipelineConfigurationService(pipelines: [
-        [:]
-    ])
   }
 
   @Bean ExecutionRepository executionRepository() {

@@ -5,9 +5,11 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,14 +31,18 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
   private static final String TRIGGER_MASTER = "master"
 
   final long pollingInterval = 60
-  private final PipelineConfigurationService pipelineConfigurationService
-  private Map<Trigger, Collection<Map>> interestingPipelines = [:]
+
+  private final MayoService mayoService
+  private final ObjectMapper objectMapper
+
+  private Map<Trigger, Collection<Map>> pipelinesByTrigger = [:]
   private Scheduler scheduler = Schedulers.io()
   private Subscription subscription
 
   @Autowired
-  BuildJobPipelineIndexer(PipelineConfigurationService pipelineConfigurationService) {
-    this.pipelineConfigurationService = pipelineConfigurationService
+  BuildJobPipelineIndexer(MayoService mayoService, ObjectMapper objectMapper) {
+    this.mayoService = mayoService
+    this.objectMapper = objectMapper
   }
 
   @PostConstruct
@@ -47,10 +53,11 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
         poll()
       } catch (e) {
         log.error "Caught exception polling for pipelines", e
+        [:]
       }
     } distinctUntilChanged()
     .subscribe { Map<Trigger, Collection<Map>> pipelines ->
-      interestingPipelines = pipelines
+      pipelinesByTrigger = pipelines
     }
   }
 
@@ -61,12 +68,16 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
 
   @Override
   ImmutableMap<Serializable, Collection<Map>> getPipelines() {
-    ImmutableMap.copyOf(interestingPipelines)
+    ImmutableMap.copyOf(pipelinesByTrigger)
   }
 
   private Map<Trigger, Collection<Map>> poll() {
+    filterPipelinesByTrigger(readMayoPipelines())
+  }
+
+  private Map<Trigger, Collection<Map>> filterPipelinesByTrigger(List<Map> pipelines) {
     Map<Trigger, Collection<Map>> _interestingPipelines = [:]
-    for (pipeline in pipelineConfigurationService.pipelines) {
+    for (pipeline in pipelines) {
       def triggers = pipeline.triggers as List<Map>
       for (trigger in triggers) {
         if (trigger.type == BuildJobNotificationHandler.TRIGGER_TYPE) {
@@ -79,6 +90,13 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
       }
     }
     _interestingPipelines
+  }
+
+  private List<Map> readMayoPipelines() {
+    objectMapper.readValue(
+        mayoService.pipelines.body.in().text,
+        new TypeReference<List<Map>>() {}
+    ) as List<Map>
   }
 
   @VisibleForTesting

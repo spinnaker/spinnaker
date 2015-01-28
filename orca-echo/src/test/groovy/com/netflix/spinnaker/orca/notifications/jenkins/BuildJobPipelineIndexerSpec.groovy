@@ -1,7 +1,10 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.mayo.MayoService
 import retrofit.MockHttpException
+import retrofit.client.Response
+import retrofit.mime.TypedString
 import rx.schedulers.Schedulers
 import spock.lang.Shared
 import spock.lang.Specification
@@ -10,10 +13,12 @@ import static java.util.concurrent.TimeUnit.SECONDS
 
 class BuildJobPipelineIndexerSpec extends Specification {
 
-  def pipelineConfigurationService = Mock(PipelineConfigurationService)
+  def mayoService = Mock(MayoService)
+  def mapper = new OrcaObjectMapper()
 
   @Subject
-  def pipelineIndexer = new BuildJobPipelineIndexer(pipelineConfigurationService)
+  def pipelineIndexer = new BuildJobPipelineIndexer(mayoService, mapper)
+
   @Shared def scheduler = Schedulers.test()
 
   def pipeline1 = [
@@ -48,7 +53,7 @@ class BuildJobPipelineIndexerSpec extends Specification {
 
   def "should add multiple pipeline targets to single trigger type"() {
     given:
-    pipelineConfigurationService.getPipelines() >> [pipeline1, pipeline2, pipeline3]
+    mayoService.getPipelines() >> mayoResponse(pipeline1, pipeline2, pipeline3)
 
     and:
     pipelineIndexer.init()
@@ -68,7 +73,7 @@ class BuildJobPipelineIndexerSpec extends Specification {
 
   def "should continue polling despite errors"() {
     given: "we'll get an error the second time we poll"
-    pipelineConfigurationService.getPipelines() >> [] >> {
+    mayoService.getPipelines() >> mayoResponse() >> {
       throw MockHttpException.newInternalError(null)
     }
 
@@ -80,7 +85,7 @@ class BuildJobPipelineIndexerSpec extends Specification {
     scheduler.advanceTimeBy(pipelineIndexer.pollingInterval, SECONDS)
 
     then: "the polling thread hasn't died"
-    1 * pipelineConfigurationService.getPipelines() >> []
+    1 * mayoService.getPipelines() >> mayoResponse()
 
     cleanup:
     pipelineIndexer.shutdown()
@@ -88,4 +93,12 @@ class BuildJobPipelineIndexerSpec extends Specification {
     where:
     key = new Trigger("master1", "SPINNAKER-package-pond")
   }
+
+  private Response mayoResponse(Map... pipelines) {
+    new Response(
+        "http://mayo", 200, "OK", [],
+        new TypedString(mapper.writeValueAsString(pipelines))
+    )
+  }
+
 }
