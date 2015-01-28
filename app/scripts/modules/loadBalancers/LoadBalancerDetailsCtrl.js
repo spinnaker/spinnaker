@@ -15,7 +15,7 @@ angular.module('deckApp')
       })[0];
 
       if ($scope.loadBalancer) {
-        var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.type, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+        var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
         detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var securityGroups = [];
