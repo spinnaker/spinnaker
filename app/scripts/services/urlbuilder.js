@@ -109,7 +109,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
     function createCloneTask(task) {
       var regionAndName = task.getValueFor('deploy.server.groups');
       var account = task.getValueFor('deploy.account.name');
-      if (!regionAndName) {
+      if (!regionAndName || !Object.keys(regionAndName)[0]) {
         return false;
       }
 
