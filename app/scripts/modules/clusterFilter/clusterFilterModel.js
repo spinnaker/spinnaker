@@ -113,20 +113,31 @@ angular
         toState.name.indexOf('clusters') === -1;
     }
 
+    function notFromApplicationsList(fromState) {
+      return fromState.name !== 'home.applications.application';
+    }
+
+    function notToApplicationList(toState) {
+      return toState.name !== 'home.applications';
+    }
+
     var savedClusterState;
     var savedClusterParams;
 
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-      if(fromOtherTabToClusterTab(fromState, toState)) {
+      if(fromOtherTabToClusterTab(fromState, toState) && notFromApplicationsList(fromState)) {
         if(savedClusterState && savedClusterParams && toState.name !== savedClusterState.name) {
           event.preventDefault();
           $state.go(savedClusterState.name, savedClusterParams, {reload: true});
         }
       }
 
-      if(fromClusterTabToOtherTab(fromState, toState)) {
+      if(fromClusterTabToOtherTab(fromState, toState) && notToApplicationList(toState)) {
         savedClusterState = fromState;
         savedClusterParams = fromParams;
+      } else {
+        savedClusterState = undefined;
+        savedClusterParams = undefined;
       }
 
       if(toState.name.indexOf('clusters') > -1) {
