@@ -55,15 +55,17 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
         log.error "Caught exception polling for pipelines", e
         [:]
       }
-    } distinctUntilChanged()
-    .subscribe { Map<Trigger, Collection<Map>> pipelines ->
+    } filter { Map<Trigger, Collection<Map>> pipelines ->
+      !pipelines.isEmpty()
+    } distinctUntilChanged().
+    subscribe { Map<Trigger, Collection<Map>> pipelines ->
       pipelinesByTrigger = pipelines
     }
   }
 
   @PreDestroy
   void shutdown() {
-    subscription.unsubscribe()
+    subscription?.unsubscribe()
   }
 
   @Override

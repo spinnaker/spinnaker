@@ -94,6 +94,26 @@ class BuildJobPipelineIndexerSpec extends Specification {
     key = new Trigger("master1", "SPINNAKER-package-pond")
   }
 
+  def "previously valid pipelines are not overwritten when an error occurs"() {
+    given: "we'll get an error the second time we poll"
+    mayoService.getPipelines() >> mayoResponse(pipeline1) >> {
+      throw MockHttpException.newInternalError(null)
+    }
+
+    and: "we have polled twice"
+    pipelineIndexer.init()
+    scheduler.advanceTimeBy(pipelineIndexer.pollingInterval * 2, SECONDS)
+
+    expect: "the pipelines returned by the first successful call are still cached"
+    pipelineIndexer.pipelines.size() == 1
+
+    cleanup:
+    pipelineIndexer.shutdown()
+
+    where:
+    key = new Trigger("master1", "SPINNAKER-package-pond")
+  }
+
   private Response mayoResponse(Map... pipelines) {
     new Response(
         "http://mayo", 200, "OK", [],
