@@ -14,7 +14,7 @@ angular.module('deckApp.delivery')
     });
 
     controller.getStageWidth = function(stage) {
-      var filtered = $filter('stages')($scope.execution.stages, $scope.filter);
+      var filtered = $filter('stages')($scope.execution.stageSummaries, $scope.filter);
       switch ($scope.filter.stage.scale) {
         case 'fixed':
           return 100 / $scope.filter.stage.max + '%';

@@ -1,4 +1,4 @@
-<form class="form-inline">
+<form class="form-inline execution-filters">
   <div class="form-group">
     <label>Group by</label>
     <select class="form-control" ng-model="filter.execution.groupBy">
@@ -7,12 +7,12 @@
       <option value="timeBoundary">Time Boundary</option>
     </select>
   </div>
-  <div class="form-group">
-    <label>Sort by</label>
-    <select class="form-control" ng-model="filter.execution.sortBy">
-      <option value="startTime">Start Time</option>
-    </select>
-  </div>
+  <!--<div class="form-group">-->
+    <!--<label>Sort by</label>-->
+    <!--<select class="form-control" ng-model="filter.execution.sortBy">-->
+      <!--<option value="startTime">Start Time</option>-->
+    <!--</select>-->
+  <!--</div>-->
   <div class="form-group">
     <label>Pipeline Status</label>
     <div class="btn-group">
@@ -44,38 +44,27 @@
 
     </div>
   </div>
-  <div class="pull-right">
-    <div class="form-group">
-      <label>Legend Overlay</label>
-      <select class="form-control" ng-model="filter.stage.colorOverlay">
-        <option value="status">Status</option>
-        <option value="name">Stage name</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Scaling</label>
-      <div class="btn-group">
-        <label class="btn btn-default btn"
-               ng-model="filter.stage.scale"
-               btn-radio="'absolute'">
-          <span class="glyphicon glyphicon-align-left" title="Absolute" aria-hidden="true"></span>
-        </label>
-        <label class="btn btn-default btn"
-               ng-model="filter.stage.scale"
-               btn-radio="'fixed'">
-          <span class="glyphicon glyphicon-align-justify" title="Fixed" aria-hidden="true"></span>
-        </label>
-        <label class="btn btn-default btn"
-               ng-model="filter.stage.scale"
-               btn-radio="'relative'">
-          <span class="glyphicon glyphicon-tasks" title="Relative" aria-hidden="true"></span>
-        </label>
-      </div>
+  <div class="form-group">
+    <label>Scaling</label>
+    <div class="btn-group">
+      <label class="btn btn-default btn"
+             ng-model="filter.stage.scale"
+             btn-radio="'absolute'">
+        <span class="glyphicon glyphicon-align-left" title="Absolute" aria-hidden="true"></span>
+      </label>
+      <label class="btn btn-default btn"
+             ng-model="filter.stage.scale"
+             btn-radio="'fixed'">
+        <span class="glyphicon glyphicon-align-justify" title="Fixed" aria-hidden="true"></span>
+      </label>
+      <label class="btn btn-default btn"
+             ng-model="filter.stage.scale"
+             btn-radio="'relative'">
+        <span class="glyphicon glyphicon-tasks" title="Relative" aria-hidden="true"></span>
+      </label>
     </div>
   </div>
-</form>
-<form class="form-inline">
-  <div class="form-group">
+  <div class="form-group pull-right">
     <a ui-sref="^.pipelineConfig" class="configure-pipelines-btn btn"><span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
   </div>
 </form>

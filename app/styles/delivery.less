@@ -129,7 +129,10 @@ body, html {
     padding-bottom: 5px;
     border-bottom: 1px solid @mid_light_grey;
     .form-group {
-      margin-right: 10px;
+      margin: 0 30px 20px 0;
+      &:last-child {
+        margin-right: 0;
+      }
       >label {
         margin-right: 5px;
       }
@@ -144,8 +147,12 @@ body, html {
 }
 
 .configure-pipelines-btn {
-  padding-left: 0;
-  margin: 10px 0 10px 0;
+  padding: 6px;
+  &:hover, &:active {
+    border: 1px solid @spinnaker-blue;
+    background-color: @lighter_grey;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s
+  }
 }
 
 .execution-status {
