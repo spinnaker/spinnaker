@@ -48,7 +48,8 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
       } catch (e) {
         log.error "Caught exception polling for pipelines", e
       }
-    } subscribe { Map<Trigger, Collection<Map>> pipelines ->
+    } distinctUntilChanged()
+    .subscribe { Map<Trigger, Collection<Map>> pipelines ->
       interestingPipelines = pipelines
     }
   }
