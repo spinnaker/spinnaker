@@ -1,29 +1,12 @@
 {
   "variables": {
-    "aws_access_key": "",
-    "aws_secret_key": "",
-    "aws_region": "",
-    "aws_ssh_username": "",
-    "aws_instance_type": "t2.micro",
-    "aws_source_ami": "",
-    "aws_target_ami": "",
     "gce_project_id": "",
     "gce_zone": "",
     "gce_source_image": "",
     "gce_target_image": "",
-    "pkgs": ""
+    "packages": ""
   },
   "builders": [{
-    "type": "amazon-ebs",
-    "access_key": "{{user `aws_access_key`}}",
-    "secret_key": "{{user `aws_secret_key`}}",
-    "region": "{{user `aws_region`}}",
-    "source_ami": "{{user `aws_source_ami`}}",
-    "instance_type": "{{user `aws_instance_type`}}",
-    "ssh_username": "{{user `aws_ssh_username`}}",
-    "ami_name": "{{user `aws_target_ami`}}"
-  },
-  {
     "type": "googlecompute",
     "account_file": "account.json",
     "project_id": "{{user `gce_project_id`}}",
@@ -37,7 +20,7 @@
       "sleep 30",
       "echo \"deb http://dl.bintray.com/spinnaker/ospackages ./\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
       "sudo apt-get update",
-      "sudo apt-get install --force-yes -y {{user `pkgs`}}"
+      "sudo apt-get install --force-yes -y {{user `packages`}}"
     ]
   }]
 }

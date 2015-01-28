@@ -1,0 +1,77 @@
+server:
+  port: 8087
+
+rush:
+  baseUrl: http://localhost:8085
+  credentials: my-account-name
+  image: spinnaker/rosco
+
+executionStatusToBakeStates:
+  associations:
+    - executionStatus: PREPARING
+      bakeState: PENDING
+    - executionStatus: FETCHING_IMAGE
+      bakeState: PENDING
+    - executionStatus: RUNNING
+      bakeState: RUNNING
+    - executionStatus: SUCCESSFUL
+      bakeState: COMPLETED
+    - executionStatus: FAILED
+      bakeState: CANCELLED
+
+defaultCloudProviderType: aws
+
+aws:
+  enabled: ${AWS_ENABLED:false}
+  bakeryDefaults:
+    # TODO(duftler): Make aws credentials-handling consistent with that of other spinnaker modules.
+    awsAccessKey: FOO
+    awsSecretKey: BAR
+    templateFile: aws-ebs.json
+    defaultVirtualizationType: hvm
+    operatingSystemVirtualizationSettings:
+    # TODO(duftler): Identify proper base amis.
+    # TODO(duftler): Support additional store types beyond ebs.
+    # TODO(duftler): Support additional operating systems.
+    - os: ubuntu
+      virtualizationSettings:
+      - region: us-east-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-d4aed0bc
+        sshUserName: ubuntu
+      - region: us-east-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-8007b2e8
+        sshUserName: ubuntu
+    - os: trusty
+      virtualizationSettings:
+      - region: us-east-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-9eaa1cf6
+        sshUserName: ubuntu
+      - region: us-east-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-98aa1cf0
+        sshUserName: ubuntu
+
+google:
+  enabled: ${GOOGLE_ENABLED:false}
+  gce:
+    bakeryDefaults:
+      # TODO(duftler): Parameterize the 'account_file' of the 'googlecompute' packer builder in the
+      # gce.json template. At the moment, this project name must match the project associated with
+      # the account.json file contained within the spinnaker/rosco image.
+      project: shared-spinnaker
+      zone: us-central1-a
+      templateFile: gce.json
+      operatingSystemVirtualizationSettings:
+      - os: ubuntu
+        virtualizationSettings:
+          sourceImage: ubuntu-1204-precise-v20141212
+      - os: trusty
+        virtualizationSettings:
+          sourceImage: ubuntu-1404-trusty-v20141212

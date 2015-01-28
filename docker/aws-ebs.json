@@ -1,0 +1,31 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_region": "",
+    "aws_ssh_username": "",
+    "aws_instance_type": "",
+    "aws_source_ami": "",
+    "aws_target_ami": "",
+    "packages": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "{{user `aws_region`}}",
+    "source_ami": "{{user `aws_source_ami`}}",
+    "instance_type": "{{user `aws_instance_type`}}",
+    "ssh_username": "{{user `aws_ssh_username`}}",
+    "ami_name": "{{user `aws_target_ami`}}"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sleep 30",
+      "echo \"deb http://dl.bintray.com/spinnaker/ospackages ./\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
+      "sudo apt-get update",
+      "sudo apt-get install --force-yes -y {{user `packages`}}"
+    ]
+  }]
+}
