@@ -38,12 +38,14 @@ dependencies {
   compile project(":kato-manual")
   compile project(":kato-core")
   compile project(":kato-aws")
+  compile project(":kato-cf")
   compile project(":kato-gce")
   compile project(":kato-docker")
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
+  testCompile ("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.bootRepackage.enabled = false

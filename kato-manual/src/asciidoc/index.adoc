@@ -157,6 +157,14 @@ include::src/asciidoc/ops/upsertScalingPolicyDescription.adoc[]
 include::src/asciidoc/ops/upsertSecurityGroupDescription.adoc[]
 - - -
 
+==== Cloud Foundry Operations
+
+NOTE: Kato's CF module (+kato-cf+) provides operations that are relevant for deployments and deployment-related function with any instance of http://www.cloudfoundry.org/index.html[Cloud Foundry].
+
+- - -
+include::src/asciidoc/ops/cf/cloudFoundryDeployDescription.adoc[]
+- - -
+
 ==== Google Operations
 
 TODO

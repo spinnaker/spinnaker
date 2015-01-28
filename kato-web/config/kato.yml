@@ -105,3 +105,6 @@ docker:
 
 titan:
   enabled: ${TITAN_ENABLED:false}
+
+cf:
+  enabled: ${CF_ENABLED:false}

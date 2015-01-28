@@ -41,7 +41,8 @@ class OperationsControllerSpec extends Specification {
         will go to the Spring context for a bean named "desc1", and will call the "convertOperation" method on it, with the description as input.
       """
     OrchestrationProcessor orchestrationProcessor = Mock(OrchestrationProcessor)
-    def mvc = MockMvcBuilders.standaloneSetup(new OperationsController(orchestrationProcessor: orchestrationProcessor, applicationContext: new AnnotationConfigApplicationContext(TestConfig))).build()
+    def mvc = MockMvcBuilders.standaloneSetup(new OperationsController(orchestrationProcessor: orchestrationProcessor,
+        applicationContext: new AnnotationConfigApplicationContext(TestConfig))).build()
 
     when:
     mvc.perform(MockMvcRequestBuilders.post("/ops").contentType(MediaType.APPLICATION_JSON).content('[ { "desc1": {}, "desc2": {} } ]')).andReturn()
