@@ -43,13 +43,13 @@ angular.module('deckApp')
         url: '/serverGroupDetails?serverGroup&accountId&region&provider',
         views: {
           'detail@home.applications.application.insight': {
-            templateProvider: function($templateCache, $stateParams) {
+            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('scripts/modules/serverGroups/details/' + provider + '/serverGroupDetails.html'); },
-            controllerProvider: function($stateParams) {
+              return $templateCache.get('scripts/modules/serverGroups/details/' + provider + '/serverGroupDetails.html'); }],
+            controllerProvider: ['$stateParams', function($stateParams) {
               var provider = $stateParams.provider || 'aws';
               return provider + 'ServerGroupDetailsCtrl';
-            },
+            }],
             controllerAs: 'ctrl'
           }
         },
