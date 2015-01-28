@@ -22,6 +22,10 @@ angular.module('deckApp')
           return tasks.filter(function(task) {
             return task.status === 'CANCELED';
           });
+        case 'Not Started':
+          return tasks.filter(function(task) {
+            return task.status === 'NOT_STARTED';
+          });
         default:
           return tasks;
       }

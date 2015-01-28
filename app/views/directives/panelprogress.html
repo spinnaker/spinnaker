@@ -2,7 +2,7 @@
   <div class="progress-bar"
        ng-class="{
        active: item.isRunning,
-       'progress-bar-info': item.isRunning,
+       'progress-bar-info': item.isRunning || item.hasNotStarted,
        'progress-bar-striped': item.isRunning,
        'progress-bar-success': item.isCompleted,
        'progress-bar-disabled': item.isCanceled,

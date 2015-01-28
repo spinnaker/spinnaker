@@ -1,26 +1,29 @@
 <div class="row">
   <div class="col-md-7 tasks">
     <div class="row">
-      <div class="col-md-7">
+      <div class="col-md-9">
         <div class="btn-group">
           <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'All'">
             All
           </label>
+          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Not Started'">
+            <status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started
+          </label>
           <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Running'">
-            Running
+            <status-glyph item="{isRunning: true}"></status-glyph> Running
           </label>
           <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Completed'">
-            Completed
+            <status-glyph item="{isCompleted: true}"></status-glyph> Completed
           </label>
           <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Errored'">
-            Errored
+            <status-glyph item="{isFailed: true}"></status-glyph> Failed
           </label>
           <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Canceled'">
-            Canceled
+            <status-glyph item="{isCanceled: true}"></status-glyph> Canceled
           </label>
         </div>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-3">
         <div class="form-group has-feedback">
           <label class="sr-only" for="task-filter">Filter tasks</label>
             <input type="search"
