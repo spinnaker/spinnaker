@@ -113,19 +113,19 @@ angular
         toState.name.indexOf('clusters') === -1;
     }
 
-    var savedClusterStateName;
+    var savedClusterState;
     var savedClusterParams;
 
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       if(fromOtherTabToClusterTab(fromState, toState)) {
-        if(savedClusterStateName && savedClusterParams && toState.name !== savedClusterStateName.name) {
+        if(savedClusterState && savedClusterParams && toState.name !== savedClusterState.name) {
           event.preventDefault();
-          $state.go(savedClusterStateName.name, savedClusterParams, {reload: true});
+          $state.go(savedClusterState.name, savedClusterParams, {reload: true});
         }
       }
 
       if(fromClusterTabToOtherTab(fromState, toState)) {
-        savedClusterStateName = fromState;
+        savedClusterState = fromState;
         savedClusterParams = fromParams;
       }
 
