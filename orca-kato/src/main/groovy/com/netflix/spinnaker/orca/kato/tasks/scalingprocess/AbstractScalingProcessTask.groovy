@@ -34,10 +34,25 @@ abstract class AbstractScalingProcessTask implements Task {
   TaskResult execute(Stage stage) {
     def taskId = katoService.requestOperations([[(getType()): new HashMap(stage.context)]])
       .toBlocking().first()
+
+    def stageData = stage.mapTo(StageData)
+
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"     : getType().toLowerCase(),
+      "deploy.server.groups"  : stageData.affectedServerGroupMap,
       "kato.last.task.id"     : taskId,
       "kato.task.id"          : taskId, // TODO retire this.
     ])
+  }
+
+  static class StageData {
+    List<String> regions
+    String asgName
+
+    Map<String, List<String>> getAffectedServerGroupMap() {
+      regions.collectEntries {
+        [(it): [asgName]]
+      }
+    }
   }
 }
