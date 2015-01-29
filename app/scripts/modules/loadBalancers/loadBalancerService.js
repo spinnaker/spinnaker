@@ -95,7 +95,7 @@ angular.module('deckApp')
         vpcId: null,
         healthCheckProtocol: 'HTTP',
         healthCheckPort: 7001,
-        healthCheckPath: '/health',
+        healthCheckPath: '/healthcheck',
         healthTimeout: 5,
         healthInterval: 10,
         healthyThreshold: 10,
