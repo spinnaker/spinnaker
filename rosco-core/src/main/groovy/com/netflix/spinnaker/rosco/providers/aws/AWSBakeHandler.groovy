@@ -23,7 +23,9 @@ import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 public class AWSBakeHandler implements CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "amazon-ebs"

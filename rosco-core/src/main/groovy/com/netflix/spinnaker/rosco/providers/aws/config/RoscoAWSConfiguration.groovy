@@ -43,11 +43,6 @@ class RoscoAWSConfiguration {
   AWSBakeHandler awsBakeHandler
 
   @Bean
-  AWSBakeHandler awsBakeHandler() {
-    return new AWSBakeHandler()
-  }
-
-  @Bean
   @ConfigurationProperties('aws.bakeryDefaults')
   AWSBakeryDefaults awsBakeryDefaults(@Value('${aws.bakeryDefaults.defaultVirtualizationType:hvm}') BakeRequest.VmType defaultVirtualizationType) {
     new AWSBakeryDefaults(defaultVirtualizationType: defaultVirtualizationType)
