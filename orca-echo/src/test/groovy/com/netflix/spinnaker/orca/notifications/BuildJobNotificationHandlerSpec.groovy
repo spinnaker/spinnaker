@@ -116,7 +116,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     }
 
     where:
-    input = [name: "SPINNAKER-package-pond", master: "master1", lastBuild: [ building: "false", result: "SUCCESS" ]]
+    input = [name: "SPINNAKER-package-pond", master: "master1", lastBuild: [ building: false, result: "SUCCESS" ]]
   }
 
   void "should add multiple pipeline targets to single trigger type"() {
@@ -157,7 +157,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     where:
     master << ['master1', 'master2']
-    input = [name: "SPINNAKER-package-pond", master: master, lastBuild: [result:"SUCCESS", building:"false"]]
+    input = [name: "SPINNAKER-package-pond", master: master, lastBuild: [result:"SUCCESS", building:false]]
 
   }
 
@@ -205,7 +205,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     0 * pipelineStarter.start(_)
 
     where:
-    input = [name: "SPINNAKER-package-pond", master: 'master2', lastBuild: [result:"SUCCESS", building:"true"]]
+    input = [name: "SPINNAKER-package-pond", master: 'master2', lastBuild: [result:"SUCCESS", building:true]]
   }
 
 }
