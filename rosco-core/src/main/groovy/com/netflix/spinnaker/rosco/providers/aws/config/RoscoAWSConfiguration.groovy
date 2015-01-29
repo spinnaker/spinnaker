@@ -26,14 +26,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 import javax.annotation.PostConstruct
 
-@ConditionalOnProperty('aws.enabled')
-@EnableConfigurationProperties
 @Configuration
-@CompileStatic
+@ConditionalOnProperty('aws.enabled')
+@ComponentScan('com.netflix.spinnaker.rosco.providers.aws')
 class RoscoAWSConfiguration {
 
   @Autowired
@@ -71,8 +71,7 @@ class RoscoAWSConfiguration {
 
   @PostConstruct
   void init() {
-    cloudProviderBakeHandlerRegistry.register(
-      BakeRequest.CloudProviderType.aws, awsBakeHandler)
+    cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.aws, awsBakeHandler)
   }
 
 }

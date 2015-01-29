@@ -19,18 +19,18 @@ package com.netflix.spinnaker.rosco.providers.google.config
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.google.GCEBakeHandler
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 import javax.annotation.PostConstruct
 
-@ConditionalOnProperty('google.enabled')
 @Configuration
-@CompileStatic
+@ConditionalOnProperty('google.enabled')
+@ComponentScan('com.netflix.spinnaker.rosco.providers.google')
 class RoscoGoogleConfiguration {
 
   @Autowired
