@@ -22,23 +22,21 @@ import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
+import org.springframework.beans.factory.annotation.Autowired
 
 public class GCEBakeHandler implements CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "googlecompute"
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
 
+  @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
-  ImageNameFactory imageNameFactory
-  PackerCommandFactory packerCommandFactory
 
-  public GCEBakeHandler(RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults,
-                        ImageNameFactory imageNameFactory,
-                        PackerCommandFactory packerCommandFactory) {
-    this.gceBakeryDefaults = gceBakeryDefaults
-    this.imageNameFactory = imageNameFactory
-    this.packerCommandFactory = packerCommandFactory
-  }
+  @Autowired
+  ImageNameFactory imageNameFactory
+
+  @Autowired
+  PackerCommandFactory packerCommandFactory
 
   @Override
   String producePackerCommand(String region, BakeRequest bakeRequest) {

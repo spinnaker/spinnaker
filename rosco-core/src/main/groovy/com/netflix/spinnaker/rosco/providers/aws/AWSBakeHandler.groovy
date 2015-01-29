@@ -22,23 +22,21 @@ import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
+import org.springframework.beans.factory.annotation.Autowired
 
 public class AWSBakeHandler implements CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "amazon-ebs"
   private static final String IMAGE_NAME_TOKEN = "amazon-ebs: Creating the AMI:"
 
+  @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
-  ImageNameFactory imageNameFactory
-  PackerCommandFactory packerCommandFactory
 
-  public AWSBakeHandler(RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults,
-                        ImageNameFactory imageNameFactory,
-                        PackerCommandFactory packerCommandFactory) {
-    this.awsBakeryDefaults = awsBakeryDefaults
-    this.imageNameFactory = imageNameFactory
-    this.packerCommandFactory = packerCommandFactory
-  }
+  @Autowired
+  ImageNameFactory imageNameFactory
+
+  @Autowired
+  PackerCommandFactory packerCommandFactory
 
   @Override
   String producePackerCommand(String region, BakeRequest bakeRequest) {

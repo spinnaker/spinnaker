@@ -60,7 +60,7 @@ class GCEBakeHandlerSpec extends Specification {
   void 'can scrape packer logs for image name'() {
     setup:
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults, null, null)
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults)
 
     when:
       def logsContent =
@@ -90,7 +90,7 @@ class GCEBakeHandlerSpec extends Specification {
   void 'scraping returns null for missing image name'() {
     setup:
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults, null, null)
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults)
 
     when:
       def logsContent =
@@ -134,7 +134,9 @@ class GCEBakeHandlerSpec extends Specification {
       ]
 
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -162,7 +164,9 @@ class GCEBakeHandlerSpec extends Specification {
       ]
 
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -182,7 +186,9 @@ class GCEBakeHandlerSpec extends Specification {
                                       cloud_provider_type: BakeRequest.CloudProviderType.gce)
 
     @Subject
-    GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+    GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
+                                                       imageNameFactory: imageNameFactoryMock,
+                                                       packerCommandFactory: packerCommandFactoryMock)
 
     when:
     gceBakeHandler.producePackerCommand(REGION, bakeRequest)

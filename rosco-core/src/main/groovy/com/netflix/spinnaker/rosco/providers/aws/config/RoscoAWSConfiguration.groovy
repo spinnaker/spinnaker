@@ -18,8 +18,6 @@ package com.netflix.spinnaker.rosco.providers.aws.config
 
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.aws.AWSBakeHandler
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,13 +40,12 @@ class RoscoAWSConfiguration {
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
 
   @Autowired
-  ImageNameFactory imageNameFactory
+  AWSBakeHandler awsBakeHandler
 
-  @Autowired
-  PackerCommandFactory packerCommandFactory
-
-  @Autowired
-  AWSBakeryDefaults awsBakeryDefaults
+  @Bean
+  AWSBakeHandler awsBakeHandler() {
+    return new AWSBakeHandler()
+  }
 
   @Bean
   @ConfigurationProperties('aws.bakeryDefaults')
@@ -80,7 +77,7 @@ class RoscoAWSConfiguration {
   @PostConstruct
   void init() {
     cloudProviderBakeHandlerRegistry.register(
-      BakeRequest.CloudProviderType.aws, new AWSBakeHandler(awsBakeryDefaults, imageNameFactory, packerCommandFactory))
+      BakeRequest.CloudProviderType.aws, awsBakeHandler)
   }
 
 }

@@ -84,7 +84,7 @@ class AWSBakeHandlerSpec extends Specification {
   void 'can scrape packer logs for image name'() {
     setup:
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, null, null)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
     when:
       def logsContent =
@@ -118,7 +118,7 @@ class AWSBakeHandlerSpec extends Specification {
   void 'scraping returns null for missing image id'() {
     setup:
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, null, null)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
     when:
       def logsContent =
@@ -150,7 +150,7 @@ class AWSBakeHandlerSpec extends Specification {
   void 'scraping returns null for missing image name'() {
     setup:
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, null, null)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
     when:
       def logsContent =
@@ -190,7 +190,9 @@ class AWSBakeHandlerSpec extends Specification {
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -222,7 +224,9 @@ class AWSBakeHandlerSpec extends Specification {
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -254,7 +258,9 @@ class AWSBakeHandlerSpec extends Specification {
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -275,7 +281,9 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
     awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -296,7 +304,9 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults, imageNameFactoryMock, packerCommandFactoryMock)
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)

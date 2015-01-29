@@ -18,8 +18,6 @@ package com.netflix.spinnaker.rosco.providers.google.config
 
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.google.GCEBakeHandler
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,13 +37,12 @@ class RoscoGoogleConfiguration {
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry
 
   @Autowired
-  ImageNameFactory imageNameFactory
+  GCEBakeHandler gceBakeHandler
 
-  @Autowired
-  PackerCommandFactory packerCommandFactory
-
-  @Autowired
-  RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
+  @Bean
+  GCEBakeHandler gceBakeHandler() {
+    new GCEBakeHandler()
+  }
 
   @Bean
   @ConfigurationProperties('google.gce.bakeryDefaults')
@@ -71,8 +68,7 @@ class RoscoGoogleConfiguration {
 
   @PostConstruct
   void init() {
-    cloudProviderBakeHandlerRegistry.register(
-      BakeRequest.CloudProviderType.gce, new GCEBakeHandler(gceBakeryDefaults, imageNameFactory, packerCommandFactory))
+    cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.gce, gceBakeHandler)
   }
 
 }
