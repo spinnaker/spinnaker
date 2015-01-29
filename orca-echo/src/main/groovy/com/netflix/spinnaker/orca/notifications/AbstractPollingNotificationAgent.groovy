@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.notifications
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
 import java.util.concurrent.TimeUnit
@@ -58,25 +57,16 @@ abstract class AbstractPollingNotificationAgent {
   protected abstract List<Map> filterEvents(List<Map> input)
 
   @PostConstruct
-  @CompileDynamic
   void init() {
     subscription = Observable.interval(pollingInterval, TimeUnit.SECONDS, scheduler).map {
-      try {
-        def response = echoEventPoller.getEvents(notificationType)
-        objectMapper.readValue(response.body.in().text, List)
-      } catch (e) {
-        log.error "Error when fetching events", e
-        []
-      }
-    } map {
+      def response = echoEventPoller.getEvents(notificationType)
+      objectMapper.readValue(response.body.in().text, List)
+    } doOnError { Throwable err ->
+      log.error "Error when fetching events", err
+    } retry() map {
       filterEvents(it)
-    } filter {
-      !it.empty
-    } subscribe {
-      // TODO: change the rx stream to emit events individually
-      it.each { event ->
-        notify(event)
-      }
+    } flatMap(Observable.&from) subscribe { Map event ->
+      notify(event)
     }
   }
 

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
 import javax.annotation.PostConstruct
@@ -46,19 +45,12 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
   }
 
   @PostConstruct
-  @CompileDynamic
   void init() {
     subscription = rx.Observable.interval(pollingInterval, SECONDS, scheduler).map {
-      try {
-        poll()
-      } catch (e) {
-        log.error "Caught exception polling for pipelines", e
-        [:]
-      }
-    } filter { Map<Trigger, Collection<Map>> pipelines ->
-      !pipelines.isEmpty()
-    } distinctUntilChanged().
-    subscribe { Map<Trigger, Collection<Map>> pipelines ->
+      poll()
+    } doOnError { Throwable err ->
+      log.error "Error when polling for pipelines", err
+    } retry() distinctUntilChanged() subscribe { Map<Trigger, Collection<Map>> pipelines ->
       pipelinesByTrigger = pipelines
     }
   }
@@ -96,8 +88,8 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
 
   private List<Map> readMayoPipelines() {
     objectMapper.readValue(
-        mayoService.pipelines.body.in().text,
-        new TypeReference<List<Map>>() {}
+      mayoService.pipelines.body.in().text,
+      new TypeReference<List<Map>>() {}
     ) as List<Map>
   }
 
