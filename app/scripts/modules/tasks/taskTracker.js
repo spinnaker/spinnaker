@@ -44,7 +44,7 @@ angular.module('deckApp.tasks.tracker', [
 
     that.forceRefreshFromTasks = function forceRefreshFromTasks(tasks) {
       if (tasks.some(function(task) {
-        return task.steps.some(function(step) {
+        return task.steps && task.steps.some(function(step) {
           return step.name === 'forceCacheRefresh';
         });
       })) {
