@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Slf4j
 @Component
@@ -38,9 +39,13 @@ class UpsertApplicationTask extends AbstractFront50Task {
       if (existingGlobalApplication) {
         existingGlobalApplication.listAccounts().each {
           if (fetchApplication(it, application.name)) {
-            // propagate updates to all other per-account registries that this global application is associated with
-            log.info("Updating application (name: ${application.name}, account: ${it})")
-            front50Service.update(it, application)
+            try {
+              // propagate updates to all other per-account registries that this global application is associated with
+              log.info("Updating application (name: ${application.name}, account: ${it})")
+              front50Service.update(it, application)
+            } catch (RetrofitError e) {
+              log.error("Unable to update application (name: ${application.name}, account: ${it})", e)
+            }
           }
         }
 
