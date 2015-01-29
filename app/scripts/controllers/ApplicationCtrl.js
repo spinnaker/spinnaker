@@ -4,6 +4,11 @@
 angular.module('deckApp')
   .controller('ApplicationCtrl', function($scope, application, executionsService, taskTracker) {
     $scope.application = application;
+    $scope.insightTarget = application;
+    if (application.notFound) {
+      return;
+    }
+
     application.enableAutoRefresh($scope);
 
     executionsService.getAll().then(function(oldExecutions) {

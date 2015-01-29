@@ -7,7 +7,11 @@
       </a>
       {{application.name}}
     </h2>
-    <ul class="nav nav-pills">
+    <div ng-if="application.notFound">
+      <h1 class="text-center">&lt;404&gt;</h1>
+      <p class="text-center">Please check your URL - we can't find any data for <em>{{application.name}}</em>.</p>
+    </div>
+    <ul class="nav nav-pills" ng-if="!application.notFound">
       <li>
         <a ui-sref=".executions"
            analytics-on="click" analytics-category="Application View" analytics-label="Delivery tab selected"
