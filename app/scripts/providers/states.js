@@ -4,6 +4,10 @@ angular.module('deckApp')
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {
       $urlRouterProvider.otherwise('/');
+      // Don't crash on trailing slashes
+      $urlRouterProvider.when('/{path:.*}/', ['$match', function($match) {
+        return '/' + $match.path;
+      }]);
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
       $urlRouterProvider.when('/', '/applications');
       $urlRouterProvider.when(
@@ -358,7 +362,11 @@ angular.module('deckApp')
         },
         resolve: {
           application: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
-            return applicationReader.getApplication($stateParams.application, {tasks: true});
+            return applicationReader.getApplication($stateParams.application, {tasks: true})
+              .then(
+              function(app) { return app; },
+              function() { return {notFound: true, name: $stateParams.application}; }
+            );
           }]
         },
         data: {
