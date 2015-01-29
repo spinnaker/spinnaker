@@ -44,8 +44,8 @@ allprojects {
 subprojects {
   apply plugin: 'groovy'
   plugins.withType(JavaPlugin) {
-    sourceCompatibility = "1.7"
-    targetCompatibility = "1.7"
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
   }
   dependencies {
     spinnaker.group('spockBase')
