@@ -27,6 +27,7 @@ import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
 import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import retrofit.RetrofitError
 
 @RestController
 @RequestMapping("/api/v1")
@@ -61,20 +62,39 @@ class BakeryController {
 
   @RequestMapping(value = "/{region}/status/{statusId}", method = RequestMethod.GET)
   BakeStatus lookupStatus(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
-    ScriptExecution scriptExecution = rushService.scriptDetails(statusId).toBlocking().single()
+    try {
+      ScriptExecution scriptExecution = rushService.scriptDetails(statusId).toBlocking().single()
 
-    return new BakeStatus(id: scriptExecution.id,
-                          resource_id: scriptExecution.id,
-                          state: executionStatusToBakeStateMap.convertExecutionStatusToBakeState(scriptExecution.status))
+      return new BakeStatus(id: scriptExecution.id,
+                            resource_id: scriptExecution.id,
+                            state: executionStatusToBakeStateMap.convertExecutionStatusToBakeState(scriptExecution.status))
+    } catch (RetrofitError e) {
+      throw new IllegalArgumentException("Unable to retrieve status for '$statusId'.", e)
+    }
   }
 
   @RequestMapping(value = "/{region}/bake/{bakeId}", method = RequestMethod.GET)
   Bake lookupBake(@PathVariable("region") String region, @PathVariable("bakeId") String bakeId) {
-    Map logsContentMap = rushService.getLogs(bakeId, baseScriptRequest).toBlocking().single()
-    def logsContentFirstLine = logsContentMap?.logsContent?.substring(0, logsContentMap?.logsContent?.indexOf("\n"))
-    def cloudProviderBakeHandler = cloudProviderBakeHandlerRegistry.findProducer(logsContentFirstLine)
+    try {
+      Map logsContentMap = rushService.getLogs(bakeId, baseScriptRequest).toBlocking().single()
 
-    return cloudProviderBakeHandler?.scrapeCompletedBakeResults(region, bakeId, logsContentMap?.logsContent)
+      if (logsContentMap && logsContentMap.logsContent) {
+        int endOfFirstLineIndex = logsContentMap.logsContent.indexOf("\n")
+
+        if (endOfFirstLineIndex > -1) {
+          def logsContentFirstLine = logsContentMap.logsContent.substring(0, endOfFirstLineIndex)
+          def cloudProviderBakeHandler = cloudProviderBakeHandlerRegistry.findProducer(logsContentFirstLine)
+
+          if (cloudProviderBakeHandler) {
+            return cloudProviderBakeHandler.scrapeCompletedBakeResults(region, bakeId, logsContentMap.logsContent)
+          }
+        }
+      }
+
+      throw new IllegalArgumentException("Unable to retrieve bake details for '$bakeId'.")
+    } catch (RetrofitError e) {
+      throw new IllegalArgumentException("Unable to retrieve bake details for '$bakeId'.", e)
+    }
   }
 
 }
