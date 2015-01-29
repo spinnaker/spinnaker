@@ -17,3 +17,8 @@ angular.module('deckApp.settings', [])
       region: 'us-east-1'
     }
   });
+
+window.tracking = {
+  enabled: false, // set to true to enable GA tracking
+  key: 'key goes here',
+};
