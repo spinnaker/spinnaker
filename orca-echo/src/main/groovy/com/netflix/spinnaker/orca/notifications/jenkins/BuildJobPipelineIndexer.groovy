@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component
 import rx.Scheduler
 import rx.Subscription
 import rx.schedulers.Schedulers
+import static com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler.TRIGGER_TYPE
 import static java.util.concurrent.TimeUnit.SECONDS
 
 /**
@@ -74,7 +75,7 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
     for (pipeline in pipelines) {
       def triggers = pipeline.triggers as List<Map>
       for (trigger in triggers) {
-        if (trigger.type == BuildJobNotificationHandler.TRIGGER_TYPE) {
+        if (trigger.type == TRIGGER_TYPE && trigger.enabled) {
           def key = new Trigger(trigger[TRIGGER_MASTER] as String, trigger[TRIGGER_KEY] as String)
           if (!_interestingPipelines.containsKey(key)) {
             _interestingPipelines[key] = []
