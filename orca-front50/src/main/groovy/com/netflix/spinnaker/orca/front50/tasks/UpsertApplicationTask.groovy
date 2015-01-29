@@ -69,7 +69,7 @@ class UpsertApplicationTask extends AbstractFront50Task {
      */
     def existingApplication = fetchApplication(account, application.name)
     if (existingApplication) {
-      log.info("Updating application (name: ${application.name}, account: ${it.name})")
+      log.info("Updating application (name: ${application.name}, account: ${account})")
       front50Service.update(account, application)
     } else {
       if (existingGlobalApplication) {
