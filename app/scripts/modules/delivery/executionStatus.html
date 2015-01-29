@@ -2,7 +2,8 @@
   <div class="col-md-7 execution-info">
     <span ng-switch="execution.trigger.type">
       <h5 ng-switch-when="jenkins">
-        Build #{{ execution.trigger.buildInfo.lastBuildLabel }}
+        <!-- API changed; can probably remove the lastBuildLabel field 3/1/14-->
+        Build #{{ execution.trigger.buildInfo.lastBuildLabel || execution.trigger.buildInfo.lastBuild.number }}
       </h5>
       <h5 ng-switch-when="manual">
         Manual Start
