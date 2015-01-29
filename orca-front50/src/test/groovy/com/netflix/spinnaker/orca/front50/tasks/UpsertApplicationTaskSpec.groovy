@@ -145,4 +145,18 @@ class UpsertApplicationTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
   }
+
+  void "should merge properties from source to target application"() {
+    given:
+    def source = new Application(email: "source@netflix.com", description: "sourceDescription", owner: "sourceOwner")
+    def target = new Application(owner: "targetOwner")
+
+    when:
+    UpsertApplicationTask.mergeApplicationProperties(source, target)
+
+    then:
+    target.email == source.email
+    target.description == source.description
+    target.owner == "targetOwner"
+  }
 }

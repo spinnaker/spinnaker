@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.model.Application
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
+@CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task {
   @Override
   void performRequest(String account, Application application) {
@@ -73,16 +76,21 @@ class UpsertApplicationTask extends AbstractFront50Task {
       front50Service.update(account, application)
     } else {
       if (existingGlobalApplication) {
-        existingGlobalApplication.properties.each { k, v ->
-          // merge in any properties from the global registry that have not been overridden by the application.
-          if (!application."${k}") {
-            application."${k}" = v
-          }
-        }
+        mergeApplicationProperties(existingGlobalApplication, application)
       }
 
       log.info("Creating application (name: ${application.name}, account: ${account})")
       front50Service.create(account, application.name, application)
+    }
+  }
+
+  @CompileStatic(TypeCheckingMode.SKIP)
+  private static void mergeApplicationProperties(Application source, Application target) {
+    source.properties.each { k, v ->
+      // merge in any properties from the global registry that have not been overridden by the application.
+      if (!target."${k}") {
+        target."${k}" = v
+      }
     }
   }
 
