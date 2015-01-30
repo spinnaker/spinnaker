@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.netflix.frigga.Names
+import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
@@ -180,6 +181,7 @@ abstract class DeployStrategyStage extends LinearStage {
   static class StageData {
     String strategy
     String account
+    String freeFormDetails
     String application
     String stack
     String providerType = "aws"
@@ -188,7 +190,12 @@ abstract class DeployStrategyStage extends LinearStage {
     Map<String, List<String>> availabilityZones
 
     String getCluster() {
-      "${application}${stack ? '-' + stack : ''}"
+      def builder = new AutoScalingGroupNameBuilder()
+      builder.appName = application
+      builder.stack = stack
+      builder.detail = freeFormDetails
+
+      return builder.buildGroupName()
     }
   }
 
