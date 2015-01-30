@@ -50,6 +50,7 @@ class AWSCachingAgentConfigurator {
                 agents["vpcCacher-${account.name}-${region.name}".toString()] = new AmazonVpcCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["keyPairCacher-${account.name}-${region.name}".toString()] = new AmazonKeyPairCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["instanceTypeCacher-${account.name}-${region.name}".toString()] = new AmazonInstanceTypeCachingAgent(account.name, region.name, ec2, cacheService)
+                agents["elasticIpCacher-${account.name}-${region.name}".toString()] = new AmazonElasticIpCachingAgent(account.name, region.name, ec2, cacheService)
             }
         }
 

@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 class InMemoryCacheService implements CacheService {
-  private static final ConcurrentMap<String, ConcurrentMap<String, Object>> caches = new ConcurrentHashMap<>()
+  private final ConcurrentMap<String, ConcurrentMap<String, Object>> caches = new ConcurrentHashMap<>()
 
   @Override
   public <T> T retrieve(String key, Class<T> type) {
@@ -33,7 +33,7 @@ class InMemoryCacheService implements CacheService {
   boolean put(String key, Object object) {
     ConcurrentMap<String, Object> typeMap = new ConcurrentHashMap<>()
     ConcurrentMap<String, Object> existing = caches.putIfAbsent(getCacheType(key), typeMap)
-    def v = (existing ?: typeMap).put key, object
+    def v = ((existing != null)? existing: typeMap).put key, object
     v != null
   }
 
