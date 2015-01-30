@@ -6,7 +6,7 @@ angular.module('deckApp')
     return {
       templateUrl: 'views/application/healthCounts.html',
       restrict: 'E',
-      replace: true,
+      replace: false,
       scope: {
         container: '='
       },
