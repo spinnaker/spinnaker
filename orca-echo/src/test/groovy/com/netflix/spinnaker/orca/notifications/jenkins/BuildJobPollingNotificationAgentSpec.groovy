@@ -45,7 +45,7 @@ class BuildJobPollingNotificationAgentSpec extends Specification {
     content: [
       project: [
         name     : "SPINNAKER-package-pond",
-        lastBuild: [result: "SUCCESS", building: "false"]
+        lastBuild: [result: "SUCCESS", building: false]
       ],
       master : "master1"
     ]

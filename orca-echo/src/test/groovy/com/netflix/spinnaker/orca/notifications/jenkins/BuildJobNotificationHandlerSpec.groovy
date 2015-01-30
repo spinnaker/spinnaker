@@ -101,7 +101,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     input = [
         name     : "SPINNAKER-package-pond",
         master   : "master1",
-        lastBuild: [result: "SUCCESS", building: "false"]
+        lastBuild: [result: "SUCCESS", building: false]
     ]
   }
 
@@ -133,7 +133,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     input = [
         name     : "SPINNAKER-package-pond",
         master   : master,
-        lastBuild: [result: "SUCCESS", building: "false"]
+        lastBuild: [result: "SUCCESS", building: false]
     ]
   }
 
@@ -156,7 +156,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     input = [
         name     : "SPINNAKER-package-pond",
         master   : "master2",
-        lastBuild: [result: "FAILURE", building: "false"]
+        lastBuild: [result: "FAILURE", building: false]
     ]
   }
 
@@ -179,7 +179,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
     input = [
         name     : "SPINNAKER-package-pond",
         master   : "master2",
-        lastBuild: [result: "SUCCESS", building: "true"]
+        lastBuild: [result: "SUCCESS", building: true]
     ]
   }
 }

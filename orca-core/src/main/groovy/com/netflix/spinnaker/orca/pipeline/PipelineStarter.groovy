@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.transform.TypeCheckingMode
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 @Component
-//@CompileStatic
+@CompileStatic
 class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
   @Autowired ExecutionRepository executionRepository
@@ -53,6 +54,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    * @param configJson _Mayo_ pipeline configuration.
    * @return the pipeline that was created.
    */
+  @CompileDynamic
   protected Job build(Map<String, Object> config, Pipeline pipeline) {
     def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
     pipelineListeners.each {
