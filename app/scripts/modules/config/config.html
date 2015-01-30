@@ -7,5 +7,6 @@
     <button class="btn btn-link" ng-click="config.deleteApplication()" ng-disabled="config.hasServerGroups"><span class="glyphicon glyphicon-trash"></span>
       Delete Application
     </button>
+    <help-field ng-if="config.hasServerGroups" content="You cannot delete an application while it has server groups."></help-field>
   </div>
 </div>
