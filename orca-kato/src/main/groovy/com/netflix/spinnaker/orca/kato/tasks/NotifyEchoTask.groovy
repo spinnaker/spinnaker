@@ -34,16 +34,18 @@ class NotifyEchoTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
 
-    echo.recordEvent(
-      [
-        "details": [
-          "source"     : "kato",
-          "type"       : stage.context."notification.type",
-          "application": stage.context.application
-        ],
-        "content": stage.context
-      ]
-    )
+    if (echo) {
+      echo.recordEvent(
+        [
+          "details": [
+            "source"     : "kato",
+            "type"       : stage.context."notification.type",
+            "application": stage.context.application
+          ],
+          "content": stage.context
+        ]
+      )
+    }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
 

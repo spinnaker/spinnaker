@@ -42,8 +42,8 @@ class MultiThreadedJedisBatchConfigurer extends JedisBatchConfigurer {
 
   private static TaskExecutor getTaskExecutor() {
     def executor = new ThreadPoolTaskExecutor()
-    executor.maxPoolSize = 10
-    executor.corePoolSize = 10
+    executor.maxPoolSize = 250
+    executor.corePoolSize = 50
     executor.afterPropertiesSet()
     executor
   }
