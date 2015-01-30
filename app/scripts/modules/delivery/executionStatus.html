@@ -40,10 +40,20 @@
           </ul>
         </span>
       </span>
+      <span ng-switch-when="canceled">
+        <span>
+          <h5 class="status status-canceled">
+            CANCELED
+          </h5>
+        </span>
+      </span>
       <span ng-switch-when="running">
         <span>
           <h5 class="status status-running">
             RUNNING
+            <a href tooltip="Cancel execution" ng-click="ctrl.cancelExecution(execution)">
+              <span class="glyphicon glyphicon-stop"></span>
+            </a>
           </h5>
           <ul>
             <li>
