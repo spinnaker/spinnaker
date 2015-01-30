@@ -10,8 +10,12 @@ angular
       var defPrimary = 'account';
       var defSecondary = 'region';
 
-      $location.search('q',
-          ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : null);
+      var filter = ClusterFilterModel.sortFilter.filter.length ? ClusterFilterModel.sortFilter.filter : null,
+          locationQ = $location.search().q || null;
+      if (filter !== locationQ) {
+        $location.search('q',
+            ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : undefined);
+      }
       $location.search('hideHealth', ClusterFilterModel.sortFilter.hideHealthy ? true : null);
       $location.search('hideInstances', ClusterFilterModel.sortFilter.showAllInstances ? null : true);
       $location.search('hideDisabled', ClusterFilterModel.sortFilter.hideDisabled ? true : null);
