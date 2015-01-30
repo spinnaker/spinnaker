@@ -1,0 +1,7 @@
+dependencies {
+  spinnaker.group('bootWeb')
+  spinnaker.group('retrofitDefault')
+  compile spinnaker.dependency('rxJava')
+  spinnaker.group('jackson')
+  compile spinnaker.dependency('jacksonGuava')
+}
