@@ -8,7 +8,8 @@ angular.module('deckApp.delivery', [
   'deckApp.utils.lodash',
   'deckApp.utils.moment',
   'deckApp.utils.rx',
-  'deckApp.utils.scrollTo'
+  'deckApp.utils.scrollTo',
+  'deckApp.orchestratedItem.service',
 ])
   .config(angular.noop)
   .run(angular.noop);
