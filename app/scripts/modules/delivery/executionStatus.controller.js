@@ -5,7 +5,7 @@ angular.module('deckApp.delivery')
     var controller = this;
 
     controller.getFailedStage = function(execution) {
-      var failed = execution.stages.filter(function(stage) {
+      var failed = execution.stageSummaries.filter(function(stage) {
         return stage.isFailed;
       });
       if (failed && failed.length) {
@@ -15,11 +15,11 @@ angular.module('deckApp.delivery')
     };
 
     controller.getRunningStage = function(execution) {
-      var runningOrNext = execution.stages.filter(function(stage) {
+      var runningOrNext = execution.stageSummaries.filter(function(stage) {
         return stage.isRunning || stage.hasNotStarted;
       });
       if (runningOrNext && runningOrNext.length) {
-        return runningOrNext[0].name;
+        return _.pluck(runningOrNext, 'name').join(', ');
       }
       return 'Unknown';
     };
