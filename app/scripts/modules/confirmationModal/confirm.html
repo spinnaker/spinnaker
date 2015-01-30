@@ -4,7 +4,7 @@
   <div class="modal-header">
     <h3>{{params.header}}</h3>
   </div>
-  <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry">
+  <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry || state.error">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
       <p ng-if="params.body">
         {{params.body}}
@@ -20,6 +20,14 @@
         </div>
       </div>
     </form>
+    <div ng-if="state.error">
+      <div class="alert alert-danger">
+        <h4>An exception occurred:</h4>
+        <p>
+          {{errorMessage || 'No details provided.'}}
+        </p>
+      </div>
+    </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>

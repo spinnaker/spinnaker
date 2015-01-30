@@ -40,9 +40,11 @@ angular.module('deckApp.confirmationModal.service', [
       submitting: false
     };
 
-    params.taskMonitorConfig.modalInstance = $modalInstance;
+    if (params.taskMonitorConfig) {
+      params.taskMonitorConfig.modalInstance = $modalInstance;
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
+      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
+    }
 
     $scope.verification = {
       requireAccountEntry: accountService.challengeDestructiveActions(params.account),
@@ -53,9 +55,22 @@ angular.module('deckApp.confirmationModal.service', [
       return $scope.verification.requireAccountEntry && $scope.verification.verifyAccount !== params.account.toUpperCase();
     };
 
+    function showError(exception) {
+      $scope.state.error = true;
+      $scope.errorMessage = exception;
+    }
+
     this.confirm = function () {
       if (!this.formDisabled()) {
-        $scope.taskMonitor.submit(params.submitMethod);
+        if ($scope.taskMonitor) {
+          $scope.taskMonitor.submit(params.submitMethod);
+        } else {
+          if (params.submitMethod) {
+            params.submitMethod().then($modalInstance.close, showError);
+          } else {
+            $modalInstance.close();
+          }
+        }
       }
     };
 

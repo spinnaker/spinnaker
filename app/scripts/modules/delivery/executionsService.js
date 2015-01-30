@@ -60,8 +60,33 @@ angular.module('deckApp.delivery')
       });
     }
 
+    function cancelExecution(executionId) {
+      var deferred = $q.defer();
+      $http({
+        method: 'PUT',
+        url: [
+          settings.gateUrl,
+          'applications',
+          $stateParams.application,
+          'pipelines',
+          executionId,
+          'cancel',
+        ].join('/')
+      }).then(
+          function() {
+            scheduler.scheduleImmediate();
+            deferred.resolve();
+          },
+          function(exception) {
+            deferred.reject(exception.message);
+          }
+        );
+      return deferred.promise;
+    }
+
     return {
       getAll: getExecutions,
+      cancelExecution: cancelExecution,
       forceRefresh: scheduler.scheduleImmediate,
       subscribeAll: function(fn) {
         return scheduler
