@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletResponse
 @Slf4j
 @RestController
 @RequestMapping("/{account}/applications")
-public class ApplicationsController extends SpringBootServletInitializer {
+public class ApplicationsController {
   @Autowired
   MessageSource messageSource
 

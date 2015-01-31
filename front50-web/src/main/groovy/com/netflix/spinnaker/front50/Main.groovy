@@ -28,12 +28,12 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-@ComponentScan("com.netflix.spinnaker.front50")
+@ComponentScan(["com.netflix.spinnaker.front50"])
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': 'test',
+    'netflix.environment': System.getProperty('netflix.environment', 'test'),
     'netflix.account': System.getProperty('netflix.environment', 'test'),
-    'netflix.stack': 'test',
+    'netflix.stack': System.getProperty('netflix.stack', 'test'),
     'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
     'spring.config.name': 'front50',
     'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
@@ -50,7 +50,7 @@ public class Main extends SpringBootServletInitializer {
   }
 
   static void main(String... args) {
-    SpringApplication.run this, args
+    SpringApplication.run Main, args
   }
 
   @Override
