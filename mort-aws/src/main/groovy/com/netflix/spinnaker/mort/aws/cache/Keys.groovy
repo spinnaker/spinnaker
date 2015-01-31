@@ -24,7 +24,8 @@ class Keys {
     SUBNETS,
     VPCS,
     KEY_PAIRS,
-    INSTANCE_TYPES
+    INSTANCE_TYPES,
+    ELASTIC_IPS
 
     final String ns
 
@@ -59,6 +60,9 @@ class Keys {
     case Namespace.INSTANCE_TYPES.ns:
         result = [name: parts[1], account: parts[2], region: parts[3]]
         break
+      case Namespace.ELASTIC_IPS.ns:
+        result = [address: parts[1], account: parts[2], region: parts[3]]
+        break
     }
     result.type = parts[0]
     result
@@ -82,5 +86,9 @@ class Keys {
 
   static String getInstanceTypeKey(String keyName, String region, String account) {
       "${Namespace.INSTANCE_TYPES}:${keyName}:${account}:${region}"
+  }
+
+  static String getElasticIpKey(String ipAddress, String region, String account) {
+      "${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
   }
 }
