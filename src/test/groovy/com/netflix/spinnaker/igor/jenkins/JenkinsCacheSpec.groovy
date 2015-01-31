@@ -58,13 +58,13 @@ class JenkinsCacheSpec extends Specification {
 
     void 'new build numbers get overridden'() {
         when:
-        cache.setLastBuild(master, 'job1', 78, 'running')
+        cache.setLastBuild(master, 'job1', 78, true)
 
         then:
         cache.getLastBuild(master, 'job1').lastBuildLabel == 78
 
         when:
-        cache.setLastBuild(master, 'job1', 80, 'running')
+        cache.setLastBuild(master, 'job1', 80, false)
 
         then:
         cache.getLastBuild(master, 'job1').lastBuildLabel == 80
@@ -72,16 +72,16 @@ class JenkinsCacheSpec extends Specification {
 
     void 'statuses get overridden'() {
         when:
-        cache.setLastBuild(master, 'job1', 78, 'running')
+        cache.setLastBuild(master, 'job1', 78, true)
 
         then:
-        cache.getLastBuild(master, 'job1').lastBuildStatus == 'running'
+        cache.getLastBuild(master, 'job1').lastBuildBuilding == true
 
         when:
-        cache.setLastBuild(master, 'job1', 78, 'failed')
+        cache.setLastBuild(master, 'job1', 78, false)
 
         then:
-        cache.getLastBuild(master, 'job1').lastBuildStatus == 'failed'
+        cache.getLastBuild(master, 'job1').lastBuildBuilding == false
 
     }
 
@@ -92,8 +92,8 @@ class JenkinsCacheSpec extends Specification {
 
     void 'can set builds for multiple masters'() {
         when:
-        cache.setLastBuild(master, 'job1', 78, 'success')
-        cache.setLastBuild('example2', 'job1', 88, 'success')
+        cache.setLastBuild(master, 'job1', 78, true)
+        cache.setLastBuild('example2', 'job1', 88, true)
 
         then:
         cache.getLastBuild(master, 'job1').lastBuildLabel == 78
@@ -102,9 +102,9 @@ class JenkinsCacheSpec extends Specification {
 
     void 'correctly retrieves all jobsNames for a master'() {
         when:
-        cache.setLastBuild(master, 'job1', 78, 'success')
-        cache.setLastBuild(master, 'job2', 11, 'fail')
-        cache.setLastBuild(master, 'blurb', 1, 'running')
+        cache.setLastBuild(master, 'job1', 78, true)
+        cache.setLastBuild(master, 'job2', 11, false)
+        cache.setLastBuild(master, 'blurb', 1, false)
 
         then:
         cache.getJobNames(master) == ['blurb', 'job1', 'job2']
@@ -112,7 +112,7 @@ class JenkinsCacheSpec extends Specification {
 
     void 'can remove details for a build'() {
         when:
-        cache.setLastBuild(master, 'job1', 78, 'success')
+        cache.setLastBuild(master, 'job1', 78, true)
         cache.remove(master, 'job1')
 
         then:
@@ -122,10 +122,10 @@ class JenkinsCacheSpec extends Specification {
     @Unroll
     void 'retrieves all matching jobs for typeahead #query'() {
         when:
-        cache.setLastBuild(master, 'job1', 1, 'success')
-        cache.setLastBuild(test, 'job1', 1, 'fail')
-        cache.setLastBuild(master, 'job2', 1, 'fail')
-        cache.setLastBuild(test, 'job3', 1, 'fail')
+        cache.setLastBuild(master, 'job1', 1, true)
+        cache.setLastBuild(test, 'job1', 1, false)
+        cache.setLastBuild(master, 'job2', 1, false)
+        cache.setLastBuild(test, 'job3', 1, false)
 
         then:
         cache.getTypeaheadResults(query) == expected
@@ -144,7 +144,7 @@ class JenkinsCacheSpec extends Specification {
         when:
         JenkinsCache secondInstance = new JenkinsCache(jedisPool: jedisPool)
         secondInstance.prefix = 'newPrefix'
-        secondInstance.setLastBuild(master, 'job1', 1, 'success')
+        secondInstance.setLastBuild(master, 'job1', 1, false)
 
         then:
         secondInstance.getJobNames(master) == ['job1']
