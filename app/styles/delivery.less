@@ -5,6 +5,9 @@ body, html {
 }
 .status-executing, .status-running {
   color: @spinnaker-blue;
+  .glyphicon-remove-circle {
+    color: @unhealthy_red;
+  }
 }
 .status-failed {
   color: @unhealthy_red;
