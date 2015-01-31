@@ -21,7 +21,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
 
@@ -46,7 +46,7 @@ sourceSets {
 }
 
 jar {
-  doFirst { 
+  doFirst {
     exclude "${rootProject.name}.yml"
   }
 }
@@ -69,11 +69,11 @@ dependencies {
 }
 
 ospackage {
-  packageName = rootProject.name
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${rootProject.name}"
-  from "${project.buildDir}/install/${project.name}"
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
 }
 
 buildDeb {

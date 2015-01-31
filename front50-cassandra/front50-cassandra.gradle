@@ -20,7 +20,7 @@ configurations.all {
 
 dependencies {
   compile project(":front50-core")
-  compile spinnaker.dependency("korkCassandra")
+  compile("com.netflix.spinnaker.kork:kork-cassandra:1.23")
 }
 
 test {
