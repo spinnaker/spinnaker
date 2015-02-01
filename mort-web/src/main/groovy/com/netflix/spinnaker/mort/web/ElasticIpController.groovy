@@ -32,8 +32,7 @@ class ElasticIpController {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}", params = ['region'])
-  Set<ElasticIp> listByAccountAndRegion(@PathVariable String account,
-                                         @RequestParam("region") String region) {
+  Set<ElasticIp> listByAccountAndRegion(@PathVariable String account, @RequestParam("region") String region) {
     rx.Observable.from(elasticIpProviders).flatMap {
       rx.Observable.from(it.getAllByAccountAndRegion(account, region))
     } reduce(new HashSet<ElasticIp>(), { Set elasticIps, ElasticIp elasticIp ->

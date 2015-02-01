@@ -45,12 +45,12 @@ class AWSCachingAgentConfigurator {
             def account = (NetflixAmazonCredentials) a
             for (region in account.regions) {
                 AmazonEC2 ec2 = clientProvider.getAmazonEC2(account, region.name)
+                agents["elasticIpCacher-${account.name}-${region.name}".toString()] = new AmazonElasticIpCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["securityGroupCacher-${account.name}-${region.name}".toString()] = new AmazonSecurityGroupCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["subnetCacher-${account.name}-${region.name}".toString()] = new AmazonSubnetCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["vpcCacher-${account.name}-${region.name}".toString()] = new AmazonVpcCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["keyPairCacher-${account.name}-${region.name}".toString()] = new AmazonKeyPairCachingAgent(account.name, region.name, ec2, cacheService)
                 agents["instanceTypeCacher-${account.name}-${region.name}".toString()] = new AmazonInstanceTypeCachingAgent(account.name, region.name, ec2, cacheService)
-                agents["elasticIpCacher-${account.name}-${region.name}".toString()] = new AmazonElasticIpCachingAgent(account.name, region.name, ec2, cacheService)
             }
         }
 
