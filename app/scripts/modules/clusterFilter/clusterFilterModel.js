@@ -69,7 +69,7 @@ angular
     function setParams(params) {
       clearFilterParams(params);
       _.defaults(params, {
-        q: sortFilter.filter,
+        q: angular.copy(sortFilter.filter),
         acct: convertObjectToParam(sortFilter.account),
         reg: convertObjectToParam(sortFilter.region),
         status: convertObjectToParam(sortFilter.status),
@@ -103,46 +103,73 @@ angular
       ];
     }
 
-    function fromOtherTabToClusterTab(fromState, toState) {
-      return fromState.name.indexOf('clusters') === -1  &&
-             toState.name.indexOf('clusters') > -1;
+    function isClusterState(stateName) {
+      return stateName === 'home.applications.application.insight.clusters' || stateName.indexOf('clusters.') > -1;
     }
 
-    function fromClusterTabToOtherTab(fromState, toState) {
-      return fromState.name.indexOf('clusters') > -1  &&
-        toState.name.indexOf('clusters') === -1;
+    function movingToClusterState(toState) {
+      return isClusterState(toState.name);
     }
 
-    function notFromApplicationsList(fromState) {
-      return fromState.name !== 'home.applications.application';
+    function hasSavedClusterState(toParams) {
+      return savedClusterState[toParams.application] !== undefined && savedClusterStateParams[toParams.application] !== undefined;
     }
 
-    function notToApplicationList(toState) {
-      return toState.name !== 'home.applications';
+    function routeToSavedState(event, toParams) {
+      event.preventDefault();
+      $state.go(savedClusterState[toParams.application], savedClusterStateParams[toParams.application], {reload: false});
     }
 
-    var savedClusterState;
-    var savedClusterParams;
+    function movingFromClusterState (toState, fromState) {
+      return isClusterState(fromState.name) && !isClusterState(toState.name);
+    }
+
+    function saveClusterState(fromState, fromParams) {
+      if(fromParams.application) {
+        savedClusterState[fromParams.application] = fromState;
+        savedClusterStateParams[fromParams.application] = fromParams;
+      }
+    }
+
+    function shouldRouteToSavedState(toState, toParams, fromState) {
+      var applicationCurrentSavedState = savedClusterState[toParams.application];
+      return toState.name !== applicationCurrentSavedState.name && !isClusterState(fromState.name);
+    }
+
+    function fromApplicationListState(fromState) {
+      return fromState.name === 'home.applications.application';
+    }
+
+    var savedClusterState = {};
+    var savedClusterStateParams = {};
 
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-      if(fromOtherTabToClusterTab(fromState, toState) && notFromApplicationsList(fromState)) {
-        if(savedClusterState && savedClusterParams && toState.name !== savedClusterState.name) {
-          event.preventDefault();
-          $state.go(savedClusterState.name, savedClusterParams, {reload: true});
+
+      if(movingFromClusterState(toState, fromState)) {
+        setParams(fromParams);
+        saveClusterState(fromState, fromParams);
+      }
+
+      if(movingToClusterState(toState)) {
+        if (hasSavedClusterState(toParams) && shouldRouteToSavedState(toState, toParams, fromState)) {
+          routeToSavedState(event, toParams);
         }
+
+        if(fromApplicationListState(fromState) && hasSavedClusterState(toParams)) {
+          angular.copy(savedClusterStateParams[toParams.application], $stateParams);
+          activate();
+        }
+
+        if(fromApplicationListState(fromState) && !hasSavedClusterState(toParams)) {
+          clearSideFilters();
+        }
+
+        if(isClusterState(toState.name) && isClusterState(fromState.name)) {
+          setParams(toParams);
+        }
+
       }
 
-      if(fromClusterTabToOtherTab(fromState, toState) && notToApplicationList(toState)) {
-        savedClusterState = fromState;
-        savedClusterParams = fromParams;
-      } else {
-        savedClusterState = undefined;
-        savedClusterParams = undefined;
-      }
-
-      if(toState.name.indexOf('clusters') > -1) {
-        setParams(toParams);
-      }
     });
 
     activate();
