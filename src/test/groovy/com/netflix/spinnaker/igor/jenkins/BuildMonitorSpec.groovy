@@ -49,7 +49,7 @@ class BuildMonitorSpec extends Specification {
 
         then:
         0 * cache.getLastBuild(MASTER, 'job1')
-        1 * cache.setLastBuild(MASTER, 'job2', 1, "")
+        1 * cache.setLastBuild(MASTER, 'job2', 1, false)
         builds.size() == 1
         builds[0].current.name == 'job2'
         builds[0].current.lastBuild.number == 1
@@ -66,7 +66,7 @@ class BuildMonitorSpec extends Specification {
 
         then:
         1 * cache.getLastBuild(MASTER, 'job2') >> [lastBuildLabel: 3]
-        1 * cache.setLastBuild(MASTER, 'job2', 5, "")
+        1 * cache.setLastBuild(MASTER, 'job2', 5, false)
         builds[0].current.lastBuild.number == 5
         builds[0].previous.lastBuildLabel == 3
     }
@@ -75,19 +75,19 @@ class BuildMonitorSpec extends Specification {
         given:
         1 * cache.getJobNames(MASTER) >> ['job3']
         1 * client.projects >> new ProjectsList(
-            list: [new Project(name: 'job3', lastBuild : new Build(number: 5, result: 'FAILED'))]
+            list: [new Project(name: 'job3', lastBuild : new Build(number: 5, building: false))]
         )
 
         when:
         List<Map> builds = monitor.changedBuilds(MASTER)
 
         then:
-        1 * cache.getLastBuild(MASTER, 'job3') >> [lastBuildLabel: 5, lastBuildStatus: 'RUNNING']
-        1 * cache.setLastBuild(MASTER, 'job3', 5, 'FAILED')
+        1 * cache.getLastBuild(MASTER, 'job3') >> [lastBuildLabel: 5, lastBuildRunning: true]
+        1 * cache.setLastBuild(MASTER, 'job3', 5, false)
         builds[0].current.lastBuild.number == 5
         builds[0].previous.lastBuildLabel == 5
-        builds[0].current.lastBuild.result == 'FAILED'
-        builds[0].previous.lastBuildStatus == 'RUNNING'
+        builds[0].current.lastBuild.building == false
+        builds[0].previous.lastBuildRunning == true
     }
 
     void 'stale builds are removed'() {

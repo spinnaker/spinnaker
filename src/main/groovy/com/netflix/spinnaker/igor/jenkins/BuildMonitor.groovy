@@ -139,13 +139,10 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         log.debug "no builds found for ${project.name}, skipping"
                     } else if (cachedBuilds.contains(project.name)) {
                         cachedBuild = cache.getLastBuild(master, project.name)
-                        boolean cachedBuilding = cachedBuild.lastBuildStatus.equals(BUILD_IN_PROGRESS)
-                        if ((project.lastBuild.building != cachedBuilding) ||
-                            (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel)) ||
-                            (project.lastBuild.result && (project.lastBuild.result != cachedBuild.lastBuildStatus))) {
-                            log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number}"
-
-                            if (echoService && cachedBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+                        if ((project.lastBuild.building != cachedBuild.lastBuildBuilding) ||
+                            (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+                            log.debug "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
+                            if (echoService && cachedBuild.lastBuildBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
                                 // we cached a build in progress, but missed the build result (a new build is underway or complete)
                                 // fetch the final old build status and post the final result to echo
                                 log.info "fetching missed completed build info for ${cachedBuild.lastBuildLabel}"
@@ -167,12 +164,10 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         addToCache = true
                     }
                     if (addToCache) {
-                        String result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
-                        cache.setLastBuild(master, project.name, project.lastBuild.number, result)
+                        project.lastBuild.result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
+                        log.debug "setting result to ${project.lastBuild.result}"
+                        cache.setLastBuild(master, project.name, project.lastBuild.number, project.lastBuild.building)
                         if (echoService) {
-                            if (project.lastBuild.building) {
-                                project.lastBuild.result = BUILD_IN_PROGRESS // for consistency
-                            }
                             echoService.postBuild(
                                 new BuildDetails(content: new BuildContent(project: project, master: master))
                             )

@@ -62,17 +62,17 @@ class JenkinsCache {
         Map result = resource.hgetAll(makeKey(master, job))
         Map convertedResult = [
             lastBuildLabel: Integer.parseInt(result.lastBuildLabel),
-            lastBuildStatus: result.lastBuildStatus
+            lastBuildBuilding: Boolean.parseBoolean(result.lastBuildBuilding)
         ]
         jedisPool.returnResource(resource)
         convertedResult
     }
 
-    void setLastBuild(String master, String job, int lastBuild, String status) {
+    void setLastBuild(String master, String job, int lastBuild, boolean building) {
         Jedis resource = jedisPool.resource
         String key = makeKey(master, job)
         resource.hset(key, 'lastBuildLabel', lastBuild as String)
-        resource.hset(key, 'lastBuildStatus', status)
+        resource.hset(key, 'lastBuildBuilding', building as String)
         jedisPool.returnResource(resource)
     }
 
