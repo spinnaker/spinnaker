@@ -20,10 +20,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import groovy.transform.Immutable
-import groovy.transform.Sortable
 
 @Immutable
-@Sortable(excludes = ['inboundRules', 'outboundRules'])
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AmazonSecurityGroup implements SecurityGroup {
   final String type = "aws"

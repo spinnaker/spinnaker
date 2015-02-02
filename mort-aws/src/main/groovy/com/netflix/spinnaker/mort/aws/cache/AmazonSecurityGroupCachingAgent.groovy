@@ -20,11 +20,14 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
-import com.netflix.spinnaker.mort.model.*
-import com.netflix.spinnaker.mort.model.securitygroups.*
+import com.netflix.spinnaker.mort.model.AddressableRange
+import com.netflix.spinnaker.mort.model.CacheService
+import com.netflix.spinnaker.mort.model.CachingAgent
+import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
+import com.netflix.spinnaker.mort.model.securitygroups.Rule
+import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
 import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
-import rx.Observable
 
 @Immutable(knownImmutables = ["ec2", "cacheService"])
 @Slf4j
@@ -33,8 +36,6 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
   final String region
   final AmazonEC2 ec2
   final CacheService cacheService
-
-  private Map<String, Integer> lastRun = [:]
 
   @Override
   String getDescription() {
@@ -46,40 +47,38 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
       1
   }
 
-
   @Override
   void call() {
     log.info "$description - Caching..."
-    def result = ec2.describeSecurityGroups()
-    def thisRun = [:]
-    Observable.from(result.securityGroups).filter {
-      !lastRun.containsKey(it.groupId) || lastRun.get(it.groupId) != it.hashCode()
-    }.subscribe {
-      thisRun.put(it.groupId, it.hashCode())
-      cacheOne it
+    List<SecurityGroup> currentSecurityGroups = ec2.describeSecurityGroups().securityGroups
+    Map<String, AmazonSecurityGroup> currentSecurityGroupsByKey = currentSecurityGroups.collectEntries([:]) {
+      def key = Keys.getSecurityGroupKey(it.groupName, it.groupId, region, account, it.vpcId)
+      [ (key): convertToAmazonSecurityGroup(it)]
     }
-    evictDeletedSecurityGroups(result.securityGroups)
-    lastRun = thisRun
-  }
 
-  void evictDeletedSecurityGroups(List<SecurityGroup> currentSecurityGroups) {
-    def relevantKeys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns).findAll {
+    Collection<String> relevantCachedKeys = cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns).findAll {
       def parts = Keys.parse(it)
       parts.account == account && parts.region == region
     }
-    relevantKeys.each { relevantKey ->
-      def parts = Keys.parse(relevantKey)
-      def match = currentSecurityGroups.find {
-        it.groupName == parts.name && (it.vpcId ?: 'null') == parts.vpcId
-      }
-      if (!match) {
-        log.info("Security group ${relevantKey} not found; removing from cache")
-        cacheService.free(relevantKey)
-      }
+    Map<String, AmazonSecurityGroup> cachedSecurityGroupsByKey = relevantCachedKeys.collectEntries([:]) {
+      [ (it): cacheService.retrieve(it, AmazonSecurityGroup)]
+    }
+
+    // evict currently missing ones
+    Collection<String> removedKeys = cachedSecurityGroupsByKey.keySet() - currentSecurityGroupsByKey.keySet()
+    removedKeys.each {
+      log.info("Security group ${it} not found; removing from cache")
+      cacheService.free(it)
+    }
+
+    // cache new or updated ones
+    def addedOrUpdatedSecurityGroupsByKey = currentSecurityGroupsByKey.entrySet() - cachedSecurityGroupsByKey.entrySet()
+    addedOrUpdatedSecurityGroupsByKey.each { it ->
+      cacheService.put(it.key, it.value)
     }
   }
 
-  void cacheOne(SecurityGroup securityGroup) {
+  private AmazonSecurityGroup convertToAmazonSecurityGroup(SecurityGroup securityGroup) {
     Map<String, Map> rules = [:]
     Map<String, Map> ipRangeRules = [:]
 
@@ -92,17 +91,14 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     inboundRules.addAll buildSecurityGroupRules(rules)
     inboundRules.addAll buildIpRangeRules(ipRangeRules)
 
-    cacheService.put(
-        Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account, securityGroup.vpcId),
-        new AmazonSecurityGroup(
-            id: securityGroup.groupId,
-            vpcId: securityGroup.vpcId,
-            name: securityGroup.groupName,
-            description: securityGroup.description,
-            accountName: account,
-            region: region,
-            inboundRules: inboundRules
-        )
+    new AmazonSecurityGroup(
+        id: securityGroup.groupId,
+        name: securityGroup.groupName,
+        vpcId: securityGroup.vpcId,
+        description: securityGroup.description,
+        accountName: account,
+        region: region,
+        inboundRules: inboundRules
     )
   }
 
