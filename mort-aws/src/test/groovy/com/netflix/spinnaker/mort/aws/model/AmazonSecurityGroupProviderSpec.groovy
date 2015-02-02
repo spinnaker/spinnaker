@@ -147,10 +147,10 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   void "get returns match based on account, region, and name"() {
     given:
     AmazonSecurityGroup expected = getAllGroups()[0]
+    List<AmazonSecurityGroup> allGroups = getAllGroups()
 
     when:
-    List<AmazonSecurityGroup> allGroups = getAllGroups()
-    def result = provider.get(expected.accountName, expected.name, expected.region)
+    def result = provider.get(expected.accountName, expected.region, expected.name, null)
 
     then:
     result == expected

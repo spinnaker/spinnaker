@@ -30,6 +30,6 @@ interface SecurityGroupProvider {
 
   Set<SecurityGroup> getAllByAccountAndRegion(String account, String region)
 
-  SecurityGroup get(String account, String name, String region)
+  SecurityGroup get(String account, String region, String name, String vpcId)
 
 }
