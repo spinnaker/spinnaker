@@ -35,7 +35,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.RememberMeServices
@@ -60,15 +59,27 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
   @ConfigurationProperties("onelogin")
   static class OneLoginSecurityConfigProperties {
     Boolean enabled
+    Boolean requireAuthentication
     String url
     String certificate
     String redirectBase
     String requiredRole
   }
 
+  @Autowired
+  OneLoginSecurityConfigProperties oneLoginSecurityConfigProperties
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.csrf().disable().rememberMe().rememberMeServices(rememberMeServices())
+
+    http.csrf().disable()
+       .rememberMe().rememberMeServices(rememberMeServices())
+    if (oneLoginSecurityConfigProperties.requireAuthentication) {
+      http.authorizeRequests()
+              .antMatchers('/auth/**').permitAll()
+              .antMatchers('/**').authenticated()
+          .and()
+    }
   }
 
   @Bean
