@@ -54,6 +54,24 @@ class TaskControllerSpec extends Specification {
     1 * executionRepository.retrieveOrchestrations()
   }
 
+  void '/tasks are sorted by startTime, with non-started tasks first'() {
+    given:
+    def tasks = [
+      [ startTime: 1, id: 'c' ],
+      [ startTime: 2, id: 'd' ],
+      [ id: 'b' ],
+      [ id: 'a' ]
+    ]
+
+    when:
+    def response = mockMvc.perform(get("/pipelines")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelines() >> tasks
+    results.id == [ 'b', 'a', 'd', 'c']
+  }
+
   void 'step names are properly translated'() {
     when:
     def response = mockMvc.perform(get('/tasks')).andReturn().response
@@ -113,5 +131,24 @@ class TaskControllerSpec extends Specification {
     1 * executionRepository.retrievePipelines() >> [new Pipeline(), new Pipeline()]
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.size() == 2
+  }
+
+  void '/pipelines sorted by startTime, with non-started pipelines first'() {
+    given:
+    def pipelines = [
+      [ startTime: 1, id: 'c' ],
+      [ startTime: 2, id: 'd' ],
+      [ id: 'b' ],
+      [ id: 'a' ]
+    ]
+
+    when:
+    def response = mockMvc.perform(get("/pipelines")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelines() >> pipelines
+    results.id == [ 'b', 'a', 'd', 'c']
+
   }
 }
