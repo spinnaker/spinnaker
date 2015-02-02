@@ -69,29 +69,47 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     def rt = new RestTemplate()
     def map = rt.getForObject("${kmsServer}/credentials/${accountName}", Map)
-    def key = new ByteArrayInputStream(Base64.decodeBase64(map.key as String))
-    PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore,
-                                                                     key,
-                                                                     pkcs12Password,
-                                                                     "privatekey",
-                                                                     pkcs12Password)
-    def credential = new GoogleCredential.Builder().setTransport(httpTransport)
-            .setJsonFactory(JSON_FACTORY)
-            .setServiceAccountId(map.email as String)
-            .setServiceAccountScopes(Collections.singleton(ComputeScopes.COMPUTE))
-            .setServiceAccountPrivateKey(privateKey).build()
-    def compute = new Compute.Builder(httpTransport,
-                                      JSON_FACTORY,
-                                      null)
-            .setApplicationName(APPLICATION_NAME)
-            .setHttpRequestInitializer(credential)
-            .build()
-    return new GoogleCredentials(projectName,
-                                 compute,
-                                 httpTransport,
-                                 JSON_FACTORY,
-                                 map.email as String,
-                                 privateKey)
+
+    if (map.key) {
+      def key = new ByteArrayInputStream(Base64.decodeBase64(map.key as String))
+      PrivateKey privateKey = SecurityUtils.loadPrivateKeyFromKeyStore(SecurityUtils.pkcs12KeyStore,
+                                                                       key,
+                                                                       pkcs12Password,
+                                                                       "privatekey",
+                                                                       pkcs12Password)
+      def credential = new GoogleCredential.Builder().setTransport(httpTransport)
+              .setJsonFactory(JSON_FACTORY)
+              .setServiceAccountId(map.email as String)
+              .setServiceAccountScopes(Collections.singleton(ComputeScopes.COMPUTE))
+              .setServiceAccountPrivateKey(privateKey).build()
+      def compute = new Compute.Builder(httpTransport,
+                                        JSON_FACTORY,
+                                        null)
+              .setApplicationName(APPLICATION_NAME)
+              .setHttpRequestInitializer(credential)
+              .build()
+
+      return new GoogleCredentials(projectName,
+                                   compute,
+                                   httpTransport,
+                                   JSON_FACTORY,
+                                   map.email as String,
+                                   privateKey)
+    } else {
+      def credential = GoogleCredential.getApplicationDefault()
+      def compute = new Compute.Builder(httpTransport,
+                                        JSON_FACTORY,
+                                        credential)
+              .setApplicationName(APPLICATION_NAME)
+              .build()
+
+      return new GoogleCredentials(projectName,
+                                   compute,
+                                   httpTransport,
+                                   JSON_FACTORY,
+                                   null,
+                                   null)
+    }
   }
 
   private static Map<String, List<String>> queryRegions(Compute compute, String projectName) {
