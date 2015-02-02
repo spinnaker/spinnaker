@@ -7,8 +7,10 @@
           placeholder="Search"
           ng-model="query"
           ng-focus="ctrl.displayResults()"
-          ng-keyup="ctrl.dispatchQueryInput($event)"/>
-        <span class="glyphicon glyphicon-search form-control-feedback" tooltip-html-unsafe="Keyboard shortcut: <span class='keyboard-key'>/</span>" tooltip-placement="right"></span>
+          ng-keyup="ctrl.dispatchQueryInput($event)"
+          analytics-on="focus" analytics-category="Global Search" analytics-label="Focus"
+          />
+        <span class="glyphicon glyphicon-search form-control-feedback"   tooltip-html-unsafe="Keyboard shortcut: <span class='keyboard-key'>/</span>" tooltip-placement="right"></span>
       </div>
     </div>
   </form>
@@ -26,14 +28,16 @@
     <li ng-repeat="result in category.results.slice(0,5)"
         ng-repeat-end
         class="result">
-      <a ng-keydown="ctrl.navigateResults($event)" href="{{ result.href }}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span></a>
+      <a ng-keydown="ctrl.navigateResults($event)" href="{{ result.href }}" analytics-on="click"
+         analytics-category="Global Search"
+         analytics-label="{{result.name}}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span></a>
     </li>
     <li class="divider"></li>
     <li class="result" ng-if="categories.length">
     <a href="#/infrastructure?q={{ query }}"
          class="expand-results"
          ng-keydown="ctrl.navigateResults($event)"
-         ng-show="categories.length">
+         ng-show="categories.length" analytics-on="click" analytics-category="Global Search" analytics-label="See more results">
            See more results
       </a>
     </li>
