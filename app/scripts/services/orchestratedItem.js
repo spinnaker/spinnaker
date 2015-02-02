@@ -37,6 +37,11 @@ angular.module('deckApp.orchestratedItem.service', [
             return item.status === 'CANCELED';
           }
         },
+        isSuspended: {
+          get: function() {
+            return item.status === 'SUSPENDED';
+          }
+        },
         status: {
           // Returns either COMPLETED, RUNNING, FAILED, CANCELED, or NOT_STARTED
           get: function() { return normalizeStatus(item); },
@@ -72,8 +77,9 @@ angular.module('deckApp.orchestratedItem.service', [
         case 'FAILED':
         case 'TERMINAL':
         case 'STOPPED':
-        case 'SUSPENDED':
           return 'FAILED';
+        case 'SUSPENDED':
+          return 'SUSPENDED';
         case 'NOT_STARTED':
           return 'NOT_STARTED';
         case 'CANCELED':

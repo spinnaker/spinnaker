@@ -41,6 +41,11 @@
              btn-checkbox>
         <status-glyph item="{isCanceled: true}"></status-glyph> Canceled
       </label>
+      <label class="btn btn-default btn"
+             ng-model="filter.execution.status.suspended"
+             btn-checkbox>
+        <status-glyph item="{isSuspended: true}"></status-glyph> Suspended
+      </label>
 
     </div>
   </div>
