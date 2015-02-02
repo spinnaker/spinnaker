@@ -16,6 +16,7 @@ angular.module('deckApp.delivery')
           failed: true,
           'not_started': true,
           canceled: false,
+          suspended: true,
         },
         triggers: {
           jenkins: true,
@@ -35,6 +36,7 @@ angular.module('deckApp.delivery')
           completed: true,
           failed: true,
           'not_started': true,
+          suspended: true,
         },
         scale: 'fixed',
         colorOverlay: 'status',
