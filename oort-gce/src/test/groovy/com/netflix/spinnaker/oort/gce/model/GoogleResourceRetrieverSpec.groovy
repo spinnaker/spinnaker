@@ -19,32 +19,56 @@ package com.netflix.spinnaker.oort.gce.model
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
+import com.netflix.spinnaker.oort.gce.security.GoogleCredentials
+import com.netflix.spinnaker.oort.gce.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 
 class GoogleResourceRetrieverSpec extends Specification {
   void "credentials are returned keyed by account name"() {
     setup:
       def credentials1 = new GoogleCredentials()
-      def credentialsMock1 = Mock(GoogleNamedAccountCredentials)
-      credentialsMock1.getName() >> "account-1"
-      credentialsMock1.getCredentials() >> credentials1
+      def credentialsStub1 = new GoogleNamedAccountCredentials(null, null, null, null) {
+        @Override
+        String getName() {
+          return "account-1"
+        }
+
+        @Override
+        GoogleCredentials getCredentials() {
+          return credentials1
+        }
+      }
 
       def credentials2a = new GoogleCredentials()
-      def credentialsMock2a = Mock(GoogleNamedAccountCredentials)
-      credentialsMock2a.getName() >> "account-2"
-      credentialsMock2a.getCredentials() >> credentials2a
+      def credentialsStub2a = new GoogleNamedAccountCredentials(null, null, null, null) {
+        @Override
+        String getName() {
+          return "account-2"
+        }
+
+        @Override
+        GoogleCredentials getCredentials() {
+          return credentials2a
+        }
+      }
 
       def credentials2b = new GoogleCredentials()
-      def credentialsMock2b = Mock(GoogleNamedAccountCredentials)
-      credentialsMock2b.getName() >> "account-2"
-      credentialsMock2b.getCredentials() >> credentials2b
+      def credentialsStub2b = new GoogleNamedAccountCredentials(null, null, null, null) {
+        @Override
+        String getName() {
+          return "account-2"
+        }
+
+        @Override
+        GoogleCredentials getCredentials() {
+          return credentials2b
+        }
+      }
 
       def accountCredentialsProviderMock = Mock(AccountCredentialsProvider)
-      accountCredentialsProviderMock.getAll() >> ([credentialsMock1, credentialsMock2a, credentialsMock2b] as Set)
+      accountCredentialsProviderMock.getAll() >> ([credentialsStub1, credentialsStub2a, credentialsStub2b] as Set)
 
     when:
       def credentialsMap =
