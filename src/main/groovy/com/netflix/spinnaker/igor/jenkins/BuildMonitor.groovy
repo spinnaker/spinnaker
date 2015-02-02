@@ -141,7 +141,7 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         cachedBuild = cache.getLastBuild(master, project.name)
                         if ((project.lastBuild.building != cachedBuild.lastBuildBuilding) ||
                             (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
-                            log.debug "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
+                            log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
                             if (echoService && cachedBuild.lastBuildBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
                                 // we cached a build in progress, but missed the build result (a new build is underway or complete)
                                 // fetch the final old build status and post the final result to echo
