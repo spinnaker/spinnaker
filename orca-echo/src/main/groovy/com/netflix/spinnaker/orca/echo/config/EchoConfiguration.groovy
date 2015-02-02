@@ -21,23 +21,13 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import net.greghaines.jesque.Config
-import net.greghaines.jesque.ConfigBuilder
-import net.greghaines.jesque.client.Client as JesqueClient
-import net.greghaines.jesque.client.ClientPoolImpl
-import net.lariverosc.jesquespring.SpringWorkerFactory
-import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.*
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
-import redis.clients.util.Pool
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client as RetrofitClient
@@ -46,7 +36,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
-@Import(RetrofitConfiguration)
+@Import([RetrofitConfiguration, JesqueConfiguration])
 @ConditionalOnProperty(value = 'echo.baseUrl')
 @ComponentScan([
     "com.netflix.spinnaker.orca.echo",
@@ -86,53 +76,8 @@ class EchoConfiguration {
     new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
   }
 
-  @Bean
-  @ConditionalOnProperty("redis.connection")
-  public Pool<Jedis> jedisPool(
-      @Value('${redis.connection:redis://localhost:6379}')
-          String connection) {
-    def jedisConnection = URI.create(connection)
-
-    final JedisPool pool
-    if (jedisConnection.userInfo != null) {
-      pool = new JedisPool(jedisConnection)
-    } else {
-      pool = new JedisPool(jedisConnection.host, jedisConnection.port == -1 ? 6379 : jedisConnection.port)
-    }
-    return pool
-  }
-
-  @Bean
-  @ConditionalOnProperty("redis.connection")
-  Config jesqueConfig(@Value('${redis.connection:redis://localhost:6379}')
-                          String connection) {
-    def jedisConnection = URI.create(connection)
-    new ConfigBuilder()
-        .withHost(jedisConnection.host)
-        .withPort(jedisConnection.port)
-        .build()
-  }
-
-  @Bean
-  JesqueClient jesqueClient(Config jesqueConfig, Pool<Jedis> jedisPool) {
-    new ClientPoolImpl(jesqueConfig, jedisPool)
-  }
-
   @Bean @Scope(SCOPE_PROTOTYPE)
   BuildJobNotificationHandler buildJobNotificationHandler(Map input) {
     new BuildJobNotificationHandler(input)
-  }
-  
-  @Bean
-  SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
-    new SpringWorkerFactory(jesqueConfig, notificationAgents.collect {
-      it.notificationType
-    })
-  }
-
-  @Bean(initMethod = "init", destroyMethod = "destroy")
-  SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
-                              @Value('${jesque.numWorkers:1}') int numWorkers) {
-    new SpringWorkerPool(workerFactory, numWorkers)
   }
 }

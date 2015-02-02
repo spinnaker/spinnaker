@@ -1,45 +1,50 @@
 package com.netflix.spinnaker.orca.notifications
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.echo.EchoEventPoller
-import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
+import com.netflix.spinnaker.orca.echo.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.mayo.MayoService
-import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPipelineIndexer
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.jenkins.Trigger
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
+import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Scope
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
 import rx.schedulers.Schedulers
 import spock.lang.Specification
+import static java.util.concurrent.TimeUnit.SECONDS
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 /**
  * Integration test to ensure the Jesque-based notification workflow hangs
  * together.
  */
-@ContextConfiguration(classes = [JedisConfiguration, TestConfiguration, EchoConfiguration])
+@ContextConfiguration(classes = [JedisConfiguration, TestConfiguration, JesqueConfiguration])
 class NotificationSpec extends Specification {
 
-  def pipelineStarter = Mock(PipelineStarter)
   @Autowired AbstractApplicationContext applicationContext
   @Autowired BuildJobPollingNotificationAgent notificationAgent
-  @Autowired BuildJobPipelineIndexer pipelineIndexer
+  def pipelineStarter = Mock(PipelineStarter)
+  def scheduler = Schedulers.test()
 
   def setupSpec() {
     System.setProperty("echo.baseUrl", "http://echo")
@@ -52,17 +57,8 @@ class NotificationSpec extends Specification {
   }
 
   def setup() {
-    def trigger = new Trigger("master1", "SPINNAKER-package-pond")
-    pipelineIndexer.@pipelinesByTrigger[trigger] = [[
-                                                        name    : "pipeline1",
-                                                        triggers: [[type  : "jenkins",
-                                                                    job   : "SPINNAKER-package-pond",
-                                                                    master: "master1"]],
-                                                        stages  : [[type: "bake"],
-                                                                   [type: "deploy", cluster: [name: "bar"]]]
-                                                    ]]
-
-    notificationAgent.scheduler = Schedulers.test()
+    notificationAgent.shutdown()
+    notificationAgent.scheduler = scheduler
 
     applicationContext.beanFactory.with {
       registerSingleton "pipelineStarter", pipelineStarter
@@ -74,47 +70,70 @@ class NotificationSpec extends Specification {
     def latch = new CountDownLatch(1)
     pipelineStarter.start(*_) >> { latch.countDown() }
 
-    expect:
-    applicationContext.getBean(PipelineStarter) != null
+    and:
+    notificationAgent.init()
 
     when:
-    notificationAgent.filterEvents([
-        [
-            content: [
-                project: [
-                    name     : "SPINNAKER-package-pond",
-                    lastBuild: [result: "SUCCESS", building: "false"]
-                ],
-                master : "master1"
-            ]
-        ]
-    ])
+    tick()
 
     then:
-    latch.await(1, TimeUnit.SECONDS)
+    latch.await(1, SECONDS)
+  }
+
+  private tick() {
+    scheduler.advanceTimeBy(notificationAgent.pollingInterval, SECONDS)
   }
 }
 
+@Import(PropertyPlaceholderAutoConfiguration)
 @Configuration
 class TestConfiguration {
-  @Bean PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
-    new PropertyPlaceholderConfigurer()
-  }
 
   @Bean ObjectMapper objectMapper() {
     new OrcaObjectMapper()
   }
 
-  @Bean EchoEventPoller echoEventPoller() {
-    [:] as EchoEventPoller
+  @Bean PipelineIndexer buildJobPipelineIndexer() {
+    [getPipelines: { ->
+      def trigger = new Trigger("master1", "SPINNAKER-package-pond")
+      def pipeline = [
+        name    : "pipeline1",
+        triggers: [[type  : "jenkins",
+                    job   : "SPINNAKER-package-pond",
+                    master: "master1"]],
+        stages  : [[type: "bake"],
+                   [type: "deploy", cluster: [name: "bar"]]]
+      ]
+      ImmutableMap.of(trigger, [pipeline])
+    }] as PipelineIndexer
   }
 
-  @Bean MayoService mayoService() {
-    [:] as MayoService
+  @Bean EchoEventPoller echoEventPoller(ObjectMapper mapper) {
+    def content = [[
+                     content: [
+                       project: [
+                         name     : "SPINNAKER-package-pond",
+                         lastBuild: [result: "SUCCESS", building: false]
+                       ],
+                       master : "master1"
+                     ]
+                   ]]
+    def response = new Response("http://echo", 200, "OK", [],
+      new TypedByteArray("application/json", mapper.writeValueAsString(content).bytes))
+    [getEvents: { String type -> response }] as EchoEventPoller
   }
 
-  @Bean ExecutionRepository executionRepository() {
-    [:] as ExecutionRepository
+  @Bean
+  BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(
+    ObjectMapper mapper,
+    EchoEventPoller echoEventPoller,
+    Client jesqueClient) {
+    new BuildJobPollingNotificationAgent(mapper, echoEventPoller, jesqueClient)
+  }
+
+  @Bean @Scope(SCOPE_PROTOTYPE)
+  BuildJobNotificationHandler buildJobNotificationHandler(Map input) {
+    new BuildJobNotificationHandler(input)
   }
 }
 
@@ -134,9 +153,9 @@ class JedisConfiguration {
   @ConditionalOnBean(EmbeddedRedis)
   Config jesqueConfig(EmbeddedRedis redis) {
     new ConfigBuilder()
-        .withHost("localhost")
-        .withPort(redis.redisServer.port)
-        .build()
+      .withHost("localhost")
+      .withPort(redis.redisServer.port)
+      .build()
   }
 
   @Bean
