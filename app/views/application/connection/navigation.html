@@ -22,7 +22,7 @@
   <div class="sub-nav-item">
     <h4>{{heading}}</h4>
     <a ng-repeat="securityGroup in ctrl.getSecurityGroupsFor(heading) | orderBy:'name'"
-       ui-sref=".connection.securityGroupDetails({securityGroup: securityGroup.name, securityGroupRegion: securityGroup.region, securityGroupAccount: securityGroup.accountName, name: securityGroup.name, region: securityGroup.region, accountId: securityGroup.accountName})"
+       ui-sref=".connection.securityGroupDetails({securityGroup: securityGroup.name, securityGroupRegion: securityGroup.region, securityGroupAccount: securityGroup.accountName, name: securityGroup.name, region: securityGroup.region, accountId: securityGroup.accountName, vpcId: securityGroup.vpcId})"
        ng-class="{active: $state.includes('**.connection.**', {securityGroup: securityGroup.name, securityGroupRegion: securityGroup.region, securityGroupAccount: securityGroup.accountName} )}">
       {{ctrl.getSecurityGroupLabel(securityGroup)}}
       <security-group-counts container="securityGroup.usages"></security-group-counts>

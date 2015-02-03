@@ -27,6 +27,7 @@ angular.module('deckApp')
               region: securityGroup.region,
               accountId: securityGroup.accountName,
               name: securityGroup.name,
+              vpcId: securityGroup.vpcId,
             };
             // also stolen from uiSref directive
             scope.$state.go('.securityGroupDetails', params, {relative: base, inherit: true});

@@ -6,7 +6,6 @@ angular.module('deckApp')
     return {
       templateUrl: 'views/application/securityGroupCounts.html',
       restrict: 'E',
-      replace: true,
       scope: {
         container: '='
       },

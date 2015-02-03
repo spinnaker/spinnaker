@@ -108,7 +108,7 @@ angular.module('deckApp')
 
       var securityGroupDetails = {
         name: 'securityGroupDetails',
-        url: '/securityGroupDetails?name&accountId&region',
+        url: '/securityGroupDetails?name&accountId&region&vpcId',
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'views/application/connection/securityGroupDetails.html',
@@ -121,7 +121,8 @@ angular.module('deckApp')
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
-              region: $stateParams.region
+              region: $stateParams.region,
+              vpcId: $stateParams.vpcId,
             };
           }]
         },

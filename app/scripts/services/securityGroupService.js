@@ -118,8 +118,8 @@ angular.module('deckApp')
       return securityGroupIndex;
     }
 
-    function getSecurityGroupDetails(application, account, region, id) {
-      return Restangular.one('securityGroups', account).one(id).get({region: region}).then(function(details) {
+    function getSecurityGroupDetails(application, account, region, vpcId, id) {
+      return Restangular.one('securityGroups', account).one(id).get({region: region, vpcId: vpcId}).then(function(details) {
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter(function(rule) {
             return rule.range;

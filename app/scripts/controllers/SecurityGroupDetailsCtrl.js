@@ -11,7 +11,7 @@ angular.module('deckApp')
     };
 
     function extractSecurityGroup() {
-      securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.name).then(function (details) {
+      securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
         $scope.securityGroup = details;
 
