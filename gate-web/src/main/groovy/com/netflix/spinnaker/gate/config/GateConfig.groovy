@@ -21,6 +21,8 @@ import com.netflix.spinnaker.gate.retrofit.*
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import groovy.transform.CompileStatic
+import retrofit.http.Path
+import retrofit.http.Query
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.servlet.*
@@ -131,6 +133,37 @@ class GateConfig {
   IgorService igorService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
                           EurekaLookupService eurekaLookupService) {
     createClient "igor", IgorService, serviceConfiguration, eurekaLookupService, metricRepository
+  }
+
+  @Bean
+  @ConditionalOnProperty('services.flex.enabled')
+  FlexService flexService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    createClient "flex", FlexService, serviceConfiguration, eurekaLookupService, metricRepository
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(FlexService)
+  FlexService noopFlexService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
+                          EurekaLookupService eurekaLookupService) {
+    return new FlexService() {
+      @Override
+      List<Map> getForCluster(@Path("application") String application,
+                              @Path("account") String account,
+                              @Path("cluster") String cluster) {
+        return []
+      }
+
+      @Override
+      List<Map> getForAccount(@Path("account") String account) {
+        return []
+      }
+
+      @Override
+      List<Map> getForAccountAndRegion(@Path("account") String account, @Query("region") String region) {
+        return []
+      }
+    }
   }
 
   private
