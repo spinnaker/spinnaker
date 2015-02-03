@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.deploy.ops
+
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
+import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.kato.data.task.Status
+import com.netflix.spinnaker.kato.data.task.TaskState
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -52,38 +58,45 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
   void 'should disable instances for asg in discovery'() {
     setup:
     def asg = Mock(AutoScalingGroup)
-    asg.getAutoScalingGroupName() >> "asg1"
     asg.getInstances() >> [new Instance().withInstanceId("i1")]
 
     when:
     op.operate([])
 
     then:
+    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
+    1 * restTemplate.getForEntity("http://us-west-1.discovery.netflix.net/v2/instances/i1", Map) >> new ResponseEntity<Map>(
+        [
+            instance: [
+                app: "asg1"
+            ]
+        ], HttpStatus.OK
+    )
     1 * restTemplate.put("http://us-west-1.discovery.netflix.net/v2/apps/asg1/i1/status?value=OUT_OF_SERVICE", [:])
   }
 
   void 'should skip discovery if not enabled for account'() {
-      setup:
-      def noDiscovery =  new EnableDisableAsgDescription([
-              asgName: "kato-main-v000",
-              regions: ["us-west-1"],
-              credentials: TestCredential.named('foo')
-      ])
+    setup:
+    def noDiscovery = new EnableDisableAsgDescription([
+        asgName    : "kato-main-v000",
+        regions    : ["us-west-1"],
+        credentials: TestCredential.named('foo')
+    ])
 
-      def noDiscoveryOp = new DisableAsgAtomicOperation(noDiscovery)
-      wireOpMocks(noDiscoveryOp)
+    def noDiscoveryOp = new DisableAsgAtomicOperation(noDiscovery)
+    wireOpMocks(noDiscoveryOp)
 
-      def asg = Mock(AutoScalingGroup)
-      asg.getAutoScalingGroupName() >> "asg1"
-      asg.getInstances() >> [new Instance().withInstanceId("i1")]
+    def asg = Mock(AutoScalingGroup)
+    asg.getAutoScalingGroupName() >> "asg1"
+    asg.getInstances() >> [new Instance().withInstanceId("i1")]
 
-      when:
-      noDiscoveryOp.operate([])
+    when:
+    noDiscoveryOp.operate([])
 
-      then:
-      1 * asgService.getAutoScalingGroup(_) >> asg
-      0 * restTemplate.put(_, [:])
+    then:
+    1 * asgService.getAutoScalingGroup(_) >> asg
+    0 * restTemplate.put(_, [:])
   }
 
 }

@@ -20,6 +20,10 @@ import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLo
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
+import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.kato.data.task.TaskState
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -59,7 +63,15 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     op.operate([])
 
     then:
+    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
+    1 * restTemplate.getForEntity("http://us-west-1.discovery.netflix.net/v2/instances/i1", Map) >> new ResponseEntity<Map>(
+        [
+            instance: [
+                app: "asg1"
+            ]
+        ], HttpStatus.OK
+    )
     1 * restTemplate.put("http://us-west-1.discovery.netflix.net/v2/apps/asg1/i1/status?value=UP", [:])
   }
 
