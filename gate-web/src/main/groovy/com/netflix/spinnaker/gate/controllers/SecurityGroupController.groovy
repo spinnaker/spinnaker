@@ -51,13 +51,14 @@ class SecurityGroupController {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region)
   }
 
-  @RequestMapping(value = "/{account}/{name}")
+  @RequestMapping(value = "/{account}/{region}/{name}")
   Map getSecurityGroup(
       @PathVariable String account,
+      @PathVariable String region,
       @PathVariable String name,
       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
-      @RequestParam(value = "region", required = false) String region) {
-    securityGroupService.getSecurityGroup(account, provider, name, region)
+      @RequestParam(value = "vpcId", required = false) String vpcId) {
+    securityGroupService.getSecurityGroup(account, provider, name, region, vpcId)
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -86,9 +86,9 @@ class SecurityGroupService {
    * @param name security group name
    * @param region optional. nullable
    */
-  Map getSecurityGroup(String account, String provider, String name, String region) {
+  Map getSecurityGroup(String account, String provider, String name, String region, String vpcId = null) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers", true) {
-      mortService.getSecurityGroup(account, provider, name, region)
+      mortService.getSecurityGroup(account, provider, name, region, vpcId)
     } execute()
   }
 }
