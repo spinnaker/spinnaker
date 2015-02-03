@@ -22,7 +22,7 @@ angular.module('deckApp')
     }
 
     function retrieveInstance() {
-      var instanceSummary, loadBalancers, account, region;
+      var instanceSummary, loadBalancers, account, region, vpcId;
       if (!application.clusters) {
         // standalone instance
         instanceSummary = {};
@@ -38,6 +38,7 @@ angular.module('deckApp')
                 loadBalancers = serverGroup.loadBalancers;
                 account = serverGroup.account;
                 region = serverGroup.region;
+                vpcId = serverGroup.vpcId;
                 return true;
               }
             });
@@ -52,6 +53,7 @@ angular.module('deckApp')
           extractHealthMetrics(details);
           $scope.instance.account = account;
           $scope.instance.region = region;
+          $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         },
