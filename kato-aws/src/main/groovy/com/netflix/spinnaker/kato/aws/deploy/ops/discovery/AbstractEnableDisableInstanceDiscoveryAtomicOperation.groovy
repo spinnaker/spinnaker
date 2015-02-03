@@ -68,7 +68,7 @@ abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements 
 
       def status = isEnable() ? DiscoverySupport.DiscoveryStatus.Enable : DiscoverySupport.DiscoveryStatus.Disable
       discoverySupport.updateDiscoveryStatusForInstances(
-          description, task, phaseName, description.region, status, asg.autoScalingGroupName, instancesInAsg*.instanceId
+          description, task, phaseName, description.region, status, instancesInAsg*.instanceId
       )
     }
 

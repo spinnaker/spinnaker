@@ -46,7 +46,6 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
     })
 
     def asg = Mock(AutoScalingGroup) {
-      1 * getAutoScalingGroupName() >> { description.asgName }
       1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
       0 * _._
     }
@@ -65,7 +64,7 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
 
     then:
     1 * operation.discoverySupport.updateDiscoveryStatusForInstances(
-        _, _, _, _, expectedDiscoveryStatus, description.asgName, description.instanceIds
+        _, _, _, _, expectedDiscoveryStatus, description.instanceIds
     )
 
     where:

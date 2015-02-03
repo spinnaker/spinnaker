@@ -19,7 +19,11 @@ package com.netflix.spinnaker.kato.aws.deploy.ops.discovery
 
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskState
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import spock.lang.Subject
@@ -33,26 +37,27 @@ class DiscoverySupportUnitSpec extends Specification {
     def description = new EnableDisableInstanceDiscoveryDescription(credentials: TestCredential.named('test'))
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, null, null, null, null, null, null)
+    discoverySupport.updateDiscoveryStatusForInstances(description, null, null, null, null, null)
 
     then:
     thrown(DiscoverySupport.DiscoveryNotConfiguredException)
   }
 
-  void "should fail task if application name is not derivable from asg name"() {
+  void "should fail task if application name is not derivable from existing instance in discovery"() {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
         credentials: TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
     )
-    def badAsgName = null
+    def instances = ["i-123456"]
 
     when:
     discoverySupport.updateDiscoveryStatusForInstances(
-        description, task, "phase", "us-west-1", DiscoverySupport.DiscoveryStatus.Disable, badAsgName, []
+        description, task, "phase", "us-west-1", DiscoverySupport.DiscoveryStatus.Disable, instances
     )
 
     then:
+    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * task.fail()
     0 * discoverySupport.restTemplate.put(_, _)
   }
@@ -66,20 +71,28 @@ class DiscoverySupportUnitSpec extends Specification {
 
     when:
     discoverySupport.updateDiscoveryStatusForInstances(
-        description, task, "PHASE", region, discoveryStatus, asgName, instanceIds
+        description, task, "PHASE", region, discoveryStatus, instanceIds
     )
 
     then:
+    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * task.fail()
     instanceIds.each {
-      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${asgName}/${it}/status?value=${discoveryStatus.value}", [:])
+      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
+          [
+              instance: [
+                  app: appName
+              ]
+          ], HttpStatus.OK
+      )
+      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
     }
 
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
     discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
-    asgName = "kato"
+    appName = "kato"
     instanceIds = ["i-123", "i-456"]
   }
 }

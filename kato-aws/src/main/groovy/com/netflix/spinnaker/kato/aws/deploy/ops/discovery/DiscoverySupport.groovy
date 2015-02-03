@@ -37,24 +37,29 @@ class DiscoverySupport {
                                          String phaseName,
                                          String region,
                                          DiscoveryStatus discoveryStatus,
-                                         String asgName,
                                          List<String> instanceIds) {
     if (!description.credentials.discoveryEnabled) {
       throw new DiscoveryNotConfiguredException()
     }
-    def names = Names.parseName(asgName)
-    if (!names?.app) {
-      task.updateStatus phaseName, "Could not derive application name from ASG name and unable to ${discoveryStatus.name().toLowerCase()} in Eureka!"
-      task.fail()
-    } else {
-      instanceIds.eachWithIndex { instanceId, index ->
-        if (index > 0) {
-          sleep THROTTLE_MS
-        }
+
+    def discovery = String.format(description.credentials.discovery, region)
+
+    instanceIds.eachWithIndex { instanceId, index ->
+      if (index > 0) {
+        sleep THROTTLE_MS
+      }
+
+      if (!task.status.isFailed()) {
         task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery."
-        def discovery = String.format(description.credentials.discovery, region)
-        restTemplate.put("${discovery}/v2/apps/${names.app}/${instanceId}/status?value=${discoveryStatus.value}", [:])
-        task.updateStatus phaseName, "Marked ${instanceId} as '${discoveryStatus.value}' in discovery."
+        def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
+        def applicationName = instanceDetails?.body?.instance?.app
+        if (applicationName) {
+          restTemplate.put("${discovery}/v2/apps/${applicationName}/${instanceId}/status?value=${discoveryStatus.value}", [:])
+          task.updateStatus phaseName, "Marked ${instanceId} as '${discoveryStatus.value}' in discovery."
+        } else {
+          task.updateStatus phaseName, "Instance '${instanceId}' does not exist in discovery, unable to mark as '${discoveryStatus.value}'"
+          task.fail()
+        }
       }
     }
   }
