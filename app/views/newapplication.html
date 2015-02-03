@@ -10,7 +10,9 @@
         <div class="col-sm-3 sm-label-left">Name</div>
         <div class="col-sm-9">
           <input type="text"
+                 autofocus
                  name="name"
+                 ng-pattern="/^[a-zA-z_0-9-.]*$/"
                  class="form-control input-sm"
                  data-purpose="application-name"
                  ng-model="newAppModal.application.name"
@@ -21,9 +23,22 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in" ng-if="newApplicationForm.name.$invalid">
+      <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.pattern">
         <div class="col-sm-9 col-sm-offset-3 error-message">
-          <span>Application name must be unique</span>
+          <span>Only dot(.), dash(-), and underscore(_) special characters are allowed.</span>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.validateUnique">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Application name must be unique.</span>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-if="newAppModal.application.name.indexOf('_') > -1">
+        <div class="col-sm-9 col-sm-offset-3 warn-message">
+          <span>If the application's name contains an underscore(_), you will not be able to create a load balancer,
+            preventing it from being used as a front end service.</span>
         </div>
       </div>
 
