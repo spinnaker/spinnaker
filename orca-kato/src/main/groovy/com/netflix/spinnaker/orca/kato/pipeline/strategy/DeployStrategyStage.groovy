@@ -151,16 +151,18 @@ abstract class DeployStrategyStage extends LinearStage {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
-        for (asg in existingAsgs) {
+
+        existingAsgs.findAll { it.region == region}.each { Map asg ->
           def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {
               logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextContext)}")
-              continue
+              return
             }
           }
 
+          logger.info("Injecting destroyAsg stage (${asg.region}:${asg.name})")
           injectAfter(stage, "destroyAsg", destroyAsgStage, nextContext)
         }
       }

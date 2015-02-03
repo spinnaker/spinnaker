@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
@@ -202,4 +203,50 @@ class CopyLastAsgStageSpec extends Specification {
     account = "prod"
   }
 
+  def "should only highlander ASGs in source region"() {
+    given:
+    def stage = new PipelineStage(
+      new Pipeline(),
+      "copyLastAsg",
+      [
+        "application"      : application,
+        "availabilityZones": [(region): ["${region}a", "${region}b", "${region}c"].collect { it.toString() }],
+        "source"           : [
+          "account": account,
+          "region": region,
+          "asgName": asgName
+        ]
+      ]
+    )
+
+    when:
+    copyLastAsgStage.composeHighlanderFlow(stage)
+
+    then:
+    1 * oort.getCluster(application, account, "${application}-${account}", "aws") >> {
+      def responseBody = [
+        serverGroups: ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect {
+          [region: it, name: asgName]
+        }
+      ]
+      new Response(
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          objectMapper.writeValueAsBytes(responseBody)
+        )
+      )
+    }
+
+    and:
+    stage.afterStages.size() == 1
+    stage.afterStages[0].context["asgName"] == asgName
+    stage.afterStages[0].context["regions"] == [region]
+
+    where:
+    account = "test"
+    region = "us-west-2"
+    application = "myapp"
+    asgName = "${application}-test-v000" as String
+  }
 }
