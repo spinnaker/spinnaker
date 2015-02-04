@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.kato.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
@@ -28,6 +30,7 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class AutoScalingWorkerUnitSpec extends Specification {
 
@@ -245,6 +248,44 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getAncestorAsg() >> null
     1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-12345', 'sg-0000']) >> { "launchConfigName" }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
+  }
+
+  @Unroll
+  void "should consider app, stack, and details in determining ancestor ASG"() {
+    setup:
+    def autoScaling = Mock(AmazonAutoScaling)
+    AutoScalingWorker worker = new AutoScalingWorker(
+      autoScaling: autoScaling,
+      application: 'app',
+      stack: stack,
+      freeFormDetails: freeFormDetails
+    )
+
+    when:
+    AutoScalingGroup ancestor = worker.ancestorAsg
+
+    then:
+    ancestor?.autoScalingGroupName == expected
+    1 * autoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(
+      autoScalingGroups: [
+        new AutoScalingGroup(autoScalingGroupName: 'app-v001'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-v005'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-test-v010'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail-v015'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail2-v020'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail3-v025')
+      ]
+    )
+
+    where:
+    stack   | freeFormDetails  || expected
+    null    | null             || 'app-v001'
+    'dev'   | null             || 'app-dev-v005'
+    'test'  | null             || 'app-test-v010'
+    'dev'   | 'detail'         || 'app-dev-detail-v015'
+    'dev'   | 'detail2'        || 'app-dev-detail2-v020'
+    'none'  | null             || null
+    'dev'   | 'none'           || null
   }
 
 }
