@@ -48,7 +48,9 @@ describe('Controller: renamePipelineModal', function() {
           submittedCurrentName = null,
           submittedApplication = null;
 
-      this.$scope.newName = 'd';
+      this.$scope.command = {
+        newName: 'd'
+      };
 
       spyOn(this.pipelineConfigService, 'renamePipeline').and.callFake(function (applicationName, currentName, newName) {
         submittedNewName = newName;
