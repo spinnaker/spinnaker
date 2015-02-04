@@ -17,7 +17,20 @@
         <div class="col-md-7">
           <input type="text" class="form-control input-sm"
                  ng-model="command.name"
+                 name="name"
+                 required
+                 ng-pattern="/^[a-zA-z_0-9-\s]*$/"
                  validate-unique="existingNames"/>
+        </div>
+      </div>
+      <div class="form-group row slide-in" ng-if="form.name.$error.pattern">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Pipeline name can only contain letters, numbers, spaces, dashes, and underscores.</span>
+        </div>
+      </div>
+      <div class="form-group row slide-in" ng-if="form.name.$error.validateUnique">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>There is already a pipeline with that name.</span>
         </div>
       </div>
       <div class="form-group" ng-if="templates.length > 1">
