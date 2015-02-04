@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile spinnaker.dependency('batch')
-  compile spinnaker.dependency('eurekaClient')
-  compile spinnaker.dependency('cglib')
-  spinnaker.group('jackson')
-  compile spinnaker.dependency('jacksonGuava')
-  compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('korkJedis')
-  testCompile project(":orca-test")
+package com.netflix.spinnaker.orca.notifications
+
+/**
+ *
+ */
+class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler {
+
+  String handlerType = SuspendedPipelinesPollingNotificationAgent.NOTIFICATION_TYPE
+
+  @Override
+  void handleInternal(Map pipelineConfig) {
+    def pipelineConfigClone = new HashMap(pipelineConfig)
+    def json = objectMapper.writeValueAsString(pipelineConfigClone)
+    pipelineStarter.start(json)
+  }
 }

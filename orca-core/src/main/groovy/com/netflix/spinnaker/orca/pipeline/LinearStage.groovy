@@ -119,8 +119,6 @@ abstract class LinearStage extends StageBuilder {
   /**
    * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
    * current time is within that window.
-   *
-   * Note: This stage and corresponding task can also be moved into their own public classes within orca-core.
    */
   @Component
   private static class RestrictExecutionDuringTimeWindow extends LinearStage {

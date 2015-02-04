@@ -15,20 +15,19 @@
  */
 
 package com.netflix.spinnaker.orca.mayo.services
-
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.mayo.MayoService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import javax.annotation.PostConstruct
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 @Component
-class PipelineConfigurationService {
+class PipelineConfigurationServiceImpl implements PipelineConfigurationService {
 
   private List<Map> pipelines = []
 

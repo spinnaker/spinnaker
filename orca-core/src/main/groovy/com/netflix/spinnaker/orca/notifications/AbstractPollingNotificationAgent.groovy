@@ -15,27 +15,24 @@
  */
 
 package com.netflix.spinnaker.orca.notifications
-
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.echo.EchoService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 
+import javax.annotation.PostConstruct
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 abstract class AbstractPollingNotificationAgent implements Runnable {
-  @Autowired
-  EchoService echoService
 
   @Autowired
   ObjectMapper objectMapper
 
-  private long lastCheck = System.currentTimeMillis()
   abstract long getPollingInterval()
   abstract String getNotificationType()
   abstract void handleNotification(List<Map> input)
 
   final List<NotificationHandler> allNotificationHandler
+
   final List<NotificationHandler> agentNotificationHandlers = []
 
   AbstractPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
@@ -50,18 +47,6 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
       }
     }
     Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
-  }
-
-  @Override
-  void run() {
-    try {
-      def response = echoService.getEvents(notificationType, lastCheck)
-      lastCheck = System.currentTimeMillis()
-      def maps = objectMapper.readValue(response.body.in().text, List)
-      handleNotification maps
-    } catch (e) {
-      e.printStackTrace()
-    }
   }
 
   void notify(Map input) {

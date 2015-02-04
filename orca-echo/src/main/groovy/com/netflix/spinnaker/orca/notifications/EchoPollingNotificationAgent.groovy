@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.notifications
 
+import com.netflix.spinnaker.orca.echo.EchoService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
-@Component
-class BuildJobPollingNotificationAgent extends EchoPollingNotificationAgent {
-
-  static final String NOTIFICATION_TYPE = "build"
-  long pollingInterval = 30
-  String notificationType = NOTIFICATION_TYPE
+/**
+ * A notification agent for {@code EchoService} to poll for particular type of events
+ */
+abstract class EchoPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   @Autowired
-  BuildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+  EchoService echoService
+  private long lastCheck = System.currentTimeMillis()
+
+  EchoPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     super(notificationHandlers)
   }
 
   @Override
-  void handleNotification(List<Map> resp) {
-    for (event in resp) {
-      if (event.content.containsKey("project") && event.content.containsKey("master")) {
-        Map input = event.content.project as Map
-        input.master = event.content.master
-        notify(input)
-      }
+  void run() {
+    try {
+      def response = echoService.getEvents(notificationType, lastCheck)
+      lastCheck = System.currentTimeMillis()
+      def maps = objectMapper.readValue(response.body.in().text, List)
+      handleNotification maps
+    } catch (e) {
+      e.printStackTrace()
     }
   }
 }

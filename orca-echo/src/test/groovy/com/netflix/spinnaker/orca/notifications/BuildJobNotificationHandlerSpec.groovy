@@ -20,7 +20,7 @@ package com.netflix.spinnaker.orca.notifications
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationServiceImpl
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.json.JsonSlurper
@@ -121,7 +121,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
   void "should add multiple pipeline targets to single trigger type"() {
     setup:
-    def pipelineConfigService = Mock(PipelineConfigurationService)
+    def pipelineConfigService = Mock(PipelineConfigurationServiceImpl)
     def pipelineStarter = Mock(PipelineStarter)
     def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
 
@@ -162,7 +162,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
   }
 
   void "should ignore disabled triggers"() {
-    def pipelineConfigService = Mock(PipelineConfigurationService)
+    def pipelineConfigService = Mock(PipelineConfigurationServiceImpl)
     def pipelineStarter = Mock(PipelineStarter)
     def handler = new BuildJobNotificationHandler(discoveryClient: discoveryClient, pipelineStarter: pipelineStarter, objectMapper: new OrcaObjectMapper(), pipelineConfigurationService: pipelineConfigService)
 

@@ -15,21 +15,22 @@
  */
 
 package com.netflix.spinnaker.orca.mayo.config
-
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationServiceImpl
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.*
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
-
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -51,7 +52,7 @@ class MayoConfiguration {
 
   @Bean
   PipelineConfigurationService pipelineConfigurationService() {
-    new PipelineConfigurationService()
+    new PipelineConfigurationServiceImpl()
   }
 
   @Bean

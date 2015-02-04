@@ -15,17 +15,17 @@
  */
 
 package com.netflix.spinnaker.orca.config
-
-import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
-import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.batch.exceptions.NoopExceptionHandler
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
+import com.netflix.spinnaker.orca.notifications.NotificationHandler
+import com.netflix.spinnaker.orca.notifications.SuspendedPipelinesNotificationHandler
+import com.netflix.spinnaker.orca.notifications.SuspendedPipelinesPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -51,7 +52,7 @@ import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.orca.pipeline")
+@ComponentScan(basePackages = ["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.mayo.config"])
 @CompileStatic
 class OrcaConfiguration {
 
@@ -97,6 +98,16 @@ class OrcaConfiguration {
 
   @Bean NoopNotificationHandler noopNotificationHandler() {
     new NoopNotificationHandler()
+  }
+
+  @Bean
+  SuspendedPipelinesNotificationHandler buildJobNotificationHandler() {
+    new SuspendedPipelinesNotificationHandler()
+  }
+
+  @Bean
+  SuspendedPipelinesPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+    new SuspendedPipelinesPollingNotificationAgent(notificationHandlers)
   }
 
   @Bean @Order(Ordered.LOWEST_PRECEDENCE) DefaultExceptionHandler defaultExceptionHandler() {
