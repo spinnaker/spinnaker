@@ -29,7 +29,8 @@ angular.module('deckApp')
             var params = {
               region: serverGroup.region,
               accountId: serverGroup.account,
-              serverGroup: serverGroup.name
+              serverGroup: serverGroup.name,
+              provider: serverGroup.type,
             };
             // also stolen from uiSref directive
             scope.$state.go('.serverGroup', params, {relative: base, inherit: true});

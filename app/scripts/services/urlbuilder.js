@@ -16,6 +16,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
             region: input.region,
             q: input.serverGroup,
             serverGroup: input.serverGroup,
+            provider: input.provider,
           },
           { inherit: false }
         );
