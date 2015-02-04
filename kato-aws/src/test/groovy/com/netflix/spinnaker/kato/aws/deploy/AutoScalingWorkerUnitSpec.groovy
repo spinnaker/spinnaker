@@ -268,7 +268,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
     ancestor?.autoScalingGroupName == expected
     1 * autoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(
       autoScalingGroups: [
+        new AutoScalingGroup(autoScalingGroupName: 'app'),
         new AutoScalingGroup(autoScalingGroupName: 'app-v001'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-new'),
         new AutoScalingGroup(autoScalingGroupName: 'app-dev-v005'),
         new AutoScalingGroup(autoScalingGroupName: 'app-test-v010'),
         new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail-v015'),
@@ -280,6 +282,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     where:
     stack   | freeFormDetails  || expected
     null    | null             || 'app-v001'
+    'new'   | null             || 'app-new'
     'dev'   | null             || 'app-dev-v005'
     'test'  | null             || 'app-test-v010'
     'dev'   | 'detail'         || 'app-dev-detail-v015'
