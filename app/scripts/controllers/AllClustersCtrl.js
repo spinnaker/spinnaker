@@ -1,7 +1,15 @@
 'use strict';
 
 
-angular.module('clusters.all', ['cluster.filter.service', 'cluster.filter.model', 'deckApp.account', 'deckApp.providerSelection'])
+angular.module('clusters.all', [
+  'cluster.filter.service',
+  'cluster.filter.model',
+  'deckApp.account',
+  'deckApp.providerSelection',
+  'deckApp.providerSelection.service',
+  'deckApp.securityGroup.service',
+  'deckApp.serverGroup.configure.common.service'
+])
   .controller('AllClustersCtrl', function($scope, application, $modal,
                                           securityGroupService, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {

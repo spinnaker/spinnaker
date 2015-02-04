@@ -1,7 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.notifications')
+angular.module('deckApp.notifications.service', [
+  'deckApp.utils.rx'
+])
   .factory('notificationsService', function(RxService) {
     var stream = new RxService.Subject();
 

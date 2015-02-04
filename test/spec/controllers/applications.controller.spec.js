@@ -4,7 +4,12 @@ describe('Controller: Applications', function () {
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(module('deckApp'));
+  beforeEach(
+    module(
+      'deckApp.application.controller',
+      'deckApp.applications.read.service'
+    )
+  );
 
   describe('filtering', function() {
 

@@ -3,7 +3,7 @@
 
 angular.module('deckApp.tasks.tracker', [
   'deckApp.scheduler',
-  'deckApp.notifications',
+  'deckApp.notifications.service'
 ])
   .factory('taskTracker', function(notificationsService, scheduler) {
     var that = {};

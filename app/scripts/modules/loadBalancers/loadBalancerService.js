@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.loadBalancer.service', [
+  'deckApp.settings',
+  'deckApp.utils.lodash'
+])
   .factory('loadBalancerService', function ( settings, _) {
 
     function updateHealthCounts(loadBalancer) {

@@ -1,7 +1,11 @@
 'use strict';
 
-angular.module('deckApp.delivery')
-  .controller('executionGroupHeading', function($scope, pipelineConfigService, $stateParams, executionsService, _, $timeout) {
+angular.module('deckApp.delivery.executionGroupHeading.controller', [
+  'deckApp.utils.lodash',
+  'deckApp.pipelines.config.service',
+  'deckApp.delivery.executions.service'
+])
+  .controller('executionGroupHeading', function($scope, $stateParams, $timeout, pipelineConfigService, executionsService, _ ) {
     var controller = this;
 
     $scope.viewState = {

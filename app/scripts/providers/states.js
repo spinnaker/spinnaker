@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.states', [
+  'ui.router',
+  'deckApp.stateHelper',
+  'deckApp.delivery.states'
+])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {
       $urlRouterProvider.otherwise('/');

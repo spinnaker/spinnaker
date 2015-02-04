@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.executions.filter', [
+  'deckApp.timeBoundaries.service'
+])
   .filter('executions', function(timeBoundaries) {
     return function(executions, filter, grouping) {
       return executions

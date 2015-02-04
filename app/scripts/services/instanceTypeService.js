@@ -1,7 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.instanceType.service', [
+  'deckApp.settings',
+  'deckApp.utils.lodash',
+  'deckApp.aws.instanceType.service',
+  'deckApp.gce.instanceType.service'
+])
   .factory('instanceTypeService', function ($http, $q, settings, _, $window, awsInstanceTypeService, gceInstanceTypeService) {
 
     // TODO: Make the selection of the delegate pluggable? Maybe mort (or something like it) provides this data and we

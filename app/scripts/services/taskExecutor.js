@@ -7,11 +7,13 @@ angular.module('deckApp.taskExecutor.service', [
   'deckApp.scheduler',
   'deckApp.urlBuilder',
   'deckApp.authentication',
+  'deckApp.authentication.service',
   'deckApp.notifications',
   'deckApp.caches.scheduled',
   'deckApp.caches.infrastructure',
   'deckApp.tasks.read.service',
   'deckApp.tasks.write.service',
+  'deckApp.notifications.service',
 ])
   .factory('taskExecutor', function(settings, Restangular, scheduler, notificationsService, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
 

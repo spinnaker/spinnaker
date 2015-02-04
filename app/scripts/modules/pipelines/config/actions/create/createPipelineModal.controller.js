@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.create')
+angular.module('deckApp.pipelines.create.controller', [
+  'deckApp.utils.lodash',
+  'deckApp.pipelines.config.service',
+])
   .controller('CreatePipelineModalCtrl', function($scope, application, _, pipelineConfigService, $modalInstance, $log) {
 
     var noTemplate = {name: 'None', stages: [], triggers: [], application: application.name};

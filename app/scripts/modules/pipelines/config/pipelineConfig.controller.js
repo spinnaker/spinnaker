@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines')
+angular.module('deckApp.pipelines.config.controller', [
+  'ui.router',
+  'deckApp.pipelines.config.service'
+])
   .controller('PipelineConfigCtrl', function($scope, $stateParams, pipelineConfigService) {
 
     $scope.state = {

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.executionStatus.directive', [])
   .directive('executionStatus', function() {
     return {
       restrict: 'E',

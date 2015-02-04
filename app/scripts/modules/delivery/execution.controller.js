@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.execution.controller', [
+  'ui.router'
+])
   .controller('execution', function($scope, $stateParams, $state) {
     var controller = this;
 

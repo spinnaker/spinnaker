@@ -2,8 +2,10 @@
 
 
 angular.module('deckApp.confirmationModal.service', [
+  'ui.bootstrap',
   'deckApp.tasks.monitor',
   'deckApp.account',
+  'ui.router'
 ])
   .factory('confirmationModalService', function($modal) {
     var defaults = {
@@ -33,7 +35,7 @@ angular.module('deckApp.confirmationModal.service', [
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, $state, accountService, $modalInstance, params, taskMonitorService) {
+  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService) {
     $scope.params = params;
 
     $scope.state = {

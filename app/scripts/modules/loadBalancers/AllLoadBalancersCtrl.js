@@ -1,8 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('AllLoadBalancersCtrl', function($scope, application, _, $filter, $modal, accountService, $q, providerSelectionService) {
+angular.module('deckApp.loadBalancer.controller', [
+  'ui.bootstrap',
+  'deckApp.account.service',
+  'deckApp.providerSelection.service',
+  'deckApp.utils.lodash',
+  'deckApp.settings',
+])
+  .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, application ) {
     $scope.application = application;
 
     $scope.sortFilter = {

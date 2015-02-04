@@ -2,6 +2,9 @@
 
 angular.module('deckApp.authentication', [
   'ui.bootstrap',
+  'deckApp.authentication.service',
+  'deckApp.authentication.directive',
+
 ])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');

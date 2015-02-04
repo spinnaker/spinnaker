@@ -1,7 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.aws.instanceType.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.utils.lodash'
+])
   .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular) {
 
     var m3 = {

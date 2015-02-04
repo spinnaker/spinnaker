@@ -1,7 +1,15 @@
 'use strict';
 
-angular.module('deckApp.delivery')
-  .factory('executionsService', function($stateParams, scheduler, orchestratedItem, $http, $timeout, settings, $q, RxService, appendTransform, executionsTransformer) {
+angular.module('deckApp.delivery.executions.service', [
+  'ui.router',
+  'deckApp.scheduler',
+  'deckApp.orchestratedItem.service',
+  'deckApp.settings',
+  'deckApp.utils.rx',
+  'deckApp.utils.appendTransform',
+  'deckApp.delivery.executionTransformer.service'
+])
+  .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, orchestratedItem, settings, RxService, appendTransform, executionsTransformer) {
 
     function getExecutions() {
       var deferred = $q.defer();

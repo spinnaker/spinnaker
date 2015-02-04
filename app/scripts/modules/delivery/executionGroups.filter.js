@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.executionGroups.filter', [
+  'deckApp.utils.lodash',
+  'deckApp.timeBoundaries.service'
+])
   .filter('executionGroups', function(timeBoundaries, _) {
     return function(executions, filter, configurations) {
       switch (filter.execution.groupBy) {

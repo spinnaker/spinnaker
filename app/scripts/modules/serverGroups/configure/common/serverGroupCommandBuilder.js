@@ -1,7 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.common')
+angular.module('deckApp.serverGroup.configure.common.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.delegation'
+])
   .factory('serverGroupCommandBuilder', function (settings, Restangular, serviceDelegate) {
 
     function getServerGroup(application, account, region, serverGroupName) {

@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.executionDetails.controller', [
+  'ui.router',
+  'deckApp.utils.lodash',
+  'deckApp.pipelines.config'
+])
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig, _) {
     var controller = this;
 
@@ -54,4 +58,3 @@ angular.module('deckApp.delivery')
     };
 
   });
-
