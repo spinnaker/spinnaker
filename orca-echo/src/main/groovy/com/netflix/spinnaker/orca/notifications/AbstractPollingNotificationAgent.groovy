@@ -18,11 +18,14 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoService
+import groovy.util.logging.Slf4j
+
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 abstract class AbstractPollingNotificationAgent implements Runnable {
   @Autowired
   EchoService echoService
@@ -60,7 +63,7 @@ abstract class AbstractPollingNotificationAgent implements Runnable {
       def maps = objectMapper.readValue(response.body.in().text, List)
       handleNotification maps
     } catch (e) {
-      e.printStackTrace()
+      log.error("Polling failed (notificationType: ${notificationType}, lastCheck: ${lastCheck}", e)
     }
   }
 

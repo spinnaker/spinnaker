@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.orca.notifications
 
 import com.google.common.annotations.VisibleForTesting
+import groovy.util.logging.Slf4j
+
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
+@Slf4j
 class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable  {
   static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
@@ -76,7 +79,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
         }
       }
     } catch (e) {
-      e.printStackTrace()
+      log.error("Failed to handle build job notification (${input})", e)
       throw e
     }
   }
