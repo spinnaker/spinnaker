@@ -9,7 +9,7 @@
     <create-pipeline-button application="application"></create-pipeline-button>
   </div>
 </div>
-<div class="row pipeline-configurer" ng-repeat="pipeline in application.pipelines">
+<div class="row pipeline-configurer" ng-repeat="pipeline in application.pipelines" ng-class="{'new-pipeline': pipeline.isNew}">
   <div class="col-md-8">
     <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
   </div>
