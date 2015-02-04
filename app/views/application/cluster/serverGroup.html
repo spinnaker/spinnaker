@@ -1,7 +1,7 @@
 <div class="row rollup-entry sub-group"
      ng-click="loadDetails($event)"
      ng-class="{
-        active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name}),
+        active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type}),
         disabled: serverGroup.isDisabled
      }">
   <div class="rollup-summary">

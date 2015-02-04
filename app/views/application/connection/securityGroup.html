@@ -19,7 +19,7 @@
         <div ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'-name'"
              class="rollup-row" ng-class="{disabled: serverGroup.isDisabled}">
           <a
-            ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name})"
+            ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type})"
             ui-sref-active="active">
             <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
           </a>
