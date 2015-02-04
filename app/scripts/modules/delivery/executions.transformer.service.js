@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.executionTransformer.service', [
+  'deckApp.orchestratedItem.service'
+])
   .factory('executionsTransformer', function(orchestratedItem) {
 
     function transformExecution(execution) {

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.monitor')
+angular.module('deckApp.tasks.monitor.directive', [])
   .directive('taskMonitor', function () {
     return {
       restrict: 'E',

@@ -1,7 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.cluster.service', [
+  'restangular'
+])
   .factory('clusterService', function ($q, Restangular) {
 
     function loadServerGroups(applicationName) {

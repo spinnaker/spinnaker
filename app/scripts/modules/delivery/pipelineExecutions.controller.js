@@ -1,7 +1,12 @@
 'use strict';
 
-angular.module('deckApp.delivery')
-  .controller('pipelineExecutions', function($scope, executionsService, d3Service, pipelineConfigService, $q, scrollToService) {
+angular.module('deckApp.delivery.pipelineExecutions.controller', [
+  'deckApp.delivery.executions.service',
+  'deckApp.utils.d3',
+  'deckApp.pipelines.config.service',
+  'deckApp.utils.scrollTo'
+])
+  .controller('pipelineExecutions', function($scope, $q, executionsService, d3Service, pipelineConfigService, scrollToService) {
     var controller = this;
 
     $scope.viewState = {

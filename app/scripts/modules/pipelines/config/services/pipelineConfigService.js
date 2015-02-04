@@ -1,7 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.pipelines')
+angular.module('deckApp.pipelines.config.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.authentication.service',
+])
   .factory('pipelineConfigService', function (settings, Restangular, authenticationService) {
 
     function getPipelinesForApplication(applicationName) {

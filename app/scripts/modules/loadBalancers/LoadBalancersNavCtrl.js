@@ -1,7 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.loadBalancer.nav.controller', [
+ 'deckApp.utils.lodash'
+])
   .controller('LoadBalancersNavCtrl', function ($scope, application, _) {
 
     $scope.application = application;

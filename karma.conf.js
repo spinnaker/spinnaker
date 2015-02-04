@@ -26,6 +26,8 @@ module.exports = function(config) {
       'test/spec/**/*.js',
       'app/scripts/testHelpers/*.js',
       'app/scripts/modules/**/*.spec.js',
+      'app/scripts/controllers/**/*.spec.js',
+      'app/scripts/services/**/*.spec.js',
       'test/fixture/**/*.js',
       'app/views/**/*.html',
       'app/scripts/modules/**/*.html'

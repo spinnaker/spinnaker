@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.stateHelper', [
+  'ui.router'
+])
   .provider('stateHelper', function($stateProvider) {
 
     var setNestedState = function(state, keepOriginalNames){

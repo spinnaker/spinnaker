@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.executionStatus.controller', [
+  'deckApp.delivery.executions.service',
+  'deckApp.confirmationModal.service'
+])
   .controller('executionStatus', function(executionsService, confirmationModalService) {
     var controller = this;
 

@@ -2,7 +2,7 @@
 
 describe('Controller: ExecutionGroupHeading', function () {
 
-  beforeEach(module('deckApp.delivery'));
+  beforeEach(module('deckApp.delivery.executionGroupHeading.controller'));
 
   beforeEach(inject(function ($controller, $rootScope, $q) {
     this.$scope = $rootScope.$new();

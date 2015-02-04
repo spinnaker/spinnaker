@@ -2,7 +2,7 @@
 
 describe('executionsService', function() {
 
-  beforeEach(module('deckApp.delivery'));
+  beforeEach(module('deckApp.delivery.executionTransformer.service'));
 
   beforeEach(inject(function(executionsTransformer) {
     this.transformer = executionsTransformer;

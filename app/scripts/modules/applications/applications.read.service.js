@@ -1,7 +1,17 @@
 'use strict';
 
 angular
-  .module('deckApp.applications.read.service', ['restangular'])
+  .module('deckApp.applications.read.service', [
+    'restangular',
+    'deckApp.loadBalancer.service',
+    'deckApp.cluster.service',
+    'deckApp.tasks.tracker',
+    'deckApp.tasks.read.service',
+    'deckApp.loadBalancer.read.service',
+    'deckApp.loadBalancer.service',
+    'deckApp.securityGroup.service',
+    'deckApp.scheduler'
+  ])
   .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
                                           loadBalancerReader, loadBalancerService, securityGroupService, scheduler) {
 

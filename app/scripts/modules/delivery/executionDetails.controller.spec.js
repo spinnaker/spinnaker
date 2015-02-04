@@ -2,7 +2,7 @@
 
 describe('Controller: ExecutionDetails', function () {
 
-  beforeEach(module('deckApp.delivery'));
+  beforeEach(module('deckApp.executionDetails.controller'));
 
   beforeEach(inject(function ($controller, $rootScope, _) {
     this.$scope = $rootScope.$new();

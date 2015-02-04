@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('deckApp.delivery')
+angular.module('deckApp.delivery.executionBar.controller', [
+  'deckApp.utils.moment',
+  'deckApp.scheduler',
+  'deckApp.utils.d3'
+])
   .controller('executionBar', function($scope, d3Service, $filter, momentService, scheduler) {
     var controller = this;
     controller.now = momentService().valueOf();
@@ -40,8 +44,8 @@ angular.module('deckApp.delivery')
 
     controller.getStageOpacity = function(stage) {
       if (!!$scope.filter.stage.solo.facet &&
-          stage[$scope.filter.stage.solo.facet].toLowerCase() !==
-            $scope.filter.stage.solo.value) {
+        stage[$scope.filter.stage.solo.facet].toLowerCase() !==
+        $scope.filter.stage.solo.value) {
         return 0.5;
       } else {
         return 0.8;

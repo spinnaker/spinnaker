@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.authentication')
+angular.module('deckApp.authentication.directive', [
+  'deckApp.authentication.service'
+])
   .directive('authenticatedUser', function(authenticationService) {
     return {
       restrict: 'E',

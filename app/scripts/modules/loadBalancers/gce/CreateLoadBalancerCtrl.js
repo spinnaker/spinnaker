@@ -1,7 +1,15 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.loadBalancer.gce.create.controller', [
+  'deckApp.loadBalancer.write.service',
+  'deckApp.account.service',
+  'deckApp.loadBalancer.service',
+  'deckApp.securityGroup.service',
+  'deckApp.modalWizard',
+  'deckApp.tasks.monitor.service',
+  'deckApp.subnet.read.service'
+])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
                                                  accountService, loadBalancerService, securityGroupService,

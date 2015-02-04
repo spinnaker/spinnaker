@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.application.controller', [
+  'deckApp.delivery.executions.service',
+  'deckApp.tasks.tracker'
+])
   .controller('ApplicationCtrl', function($scope, application, executionsService, taskTracker) {
     $scope.application = application;
     $scope.insightTarget = application;

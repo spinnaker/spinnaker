@@ -1,7 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.applications', [
+  'ui.bootstrap',
+  'deckApp.applications.read.service',
+  'deckApp.urlBuilder',
+  'deckApp.account.service'
+])
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
                                            urlBuilder, $state, applicationReader) {
 

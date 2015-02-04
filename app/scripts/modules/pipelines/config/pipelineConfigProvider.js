@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines')
+angular.module('deckApp.pipelines.config', [])
   .provider('pipelineConfig', function() {
 
     var triggerTypes = [],

@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.timeBoundaries.service', [
+  'deckApp.utils.moment'
+])
   .factory('timeBoundaries', function(momentService) {
     var boundaries = [
       {

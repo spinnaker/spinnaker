@@ -1,7 +1,10 @@
 'use strict';
 
-angular.module('deckApp.authentication')
-  .factory('authenticationService', function ($http, settings, $location, $window, $modal, redirectService, $rootScope) {
+angular.module('deckApp.authentication.service', [
+  'ui.bootstrap',
+  'deckApp.settings',
+])
+  .factory('authenticationService', function ( $rootScope, $http, $location, $window, $modal, settings, redirectService ) {
     var user = {
       name: '[anonymous]',
       authenticated: false

@@ -1,7 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.gce.instanceType.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.utils.lodash'
+])
   .factory('gceInstanceTypeService', function ($http, $q, settings, _) {
 
     var cachedResult = null;

@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('deckApp.providerSelection')
-  .factory('providerSelectionService', function(accountService, $modal, $q) {
+angular.module('deckApp.providerSelection.service', [
+  'deckApp.account.service',
+])
+  .factory('providerSelectionService', function($modal, $q, accountService) {
     function selectProvider() {
       return accountService.listProviders().then(function(providers) {
         var provider;
