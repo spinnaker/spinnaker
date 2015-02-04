@@ -15,11 +15,20 @@ angular.module('deckApp.delivery')
     };
 
     controller.getRunningStage = function(execution) {
-      var runningOrNext = execution.stageSummaries.filter(function(stage) {
-        return stage.isRunning || stage.hasNotStarted;
+      var currentStages = execution.stageSummaries.filter(function(stage) {
+        return stage.isRunning;
       });
-      if (runningOrNext && runningOrNext.length) {
-        return _.pluck(runningOrNext, 'name').join(', ');
+      // if there are no running stages, find the first enqueued stage
+      if (!currentStages) {
+        var enqueued = execution.stageSummaries.filter(function(stage) {
+          return stage.hasNotStarted;
+        });
+        if (enqueued && enqueued.length) {
+          currentStages = [enqueued[0]];
+        }
+      }
+      if (currentStages && currentStages.length) {
+        return _.pluck(currentStages, 'name').join(', ');
       }
       return 'Unknown';
     };
