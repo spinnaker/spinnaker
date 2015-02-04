@@ -223,10 +223,10 @@ angular.module('deckApp.serverGroup.configure.aws')
       command.usePreferredZonesChanged = function usePreferredZonesChanged() {
         var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
         var result = { dirty: {} };
-        if (command.viewState.usePreferredZones) {
-          command.availabilityZones = angular.copy(command.backingData.preferredZones[command.credentials][command.region].sort());
-        }
-        if (!command.viewState.usePreferredZones) {
+        var preferredZonesForAccount = command.backingData.preferredZones[command.credentials];
+        if (preferredZonesForAccount && command.viewState.usePreferredZones) {
+          command.availabilityZones = angular.copy(preferredZonesForAccount[command.region].sort());
+        } else {
           command.availabilityZones = _.intersection(command.availabilityZones, command.backingData.filtered.availabilityZones);
           var newZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
           if (currentZoneCount !== newZoneCount) {
