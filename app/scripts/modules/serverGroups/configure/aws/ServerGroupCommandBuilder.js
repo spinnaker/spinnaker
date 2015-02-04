@@ -96,8 +96,12 @@ angular.module('deckApp')
         var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
         var zones = serverGroup.asg.availabilityZones.sort();
-        var preferredZones = asyncData.preferredZones[serverGroup.account][serverGroup.region].sort();
-        var usePreferredZones = zones.join(',') === preferredZones.join(',');
+        var usePreferredZones = false;
+        var preferredZonesForAccount = asyncData.preferredZones[serverGroup.account];
+        if (preferredZonesForAccount) {
+          var preferredZones = preferredZonesForAccount[serverGroup.region].sort();
+          usePreferredZones = zones.join(',') === preferredZones.join(',');
+        }
 
         var command = {
           application: application.name,
