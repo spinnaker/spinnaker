@@ -2,7 +2,9 @@
   <accordion-group is-open="viewState.expanded">
     <accordion-heading>
       <h4 class="heading-pipeline-config">
-        <span class="glyphicon glyphicon-chevron-{{viewState.expanded ? 'down' : 'right'}}"></span> {{pipeline.name || '[Unnamed]'}} <span ng-if="pipeline.disabled" class="badge badge-disabled">disabled</span></h4>
+        <span class="glyphicon glyphicon-chevron-{{viewState.expanded ? 'down' : 'right'}}"></span> {{pipeline.name || '[Unnamed]'}} <span ng-if="pipeline.disabled" class="badge badge-disabled">disabled</span>
+        <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
+      </h4>
     </accordion-heading>
     <div class="pipeline-actions text-right" ng-if="viewState.expanded">
       <div class="dropdown">
@@ -30,7 +32,7 @@
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
               <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
                       ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
-                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index), 'invalid' : !stage.name}">
+                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
                 {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
               </a>
             </div>

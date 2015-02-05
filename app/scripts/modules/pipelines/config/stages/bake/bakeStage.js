@@ -10,6 +10,13 @@ angular.module('deckApp.pipelines.stage.bake')
       controllerAs: 'bakeStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/bake/bakeStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
+      validators: [
+        {
+          type: 'requiredField',
+          fieldName: 'package',
+          message: 'Package is a required field on bake stages.',
+        },
+      ],
     });
   })
   .controller('BakeStageCtrl', function($scope, stage, bakeryService, $q, authenticationService) {
