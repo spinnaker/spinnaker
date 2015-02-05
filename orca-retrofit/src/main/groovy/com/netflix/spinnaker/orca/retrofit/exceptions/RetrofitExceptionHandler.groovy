@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.retrofit.exceptions
 
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import retrofit.RetrofitError
+import retrofit.mime.TypedByteArray
 
 class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
   @Override
@@ -45,6 +46,11 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
         response.details = new ExceptionHandler.ResponseDetails(reason)
       }
 
+      try {
+        response.details.responseBody = new String(((TypedByteArray)e.getResponse().getBody()).getBytes())
+      } catch (ignored) {
+        response.details.responseBody = "n/a"
+      }
       response.details.status = status
       response.details.url = url
       return response
