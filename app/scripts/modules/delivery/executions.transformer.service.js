@@ -8,6 +8,18 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     function transformExecution(execution) {
       var stageSummaries = [];
 
+      execution.stages.forEach(function(stage) {
+        if (!stage.syntheticStageOwner) {
+          stageSummaries.push({
+            name: stage.name,
+            id: stage.id,
+            masterStage: stage,
+            before: [],
+            after: []
+          });
+        }
+      });
+
       execution.stages.forEach(function(stage, index) {
         stage.index = index;
         var owner = stage.syntheticStageOwner;
@@ -21,15 +33,6 @@ angular.module('deckApp.delivery.executionTransformer.service', [
           if (parent) {
             parent.after.push(stage);
           }
-        }
-        if (!owner) {
-          stageSummaries.push({
-            name: stage.name,
-            id: stage.id,
-            masterStage: stage,
-            before: [],
-            after: []
-          });
         }
       });
 
