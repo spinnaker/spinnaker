@@ -26,6 +26,7 @@ describe('authenticationProvider: application startup', function() {
 
   describe('authenticateUser', function() {
     it('requests authentication from gate, then sets authentication name field', function() {
+      if(!this.settings.authEnabled) { pending(); } //prevents the test from running if authentication is not enabled
       this.$http.whenGET(this.settings.gateUrl + '/auth/info').respond(200, {email: 'joe!'});
       this.$timeout.flush();
       this.$http.flush();
@@ -37,6 +38,7 @@ describe('authenticationProvider: application startup', function() {
     });
 
     it('requests authentication from gate, then opens modal and redirects on 401', function() {
+      if(!this.settings.authEnabled) { pending(); } //prevents the test from running if authentication is not enabled
       var redirectUrl = 'abc';
       spyOn(this.redirectService, 'redirect').and.callFake(function(url) {
         redirectUrl = url;

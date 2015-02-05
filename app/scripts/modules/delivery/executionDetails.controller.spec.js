@@ -4,10 +4,9 @@ describe('Controller: ExecutionDetails', function () {
 
   beforeEach(module('deckApp.executionDetails.controller'));
 
-  beforeEach(inject(function ($controller, $rootScope, _) {
+  beforeEach(inject(function ($controller, $rootScope) {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
-    this._ = _;
   }));
 
   describe('getKatoException', function() {
@@ -23,7 +22,6 @@ describe('Controller: ExecutionDetails', function () {
         $stateParams: this.$stateParams,
         $state: this.$state,
         pipelineConfig: this.pipelineConfig,
-        _: this._,
       });
     });
 

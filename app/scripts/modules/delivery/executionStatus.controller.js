@@ -22,7 +22,7 @@ angular.module('deckApp.delivery.executionStatus.controller', [
         return stage.isRunning;
       });
       // if there are no running stages, find the first enqueued stage
-      if (!currentStages) {
+      if (!currentStages.length) {
         var enqueued = execution.stageSummaries.filter(function(stage) {
           return stage.hasNotStarted;
         });

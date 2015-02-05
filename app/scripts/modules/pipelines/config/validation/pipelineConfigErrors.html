@@ -1,0 +1,25 @@
+<span class="validation-warnings" ng-if="messages.length">
+  <a href
+     ng-click="popover.show = !popover.show; $event.stopPropagation();"
+     tooltip="{{popover.show ? 'Hide warnings' : 'Show warnings'}}">
+    <span class="glyphicon glyphicon-exclamation-sign"></span>
+  </a>
+  <div class="menu-validation-warnings" ng-if="popover.show">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <p>
+            <strong>
+              The following errors may affect the ability to run this pipeline:
+            </strong>
+          </p>
+          <ul>
+            <li ng-repeat="message in messages">
+              {{message}}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</span>
