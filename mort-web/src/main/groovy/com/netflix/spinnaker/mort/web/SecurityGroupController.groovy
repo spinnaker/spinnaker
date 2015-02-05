@@ -140,12 +140,15 @@ class SecurityGroupController {
     }) toBlocking() first()
     }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName}", params = ['region'])
-  SecurityGroup get(@PathVariable String account, @PathVariable String type,
-                                           @PathVariable String securityGroupName, @RequestParam("region") String region) {
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{region}/{securityGroupName}")
+  SecurityGroup get(@PathVariable String account,
+                    @PathVariable String type,
+                    @PathVariable String region,
+                    @PathVariable String securityGroupName,
+                    @RequestParam(value = "vpcId", required = false) String vpcId) {
     securityGroupProviders.find { secGrpProv ->
       secGrpProv.type == type
-    }.get(account, securityGroupName, region)
+    }.get(account, region, securityGroupName, vpcId)
   }
 
   private static Set<SecurityGroupSummary> getSortedTreeSet() {

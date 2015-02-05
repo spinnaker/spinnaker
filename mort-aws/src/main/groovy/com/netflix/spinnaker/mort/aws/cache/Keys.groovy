@@ -46,7 +46,7 @@ class Keys {
     switch (parts[0]) {
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[1])
-        result = [application: names.app, name: parts[1], id: parts[2], region: parts[3], account: parts[4], vpcId: parts[5]]
+        result = [application: names.app, name: parts[1], id: parts[2], region: parts[3], account: parts[4], vpcId: parts[5] == "null" ? null : parts[5]]
         break
       case Namespace.VPCS.ns:
         result = [id: parts[1], account: parts[2], region: parts[3]]
