@@ -62,6 +62,18 @@
           </ul>
         </span>
       </span>
+      <span ng-switch-when="suspended">
+        <span>
+          <h5 class="status status-paused">
+            SUSPENDED
+          </h5>
+          <ul>
+            <li>
+              Next Stage: {{ ctrl.getRunningStage(execution) }}
+            </li>
+          </ul>
+        </span>
+      </span>
       <span ng-switch-when="completed">
         <h5 class="status status-completed">
           COMPLETED
