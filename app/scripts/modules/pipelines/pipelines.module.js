@@ -4,6 +4,7 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.config',
   'deckApp.pipelines.config.controller',
   'deckApp.pipelines.create.controller',
+  'deckApp.pipelines.config.validator.directive',
 
 
   'restangular',

@@ -10,6 +10,41 @@ angular.module('deckApp.pipelines.stage.deploy')
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
+      validators: [
+        {
+          type: 'stageBeforeType',
+          stageType: 'bake',
+          message: 'You must have a bake stage immediately before any deploy stage.'
+        },
+        {
+          type: 'stageBeforeMethod',
+          validate: function(stageBefore, thisStage) {
+            // should be caught in stageBeforeType validation
+            if (stageBefore.type !== 'bake') {
+              return null;
+            }
+
+            var thisStageRegion = null,
+                stageBeforeRegion = null;
+
+            if (thisStage.cluster && thisStage.cluster.availabilityZones) {
+              var thisStageRegions = Object.keys(thisStage.cluster.availabilityZones);
+              if (thisStageRegions.length) {
+                thisStageRegion = thisStageRegions[0];
+              }
+            }
+
+            if (stageBefore) {
+              stageBeforeRegion = stageBefore.region;
+            }
+
+            if (thisStageRegion === stageBeforeRegion) {
+              return null;
+            }
+            return  'Bake stage region (' + stageBeforeRegion + ') must match the subsequent deploy stage region (' + thisStageRegion + '). The pipeline will not execute successfully with this configuration.';
+          }
+        }
+      ],
     });
   })
   .controller('DeployStageCtrl', function ($scope, stage, viewState,

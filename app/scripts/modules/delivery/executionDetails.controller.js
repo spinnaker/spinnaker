@@ -2,10 +2,9 @@
 
 angular.module('deckApp.executionDetails.controller', [
   'ui.router',
-  'deckApp.utils.lodash',
   'deckApp.pipelines.config'
 ])
-  .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig, _) {
+  .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;
 
     function getCurrentStage() {
@@ -46,8 +45,7 @@ angular.module('deckApp.executionDetails.controller', [
         var stage = $scope.execution.stages[getCurrentStage()];
         if (stage) {
           $scope.stage = stage;
-          pipelineConfig.getStageTypes();
-          var stageConfig = _.find(pipelineConfig.getStageTypes(), {key: stage.type});
+          var stageConfig = pipelineConfig.getStageConfig(stage.type);
           if (stageConfig) {
             return stageConfig.executionDetailsUrl || null;
           }
