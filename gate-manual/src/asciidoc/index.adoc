@@ -16,10 +16,9 @@ Spinnaker's Gateway API service exposes a RESTful HTTP API, where orchestrated s
 
 == Spinnaker Java Client
 
-Spinnaker provides a zero-dependency Java client for developers to be able to write applications against the platform.
+Spinnaker will provide a zero-dependency Java client for developers to be able to write applications against the platform.
 
 - - -
-include::client.adoc[]
 - - -
 
 == Orchestrated Operations
