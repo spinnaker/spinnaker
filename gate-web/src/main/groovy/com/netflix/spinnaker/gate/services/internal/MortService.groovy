@@ -41,9 +41,9 @@ interface MortService {
   @GET('/securityGroups/{account}/{type}')
   Map getSecurityGroups(@Path("account") String account, @Path("type") String type, @Query("region") String region)
 
-  @GET('/securityGroups/{account}/{type}/{name}')
+  @GET('/securityGroups/{account}/{type}/{region}/{name}')
   Map getSecurityGroup(@Path("account") String account, @Path("type") String type, @Path("name") String name,
-                       @Query("region") String region)
+                       @Path("region") String region, @Query("vpcId") String vpcId)
 
   @GET('/instanceTypes')
   List<Map> getInstanceTypes()
