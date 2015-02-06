@@ -35,13 +35,40 @@ class InstanceLoadBalancers implements Health {
   HealthState state
   List<InstanceLoadBalancerState> loadBalancers
 
+  static HealthState deriveHealthState(InstanceLoadBalancerState state) {
+    /* Known descriptions:
+        * Instance registration is still in progress
+        * Instance has not passed the configured HealthyThreshold number of health checks consecutively.
+        * Instance has failed at least the UnhealthyThreshold number of health checks consecutively.
+        * Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.
+        * Instance is not currently registered with the LoadBalancer.
+     */
+    if (state.state == 'InService') {
+      return HealthState.Up
+    }
+    if (state.description == 'Instance registration is still in progress') {
+      return HealthState.Unknown
+    }
+    if (state.description == 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.') {
+      return HealthState.Unknown
+    }
+    return HealthState.Down
+  }
+
+  static HealthState deriveInstanceHealthState(List<InstanceLoadBalancerState> instanceLoadBalancerStates) {
+    instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.Down } ? HealthState.Down :
+      instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.Unknown } ? HealthState.Unknown :
+        HealthState.Up
+  }
+
+
   @CompileStatic(TypeCheckingMode.SKIP)
   static List<InstanceLoadBalancers> fromLoadBalancerInstanceState(List<LoadBalancerInstanceState> loadBalancers) {
     List<List<InstanceLoadBalancerState>> instances = loadBalancers.collect { InstanceLoadBalancerState.fromLoadBalancerInstanceState(it) }
     instances.flatten().groupBy { InstanceLoadBalancerState ilbs ->
       ilbs.instanceId
     }.collect { String instanceId, List<InstanceLoadBalancerState> lbs ->
-      new InstanceLoadBalancers(instanceId: instanceId, state: lbs.every { it.state == 'InService' } ? HealthState.Up : HealthState.Down, loadBalancers: lbs)
+      new InstanceLoadBalancers(instanceId: instanceId, state: deriveInstanceHealthState(lbs), loadBalancers: lbs)
     }
   }
 }

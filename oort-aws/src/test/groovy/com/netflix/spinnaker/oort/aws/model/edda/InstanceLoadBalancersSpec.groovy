@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.oort.aws.model.edda
 
+import com.netflix.spinnaker.oort.model.HealthState
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class InstanceLoadBalancersSpec extends Specification {
 
@@ -39,5 +41,87 @@ class InstanceLoadBalancersSpec extends Specification {
       loadBalancers.size() == 2
       loadBalancers.loadBalancerName.sort() == ['lb1', 'lb2']
     }
+  }
+
+  def 'should return up if all load balancers are in service, down if any are out of service'() {
+    setup:
+    def lbis = [new LoadBalancerInstanceState(name: 'lb1', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'InService', description: 'N/A', reasonCode: 'N/A'),
+        new LoadBalancerInstance(instanceId: 'i-2', state: 'InService', description: 'N/A', reasonCode: 'N/A')
+        ]),
+        new LoadBalancerInstanceState(name: 'lb2', instances: [
+          new LoadBalancerInstance(instanceId: 'i-1',
+            state: 'OutOfService',
+            description: 'Instance has failed at least the UnhealthyThreshold number of health checks consecutively.',
+            reasonCode: 'FailBoat'),
+          new LoadBalancerInstance(instanceId: 'i-2', state: 'InService', description: 'N/A', reasonCode: 'N/A')
+        ])]
+
+    when:
+    def ilb = InstanceLoadBalancers.fromLoadBalancerInstanceState(lbis)
+
+    then:
+    ilb.size() == 2
+    ilb.find {it.instanceId == 'i-1' }.state == HealthState.Down
+    ilb.find {it.instanceId == 'i-2' }.state == HealthState.Up
+  }
+
+  @Unroll
+  def 'should derive health state from message if not in service'() {
+    setup:
+    def lbis = [new LoadBalancerInstanceState(name: 'lb1', instances: [
+      new LoadBalancerInstance(instanceId: 'i-1',
+        state: 'OutOfService',
+        description: description
+      )
+    ])]
+
+    when:
+    def ilb = InstanceLoadBalancers.fromLoadBalancerInstanceState(lbis)
+
+    then:
+    ilb.size() == 1
+    ilb[0].state == state
+
+    where:
+    state               | description
+    HealthState.Down    | 'Instance has failed at least the UnhealthyThreshold number of health checks consecutively.'
+    HealthState.Down    | 'Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.'
+    HealthState.Down    | 'Instance is not currently registered with the LoadBalancer.'
+    HealthState.Unknown | 'Instance registration is still in progress'
+    HealthState.Unknown | 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.'
+  }
+
+  def 'should return unknown if any instances are unknown but none are down'() {
+    def lbis = [
+      new LoadBalancerInstanceState(name: 'lb1', instances: [
+        new LoadBalancerInstance(instanceId: 'i-0', state: 'OutOfService', description: 'dead', reasonCode: 'N/A'),
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'InService', description: 'N/A', reasonCode: 'N/A'),
+        new LoadBalancerInstance(instanceId: 'i-2',
+          state: 'OutOfService',
+          description: 'Instance registration is still in progress',
+          reasonCode: 'N/A')
+      ]),
+      new LoadBalancerInstanceState(name: 'lb2', instances: [
+        new LoadBalancerInstance(instanceId: 'i-0', state: 'OutOfService', description: 'Instance registration is still in progress', reasonCode: 'N/A'),
+        new LoadBalancerInstance(instanceId: 'i-1',
+          state: 'OutOfService',
+          description: 'Instance registration is still in progress',
+          reasonCode: 'FailBoat'),
+        new LoadBalancerInstance(instanceId: 'i-2',
+          state: 'OutOfService',
+          description: 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.',
+          reasonCode: 'N/A')
+      ])
+    ]
+
+    when:
+    def ilb = InstanceLoadBalancers.fromLoadBalancerInstanceState(lbis)
+
+    then:
+    ilb.size() == 3
+    ilb.find {it.instanceId == 'i-0' }.state == HealthState.Down
+    ilb.find {it.instanceId == 'i-1' }.state == HealthState.Unknown
+    ilb.find {it.instanceId == 'i-2' }.state == HealthState.Unknown
   }
 }

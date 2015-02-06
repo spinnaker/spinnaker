@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.oort.controllers
 
+import com.netflix.spinnaker.oort.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.Instance
@@ -140,6 +141,11 @@ class ServerGroupController {
         }
         if (health.containsKey("status")) {
           healthMetric.status = health.status
+        }
+        if (health.type == InstanceLoadBalancers.HEALTH_TYPE && health.containsKey("loadBalancers")) {
+          healthMetric.loadBalancers = health.loadBalancers.collect {
+            [name : it.loadBalancerName, state : it.state, description: it.description ]
+          }
         }
         healthMetric
       }
