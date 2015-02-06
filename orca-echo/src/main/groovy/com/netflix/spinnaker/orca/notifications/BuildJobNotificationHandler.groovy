@@ -35,7 +35,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
 
   @PostConstruct
   void init() {
-    Executors.newSingleThreadScheduledExecutor().schedule(this, pollingInterval, TimeUnit.SECONDS)
+    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
   }
 
   @Override
@@ -47,6 +47,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
         for (Map trigger in triggers) {
           if (trigger.type == TRIGGER_TYPE && trigger.enabled == true) {
             String key = generateKey(trigger[TRIGGER_MASTER], trigger[TRIGGER_KEY])
+            log.info("Adding pipeline trigger ${pipeline.application}:'${pipeline.name}'")
             if (!_interestingPipelines.containsKey(key)) {
               _interestingPipelines[key] = []
             }
@@ -56,7 +57,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
       }
       this.interestingPipelines = _interestingPipelines
     } catch (e) {
-      e.printStackTrace()
+      log.error("Failed to update available pipeline triggers", e)
     }
   }
 
