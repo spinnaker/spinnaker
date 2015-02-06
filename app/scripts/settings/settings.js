@@ -16,7 +16,7 @@ angular.module('deckApp.settings', [])
       account: 'test',
       region: 'us-east-1'
     },
-    authEnabled: true
+    authEnabled: false
   });
 
 window.tracking = {
