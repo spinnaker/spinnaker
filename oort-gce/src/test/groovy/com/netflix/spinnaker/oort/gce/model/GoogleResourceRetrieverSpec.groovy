@@ -17,12 +17,9 @@
 package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.oort.gce.model.GoogleApplication
-import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
-import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
-import com.netflix.spinnaker.oort.gce.security.GoogleCredentials
-import com.netflix.spinnaker.oort.gce.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 
 class GoogleResourceRetrieverSpec extends Specification {

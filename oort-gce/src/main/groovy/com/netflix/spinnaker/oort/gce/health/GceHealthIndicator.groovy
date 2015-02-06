@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.oort.gce.health
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.oort.gce.security.GoogleCredentials
-import com.netflix.spinnaker.oort.gce.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import groovy.transform.InheritConstructors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -25,13 +25,13 @@ import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.google.api.services.replicapool.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.oort.config.GoogleConfig.GoogleConfigurationProperties
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.MIGSCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.NetworkLoadBalancersCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
-import com.netflix.spinnaker.oort.gce.security.GoogleCredentials
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 
