@@ -28,12 +28,13 @@ import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
+
 import java.util.concurrent.TimeUnit
 
 class GCEUtil {

@@ -18,10 +18,10 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 

@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.TargetPool
+import com.google.api.services.compute.model.Zone
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.google.api.services.replicapool.model.InstanceGroupManagersSetTargetPoolsRequest
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 

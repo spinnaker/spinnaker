@@ -19,8 +19,8 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
+import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {

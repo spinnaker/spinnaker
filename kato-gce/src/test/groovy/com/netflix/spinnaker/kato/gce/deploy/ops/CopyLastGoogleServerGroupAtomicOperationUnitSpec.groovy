@@ -23,6 +23,7 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Network
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -30,8 +31,6 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.handlers.BasicGoogleDeployHandler
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 

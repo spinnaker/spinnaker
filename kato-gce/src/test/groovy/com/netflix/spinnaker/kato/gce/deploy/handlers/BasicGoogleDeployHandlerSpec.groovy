@@ -19,11 +19,18 @@ package com.netflix.spinnaker.kato.gce.deploy.handlers
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.Image
+import com.google.api.services.compute.model.ImageList
+import com.google.api.services.compute.model.Instance
+import com.google.api.services.compute.model.InstanceList
+import com.google.api.services.compute.model.MachineType
+import com.google.api.services.compute.model.MachineTypeList
+import com.google.api.services.compute.model.Network
+import com.google.api.services.compute.model.NetworkList
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
