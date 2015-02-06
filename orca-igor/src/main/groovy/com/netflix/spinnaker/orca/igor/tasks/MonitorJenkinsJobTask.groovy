@@ -48,9 +48,11 @@ class MonitorJenkinsJobTask implements RetryableTask {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildInfo: build])
       }
     } catch (RetrofitError e) {
-      if (e.response.status != 404) {
-        return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+      if (e.response?.status == 404) {
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
+
+      throw e
     }
   }
 }

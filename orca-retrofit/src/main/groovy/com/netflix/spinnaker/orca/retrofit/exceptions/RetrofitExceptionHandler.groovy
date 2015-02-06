@@ -51,6 +51,7 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
       } catch (ignored) {
         response.details.responseBody = "n/a"
       }
+      response.details.kind = e.kind
       response.details.status = status
       response.details.url = url
       return response
