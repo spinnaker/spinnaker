@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.oort.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
-import com.netflix.spinnaker.oort.gce.security.GoogleNamedAccountCredentials
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
