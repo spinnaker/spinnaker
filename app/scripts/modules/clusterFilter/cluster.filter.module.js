@@ -1,5 +1,6 @@
 angular
   .module('deckApp.cluster', [
+    'deckApp.instanceList.filter',
     'cluster',
     'clusters.all',
     'cluster.filter.collapse',
