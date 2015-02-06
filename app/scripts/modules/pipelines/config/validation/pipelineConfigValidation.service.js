@@ -45,7 +45,7 @@ angular.module('deckApp.pipelines.config.validator.service', ['deckApp.pipelines
           messages = [];
       stages.forEach(function(stage, index) {
         var config = pipelineConfig.getStageConfig(stage.type);
-        if (config.validators) {
+        if (config && config.validators) {
           config.validators.forEach(function(validator) {
             switch(validator.type) {
               case 'stageBeforeType':
