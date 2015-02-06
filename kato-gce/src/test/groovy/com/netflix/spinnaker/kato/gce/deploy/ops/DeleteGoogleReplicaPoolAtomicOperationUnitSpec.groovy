@@ -19,10 +19,10 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.compute.Compute
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 

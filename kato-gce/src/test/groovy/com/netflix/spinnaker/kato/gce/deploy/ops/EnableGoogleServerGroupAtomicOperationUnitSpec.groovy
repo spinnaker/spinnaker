@@ -24,16 +24,15 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Zone
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.google.api.services.replicapool.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.resourceviews.Resourceviews
 import com.google.api.services.resourceviews.model.ListResourceResponseItem
 import com.google.api.services.resourceviews.model.ZoneViewsListResourcesResponse
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 

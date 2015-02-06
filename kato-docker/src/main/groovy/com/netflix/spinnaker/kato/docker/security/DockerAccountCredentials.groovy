@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.docker.security
 import com.netflix.spinnaker.amos.AccountCredentials
 
 class DockerAccountCredentials implements AccountCredentials<Docker> {
+  static final String PROVIDER = 'docker'
   String name
   String url
   String registry
@@ -26,5 +27,10 @@ class DockerAccountCredentials implements AccountCredentials<Docker> {
   @Override
   Docker getCredentials() {
     new Docker(url, registry)
+  }
+
+  @Override
+  String getProvider() {
+    PROVIDER
   }
 }

@@ -21,9 +21,9 @@ package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.TerminateGoogleInstancesAtomicOperation
-import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 

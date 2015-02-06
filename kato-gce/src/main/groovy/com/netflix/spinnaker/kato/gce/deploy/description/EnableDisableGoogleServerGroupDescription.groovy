@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 /**
  * Description for "enabling" a supplied Google Server Group. "Enabling" means setting a network load balancer's target
