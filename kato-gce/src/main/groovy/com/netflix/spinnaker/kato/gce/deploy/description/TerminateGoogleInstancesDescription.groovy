@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class TerminateGoogleInstancesDescription  {
   String zone

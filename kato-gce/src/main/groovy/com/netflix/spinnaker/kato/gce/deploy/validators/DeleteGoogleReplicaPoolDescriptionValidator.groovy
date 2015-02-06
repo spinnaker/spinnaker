@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors

@@ -16,5 +16,5 @@
 
 dependencies {
   compile project(":kato-core")
-  compile 'com.netflix.spinnaker.kork:kork-jedis:1.25'
+  compile 'com.netflix.spinnaker.kork:kork-jedis:1.27'
 }

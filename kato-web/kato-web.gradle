@@ -16,7 +16,7 @@
 
 buildscript {
   ext {
-    springBootVersion = "1.2.0.RELEASE"
+    springBootVersion = "1.2.1.RELEASE"
   }
   repositories {
     jcenter()
@@ -85,5 +85,4 @@ ospackage {
 
 buildDeb {
   dependsOn installApp
-  requires("openjdk-7-jre")
 }

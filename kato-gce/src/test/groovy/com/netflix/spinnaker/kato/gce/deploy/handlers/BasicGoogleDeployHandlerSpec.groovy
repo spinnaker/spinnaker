@@ -23,7 +23,7 @@ import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.DeleteGoogleReplicaPoolAtomicOperation
-import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 

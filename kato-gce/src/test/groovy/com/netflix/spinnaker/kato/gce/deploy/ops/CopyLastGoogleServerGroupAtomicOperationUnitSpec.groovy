@@ -30,7 +30,7 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.handlers.BasicGoogleDeployHandler
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject

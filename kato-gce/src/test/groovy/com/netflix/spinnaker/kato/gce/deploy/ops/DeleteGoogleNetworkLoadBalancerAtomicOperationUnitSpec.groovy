@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleNetworkLoadBalancerDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 

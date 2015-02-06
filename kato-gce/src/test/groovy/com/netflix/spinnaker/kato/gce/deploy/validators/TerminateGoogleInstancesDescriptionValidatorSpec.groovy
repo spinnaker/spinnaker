@@ -20,8 +20,8 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
-import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification

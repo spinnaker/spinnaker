@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.kato.gce.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties

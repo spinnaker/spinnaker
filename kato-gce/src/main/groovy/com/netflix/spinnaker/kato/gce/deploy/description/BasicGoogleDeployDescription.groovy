@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.description
 
 import com.netflix.spinnaker.kato.deploy.DeployDescription
-import com.netflix.spinnaker.kato.gce.security.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
