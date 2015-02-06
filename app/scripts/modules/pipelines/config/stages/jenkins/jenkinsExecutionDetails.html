@@ -5,14 +5,13 @@
       <dl class="dl-narrow dl-horizontal">
         <dt>Master</dt>
         <dd>{{stage.context.master}}</dd>
-      </dl>
-      <dl class="dl-narrow dl-horizontal">
         <dt>Job</dt>
         <dd>{{stage.context.job}}</dd>
-      </dl>
-      <dl class="dl-narrow dl-horizontal">
-        <dt>Build Number</dt>
-        <dd>{{stage.context.buildNumber}}</dd>
+        <dt>Build</dt>
+        <dd>{{stage.context.buildNumber}}
+        <a ng-if="stage.context.buildInfo.url"
+           href="{{stage.context.buildInfo.url}}"
+           target="_blank"><strong>(link)</strong></a></dd>
       </dl>
     </div>
 
