@@ -35,6 +35,13 @@ class MonitorJenkinsJobTask implements RetryableTask {
   @Autowired
   IgorService igorService
 
+  private static Map<String, ExecutionStatus> statusMap = [
+    'ABORTED' : ExecutionStatus.CANCELED,
+    'FAILURE' : ExecutionStatus.FAILED,
+    'SUCCESS' : ExecutionStatus.SUCCEEDED,
+    'UNSTABLE': ExecutionStatus.SUCCEEDED
+  ]
+
   @Override
   TaskResult execute(Stage stage) {
     String master = stage.context.master
@@ -42,10 +49,11 @@ class MonitorJenkinsJobTask implements RetryableTask {
     def buildNumber = (int)stage.context.buildNumber
     try {
       Map<String, Object> build = igorService.getBuild(master, job, buildNumber)
-      if (build.result != "SUCCESS") {
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
+      String result = build.result
+      if (statusMap.containsKey(result)) {
+        return new DefaultTaskResult(statusMap[result], [buildInfo: build])
       } else {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildInfo: build])
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
