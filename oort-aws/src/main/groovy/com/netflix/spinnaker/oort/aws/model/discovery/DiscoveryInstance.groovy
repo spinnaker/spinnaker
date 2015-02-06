@@ -68,7 +68,7 @@ class DiscoveryInstance implements Health {
     final HealthState healthState
     if ('UP' == status) {
       healthState = HealthState.Up
-    } else if ('UNKNOWN' == status) {
+    } else if ('UNKNOWN' == status || 'STARTING' == status) {
       healthState = HealthState.Unknown
     } else {
       healthState = HealthState.Down
