@@ -1,6 +1,6 @@
 'use strict';
 
-ddescribe('Filter: instanceList', function () {
+describe('Filter: instanceList', function () {
 
   var filter;
 
