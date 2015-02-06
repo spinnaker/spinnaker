@@ -1,39 +1,39 @@
 versions:
 # spinnaker libs
-  amazoncomponents: "0.9.30"
-  amos: "0.21"
-  cats: "0.9"
-  kork: "1.26"
+  amazoncomponents: "0.9.31"
+  amos: "0.23"
+  cats: "0.14"
+  kork: "1.27"
   redbatch: "0.1"
 # third party
   astyanax: "2.0.2"
-  aws: "1.9.11"
-  batch: "3.0.2.RELEASE"
+  aws: "1.9.17"
+  batch: "3.0.3.RELEASE"
   cglib: "3.1"
-  eureka: "1.1.146"
+  eureka: "1.1.147"
   frigga: "0.13"
   googleHttp: "1.18.0-rc"
   googleCompute: "v1-rev40-1.19.0"
   googleReplicapool: "v1beta2-rev1-1.19.0"
   googleResourceviews: "v1beta2-rev3-1.19.0"
-  groovy: "2.3.8"
+  groovy: "2.3.9"
   guava: "18.0"
   hamcrest: "1.3"
   httpclient: "4.3.6"
   httpcore: "4.3.3"
-  jackson: "2.4.4"
-  jedis: "2.6.1"
+  jackson: "2.4.5"
+  jedis: "2.6.2"
   junit: "4.12"
   objenesis: "2.1"
-  okHttp: "2.1.0"
+  okHttp: "2.2.0"
   redisEmbedded: "0.6"
-  retrofit: "1.8.0"
-  rxJava: "1.0.3"
-  slf4j: "1.7.8"
-  spectator: "0.14.2"
+  retrofit: "1.9.0"
+  rxJava: "1.0.5"
+  slf4j: "1.7.10"
+  spectator: "0.18"
   spock: "0.7-groovy-2.0"
-  spring: "4.1.3.RELEASE"
-  springBoot: "1.2.0.RELEASE"
+  spring: "4.1.4.RELEASE"
+  springBoot: "1.2.1.RELEASE"
 
 groups:
   amazon:
@@ -57,6 +57,10 @@ groups:
       - astyanaxCql
       - astyanaxCassandra
       - astyanaxThrift
+  cats:
+    compile:
+      - catsCore
+      - catsRedis
   gceApi:
     compile:
       - googleCompute
@@ -110,6 +114,8 @@ dependencies:
   amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
   amosAws: "com.netflix.spinnaker:amos-aws:${versions.amos}"
   amosGce: "com.netflix.spinnaker:amos-gce:${versions.amos}"
+  catsCore: "com.netflix.spinnaker.cats:cats-core:${versions.cats}"
+  catsRedis: "com.netflix.spinnaker.cats:cats-redis:${versions.cats}"
   kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
   korkCassandra: "com.netflix.spinnaker.kork:kork-cassandra:${versions.kork}"
   korkJedis: "com.netflix.spinnaker.kork:kork-jedis:${versions.kork}"
