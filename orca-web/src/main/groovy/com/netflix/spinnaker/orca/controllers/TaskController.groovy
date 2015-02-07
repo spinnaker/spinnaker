@@ -30,7 +30,7 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application) {
-    executionRepository.retrieveOrchestrationsForApplication(application).collect { convert it }
+    executionRepository.retrieveOrchestrationsForApplication(application).collect { convert it }.sort { it.startTime ?: it.id }.reverse()
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
@@ -67,7 +67,7 @@ class TaskController {
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
   List<Pipeline> getPipelines() {
-    executionRepository.retrievePipelines()
+    executionRepository.retrievePipelines().sort { it.startTime ?: it.id }.reverse()
   }
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
