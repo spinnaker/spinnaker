@@ -126,7 +126,7 @@ angular.module('deckApp.securityGroup.service', [
     }
 
     function getSecurityGroupDetails(application, account, region, vpcId, id) {
-      return Restangular.one('securityGroups', account).one(id).get({region: region, vpcId: vpcId}).then(function(details) {
+      return Restangular.one('securityGroups', account).one(region).one(id).get({vpcId: vpcId}).then(function(details) {
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter(function(rule) {
             return rule.range;
