@@ -14,13 +14,16 @@
                  ng-model="command.newName"
                  name="name"
                  required
-                 ng-pattern="/^[a-zA-z_0-9-\s]*$/"
+                 ng-pattern="/^[^\\\^/^?^%^#]*$/"
                  validate-unique="existingNames"/>
         </div>
       </div>
       <div class="form-group row slide-in" ng-if="form.name.$error.pattern">
         <div class="col-sm-9 col-sm-offset-3 error-message">
-          <span>Pipeline name can only contain letters, numbers, spaces, dashes, and underscores.</span>
+          <div>
+            Pipeline name cannot contain any of the following characters:
+          </div>
+          <code>/  \  ?  %  #</code>
         </div>
       </div>
       <div class="form-group row slide-in" ng-if="form.name.$error.validateUnique">
