@@ -33,7 +33,7 @@ class PipelineController {
   @Autowired
   PipelineService pipelineService
 
-  @RequestMapping(value = "/{applicationName}/{pipelineName}", method = RequestMethod.DELETE)
+  @RequestMapping(value = "/{applicationName}/{pipelineName:.+}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String applicationName, @PathVariable String pipelineName) {
     pipelineService.deleteForApplication(applicationName, pipelineName)
   }

@@ -101,7 +101,7 @@ class ApplicationController {
     applicationService.getPipelineConfigs(name)
   }
 
-  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
       @PathVariable("name") String name, @PathVariable("pipelineName") String pipelineName) {
     applicationService.getPipelineConfigs(name).find {
@@ -109,7 +109,7 @@ class ApplicationController {
     }
   }
 
-  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName}", method = RequestMethod.POST, params = ['user'])
+  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST, params = ['user'])
   HttpEntity invokePipelineConfig(@PathVariable("name") String application,
                                   @PathVariable("pipelineName") String pipelineName,
                                   @RequestParam("user") String user) {
