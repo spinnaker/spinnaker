@@ -17,17 +17,13 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spinnaker.gate.retrofit.*
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
+import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import groovy.transform.CompileStatic
-import retrofit.http.Path
-import retrofit.http.Query
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.metrics.repository.MetricRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -42,7 +38,14 @@ import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
+import retrofit.http.Path
+import retrofit.http.Query
 
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -54,7 +57,8 @@ class GateConfig {
   public static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL"
 
   @Bean
-  JedisConnectionFactory jedisConnectionFactory(@Value('${redis.connection:redis://localhost:6379}') String connection) {
+  JedisConnectionFactory jedisConnectionFactory(
+      @Value('${redis.connection:redis://localhost:6379}') String connection) {
     URI redis = URI.create(connection)
     def factory = new JedisConnectionFactory()
     factory.hostName = redis.host
@@ -76,76 +80,75 @@ class GateConfig {
     Executors.newCachedThreadPool()
   }
 
+  @Autowired
+  ExtendedRegistry registry
+
+  @Autowired
+  EurekaLookupService eurekaLookupService
+
+  @Autowired
+  ServiceConfiguration serviceConfiguration
+
   @Bean
-  OortService oortDeployService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                                EurekaLookupService eurekaLookupService) {
-    createClient "oort", OortService, serviceConfiguration, eurekaLookupService, metricRepository
+  OortService oortDeployService() {
+    createClient "oort", OortService
   }
 
   @Bean
-  OrcaService orcaService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "orca", OrcaService, serviceConfiguration, eurekaLookupService, metricRepository
+  OrcaService orcaService() {
+    createClient "orca", OrcaService
   }
 
   @Bean
-  Front50Service front50Service(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                                EurekaLookupService eurekaLookupService) {
-    createClient "front50", Front50Service, serviceConfiguration, eurekaLookupService, metricRepository
+  Front50Service front50Service() {
+    createClient "front50", Front50Service
   }
 
   @Bean
-  MortService mortService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "mort", MortService, serviceConfiguration, eurekaLookupService, metricRepository
+  MortService mortService() {
+    createClient "mort", MortService
   }
 
   @Bean
-  KatoService katoService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "kato", KatoService, serviceConfiguration, eurekaLookupService, metricRepository
+  KatoService katoService() {
+    createClient "kato", KatoService
   }
 
   //---- optional backend components:
   @Bean
   @ConditionalOnProperty('services.echo.enabled')
-  EchoService echoService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "echo", EchoService, serviceConfiguration, eurekaLookupService, metricRepository
+  EchoService echoService() {
+    createClient "echo", EchoService
   }
 
   @Bean
   @ConditionalOnProperty('services.flapjack.enabled')
-  FlapJackService flapJackService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                                  EurekaLookupService eurekaLookupService) {
-    createClient "flapjack", FlapJackService, serviceConfiguration, eurekaLookupService, metricRepository
+  FlapJackService flapJackService() {
+    createClient "flapjack", FlapJackService
   }
 
   @Bean
   @ConditionalOnProperty('services.mayo.enabled')
-  MayoService mayoService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "mayo", MayoService, serviceConfiguration, eurekaLookupService, metricRepository
+  MayoService mayoService() {
+    createClient "mayo", MayoService
   }
 
   @Bean
   @ConditionalOnProperty('services.igor.enabled')
-  IgorService igorService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "igor", IgorService, serviceConfiguration, eurekaLookupService, metricRepository
+  IgorService igorService() {
+    createClient "igor", IgorService
   }
 
   @Bean
   @ConditionalOnProperty('services.flex.enabled')
-  FlexService flexService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
-    createClient "flex", FlexService, serviceConfiguration, eurekaLookupService, metricRepository
+  FlexService flexService() {
+    createClient "flex", FlexService
   }
 
   @Bean
   @ConditionalOnMissingBean(FlexService)
   FlexService noopFlexService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                          EurekaLookupService eurekaLookupService) {
+                              EurekaLookupService eurekaLookupService) {
     return new FlexService() {
       @Override
       List<Map> getForCluster(@Path("application") String application,
@@ -166,8 +169,7 @@ class GateConfig {
     }
   }
 
-  private
-  static <T> T createClient(String serviceName, Class<T> type, ServiceConfiguration serviceConfiguration, EurekaLookupService eurekaLookupService, MetricRepository metricRepository) {
+  private <T> T createClient(String serviceName, Class<T> type) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
       throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
@@ -179,9 +181,7 @@ class GateConfig {
         newFixedEndpoint("niws://${service.vipAddress}")
         : newFixedEndpoint(service.baseUrl)
 
-    def client = endpoint.url ==~ EurekaOkClient.NIWS_SCHEME_PATTERN ?
-        new EurekaOkClient(metricRepository, serviceName, eurekaLookupService) :
-        new MetricsInstrumentedOkClient(metricRepository, serviceName)
+    def client = new EurekaOkClient(registry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
