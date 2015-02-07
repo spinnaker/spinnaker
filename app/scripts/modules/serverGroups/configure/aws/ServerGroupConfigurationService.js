@@ -144,7 +144,7 @@ angular.module('deckApp.serverGroup.configure.aws')
       var results = { dirty: {} };
       var currentOptions = command.backingData.filtered.securityGroups;
       var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { aws: {}};
-      var newRegionalSecurityGroups = _(newSecurityGroups[command.region])
+      var newRegionalSecurityGroups = _(newSecurityGroups.aws[command.region])
         .filter({vpcId: command.vpcId || null})
         .sortBy('name')
         .valueOf();
