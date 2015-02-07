@@ -24,24 +24,25 @@ import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.CacheService
 import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
+import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
-  @Subject
-  AmazonSecurityGroupCachingAgent agent
+  @Subject AmazonSecurityGroupCachingAgent agent
 
-  @Shared
+  String region = 'region'
+  String account = 'account'
+
   CacheService cacheService
-
-  @Shared
   AmazonEC2 ec2
 
-  static String region = 'region'
-  static String account = 'account'
+  SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
+  SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
+  String keyGroupA = Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null)
+  String keyGroupB = Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null)
 
   def setup() {
     cacheService = Mock(CacheService)
@@ -120,15 +121,24 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
   void "should update security group when security group value changes"() {
     given:
-    DescribeSecurityGroupsResult result = new DescribeSecurityGroupsResult(
-            securityGroups: [securityGroupA, securityGroupB])
-
-    when:
     securityGroupB.ipPermissions = [
             new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
                     new UserIdGroupPair(groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
             ])
     ]
+    SecurityGroup modifiedSecurityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b',
+            ipPermissions: [
+                    new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
+                            new UserIdGroupPair(groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
+                    ])
+            ])
+    assert securityGroupB == modifiedSecurityGroupB
+    modifiedSecurityGroupB.ipPermissions[0].toPort = 7002
+    assert securityGroupB != modifiedSecurityGroupB
+    DescribeSecurityGroupsResult result = new DescribeSecurityGroupsResult(
+            securityGroups: [securityGroupA, modifiedSecurityGroupB])
+
+    when:
     agent.call()
 
     then:
@@ -139,7 +149,17 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     1 * cacheService.put(keyGroupB, new AmazonSecurityGroup(type: "aws", id: "id-b", name: "name-b", description: "b",
             accountName: "account", region: "region", inboundRules: [
                 new SecurityGroupRule(protocol: "TCP",
-                        securityGroup: new AmazonSecurityGroup(id: securityGroupA.groupId, name: securityGroupA.groupName))
+                        securityGroup: new AmazonSecurityGroup(
+                                type: 'aws',
+                                id: 'id-a',
+                                name: 'name-a',
+                                accountName: 'account',
+                                region: 'region'
+                        ),
+                        portRanges: [
+                                new Rule.PortRange(startPort: 7001, endPort: 7002)
+                        ] as SortedSet
+                )
             ])
     )
     0 * _
@@ -227,18 +247,5 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     cachedValue.inboundRules[1].portRanges.startPort == [7000]
     cachedValue.inboundRules[1].portRanges.endPort == [8000]
   }
-
-  @Shared
-  SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
-
-  @Shared
-  String keyGroupA = Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null)
-
-  @Shared
-  SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
-
-  @Shared
-  String keyGroupB = Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null)
-
 
 }
