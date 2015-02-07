@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.mort.model.securitygroups
 
+import groovy.transform.Canonical
 import groovy.transform.Sortable
 
 /**
@@ -35,6 +36,7 @@ interface Rule {
   String getProtocol()
 
   @Sortable
+  @Canonical
   static class PortRange {
     Integer startPort
     Integer endPort

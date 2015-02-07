@@ -20,7 +20,7 @@ import com.netflix.spinnaker.mort.model.SecurityGroup
 import groovy.transform.Immutable
 
 @Immutable
-class SecurityGroupRule implements Rule, Comparable<SecurityGroupRule> {
+class SecurityGroupRule implements Rule {
   /**
    * The security group associated with this rule
    */
@@ -35,10 +35,4 @@ class SecurityGroupRule implements Rule, Comparable<SecurityGroupRule> {
    * {@inheritDoc}
    */
   final SortedSet<Rule.PortRange> portRanges
-
-  @Override
-  int compareTo(SecurityGroupRule o) {
-        securityGroup.name <=> o.securityGroup.name ?:
-                    protocol <=> o.protocol
-  }
 }
