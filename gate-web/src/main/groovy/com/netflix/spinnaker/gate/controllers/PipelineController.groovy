@@ -20,10 +20,15 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.PipelineService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
@@ -46,5 +51,22 @@ class PipelineController {
   @RequestMapping(value = 'move', method = RequestMethod.POST)
   void renamePipeline(@RequestBody Map renameCommand) {
     pipelineService.move(renameCommand)
+  }
+
+  @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
+  Map cancelPipeline(@PathVariable("id") String id) {
+    pipelineService.cancelPipeline(id)
+  }
+
+  @RequestMapping(value = "/{applicationName}/{pipelineName:.+}", method = RequestMethod.POST, params = ['user'])
+  HttpEntity invokePipelineConfig(@PathVariable("applicationName") String application,
+                                  @PathVariable("pipelineName") String pipelineName,
+                                  @RequestParam("user") String user) {
+    try {
+      def body = pipelineService.trigger(application, pipelineName, user)
+      new ResponseEntity(body, HttpStatus.ACCEPTED)
+    } catch (e) {
+      new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
+    }
   }
 }

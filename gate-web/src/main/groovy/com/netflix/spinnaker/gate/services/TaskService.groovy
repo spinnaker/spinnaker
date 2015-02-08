@@ -43,6 +43,10 @@ class TaskService {
     orcaService.doOperation(body)
   }
 
+  Map createAppTask(Map body) {
+    orcaService.doOperation(body)
+  }
+
   Map getTask(String id) {
     HystrixFactory.newMapCommand(GROUP, "getTask", true) {
       orcaService.getTask(id)
@@ -61,6 +65,10 @@ class TaskService {
     } execute()
   }
 
+  /**
+   * @deprecated  This pipeline operation does not belong here.
+   */
+  @Deprecated
   Map cancelPipeline(String id) {
     HystrixFactory.newMapCommand(GROUP, "cancelPipeline", true) {
       orcaService.cancelPipeline(id)
