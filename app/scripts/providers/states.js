@@ -82,11 +82,16 @@ angular.module('deckApp.states', [
 
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
-        url: '/loadBalancerDetails?name&accountId&region&vpcId',
+        url: '/loadBalancerDetails?name&accountId&region&vpcId&provider',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'scripts/modules/loadBalancers/loadBalancerDetails.html',
-            controller: 'LoadBalancerDetailsCtrl',
+            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return $templateCache.get('scripts/modules/loadBalancers/details/' + provider + '/loadBalancerDetails.html'); }],
+            controllerProvider: ['$stateParams', function($stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return provider + 'LoadBalancerDetailsCtrl';
+            }],
             controllerAs: 'ctrl'
           }
         },
@@ -237,7 +242,7 @@ angular.module('deckApp.states', [
               name: 'loadBalancer',
               views: {
                 'master@home.applications.application.insight': {
-                  templateUrl: 'views/application/loadBalancer/single.html',
+                  templateUrl: 'scripts/modules/loadBalancers/loadBalancer/single.html',
                   controller: 'LoadBalancerCtrl',
                   controllerAs: 'ctrl'
                 }

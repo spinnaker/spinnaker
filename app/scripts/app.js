@@ -25,6 +25,9 @@ angular.module('deckApp', [
     'deckApp.delivery.states',
     'deckApp.application.controller',
 
+    'deckApp.aws.loadBalancer.transformer.service',
+    'deckApp.gce.loadBalancer.transformer.service',
+
     'deckApp.templates',
     'deckApp.aws',
     'deckApp.gce',

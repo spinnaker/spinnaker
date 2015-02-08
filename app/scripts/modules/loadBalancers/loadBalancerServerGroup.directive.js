@@ -1,12 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.loadBalancer.serverGroup', [])
   .directive('loadBalancerServerGroup', function ($rootScope) {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'views/application/loadBalancer/loadBalancerServerGroup.html',
+      templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancerServerGroup.html',
       scope: {
         serverGroup: '=',
         displayOptions: '='

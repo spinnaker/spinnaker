@@ -4,7 +4,7 @@
 angular.module('deckApp.loadBalancer.gce.create.controller', [
   'deckApp.loadBalancer.write.service',
   'deckApp.account.service',
-  'deckApp.loadBalancer.service',
+  'deckApp.gce.loadBalancer.transformer.service',
   'deckApp.securityGroup.service',
   'deckApp.modalWizard',
   'deckApp.tasks.monitor.service',
@@ -12,7 +12,7 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
-                                                 accountService, loadBalancerService, securityGroupService,
+                                                 accountService, gceLoadBalancerTransformer, securityGroupService,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
 
     var ctrl = this;
@@ -29,7 +29,7 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      forceRefreshMessage: 'Getting your new load balancer from Amazon...',
+      forceRefreshMessage: 'Getting your new load balancer from GCE...',
       modalInstance: $modalInstance,
       forceRefreshEnabled: true
     });
@@ -63,10 +63,10 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
 
     function initializeController() {
       if (loadBalancer) {
-        $scope.loadBalancer = loadBalancerService.convertLoadBalancerForEditing(loadBalancer);
+        $scope.loadBalancer = gceLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
         initializeEditMode();
       } else {
-        $scope.loadBalancer = loadBalancerService.constructNewLoadBalancerTemplate();
+        $scope.loadBalancer = gceLoadBalancerTransformer.constructNewLoadBalancerTemplate();
         initializeLoadBalancerNames();
         initializeCreateMode();
       }
@@ -226,7 +226,8 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
       var newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
-        region: $scope.loadBalancer.region
+        region: $scope.loadBalancer.region,
+        provider: 'gce',
       };
       if (!$state.includes('**.loadBalancerDetails')) {
         $state.go('.loadBalancerDetails', newStateParams);

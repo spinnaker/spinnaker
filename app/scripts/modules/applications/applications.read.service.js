@@ -3,17 +3,16 @@
 angular
   .module('deckApp.applications.read.service', [
     'restangular',
-    'deckApp.loadBalancer.service',
     'deckApp.cluster.service',
     'deckApp.tasks.tracker',
     'deckApp.tasks.read.service',
     'deckApp.loadBalancer.read.service',
-    'deckApp.loadBalancer.service',
+    'deckApp.loadBalancer.transformer.service',
     'deckApp.securityGroup.service',
     'deckApp.scheduler'
   ])
   .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
-                                          loadBalancerReader, loadBalancerService, securityGroupService, scheduler) {
+                                          loadBalancerReader, loadBalancerTransformer, securityGroupService, scheduler) {
 
     function listApplications() {
       return Restangular
@@ -164,7 +163,7 @@ angular
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
 
               application.loadBalancers = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersFromSearch);
-              loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
+              loadBalancerTransformer.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               // If the tasks were loaded already, add them to the server groups
               if (application.tasks) {

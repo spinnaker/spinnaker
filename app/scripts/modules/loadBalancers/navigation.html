@@ -22,8 +22,8 @@
   <div class="sub-nav-item">
     <h4>{{heading}}</h4>
     <a ng-repeat="loadBalancer in ctrl.getLoadBalancersFor(heading) | orderBy:'name'"
-       ui-sref=".loadBalancer.loadBalancerDetails({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account, name: loadBalancer.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId})"
-       ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account} )}">
+       ui-sref=".loadBalancer.loadBalancerDetails({loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account, name: loadBalancer.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
+       ng-class="{active: $state.includes('**.loadBalancer.**', {loadBalancer: loadBalancer.name, loadBalancerRegion: loadBalancer.region, loadBalancerAccount: loadBalancer.account, provider: loadBalancer.provider} )}">
       {{ctrl.getLoadBalancerLabel(loadBalancer)}} <health-counts container="loadBalancer.healthCounts"></health-counts>
       <span class="sublabel">{{ctrl.getLoadBalancerSublabel(loadBalancer)}}</span></a>
   </div>

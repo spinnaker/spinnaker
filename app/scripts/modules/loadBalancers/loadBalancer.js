@@ -5,7 +5,7 @@ angular.module('deckApp')
   .directive('loadBalancer', function ($rootScope, $timeout) {
     return {
       restrict: 'E',
-      templateUrl: 'views/application/loadBalancer/loadBalancer.html',
+      templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancer.html',
       scope: {
         loadBalancer: '=',
         displayOptions: '='
@@ -26,7 +26,8 @@ angular.module('deckApp')
               region: loadBalancer.region,
               accountId: loadBalancer.account,
               name: loadBalancer.name,
-              vpcId: loadBalancer.vpcId
+              vpcId: loadBalancer.vpcId,
+              provider: loadBalancer.provider,
             };
             // also stolen from uiSref directive
             scope.$state.go('.loadBalancerDetails', params, {relative: base, inherit: true});

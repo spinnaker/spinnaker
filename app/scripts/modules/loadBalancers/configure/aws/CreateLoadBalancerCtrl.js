@@ -4,7 +4,7 @@
 angular.module('deckApp.loadBalancer.aws.create.controller', [
   'deckApp.loadBalancer.write.service',
   'deckApp.account.service',
-  'deckApp.loadBalancer.service',
+  'deckApp.aws.loadBalancer.transformer.service',
   'deckApp.securityGroup.service',
   'deckApp.modalWizard',
   'deckApp.tasks.monitor.service',
@@ -12,7 +12,7 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
-                                                 accountService, loadBalancerService, securityGroupService,
+                                                 accountService, awsLoadBalancerTransformer, securityGroupService,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
 
     var ctrl = this;
@@ -63,10 +63,10 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
 
     function initializeController() {
       if (loadBalancer) {
-        $scope.loadBalancer = loadBalancerService.convertLoadBalancerForEditing(loadBalancer);
+        $scope.loadBalancer = awsLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
         initializeEditMode();
       } else {
-        $scope.loadBalancer = loadBalancerService.constructNewLoadBalancerTemplate();
+        $scope.loadBalancer = awsLoadBalancerTransformer.constructNewLoadBalancerTemplate();
         initializeLoadBalancerNames();
         initializeCreateMode();
       }
@@ -226,8 +226,11 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
       var newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
-        region: $scope.loadBalancer.region
+        region: $scope.loadBalancer.region,
+        vpcId: $scope.loadBalancer.vpcId,
+        provider: 'aws',
       };
+
       if (!$state.includes('**.loadBalancerDetails')) {
         $state.go('.loadBalancerDetails', newStateParams);
       } else {

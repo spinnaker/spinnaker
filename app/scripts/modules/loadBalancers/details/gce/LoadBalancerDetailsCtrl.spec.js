@@ -18,7 +18,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     module(
-      'deckApp.loadBalancer.details.controller',
+      'deckApp.loadBalancer.gce.details.controller',
       'deckApp.states'
     )
   );
@@ -28,7 +28,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
       function($controller, $rootScope, _$state_) {
         $scope = $rootScope.$new();
         $state = _$state_;
-        controller = $controller('LoadBalancerDetailsCtrl', {
+        controller = $controller('gceLoadBalancerDetailsCtrl', {
           $scope: $scope,
           loadBalancer: loadBalancer,
           application: {
