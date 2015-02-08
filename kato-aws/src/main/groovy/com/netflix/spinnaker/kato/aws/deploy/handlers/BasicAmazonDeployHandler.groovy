@@ -91,7 +91,15 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         }
       }
 
-      def amiId = AmiIdResolver.resolveAmiId(amazonEC2, description.amiName)
+      // find by 1) explicitly granted launch permission
+      //            (making this the default because AllowLaunch will always
+      //             stick an explicit launch permission on the image)
+      //         2) owner
+      //         3) global
+      def amiId = AmiIdResolver.resolveAmiId(amazonEC2, description.amiName, null, description.credentials.accountId) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, description.amiName, description.credentials.accountId) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, description.amiName, null, null)
+
       if (!amiId) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
       }

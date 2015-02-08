@@ -40,10 +40,20 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       getAmazonEC2(_, _) >> ec2
     }
 
-    def creds = Stub(AccountCredentialsProvider) {
-      getCredentials(_) >> Stub(NetflixAmazonCredentials)
+    def target = Stub(NetflixAmazonCredentials) {
+      getAccountId() >> '12345'
     }
-    def op = new AllowLaunchAtomicOperation(new AllowLaunchDescription(amiName: 'super-awesome-ami'))
+
+    def source = Stub(NetflixAmazonCredentials) {
+      getAccountId() >> '67890'
+    }
+
+
+
+    def creds = Stub(AccountCredentialsProvider) {
+      getCredentials('target') >> target
+    }
+    def op = new AllowLaunchAtomicOperation(new AllowLaunchDescription(amiName: 'super-awesome-ami', account: 'target', credentials: source))
     op.accountCredentialsProvider = creds
     op.amazonClientProvider = provider
 
@@ -53,6 +63,9 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     then:
     ec2.describeTags(_) >> new DescribeTagsResult()
     1 * ec2.describeImages(_) >> { DescribeImagesRequest dir ->
+        assert dir.owners
+        assert dir.owners.size() == 1
+        assert dir.owners.first() == '67890'
         assert dir.filters
         assert dir.filters.size() == 1
         assert dir.filters.first().name == 'name'
@@ -60,12 +73,24 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
 
         new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
     }
+    1 * ec2.describeImages(_) >> { DescribeImagesRequest dir ->
+      assert dir.executableUsers
+      assert dir.executableUsers.size() == 1
+      assert dir.executableUsers.first() == '12345'
+      assert dir.filters
+      assert dir.filters.size() == 1
+      assert dir.filters.first().name == 'name'
+      assert dir.filters.first().values == ['super-awesome-ami']
+
+      new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
+    }
   }
 
   void "image attribute modification is invoked on request"() {
     setup:
     def ec2 = Mock(AmazonEC2) {
       describeTags(_) >> new DescribeTagsResult()
+      describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-123456'))
     }
     def provider = Stub(AmazonClientProvider) {
       getAmazonEC2(_, _) >> ec2
@@ -115,19 +140,23 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * getAmazonEC2(prodCredentials, _) >> targetAmazonEc2
     }
     with(sourceAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
       1 * modifyImageAttribute(_)
       1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b: "2"])
     }
     with(targetAmazonEc2) {
-      1 * describeTags(_) >> constructDescribeTagsResult([b:"1", c: "2"])
-      1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b"), new Tag(key: "c")]))
-      1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "a", value: "1"), new Tag(key: "b", value: "2")]))
+      1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b:"1", c: "2"])
+      1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b", value: "1"), new Tag(key: "c", value: "2")]))
+      1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b", value: "2")]))
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
     }
   }
 
-  void "should skip allow launch when target account is the same as the requesting account"() {
+  void "should skip tag replication when target account is the same as the requesting account"() {
     def testCredentials = TestCredential.named('test')
 
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
     def provider = Mock(AmazonClientProvider)
 
     def description = new AllowLaunchDescription(account: "test", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
@@ -142,6 +171,18 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     with(op.accountCredentialsProvider){
       1 * getCredentials("test") >> testCredentials
     }
+    with(provider) {
+      1 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2
+      1 * getAmazonEC2(testCredentials, _) >> targetAmazonEc2
+    }
+    with(sourceAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
+      1 * modifyImageAttribute(_)
+    }
+    with(targetAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
+    }
+
     0 * _
   }
 
