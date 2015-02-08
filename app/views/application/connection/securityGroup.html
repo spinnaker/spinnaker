@@ -32,7 +32,7 @@
         <div ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'-name'"
              class="rollup-row">
           <a
-            ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})"
+            ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
             ui-sref-active="active">
             <span class="icon icon-elb"></span> {{loadBalancer.name}}
           </a>

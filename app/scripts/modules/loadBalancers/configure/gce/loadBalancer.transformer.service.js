@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.service', [
+angular.module('deckApp.gce.loadBalancer.transformer.service', [
   'deckApp.settings',
   'deckApp.utils.lodash'
 ])
-  .factory('loadBalancerService', function ( settings, _) {
+  .factory('gceLoadBalancerTransformer', function ( settings, _) {
 
     function updateHealthCounts(loadBalancer) {
       var instances = loadBalancer.instances;
@@ -20,21 +20,19 @@ angular.module('deckApp.loadBalancer.service', [
       };
     }
 
-    function normalizeLoadBalancersWithServerGroups(application) {
-      application.loadBalancers.forEach(function(loadBalancer) {
-        var serverGroups = application.serverGroups.filter(function(serverGroup) {
-          return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
-        });
-        loadBalancer.serverGroups = serverGroups;
-        loadBalancer.instances = _(serverGroups).filter({isDisabled: false}).collect('instances').flatten().valueOf();
-        updateHealthCounts(loadBalancer);
+    function normalizeLoadBalancerWithServerGroups(loadBalancer, application) {
+      var serverGroups = application.serverGroups.filter(function(serverGroup) {
+        return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
       });
+      loadBalancer.serverGroups = serverGroups;
+      loadBalancer.instances = _(serverGroups).filter({isDisabled: false}).collect('instances').flatten().valueOf();
+      updateHealthCounts(loadBalancer);
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.account === loadBalancer.account &&
+      return serverGroup.type === 'gce' &&
+        serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
-        (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
@@ -117,7 +115,7 @@ angular.module('deckApp.loadBalancer.service', [
     }
 
     return {
-      normalizeLoadBalancersWithServerGroups: normalizeLoadBalancersWithServerGroups,
+      normalizeLoadBalancerWithServerGroups: normalizeLoadBalancerWithServerGroups,
       serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,

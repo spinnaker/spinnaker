@@ -15,7 +15,7 @@
     </div>
     <a
       ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
-      ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})"
+      ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
       >{{loadBalancer.name}}
     </a>
   </div>
@@ -23,7 +23,7 @@
     <button
        class="btn btn-link link-inverse"
        ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
-       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId})"
+       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
        ui-sref-active="active"
        tooltip="ELB: {{loadBalancer.name}}">
       <span class="icon">

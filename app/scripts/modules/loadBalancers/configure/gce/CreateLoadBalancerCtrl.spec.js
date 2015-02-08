@@ -1,14 +1,14 @@
 'use strict';
 
-describe('Controller: awsCreateLoadBalancerCtrl', function () {
+describe('Controller: gceCreateLoadBalancerCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('deckApp.loadBalancer.aws.create.controller'));
+  beforeEach(module('deckApp.loadBalancer.gce.create.controller'));
 
   // Initialize the controller and a mock scope
   beforeEach(inject(function ($controller, $rootScope) {
     this.$scope = $rootScope.$new();
-    this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
+    this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,
       $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
       application: {name: 'app'},

@@ -1,12 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.loadBalancer.tag', [])
   .directive('loadBalancersTag', function () {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'views/application/loadBalancer/loadBalancersTag.html',
+      templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancersTag.html',
       scope: {
         loadBalancers: '=',
         maxDisplay: '='

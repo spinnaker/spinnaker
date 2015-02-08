@@ -116,7 +116,7 @@ angular.module('deckApp.loadBalancer.controller', [
     this.createLoadBalancer = function createLoadBalancer() {
       providerSelectionService.selectProvider().then(function(provider) {
         $modal.open({
-          templateUrl: 'scripts/modules/loadBalancers/' + provider + '/createLoadBalancer.html',
+          templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
           controller: provider + 'CreateLoadBalancerCtrl as ctrl',
           resolve: {
             application: function() { return application; },

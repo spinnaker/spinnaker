@@ -1,20 +1,19 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.details.controller',[
+angular.module('deckApp.loadBalancer.aws.details.controller',[
   'ui.router',
   'ui.bootstrap',
   'deckApp.notifications.service',
   'deckApp.securityGroup.service',
   'deckApp.confirmationModal.service',
   'deckApp.loadBalancer.write.service',
-  'deckApp.loadBalancer.service',
   'deckApp.loadBalancer.read.service',
   'deckApp.utils.lodash',
   'deckApp.confirmationModal.service'
 ])
-  .controller('LoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
-                                                   securityGroupService, _, confirmationModalService, loadBalancerWriter, loadBalancerService, loadBalancerReader) {
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
+                                                   securityGroupService, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
       loading: true
