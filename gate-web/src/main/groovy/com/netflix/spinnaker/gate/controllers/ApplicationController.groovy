@@ -91,6 +91,10 @@ class ApplicationController {
     applicationService.getPipelines(name)
   }
 
+  /**
+   * @deprecated  There is no reason to provide an app name, use PipelineController instead for pipeline operations.
+   */
+  @Deprecated
   @RequestMapping(value = "/{name}/pipelines/{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id) {
     taskService.cancelPipeline(id)
@@ -109,6 +113,10 @@ class ApplicationController {
     }
   }
 
+  /**
+   * @deprecated  Use PipelineController instead for pipeline operations.
+   */
+  @Deprecated
   @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST, params = ['user'])
   HttpEntity invokePipelineConfig(@PathVariable("name") String application,
                                   @PathVariable("pipelineName") String pipelineName,
@@ -121,21 +129,37 @@ class ApplicationController {
     }
   }
 
+  /**
+   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   */
+  @Deprecated
   @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
   Map getTask(@PathVariable("id") String id) {
     taskService.getTask(id)
   }
 
+  /**
+   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   */
+  @Deprecated
   @RequestMapping(value = "/{name}/tasks/{id}/cancel", method = RequestMethod.PUT)
   Map cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
   }
 
+  /**
+   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   */
+  @Deprecated
   @RequestMapping(value = "/{name}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
   Map getTaskDetails(@PathVariable("id") String id, @PathVariable("taskDetailsId") String taskDetailsId) {
     taskService.getTaskDetails(taskDetailsId)
   }
 
+  /**
+   * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
+   */
+  @Deprecated
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
   Map task(@PathVariable String name, @RequestBody Map map) {
     taskService.createAppTask(name, map)
