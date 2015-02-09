@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.notifications
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import org.springframework.beans.factory.annotation.Autowired
+
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
@@ -25,6 +28,9 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
   static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
   static final String TRIGGER_MASTER = "master"
+
+  @Autowired
+  PipelineConfigurationService pipelineConfigurationService
 
   final String handlerType = BuildJobPollingNotificationAgent.NOTIFICATION_TYPE
   final long pollingInterval = 60

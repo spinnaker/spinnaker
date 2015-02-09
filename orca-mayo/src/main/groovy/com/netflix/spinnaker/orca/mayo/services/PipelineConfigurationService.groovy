@@ -27,7 +27,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @Component
-class PipelineConfigurationServiceImpl implements PipelineConfigurationService {
+class PipelineConfigurationService {
 
   private List<Map> pipelines = []
 

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.mayo.config
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationServiceImpl
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,7 +51,7 @@ class MayoConfiguration {
 
   @Bean
   PipelineConfigurationService pipelineConfigurationService() {
-    new PipelineConfigurationServiceImpl()
+    new PipelineConfigurationService()
   }
 
   @Bean
