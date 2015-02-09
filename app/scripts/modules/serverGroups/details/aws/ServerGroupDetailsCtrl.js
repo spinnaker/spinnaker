@@ -141,8 +141,8 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
 
     this.isLastServerGroupInRegion = function (serverGroup, application ) {
       try {
-        var cluster = _.find(application.clusters, {name: serverGroup.cluster});
-        return cluster.serverGroups.length === 1;
+        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
+        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
       } catch (error) {
         return false;
       }
