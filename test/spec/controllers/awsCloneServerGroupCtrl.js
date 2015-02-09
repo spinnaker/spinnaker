@@ -11,7 +11,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(function() {
     inject(function ($controller, $rootScope, accountService, serverGroupWriter, imageService, settings,
-                     searchService, instanceTypeService, modalWizardService, securityGroupService, taskMonitorService,
+                     searchService, instanceTypeService, modalWizardService, securityGroupReader, taskMonitorService,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
       this.$scope = $rootScope.$new();
@@ -21,7 +21,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.searchService = searchService;
       this.instanceTypeService = instanceTypeService;
       this.modalWizardService = modalWizardService;
-      this.securityGroupService = securityGroupService;
+      this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
       this.taskMonitorService = taskMonitorService;
       this.settings = settings;
@@ -94,7 +94,7 @@ describe('Controller: awsCloneServerGroup', function () {
           searchService: this.searchService,
           instanceTypeService: this.instanceTypeService,
           modalWizardService: this.modalWizardService,
-          securityGroupService: this.securityGroupService,
+          securityGroupReader: this.securityGroupReader,
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroupCommand,
@@ -112,7 +112,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
-      spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
       spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
       spyOn(this.imageService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
 
@@ -225,7 +225,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
-      spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
       spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
@@ -380,7 +380,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
-      spyOn(this.securityGroupService, 'getAllSecurityGroups').and.callFake(resolve(SecurityGroupServiceFixture.allSecurityGroups));
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
       spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));

@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.serverGroup.configure.aws')
-  .factory('awsServerGroupConfigurationService', function(imageService, accountService, securityGroupService,
+  .factory('awsServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
                                                           instanceTypeService,
                                                           $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
@@ -16,7 +16,7 @@ angular.module('deckApp.serverGroup.configure.aws')
 
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount(),
-        securityGroups: securityGroupService.getAllSecurityGroups(),
+        securityGroups: securityGroupReader.getAllSecurityGroups(),
         loadBalancers: loadBalancerReader.listAWSLoadBalancers(),
         subnets: subnetReader.listSubnets(),
         preferredZones: accountService.getPreferredZonesByAccount(),
@@ -143,7 +143,8 @@ angular.module('deckApp.serverGroup.configure.aws')
     function configureSecurityGroupOptions(command) {
       var results = { dirty: {} };
       var currentOptions = command.backingData.filtered.securityGroups;
-      var newRegionalSecurityGroups = _(command.backingData.securityGroups[command.credentials].aws[command.region])
+      var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { aws: {}};
+      var newRegionalSecurityGroups = _(newSecurityGroups.aws[command.region])
         .filter({vpcId: command.vpcId || null})
         .sortBy('name')
         .valueOf();
@@ -224,7 +225,7 @@ angular.module('deckApp.serverGroup.configure.aws')
         var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
         var result = { dirty: {} };
         var preferredZonesForAccount = command.backingData.preferredZones[command.credentials];
-        if (preferredZonesForAccount && command.viewState.usePreferredZones) {
+        if (preferredZonesForAccount && preferredZonesForAccount[command.region] && command.viewState.usePreferredZones) {
           command.availabilityZones = angular.copy(preferredZonesForAccount[command.region].sort());
         } else {
           command.availabilityZones = _.intersection(command.availabilityZones, command.backingData.filtered.availabilityZones);
@@ -267,8 +268,9 @@ angular.module('deckApp.serverGroup.configure.aws')
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          backingData.filtered.regions = backingData.regionsKeyedByAccount[command.credentials].regions;
-          command.keyPair = backingData.regionsKeyedByAccount[command.credentials].defaultKeyPair;
+          var regionsForAccount = backingData.regionsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
+          backingData.filtered.regions = regionsForAccount.regions;
+          command.keyPair = regionsForAccount.defaultKeyPair;
           if (!_(backingData.filtered.regions).some({name: command.region})) {
             command.region = null;
             result.dirty.region = true;

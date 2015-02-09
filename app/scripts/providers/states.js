@@ -82,11 +82,16 @@ angular.module('deckApp.states', [
 
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
-        url: '/loadBalancerDetails?name&accountId&region&vpcId',
+        url: '/loadBalancerDetails?name&accountId&region&vpcId&provider',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'scripts/modules/loadBalancers/loadBalancerDetails.html',
-            controller: 'LoadBalancerDetailsCtrl',
+            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return $templateCache.get('scripts/modules/loadBalancers/details/' + provider + '/loadBalancerDetails.html'); }],
+            controllerProvider: ['$stateParams', function($stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return provider + 'LoadBalancerDetailsCtrl';
+            }],
             controllerAs: 'ctrl'
           }
         },
@@ -112,11 +117,16 @@ angular.module('deckApp.states', [
 
       var securityGroupDetails = {
         name: 'securityGroupDetails',
-        url: '/securityGroupDetails?name&accountId&region&vpcId',
+        url: '/securityGroupDetails?name&accountId&region&vpcId&provider',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'views/application/connection/securityGroupDetails.html',
-            controller: 'SecurityGroupDetailsCtrl',
+            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return $templateCache.get('scripts/modules/securityGroups/details/' + provider + '/securityGroupDetails.html'); }],
+            controllerProvider: ['$stateParams', function($stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return provider + 'SecurityGroupDetailsCtrl';
+            }],
             controllerAs: 'ctrl'
           }
         },
@@ -237,7 +247,7 @@ angular.module('deckApp.states', [
               name: 'loadBalancer',
               views: {
                 'master@home.applications.application.insight': {
-                  templateUrl: 'views/application/loadBalancer/single.html',
+                  templateUrl: 'scripts/modules/loadBalancers/loadBalancer/single.html',
                   controller: 'LoadBalancerCtrl',
                   controllerAs: 'ctrl'
                 }
@@ -267,12 +277,12 @@ angular.module('deckApp.states', [
           name: 'connections',
           views: {
             'nav': {
-              templateUrl: 'views/application/connection/navigation.html',
+              templateUrl: 'scripts/modules/securityGroups/navigation.html',
               controller: 'SecurityGroupsNavCtrl',
               controllerAs: 'ctrl'
             },
             'master': {
-              templateUrl: 'views/application/connection/all.html',
+              templateUrl: 'scripts/modules/securityGroups/all.html',
               controller: 'AllSecurityGroupsCtrl',
               controllerAs: 'ctrl'
             }
@@ -291,7 +301,7 @@ angular.module('deckApp.states', [
               name: 'connection',
               views: {
                 'master@home.applications.application.insight': {
-                  templateUrl: 'views/application/connection/single.html',
+                  templateUrl: 'scripts/modules/securityGroups/single.html',
                   controller: 'SecurityGroupCtrl',
                   controllerAs: 'ctrl'
                 }

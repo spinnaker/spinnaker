@@ -3,17 +3,16 @@
 angular
   .module('deckApp.applications.read.service', [
     'restangular',
-    'deckApp.loadBalancer.service',
     'deckApp.cluster.service',
     'deckApp.tasks.tracker',
     'deckApp.tasks.read.service',
     'deckApp.loadBalancer.read.service',
-    'deckApp.loadBalancer.service',
-    'deckApp.securityGroup.service',
+    'deckApp.loadBalancer.transformer.service',
+    'deckApp.securityGroup.read.service',
     'deckApp.scheduler'
   ])
   .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
-                                          loadBalancerReader, loadBalancerService, securityGroupService, scheduler) {
+                                          loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler) {
 
     function listApplications() {
       return Restangular
@@ -122,7 +121,7 @@ angular
     }
 
     function getApplication(applicationName, options) {
-      var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(applicationName),
+      var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
         loadBalancersFromSearch = loadBalancerReader.loadLoadBalancersByApplicationName(applicationName),
         applicationLoader = getApplicationEndpoint(applicationName).get(),
         serverGroupLoader = clusterService.loadServerGroups(applicationName);
@@ -152,7 +151,7 @@ angular
             });
           }
 
-          securityGroupLoader = securityGroupService.loadSecurityGroups(application);
+          securityGroupLoader = securityGroupReader.loadSecurityGroups(application);
 
           return $q.all({
             serverGroups: serverGroupLoader,
@@ -164,13 +163,13 @@ angular
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
 
               application.loadBalancers = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersFromSearch);
-              loadBalancerService.normalizeLoadBalancersWithServerGroups(application);
+              loadBalancerTransformer.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               // If the tasks were loaded already, add them to the server groups
               if (application.tasks) {
                 clusterService.addTasksToServerGroups(application);
               }
-              securityGroupService.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
+              securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
 
               return application;
             }, function(err) {

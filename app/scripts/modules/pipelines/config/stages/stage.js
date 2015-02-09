@@ -78,4 +78,5 @@ angular.module('deckApp.pipelines')
     }
 
     $scope.$watch('stage.type', this.selectStage);
+    $scope.$watch('viewState.stageIndex', this.selectStage);
   });

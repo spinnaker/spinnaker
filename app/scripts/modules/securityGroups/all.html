@@ -1,0 +1,12 @@
+<div class="header">
+  <h3>
+    <span class="glyphicon glyphicon-transfer"></span> Security Groups
+  </h3>
+  <div class="application-actions">
+    <button class="btn btn-sm btn-default" ng-click="ctrl.createSecurityGroup()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Create Security Group
+    </button>
+  </div>
+</div>
+<div ng-include="'scripts/modules/securityGroups/filters.html'"></div>
+<div class="content" ng-include="'scripts/modules/securityGroups/groupings.html'"></div>

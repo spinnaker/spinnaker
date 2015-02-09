@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       controllerAs: 'deployInitializerCtrl'
     };
   })
-  .controller('DeployInitializerCtrl', function($scope, serverGroupCommandBuilder, serverGroupReader, securityGroupService, deploymentStrategyService, _) {
+  .controller('DeployInitializerCtrl', function($scope, serverGroupCommandBuilder, serverGroupReader, securityGroupReader, deploymentStrategyService, _) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };
@@ -47,7 +47,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       command.availabilityZones[command.region] = zones;
       if (command.securityGroups) {
         var securityGroups = command.securityGroups.map(function (securityGroupId) {
-          return securityGroupService.getApplicationSecurityGroup($scope.application, command.credentials, command.region, securityGroupId).name;
+          return securityGroupReader.getApplicationSecurityGroup($scope.application, command.credentials, command.region, securityGroupId).name;
         });
         command.securityGroups = securityGroups;
       }

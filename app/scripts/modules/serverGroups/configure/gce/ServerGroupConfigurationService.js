@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.serverGroup.configure.gce')
-  .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupService,
+  .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
                                                           instanceTypeService,
                                                           $q, loadBalancerReader) {
 

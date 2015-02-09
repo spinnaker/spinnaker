@@ -78,7 +78,8 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
             name: input.loadBalancer,
             region: input.region,
             accountId: input.account,
-            vpcId: input.vpcId
+            vpcId: input.vpcId,
+            provider: input.provider,
           },
           { inherit: false }
         );

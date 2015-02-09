@@ -1,0 +1,6 @@
+
+<modal-wizard heading="Edit {{securityGroup.name}}: {{securityGroup.region}}: {{securityGroup.credentials}}">
+  <wizard-page key="Ingress" label="Ingress" done="true">
+    <ng-include src="'scripts/modules/securityGroups/configure/aws/createSecurityGroupIngress.html'"></ng-include>
+  </wizard-page>
+</modal-wizard>
