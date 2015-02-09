@@ -16,10 +16,12 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.TerminateInstanceInAutoScalingGroupRequest
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
@@ -47,33 +49,42 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing ASG Destroy Operation..."
     for (region in description.regions) {
-      def client = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       task.updateStatus BASE_PHASE, "Looking up instance ids for $description.asgName in $region..."
-      def instanceIds = getInstanceIds(region, description.asgName)
-      for (instanceId in instanceIds) {
-        task.updateStatus BASE_PHASE, "Destroying instance $instanceId"
-        client.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName).withMinSize(0).withMaxSize(0).withDesiredCapacity(0))
-        client.terminateInstanceInAutoScalingGroup(new TerminateInstanceInAutoScalingGroupRequest().withInstanceId(instanceId).withShouldDecrementDesiredCapacity(true))
-      }
-    }
-    task.updateStatus BASE_PHASE, "Waiting for instances to go away."
 
-    for (region in description.regions) {
-      def client = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def result = autoScaling.describeAutoScalingGroups(
+              new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [description.asgName]))
+      if (!result.autoScalingGroups) {
+        return null // Okay, there is no auto scaling group. Let's be idempotent and not complain about that.
+      }
+      if (result.autoScalingGroups.size() > 1) {
+        throw new IllegalStateException(
+                "There should only be one ASG in ${description.credentials}:${region} named ${description.asgName}")
+      }
+      AutoScalingGroup autoScalingGroup = result.autoScalingGroups[0]
+
+      // Deregister instances from ELB. This avoids an AWS traffic routing bug that may no longer be a problem.
+      def elbClient = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
+      List<String> loadBalancerNames = autoScalingGroup.loadBalancerNames
+      for (String loadBalancerName in loadBalancerNames) {
+        task.updateStatus BASE_PHASE, "Deregistering instances from load balancer ${loadBalancerName}"
+        List<Instance> instances = autoScalingGroup.instances*.instanceId.collect { new Instance(instanceId: it) }
+        def request = new DeregisterInstancesFromLoadBalancerRequest(
+                loadBalancerName: loadBalancerName, instances: instances)
+        elbClient.deregisterInstancesFromLoadBalancer(request)
+      }
+
       task.updateStatus BASE_PHASE, "Force deleting $description.asgName in $region."
-      client.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest().withForceDelete(true).withAutoScalingGroupName(description.asgName))
+      autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(
+              autoScalingGroupName: description.asgName, forceDelete: true))
+
+      task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
+      autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
+              launchConfigurationName: autoScalingGroup.launchConfigurationName))
     }
+
     task.updateStatus BASE_PHASE, "Done destroying $description.asgName in $description.regions."
     null
   }
 
-  List<String> getInstanceIds(String region, String asgName) {
-    def client = amazonClientProvider.getAutoScaling(description.credentials, region)
-    def result = client.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
-    def instances = []
-    for (asg in result.autoScalingGroups) {
-      instances.addAll asg.instances*.instanceId
-    }
-    instances
-  }
 }
