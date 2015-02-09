@@ -1,12 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.securityGroup.rollup', [])
   .directive('securityGroup', function ($rootScope, $timeout) {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'views/application/connection/securityGroup.html',
+      templateUrl: 'scripts/modules/securityGroups/securityGroup.html',
       scope: {
         securityGroup: '=',
         displayOptions: '='
@@ -28,6 +28,7 @@ angular.module('deckApp')
               accountId: securityGroup.accountName,
               name: securityGroup.name,
               vpcId: securityGroup.vpcId,
+              provider: securityGroup.provider,
             };
             // also stolen from uiSref directive
             scope.$state.go('.securityGroupDetails', params, {relative: base, inherit: true});

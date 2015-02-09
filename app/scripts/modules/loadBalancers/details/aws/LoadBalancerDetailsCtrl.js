@@ -5,15 +5,14 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
   'ui.router',
   'ui.bootstrap',
   'deckApp.notifications.service',
-  'deckApp.securityGroup.service',
-  'deckApp.confirmationModal.service',
+  'deckApp.securityGroup.read.service',
   'deckApp.loadBalancer.write.service',
   'deckApp.loadBalancer.read.service',
   'deckApp.utils.lodash',
   'deckApp.confirmationModal.service'
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
-                                                   securityGroupService, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
+                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
       loading: true
@@ -36,7 +35,7 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
             $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
-              var match = securityGroupService.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
+              var match = securityGroupReader.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
               if (match) {
                 securityGroups.push(match);
               }

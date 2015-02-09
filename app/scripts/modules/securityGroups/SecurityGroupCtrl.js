@@ -1,8 +1,13 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('SecurityGroupCtrl', function($scope, $state, notificationsService, securityGroup, application, securityGroupService, $modal) {
+angular.module('deckApp.securityGroup.single.controller', [
+  'ui.router',
+  'ui.bootstrap',
+  'deckApp.notifications.service',
+  'deckApp.securityGroup.read.service',
+])
+  .controller('SecurityGroupCtrl', function($scope, $state, notificationsService, securityGroup, application, securityGroupReader, $modal) {
 
     $scope.displayOptions = {
       showServerGroups: true,
@@ -17,7 +22,7 @@ angular.module('deckApp')
     $scope.region = securityGroup.region;
 
     function extractSecurityGroup() {
-      $scope.securityGroup = securityGroupService.getApplicationSecurityGroup(application, securityGroup.account, securityGroup.region, securityGroup.name);
+      $scope.securityGroup = securityGroupReader.getApplicationSecurityGroup(application, securityGroup.account, securityGroup.region, securityGroup.name);
       if (!$scope.securityGroup) {
         $state.go('^');
         notificationsService.create({
@@ -35,11 +40,11 @@ angular.module('deckApp')
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
-        templateUrl: 'views/application/modal/securityGroup/editSecurityGroup.html',
+        templateUrl: 'scripts/modules/securityGroups/configure/aws/editSecurityGroup.html',
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {
-            return securityGroupService.getSecurityGroupDetails(application, securityGroup.account, securityGroup.region, securityGroup.name);
+            return securityGroupReader.getSecurityGroupDetails(application, securityGroup.account, securityGroup.region, securityGroup.name);
           },
           applicationName: function() { return application.name; }
         }

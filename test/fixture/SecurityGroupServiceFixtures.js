@@ -1,5 +1,5 @@
-var SecurityGroupServiceFixture = {};
-SecurityGroupServiceFixture.allSecurityGroups = {
+var securityGroupReaderFixture = {};
+securityGroupReaderFixture.allSecurityGroups = {
   'test': {
     aws: {
       'us-east-1': [],

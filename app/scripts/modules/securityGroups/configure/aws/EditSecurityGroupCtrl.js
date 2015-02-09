@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.securityGroup.aws.edit.controller', [])
   .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
-                                                accountService,  securityGroupService,
+                                                accountService,  securityGroupReader,
                                                 taskMonitorService,
                                                 _, application, securityGroup, securityGroupWriter) {
 
@@ -33,7 +33,7 @@ angular.module('deckApp')
       .flatten()
       .value();
 
-    securityGroupService.getAllSecurityGroups().then(function(securityGroups) {
+    securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
       var account = securityGroup.accountName,
           region = securityGroup.region,
           vpcId = securityGroup.vpcId || null;

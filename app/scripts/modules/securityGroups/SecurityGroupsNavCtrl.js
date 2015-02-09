@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.securityGroup.navigation.controller', [])
   .controller('SecurityGroupsNavCtrl', function ($scope, application, _) {
 
     $scope.application = application;

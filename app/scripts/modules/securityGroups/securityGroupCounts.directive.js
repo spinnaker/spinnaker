@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.securityGroup.counts', [])
   .directive('securityGroupCounts', function () {
     return {
-      templateUrl: 'views/application/securityGroupCounts.html',
+      templateUrl: 'scripts/modules/securityGroups/securityGroupCounts.html',
       restrict: 'E',
       scope: {
         container: '='

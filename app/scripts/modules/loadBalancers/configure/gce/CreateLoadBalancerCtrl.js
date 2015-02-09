@@ -5,14 +5,14 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
   'deckApp.loadBalancer.write.service',
   'deckApp.account.service',
   'deckApp.gce.loadBalancer.transformer.service',
-  'deckApp.securityGroup.service',
+  'deckApp.securityGroup.read.service',
   'deckApp.modalWizard',
   'deckApp.tasks.monitor.service',
   'deckApp.subnet.read.service'
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
-                                                 accountService, gceLoadBalancerTransformer, securityGroupService,
+                                                 accountService, gceLoadBalancerTransformer, securityGroupReader,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
 
     var ctrl = this;
@@ -55,7 +55,7 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
     }
 
     function preloadSecurityGroups() {
-      return securityGroupService.getAllSecurityGroups().then(function (securityGroups) {
+      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         allSecurityGroups = securityGroups;
         $scope.state.securityGroupsLoaded = true;
       });
