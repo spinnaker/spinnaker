@@ -1,7 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
+  'restangular',
+  'deckApp.account.service',
+  'deckApp.subnet.read.service',
+  'deckApp.naming',
+])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader, namingService) {
     function buildNewServerGroupCommand(application, account, region) {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
