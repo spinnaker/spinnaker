@@ -79,7 +79,7 @@ angular.module('deckApp.account.service', [
       });
     }
 
-    function getRegionsKeyedByAccount() {
+    var getRegionsKeyedByAccount = _.memoize(function() {
       var deferred = $q.defer();
       listAccounts().then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
@@ -94,7 +94,7 @@ angular.module('deckApp.account.service', [
         });
       });
       return deferred.promise;
-    }
+    });
 
     function getAccountDetails(accountName) {
       return Restangular.one('credentials', accountName)
