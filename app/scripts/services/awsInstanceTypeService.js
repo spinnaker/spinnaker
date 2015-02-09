@@ -252,7 +252,7 @@ angular.module('deckApp.aws.instanceType.service', [
       return $q.when(categories);
     }
 
-    function getAllTypesByRegion() {
+    var getAllTypesByRegion = _.memoize(function getAllTypesByRegion() {
 
       var instanceTypesEndpoint = Restangular.withConfig(function (RestangularConfigurer) {
         RestangularConfigurer.setDefaultHttpFields({cache: true});
@@ -261,7 +261,7 @@ angular.module('deckApp.aws.instanceType.service', [
       return instanceTypesEndpoint.all('instanceTypes').getList().then(function (types) {
         return _.groupBy(types, 'region');
       });
-    }
+    });
 
     function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       selectedRegions = selectedRegions || [];
