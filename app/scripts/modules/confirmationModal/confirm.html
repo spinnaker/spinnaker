@@ -6,9 +6,8 @@
   </div>
   <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry || state.error">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
-      <p ng-if="params.body">
-        {{params.body}}
-      </p>
+      <div ng-if="params.body" bind-html-unsafe="params.body">
+      </div>
       <div class="row" ng-if="verification.requireAccountEntry">
         <div class="col-sm-offset-1 col-sm-10">
           <p>Type the name of the account ( <account-tag account="params.account"></account-tag> ) below to continue.</p>

@@ -9,7 +9,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
   'deckApp.utils.lodash',
   'deckApp.serverGroup.details.aws.autoscaling.process',
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
                                                   subnetReader, autoScalingProcessService) {
 
@@ -105,6 +105,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         region: serverGroup.region
       };
 
+
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
@@ -112,6 +113,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
+        body: this.getBodyTemplate(serverGroup, application),
         onTaskComplete: function() {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -123,6 +125,19 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
           }
         }
       });
+    };
+
+    this.getBodyTemplate = function(serverGroup, application) {
+      if(this.isLastServerGroupInRegion(serverGroup, application)){
+        var template = $templateCache.get('scripts/modules/serverGroups/details/aws/deleteLastServerGroupWarning.html');
+        $scope.deletingServerGroup = serverGroup;
+        return $compile(template)($scope);
+      }
+    };
+
+    this.isLastServerGroupInRegion = function (serverGroup, application ) {
+      var cluster = _.find(application.clusters, {name: serverGroup.cluster});
+      return cluster.serverGroups.length === 1;
     };
 
     this.disableServerGroup = function disableServerGroup() {
