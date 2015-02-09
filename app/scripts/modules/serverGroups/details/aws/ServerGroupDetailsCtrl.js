@@ -3,11 +3,15 @@
 
 
 angular.module('deckApp.serverGroup.details.aws.controller', [
+  'ui.bootstrap',
   'deckApp.notifications',
   'deckApp.confirmationModal.service',
   'deckApp.serverGroup.write.service',
   'deckApp.utils.lodash',
   'deckApp.serverGroup.details.aws.autoscaling.process',
+  'deckApp.serverGroup.read.service',
+  'deckApp.aws.serverGroupCommandBuilder.service'
+
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
@@ -136,8 +140,12 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
     };
 
     this.isLastServerGroupInRegion = function (serverGroup, application ) {
-      var cluster = _.find(application.clusters, {name: serverGroup.cluster});
-      return cluster.serverGroups.length === 1;
+      try {
+        var cluster = _.find(application.clusters, {name: serverGroup.cluster});
+        return cluster.serverGroups.length === 1;
+      } catch (error) {
+        return false;
+      }
     };
 
     this.disableServerGroup = function disableServerGroup() {
