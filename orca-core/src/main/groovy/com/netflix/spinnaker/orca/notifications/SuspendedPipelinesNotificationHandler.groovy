@@ -24,9 +24,7 @@ class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler 
   String handlerType = SuspendedPipelinesPollingNotificationAgent.NOTIFICATION_TYPE
 
   @Override
-  void handleInternal(Map pipelineConfig) {
-    def pipelineConfigClone = new HashMap(pipelineConfig)
-    def json = objectMapper.writeValueAsString(pipelineConfigClone)
-    pipelineStarter.start(json)
+  void handleInternal(Map pipeline) {
+    pipelineStarter.restart(pipeline.id)
   }
 }

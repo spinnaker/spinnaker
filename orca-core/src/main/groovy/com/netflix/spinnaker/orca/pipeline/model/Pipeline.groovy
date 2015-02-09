@@ -25,7 +25,6 @@ class Pipeline extends Execution<Pipeline> {
   String name
   final Map<String, Object> trigger = [:]
   final Map<String, Serializable> appConfig = [:]
-  Date scheduledDate
 
   static Builder builder() {
     new Builder()
@@ -79,11 +78,6 @@ class Pipeline extends Execution<Pipeline> {
 
     Builder withName(String name) {
       pipeline.@name = name
-      return this
-    }
-
-    Builder withScheduledDate(Date scheduledDate) {
-      pipeline.@scheduledDate = scheduledDate
       return this
     }
   }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -33,8 +34,6 @@ import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUSPENDED
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
@@ -52,11 +51,10 @@ abstract class LinearStage extends StageBuilder {
     def steps = buildSteps(stage)
     def stageIdx = stage.execution.stages.indexOf(stage)
     /*
-     * {@code restrictExecutionInTimeWindow} flag tells the builder that this particular {@code Stage}
+     * {@code restrictExecutionDuringTimeWindow} flag tells the builder that this particular {@code Stage}
      * is not supposed to be run during a particular timed window in a day
      */
-    if (stage.execution instanceof Pipeline &&
-        stage.context.containsKey("restrictExecutionDuringTimeWindow") && stage.context.restrictExecutionDuringTimeWindow as Boolean) {
+    if (stage.context.containsKey("restrictExecutionDuringTimeWindow") && stage.context.restrictExecutionDuringTimeWindow as Boolean) {
       injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
     }
     processBeforeStages(jobBuilder, stageIdx, stage)
@@ -138,18 +136,18 @@ abstract class LinearStage extends StageBuilder {
   private static class SuspendExecutionDuringTimeWindowTask implements com.netflix.spinnaker.orca.Task {
     @Override
     TaskResult execute(Stage stage) {
-      def now = new Date()
-      def scheduled = getTimeInWindow(stage, new Date())
-      if (now.compareTo(scheduled) in [0, 1]) {
-        new DefaultTaskResult(SUCCEEDED)
+      Date now = new Date()
+      Date scheduledDate
+      try {
+        scheduledDate = getTimeInWindow(stage, new Date())
+      } catch (Exception e) {
+        return new DefaultTaskResult(ExecutionStatus.FAILED, [failureReason: 'Exception occurred while calculating time window: ' + e.message])
+      }
+      if (now.compareTo(scheduledDate) in [0, 1]) {
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       } else {
-        if (stage.execution instanceof Pipeline) {
-          Pipeline pipeline = (Pipeline) stage.execution
-          pipeline.scheduledDate = scheduled
-          new DefaultTaskResult(SUSPENDED)
-        } else {
-          new DefaultTaskResult(SUCCEEDED)
-        }
+        stage.scheduledTime = scheduledDate.time
+        return new DefaultTaskResult(ExecutionStatus.SUSPENDED)
       }
     }
 
@@ -169,11 +167,11 @@ abstract class LinearStage extends StageBuilder {
       int endHour = restrictedExecutionWindow.endHour as Integer
       int endMin = restrictedExecutionWindow.endMin as Integer
 
-      // Sensible assumptions in PST
-      int dayStartHour = restrictedExecutionWindow.containsKey("dayStartHour") ? stage.context.dayStartHour as Integer : 7
-      int dayStartMin = restrictedExecutionWindow.containsKey("dayStartMin") ? stage.context.dayStartMin as Integer : 0
-      int dayEndHour = restrictedExecutionWindow.containsKey("dayEndHour") ? stage.context.dayEndHour as Integer : 18
-      int dayEndMin = restrictedExecutionWindow.containsKey("dayStartMin") ? stage.context.dayStartMin as Integer : 0
+      // TODO: (sthadeshwar) Pick these sensible defaults from appConfig instead
+      int dayStartHour = restrictedExecutionWindow.containsKey("dayStartHour") ? restrictedExecutionWindow.dayStartHour as Integer : 7
+      int dayStartMin = restrictedExecutionWindow.containsKey("dayStartMin") ? restrictedExecutionWindow.dayStartMin as Integer : 0
+      int dayEndHour = restrictedExecutionWindow.containsKey("dayEndHour") ? restrictedExecutionWindow.dayEndHour as Integer : 18
+      int dayEndMin = restrictedExecutionWindow.containsKey("dayStartMin") ? restrictedExecutionWindow.dayStartMin as Integer : 0
 
       def now = new Date()
       def dayStart = getUpdatedDate(now, dayStartHour, dayStartMin, 0)

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.notifications.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.notifications.SuspendedPipelinesPollingNotificationAgent
@@ -96,17 +95,13 @@ class OrcaConfiguration {
     new OrchestrationStarter()
   }
 
-  @Bean NoopNotificationHandler noopNotificationHandler() {
-    new NoopNotificationHandler()
-  }
-
   @Bean
-  SuspendedPipelinesNotificationHandler buildJobNotificationHandler() {
+  SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler() {
     new SuspendedPipelinesNotificationHandler()
   }
 
   @Bean
-  SuspendedPipelinesPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+  SuspendedPipelinesPollingNotificationAgent suspendedPipelinesPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
     new SuspendedPipelinesPollingNotificationAgent(notificationHandlers)
   }
 

@@ -15,21 +15,23 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
-
-import groovy.transform.CompileStatic
-import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
+import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.configuration.support.ReferenceJobFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+
+import javax.annotation.PostConstruct
 
 @CompileStatic
 abstract class AbstractOrchestrationInitiator<T extends Execution> {
@@ -43,6 +45,7 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
   @Autowired protected ApplicationContext applicationContext
   @Autowired protected JobLauncher launcher
   @Autowired protected JobBuilderFactory jobs
+  @Autowired protected JobRegistry jobRegistry
   @Autowired protected StepBuilderFactory steps
   @Autowired protected ObjectMapper mapper
   protected List<JobExecutionListener> pipelineListeners
@@ -51,14 +54,14 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(StageBuilder).values().each {
-      stages[it.type] = it
+    applicationContext.getBeansOfType(StageBuilder).values().each { StageBuilder stageBuilder ->
+      stages[stageBuilder.type] = stageBuilder
     }
-    applicationContext.getBeansOfType(StandaloneTask).values().each {
-      def stage = new SimpleStage(it.type, it)
+    applicationContext.getBeansOfType(StandaloneTask).values().each { StandaloneTask standaloneTask ->
+      def stage = new SimpleStage(standaloneTask.type, standaloneTask)
       applicationContext.autowireCapableBeanFactory.autowireBean(stage)
       // TODO: this should be a prototype scoped bean or use a factory I guess
-      stages[it.type] = stage
+      stages[standaloneTask.type] = stage
     }
   }
 
@@ -68,6 +71,7 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
     persistExecution(subject)
     def job = build(config, subject)
     persistExecution(subject)
+    jobRegistry.register(new ReferenceJobFactory(job))
     launcher.run job, createJobParameters(subject, config)
     subject
   }
@@ -90,6 +94,13 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
     if (config.containsKey("description")) {
       params.addString("description", config.description as String, false)
     }
+    params.toJobParameters()
+  }
+
+  protected JobParameters createJobParameters(T subject) {
+    def params = new JobParametersBuilder()
+    params.addString(type, subject.id)
+    params.addString("application", subject.application)
     params.toJobParameters()
   }
 

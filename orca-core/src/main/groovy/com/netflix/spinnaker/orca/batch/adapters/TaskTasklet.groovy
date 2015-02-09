@@ -64,7 +64,10 @@ class TaskTasklet implements Tasklet {
 
         // we should reload the execution now, in case it has been affected
         // by a parallel process
+        long scheduledTime =  stage.scheduledTime
         stage = currentStage(chunkContext)
+        // Setting the scheduledDate if it has been set by the task
+        stage.scheduledTime = scheduledTime
 
         if (result.status == ExecutionStatus.TERMINAL) {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
@@ -74,6 +77,10 @@ class TaskTasklet implements Tasklet {
 
         def batchStepStatus = BatchStepStatus.mapResult(result)
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
+        if (result.status == ExecutionStatus.SUSPENDED) {
+          chunkContext.stepContext.stepExecution.status = batchStepStatus.batchStatus
+          chunkContext.stepContext.stepExecution.jobExecution.status = batchStepStatus.batchStatus
+        }
         contribution.exitStatus = batchStepStatus.exitStatus
         stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
 

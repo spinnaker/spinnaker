@@ -45,9 +45,9 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   List<Task> tasks = []
   String parentStageId
   Stage.SyntheticStageOwner syntheticStageOwner
-
   List<InjectedStageConfiguration> beforeStages = []
   List<InjectedStageConfiguration> afterStages = []
+  long scheduledTime
 
   transient ObjectMapper objectMapper = new OrcaObjectMapper()
 

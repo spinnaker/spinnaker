@@ -15,21 +15,21 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
-
-import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
-import groovy.transform.TypeCheckingMode
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import groovy.transform.TypeCheckingMode
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 @Component
@@ -104,4 +104,32 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     params.addString("pipeline", pipeline.id)
     params.toJobParameters()
   }
+
+  @Override
+  protected JobParameters createJobParameters(Pipeline pipeline) {
+    def params = new JobParametersBuilder(super.createJobParameters(pipeline))
+    params.addString("pipeline", pipeline.id)
+    params.addString("name", pipeline.name)
+    params.toJobParameters()
+  }
+
+  /*
+   * restart applies only to pipeline and not to orchestration
+   */
+
+  Pipeline restart(String executionId) {
+    def pipeline = get(executionId)
+    def job = get(pipeline)
+    launcher.run job, createJobParameters(pipeline)
+    pipeline
+  }
+
+  protected Job get(Pipeline pipeline) {
+    jobRegistry.getJob("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+  }
+
+  protected Pipeline get(String executionId) {
+    executionRepository.retrievePipeline(executionId)
+  }
+
 }

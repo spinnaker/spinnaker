@@ -15,21 +15,24 @@
  */
 
 package com.netflix.spinnaker.orca.notifications
-
-import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
+import com.fasterxml.jackson.core.type.TypeReference
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
-
+import org.springframework.stereotype.Component
 /**
  *
  */
+@Component
 class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "suspendedPipeline"
-  long pollingInterval = 60
-  String notificationType = ""
+  long pollingInterval = 120
+  String notificationType = NOTIFICATION_TYPE
 
   @Autowired
-  PipelineConfigurationService pipelineConfigurationService
+  ExecutionRepository executionRepository
 
   @Autowired
   SuspendedPipelinesPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
@@ -38,9 +41,11 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
 
   @Override
   void handleNotification(List<Map> pipelines) {
-    Date now = new Date()
-    for (Map pipeline in pipelines) {
-      if (pipeline.scheduledDate != null && now.compareTo(pipeline.scheduledDate as Date) in [0,1]) {
+    long now = new Date().time
+    for (Map pipeline in pipelines.findAll { it.status == ExecutionStatus.SUSPENDED.name() }) {
+      def stages = pipeline.stages as List<Map>
+      def scheduledStage = stages.find { now >= extractScheduledTime(it) }
+      if (scheduledStage != null) {
         notify(pipeline)
       }
     }
@@ -48,6 +53,23 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
 
   @Override
   void run() {
-    handleNotification(pipelineConfigurationService.pipelines)
+    try {
+      List<Pipeline> pipelines = executionRepository.retrievePipelines()
+      List<Map> pipelineMaps = objectMapper.convertValue(pipelines, new TypeReference<List<Map>>() { })
+      handleNotification(pipelineMaps)
+    } catch (Exception e) {
+      e.printStackTrace()
+    }
+  }
+
+  private long extractScheduledTime(Map stage) {
+    long scheduledTime = Long.MAX_VALUE
+    try {
+      scheduledTime = stage.scheduledTime != null && stage.scheduledTime as long != 0L ?
+          new Date(stage.scheduledTime as long).time : Long.MAX_VALUE
+    } catch (Exception e) {
+      e.printStackTrace()
+    }
+    return scheduledTime
   }
 }
