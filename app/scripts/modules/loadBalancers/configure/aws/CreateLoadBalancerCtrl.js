@@ -221,6 +221,12 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
       $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP'});
     };
 
+    this.showSslCertificateIdField = function() {
+      return $scope.loadBalancer.listeners.some(function(listener) {
+        return listener.externalProtocol === 'HTTPS';
+      });
+    };
+
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
       $modalInstance.close();
       var newStateParams = {

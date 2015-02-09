@@ -1,8 +1,7 @@
 <form class="container-fluid form-horizontal" name="form" novalidate>
   <div class="modal-body">
     <div class="form-group">
-      <div class="col-md-3 sm-label-left table-offset">Listeners</div>
-      <div class="col-md-9">
+      <div class="col-md-12">
         <table class="table table-condensed packed">
           <thead>
           <tr>
@@ -10,6 +9,7 @@
             <th>Internal Port</th>
             <th>External Protocol</th>
             <th>External Port</th>
+            <th ng-if="ctrl.showSslCertificateIdField()" width="30%">SSL Certificate ID</th>
             <th></th>
           </tr>
           </thead>
@@ -23,13 +23,17 @@
                         ng-options="protocol for protocol in ['HTTP','HTTPS','TCP']"></select></td>
             <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.externalPort"
                        required/></td>
+            <td ng-if="listener.externalProtocol === 'HTTPS'">
+              <input class="form-control input-sm" type="text" ng-model="listener.sslCertificateId"
+                     required/></td>
+            </td>
             <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
               class="glyphicon glyphicon-trash"></span></a></td>
           </tr>
           </tbody>
           <tfoot>
           <tr>
-            <td colspan="4">
+            <td colspan="{{ctrl.showSslCertificateIdField() ? 5 : 4}}">
               <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span
                 class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
               </button>

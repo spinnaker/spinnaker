@@ -62,7 +62,7 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
     this.editLoadBalancer = function editLoadBalancer() {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: 'scripts/modules/loadBalancers/' + provider + '/editLoadBalancer.html',
+        templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/editLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
