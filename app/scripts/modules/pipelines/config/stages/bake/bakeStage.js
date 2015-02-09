@@ -35,11 +35,14 @@ angular.module('deckApp.pipelines.stage.bake')
       baseOsOptions: bakeryService.getBaseOsOptions(),
       baseLabelOptions: bakeryService.getBaseLabelOptions(),
       vmTypes: bakeryService.getVmTypes(),
+      storeTypes: bakeryService.getStoreTypes(),
     }).then(function(results) {
       $scope.regions = results.regions;
       $scope.baseOsOptions = results.baseOsOptions;
       $scope.vmTypes = results.vmTypes;
       $scope.baseLabelOptions = results.baseLabelOptions;
+      $scope.storeTypes = results.storeTypes;
+
       if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
         $scope.stage.baseOs = $scope.baseOsOptions[0];
       }
@@ -48,6 +51,9 @@ angular.module('deckApp.pipelines.stage.bake')
       }
       if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
         $scope.stage.vmType = $scope.vmTypes[0];
+      }
+      if (!$scope.stage.storeType && $scope.storeTypes && $scope.storeTypes.length) {
+        $scope.stage.storeType = $scope.storeTypes[0];
       }
       $scope.viewState.loading = false;
     });
