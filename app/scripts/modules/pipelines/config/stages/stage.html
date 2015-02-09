@@ -46,47 +46,117 @@
           Restrict Execution During Time Window
         </label>
       </div>
-      <div class="form-group">
-        <label class="col-md-2 col-md-offset-1 sm-label-left">Time Window</label>
-        <div class="col-md-1">
-          <label class="sm-label-left">Start</label>
+      <!-- TODO: -->
+      <!-- ---------------------------------------------------------------------------------------------------- -->
+      <!-- @ChrisBerry : Feel free to replace the input text with drop-downs below and remove the inline styles -->
+      <!-- ---------------------------------------------------------------------------------------------------- -->
+      <div ng-if="stage.restrictExecutionDuringTimeWindow">
+        <div class="form-group">
+          <label class="col-md-2 col-md-offset-1 sm-label-left">Time Window</label>
+          <div class="col-md-2">
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.startHour"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.startHour">-->
+              <!--<option value="00" selected="selected">00</option>-->
+              <!--<option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option>-->
+              <!--<option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option>-->
+              <!--<option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>-->
+              <!--<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>-->
+              <!--<option value="21">21</option><option value="22">22</option><option value="23">23</option>-->
+            <!--</select>-->
+            <label class="sm-label-right">:</label>
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.startMin"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.startMin">-->
+              <!--<option value="00" selected="selected">00</option>-->
+              <!--<option value="01">01</option><option value="02">01</option><option value="03">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+            <!--</select>-->
+          </div>
+          <div class="col-md-1">
+            <label class="sm-label-right">to</label>
+          </div>
+          <div class="col-md-2">
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.endHour"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.endHour">-->
+              <!--<option value="00" selected="selected">00</option>-->
+              <!--<option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option>-->
+              <!--<option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option>-->
+              <!--<option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>-->
+              <!--<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>-->
+              <!--<option value="21">21</option><option value="22">22</option><option value="23">23</option>-->
+            <!--</select>-->
+            <label class="sm-label-right">:</label>
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.endMin"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.endMin">-->
+              <!--<option value="00" selected="selected">00</option>-->
+              <!--<option value="01">01</option><option value="02">01</option><option value="03">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+            <!--</select>-->
+          </div>
+          <div class="form-control-static">All times are in PST</div>
         </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.startHour" style="width: 50px;">
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.startMin" style="width: 50px;">
-        </div>
-        <div class="col-md-1">
-          <label class="sm-label-left">End</label>
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.endHour" style="width: 50px;">
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.endMin" style="width: 50px;">
-        </div>
-      </div>
-      <div class="form-group">
+        <div class="form-group">
         <label class="col-md-2 col-md-offset-1 sm-label-left">Day Hours</label>
-        <div class="col-md-1">
-          <label class="sm-label-left">Start</label>
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.dayStartHour" style="width: 50px;">
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.dayStartMin" style="width: 50px;">
-        </div>
-        <div class="col-md-1">
-          <label class="sm-label-left">End</label>
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.dayEndHour" style="width: 50px;">
-        </div>
-        <div class="col-md-1">
-          <input type="number" class="form-control input-sm ng-pristine ng-valid ng-valid-number" ng-model="stage.restrictedExecutionWindow.dayEndMin" style="width: 50px;">
-        </div>
+          <div class="col-md-2">
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.dayStartHour"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.dayStartHour">-->
+              <!--<option value="00">00</option>-->
+              <!--<option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option>-->
+              <!--<option value="06">06</option><option value="07">07</option><option value="08" selected="selected">08</option><option value="09">09</option><option value="10">10</option>-->
+              <!--<option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>-->
+              <!--<option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>-->
+              <!--<option value="21">21</option><option value="22">22</option><option value="23">23</option>-->
+            <!--</select>-->
+            <label class="sm-label-right">:</label>
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.dayStartMin"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.dayStartMin">-->
+              <!--<option value="00" selected="selected">00</option>-->
+              <!--<option value="01">01</option><option value="02">01</option><option value="03">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+            <!--</select>-->
+          </div>
+          <div class="col-md-1">
+            <label class="sm-label-right">to</label>
+          </div>
+          <div class="col-md-2">
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.dayEndHour"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.dayEndHour">-->
+              <!--<option value="00">00</option>-->
+              <!--<option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option>-->
+              <!--<option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option>-->
+              <!--<option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>-->
+              <!--<option value="16">16</option><option value="17">17</option><option value="18" selected="selected">18</option><option value="19">19</option>-->
+              <!--<option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>-->
+            <!--</select>-->
+            <label class="sm-label-right">:</label>
+            <input type="number" class="input-sm" ng-model="stage.restrictedExecutionWindow.dayEndMin"
+                   style="width: 42px; margin-right: 0px; padding: 5px 5px; font-size: 12px; line-height: 1.5; border-radius: 3px; border: 1px solid #ccc;"/>
+            <!--<select class="input-sm ng-pristine ng-valid" ng-model="stage.restrictedExecutionWindow.dayEndMin">-->
+              <!--<option value="00" selected="selected">00</option>-->
+              <!--<option value="01">01</option><option value="02">01</option><option value="03">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+              <!--<option value="01">01</option><option value="01">01</option><option value="01">01</option>-->
+            <!--</select>-->
+          </div>
+          <div class="form-control-static">All times are in PST</div>
+      </div>
       </div>
     </form>
   </div>

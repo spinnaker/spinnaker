@@ -67,6 +67,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.enableAsg',
     'deckApp.pipelines.stage.modifyScalingProcess',
     'deckApp.pipelines.stage.disableAsg',
+    'deckApp.pipelines.stage.restrictExecutionDuringTimeWindow',
     'deckApp.authentication',
     'deckApp.search',
     'deckApp.notifications',
