@@ -36,6 +36,16 @@ angular.module('deckApp.delivery.executionStatus.controller', [
       return 'Unknown';
     };
 
+    controller.getSuspendedStage = function(execution) {
+      var suspended = execution.stageSummaries.filter(function(stage) {
+        return stage.isSuspended;
+      });
+      if (suspended && suspended.length) {
+        return suspended[0].name;
+      }
+      return 'Unknown';
+    };
+
     controller.cancelExecution = function(execution) {
       confirmationModalService.confirm({
         header: 'Really stop execution of ' + execution.name + '?',
