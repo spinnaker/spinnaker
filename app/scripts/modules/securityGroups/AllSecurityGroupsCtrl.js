@@ -1,8 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('AllSecurityGroupsCtrl', function($scope, application, _, $modal) {
+angular.module('deckApp.securityGroup.all.controller', [
+  'ui.bootstrap',
+  'deckApp.utils.lodash',
+  'deckApp.providerSelection.service',
+])
+  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application) {
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -48,20 +52,24 @@ angular.module('deckApp')
     }
 
     this.createSecurityGroup = function createSecurityGroup() {
-      $modal.open({
-        templateUrl: 'views/application/modal/securityGroup/createSecurityGroup.html',
-        controller: 'CreateSecurityGroupCtrl as ctrl',
-        resolve: {
-          securityGroup: function() {
-            return {
-              credentials: 'test',
-              subnet: 'none',
-              vpcId: null,
-              securityGroupIngress: []
-            };
-          },
-          application: function() { return application; }
-        }
+      providerSelectionService.selectProvider().then(function(provider) {
+        $modal.open({
+          templateUrl: 'scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
+          controller: 'CreateSecurityGroupCtrl as ctrl',
+          resolve: {
+            securityGroup: function () {
+              return {
+                credentials: 'test',
+                subnet: 'none',
+                vpcId: null,
+                securityGroupIngress: []
+              };
+            },
+            application: function () {
+              return application;
+            }
+          }
+        });
       });
     };
 

@@ -7,11 +7,11 @@ angular.module('clusters.all', [
   'deckApp.account',
   'deckApp.providerSelection',
   'deckApp.providerSelection.service',
-  'deckApp.securityGroup.service',
+  'deckApp.securityGroup.read.service',
   'deckApp.serverGroup.configure.common.service'
 ])
   .controller('AllClustersCtrl', function($scope, application, $modal,
-                                          securityGroupService, accountService, providerSelectionService,
+                                          securityGroupReader, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;

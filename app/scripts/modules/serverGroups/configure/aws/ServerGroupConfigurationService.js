@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.serverGroup.configure.aws')
-  .factory('awsServerGroupConfigurationService', function(imageService, accountService, securityGroupService,
+  .factory('awsServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
                                                           instanceTypeService,
                                                           $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
@@ -16,7 +16,7 @@ angular.module('deckApp.serverGroup.configure.aws')
 
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount(),
-        securityGroups: securityGroupService.getAllSecurityGroups(),
+        securityGroups: securityGroupReader.getAllSecurityGroups(),
         loadBalancers: loadBalancerReader.listAWSLoadBalancers(),
         subnets: subnetReader.listSubnets(),
         preferredZones: accountService.getPreferredZonesByAccount(),

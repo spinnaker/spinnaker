@@ -8,11 +8,11 @@ angular
     'deckApp.tasks.read.service',
     'deckApp.loadBalancer.read.service',
     'deckApp.loadBalancer.transformer.service',
-    'deckApp.securityGroup.service',
+    'deckApp.securityGroup.read.service',
     'deckApp.scheduler'
   ])
   .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
-                                          loadBalancerReader, loadBalancerTransformer, securityGroupService, scheduler) {
+                                          loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler) {
 
     function listApplications() {
       return Restangular
@@ -121,7 +121,7 @@ angular
     }
 
     function getApplication(applicationName, options) {
-      var securityGroupsByApplicationNameLoader = securityGroupService.loadSecurityGroupsByApplicationName(applicationName),
+      var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
         loadBalancersFromSearch = loadBalancerReader.loadLoadBalancersByApplicationName(applicationName),
         applicationLoader = getApplicationEndpoint(applicationName).get(),
         serverGroupLoader = clusterService.loadServerGroups(applicationName);
@@ -151,7 +151,7 @@ angular
             });
           }
 
-          securityGroupLoader = securityGroupService.loadSecurityGroups(application);
+          securityGroupLoader = securityGroupReader.loadSecurityGroups(application);
 
           return $q.all({
             serverGroups: serverGroupLoader,
@@ -169,7 +169,7 @@ angular
               if (application.tasks) {
                 clusterService.addTasksToServerGroups(application);
               }
-              securityGroupService.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
+              securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
 
               return application;
             }, function(err) {

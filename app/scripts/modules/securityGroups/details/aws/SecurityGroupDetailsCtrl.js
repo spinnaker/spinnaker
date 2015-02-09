@@ -1,9 +1,16 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('SecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application,
-                                                    confirmationModalService, securityGroupWriter, securityGroupService,
+angular.module('deckApp.securityGroup.aws.details.controller', [
+  'ui.router',
+  'ui.bootstrap',
+  'deckApp.notifications.service',
+  'deckApp.securityGroup.read.service',
+  'deckApp.securityGroup.write.service',
+  'deckApp.confirmationModal.service'
+])
+  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application,
+                                                    confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $modal) {
 
     $scope.state = {
@@ -11,7 +18,7 @@ angular.module('deckApp')
     };
 
     function extractSecurityGroup() {
-      securityGroupService.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
+      securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
         $scope.securityGroup = details;
 
@@ -41,7 +48,7 @@ angular.module('deckApp')
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
-        templateUrl: 'views/application/modal/securityGroup/editSecurityGroup.html',
+        templateUrl: 'scripts/modules/securityGroups/configure/aws/editSecurityGroup.html',
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {

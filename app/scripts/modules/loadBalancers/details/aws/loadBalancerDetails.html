@@ -87,7 +87,7 @@
     <collapsible-section heading="Security Groups">
       <ul>
         <li ng-repeat="securityGroup in securityGroups">
-          <a ui-sref="^.securityGroupDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId})">
+          <a ui-sref="^.securityGroupDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>

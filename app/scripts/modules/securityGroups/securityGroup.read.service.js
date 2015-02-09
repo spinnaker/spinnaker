@@ -1,15 +1,16 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.service', [
+angular.module('deckApp.securityGroup.read.service', [
   'restangular',
+  'deckApp.settings',
   'deckApp.search.service',
   'deckApp.utils.lodash',
   'deckApp.caches.scheduled',
   'deckApp.caches.infrastructure',
   'deckApp.notifications.service'
 ])
-  .factory('securityGroupService', function ($q, $exceptionHandler, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches, notificationsService) {
+  .factory('securityGroupReader', function ($q, $exceptionHandler, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches, notificationsService) {
 
     function loadSecurityGroups(application) {
 

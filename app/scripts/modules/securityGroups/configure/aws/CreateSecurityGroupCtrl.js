@@ -1,9 +1,15 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.securityGroup.aws.create.controller', [
+  'ui.router',
+  'deckApp.account.service',
+  'deckApp.tasks.monitor.service',
+  'deckApp.securityGroup.write.service',
+  'deckApp.vpc.read.service',
+])
   .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
-                                                  accountService, securityGroupService,
+                                                  accountService, securityGroupReader,
                                                   taskMonitorService,
                                                   _, application, securityGroup, securityGroupWriter, vpcReader) {
 
@@ -27,7 +33,7 @@ angular.module('deckApp')
 
     $scope.securityGroup = securityGroup;
 
-    securityGroupService.getAllSecurityGroups().then(function(securityGroups) {
+    securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
       allSecurityGroups = securityGroups;
     });
 
@@ -119,7 +125,8 @@ angular.module('deckApp')
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials,
-        region: $scope.securityGroup.region
+        region: $scope.securityGroup.region,
+        provider: 'aws',
       };
       if (!$state.includes('**.securityGroupDetails')) {
         $state.go('.securityGroupDetails', newStateParams);
