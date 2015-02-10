@@ -39,9 +39,13 @@ class UpsertAmazonLoadBalancerResultObjectExtrapolationTask implements Task {
 
     def resultObjects = lastKatoTask.resultObjects as List<Map>
     def resultObjectMap = resultObjects?.getAt(0) as Map
-    def dnsName = resultObjectMap.loadBalancers.entrySet().getAt(0).value.dnsName
+    Map outputs = [:]
+    if (resultObjectMap) {
+      def dnsName = resultObjectMap.loadBalancers.entrySet().getAt(0).value.dnsName
+      outputs["dnsName"] = dnsName
+    }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [dnsName: dnsName])
+    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
 }
