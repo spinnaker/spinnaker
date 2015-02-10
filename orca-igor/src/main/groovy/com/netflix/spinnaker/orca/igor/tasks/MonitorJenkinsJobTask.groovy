@@ -39,7 +39,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
     'ABORTED' : ExecutionStatus.CANCELED,
     'FAILURE' : ExecutionStatus.FAILED,
     'SUCCESS' : ExecutionStatus.SUCCEEDED,
-    'UNSTABLE': ExecutionStatus.SUCCEEDED
+    'UNSTABLE': ExecutionStatus.FAILED
   ]
 
   @Override
@@ -50,6 +50,9 @@ class MonitorJenkinsJobTask implements RetryableTask {
     try {
       Map<String, Object> build = igorService.getBuild(master, job, buildNumber)
       String result = build.result
+      if (build.running && build.running != 'false') {
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
+      }
       if (statusMap.containsKey(result)) {
         return new DefaultTaskResult(statusMap[result], [buildInfo: build])
       } else {
