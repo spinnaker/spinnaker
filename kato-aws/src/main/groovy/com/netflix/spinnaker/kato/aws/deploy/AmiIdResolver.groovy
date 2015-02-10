@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 class AmiIdResolver {
   private static final Pattern amiIdPattern = Pattern.compile('^ami-[0-9a-f]+$')
 
-  public static String resolveAmiId(AmazonEC2 amazonEC2, String nameOrId, String owner = null, String launcher = null) {
+  public static ResolvedAmiResult resolveAmiId(AmazonEC2 amazonEC2, String region, String nameOrId, String owner = null, String launcher = null) {
     def req = new DescribeImagesRequest()
     if (amiIdPattern.matcher(nameOrId).matches()) {
       req.withImageIds(nameOrId)
@@ -23,7 +23,11 @@ class AmiIdResolver {
     if (launcher) {
       req.withExecutableUsers(launcher)
     }
-    def images = amazonEC2.describeImages(req)
-    images?.images?.getAt(0)?.imageId
+    String imageId = amazonEC2.describeImages(req)?.images?.getAt(0)?.imageId
+    if (imageId) {
+      return new ResolvedAmiResult(nameOrId, region, imageId)
+    }
+
+    return null
   }
 }

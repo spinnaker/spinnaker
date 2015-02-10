@@ -23,6 +23,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
+import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.kato.data.task.Task
@@ -31,10 +32,10 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 
-class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
+class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
   private static final String BASE_PHASE = "ALLOW_LAUNCH"
 
-  private static final int MAX_TARGET_DESCRIBE_ATTEMPTS = 180
+  private static final int MAX_TARGET_DESCRIBE_ATTEMPTS = 2
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -53,26 +54,26 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  Void operate(List priorOutputs) {
+  ResolvedAmiResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
     def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
-    def amiId = AmiIdResolver.resolveAmiId(sourceAmazonEC2, description.amiName, description.credentials.accountId)
-    if (!amiId) {
+    ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiId(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
+    if (!resolvedAmi) {
       throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
     }
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
-    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(amiId).withLaunchPermission(new LaunchPermissionModifications()
+    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(new LaunchPermissionModifications()
         .withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
 
     if (description.credentials == targetCredentials) {
       task.updateStatus BASE_PHASE, "Tag replication not required"
     } else {
-      def request = new DescribeTagsRequest().withFilters(new Filter("resource-id").withValues(amiId))
+      def request = new DescribeTagsRequest().withFilters(new Filter("resource-id").withValues(resolvedAmi.amiId))
       Closure<Set<Tag>> getTags = { DescribeTagsRequest req, TagsRetriever ret ->
         new HashSet<Tag>(ret.retrieve(req).collect { new Tag(it.key, it.value) })
       }.curry(request)
@@ -94,31 +95,17 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
 
         if (tagsToRemoveFromTarget) {
           task.updateStatus BASE_PHASE, "Removing tags on target AMI (${tagsToRemoveFromTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
-          targetAmazonEC2.deleteTags(new DeleteTagsRequest().withResources(amiId).withTags(tagsToRemoveFromTarget))
+          targetAmazonEC2.deleteTags(new DeleteTagsRequest().withResources(resolvedAmi.amiId).withTags(tagsToRemoveFromTarget))
         }
         if (tagsToAddToTarget) {
           task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
-          targetAmazonEC2.createTags(new CreateTagsRequest().withResources(amiId).withTags(tagsToAddToTarget))
+          targetAmazonEC2.createTags(new CreateTagsRequest().withResources(resolvedAmi.amiId).withTags(tagsToAddToTarget))
         }
       }
     }
 
-    task.updateStatus BASE_PHASE, "Waiting for image to become available in account ${targetCredentials.name}"
-    int targetDescribeAttempts = 0
-    while (true) {
-      if (AmiIdResolver.resolveAmiId(targetAmazonEC2, description.amiName, null, targetCredentials.accountId)) {
-        break
-      }
-
-      if (++targetDescribeAttempts > MAX_TARGET_DESCRIBE_ATTEMPTS) {
-        task.updateStatus BASE_PHASE, "WARNING: Unable to describe target image after ${MAX_TARGET_DESCRIBE_ATTEMPTS} attempts"
-        break
-      }
-      Thread.sleep(2000)
-    }
-
     task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account."
-    null
+    resolvedAmi
   }
 
   @Canonical

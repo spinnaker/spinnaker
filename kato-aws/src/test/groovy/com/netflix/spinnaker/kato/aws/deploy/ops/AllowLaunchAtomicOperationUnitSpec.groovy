@@ -73,17 +73,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
 
         new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
     }
-    1 * ec2.describeImages(_) >> { DescribeImagesRequest dir ->
-      assert dir.executableUsers
-      assert dir.executableUsers.size() == 1
-      assert dir.executableUsers.first() == '12345'
-      assert dir.filters
-      assert dir.filters.size() == 1
-      assert dir.filters.first().name == 'name'
-      assert dir.filters.first().values == ['super-awesome-ami']
-
-      new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
-    }
+    1 * ec2.modifyImageAttribute(_)
   }
 
   void "image attribute modification is invoked on request"() {
@@ -148,7 +138,6 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * describeTags(_) >> constructDescribeTagsResult([a:"1", b:"1", c: "2"])
       1 * deleteTags(new DeleteTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b", value: "1"), new Tag(key: "c", value: "2")]))
       1 * createTags(new CreateTagsRequest(resources: ["ami-123456"], tags: [new Tag(key: "b", value: "2")]))
-      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
     }
   }
 
@@ -178,9 +167,6 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     with(sourceAmazonEc2) {
       1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
       1 * modifyImageAttribute(_)
-    }
-    with(targetAmazonEc2) {
-      1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
     }
 
     0 * _
