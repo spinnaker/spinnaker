@@ -1,4 +1,4 @@
-<div>
+<div ng-controller="DeployExecutionDetailsCtrl as ctrl">
   <div class="row">
     <div class="col-md-6">
       <h5>Deployment Configuration</h5>
@@ -43,10 +43,10 @@
     <div class="col-md-12">
       <div class="well alert alert-info">
         <strong>Deployed:</strong>
-        <a ng-repeat="(region, serverGroup) in stage.context['kato.tasks'][0].resultObjects[0].asgNameByRegion"
+        <a ng-repeat="serverGroup in deployed"
            ng-click="$event.stopPropagation()"
-           ui-sref="home.applications.application.insight.clusters.serverGroup({application: stage.context.application, serverGroup: serverGroup, accountId: stage.context.account, region: region})">
-          {{serverGroup}}
+           ui-sref="home.applications.application.insight.clusters.serverGroup({application: stage.context.application, serverGroup: serverGroup.name, accountId: stage.context.account, region: serverGroup.region})">
+          {{serverGroup.name}}
         </a>
       </div>
     </div>
