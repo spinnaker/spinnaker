@@ -18,4 +18,5 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
   compile spinnaker.dependency('amos')
+  compile spinnaker.dependency('kork')
 }
