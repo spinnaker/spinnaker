@@ -51,6 +51,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
       getAmazonEC2(_, _) >> amazonEC2
     }
+
+    amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-12345"))
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
     def rspf = Stub(RegionScopedProviderFactory) {
       forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider)

@@ -9,13 +9,25 @@ import java.util.regex.Pattern
 class AmiIdResolver {
   private static final Pattern amiIdPattern = Pattern.compile('^ami-[0-9a-f]+$')
 
-  public static String resolveAmiId(AmazonEC2 amazonEC2, String nameOrId) {
+  public static ResolvedAmiResult resolveAmiId(AmazonEC2 amazonEC2, String region, String nameOrId, String owner = null, String launcher = null) {
+    def req = new DescribeImagesRequest()
     if (amiIdPattern.matcher(nameOrId).matches()) {
-      nameOrId
+      req.withImageIds(nameOrId)
     } else {
-      def images = amazonEC2.describeImages(new DescribeImagesRequest().withFilters(new Filter('name').withValues(nameOrId)))
-      images?.images?.getAt(0)?.imageId
+      req.withFilters(new Filter('name').withValues(nameOrId))
     }
 
+    if (owner) {
+      req.withOwners(owner)
+    }
+    if (launcher) {
+      req.withExecutableUsers(launcher)
+    }
+    String imageId = amazonEC2.describeImages(req)?.images?.getAt(0)?.imageId
+    if (imageId) {
+      return new ResolvedAmiResult(nameOrId, region, imageId)
+    }
+
+    return null
   }
 }

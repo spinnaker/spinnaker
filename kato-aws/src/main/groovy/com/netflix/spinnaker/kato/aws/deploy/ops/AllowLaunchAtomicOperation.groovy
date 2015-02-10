@@ -23,6 +23,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
+import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.kato.data.task.Task
@@ -31,8 +32,10 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 
-class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
+class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
   private static final String BASE_PHASE = "ALLOW_LAUNCH"
+
+  private static final int MAX_TARGET_DESCRIBE_ATTEMPTS = 2
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -51,39 +54,58 @@ class AllowLaunchAtomicOperation implements AtomicOperation<Void> {
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  Void operate(List priorOutputs) {
+  ResolvedAmiResult operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
     def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials
-    if (description.credentials == targetCredentials) {
-      task.updateStatus BASE_PHASE, "Allow launch not required"
-      return
-    }
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
 
-    def amiId = AmiIdResolver.resolveAmiId(sourceAmazonEC2, description.amiName)
-    if (!amiId) {
+    ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiId(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
+    if (!resolvedAmi) {
       throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
     }
 
     task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
-    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(amiId).withLaunchPermission(new LaunchPermissionModifications()
-      .withAdd(new LaunchPermission().withUserId(String.valueOf(targetCredentials.accountId)))))
+    sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(new LaunchPermissionModifications()
+        .withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
 
-    def request = new DescribeTagsRequest(filters: [new Filter(name: "resource-id", values: [amiId])])
+    if (description.credentials == targetCredentials) {
+      task.updateStatus BASE_PHASE, "Tag replication not required"
+    } else {
+      def request = new DescribeTagsRequest().withFilters(new Filter("resource-id").withValues(resolvedAmi.amiId))
+      Closure<Set<Tag>> getTags = { DescribeTagsRequest req, TagsRetriever ret ->
+        new HashSet<Tag>(ret.retrieve(req).collect { new Tag(it.key, it.value) })
+      }.curry(request)
+      Set<Tag> sourceTags = getTags(new TagsRetriever(sourceAmazonEC2))
+      if (sourceTags.isEmpty()) {
+        Thread.sleep(200)
+        sourceTags = getTags(new TagsRetriever(sourceAmazonEC2))
+      }
+      if (sourceTags.isEmpty()) {
+        task.updateStatus BASE_PHASE, "WARNING: empty tag set returned from DescribeTags, skipping tag sync"
+      } else {
 
-    def targetTags = new TagsRetriever(targetAmazonEC2).retrieve(request)
-    def tagsToRemoveFromTarget = targetTags.collect { new Tag(key: it.key) }
-    def sourceTags = new TagsRetriever(sourceAmazonEC2).retrieve(request)
-    def tagsToAddToTarget = sourceTags.collect { new Tag(key: it.key, value: it.value) }
+        Set<Tag> targetTags = getTags(new TagsRetriever(targetAmazonEC2))
 
-    targetAmazonEC2.deleteTags(new DeleteTagsRequest(resources: [amiId], tags: tagsToRemoveFromTarget))
-    task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
-    targetAmazonEC2.createTags(new CreateTagsRequest(resources: [amiId], tags: tagsToAddToTarget))
+        Set<Tag> tagsToRemoveFromTarget = new HashSet<>(targetTags)
+        tagsToRemoveFromTarget.removeAll(sourceTags)
+        Set<Tag> tagsToAddToTarget = new HashSet<>(sourceTags)
+        tagsToAddToTarget.removeAll(targetTags)
+
+        if (tagsToRemoveFromTarget) {
+          task.updateStatus BASE_PHASE, "Removing tags on target AMI (${tagsToRemoveFromTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
+          targetAmazonEC2.deleteTags(new DeleteTagsRequest().withResources(resolvedAmi.amiId).withTags(tagsToRemoveFromTarget))
+        }
+        if (tagsToAddToTarget) {
+          task.updateStatus BASE_PHASE, "Creating tags on target AMI (${tagsToAddToTarget.collect { "${it.key}: ${it.value}" }.join(", ")})."
+          targetAmazonEC2.createTags(new CreateTagsRequest().withResources(resolvedAmi.amiId).withTags(tagsToAddToTarget))
+        }
+      }
+    }
 
     task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account."
-    null
+    resolvedAmi
   }
 
   @Canonical

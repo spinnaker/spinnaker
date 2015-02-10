@@ -22,6 +22,7 @@ import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AmazonDeploymentResult
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
+import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
@@ -91,8 +92,18 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         }
       }
 
-      def amiId = AmiIdResolver.resolveAmiId(amazonEC2, description.amiName)
-      if (!amiId) {
+      // find by 1) result of a previous step (we performed allow launch)
+      //         2) explicitly granted launch permission
+      //            (making this the default because AllowLaunch will always
+      //             stick an explicit launch permission on the image)
+      //         3) owner
+      //         4) global
+      ResolvedAmiResult ami = priorOutputs.find({ it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName }) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, null, description.credentials.accountId) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, description.credentials.accountId) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, region,  description.amiName, null, null)
+
+      if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
       }
 
@@ -107,7 +118,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         environment: description.credentials.name,
         stack: description.stack,
         freeFormDetails: description.freeFormDetails,
-        ami: amiId,
+        ami: ami.amiId,
         minInstances: description.capacity.min,
         maxInstances: description.capacity.max,
         desiredInstances: description.capacity.desired,
