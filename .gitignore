@@ -4,6 +4,8 @@ node_modules
 /dist
 test-results.xml
 npm-debug.log
+*.ipr
+*.iws
 *.iml
 deck.iml
 .idea
