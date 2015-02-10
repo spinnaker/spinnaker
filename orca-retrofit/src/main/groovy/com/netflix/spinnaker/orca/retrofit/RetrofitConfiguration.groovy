@@ -15,17 +15,16 @@
  */
 
 
-
-
-
 package com.netflix.spinnaker.orca.retrofit
 
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import com.google.common.base.Optional
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.retrofit.gson.GsonOptionalDeserializer
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -34,11 +33,18 @@ import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
 import retrofit.client.OkClient
 
+import java.util.concurrent.TimeUnit
+
 @Configuration
 @CompileStatic
 class RetrofitConfiguration {
-  @Bean Client retrofitClient() {
-    new OkClient()
+  @Bean Client retrofitClient(@Value('${retrofit.connectTimeoutMs:15000}') int connectTimeout,
+                              @Value('${retrofit.readTimeoutMs:20000}') int readTimeout) {
+    def okHttpClient = new OkHttpClient()
+    okHttpClient.setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+    okHttpClient.setReadTimeout(readTimeout, TimeUnit.MILLISECONDS)
+
+    return new OkClient(okHttpClient)
   }
 
   @Bean LogLevel retrofitLogLevel() {
