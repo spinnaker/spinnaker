@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.orchestration
 
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
@@ -66,7 +67,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.fail()
           }
         }
-        task.addResultObjects(results.findResults { it })
+        task.addResultObjects(results.findResults { (it && it instanceof DeploymentResult) ? it : null })
         if (!task.status?.isCompleted()) {
           task.complete()
         }
