@@ -17,7 +17,13 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
@@ -25,46 +31,102 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
-import java.lang.Void as Should
-
 class DestroyAsgAtomicOperationUnitSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  Should "get list of instances and execute a terminate and decrement operation against them"() {
+  def mockAutoScaling = Mock(AmazonAutoScaling)
+  def mockElasticLoadBalancing = Mock(AmazonElasticLoadBalancing)
+  def provider = Mock(AmazonClientProvider) {
+    getAutoScaling(_, _) >> mockAutoScaling
+    getAmazonElasticLoadBalancing(_, _) >> mockElasticLoadBalancing
+  }
+
+  void "should not fail delete when ASG does not exist"() {
     setup:
-    def description = new DestroyAsgDescription(asgName: "my-stack-v000", regions: ["us-east-1"], credentials: TestCredential.named('baz'))
-    def provider = Mock(AmazonClientProvider)
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    provider.getAutoScaling(_, _) >> mockAutoScaling
-    def op = new DestroyAsgAtomicOperation(description)
+    def op = new DestroyAsgAtomicOperation(
+            new DestroyAsgDescription(
+                    asgName: "my-stack-v000",
+                    regions: ["us-east-1"],
+                    credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
-    def mock = Mock(AutoScalingGroup)
-    def inst = Mock(Instance)
-    inst.getInstanceId() >> "i-123456"
-    mock.getInstances() >> [inst]
-    def describeResult1 = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock)
-    def mock2 = Mock(AutoScalingGroup)
-    mock2.getInstances() >> []
-    def describeResult2 = new DescribeAutoScalingGroupsResult().withAutoScalingGroups(mock2)
 
     when:
     op.operate([])
 
     then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >>> [describeResult1, describeResult2]
-    1 * mockAutoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest request ->
-      assert !request.desiredCapacity
-      assert !request.minSize
-      assert !request.maxSize
-    }
-    1 * mockAutoScaling.terminateInstanceInAutoScalingGroup(_) >> { TerminateInstanceInAutoScalingGroupRequest request ->
-      assert request.instanceId == "i-123456"
-    }
-    1 * mockAutoScaling.deleteAutoScalingGroup(_) >> { DeleteAutoScalingGroupRequest request ->
-      assert request.autoScalingGroupName == "my-stack-v000"
-    }
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [])
+    0 * mockAutoScaling._
+    0 * mockElasticLoadBalancing._
+  }
+
+  void "should delete ASG and Launch Connfig"() {
+    setup:
+    def op = new DestroyAsgAtomicOperation(
+            new DestroyAsgDescription(
+                    asgName: "my-stack-v000",
+                    regions: ["us-east-1"],
+                    credentials: TestCredential.named('baz')))
+    op.amazonClientProvider = provider
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
+            new AutoScalingGroup(
+                    instances: [new Instance(instanceId: "i-123456")],
+                    launchConfigurationName: "launchConfig-v000"
+            )
+    ])
+    1 * mockAutoScaling.deleteAutoScalingGroup(
+            new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+    1 * mockAutoScaling.deleteLaunchConfiguration(
+            new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
+    0 * mockAutoScaling._
+    0 * mockElasticLoadBalancing._
+  }
+
+  void "should remove instances from ELBs"() {
+    setup:
+    def op = new DestroyAsgAtomicOperation(
+            new DestroyAsgDescription(
+                    asgName: "my-stack-v000",
+                    regions: ["us-east-1"],
+                    credentials: TestCredential.named('baz')))
+    op.amazonClientProvider = provider
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
+            new AutoScalingGroup(
+                    instances: [new Instance(instanceId: "i-123456")],
+                    launchConfigurationName: "launchConfig-v000",
+                    loadBalancerNames: ["elb1", "elb2"]
+            )
+    ])
+    1 * mockAutoScaling.deleteAutoScalingGroup(
+            new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+    1 * mockAutoScaling.deleteLaunchConfiguration(
+            new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
+    0 * mockAutoScaling._
+
+    1 * mockElasticLoadBalancing.deregisterInstancesFromLoadBalancer(
+            new DeregisterInstancesFromLoadBalancerRequest(
+                    loadBalancerName: "elb1",
+                    instances: [new com.amazonaws.services.elasticloadbalancing.model.Instance(instanceId: "i-123456")]
+            )
+    )
+    1 * mockElasticLoadBalancing.deregisterInstancesFromLoadBalancer(
+            new DeregisterInstancesFromLoadBalancerRequest(
+                    loadBalancerName: "elb2",
+                    instances: [new com.amazonaws.services.elasticloadbalancing.model.Instance(instanceId: "i-123456")]
+            )
+    )
+    0 * mockElasticLoadBalancing._
   }
 }
