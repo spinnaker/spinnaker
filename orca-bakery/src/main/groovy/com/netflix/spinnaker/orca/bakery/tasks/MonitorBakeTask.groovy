@@ -51,7 +51,7 @@ class MonitorBakeTask implements RetryableTask {
   private ExecutionStatus mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
-        return ExecutionStatus.SUCCEEDED
+        return newStatus.result == BakeStatus.Result.SUCCESS ? ExecutionStatus.SUCCEEDED : ExecutionStatus.FAILED
       case BakeStatus.State.CANCELLED:
         return ExecutionStatus.FAILED
       default:
