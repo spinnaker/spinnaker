@@ -20,6 +20,8 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import groovy.transform.InheritConstructors
+import groovy.util.logging.Slf4j
+
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import retrofit.RetrofitError
 
+@Slf4j
 @RestController
 class BuildController {
     @Autowired
@@ -52,9 +55,14 @@ class BuildController {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
-        def poller = new BuildJobPoller(job, masters.map[master])
-        executor.submit(poller).get(15, TimeUnit.SECONDS)
-        poller.build
+        try {
+            def poller = new BuildJobPoller(job, masters.map[master])
+            executor.submit(poller).get(30, TimeUnit.SECONDS)
+            poller.build
+        } catch (RuntimeException e) {
+            log.error("Unable to build job `${job}`", e)
+            throw e
+        }
     }
 
     static class BuildJobPoller implements Runnable {
@@ -73,6 +81,8 @@ class BuildController {
             if (response.status != 201) {
                 throw new BuildJobError()
             }
+
+            log.info("Submitted build job `${job}`")
             def locationHeader = response.headers.find { it.name == "Location" }
             if (!locationHeader) {
                 throw new QueuedJobDeterminationError()
@@ -80,16 +90,18 @@ class BuildController {
             def queuedLocation = locationHeader.value
             def item = queuedLocation.split('/')[-1].toInteger()
 
+            log.info("Polling for queued job item `${job}:${item}`")
             while (true) {
                 try {
                     def queue = client.getQueuedItem(item)
                     if (queue && queue.number) {
                         this.build = client.getBuild(job, queue.number)
+                        log.info("Found build for queued job item `${job}:${item}`")
                         break
                     }
                     sleep 500
                 } catch (RetrofitError e) {
-                    e.printStackTrace()
+                    log.error("Failed to get build for job `${job}`", e)
                     throw new QueuedJobDeterminationError()
                 }
             }
