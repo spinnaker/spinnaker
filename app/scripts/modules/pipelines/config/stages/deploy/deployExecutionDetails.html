@@ -45,7 +45,7 @@
         <strong>Deployed:</strong>
         <a ng-repeat="(region, serverGroup) in stage.context['kato.tasks'][0].resultObjects[0].asgNameByRegion"
            ng-click="$event.stopPropagation()"
-           ui-sref="home.applications.application.insight.clusters.serverGroup({application: stage.context.cluster.application, serverGroup: serverGroup, accountId: stage.context.account, region: region})">
+           ui-sref="home.applications.application.insight.clusters.serverGroup({application: stage.context.application, serverGroup: serverGroup, accountId: stage.context.account, region: region})">
           {{serverGroup}}
         </a>
       </div>
