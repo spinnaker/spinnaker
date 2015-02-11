@@ -43,17 +43,17 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
           response.details.rootException = body.exception
         }
       } catch (ignored) {
-        response.details = new ExceptionHandler.ResponseDetails(reason)
+        response.details = new ExceptionHandler.ResponseDetails(properties.reason ?: e.message)
       }
 
       try {
-        response.details.responseBody = new String(((TypedByteArray)e.getResponse().getBody()).getBytes())
+        response.details.responseBody = new String(((TypedByteArray) e.getResponse().getBody()).getBytes())
       } catch (ignored) {
-        response.details.responseBody = "n/a"
+        response.details.responseBody = null
       }
       response.details.kind = e.kind
-      response.details.status = status
-      response.details.url = url
+      response.details.status = properties.status ?: null
+      response.details.url = properties.url ?: null
       return response
     }
   }
