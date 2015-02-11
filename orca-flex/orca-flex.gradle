@@ -14,31 +14,8 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-igor",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-rush",
-  "orca-flex",
-  "orca-web",
-  "orca-smoke-test"
-
-rootProject.name = "orca"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
+dependencies {
+  compile spinnaker.dependency('frigga')
+  compile project(":orca-retrofit")
+  testCompile project(":orca-test")
 }
