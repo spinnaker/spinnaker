@@ -62,7 +62,7 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     0 * mockElasticLoadBalancing._
   }
 
-  void "should delete ASG and Launch Connfig"() {
+  void "should delete ASG and Launch Config"() {
     setup:
     def op = new DestroyAsgAtomicOperation(
             new DestroyAsgDescription(
@@ -85,6 +85,30 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
             new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
     1 * mockAutoScaling.deleteLaunchConfiguration(
             new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
+    0 * mockAutoScaling._
+    0 * mockElasticLoadBalancing._
+  }
+
+  void "should not delete launch config when not available"() {
+    setup:
+    def op = new DestroyAsgAtomicOperation(
+        new DestroyAsgDescription(
+            asgName: "my-stack-v000",
+            regions: ["us-east-1"],
+            credentials: TestCredential.named('baz')))
+    op.amazonClientProvider = provider
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
+        new AutoScalingGroup(
+            instances: [new Instance(instanceId: "i-123456")]
+        )
+    ])
+    1 * mockAutoScaling.deleteAutoScalingGroup(
+        new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
     0 * mockAutoScaling._
     0 * mockElasticLoadBalancing._
   }

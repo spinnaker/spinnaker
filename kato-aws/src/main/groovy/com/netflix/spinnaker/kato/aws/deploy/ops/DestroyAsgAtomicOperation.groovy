@@ -20,9 +20,6 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancing.model.Instance
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
@@ -68,9 +65,11 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
       autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(
               autoScalingGroupName: description.asgName, forceDelete: true))
 
-      task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
-      autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
-              launchConfigurationName: autoScalingGroup.launchConfigurationName))
+      if (autoScalingGroup.launchConfigurationName) {
+        task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
+        autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
+            launchConfigurationName: autoScalingGroup.launchConfigurationName))
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done destroying $description.asgName in $description.regions."
