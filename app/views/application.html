@@ -1,10 +1,6 @@
 <div class="row page-header application-header navbar-fixed-top navbar">
   <div class="container">
-    <h2>
-      <a ui-sref="home.applications"
-           analytics-on="click" analytics-category="Application View" analytics-label="Blue arrow clicked">
-        <span class="glyphicon glyphicon-circle-arrow-left"></span>
-      </a>
+    <h2 style="min-width: 200px">
       {{application.name}}
     </h2>
     <div ng-if="application.notFound">
