@@ -1,11 +1,11 @@
 <modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
   <wizard-page key="Security Groups" label="Security Groups" done="true" render="{{!!loadBalancer.vpcId}}">
-    <ng-include src="'scripts/modules/loadBalancers/gce/securityGroups.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/configure/gce/securityGroups.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Listeners" label="Listeners" done="true">
-    <ng-include src="'scripts/modules/loadBalancers/gce/listeners.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/configure/gce/listeners.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Health Check" label="Health Check" done="true" hide-subheading="true">
-    <ng-include src="'scripts/modules/loadBalancers/gce/healthCheck.html'"></ng-include>
+    <ng-include src="'scripts/modules/loadBalancers/configure/gce/healthCheck.html'"></ng-include>
   </wizard-page>
 </modal-wizard>
