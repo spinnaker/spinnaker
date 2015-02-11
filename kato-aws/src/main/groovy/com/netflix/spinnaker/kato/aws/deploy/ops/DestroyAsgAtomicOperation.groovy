@@ -22,6 +22,7 @@ import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
@@ -62,17 +63,6 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
                 "There should only be one ASG in ${description.credentials}:${region} named ${description.asgName}")
       }
       AutoScalingGroup autoScalingGroup = result.autoScalingGroups[0]
-
-      // Deregister instances from ELB. This avoids an AWS traffic routing bug that may no longer be a problem.
-      def elbClient = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
-      List<String> loadBalancerNames = autoScalingGroup.loadBalancerNames
-      for (String loadBalancerName in loadBalancerNames) {
-        task.updateStatus BASE_PHASE, "Deregistering instances from load balancer ${loadBalancerName}"
-        List<Instance> instances = autoScalingGroup.instances*.instanceId.collect { new Instance(instanceId: it) }
-        def request = new DeregisterInstancesFromLoadBalancerRequest(
-                loadBalancerName: loadBalancerName, instances: instances)
-        elbClient.deregisterInstancesFromLoadBalancer(request)
-      }
 
       task.updateStatus BASE_PHASE, "Force deleting $description.asgName in $region."
       autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(

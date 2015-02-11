@@ -88,45 +88,4 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     0 * mockAutoScaling._
     0 * mockElasticLoadBalancing._
   }
-
-  void "should remove instances from ELBs"() {
-    setup:
-    def op = new DestroyAsgAtomicOperation(
-            new DestroyAsgDescription(
-                    asgName: "my-stack-v000",
-                    regions: ["us-east-1"],
-                    credentials: TestCredential.named('baz')))
-    op.amazonClientProvider = provider
-
-    when:
-    op.operate([])
-
-    then:
-    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
-            new AutoScalingGroup(
-                    instances: [new Instance(instanceId: "i-123456")],
-                    launchConfigurationName: "launchConfig-v000",
-                    loadBalancerNames: ["elb1", "elb2"]
-            )
-    ])
-    1 * mockAutoScaling.deleteAutoScalingGroup(
-            new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
-    1 * mockAutoScaling.deleteLaunchConfiguration(
-            new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
-    0 * mockAutoScaling._
-
-    1 * mockElasticLoadBalancing.deregisterInstancesFromLoadBalancer(
-            new DeregisterInstancesFromLoadBalancerRequest(
-                    loadBalancerName: "elb1",
-                    instances: [new com.amazonaws.services.elasticloadbalancing.model.Instance(instanceId: "i-123456")]
-            )
-    )
-    1 * mockElasticLoadBalancing.deregisterInstancesFromLoadBalancer(
-            new DeregisterInstancesFromLoadBalancerRequest(
-                    loadBalancerName: "elb2",
-                    instances: [new com.amazonaws.services.elasticloadbalancing.model.Instance(instanceId: "i-123456")]
-            )
-    )
-    0 * mockElasticLoadBalancing._
-  }
 }
