@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
@@ -47,16 +46,6 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
             findAll { it.vpcId == description.vpcId }
     securityGroup = securityGroups.find { it.groupName == description.name }
 
-    if (!securityGroup) {
-      def request = new CreateSecurityGroupRequest(description.name, description.description)
-      if (description.vpcId) {
-        request.withVpcId(description.vpcId)
-      }
-      def result = ec2.createSecurityGroup(request)
-      securityGroup = ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupIds: [result.groupId])).
-              securityGroups[0]
-    }
-
     List<IpPermission> ipPermissions = description.securityGroupIngress.collect { ingress ->
       def ingressSecurityGroup = securityGroups.find { it.groupName == ingress.name }
       map(ingress).withUserIdGroupPairs(new UserIdGroupPair().withGroupId(ingressSecurityGroup.groupId))
@@ -64,17 +53,31 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       map(ingress).withIpRanges(ingress.cidr)
     }
 
-    if (securityGroup.ipPermissions) {
-      def request = new RevokeSecurityGroupIngressRequest(groupId: securityGroup.groupId,
-              ipPermissions: securityGroup.ipPermissions.collect {
-                it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupName = null; it }
-                it
-              }
-      )
-      ec2.revokeSecurityGroupIngress(request)
+    String groupId
+    if (!securityGroup) {
+      def request = new CreateSecurityGroupRequest(description.name, description.description)
+      if (description.vpcId) {
+        request.withVpcId(description.vpcId)
+      }
+      def result = ec2.createSecurityGroup(request)
+      groupId = result.groupId
+    } else {
+      groupId = securityGroup.groupId
+      // Remove existing permissions if updating
+      def existingPermissions = securityGroup.ipPermissions.collect {
+        // Remove group name because AWS gets confused when it is provided in addition to the ID
+        it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupName = null; it }
+        it
+      }
+      if (securityGroup.ipPermissions) {
+        def request = new RevokeSecurityGroupIngressRequest(groupId: securityGroup.groupId,
+                ipPermissions: existingPermissions
+        )
+        ec2.revokeSecurityGroupIngress(request)
+      }
     }
     if (ipPermissions) {
-      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: securityGroup.groupId,
+      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: groupId,
               ipPermissions: ipPermissions))
     }
     null

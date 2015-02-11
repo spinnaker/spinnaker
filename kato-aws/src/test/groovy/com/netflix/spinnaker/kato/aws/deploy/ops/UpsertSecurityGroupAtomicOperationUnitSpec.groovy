@@ -19,7 +19,6 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
@@ -75,8 +74,6 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * ec2.createSecurityGroup(new CreateSecurityGroupRequest(groupName: "foo", description: "desc")) >> new CreateSecurityGroupResult(groupId: "123")
-    1 * ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest(groupIds: ["123"])) >> new DescribeSecurityGroupsResult(securityGroups: [new SecurityGroup(groupName: "foo", groupId: "123")])
-
     1 * ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: "123",
             ipPermissions: [
                     new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
