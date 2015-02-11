@@ -10,4 +10,5 @@ deck.iml
 .gradle
 build
 *.swp
+*.DS_Store
 

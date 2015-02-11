@@ -1,0 +1,31 @@
+<div class="form-group">
+  <input type="hidden" ng-model="availabilityZones[0]" required/>
+  <div class="col-md-4 sm-label-left">Availability Zones</div>
+  <div class="col-md-7" ng-if="!usePreferredZones && !region">(Select a region)</div>
+  <div class="col-md-7" ng-if="region">
+    <p>Automatic Availability Zone Balancing:</p>
+    <select class="form-control input-sm"
+            ng-model="model.usePreferredZones"
+            ng-change="reset(model.usePreferredZones)"
+            ng-options="option.value as option.label for option in autoBalancingOptions">
+
+    </select>
+    <br/>
+    <div ng-if="model.usePreferredZones">
+      <p>
+        Server group will be available in:
+      </p>
+      <ul>
+        <li ng-repeat="zone in model.regionZones">
+          {{zone}}
+        </li>
+      </ul>
+    </div>
+    <div ng-if="region && !model.usePreferredZones">
+      Restrict server group instances to:
+      <checklist items="availabilityZones"
+                 model="model.regionZones"></checklist>
+    </div>
+
+  </div>
+</div>
