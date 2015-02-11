@@ -89,7 +89,13 @@ class CreateDeployTask implements Task {
   @CompileStatic(TypeCheckingMode.SKIP)
   private TaskId deploy(Map deployOperation) {
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
-    deployOperation.securityGroups.addAll((deployOperation.subnetType) ? defaultVpcSecurityGroups : defaultSecurityGroups)
+
+    if (deployOperation.subnetType) {
+      addAllNonEmpty(deployOperation.securityGroups, defaultVpcSecurityGroups)
+    } else {
+      addAllNonEmpty(deployOperation.securityGroups, defaultSecurityGroups)
+    }
+
     List<Map<String, Object>> descriptions = []
 
     if (deployOperation.credentials != defaultBakeAccount) {
@@ -106,5 +112,15 @@ class CreateDeployTask implements Task {
   private
   static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
     [account: targetAccount, credentials: sourceAccount, region: region, amiName: ami]
+  }
+
+  private static void addAllNonEmpty(List<String> baseList, List<String> listToBeAdded) {
+    if (listToBeAdded) {
+      listToBeAdded.each { itemToBeAdded ->
+        if (itemToBeAdded) {
+          baseList << itemToBeAdded
+        }
+      }
+    }
   }
 }
