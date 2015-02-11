@@ -60,12 +60,14 @@
         <validation-error message="Load Balancer name can only be 32 characters."></validation-error>
       </div>
     </div>
-    <div class="form-group">
-      <div class="col-md-3 sm-label-left">Availability Zones</div>
-      <div class="col-md-7" ng-if="!loadBalancer.region">(Select a region)</div>
-      <checklist class="col-md-9" ng-if="loadBalancer.region" items="availabilityZones"
-                 model="loadBalancer.regionZones"></checklist>
-    </div>
+
+    <load-balancer-availability-zone-selector
+      model="loadBalancer"
+      region="loadBalancer.region"
+      availability-zones="availabilityZones"
+      use-preferred-zones="loadBalancer.usePreferredZones">
+    </load-balancer-availability-zone-selector>
+
     <subnet-select-field label-columns="3" help-key="aws.loadBalancer.subnet" component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
   </div>
   <div class="modal-footer">

@@ -44,7 +44,9 @@ angular.module('deckApp')
               updatedModel.push(testKey);
             }
           });
-          scope.model = updatedModel;
+
+          angular.copy(updatedModel, scope.model);
+
           if (scope.onChange) {
             scope.$evalAsync(scope.onChange);
           }
