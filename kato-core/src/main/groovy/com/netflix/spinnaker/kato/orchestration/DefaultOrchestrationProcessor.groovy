@@ -20,6 +20,8 @@ package com.netflix.spinnaker.kato.orchestration
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.metrics.TimedCallable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
@@ -45,81 +47,65 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
 
     def orchestrationsId = extendedRegistry.createId('orchestrations')
     def atomicOperationId = extendedRegistry.createId('operations')
+    def tasksId = extendedRegistry.createId('tasks')
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...")
-    Runnable orchestration = new Runnable() {
-      @Override
-      void run() {
-        try {
-          // Autowire the atomic operations
-          for (op in atomicOperations) {
-            autowire op
-          }
-          TaskRepository.threadLocalTask.set(task)
-          def results = []
-          for (AtomicOperation atomicOperation : atomicOperations) {
-            def thisOp = atomicOperationId.withTag("OperationType", atomicOperation.class.simpleName)
-            Runnable operationRunnable = new Runnable() {
-              @Override
-              void run() {
-                task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
-                try {
-                  results << atomicOperation.operate(results)
-                  task.updateStatus(TASK_PHASE, "Orchestration completed.")
-                  extendedRegistry.counter(thisOp.withTag("success", "true")).increment()
-                } catch (e) {
-                  extendedRegistry.counter(thisOp.withTag("success", "false").withTag("Cause", e.class.simpleName)).increment()
-                  def message = e.message
-                  e.printStackTrace()
-                  if (!message) {
-                    def stringWriter = new StringWriter()
-                    def printWriter = new PrintWriter(stringWriter)
-                    e.printStackTrace(printWriter)
-                    message = stringWriter.toString()
-                  }
-                  task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${message}]"
-                  task.addResultObjects([[type: "EXCEPTION", operation: atomicOperation.class.simpleName, cause: e.class.simpleName, message: message]])
-                  task.fail()
-                }
-
-              }
-            }
-            extendedRegistry.timer(thisOp).record(operationRunnable)
-          }
-          task.addResultObjects(results.findResults { it })
-          if (!task.status?.isCompleted()) {
-            task.complete()
-          }
-        } catch (Exception e) {
-          if (e instanceof TimeoutException) {
-            task.updateStatus "INIT", "Orchestration timed out."
-            task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Orchestration timed out."]])
-            task.fail()
-          } else {
+    executorService.submit TimedCallable.forClosure(extendedRegistry, orchestrationsId) {
+      try {
+        // Autowire the atomic operations
+        for (op in atomicOperations) {
+          autowire op
+        }
+        TaskRepository.threadLocalTask.set(task)
+        def results = []
+        for (AtomicOperation atomicOperation : atomicOperations) {
+          def thisOp = atomicOperationId.withTag("OperationType", atomicOperation.class.simpleName)
+          task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
+          try {
+            TimedCallable.forClosure(extendedRegistry, thisOp) {
+              results << atomicOperation.operate(results)
+              task.updateStatus(TASK_PHASE, "Orchestration completed.")
+            }.call()
+          } catch (e) {
+            def message = e.message
             e.printStackTrace()
-            def stringWriter = new StringWriter()
-            def printWriter = new PrintWriter(stringWriter)
-            e.printStackTrace(printWriter)
-            task.updateStatus("INIT", "Unknown failure -- ${stringWriter.toString()}")
-            task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Failed for unknown reason."]])
+            if (!message) {
+              def stringWriter = new StringWriter()
+              def printWriter = new PrintWriter(stringWriter)
+              e.printStackTrace(printWriter)
+              message = stringWriter.toString()
+            }
+            task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${message}]"
+            task.addResultObjects([[type: "EXCEPTION", operation: atomicOperation.class.simpleName, cause: e.class.simpleName, message: message]])
             task.fail()
           }
-        } finally {
-          if (!task.status?.isCompleted()) {
-            task.complete()
-          }
+        }
+        task.addResultObjects(results.findResults { it })
+        if (!task.status?.isCompleted()) {
+          task.complete()
+        }
+        extendedRegistry.counter(tasksId.withTag("success", "true")).increment()
+      } catch (Exception e) {
+        extendedRegistry.counter(tasksId.withTag("success", "false").withTag("cause", e.class.simpleName)).increment()
+        if (e instanceof TimeoutException) {
+          task.updateStatus "INIT", "Orchestration timed out."
+          task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Orchestration timed out."]])
+          task.fail()
+        } else {
+          e.printStackTrace()
+          def stringWriter = new StringWriter()
+          def printWriter = new PrintWriter(stringWriter)
+          e.printStackTrace(printWriter)
+          task.updateStatus("INIT", "Unknown failure -- ${stringWriter.toString()}")
+          task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Failed for unknown reason."]])
+          task.fail()
+        }
+      } finally {
+        if (!task.status?.isCompleted()) {
+          task.complete()
         }
       }
     }
 
-    Runnable timedRunnable = new Runnable() {
-      @Override
-      void run() {
-        extendedRegistry.timer(orchestrationsId).record(orchestration)
-        extendedRegistry.counter(orchestrationsId.withTag("success", task.status.isFailed() ? "false" : "true")).increment()
-      }
-    }
-
-    executorService.submit timedRunnable
     task
   }
 

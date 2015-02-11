@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kato.orchestration
 
+import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.kato.data.task.DefaultTask
-import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.context.ApplicationContext
@@ -44,6 +44,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     taskRepository = Mock(TaskRepository)
     processor.applicationContext = applicationContext
     processor.taskRepository = taskRepository
+    processor.extendedRegistry = Spectator.registry()
   }
 
   void "complete the task when everything goes as planned"() {
