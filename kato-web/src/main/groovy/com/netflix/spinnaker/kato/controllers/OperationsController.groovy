@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.controllers
 
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
@@ -47,6 +48,9 @@ class OperationsController {
 
   @Autowired
   OrchestrationProcessor orchestrationProcessor
+
+  @Autowired
+  ExtendedRegistry extendedRegistry
 
   @RequestMapping(method = RequestMethod.POST)
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
@@ -107,6 +111,9 @@ class OperationsController {
         AtomicOperation atomicOperation = converter.convertOperation(v)
         if (!atomicOperation) {
           throw new AtomicOperationNotFoundException(k)
+        }
+        if (errors.hasErrors()) {
+          extendedRegistry.counter("validationErrors", "operation", atomicOperation.class.simpleName).increment()
         }
         new AtomicOperationBindingResult(atomicOperation, errors)
       }
