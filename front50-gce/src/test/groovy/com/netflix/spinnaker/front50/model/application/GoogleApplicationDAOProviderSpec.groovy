@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.front50.security.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 

@@ -25,9 +25,9 @@ import com.google.api.services.datastore.DatastoreV1.Value
 import com.google.api.services.datastore.client.Datastore
 import com.google.api.services.datastore.client.DatastoreFactory
 import com.google.api.services.datastore.client.DatastoreOptions
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.security.gce.GoogleCredentials
-import com.netflix.spinnaker.front50.security.gce.GoogleNamedAccountCredentials
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 

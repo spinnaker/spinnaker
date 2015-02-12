@@ -21,5 +21,6 @@ dependencies {
   compile "com.google.apis:google-api-services-datastore-protobuf:v1beta2-rev1-2.1.0"
   compile "com.google.http-client:google-http-client-jackson2:1.18.0-rc"
   spinnaker.group("gce")
+  compile spinnaker.dependency("amosGce")
   compile spinnaker.dependency("frigga")
 }

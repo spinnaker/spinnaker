@@ -23,10 +23,16 @@ import groovy.transform.Canonical
 
 @Canonical
 class CassandraCredentials implements AccountCredentials<Map>, GlobalAccountCredentials {
+  static final String PROVIDER_TYPE = 'cassandra'
   String name
 
   @Override
   Map getCredentials() {
     return [:]
+  }
+
+  @Override
+  String getProvider() {
+    PROVIDER_TYPE
   }
 }
