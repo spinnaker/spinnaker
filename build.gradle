@@ -36,6 +36,8 @@ allprojects { project ->
   sourceCompatibility = 1.7
   targetCompatibility = 1.7
 
+  group = "com.netflix.spinnaker.front50"
+
   configurations.all {
     resolutionStrategy {
       force 'com.google.guava:guava:15.0'
