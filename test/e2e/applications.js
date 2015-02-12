@@ -49,22 +49,18 @@ describe('applications view', function() {
         }, console.log);
       });
 
-      it('takes a name, email, description and account', function(done) {
-        Q.all([
-          newApplicationModal.prod.click(),
-        ]).then(function() {
-          expect(newApplicationModal.submit.getAttribute('disabled')).not.toBe(null);
-        });
+      it('should have an disabled submit button when the form is not filled out', function () {
+        newApplicationModal.prod.click();
+        expect(newApplicationModal.submit.getAttribute('disabled')).not.toBe(null);
+      });
 
-        Q.all([
-          newApplicationModal.name.sendKeys('deck-e2e-test-'+browserName),
-          newApplicationModal.description.sendKeys('a deck test'),
-          newApplicationModal.email.sendKeys('delivery-engineering+deck-e2e@netflix.com'),
-          newApplicationModal.prod.click(),
-        ]).then(function() {
+      it('takes a name, email, description and account', function() {
+          newApplicationModal.name.sendKeys('deck-e2e-test-'+browserName);
+          newApplicationModal.description.sendKeys('a deck test');
+          newApplicationModal.email.sendKeys('delivery-engineering+deck-e2e@netflix.com');
+          newApplicationModal.prod.click();
+
           expect(newApplicationModal.submit.getAttribute('disabled')).toBe(null);
-          done();
-        }, console.log);
       });
 
       it('creates the application', function(done) {

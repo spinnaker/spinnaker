@@ -1,16 +1,14 @@
 exports.config = {
-  seleniumAddress: 'http://localhost:4444/wd/hub',
+  seleniumServerJar: './node_modules/selenium-server/lib/runner/selenium-server-standalone-2.43.1.jar',
+  //seleniumAddress: 'http://localhost:4444/wd/hub',
   baseUrl: 'http://0.0.0.0:9000',
   specs: 'test/e2e/**/*.js',
-  multiCapabilities: [
-    {
-      browserName: 'chrome'
-    },
-    {
-      browserName: 'firefox'
-    },
-    {
-      browserName: 'safari'
-    }
-  ],
+  getPageTimeout: 20000,
+  //directConnect:true,
+  capabilities: {
+    'browserName': 'chrome',
+  },
+  onPrepare: function() {
+    browser.driver.manage().window().setSize(1500, 800);
+  }
 };
