@@ -6,7 +6,7 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.utils.scrollTo'
 ])
-  .controller('pipelineExecutions', function($scope, $q, executionsService, d3Service, pipelineConfigService, scrollToService) {
+  .controller('pipelineExecutions', function($scope, $q, $state, executionsService, d3Service, pipelineConfigService, scrollToService) {
     var controller = this;
 
     $scope.viewState = {
@@ -121,6 +121,11 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       // if we detected the loading of a details section, scroll it into view
       if ($scope.detailsTarget) {
         scrollToService.scrollTo('execution-' + $scope.detailsTarget, 250);
+      }
+      var noExecutions = !results.executions || !results.executions.length;
+      var noConfigurations = !results.configurations.length;
+      if(noExecutions && noConfigurations) {
+        $state.go('^.pipelineConfig');
       }
     }
 
