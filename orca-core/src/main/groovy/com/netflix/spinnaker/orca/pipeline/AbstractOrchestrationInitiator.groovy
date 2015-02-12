@@ -23,10 +23,8 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
-import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.configuration.support.ReferenceJobFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -45,7 +43,6 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
   @Autowired protected ApplicationContext applicationContext
   @Autowired protected JobLauncher launcher
   @Autowired protected JobBuilderFactory jobs
-  @Autowired protected JobRegistry jobRegistry
   @Autowired protected StepBuilderFactory steps
   @Autowired protected ObjectMapper mapper
   protected List<JobExecutionListener> pipelineListeners
@@ -71,7 +68,6 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
     persistExecution(subject)
     def job = build(config, subject)
     persistExecution(subject)
-    jobRegistry.register(new ReferenceJobFactory(job))
     launcher.run job, createJobParameters(subject, config)
     subject
   }

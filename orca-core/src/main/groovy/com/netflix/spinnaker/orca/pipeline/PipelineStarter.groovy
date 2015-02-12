@@ -54,12 +54,17 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    * @return the pipeline that was created.
    */
   protected Job build(Map<String, Object> config, Pipeline pipeline) {
-    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
-    pipelineListeners.each {
-      jobBuilder = jobBuilder.listener(it)
+    def jobBuilder = jobFlowBuilder(pipeline)
+    buildFlow(jobBuilder, pipeline.stages).build().build()
+  }
+
+  protected Job buildForRestart(Pipeline pipeline) {
+    def jobBuilder = jobFlowBuilder(pipeline)
+    def stages = []
+    for (Stage stage in pipeline.stages) {
+      if (!stage.status.complete) stages.add(stage)
     }
-    jobBuilder = jobBuilder.flow(initializationStep(steps, pipeline)) as JobFlowBuilder
-    buildFlow(jobBuilder, pipeline).build().build()
+    buildFlow(jobBuilder, stages).build().build()
   }
 
   @Override
@@ -78,26 +83,6 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
             .build()
   }
 
-  // static compiler doesn't seem to know what to do here anymore...
-  @CompileStatic(TypeCheckingMode.SKIP)
-  private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
-    def stages = []
-    stages.addAll(pipeline.stages)
-    stages.inject(jobBuilder, this.&createStage)
-  }
-
-  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {
-    builderFor(stage).build(jobBuilder, stage)
-  }
-
-  protected StageBuilder builderFor(Stage<Pipeline> stage) {
-    if (stages.containsKey(stage.type)) {
-      stages.get(stage.type)
-    } else {
-      throw new NoSuchStageException(stage.type)
-    }
-  }
-
   @Override
   protected JobParameters createJobParameters(Pipeline pipeline, Map<String, Object> config) {
     def params = new JobParametersBuilder(super.createJobParameters(pipeline, config))
@@ -113,19 +98,42 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     params.toJobParameters()
   }
 
-  /*
-   * restart applies only to pipeline and not to orchestration
-   */
-
-  Pipeline restart(String executionId) {
-    def pipeline = get(executionId)
-    def job = get(pipeline)
-    launcher.run job, createJobParameters(pipeline)
-    pipeline
+  private JobFlowBuilder jobFlowBuilder(Pipeline pipeline) {
+    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+    pipelineListeners.each {
+      jobBuilder = jobBuilder.listener(it)
+    }
+    jobBuilder.flow(initializationStep(steps, pipeline)) as JobFlowBuilder
   }
 
-  protected Job get(Pipeline pipeline) {
-    jobRegistry.getJob("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+  @CompileStatic(TypeCheckingMode.SKIP)   // static compiler doesn't seem to know what to do here anymore...
+  private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, List<Stage> pipelineStages) {
+    def stages = []
+    stages.addAll(pipelineStages)
+    stages.inject(jobBuilder, this.&createStage)
+  }
+
+  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {
+    builderFor(stage).build(jobBuilder, stage)
+  }
+
+  protected StageBuilder builderFor(Stage<Pipeline> stage) {
+    if (stages.containsKey(stage.type)) {
+      stages.get(stage.type)
+    } else {
+      throw new NoSuchStageException(stage.type)
+    }
+  }
+
+  /*
+   * Because restart applies only to pipeline and not to orchestration
+   */
+  Pipeline restart(String executionId) {
+    def pipeline = get(executionId)
+    persistExecution(pipeline)
+    def job = buildForRestart(pipeline)
+    launcher.run(job, createJobParameters(pipeline))
+    pipeline
   }
 
   protected Pipeline get(String executionId) {

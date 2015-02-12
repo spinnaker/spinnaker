@@ -54,9 +54,13 @@ abstract class LinearStage extends StageBuilder {
      * {@code restrictExecutionDuringTimeWindow} flag tells the builder that this particular {@code Stage}
      * is not supposed to be run during a particular timed window in a day
      */
-    if (stage.context.containsKey("restrictExecutionDuringTimeWindow") && stage.context.restrictExecutionDuringTimeWindow as Boolean) {
+    if (stage.context.containsKey("restrictExecutionDuringTimeWindow") &&
+        stage.context.restrictExecutionDuringTimeWindow as Boolean &&
+        stage.syntheticStageOwner == null && stage.parentStageId == null &&
+        stage.execution.stages.find { Stage stg -> stg.parentStageId == stage.id } == null) {
       injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
     }
+
     processBeforeStages(jobBuilder, stageIdx, stage)
     wireSteps(jobBuilder, steps)
     processAfterStages(jobBuilder, stage)
