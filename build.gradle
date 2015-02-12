@@ -57,6 +57,8 @@ gulp_build.dependsOn 'installGulp'
 build.dependsOn 'gulp_build'
 buildDeb.dependsOn 'build'
 
+gulp_e2e.dependsOn 'gulp_build'
+
 ospackage {
   packageName = "deck"
   version = project.version.replaceAll("-SNAPSHOT", "")
