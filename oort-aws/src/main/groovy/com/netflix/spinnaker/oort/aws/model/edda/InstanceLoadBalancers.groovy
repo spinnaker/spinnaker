@@ -47,18 +47,22 @@ class InstanceLoadBalancers implements Health {
       return HealthState.Up
     }
     if (state.description == 'Instance registration is still in progress') {
-      return HealthState.Unknown
+      return HealthState.Starting
     }
-    if (state.description == 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.') {
-      return HealthState.Unknown
+    if (state.description == 'Instance is not currently registered with the LoadBalancer.') {
+      return HealthState.OutOfService
+    }
+    if (state.description == 'Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.') {
+      return HealthState.Down
     }
     return HealthState.Down
   }
 
   static HealthState deriveInstanceHealthState(List<InstanceLoadBalancerState> instanceLoadBalancerStates) {
-    instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.Down } ? HealthState.Down :
-      instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.Unknown } ? HealthState.Unknown :
-        HealthState.Up
+    instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.Starting } ? HealthState.Starting :
+      instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.Down } ? HealthState.Down :
+        instanceLoadBalancerStates.any { deriveHealthState(it) == HealthState.OutOfService } ? HealthState.OutOfService :
+          HealthState.Up
   }
 
 

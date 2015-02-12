@@ -234,7 +234,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     }
 
     instances.values().each { instance ->
-      instance.isHealthy = instance.health.any { it.state == 'Up' } && !instance.health.any { it.state == 'Down' }
+      instance.isHealthy = instance.health.any { it.state == 'Up' } && instance.health.every { it.state == 'Up' || it.state == 'Unknown' }
     }
   }
 
