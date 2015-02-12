@@ -34,8 +34,8 @@ import com.google.api.services.datastore.DatastoreV1.Property
 import com.google.api.services.datastore.DatastoreV1.RunQueryRequest
 import com.google.api.services.datastore.DatastoreV1.Value
 import com.google.protobuf.ByteString
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.security.gce.GoogleNamedAccountCredentials
 import groovy.transform.Canonical
 
 @Canonical

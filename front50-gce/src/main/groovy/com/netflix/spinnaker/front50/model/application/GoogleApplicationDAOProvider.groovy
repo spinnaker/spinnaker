@@ -18,7 +18,7 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.google.api.services.datastore.client.DatastoreFactory
 import com.google.api.services.datastore.client.DatastoreOptions
-import com.netflix.spinnaker.front50.security.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import org.springframework.stereotype.Component
 
 @Component

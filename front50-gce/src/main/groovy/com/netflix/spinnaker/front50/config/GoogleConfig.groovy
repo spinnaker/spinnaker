@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.front50.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.front50.security.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
