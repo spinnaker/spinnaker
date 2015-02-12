@@ -6,23 +6,43 @@ describe('Controller: pipelineExecutions', function () {
 
   var controller;
   var scope;
+  var $state;
+  var pipelineConfigService;
+  var executionsService;
+  var $q;
 
   beforeEach(
     module('deckApp.delivery.pipelineExecutions.controller')
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _executionsService_, _$q_) {
       scope = $rootScope.$new();
+      $state = { go: angular.noop };
+      pipelineConfigService = _pipelineConfigService_;
+      executionsService = _executionsService_;
+      $q = _$q_;
       scope.application = {name: 'foo'};
-      controller = $controller('pipelineExecutions', {
-        $scope: scope
-      });
+
+      this.initializeController = function() {
+        controller = $controller('pipelineExecutions', {
+          $scope: scope,
+          $state: $state,
+          pipelineConfigService: pipelineConfigService,
+          executionsService: executionsService,
+        });
+      };
     })
   );
 
-  it('should instantiate the controller', function () {
-    expect(controller).toBeDefined();
+  it('should reroute to pipeline config when no execution history or configurations', function () {
+    spyOn($state, 'go');
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: angular.noop, length: 0 }));
+    spyOn(executionsService, 'getAll').and.returnValue($q.when([]));
+    this.initializeController();
+    scope.$digest();
+
+    expect($state.go).toHaveBeenCalledWith('^.pipelineConfig');
   });
 });
 
