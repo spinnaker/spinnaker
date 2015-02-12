@@ -106,7 +106,7 @@ class GoogleApplicationDAO implements ApplicationDAO {
 
       // Create the key.
       Key.Builder key = Key.newBuilder().addPathElement(Key.PathElement.newBuilder().setKind(KIND)
-                                                                                    .setName(id));
+                                                                                    .setName(id.toUpperCase()));
       key.getPartitionIdBuilder().setNamespace(NAMESPACE);
 
       // Create the commit request and associate it with the transaction.
