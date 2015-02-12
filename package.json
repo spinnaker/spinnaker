@@ -46,6 +46,6 @@
     "karma-mocha-reporter": "^0.3.1",
     "karma-ng-html2js-preprocessor": "^0.1.2",
     "phantomjs": "^1.9.15",
-    "selenium-server": "=2.43.1"
+    "selenium-server": "=2.44"
   }
 }
