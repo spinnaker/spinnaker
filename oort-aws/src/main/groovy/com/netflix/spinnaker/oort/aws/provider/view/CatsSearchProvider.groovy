@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.util.regex.Pattern
+
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
@@ -48,6 +50,8 @@ class CatsSearchProvider implements SearchProvider {
     SERVER_GROUPS.ns,
     INSTANCES.ns
   ]
+
+  static Pattern INSTANCE_ID_PATTERN = Pattern.compile('(i-)?[0-9a-f]{8}')
 
   static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
 
@@ -178,6 +182,10 @@ class CatsSearchProvider implements SearchProvider {
   private Collection<String> buildFilterIdentifiers(AccountCredentialsProvider accountCredentialsProvider, String cache, String query) {
     switch (cache) {
       case INSTANCES.ns:
+        if (!query.matches(INSTANCE_ID_PATTERN)) {
+          return []
+        }
+        def normalizedQuery = query.startsWith('i-') ? query : 'i-' + query
         Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
           it instanceof NetflixAmazonCredentials
         } as Set<NetflixAmazonCredentials>
@@ -185,7 +193,7 @@ class CatsSearchProvider implements SearchProvider {
         def possibleInstanceIdentifiers = []
         amazonCredentials.each { NetflixAmazonCredentials credentials ->
           credentials.regions.each { AmazonCredentials.AWSRegion region ->
-            possibleInstanceIdentifiers << Keys.getInstanceKey(query, credentials.name, region.name)
+            possibleInstanceIdentifiers << Keys.getInstanceKey(normalizedQuery, credentials.name, region.name)
           }
         }
         return cacheView.getAll(INSTANCES.ns, possibleInstanceIdentifiers)*.id
