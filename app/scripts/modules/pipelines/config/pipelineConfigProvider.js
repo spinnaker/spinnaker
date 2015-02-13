@@ -22,6 +22,12 @@ angular.module('deckApp.pipelines.config', [])
       return angular.copy(stageTypes);
     }
 
+    function getConfigurableStageTypes() {
+      return getStageTypes().filter(function(stageType) {
+        return !stageType.synthetic;
+      });
+    }
+
     function getStageConfig(type) {
       var matches = getStageTypes().filter(function(stageType) { return stageType.key === type; });
       return matches.length ? matches[0] : null;
@@ -34,6 +40,7 @@ angular.module('deckApp.pipelines.config', [])
         getTriggerTypes: getTriggerTypes,
         getStageTypes: getStageTypes,
         getStageConfig: getStageConfig,
+        getConfigurableStageTypes: getConfigurableStageTypes,
       };
     };
 

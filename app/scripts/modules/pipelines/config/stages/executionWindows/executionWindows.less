@@ -1,0 +1,49 @@
+@import "app/styles/imports/commonImports.less";
+
+execution-windows {
+  .execution-window-graph {
+    @graph_height: 30px;
+    width: 100%;
+    height: @graph_height;
+    border: 1px solid @mid_lighter_grey;
+    position: relative;
+    margin: 20px 0;
+
+    .execution-window {
+      transition: width .25s ease-in-out, left .25s ease-in-out;
+      height: @graph_height - 2;
+      background-color: @healthy_green;
+      position: absolute;
+    }
+
+    .dividers {
+      .divider {
+        @divider-height: 13px;
+        position: absolute;
+        width: 5px;
+        color: @mid_grey;
+        border-left: 1px solid @mid_lighter_grey;
+        padding-left: 4px;
+        font-size: 75%;
+        height: @divider-height;
+        margin-top: @graph_height - @divider-height - 2;
+        &:first-child {
+          border-left-width: 0;
+        }
+      }
+    }
+
+  }
+
+  .start-end-divider {
+    padding: 0 15px;
+  }
+
+  .window-entry {
+    padding-bottom: 10px;
+  }
+
+  .btn-remove {
+    margin-left: 20px;
+  }
+}

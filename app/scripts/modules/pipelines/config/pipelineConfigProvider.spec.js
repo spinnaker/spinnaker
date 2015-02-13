@@ -22,6 +22,13 @@ describe('authenticationProvider: application startup', function() {
       configurer.registerStage({type: 'b'});
       expect(configurer.$get().getStageTypes().length).toBe(2);
     }));
+
+    it('provides only non-synthetic stages', inject(function() {
+      configurer.registerStage({type: 'a'});
+      configurer.registerStage({type: 'b', synthetic: true});
+      expect(configurer.$get().getStageTypes().length).toBe(2);
+      expect(configurer.$get().getConfigurableStageTypes().length).toBe(1);
+    }));
   });
 
 });
