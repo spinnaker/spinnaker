@@ -8,7 +8,7 @@ describe('Controller: ApplicationsCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.applications')
+    module('deckApp.applications.controller')
   );
 
   beforeEach(
