@@ -26,6 +26,7 @@ angular.module('deckApp', [
 
     'deckApp.insight',
     'deckApp.application',
+    'deckApp.feedback',
 
     'deckApp.aws.loadBalancer.transformer.service',
     'deckApp.gce.loadBalancer.transformer.service',

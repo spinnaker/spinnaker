@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('deckApp')
-  .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, applicationName, account, clusterName, serverGroup, serverGroupReader) {
+angular.module('deckApp.scalingActivities.controller', [
+  'deckApp.serverGroup.read.service',
+])
+  .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup) {
     var ctrl = this;
     serverGroupReader.getScalingActivities(applicationName, account, clusterName, serverGroup.name, serverGroup.region, serverGroup.provider).then(function(response) {
       $scope.activities = ctrl.groupScalingActivities(response);
