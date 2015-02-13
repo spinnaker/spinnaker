@@ -6,7 +6,7 @@ angular.module('deckApp')
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'views/application/instances.html',
+      templateUrl: 'scripts/modules/instance/instances.html',
       scope: {
         instances: '=',
         renderInstancesOnScroll: '=',
