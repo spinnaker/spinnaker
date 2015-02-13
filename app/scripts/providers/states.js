@@ -26,7 +26,7 @@ angular.module('deckApp.states', [
         url: '/instanceDetails?instanceId',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'views/application/instanceDetails.html',
+            templateUrl: 'scripts/modules/instance/instanceDetails.html',
             controller: 'InstanceDetailsCtrl',
             controllerAs: 'ctrl'
           }
