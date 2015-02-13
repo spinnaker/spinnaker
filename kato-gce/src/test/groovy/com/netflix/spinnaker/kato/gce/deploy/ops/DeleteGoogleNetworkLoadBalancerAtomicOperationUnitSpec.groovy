@@ -214,13 +214,11 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule
-      2 * computeMock.targetPools() >> targetPools
+      1 * computeMock.targetPools() >> targetPools
       1 * targetPools.get(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsGet
       1 * targetPoolsGet.execute() >> targetPool
       1 * forwardingRules.delete(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesPendingDeleteOp
-      1 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
-      1 * targetPoolsDelete.execute() >> targetPoolsDeleteOp
       1 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRulesFailingDeleteOp
@@ -260,16 +258,68 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> forwardingRule
-      2 * computeMock.targetPools() >> targetPools
+      1 * computeMock.targetPools() >> targetPools
       1 * targetPools.get(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsGet
       1 * targetPoolsGet.execute() >> targetPool
       1 * forwardingRules.delete(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesPendingDeleteOp
-      1 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
-      1 * targetPoolsDelete.execute() >> targetPoolsDeleteOp
       1 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRulesPendingDeleteOp
       thrown GCEResourceNotFoundException
+  }
+
+  void "should wait on slow deletion of forwarding rule and successfully delete Network Load Balancer"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
+      def targetPoolOperationGet = Mock(Compute.RegionOperations.Get)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def forwardingRulesDeleteOpPending = new Operation(
+          name: FORWARDING_RULE_DELETE_OP_NAME,
+          status: "PENDING")
+      def forwardingRulesDeleteOpDone = new Operation(
+          name: FORWARDING_RULE_DELETE_OP_NAME,
+          status: "DONE")
+      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_POOL_URL)
+      def targetPools = Mock(Compute.TargetPools)
+      def targetPoolsGet = Mock(Compute.TargetPools.Get)
+      def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
+      def targetPoolsDeleteOp = new Operation(
+          name: TARGET_POOL_DELETE_OP_NAME,
+          status: "DONE")
+      def targetPool = new com.google.api.services.compute.model.TargetPool()
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new DeleteGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRule
+      2 * computeMock.targetPools() >> targetPools
+      1 * targetPools.get(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsGet
+      1 * targetPoolsGet.execute() >> targetPool
+      0 * computeMock.httpHealthChecks()
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOpPending
+      1 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
+      1 * targetPoolsDelete.execute() >> targetPoolsDeleteOp
+      4 * computeMock.regionOperations() >> regionOperations
+      3 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      2 * forwardingRuleOperationGet.execute() >> forwardingRulesDeleteOpPending
+      1 * forwardingRuleOperationGet.execute() >> forwardingRulesDeleteOpDone
+      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_DELETE_OP_NAME) >> targetPoolOperationGet
+      1 * targetPoolOperationGet.execute() >> targetPoolsDeleteOp
   }
 }

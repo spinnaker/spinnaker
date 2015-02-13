@@ -25,6 +25,7 @@ import com.google.api.services.compute.model.TargetHttpProxy
 import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -47,19 +48,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
-  }
-
-  private static handleFinishedAsyncDeleteOperation(Operation operation, String resourceType, String resourceName) {
-    if (!operation) {
-      GCEUtil.updateStatusAndThrowException("Delete operation of $resourceType $resourceName timed out. The resource " +
-          "may still exist.", task, BASE_PHASE)
-    }
-    if (operation.getError()) {
-      def error = operation.getError().getErrors().get(0)
-      GCEUtil.updateStatusAndThrowException("Failed to delete $resourceType $resourceName with error: $error", task,
-          BASE_PHASE)
-    }
-    task.updateStatus BASE_PHASE, "Done deleting $resourceType $resourceName."
   }
 
   // Used to find all services referenced in a URL map.
@@ -134,18 +122,34 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     }
     healthCheckUrls.unique()
 
-    // Start deleting these objects.
+    // Note that we cannot use an Elvis operator here because we might have a deleteOperationTimeoutSeconds value
+    // of zero. In that case, we still want to pass that value. So we use null comparison here instead.
+    def timeoutSeconds = description.deleteOperationTimeoutSeconds != null ?
+        description.deleteOperationTimeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
+    def deadline = System.currentTimeMillis() + timeoutSeconds * 1000
+
+    // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
+    // delete its dependencies.
     task.updateStatus BASE_PHASE, "Deleting forwarding rule $forwardingRuleName..."
     Operation deleteForwardingRuleOperation =
         compute.globalForwardingRules().delete(project, forwardingRuleName).execute()
 
+    GCEOperationUtil.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
+        Math.max(deadline - System.currentTimeMillis(), 0), task, "forwarding rule" + forwardingRuleName, BASE_PHASE)
+
     task.updateStatus BASE_PHASE, "Deleting target HTTP proxy $targetHttpProxyName..."
     Operation deleteTargetHttpProxyOperation = compute.targetHttpProxies().delete(project, targetHttpProxyName).execute()
+
+    GCEOperationUtil.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
+        Math.max(deadline - System.currentTimeMillis(), 0), task, "target http proxy" + targetHttpProxyName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
     Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()
 
-    // We make a list of the delete operations for backend services and health checks.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
+        Math.max(deadline - System.currentTimeMillis(), 0), task, "url map" + urlMapName, BASE_PHASE)
+
+    // We make a list of the delete operations for backend services.
     List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
         new ArrayList<BackendServiceAsyncDeleteOperation>()
     for (String backendServiceUrl : backendServiceUrls) {
@@ -157,6 +161,14 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
           operationName: deleteBackendServiceOp.getName()))
     }
 
+    // Wait on all of these deletes to complete.
+    for (BackendServiceAsyncDeleteOperation asyncOperation : deleteBackendServiceAsyncOperations) {
+      GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
+          Math.max(deadline - System.currentTimeMillis(), 0), task,
+          "backend service" + asyncOperation.backendServiceName, BASE_PHASE)
+    }
+
+    // Now make a list of the delete operations for health checks.
     List<HealthCheckAsyncDeleteOperation> deleteHealthCheckAsyncOperations =
         new ArrayList<HealthCheckAsyncDeleteOperation>()
     for (String healthCheckUrl : healthCheckUrls) {
@@ -168,37 +180,11 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
           operationName: deleteHealthCheckOp.getName()))
     }
 
-    def timeoutSeconds = description.deleteOperationTimeoutSeconds != null ?
-        description.deleteOperationTimeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
-    def deadline = System.currentTimeMillis() + timeoutSeconds * 1000
-
-    // Now we wait (with timeout) for all these operations to complete.
-    // TODO(bklingher): Create a wrapper for delete operations that handles polling, waiting and timeout for each step independently.
-    handleFinishedAsyncDeleteOperation(
-        GCEUtil.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
-            Math.max(deadline - System.currentTimeMillis(), 0)),
-        "forwarding rule", forwardingRuleName)
-    handleFinishedAsyncDeleteOperation(
-        GCEUtil.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
-            Math.max(deadline - System.currentTimeMillis(), 0)),
-        "target http proxy", targetHttpProxyName)
-    handleFinishedAsyncDeleteOperation(
-        GCEUtil.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
-            Math.max(deadline - System.currentTimeMillis(), 0)),
-        "url map", urlMapName)
-
-    for (BackendServiceAsyncDeleteOperation asyncOperation : deleteBackendServiceAsyncOperations) {
-      handleFinishedAsyncDeleteOperation(
-          GCEUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-              Math.max(deadline - System.currentTimeMillis(), 0)),
-          "backend service", asyncOperation.backendServiceName)
-    }
-
+    // Finally, wait on all of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
-      handleFinishedAsyncDeleteOperation(
-          GCEUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-              Math.max(deadline - System.currentTimeMillis(), 0)),
-          "health check", asyncOperation.healthCheckName)
+      GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
+          Math.max(deadline - System.currentTimeMillis(), 0), task, "health check" + asyncOperation.healthCheckName,
+          BASE_PHASE)
     }
 
     task.updateStatus BASE_PHASE, "Done deleting http load balancer $description.loadBalancerName."
