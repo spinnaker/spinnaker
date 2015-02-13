@@ -24,6 +24,7 @@ import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import org.springframework.boot.actuate.endpoint.HealthEndpoint
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
 import org.springframework.boot.actuate.health.OrderedHealthAggregator
+import org.springframework.boot.actuate.health.Status
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
@@ -34,16 +35,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup
 
-/**
- * Created by aglover on 5/10/14.
- */
-class HealthCheckSpec extends Specification {
-
+class ApplicationdAOProviderHealthIndicatorSpec extends Specification {
   @Shared
-  MockMvc mockMvc
-
-  @Shared
-  HealthCheck healthCheck
+  ApplicationDAOProviderHealthIndicator healthCheck
 
   @Shared
   ApplicationDAO dao
@@ -52,34 +46,28 @@ class HealthCheckSpec extends Specification {
     def accountCredentialsProvider = Stub(AccountCredentialsProvider)
     accountCredentialsProvider.all >> [Stub(AccountCredentials)]
     dao = Mock(ApplicationDAO)
-    healthCheck = new HealthCheck(accountCredentialsProvider: accountCredentialsProvider, applicationDAOProviders: [new TestApplicationDAOProvider(dao: dao)])
-    this.mockMvc = standaloneSetup(new EndpointMvcAdapter(
-      new HealthEndpoint(new OrderedHealthAggregator(), [health: this.healthCheck]))).setMessageConverters new MappingJackson2HttpMessageConverter() build()
+    healthCheck = new ApplicationDAOProviderHealthIndicator(accountCredentialsProvider: accountCredentialsProvider, applicationDAOProviders: [new TestApplicationDAOProvider(dao: dao)])
   }
 
   void 'health check should return 5xx error if dao is not working'() {
-    setup:
-
-
     when:
-    def result = mockMvc.perform(get("/health")).andReturn()
+    def result = healthCheck.health()
 
     then:
     1 * dao.isHealthly() >> false
-    result.response.status == HttpStatus.SERVICE_UNAVAILABLE.value()
+    result.status == Status.DOWN
   }
 
   void 'health check should return Ok'() {
     when:
-    def response = mockMvc.perform(get("/health"))
+    def result = healthCheck.health()
 
     then:
     1 * dao.isHealthly() >> true
-    response.andExpect status().isOk()
+    result.status == Status.UP
   }
 
   static class TestApplicationDAOProvider implements ApplicationDAOProvider<AccountCredentials> {
-
     ApplicationDAO dao
 
     @Override

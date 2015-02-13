@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-@ComponentScan(["com.netflix.spinnaker.front50"])
+@ComponentScan(["com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"])
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
     'netflix.environment': System.getProperty('netflix.environment', 'test'),
