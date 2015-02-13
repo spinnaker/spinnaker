@@ -200,7 +200,7 @@ angular.module('deckApp.states', [
               controllerAs: 'clustersFilters'
             },
             'master': {
-              templateUrl: 'views/application/cluster/all.html',
+              templateUrl: 'scripts/modules/cluster/all.html',
               controller: 'AllClustersCtrl',
               controllerAs: 'allClusters'
             }
