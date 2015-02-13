@@ -23,7 +23,8 @@ angular.module('deckApp', [
     'angular.filter',
     'deckApp.states',
     'deckApp.delivery.states',
-    'deckApp.application.controller',
+
+    'deckApp.application',
 
     'deckApp.aws.loadBalancer.transformer.service',
     'deckApp.gce.loadBalancer.transformer.service',
@@ -47,7 +48,6 @@ angular.module('deckApp', [
     'deckApp.deploymentStrategy.redblack',
     'deckApp.deploymentStrategy.none',
     'deckApp.deploymentStrategy.highlander',
-    'deckApp.applications',
     'deckApp.securityGroup',
     'deckApp.serverGroup',
     'deckApp.instance',

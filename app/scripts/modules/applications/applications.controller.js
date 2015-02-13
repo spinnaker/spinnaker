@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.applications', [
+angular.module('deckApp.applications.controller', [
   'ui.bootstrap',
   'deckApp.applications.read.service',
   'deckApp.urlBuilder',
@@ -37,7 +37,7 @@ angular.module('deckApp.applications', [
         action: function() {
           $modal.open({
             scope: $scope,
-            templateUrl: 'views/newapplication.html',
+            templateUrl: 'scripts/modules/applications/modal/newapplication.html',
             controller: 'CreateApplicationModalCtrl',
             controllerAs: 'newAppModal'
           }).result.then(routeToApplication);
