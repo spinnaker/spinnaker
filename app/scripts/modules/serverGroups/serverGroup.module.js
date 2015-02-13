@@ -4,6 +4,8 @@ angular
   .module('deckApp.serverGroup', [
     'deckApp.closable.modal.controller',
     'deckApp.scalingActivities.controller',
+    'deckApp.resizeServerGroup.controller',
+
     'deckApp.serverGroup.write.service',
     'deckApp.serverGroup.transformer.service',
     'deckApp.serverGroup.configure.aws',
