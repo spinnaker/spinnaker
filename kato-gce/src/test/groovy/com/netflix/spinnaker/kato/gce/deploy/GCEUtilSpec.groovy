@@ -146,23 +146,23 @@ class GCEUtilSpec extends Specification {
 
   void "waitForOperation should query the operation at least once"() {
     expect:
-      GCEUtil.waitForOperation({return new Operation(status: "DONE")}, 0,
-          new GCEUtil.Clock()) == new Operation(status: "DONE")
+      GCEOperationUtil.waitForOperation({return new Operation(status: "DONE")}, 0,
+          new GCEOperationUtil.Clock()) == new Operation(status: "DONE")
   }
 
   void "waitForOperation should return null on timeout"() {
     expect:
-      GCEUtil.waitForOperation({return new Operation(status: "PENDING")}, 0,
-          new GCEUtil.Clock()) == null
+      GCEOperationUtil.waitForOperation({return new Operation(status: "PENDING")}, 0,
+          new GCEOperationUtil.Clock()) == null
   }
 
   void "waitForOperation should retry until timeout"() {
     setup:
       def getOperationMock = Mock(Closure)
-      def clockMock = Mock(GCEUtil.Clock)
+      def clockMock = Mock(GCEOperationUtil.Clock)
 
     when:
-      GCEUtil.waitForOperation(getOperationMock, 5000, clockMock)
+      GCEOperationUtil.waitForOperation(getOperationMock, 5000, clockMock)
 
     then:
       1 * clockMock.currentTimeMillis() >> 0

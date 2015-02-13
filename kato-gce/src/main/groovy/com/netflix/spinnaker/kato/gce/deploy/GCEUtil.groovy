@@ -35,15 +35,7 @@ import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBal
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 
-import java.util.concurrent.TimeUnit
-
 class GCEUtil {
-  static class Clock {
-    long currentTimeMillis() {
-      return System.currentTimeMillis()
-    }
-  }
-
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
 
   public static final String APPLICATION_NAME = "Spinnaker"
@@ -187,42 +179,6 @@ class GCEUtil {
 
   static List<String> getZonesFromRegion(String projectName, String region, Compute compute) {
     return compute.regions().get(projectName, region).execute().getZones()
-  }
-
-  static Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
-                                            long timeoutMillis) {
-    return waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()},
-        timeoutMillis, new Clock())
-  }
-
-  static Operation waitForGlobalOperation(Compute compute, String projectName, String operationName,
-                                          long timeoutMillis) {
-    return waitForOperation({compute.globalOperations().get(projectName, operationName).execute()}, timeoutMillis,
-        new Clock())
-  }
-
-  // TODO(odedmeri): implement a more accurate way to achieve timeouts with polling.
-  private static Operation waitForOperation(Closure getOperation, long timeoutMillis, Clock clock) {
-    def deadline = clock.currentTimeMillis() + timeoutMillis
-    long sleepIntervalMillis = timeoutMillis / OPERATIONS_POLLING_INTERVAL_FRACTION
-    while (true) {
-      Operation operation = getOperation()
-      if (operation.getStatus() == "DONE") {
-        return operation
-      }
-      def timeLeftUntilTimeoutMillis = deadline - clock.currentTimeMillis()
-      if (timeLeftUntilTimeoutMillis <= 0) {
-        break;
-      }
-      try {
-        // TODO(odedmeri): Sleeping for timeLeftUntilTimeoutMillis will actually cause us to miss the deadline by one
-        // extra polling. We should subtract a constant from it that will cover for the call on the next iteration.
-        TimeUnit.MILLISECONDS.sleep(Math.min(sleepIntervalMillis, timeLeftUntilTimeoutMillis))
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    }
-    return null
   }
 
   static String buildDiskTypeUrl(String projectName, String zone, String diskType) {
