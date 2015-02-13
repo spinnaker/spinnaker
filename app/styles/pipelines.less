@@ -1,6 +1,24 @@
 @import "app/styles/imports/commonImports.less";
 
 .pipelines {
+  position: fixed;
+  top: 130px;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+
+  > .header {
+    flex: none
+  }
+
+  > .execution-groups {
+    padding: 0 15px;
+    flex: 1 0 100px;
+    overflow-y: auto;
+  }
+
   .stage-filters {
     label {
       font-size: 12px;

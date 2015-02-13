@@ -57,7 +57,7 @@ angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
       return registeredEvent && elementTop < scrollBottom;
     }
 
-    var fireEvents = _.debounce(function fireEvents(scrollTarget) {
+    var fireEvents = _.throttle(function fireEvents(scrollTarget) {
       var scrollBottom = $$window.scrollTop() + $window.innerHeight,
           executed = [];
 

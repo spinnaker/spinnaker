@@ -19,13 +19,15 @@
 angular.module('deckApp.utils.scrollTo', ['deckApp.utils.jQuery'])
   .factory('scrollToService', function($timeout, $) {
 
-    function scrollTo(elementId, offset) {
+    function scrollTo(elementId, scrollableContainer, offset) {
       $timeout(function() {
         var elem = $('#' + elementId);
         if (elem.length) {
-          var content = $('html,body');
-          var top = elem.offset().top - offset;
-          content.animate({scrollTop: top + 'px'}, 200);
+          var content = elem.closest(scrollableContainer);
+          if (content.length) {
+            var top = elem.offset().top - offset;
+            content.animate({scrollTop: top + 'px'}, 200);
+          }
         }
       });
     }

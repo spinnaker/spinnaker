@@ -14,6 +14,7 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
     };
 
     $scope.filter = {
+      count: 5,
       execution: {
         status: {
           running: true,
@@ -120,7 +121,7 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       });
       // if we detected the loading of a details section, scroll it into view
       if ($scope.detailsTarget) {
-        scrollToService.scrollTo('execution-' + $scope.detailsTarget, 250);
+        scrollToService.scrollTo('execution-' + $scope.detailsTarget, '.execution-groups', 415);
       }
       var noExecutions = !results.executions || !results.executions.length;
       var noConfigurations = !results.configurations.length;

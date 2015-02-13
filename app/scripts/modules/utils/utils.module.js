@@ -9,4 +9,5 @@ angular.module('deckApp.utils', [
   'deckApp.utils.moment',
   'deckApp.utils.scrollTrigger',
   'deckApp.utils.rx',
+  'deckApp.utils.stickyHeader',
 ]);
