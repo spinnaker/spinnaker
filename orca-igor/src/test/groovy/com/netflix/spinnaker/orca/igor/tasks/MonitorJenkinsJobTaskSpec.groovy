@@ -51,9 +51,33 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     'ABORTED'  | ExecutionStatus.CANCELED
     'FAILURE'  | ExecutionStatus.FAILED
     'SUCCESS'  | ExecutionStatus.SUCCEEDED
-    'UNSTABLE' | ExecutionStatus.SUCCEEDED
+    'UNSTABLE' | ExecutionStatus.FAILED
     null       | ExecutionStatus.RUNNING
     'UNKNOWN'  | ExecutionStatus.RUNNING
+  }
+
+  @Unroll
+  def "should ignore job state when build is running"() {
+    given:
+    def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4]).asImmutable()
+
+    and:
+    task.igorService = Stub(IgorService) {
+      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [ result : 'SUCCESS', running: running ]
+    }
+
+    expect:
+    task.execute(stage).status == taskStatus
+
+    where:
+    running | taskStatus
+    true    | ExecutionStatus.RUNNING
+    'true'  | ExecutionStatus.RUNNING
+    null    | ExecutionStatus.SUCCEEDED
+    false   | ExecutionStatus.SUCCEEDED
+    'false' | ExecutionStatus.SUCCEEDED
+
+
   }
 
   def "should return running status if igor call 404's"() {
