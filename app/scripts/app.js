@@ -24,6 +24,7 @@ angular.module('deckApp', [
     'deckApp.states',
     'deckApp.delivery.states',
 
+    'deckApp.insight',
     'deckApp.application',
 
     'deckApp.aws.loadBalancer.transformer.service',

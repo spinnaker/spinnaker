@@ -183,7 +183,7 @@ angular.module('deckApp.states', [
         abstract: true,
         views: {
           'insight': {
-            templateUrl: 'views/insight.html',
+            templateUrl: 'scripts/modules/insight/insight.html',
             controller: 'InsightCtrl',
             controllerAs: 'insight'
           }
