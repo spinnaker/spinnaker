@@ -64,10 +64,6 @@ class MetricsInterceptor extends HandlerInterceptorAdapter {
         id = id.withTag("application", variables?.application as String)
       }
 
-      extendedRegistry.timer(id).record(
-          System.currentTimeMillis() - (request.getAttribute(TIMER_ATTRIBUTE) as Long), TimeUnit.MILLISECONDS
-      )
-
       if (ex || response.status >= 400) {
         id = id.withTag("success", "false")
         if (ex) {
@@ -76,7 +72,10 @@ class MetricsInterceptor extends HandlerInterceptorAdapter {
       } else {
         id = id.withTag("success", "true")
       }
-      extendedRegistry.counter(id).increment()
+
+      extendedRegistry.timer(id).record(
+          System.currentTimeMillis() - (request.getAttribute(TIMER_ATTRIBUTE) as Long), TimeUnit.MILLISECONDS
+      )
     }
   }
 }
