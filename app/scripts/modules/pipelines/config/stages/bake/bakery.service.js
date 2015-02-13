@@ -19,10 +19,15 @@ angular.module('deckApp.pipelines.stage.bake')
       return $q.when(['pv', 'hvm']);
     }
 
+    function getStoreTypes() {
+      return $q.when(['ebs', 's3']);
+    }
+
     return {
       getRegions: getRegions,
       getBaseOsOptions: getBaseOsOptions,
       getVmTypes: getVmTypes,
       getBaseLabelOptions: getBaseLabelOptions,
+      getStoreTypes: getStoreTypes,
     };
   });

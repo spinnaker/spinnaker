@@ -1,0 +1,79 @@
+<div class="form-group">
+  <div class="col-md-9 col-md-offset-1">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" ng-model="stage.restrictExecutionDuringTimeWindow"/>
+        <strong> Restrict execution to specific time windows</strong>
+      </label>
+    </div>
+  </div>
+</div>
+<div ng-if="stage.restrictExecutionDuringTimeWindow">
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+      <div class="execution-window-graph">
+        <div class="execution-day">
+          <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="execution-window" ng-style="executionWindowsCtrl.getWindowStyle(window)">
+          </div>
+        </div>
+        <div class="dividers">
+          <div ng-repeat="divider in dividers"
+               class="divider" style="left: {{divider.left}}">
+            {{divider.label}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <p class="col-md-9 col-md-offset-1 form-control-static">
+      This stage will only run within the following windows (all times in PST):
+    </p>
+  </div>
+  <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="window-entry">
+      <div class="form-group">
+        <div class="col-md-6 col-md-offset-3">
+          <span class="start-end-divider">
+            from
+          </span>
+          <select class="input input-sm"
+                  ng-model="window.startHour"
+                  ng-options="option.key as option.label for option in hours">
+          </select>
+          :
+          <select class="input input-sm"
+                  ng-model="window.startMin"
+                  ng-options="option.key as option.label for option in minutes">
+          </select>
+          <span class="start-end-divider">
+            to
+          </span>
+
+          <select class="input input-sm"
+                  ng-model="window.endHour"
+                  ng-options="option.key as option.label for option in hours">
+          </select>
+          :
+          <select class="input input-sm"
+                  ng-model="window.endMin"
+                  ng-options="option.key as option.label for option in minutes">
+          </select>
+
+          <button class="btn-link btn-remove"
+                  ng-click="executionWindowsCtrl.removeWindow($index)">
+            <span class="glyphicon glyphicon-trash" tooltip="Remove window"></span><span class="sr-only">Remove window</span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <button class="btn btn-block btn-add-trigger add-new" ng-click="executionWindowsCtrl.addExecutionWindow()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add an execution window
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

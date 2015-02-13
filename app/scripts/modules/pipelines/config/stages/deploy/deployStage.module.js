@@ -6,4 +6,5 @@ angular.module('deckApp.pipelines.stage.deploy', [
   'deckApp.deploymentStrategy',
   'deckApp.utils.lodash',
   'deckApp.serverGroup.read.service',
+  'deckApp.aws.serverGroupCommandBuilder.service',
 ]);

@@ -42,6 +42,17 @@
     </div>
   </div>
   <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Store Type</label>
+    <div class="col-md-6">
+      <label class="radio-inline" ng-repeat="storeType in storeTypes">
+        <input type="radio"
+               ng-model="stage.storeType"
+               ng-value="storeType"/>
+        {{storeType | uppercase}}
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Base Label</label>
     <div class="col-md-6">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">

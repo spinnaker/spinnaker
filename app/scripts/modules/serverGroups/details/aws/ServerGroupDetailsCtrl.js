@@ -3,13 +3,17 @@
 
 
 angular.module('deckApp.serverGroup.details.aws.controller', [
+  'ui.bootstrap',
   'deckApp.notifications',
   'deckApp.confirmationModal.service',
   'deckApp.serverGroup.write.service',
   'deckApp.utils.lodash',
   'deckApp.serverGroup.details.aws.autoscaling.process',
+  'deckApp.serverGroup.read.service',
+  'deckApp.aws.serverGroupCommandBuilder.service'
+
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
                                                   subnetReader, autoScalingProcessService) {
 
@@ -105,6 +109,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         region: serverGroup.region
       };
 
+
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
@@ -112,6 +117,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
+        body: this.getBodyTemplate(serverGroup, application),
         onTaskComplete: function() {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -123,6 +129,23 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
           }
         }
       });
+    };
+
+    this.getBodyTemplate = function(serverGroup, application) {
+      if(this.isLastServerGroupInRegion(serverGroup, application)){
+        var template = $templateCache.get('scripts/modules/serverGroups/details/aws/deleteLastServerGroupWarning.html');
+        $scope.deletingServerGroup = serverGroup;
+        return $compile(template)($scope);
+      }
+    };
+
+    this.isLastServerGroupInRegion = function (serverGroup, application ) {
+      try {
+        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
+        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
+      } catch (error) {
+        return false;
+      }
     };
 
     this.disableServerGroup = function disableServerGroup() {
