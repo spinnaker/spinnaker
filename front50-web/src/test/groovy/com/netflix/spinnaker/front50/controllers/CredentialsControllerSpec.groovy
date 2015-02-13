@@ -19,14 +19,13 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.security.CassandraCredentials
+import org.springframework.http.MediaType
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
 import spock.lang.Specification
-
-import javax.ws.rs.core.MediaType
 
 class CredentialsControllerSpec extends Specification {
 

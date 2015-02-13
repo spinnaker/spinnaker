@@ -17,15 +17,17 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
+import com.wordnik.swagger.annotations.Api
+import com.wordnik.swagger.annotations.ApiOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
@@ -38,6 +40,7 @@ import javax.servlet.http.HttpServletResponse
 @Slf4j
 @RestController
 @RequestMapping("/{account}/applications")
+@Api(value = "application", description = "Application API")
 public class ApplicationsController {
   @Autowired
   MessageSource messageSource
@@ -51,16 +54,26 @@ public class ApplicationsController {
   @Autowired
   List<ApplicationValidator> applicationValidators
 
+  @Autowired
+  ExtendedRegistry extendedRegistry
+
   @RequestMapping(value = "/search", method = RequestMethod.GET)
+  @ApiOperation(value = "", notes = """Search for applications within a specific `account` given one or more attributes.
+
+- /search?email=my@email.com
+- /search?email=my@email.com&name=flex
+""")
   Set<Application> search(@PathVariable String account, @RequestParam Map<String, String> params) {
     return getApplication(account).search(params)
   }
 
+  @ApiOperation(value = "", notes = "Fetch all applications within a specific `account`")
   @RequestMapping(method = RequestMethod.GET)
-  Collection<Application> applications(@PathVariable String account) {
+  Set<Application> applications(@PathVariable String account) {
     return getApplication(account).findAll()
   }
 
+  @ApiOperation(value = "", notes = "Update an existing application within a specific `account`")
   @RequestMapping(method = RequestMethod.PUT)
   Application put(@PathVariable String account, @RequestBody final Application app) {
     def application = getApplication(account)
@@ -69,20 +82,23 @@ public class ApplicationsController {
     return application
   }
 
-  @RequestMapping(method = RequestMethod.POST, value = "/name/{name:.+}")
+  @ApiOperation(value = "", notes = "Create an application within a specific `account`")
+  @RequestMapping(method = RequestMethod.POST, value = "/name/{application:.+}")
   Application post(@PathVariable String account, @RequestBody final Application app) {
     return getApplication(account).initialize(app).withName(app.getName()).save()
   }
 
-  @RequestMapping(method = RequestMethod.DELETE, value = "/name/{name:.+}")
-  void delete(@PathVariable String account, @PathVariable String name, HttpServletResponse response) {
-    getApplication(account).initialize(new Application().withName(name)).delete()
+  @ApiOperation(value = "", notes = "Delete an application from a specific `account`")
+  @RequestMapping(method = RequestMethod.DELETE, value = "/name/{application:.+}")
+  void delete(@PathVariable String account, @PathVariable String application, HttpServletResponse response) {
+    getApplication(account).initialize(new Application().withName(application)).delete()
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/name/{name:.+}")
-  Application getByName(@PathVariable String account, @PathVariable final String name) {
-    return getApplication(account).findByName(name)
+  @ApiOperation(value = "", notes = "Fetch a single application by name within a specific `account`")
+  @RequestMapping(method = RequestMethod.GET, value = "/name/{application:.+}")
+  Application getByName(@PathVariable String account, @PathVariable final String application) {
+    return getApplication(account).findByName(application)
   }
 
   @ExceptionHandler(Application.ValidationException)

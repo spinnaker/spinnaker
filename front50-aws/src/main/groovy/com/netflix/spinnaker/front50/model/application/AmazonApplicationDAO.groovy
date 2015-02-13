@@ -30,12 +30,10 @@ class AmazonApplicationDAO implements ApplicationDAO {
   protected AmazonSimpleDB awsSimpleDBClient
   protected String domain
 
-  /**
-   * TODO improve this logic...
-   */
   @Override
   boolean isHealthly() {
-    this.awsSimpleDBClient != null
+    awsSimpleDBClient.select(new SelectRequest("select * from `${domain}` limit 1"))
+    return true
   }
 
   @Override
