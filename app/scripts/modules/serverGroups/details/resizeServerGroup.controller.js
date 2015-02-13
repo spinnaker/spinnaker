@@ -1,7 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.resizeServerGroup.controller', [
+  'ui.bootstrap',
+  'deckApp.account.service',
+  'deckApp.serverGroup.write.service',
+  'deckApp.tasks.monitor.service'
+])
   .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
     $scope.serverGroup = serverGroup;

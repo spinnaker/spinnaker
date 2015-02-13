@@ -144,7 +144,7 @@ angular.module('deckApp')
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/resizeServerGroup.html',
+        templateUrl: 'scripts/modules/serverGroups/details/resizeServerGroup.html',
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -169,7 +169,7 @@ angular.module('deckApp')
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/scalingActivities.html',
+        templateUrl: 'scripts/modules/serverGroups/details/scalingActivities.html',
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
           applicationName: function() { return application.name; },

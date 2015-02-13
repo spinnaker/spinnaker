@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.feedback.modal.controller', [
+  'deckApp.settings',
+  'deckApp.authentication.service'
+])
   .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings, authenticationService) {
 
     $scope.states = {

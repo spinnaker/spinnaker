@@ -2,6 +2,10 @@
 
 describe('Controller: ScalingActivitiesCtrl', function () {
 
+  beforeEach(
+    module('deckApp.scalingActivities.controller')
+  );
+
   beforeEach(loadDeckWithoutCacheInitializer);
 
   beforeEach(function () {
