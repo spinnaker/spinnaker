@@ -19,14 +19,10 @@ package com.netflix.spinnaker.front50.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
-import org.springframework.boot.actuate.health.Status
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.ResponseStatus
 
 @Component
 public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
@@ -58,8 +54,4 @@ public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
 
     return healthBuilder.build()
   }
-
-  @InheritConstructors
-  @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Not Healthy!")
-  public class NotHealthlyException extends RuntimeException {}
 }
