@@ -43,13 +43,17 @@ class MetricsInterceptor extends HandlerInterceptorAdapter {
   }
 
   @Override
-  void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+  void afterCompletion(HttpServletRequest request,
+                       HttpServletResponse response,
+                       Object handler,
+                       Exception ex) throws Exception {
     if (handler instanceof HandlerMethod) {
       def handlerMethod = (HandlerMethod) handler
 
-      def id = extendedRegistry.createId('apiInvocations')
+      def id = extendedRegistry.createId('controller.executions')
           .withTag("controller", handlerMethod.method.declaringClass.simpleName)
           .withTag("method", handler.method.name)
+          .withTag("status", "${(response.status as String)[0]}xx")
           .withTag("statusCode", response.status as String)
 
       def variables = (Map) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
