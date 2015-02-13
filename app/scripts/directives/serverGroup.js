@@ -6,7 +6,7 @@ angular.module('deckApp')
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'views/application/cluster/serverGroup.html',
+      templateUrl: 'scripts/modules/cluster/serverGroup.html',
       scope: {
         cluster: '=',
         serverGroup: '=',

@@ -1,8 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('ClustersNavCtrl', function ($scope, application, _, $stateParams) {
+angular.module('deckApp.clusterNav.controller', [
+  'ui.router',
+  'deckApp.utils.lodash'
+])
+  .controller('ClustersNavCtrl', function ($scope, $stateParams, _, application ) {
 
     var defPrimary = 'account';
     $scope.sortFilter.sortPrimary = $stateParams.primary || defPrimary;

@@ -1,8 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .controller('ClusterCtrl', function($scope, cluster, application,_) {
+angular.module('deckApp.cluster.controller', [
+ 'deckApp.utils.lodash'
+])
+  .controller('ClusterCtrl', function($scope, _, cluster, application) {
 
     $scope.account = cluster.account;
 

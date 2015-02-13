@@ -8,7 +8,7 @@
     {{account}}: {{cluster.name}}
   </h3>
 </div>
-<div ng-include="'views/application/cluster/filters.html'"></div>
+<div ng-include="'filters.html'"></div>
 <div class="rollup content">
   <div ng-repeat="serverGroupRegion in serverGroupsByRegion | orderBy:'region'" class="server-group-rollup">
     <h4>{{serverGroupRegion.region}}</h4>
