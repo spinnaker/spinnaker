@@ -2,6 +2,7 @@ node_modules
 .tmp
 .sass-cache
 /dist
+/xmloutput
 test-results.xml
 npm-debug.log
 *.iml

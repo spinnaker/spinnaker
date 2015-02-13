@@ -43,6 +43,7 @@
   "devDependencies": {
     "chromedriver": "^2.13.0",
     "gulp-protractor": "0.0.11",
+    "jasmine-reporters": "~1.0.0",
     "karma-mocha-reporter": "^0.3.1",
     "karma-ng-html2js-preprocessor": "^0.1.2",
     "phantomjs": "^1.9.15",
