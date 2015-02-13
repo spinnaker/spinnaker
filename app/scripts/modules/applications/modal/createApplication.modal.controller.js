@@ -1,7 +1,11 @@
 'use strict';
 
 angular
-  .module('deckApp')
+  .module('deckApp.application.create.modal.controller', [
+    'ui.router',
+    'ui.bootstrap',
+    'deckApp.applications.write.service',
+  ])
   .controller('CreateApplicationModalCtrl', function($scope, $log, $state, $modalInstance, applicationWriter) {
     var vm = this;
 

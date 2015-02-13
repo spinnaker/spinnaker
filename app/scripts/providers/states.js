@@ -370,7 +370,7 @@ angular.module('deckApp.states', [
         url: '/:application',
         views: {
           'main@': {
-            templateUrl: 'views/application.html',
+            templateUrl: 'scripts/modules/applications/application.html',
             controller: 'ApplicationCtrl',
             controllerAs: 'ctrl'
           },
@@ -403,7 +403,7 @@ angular.module('deckApp.states', [
         url: '/applications',
         views: {
           'main@': {
-            templateUrl: 'views/applications.html',
+            templateUrl: 'scripts/modules/applications/applications.html',
             controller: 'ApplicationsCtrl',
             controllerAs: 'ctrl'
           }
