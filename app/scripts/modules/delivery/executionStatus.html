@@ -90,6 +90,9 @@
       </span>
       <span ng-switch-default>
         Unknown
+        <a href tooltip="Cancel execution" ng-click="ctrl.cancelExecution(execution); $event.stopPropagation();">
+          <span class="glyphicon glyphicon-remove-circle"></span>
+        </a>
       </span>
     </span>
   </div>
