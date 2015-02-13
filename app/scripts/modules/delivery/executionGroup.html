@@ -8,7 +8,7 @@
         Status
       </div>
     </div>
-    <div class="row" ng-repeat="execution in executionGroup = (executions | executions:filter:grouping)">
+    <div class="row" ng-repeat="execution in executionGroup = (executions | executions:filter:grouping | limitTo: filter.count )">
       <div class="col-md-12">
         <execution execution="execution"
                    executions="executions"

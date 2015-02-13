@@ -50,25 +50,38 @@
     </div>
   </div>
   <div class="form-group">
-    <label>Scaling</label>
-    <div class="btn-group">
-      <label class="btn btn-default btn"
-             ng-model="filter.stage.scale"
-             btn-radio="'absolute'">
-        <span class="glyphicon glyphicon-align-left" title="Absolute" aria-hidden="true"></span>
-      </label>
-      <label class="btn btn-default btn"
-             ng-model="filter.stage.scale"
-             btn-radio="'fixed'">
-        <span class="glyphicon glyphicon-align-justify" title="Fixed" aria-hidden="true"></span>
-      </label>
-      <label class="btn btn-default btn"
-             ng-model="filter.stage.scale"
-             btn-radio="'relative'">
-        <span class="glyphicon glyphicon-tasks" title="Relative" aria-hidden="true"></span>
-      </label>
-    </div>
+    <label>Show</label>
+    <select class="input input-sm" ng-model="filter.count" style="width: 50px">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+    per group
   </div>
+  <!--<div class="form-group">-->
+    <!--<label>Scaling</label>-->
+    <!--<div class="btn-group">-->
+      <!--<label class="btn btn-default btn"-->
+             <!--ng-model="filter.stage.scale"-->
+             <!--btn-radio="'absolute'">-->
+        <!--<span class="glyphicon glyphicon-align-left" title="Absolute" aria-hidden="true"></span>-->
+      <!--</label>-->
+      <!--<label class="btn btn-default btn"-->
+             <!--ng-model="filter.stage.scale"-->
+             <!--btn-radio="'fixed'">-->
+        <!--<span class="glyphicon glyphicon-align-justify" title="Fixed" aria-hidden="true"></span>-->
+      <!--</label>-->
+      <!--<label class="btn btn-default btn"-->
+             <!--ng-model="filter.stage.scale"-->
+             <!--btn-radio="'relative'">-->
+        <!--<span class="glyphicon glyphicon-tasks" title="Relative" aria-hidden="true"></span>-->
+      <!--</label>-->
+    <!--</div>-->
+  <!--</div>-->
   <div class="form-group pull-right">
     <a ui-sref="^.pipelineConfig" class="configure-pipelines-btn btn"><span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
   </div>
