@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Id
 import groovy.transform.CompileStatic
 
 import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 
 @CompileStatic
 class TimedCallable<T> implements Callable<T> {
@@ -76,13 +77,17 @@ class TimedCallable<T> implements Callable<T> {
 
   @Override
   T call() throws Exception {
+    long start = System.nanoTime()
+    Id thisId = metricId
     try {
-      T result = extendedRegistry.timer(metricId).record(callable)
-      extendedRegistry.counter(metricId.withTag("success", "true")).increment()
+      T result = callable.call()
+      thisId = thisId.withTag("success", "true")
       return result
     } catch (Exception ex) {
-      extendedRegistry.counter(metricId.withTag("success", "false").withTag("cause", ex.class.simpleName)).increment()
+      thisId = thisId.withTag("success", "false").withTag("cause", ex.class.simpleName)
       throw ex
+    } finally {
+      extendedRegistry.timer(thisId).record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
     }
   }
 }
