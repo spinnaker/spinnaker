@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.insight.controller', [
+  'ui.router',
+])
   .controller('InsightCtrl', function($scope, $state) {
     var self = this;
     $scope.sortFilter = {};
@@ -14,6 +16,5 @@ angular.module('deckApp')
     $scope.$on('$stateChangeSuccess', function() {
       self.isSideNavHideable = isSideNavHideable();
     });
-
 
   });

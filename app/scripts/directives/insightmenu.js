@@ -10,7 +10,7 @@
 angular.module('deckApp')
   .directive('insightMenu', function () {
     return {
-      templateUrl: 'views/insightmenu.html',
+      templateUrl: 'scripts/modules/insight/insightmenu.html',
       restrict: 'E',
       replace: true,
       scope: {
