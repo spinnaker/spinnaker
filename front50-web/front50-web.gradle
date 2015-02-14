@@ -65,6 +65,7 @@ dependencies {
   compile project(":front50-cassandra")
 
   spinnaker.group "bootWeb"
+  compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("kork")
 }
