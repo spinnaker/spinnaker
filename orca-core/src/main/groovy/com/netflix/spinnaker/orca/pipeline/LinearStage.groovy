@@ -15,11 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
-
-import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
@@ -29,11 +24,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobFlowBuilder
-import org.springframework.stereotype.Component
-
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
@@ -52,7 +46,7 @@ abstract class LinearStage extends StageBuilder {
     def stageIdx = stage.execution.stages.indexOf(stage)
     /*
      * {@code restrictExecutionDuringTimeWindow} flag tells the builder that this particular {@code Stage}
-     * is not supposed to be run during a particular timed window in a day
+     * is supposed to run only during certain time windows in a day
      */
     if (stage.context.containsKey("restrictExecutionDuringTimeWindow") &&
         stage.context.restrictExecutionDuringTimeWindow as Boolean &&
@@ -116,100 +110,6 @@ abstract class LinearStage extends StageBuilder {
     stage.parentStageId = parent.id
     stage.syntheticStageOwner = stageOwner
     stage
-  }
-
-  /**
-   * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
-   * current time is within that window.
-   */
-  @Component
-  private static class RestrictExecutionDuringTimeWindow extends LinearStage {
-    private static final String MAYO_CONFIG_NAME = "restrictExecutionDuringTimeWindow"
-
-    RestrictExecutionDuringTimeWindow() {
-      super(MAYO_CONFIG_NAME)
-    }
-
-    @Override
-    protected List<Step> buildSteps(Stage stage) {
-      [buildStep(stage, "suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)]
-    }
-  }
-
-  @Component
-  private static class SuspendExecutionDuringTimeWindowTask implements com.netflix.spinnaker.orca.Task {
-    @Override
-    TaskResult execute(Stage stage) {
-      Date now = new Date()
-      Date scheduledDate
-      try {
-        scheduledDate = getTimeInWindow(stage, new Date())
-      } catch (Exception e) {
-        return new DefaultTaskResult(ExecutionStatus.FAILED, [failureReason: 'Exception occurred while calculating time window: ' + e.message])
-      }
-      if (now.compareTo(scheduledDate) in [0, 1]) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-      } else {
-        stage.scheduledTime = scheduledDate.time
-        return new DefaultTaskResult(ExecutionStatus.SUSPENDED)
-      }
-    }
-
-    /**
-     * Calculates the date-time which is outside of the blackout window. Also, considers the business hours for window calculation
-     * if passed in the stage context.
-     * @param stage
-     * @param currentDateTime
-     * @return
-     */
-    @VisibleForTesting
-    private static Date getTimeInWindow(Stage stage, Date currentDateTime) {  // Passing in the current date to allow unit testing
-      def restrictedExecutionWindow = stage.context.restrictedExecutionWindow as Map
-
-      int startHour = restrictedExecutionWindow.startHour as Integer
-      int startMin = restrictedExecutionWindow.startMin as Integer
-      int endHour = restrictedExecutionWindow.endHour as Integer
-      int endMin = restrictedExecutionWindow.endMin as Integer
-
-      // TODO: (sthadeshwar) Pick these sensible defaults from appConfig instead
-      int dayStartHour = restrictedExecutionWindow.containsKey("dayStartHour") ? restrictedExecutionWindow.dayStartHour as Integer : 7
-      int dayStartMin = restrictedExecutionWindow.containsKey("dayStartMin") ? restrictedExecutionWindow.dayStartMin as Integer : 0
-      int dayEndHour = restrictedExecutionWindow.containsKey("dayEndHour") ? restrictedExecutionWindow.dayEndHour as Integer : 18
-      int dayEndMin = restrictedExecutionWindow.containsKey("dayStartMin") ? restrictedExecutionWindow.dayStartMin as Integer : 0
-
-      def now = new Date()
-      def dayStart = getUpdatedDate(now, dayStartHour, dayStartMin, 0)
-      def dayEnd = getUpdatedDate(now, dayEndHour, dayEndMin, 0)
-      def start = getUpdatedDate(now, startHour, startMin, 0)
-      def end = getUpdatedDate(now, endHour, endMin, 0)
-
-      if (currentDateTime.before(dayStart)) {
-        currentDateTime[Calendar.HOUR_OF_DAY] = dayStart[Calendar.HOUR_OF_DAY]
-        currentDateTime[Calendar.MINUTE] = dayStart[Calendar.MINUTE]
-      }
-
-      if (currentDateTime.after(start)) {
-        currentDateTime[Calendar.HOUR_OF_DAY] = end[Calendar.HOUR_OF_DAY]
-        currentDateTime[Calendar.MINUTE] = end[Calendar.MINUTE]
-      }
-
-      if (currentDateTime.after(dayEnd)) {
-        currentDateTime[Calendar.HOUR_OF_DAY] = dayStart[Calendar.HOUR_OF_DAY]
-        currentDateTime[Calendar.MINUTE] = dayStart[Calendar.MINUTE]
-        currentDateTime = currentDateTime + 1
-      }
-
-      return currentDateTime
-    }
-
-    private static Date getUpdatedDate(Date date, int hour, int min, int seconds) {
-      Calendar calendar = Calendar.instance
-      calendar.setTime(date)
-      calendar.set(Calendar.HOUR_OF_DAY, hour)
-      calendar.set(Calendar.MINUTE, min)
-      calendar.set(Calendar.SECOND, seconds)
-      return calendar.time
-    }
   }
 
 }
