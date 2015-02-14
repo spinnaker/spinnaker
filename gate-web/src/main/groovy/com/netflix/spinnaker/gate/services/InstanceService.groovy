@@ -37,8 +37,13 @@ class InstanceService {
 
   Map getForAccountAndRegion(String account, String region, String instanceId) {
     HystrixFactory.newMapCommand(GROUP, "getInstancesForAccountAndRegion", true) {
-      def context = getContext(account, region, instanceId)
-      return oortService.getInstanceDetails(account, region, instanceId) + [
+      def instanceDetails = oortService.getInstanceDetails(account, region, instanceId)
+      def instanceContext = instanceDetails.collectEntries {
+        return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
+      } as Map<String, String>
+
+      def context = instanceContext + getContext(account, region, instanceId)
+      return instanceDetails + [
           "insightActions": insightConfiguration.instance.collect { it.applyContext(context) }
       ]
     } execute()

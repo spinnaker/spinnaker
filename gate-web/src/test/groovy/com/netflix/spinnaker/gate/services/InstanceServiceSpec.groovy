@@ -26,16 +26,16 @@ class InstanceServiceSpec extends Specification {
     given:
     def service = new InstanceService(
         oortService: Mock(OortService) {
-          1 * getInstanceDetails(_, _, _) >> { return [:] }
+          1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
         },
         insightConfiguration: new InsightConfiguration(
-            instance: [new InsightConfiguration.Link(url: "{account}-{region}-{instanceId}-{DNE}")]
+            instance: [new InsightConfiguration.Link(url: "{account}-{region}-{instanceId}-{DNE}-{privateIpAddress}")]
         )
     )
 
     expect:
     service.getForAccountAndRegion("account", "region", "instanceId").insightActions*.url == [
-        "account-region-instanceId-{DNE}"
+        "account-region-instanceId-{DNE}-10.0.0.1"
     ]
   }
 
