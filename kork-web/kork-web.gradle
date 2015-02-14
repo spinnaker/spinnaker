@@ -1,0 +1,6 @@
+dependencies {
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('spectatorApi')
+
+  spinnaker.group('spockBase')
+}
