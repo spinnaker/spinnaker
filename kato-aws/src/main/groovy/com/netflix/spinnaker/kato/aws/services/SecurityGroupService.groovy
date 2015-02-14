@@ -55,6 +55,7 @@ class SecurityGroupService {
    * @return Map of security group ids keyed by corresponding security group name
    */
   Map<String, String> getSecurityGroupIds(Collection<String> securityGroupNames, String vpcId = null) {
+    if (!securityGroupNames) { return [:] }
     DescribeSecurityGroupsResult result = amazonEC2.describeSecurityGroups()
     Map<String, String> securityGroups = result.securityGroups.findAll { securityGroupNames.contains(it.groupName) && it.vpcId == vpcId }.collectEntries {
       [(it.groupName): it.groupId]
