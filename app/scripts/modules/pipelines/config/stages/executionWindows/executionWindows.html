@@ -13,13 +13,21 @@
     <div class="col-md-10 col-md-offset-1">
       <div class="execution-window-graph">
         <div class="execution-day">
-          <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="execution-window" ng-style="executionWindowsCtrl.getWindowStyle(window)">
+          <div ng-repeat="window in timelineWindows"
+               class="execution-window"
+               ng-style="window.style"
+               tooltip="{{window.start | date:'HH:mm'}} - {{window.end | date:'HH:mm'}}"
+            >
           </div>
         </div>
+        <div class="divider-label-fill"></div>
         <div class="dividers">
           <div ng-repeat="divider in dividers"
                class="divider" style="left: {{divider.left}}">
-            {{divider.label}}
+            <div class="divider-filler"></div>
+            <div class="divider-label">
+              {{divider.label}}
+            </div>
           </div>
         </div>
       </div>
@@ -32,9 +40,9 @@
   </div>
   <div ng-repeat="window in stage.restrictedExecutionWindow.whitelist" class="window-entry">
       <div class="form-group">
-        <div class="col-md-6 col-md-offset-3">
+        <div class="col-md-6 col-md-offset-1">
           <span class="start-end-divider">
-            from
+            From
           </span>
           <select class="input input-sm"
                   ng-model="window.startHour"
@@ -68,7 +76,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-10 col-md-offset-1">
+      <div class="col-md-6 col-md-offset-1">
         <button class="btn btn-block btn-add-trigger add-new" ng-click="executionWindowsCtrl.addExecutionWindow()">
           <span class="glyphicon glyphicon-plus-sign"></span> Add an execution window
         </button>

@@ -2,33 +2,77 @@
 
 execution-windows {
   .execution-window-graph {
-    @graph_height: 30px;
+    @graph_height: 70px;
     width: 100%;
     height: @graph_height;
     border: 1px solid @mid_lighter_grey;
     position: relative;
     margin: 20px 0;
 
+    @label-height: 22px;
+    @divider-height: @graph_height - @label-height;
+
     .execution-window {
-      transition: width .25s ease-in-out, left .25s ease-in-out;
-      height: @graph_height - 2;
+      height: @graph_height + 10;
       background-color: @healthy_green;
       position: absolute;
+      bottom: 0;
+      z-index: 3;
+      &:after {
+        content: '';
+        width: calc(~"100% + 2px");
+        border: 1px solid darken(@mid_lighter_grey, 20%);
+        border-bottom-width: 0;
+        height: @graph_height - @label-height + 11;
+        position: absolute;
+        top: 0;
+        left: -1px;
+      }
+
+    }
+
+    .divider-label-fill {
+      background-color: @lighter_grey;
+      height: @label-height;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      z-index: 1;
     }
 
     .dividers {
       .divider {
-        @divider-height: 13px;
         position: absolute;
-        width: 5px;
-        color: @mid_grey;
-        border-left: 1px solid @mid_lighter_grey;
-        padding-left: 4px;
-        font-size: 75%;
+        width: 100%*(1/24);
+        top: 0;
         height: @divider-height;
         margin-top: @graph_height - @divider-height - 2;
         &:first-child {
           border-left-width: 0;
+        }
+        .divider-filler {
+          width: 100%;
+          position: absolute;
+          height: @divider-height - @label-height;
+          z-index: 2;
+          border-right: 1px solid @mid_light_grey;
+        }
+        .divider-label {
+          font-size: 75%;
+          color: @mid_grey;
+          width: 100%;
+          position: absolute;
+          bottom: 0;
+          padding: 3px;
+          border-top: 1px solid @mid_lighter_grey;
+          border-right: 1px solid @mid_lighter_grey;
+          text-align: center;
+          z-index: 4;
+        }
+        &:last-child {
+          .divider-filler, .divider-label {
+            border-right-width: 0;
+          }
         }
       }
     }
@@ -37,6 +81,7 @@ execution-windows {
 
   .start-end-divider {
     padding: 0 15px;
+    font-weight: 600;
   }
 
   .window-entry {
