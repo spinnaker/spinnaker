@@ -18,26 +18,34 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult
-import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.elasticloadbalancing.model.*
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
+import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
+import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
+import com.amazonaws.services.elasticloadbalancing.model.Listener
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.aws.model.SubnetTarget
+import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
-
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerDescription}.
  *
  * @author Dan Woods
  */
 class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertAmazonLoadBalancerResult> {
-  private static final String SUBNET_METADATA_KEY = "immutable_metadata"
-  private static final String SUBNET_PURPOSE_TYPE = "elb"
   private static final String BASE_PHASE = "CREATE_ELB"
 
   private static Task getTask() {
@@ -46,6 +54,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
   @Autowired
   AmazonClientProvider amazonClientProvider
+
+  @Autowired
+  RegionScopedProviderFactory regionScopedProviderFactory
 
   private final UpsertAmazonLoadBalancerDescription description
   ObjectMapper objectMapper = new ObjectMapper()
@@ -62,18 +73,14 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       def region = entry.key
       def availabilityZones = entry.value
+      def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
       def loadBalancerName = description.name ?: "${description.clusterName}-frontend".toString()
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
       def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
 
       LoadBalancerDescription loadBalancer
-
-      def getLoadBalancer = {
-        loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest([loadBalancerName]))?.loadBalancerDescriptions?.getAt(0)
-      }
 
       task.updateStatus BASE_PHASE, "Setting up listeners for ${loadBalancerName} in ${region}..."
       def listeners = []
@@ -96,45 +103,40 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       }
 
       try {
-        loadBalancer = getLoadBalancer()
+        loadBalancer = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest([loadBalancerName]))?.
+                loadBalancerDescriptions?.getAt(0)
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
       } catch (AmazonServiceException ignore) {
       }
 
-      if (!loadBalancer) {
-        task.updateStatus BASE_PHASE, "Deploying ${loadBalancerName} to ${description.credentials.name} in ${region}..."
-        def request = new CreateLoadBalancerRequest(loadBalancerName)
+      def securityGroups = regionScopedProvider.securityGroupService.
+              getSecurityGroupIds(description.securityGroups, description.vpcId).values()
 
-        // Networking Related
-        if (description.subnetType) {
-          def subnets = getSubnetIds(description.subnetType, availabilityZones, amazonEC2)
-          task.updateStatus BASE_PHASE, "Subnet type: ${description.subnetType} = [$subnets]"
-          request.withSubnets(subnets)
-          if (description.subnetType == "internal") {
-            request.scheme = description.subnetType
-          }
-        } else {
-          request.withAvailabilityZones(availabilityZones)
-        }
-        task.updateStatus BASE_PHASE, "Creating load balancer."
-        request.withListeners(listeners)
-        loadBalancing.createLoadBalancer(request)
-        loadBalancer = getLoadBalancer()
+      String dnsName
+      if (!loadBalancer) {
+        task.updateStatus BASE_PHASE, "Creating ${loadBalancerName} in ${description.credentials.name}:${region}..."
+        def subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(
+                availabilityZones, description.subnetType, SubnetTarget.ELB)
+        dnsName = createLoadBalancer(loadBalancing, loadBalancerName, availabilityZones, subnetIds, listeners, securityGroups)
       } else {
-        // Apply listeners...
-        if (listeners) {
-          def ports = loadBalancer.listenerDescriptions.collect { it.listener.loadBalancerPort }
-          if (ports) {
-            loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerName, ports))
-          }
-          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, listeners))
-          task.updateStatus BASE_PHASE, "New listeners applied for ${loadBalancerName} in ${region}!"
-        }
+        dnsName = loadBalancer.DNSName
+        updateLoadBalancer(loadBalancing, loadBalancer, listeners, securityGroups)
+      }
+
+      // Configure health checks
+      if (description.healthCheck) {
+        task.updateStatus BASE_PHASE, "Configuring healthcheck for ${loadBalancerName} in ${region}..."
+        def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck()
+                .withTarget(description.healthCheck).withInterval(description.healthInterval)
+                .withTimeout(description.healthTimeout).withUnhealthyThreshold(description.unhealthyThreshold)
+                .withHealthyThreshold(description.healthyThreshold))
+        loadBalancing.configureHealthCheck(healthCheck)
+        task.updateStatus BASE_PHASE, "Healthcheck configured."
       }
 
       // Apply balancing opinions...
       loadBalancing.modifyLoadBalancerAttributes(
-        new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancer.loadBalancerName)
+        new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancerName)
           .withLoadBalancerAttributes(
           new LoadBalancerAttributes(
             crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: description.crossZoneBalancing)
@@ -142,61 +144,55 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         )
       )
 
-      // Apply security groups...
-      if (description.securityGroups) {
-        task.updateStatus BASE_PHASE, "Applying security groups ${description.securityGroups} to ${loadBalancerName} in ${region}"
-        def securityGroups = getSecurityGroupIds(amazonEC2, description.securityGroups as String[])
-        loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest().withSecurityGroups(securityGroups).withLoadBalancerName(loadBalancerName))
-        task.updateStatus BASE_PHASE, "Security groups applied!"
-      }
-
-      // Configure health checks
-      if (description.healthCheck) {
-        task.updateStatus BASE_PHASE, "Configuring healthcheck for ${loadBalancerName} in ${region}..."
-        def healthCheck = new ConfigureHealthCheckRequest(loadBalancerName, new HealthCheck()
-          .withTarget(description.healthCheck).withInterval(description.healthInterval)
-          .withTimeout(description.healthTimeout).withUnhealthyThreshold(description.unhealthyThreshold)
-          .withHealthyThreshold(description.healthyThreshold))
-        loadBalancing.configureHealthCheck(healthCheck)
-        task.updateStatus BASE_PHASE, "Healthcheck configured!"
-      }
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.name} in ${region}."
-      operationResult.loadBalancers[region] = new UpsertAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, loadBalancer.DNSName)
+      operationResult.loadBalancers[region] = new UpsertAmazonLoadBalancerResult.LoadBalancer(loadBalancerName, dnsName)
     }
     task.updateStatus BASE_PHASE, "Done deploying load balancers."
     operationResult
   }
 
-  List<String> getSubnetIds(String subnetType, List<String> availabilityZones, AmazonEC2 amazonEC2) {
-    DescribeSubnetsResult result = amazonEC2.describeSubnets()
-    List<Subnet> mySubnets = []
-    for (subnet in result.subnets) {
-      if (availabilityZones && !availabilityZones.contains(subnet.availabilityZone)) {
-        continue
+  private void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancerDescription loadBalancer,
+                                  List<Listener> listeners, Collection<String> securityGroups) {
+    String loadBalancerName = loadBalancer.loadBalancerName
+    // Apply listeners...
+    if (listeners) {
+      def ports = loadBalancer.listenerDescriptions.collect { it.listener.loadBalancerPort }
+      if (ports) {
+        loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerName, ports))
       }
-      def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
-      if (metadataJson) {
-        Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && ((metadata.target != null && metadata.target == SUBNET_PURPOSE_TYPE) || metadata.target == null)) {
-          mySubnets << subnet
-        }
-      }
+      loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, listeners))
+      task.updateStatus BASE_PHASE, "Listeners updated on ${loadBalancerName}."
     }
-    mySubnets.subnetId
+    // Apply security groups...
+    if (description.securityGroups) {
+      loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
+              loadBalancerName: loadBalancerName,
+              securityGroups: securityGroups
+      ))
+      task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
+    }
   }
 
-  static List<String> getSecurityGroupIds(AmazonEC2 ec2, String... names) {
-    def result = ec2.describeSecurityGroups()
-    def mySecurityGroups = [:]
-    for (secGrp in result.securityGroups) {
-      if (names.contains(secGrp.groupName)) {
-        mySecurityGroups[secGrp.groupName] = secGrp.groupId
+  private String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName,
+                                    Collection<String> availabilityZones, Collection<String> subnetIds,
+                                    Collection<Listener> listeners, Collection<String> securityGroups) {
+    def request = new CreateLoadBalancerRequest(loadBalancerName)
+
+    // Networking Related
+    if (description.subnetType) {
+      task.updateStatus BASE_PHASE, "Subnet type: ${description.subnetType} = [$subnetIds]"
+      request.withSubnets(subnetIds)
+      if (description.subnetType == "internal") {
+        request.scheme = description.subnetType
       }
-    }
-    if (names.minus(mySecurityGroups.keySet()).size() > 0) {
-      null
     } else {
-      mySecurityGroups.values() as List
+      request.withAvailabilityZones(availabilityZones)
     }
+    task.updateStatus BASE_PHASE, "Creating load balancer."
+    request.withListeners(listeners)
+    request.withSecurityGroups(securityGroups)
+    def result = loadBalancing.createLoadBalancer(request)
+    result.DNSName
   }
+
 }
