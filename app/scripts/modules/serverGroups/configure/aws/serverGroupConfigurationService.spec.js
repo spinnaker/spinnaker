@@ -237,4 +237,62 @@ describe('Service: awsServerGroupConfiguration', function () {
 
   });
 
+  describe('configureKeyPairs', function() {
+    beforeEach(function() {
+      this.command = {
+        backingData: {
+          filtered: {},
+          regionsKeyedByAccount: {
+            test: {
+              defaultKeyPair: 'test-pair'
+            },
+            prod: {
+              defaultKeyPair: 'prod-pair'
+            },
+            nothing: {}
+          },
+          keyPairs: [
+            { account: 'test', region: 'us-west-1', keyName: 'test-pair' },
+            { account: 'test', region: 'us-east-1', keyName: 'test-pair' },
+            { account: 'test', region: 'us-west-1', keyName: 'shared' },
+            { account: 'prod', region: 'us-west-1', keyName: 'prod-pair' },
+            { account: 'prod', region: 'us-west-1', keyName: 'shared' },
+          ]
+        },
+        credentials: 'test',
+        region: 'us-west-1',
+        keyPair: 'shared',
+      };
+    });
+
+    it('retains keyPair when found in new account', function() {
+      this.command.credentials = 'prod';
+      this.service.configureKeyPairs(this.command);
+      expect(this.command.keyPair).toBe('shared');
+    });
+
+    it('retains keyPair when found in new region', function() {
+      this.command.region = 'us-east-1';
+      this.command.keyPair = 'test-pair';
+      this.service.configureKeyPairs(this.command);
+      expect(this.command.keyPair).toBe('test-pair');
+    });
+
+    it('marks dirty, sets to new default value when key pair not found in new account', function() {
+      this.command.credentials = 'prod';
+      this.command.keyPair = 'test-pair';
+      var result = this.service.configureKeyPairs(this.command);
+      expect(result.dirty.keyPair).toBe(true);
+      expect(this.command.keyPair).toBe('prod-pair');
+    });
+
+    it('marks dirty, sets to default value when key pair not found in new region', function() {
+      this.command.region = 'us-east-1';
+      var result = this.service.configureKeyPairs(this.command);
+      expect(result.dirty.keyPair).toBe(true);
+      expect(this.command.keyPair).toBe('test-pair');
+    });
+
+  });
+
 });

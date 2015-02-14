@@ -65,10 +65,23 @@ angular.module('deckApp.serverGroup.configure.aws')
     }
 
     function configureKeyPairs(command) {
-      command.backingData.filtered.keyPairs = _(command.backingData.keyPairs)
-        .filter({account: command.credentials, region: command.region})
-        .pluck('keyName')
-        .valueOf();
+      var result = { dirty: {} };
+      if (command.credentials && command.region) {
+        var filtered = _(command.backingData.keyPairs)
+          .filter({account: command.credentials, region: command.region})
+          .pluck('keyName')
+          .valueOf();
+        if (command.keyPair && filtered.indexOf(command.keyPair) === -1) {
+          var acct = command.backingData.regionsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
+          command.keyPair = acct.defaultKeyPair;
+          // Note: this will generally be ignored, so we probably won't flag it in the UI
+          result.dirty.keyPair = true;
+        }
+        command.backingData.filtered.keyPairs = filtered;
+      } else {
+        command.backingData.filtered.keyPairs = [];
+      }
+      return result;
     }
 
     function configureInstanceTypes(command) {
@@ -256,7 +269,7 @@ angular.module('deckApp.serverGroup.configure.aws')
           angular.extend(result.dirty, command.usePreferredZonesChanged().dirty);
 
           angular.extend(result.dirty, configureImages(command).dirty);
-          configureKeyPairs(command);
+          angular.extend(result.dirty, configureKeyPairs(command).dirty);
         } else {
           filteredData.regionalAvailabilityZones = null;
         }
@@ -270,7 +283,6 @@ angular.module('deckApp.serverGroup.configure.aws')
         if (command.credentials) {
           var regionsForAccount = backingData.regionsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
           backingData.filtered.regions = regionsForAccount.regions;
-          command.keyPair = regionsForAccount.defaultKeyPair;
           if (!_(backingData.filtered.regions).some({name: command.region})) {
             command.region = null;
             result.dirty.region = true;
