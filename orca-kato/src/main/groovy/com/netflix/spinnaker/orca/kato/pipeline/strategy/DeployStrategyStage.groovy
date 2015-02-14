@@ -110,6 +110,9 @@ abstract class DeployStrategyStage extends LinearStage {
           continue
         }
         def latestAsg = existingAsgs.findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
+        if (!latestAsg) {
+          continue
+        }
         def nextStageContext = [asgName: latestAsg.name, regions: [region], credentials: cleanupConfig.account]
 
         if (nextStageContext.asgName) {

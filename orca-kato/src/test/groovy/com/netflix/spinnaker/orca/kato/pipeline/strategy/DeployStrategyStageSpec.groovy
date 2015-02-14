@@ -16,8 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.batch.core.Step
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -44,5 +50,49 @@ class DeployStrategyStageSpec extends Specification {
     "myapp"     | "prestaging" | null            || "myapp-prestaging"
     "myapp"     | null         | "freeform"      || "myapp--freeform"
     "myapp"     | null         | null            || "myapp"
+  }
+
+  void "should handle only when there are existing clusters"() {
+    given:
+    Stage stage = new PipelineStage(new Pipeline(), 'deploy', 'deploy', [
+      account: 'test',
+      application: 'foo',
+      stack: 'test',
+      strategy: 'redblack', //Strategy.RED_BLACK.key, -- y u no work
+      availabilityZones: ['us-east-1': [], 'us-west-2': []]])
+
+    TypedByteArray oortClusters = new TypedByteArray('application/json', new ObjectMapper().writeValueAsBytes([
+            serverGroups: [
+                    [region: 'us-east-1', name: 'foo-test-v000'],
+                    [region: 'us-east-1', name: 'foo-test-v001']
+            ]
+    ]))
+
+    def oort = Mock(OortService)
+
+
+    when:
+    new TestDeployStrategyStage(oort: oort, mapper: new ObjectMapper()).composeRedBlackFlow(stage)
+
+    then:
+    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oortse.cx', 200, 'OK', [], oortClusters)
+
+    and:
+    stage.afterStages.size() == 1
+    with(stage.afterStages.first()) {
+      name == 'disable'
+      context.asgName == 'foo-test-v001'
+    }
+  }
+
+  static class TestDeployStrategyStage extends DeployStrategyStage {
+    TestDeployStrategyStage() {
+      super('test')
+    }
+
+    @Override
+    protected List<Step> basicSteps(Stage stage) {
+      []
+    }
   }
 }
