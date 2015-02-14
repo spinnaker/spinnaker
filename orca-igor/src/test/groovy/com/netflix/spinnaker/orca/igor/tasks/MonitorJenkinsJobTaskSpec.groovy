@@ -29,9 +29,11 @@ import spock.lang.Unroll
 
 class MonitorJenkinsJobTaskSpec extends Specification {
 
-  @Subject MonitorJenkinsJobTask task = new MonitorJenkinsJobTask()
+  @Subject
+  MonitorJenkinsJobTask task = new MonitorJenkinsJobTask()
 
-  @Shared Pipeline pipeline = new Pipeline()
+  @Shared
+  Pipeline pipeline = new Pipeline()
 
   @Unroll
   def "should return #taskStatus if job is #jobState"() {
@@ -40,7 +42,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
     and:
     task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [ result : jobState ]
+      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: jobState]
     }
 
     expect:
@@ -80,20 +82,36 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
   }
 
-  def "should return running status if igor call 404's"() {
+  def "should return running status if igor call 404/500/503's"() {
     given:
     def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4]).asImmutable()
 
     and:
     def exception = Stub(RetrofitError) {
-      getResponse() >> new Response('', 404, '', [], null)
+      getResponse() >> new Response('', httpStatus, '', [], null)
     }
 
     task.igorService = Stub(IgorService) {
       getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> { throw exception }
     }
 
-    expect:
-    task.execute(stage).status == ExecutionStatus.RUNNING
+    when:
+    def result = null
+    def thrownException = null
+    try {
+      result = task.execute(stage)
+    } catch (RetrofitError e) {
+      thrownException = e
+    }
+
+    then:
+    thrownException ? thrownException == exception : result.status == expectedExecutionStatus
+
+    where:
+    httpStatus || expectedExecutionStatus
+    404        || ExecutionStatus.RUNNING
+    500        || ExecutionStatus.RUNNING
+    503        || ExecutionStatus.RUNNING
+    400        || null
   }
 }
