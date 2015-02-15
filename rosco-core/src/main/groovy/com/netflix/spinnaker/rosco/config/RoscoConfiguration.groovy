@@ -70,4 +70,25 @@ class RoscoConfiguration {
     BakeStatus.State bakeState
   }
 
+  @Bean
+  @ConfigurationProperties('executionStatusToBakeResults')
+  ExecutionStatusToBakeResultMap executionStatusToBakeResultMap() {
+    new ExecutionStatusToBakeResultMap()
+  }
+
+  static class ExecutionStatusToBakeResultMap {
+    List<ExecutionStatusToBakeResult> associations
+
+    public BakeStatus.Result convertExecutionStatusToBakeResult(String executionStatus) {
+      associations.find {
+        it.executionStatus == executionStatus
+      }?.bakeResult
+    }
+  }
+
+  static class ExecutionStatusToBakeResult {
+    String executionStatus
+    BakeStatus.Result bakeResult
+  }
+
 }

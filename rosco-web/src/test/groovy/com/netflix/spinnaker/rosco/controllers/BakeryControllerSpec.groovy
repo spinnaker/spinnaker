@@ -84,16 +84,18 @@ class BakeryControllerSpec extends Specification {
       e.message == "Unknown provider type 'gce'."
   }
 
-  void 'lookup status converts execution status to bake state'() {
+  void 'lookup status converts execution status to bake state and bake result'() {
     setup:
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def rushServiceMock = Mock(RushService)
       def executionStatusToBakeStateMapMock = Mock(RoscoConfiguration.ExecutionStatusToBakeStateMap)
+      def executionStatusToBakeResultMapMock = Mock(RoscoConfiguration.ExecutionStatusToBakeResultMap)
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   rushService: rushServiceMock,
-                                                  executionStatusToBakeStateMap: executionStatusToBakeStateMapMock)
+                                                  executionStatusToBakeStateMap: executionStatusToBakeStateMapMock,
+                                                  executionStatusToBakeResultMap: executionStatusToBakeResultMapMock)
 
     when:
       def bakeStatus = bakeryController.lookupStatus(REGION, SCRIPT_ID)
@@ -101,7 +103,31 @@ class BakeryControllerSpec extends Specification {
     then:
       1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> Observable.from(new ScriptExecution(id: SCRIPT_ID, status: "PREPARING"))
       1 * executionStatusToBakeStateMapMock.convertExecutionStatusToBakeState("PREPARING") >> BakeStatus.State.PENDING
-      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      1 * executionStatusToBakeResultMapMock.convertExecutionStatusToBakeResult("PREPARING") >> null
+      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING, result: null)
+  }
+
+  void 'lookup status converts successful execution status to bake state and bake result'() {
+    setup:
+      def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
+      def rushServiceMock = Mock(RushService)
+      def executionStatusToBakeStateMapMock = Mock(RoscoConfiguration.ExecutionStatusToBakeStateMap)
+      def executionStatusToBakeResultMapMock = Mock(RoscoConfiguration.ExecutionStatusToBakeResultMap)
+
+    @Subject
+      def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+                                                  rushService: rushServiceMock,
+                                                  executionStatusToBakeStateMap: executionStatusToBakeStateMapMock,
+                                                  executionStatusToBakeResultMap: executionStatusToBakeResultMapMock)
+
+    when:
+      def bakeStatus = bakeryController.lookupStatus(REGION, SCRIPT_ID)
+
+    then:
+      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> Observable.from(new ScriptExecution(id: SCRIPT_ID, status: "SUCCESSFUL"))
+      1 * executionStatusToBakeStateMapMock.convertExecutionStatusToBakeState("SUCCESSFUL") >> BakeStatus.State.COMPLETED
+      1 * executionStatusToBakeResultMapMock.convertExecutionStatusToBakeResult("SUCCESSFUL") >> BakeStatus.Result.SUCCESS
+      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING, result: BakeStatus.Result.SUCCESS)
   }
 
   void 'lookup status throws exception when script execution cannot be found'() {
