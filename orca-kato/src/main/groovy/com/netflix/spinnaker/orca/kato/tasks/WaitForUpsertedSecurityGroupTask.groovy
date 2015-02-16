@@ -44,9 +44,9 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context.account
-    String region = stage.context.region
-    String name = stage.context.name
+    String account = stage.context."upsert.account"
+    String region = stage.context."upsert.region"
+    String name = stage.context."upsert.name"
     String oldValue = stage.context."pre.response" ?: null
 
     if (!account || !region || !name) {

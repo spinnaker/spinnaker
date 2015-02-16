@@ -30,9 +30,11 @@ import static java.util.UUID.randomUUID
 
 class MonitorBakeTaskSpec extends Specification {
 
-  @Subject task = new MonitorBakeTask()
+  @Subject
+    task = new MonitorBakeTask()
 
-  @Shared Pipeline pipeline = new Pipeline()
+  @Shared
+  Pipeline pipeline = new Pipeline()
 
   @Unroll
   def "should return #taskStatus if bake is #bakeState"() {
@@ -42,19 +44,21 @@ class MonitorBakeTaskSpec extends Specification {
 
     and:
     task.bakery = Stub(BakeryService) {
-      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState))
+      lookupStatus(stage.context.region, id) >> Observable.from(new BakeStatus(id: id, state: bakeState, result: bakeResult))
     }
 
     expect:
     task.execute(stage).status == taskStatus
 
     where:
-    bakeState                  | taskStatus
-    BakeStatus.State.PENDING   | ExecutionStatus.RUNNING
-    BakeStatus.State.RUNNING   | ExecutionStatus.RUNNING
-    BakeStatus.State.COMPLETED | ExecutionStatus.SUCCEEDED
-    BakeStatus.State.CANCELLED | ExecutionStatus.FAILED
-    BakeStatus.State.SUSPENDED | ExecutionStatus.RUNNING
+    bakeState                  | bakeResult                || taskStatus
+    BakeStatus.State.PENDING   | null                      || ExecutionStatus.RUNNING
+    BakeStatus.State.RUNNING   | null                      || ExecutionStatus.RUNNING
+    BakeStatus.State.COMPLETED | BakeStatus.Result.SUCCESS || ExecutionStatus.SUCCEEDED
+    BakeStatus.State.COMPLETED | BakeStatus.Result.FAILURE || ExecutionStatus.FAILED
+    BakeStatus.State.COMPLETED | null                      || ExecutionStatus.FAILED
+    BakeStatus.State.CANCELLED | null                      || ExecutionStatus.FAILED
+    BakeStatus.State.SUSPENDED | null                      || ExecutionStatus.RUNNING
 
     id = randomUUID().toString()
   }

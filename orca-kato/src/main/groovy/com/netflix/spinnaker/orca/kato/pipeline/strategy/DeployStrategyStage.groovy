@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.netflix.frigga.Names
+import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
@@ -109,6 +110,9 @@ abstract class DeployStrategyStage extends LinearStage {
           continue
         }
         def latestAsg = existingAsgs.findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
+        if (!latestAsg) {
+          continue
+        }
         def nextStageContext = [asgName: latestAsg.name, regions: [region], credentials: cleanupConfig.account]
 
         if (nextStageContext.asgName) {
@@ -150,16 +154,18 @@ abstract class DeployStrategyStage extends LinearStage {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
-        for (asg in existingAsgs) {
+
+        existingAsgs.findAll { it.region == region}.each { Map asg ->
           def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {
               logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextContext)}")
-              continue
+              return
             }
           }
 
+          logger.info("Injecting destroyAsg stage (${asg.region}:${asg.name})")
           injectAfter(stage, "destroyAsg", destroyAsgStage, nextContext)
         }
       }
@@ -180,6 +186,7 @@ abstract class DeployStrategyStage extends LinearStage {
   static class StageData {
     String strategy
     String account
+    String freeFormDetails
     String application
     String stack
     String providerType = "aws"
@@ -188,7 +195,12 @@ abstract class DeployStrategyStage extends LinearStage {
     Map<String, List<String>> availabilityZones
 
     String getCluster() {
-      "${application}${stack ? '-' + stack : ''}"
+      def builder = new AutoScalingGroupNameBuilder()
+      builder.appName = application
+      builder.stack = stack
+      builder.detail = freeFormDetails
+
+      return builder.buildGroupName()
     }
   }
 

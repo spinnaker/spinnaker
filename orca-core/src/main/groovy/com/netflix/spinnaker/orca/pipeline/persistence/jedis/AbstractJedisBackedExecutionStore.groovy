@@ -71,7 +71,6 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     def key = "${prefix}:$id"
     if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
-      println mapper.writeValueAsString(mapper.readTree(json))
       Execution execution = mapper.readValue(json, executionClass)
       for (stage in execution.stages) {
         stage.execution = execution

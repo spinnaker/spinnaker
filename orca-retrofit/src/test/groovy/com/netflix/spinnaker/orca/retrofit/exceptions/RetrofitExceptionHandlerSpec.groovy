@@ -60,6 +60,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
       details.status == status
       details.error == error
       details.errors == errors
+      details.responseBody == "{\"error\":\"Error Message\",\"errors\":[\"Error #1\",\"Error #2\"]}"
       details.rootException == null
     }
 
