@@ -10,13 +10,13 @@ angular.module('deckApp.settings', [])
       }
     },
     pollSchedule: 30000,
-    primaryAccounts: ['test'],
+    primaryAccounts: ['prod', 'test'],
     primaryRegions: ['eu-west-1','us-east-1','us-west-1','us-west-2'],
     defaults: {
       account: 'test',
       region: 'us-east-1'
     },
-    authEnabled: true
+    authEnabled: false
   });
 
 window.tracking = {
