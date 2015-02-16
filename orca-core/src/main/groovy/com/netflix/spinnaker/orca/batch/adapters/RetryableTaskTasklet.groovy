@@ -16,20 +16,31 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.Clock
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.batch.retry.PollRequiresRetry
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
 
 class RetryableTaskTasklet extends TaskTasklet {
+  private final Clock clock
+  private final Date startDate
+  private final long timeoutMs
 
   RetryableTaskTasklet(RetryableTask task,
                        ExecutionRepository executionRepository,
-                       List<ExceptionHandler> exceptionHandlers) {
+                       List<ExceptionHandler> exceptionHandlers,
+                       Clock clock = Clock.WALL) {
     super(task, executionRepository, exceptionHandlers)
+    this.clock = clock
+    this.startDate = new Date(clock.now())
+    this.timeoutMs = task.timeout
   }
 
   @Override
@@ -39,5 +50,13 @@ class RetryableTaskTasklet extends TaskTasklet {
       throw new PollRequiresRetry()
     }
     return status
+  }
+
+  @Override
+  protected TaskResult doExecuteTask(Stage stage) {
+    if (clock.now() - startDate.time > timeoutMs) {
+      throw new TimeoutException("Operation timed out after ${timeoutMs}ms")
+    }
+    return super.doExecuteTask(stage)
   }
 }

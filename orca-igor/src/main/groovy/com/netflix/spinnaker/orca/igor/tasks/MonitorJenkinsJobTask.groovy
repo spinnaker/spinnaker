@@ -32,7 +32,7 @@ import retrofit.RetrofitError
 class MonitorJenkinsJobTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = 120000 // two hours?
+  long timeout = 7200000
 
   @Autowired
   IgorService igorService
