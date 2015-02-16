@@ -62,10 +62,10 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
     @Override
     TaskResult execute(Stage stage) {
       TimeZone.'default' = TimeZone.getTimeZone('America/Los_Angeles')
-      Date now = new Date()
+      Date now = getCurrentDate()
       Date scheduledTime
       try {
-        scheduledTime = getTimeInWindow(stage, new Date())
+        scheduledTime = getTimeInWindow(stage, getCurrentDate())
       } catch (Exception e) {
         return new DefaultTaskResult(ExecutionStatus.FAILED, [failureReason: 'Exception occurred while calculating time window: ' + e.message])
       }
@@ -159,12 +159,22 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       return scheduledTime
     }
 
+    private static Date getCurrentDate() {
+      Calendar calendar = Calendar.instance
+      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
+      calendar.setTime(new Date())
+      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
+      return calendar.time
+    }
+
     private static Date getUpdatedDate(Date date, int hour, int min, int seconds) {
       Calendar calendar = Calendar.instance
+      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
       calendar.setTime(date)
       calendar.set(HOUR_OF_DAY, hour)
       calendar.set(MINUTE, min)
       calendar.set(SECOND, seconds)
+      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
       return calendar.time
     }
 
