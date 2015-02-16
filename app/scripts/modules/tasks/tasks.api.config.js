@@ -222,7 +222,7 @@ angular.module('deckApp.tasks.api', [
               if (exception) {
                 return exception.message || 'No reason provided';
               }
-              return steps[steps.length-1].status;
+              return steps && steps.length ? steps[steps.length-1].status : 'No status available';
             }
             return null;
           }
@@ -230,7 +230,7 @@ angular.module('deckApp.tasks.api', [
         history: {
           get: function() {
             var katoTasks = getKatoTasks(task);
-            if (katoTasks) {
+            if (katoTasks && katoTasks.length) {
               return katoTasks[katoTasks.length-1].history;
             }
             return null;
