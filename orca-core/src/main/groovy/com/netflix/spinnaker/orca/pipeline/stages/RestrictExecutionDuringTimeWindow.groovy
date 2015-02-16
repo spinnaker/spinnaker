@@ -61,7 +61,6 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
     @Override
     TaskResult execute(Stage stage) {
-      TimeZone.'default' = TimeZone.getTimeZone('America/Los_Angeles')
       Date now = getCurrentDate()
       Date scheduledTime
       try {
@@ -92,25 +91,10 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         List whitelistWindows = [] as List<TimeWindow>
 
         for (Map timeWindow : whitelist) {
-          int startMin = timeWindow.startMin as Integer
-          int endMin = timeWindow.endMin as Integer
-          int startHour = timeWindow.startHour as Integer
-          int endHour = timeWindow.endHour as Integer
+          HourMinute start = new HourMinute(timeWindow.startHour as Integer, timeWindow.startMin as Integer)
+          HourMinute end = new HourMinute(timeWindow.endHour as Integer, timeWindow.endMin as Integer)
 
-          if (startHour > endHour) {
-            Date start1 = getUpdatedDate(scheduledTime, startHour, startMin, 0)
-            Date end1 = getUpdatedDate(scheduledTime, DAY_END_HOUR, DAY_END_MIN, 0)
-            whitelistWindows.add(new TimeWindow(start1, end1))
-
-            Date start2 = getUpdatedDate(scheduledTime, DAY_START_HOUR, DAY_START_MIN, 0)
-            Date end2 = getUpdatedDate(scheduledTime, endHour, endMin, 0)
-            whitelistWindows.add(new TimeWindow(start2, end2))
-
-          } else {
-            Date start = getUpdatedDate(scheduledTime, startHour, startMin, 0)
-            Date end = getUpdatedDate(scheduledTime, endHour, endMin, 0)
-            whitelistWindows.add(new TimeWindow(start, end))
-          }
+          whitelistWindows.add(new TimeWindow(start, end))
         }
         return calculateScheduledTime(scheduledTime, whitelistWindows)
 
@@ -125,14 +109,17 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
     }
 
     private static Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, boolean dayIncremented) throws IncorrectTimeWindowsException {
-      Collections.sort(whitelistWindows)
 
       boolean inWindow = false
-      for (TimeWindow timeWindow : whitelistWindows) {
-        int index = timeWindow.indexOf(scheduledTime)
+      Collections.sort(whitelistWindows)
+      List<TimeWindow> normalized = normalizeTimeWindows(whitelistWindows)
+
+      for (TimeWindow timeWindow : normalized) {
+        HourMinute hourMin = new HourMinute(scheduledTime[HOUR_OF_DAY], scheduledTime[MINUTE])
+        int index = timeWindow.indexOf(hourMin)
         if (index == -1) {
-          scheduledTime[HOUR_OF_DAY] = timeWindow.start[HOUR_OF_DAY]
-          scheduledTime[MINUTE] = timeWindow.start[MINUTE]
+          scheduledTime[HOUR_OF_DAY] = timeWindow.start.hour
+          scheduledTime[MINUTE] = timeWindow.start.min
           scheduledTime[SECOND] = 0
           inWindow = true
           break
@@ -159,6 +146,33 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       return scheduledTime
     }
 
+    private static List<TimeWindow> normalizeTimeWindows(List<TimeWindow> timeWindows) {
+      List<TimeWindow> normalized = []
+      for (TimeWindow timeWindow : timeWindows) {
+        int startHour = timeWindow.start.hour as Integer
+        int startMin = timeWindow.start.min as Integer
+        int endHour = timeWindow.end.hour as Integer
+        int endMin = timeWindow.end.min as Integer
+
+        if (startHour > endHour) {
+          HourMinute start1 = new HourMinute(startHour, startMin)
+          HourMinute end1 = new HourMinute(DAY_END_HOUR, DAY_END_MIN)
+          normalized.add(new TimeWindow(start1, end1))
+
+          HourMinute start2 = new HourMinute(DAY_START_HOUR, DAY_START_MIN)
+          HourMinute end2 = new HourMinute(endHour, endMin)
+          normalized.add(new TimeWindow(start2, end2))
+
+        } else {
+          HourMinute start = new HourMinute(startHour, startMin)
+          HourMinute end = new HourMinute(endHour, endMin)
+          normalized.add(new TimeWindow(start, end))
+        }
+      }
+      Collections.sort(normalized)
+      return normalized
+    }
+
     private static Date getCurrentDate() {
       Calendar calendar = Calendar.instance
       calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
@@ -178,12 +192,72 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       return calendar.time
     }
 
+    private static class HourMinute implements Comparable {
+      private final int hour
+      private final int min
+
+      HourMinute(int hour, int min) {
+        this.hour = hour
+        this.min = min
+      }
+
+      int getHour() {
+        return hour
+      }
+
+      int getMin() {
+        return min
+      }
+
+      @Override
+      int compareTo(Object o) {
+        HourMinute rhs = (HourMinute) o
+        Date now = new Date()
+        Date thisDate = getUpdatedDate(now, hour, min, 0)
+        Date rhsDate = getUpdatedDate(now, rhs.hour, rhs.min, 0)
+        return thisDate.compareTo(rhsDate)
+      }
+
+      @Override
+      int hashCode() {
+        return super.hashCode()
+      }
+
+      @Override
+      boolean equals(Object obj) {
+        HourMinute rhs = (HourMinute) obj
+        Date now = new Date()
+        Date thisDate = getUpdatedDate(now, hour, min, 0)
+        Date rhsDate = getUpdatedDate(now, rhs.hour, rhs.min, 0)
+        return thisDate.equals(rhsDate)
+      }
+
+      boolean before(HourMinute hourMinute) {
+        Date now = new Date()
+        Date thisDate = getUpdatedDate(now, hour, min, 0)
+        Date rhsDate = getUpdatedDate(now, hourMinute.hour, hourMinute.min, 0)
+        return thisDate.before(rhsDate)
+      }
+
+      boolean after(HourMinute hourMinute) {
+        Date now = new Date()
+        Date thisDate = getUpdatedDate(now, hour, min, 0)
+        Date rhsDate = getUpdatedDate(now, hourMinute.hour, hourMinute.min, 0)
+        return thisDate.after(rhsDate)
+      }
+
+      @Override
+      String toString() {
+        return "${hour}:${min}"
+      }
+    }
+
     @VisibleForTesting
     private static class TimeWindow implements Comparable {
-      private final Date start
-      private final Date end
+      private final HourMinute start
+      private final HourMinute end
 
-      TimeWindow(Date start, Date end) {
+      TimeWindow(HourMinute start, HourMinute end) {
         this.start = start
         this.end = end
       }
@@ -194,21 +268,21 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         return this.start.compareTo(rhs.start)
       }
 
-      int indexOf(Date current) {
-        if (current.before(start)) {
+      int indexOf(HourMinute current) {
+        if (current.before(this.start)) {
           return -1
-        } else  if ((current.equals(start) || current.after(start)) && (current.equals(end) || current.before(end))) {
+        } else  if ((current.after(this.start) || current.equals(this.start)) && (current.before(this.end) || current.equals(this.end))) {
           return 0
         } else {
           return 1
         }
       }
 
-      Date getStart() {
+      HourMinute getStart() {
         return start
       }
 
-      Date getEnd() {
+      HourMinute getEnd() {
         return end
       }
 

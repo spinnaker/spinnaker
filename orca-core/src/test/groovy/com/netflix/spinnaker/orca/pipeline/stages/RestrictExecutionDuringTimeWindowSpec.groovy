@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat
 
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
+import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 /**
  *
@@ -49,10 +50,6 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   @Autowired ApplicationContext applicationContext;
   def listeners = [new StageStatusPropagationListener(executionRepository)]
   def task = Mock(Task)
-
-  def setup() {
-    System.setProperty("user.timezone", "America/Los_Angeles")
-  }
 
   def "pipeline should inject a stage before if current stage context has restrictExecutionDuringWindow set to true"() {
     expect:
@@ -69,43 +66,46 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     where:
     scheduledTime           | expectedTime            | timeWindows
 
-    date("02/13 06:30:00")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
-    date("02/13 09:59:59")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
-    date("02/13 10:00:00")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
-    date("02/13 10:00:35")  | date("02/13 10:00:35")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
+    date("02/14 01:00:00")  | date("02/14 01:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))]
 
-    date("02/13 09:59:59")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00")), window(date("02/13 16:00:00"), date("02/13 18:00:00"))]
-    date("02/13 10:00:00")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00")), window(date("02/13 16:00:00"), date("02/13 18:00:00"))]
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00")), window(date("02/13 16:00:00"), date("02/13 18:00:00"))]
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(date("02/13 16:00:00"), date("02/13 18:00:00")), window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
+    date("02/13 21:45:00")  | date("02/14 06:00:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))]
 
-    date("02/13 14:30:00")  | date("02/13 14:30:00")  | [window(date("02/13 13:00:00"), date("02/13 18:00:00"))]
+    date("02/13 13:45:00")  | date("02/13 22:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))]
+    date("02/13 06:30:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 09:59:59")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 10:00:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 10:00:35")  | date("02/13 10:00:35")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
 
-    date("02/13 00:00:00")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
-    date("02/13 00:01:00")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 13:00:00"))]
+    date("02/13 09:59:59")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
+    date("02/13 10:00:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
+    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
+    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(hourMinute("16:00"), hourMinute("18:00")), window(hourMinute("10:00"), hourMinute("13:00"))]
 
-    date("02/13 00:01:00")  | date("02/13 15:00:00")  | [window(date("02/13 15:00:00"), date("02/13 18:00:00"))]
-    date("02/13 11:01:00")  | date("02/13 15:00:00")  | [window(date("02/13 15:00:00"), date("02/13 18:00:00"))]
+    date("02/13 14:30:00")  | date("02/13 14:30:00")  | [window(hourMinute("13:00"), hourMinute("18:00"))]
 
-    date("02/13 14:01:00")  | date("02/14 13:00:00")  | [window(date("02/13 13:00:00"), date("02/13 14:00:00"))]
+    date("02/13 00:00:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 00:01:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
 
-    date("02/13 13:45:00")  | date("02/13 22:00:00")  | [window(date("02/13 22:00:00"), date("02/14 05:00:00"))]
-    date("02/13 22:00:00")  | date("02/13 22:00:00")  | [window(date("02/13 22:00:00"), date("02/14 05:00:00"))]
-    date("02/14 01:00:00")  | date("02/14 01:00:00")  | [window(date("02/13 22:00:00"), date("02/14 05:00:00"))]
+    date("02/13 00:01:00")  | date("02/13 15:00:00")  | [window(hourMinute("15:00"), hourMinute("18:00"))]
+    date("02/13 11:01:00")  | date("02/13 15:00:00")  | [window(hourMinute("15:00"), hourMinute("18:00"))]
 
-    date("02/13 01:00:00")  | date("02/13 01:00:00")  | [window(date("02/13 00:00:00"), date("02/13 05:00:00")), window(date("02/13 22:00:00"), date("02/13 23:59:59"))]
+    date("02/13 14:01:00")  | date("02/14 13:00:00")  | [window(hourMinute("13:00"), hourMinute("14:00"))]
 
-    date("02/13 00:59:59")  | date("02/13 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 11:00:00")), window(date("02/13 13:00:00"), date("02/13 14:00:00")),
-                                                         window(date("02/13 15:00:00"), date("02/13 16:00:00"))]
-    date("02/13 10:30:59")  | date("02/13 10:30:59")  | [window(date("02/13 10:00:00"), date("02/13 11:00:00")), window(date("02/13 13:00:00"), date("02/13 14:00:00")),
-                                                         window(date("02/13 15:00:00"), date("02/13 16:00:00"))]
-    date("02/13 12:30:59")  | date("02/13 13:00:00")  | [window(date("02/13 10:00:00"), date("02/13 11:00:00")), window(date("02/13 13:00:00"), date("02/13 14:00:00")),
-                                                         window(date("02/13 15:00:00"), date("02/13 16:00:00"))]
-    date("02/13 16:00:00")  | date("02/13 16:00:00")  | [window(date("02/13 10:00:00"), date("02/13 11:00:00")), window(date("02/13 13:00:00"), date("02/13 14:00:00")),
-                                                         window(date("02/13 15:00:00"), date("02/13 16:00:00"))]
-    date("02/13 16:01:00")  | date("02/14 10:00:00")  | [window(date("02/13 10:00:00"), date("02/13 11:00:00")), window(date("02/13 13:00:00"), date("02/13 14:00:00")),
-                                                         window(date("02/13 15:00:00"), date("02/13 16:00:00"))]
+    date("02/13 22:00:00")  | date("02/13 22:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))]
+
+    date("02/13 01:00:00")  | date("02/13 01:00:00")  | [window(hourMinute("00:00"), hourMinute("05:00")), window(hourMinute("22:00"), hourMinute("23:59"))]
+
+    date("02/13 00:59:59")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 10:30:59")  | date("02/13 10:30:59")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 12:30:59")  | date("02/13 13:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 16:00:00")  | date("02/13 16:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 16:01:00")  | date("02/14 10:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
   }
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #stage in stage context'() {
@@ -188,13 +188,19 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     }
   }
 
+  private hourMinute(String hourMinuteStr) {
+    int hour = hourMinuteStr.tokenize(":").get(0) as Integer
+    int min = hourMinuteStr.tokenize(":").get(1) as Integer
+    return new HourMinute(hour, min)
+  }
+
   private Date date(String dateStr) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM/dd HH:mm:ss z yyyy");
     sdf.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
     return sdf.parse(dateStr + " PST 2015")
   }
 
-  private TimeWindow window(Date start, Date end) {
+  private TimeWindow window(HourMinute start, HourMinute end) {
     return new TimeWindow(start, end)
   }
 
