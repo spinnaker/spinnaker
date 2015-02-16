@@ -33,6 +33,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Unroll
 
+import java.text.SimpleDateFormat
+
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
@@ -183,7 +185,9 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   }
 
   private Date date(String dateStr) {
-    return Date.parse("MM/dd HH:mm:ss z yyyy", dateStr + " PST 2015")
+    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd HH:mm:ss z yyyy");
+    sdf.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+    return sdf.parse(dateStr + " PST 2015")
   }
 
   private TimeWindow window(Date start, Date end) {
