@@ -32,6 +32,9 @@ angular.module('deckApp.pipelines.stage.executionWindows.controller', [
     };
 
     this.updateTimelineWindows = function() {
+      if (!$scope.stage.restrictedExecutionWindow) {
+        return;
+      }
       var windows = [];
       $scope.stage.restrictedExecutionWindow.whitelist.forEach(function(window) {
         var start = window.startHour * 60 + window.startMin,

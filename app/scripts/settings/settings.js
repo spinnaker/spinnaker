@@ -3,7 +3,7 @@
 angular.module('deckApp.settings', [])
   .constant('settings', {
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
-    gateUrl: 'http://localhost:8084',
+    gateUrl: 'http://spinnaker-api-prestaging.prod.netflix.net',
     accounts: {
       prod: {
         challengeDestructiveActions: true
