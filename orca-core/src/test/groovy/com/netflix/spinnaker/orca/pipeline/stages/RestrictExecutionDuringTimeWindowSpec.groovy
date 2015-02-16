@@ -50,6 +50,10 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   def listeners = [new StageStatusPropagationListener(executionRepository)]
   def task = Mock(Task)
 
+  def setup() {
+    System.setProperty("user.timezone", "America/Los_Angeles")
+  }
+
   def "pipeline should inject a stage before if current stage context has restrictExecutionDuringWindow set to true"() {
     expect:
     pipeline.stages.size() == 2
