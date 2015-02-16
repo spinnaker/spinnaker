@@ -40,7 +40,8 @@ class CompletedBakeTask implements Task {
     def bakeStatus = stage.context.status as BakeStatus
     try {
       def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [ami: bake.ami])
+      // This treatment of ami allows both the aws and gce bake results to be propagated.
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [ami: bake.ami ?: bake.imageName])
     } catch (RetrofitError e) {
       // TODO: attach some reporting info here
       new DefaultTaskResult(ExecutionStatus.FAILED)

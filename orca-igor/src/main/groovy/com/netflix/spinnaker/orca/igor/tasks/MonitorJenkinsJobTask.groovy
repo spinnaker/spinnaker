@@ -22,10 +22,12 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Slf4j
 @Component
 class MonitorJenkinsJobTask implements RetryableTask {
 
@@ -35,6 +37,13 @@ class MonitorJenkinsJobTask implements RetryableTask {
   @Autowired
   IgorService igorService
 
+  private static Map<String, ExecutionStatus> statusMap = [
+    'ABORTED' : ExecutionStatus.CANCELED,
+    'FAILURE' : ExecutionStatus.FAILED,
+    'SUCCESS' : ExecutionStatus.SUCCEEDED,
+    'UNSTABLE': ExecutionStatus.FAILED
+  ]
+
   @Override
   TaskResult execute(Stage stage) {
     String master = stage.context.master
@@ -42,15 +51,22 @@ class MonitorJenkinsJobTask implements RetryableTask {
     def buildNumber = (int)stage.context.buildNumber
     try {
       Map<String, Object> build = igorService.getBuild(master, job, buildNumber)
-      if (build.result != "SUCCESS") {
+      String result = build.result
+      if (build.running && build.running != 'false') {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
+      }
+      if (statusMap.containsKey(result)) {
+        return new DefaultTaskResult(statusMap[result], [buildInfo: build])
       } else {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildInfo: build])
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
     } catch (RetrofitError e) {
-      if (e.response.status != 404) {
-        return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+      if ([503, 500, 404].contains(e.response?.status)) {
+        log.warn("Http ${e.response.status} received from `igor`, retrying...")
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
+
+      throw e
     }
   }
 }

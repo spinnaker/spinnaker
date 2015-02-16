@@ -25,9 +25,10 @@ include "orca-core",
   "orca-mort",
   "orca-oort",
   "orca-test",
-  "orca-smoke-test",
   "orca-rush",
-  "orca-web"
+  "orca-flex",
+  "orca-web",
+  "orca-smoke-test"
 
 rootProject.name = "orca"
 

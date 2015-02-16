@@ -28,11 +28,13 @@ import com.netflix.spinnaker.orca.front50.pipeline.DeleteApplicationStage
 import com.netflix.spinnaker.orca.front50.pipeline.UpdateApplicationStage
 import com.netflix.spinnaker.orca.front50.pipeline.UpsertApplicationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Component
+@CompileStatic
 class WaitForMultiAccountPropagationTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 35000

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.retrofit.exceptions
 
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import retrofit.RetrofitError
+import retrofit.mime.TypedByteArray
 
 class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
   @Override
@@ -42,11 +43,17 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
           response.details.rootException = body.exception
         }
       } catch (ignored) {
-        response.details = new ExceptionHandler.ResponseDetails(reason)
+        response.details = new ExceptionHandler.ResponseDetails(properties.reason ?: e.message)
       }
 
-      response.details.status = status
-      response.details.url = url
+      try {
+        response.details.responseBody = new String(((TypedByteArray) e.getResponse().getBody()).getBytes())
+      } catch (ignored) {
+        response.details.responseBody = null
+      }
+      response.details.kind = e.kind
+      response.details.status = properties.status ?: null
+      response.details.url = properties.url ?: null
       return response
     }
   }

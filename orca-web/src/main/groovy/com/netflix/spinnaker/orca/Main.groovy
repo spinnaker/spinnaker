@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mayo.config.MayoConfiguration
+import com.netflix.spinnaker.orca.flex.config.FlexConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -55,6 +56,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   BakeryConfiguration,
   EchoConfiguration,
   Front50Configuration,
+  FlexConfiguration,
   KatoConfiguration,
   MortConfiguration,
   OortConfiguration,

@@ -42,9 +42,9 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      account: account,
-      region : region,
-      name   : groupName
+      "upsert.account": account,
+      "upsert.region" : region,
+      "upsert.name"   : groupName
     ])
     if (old) {
       stage.context."pre.response" = old

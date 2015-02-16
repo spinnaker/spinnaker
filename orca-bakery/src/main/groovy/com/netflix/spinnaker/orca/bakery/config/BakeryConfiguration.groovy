@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -47,8 +48,8 @@ class BakeryConfiguration {
   @Autowired LogLevel retrofitLogLevel
 
   @Bean
-  Endpoint bakeryEndpoint() {
-    newFixedEndpoint("http://bakery.test.netflix.net:7001")
+  Endpoint bakeryEndpoint(@Value('${bakery.baseUrl:http://bakery.test.netflix.net:7001}') String bakeryBaseUrl) {
+    newFixedEndpoint(bakeryBaseUrl)
   }
 
   @Bean

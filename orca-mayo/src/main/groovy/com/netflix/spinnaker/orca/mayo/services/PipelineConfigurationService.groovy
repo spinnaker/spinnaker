@@ -19,13 +19,14 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.mayo.MayoService
+import groovy.util.logging.Slf4j
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import javax.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-
+@Slf4j
 @Component
 class PipelineConfigurationService {
 
@@ -55,7 +56,7 @@ class PipelineConfigurationService {
       try {
         pipelines = objectMapper.readValue(mayoService.pipelines.body.in().text, new TypeReference<List<Map>>() {})
       } catch (e) {
-        e.printStackTrace()
+        log.error("Failed to unmarshal pipeline configs", e)
       }
     }
   }

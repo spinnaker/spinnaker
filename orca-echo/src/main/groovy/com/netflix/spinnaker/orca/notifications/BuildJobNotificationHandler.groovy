@@ -19,11 +19,12 @@ package com.netflix.spinnaker.orca.notifications
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.mayo.services.PipelineConfigurationService
 import org.springframework.beans.factory.annotation.Autowired
-
+import groovy.util.logging.Slf4j
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
+@Slf4j
 class BuildJobNotificationHandler extends AbstractNotificationHandler implements Runnable  {
   static final String TRIGGER_TYPE = "jenkins"
   static final String TRIGGER_KEY = "job"
@@ -38,7 +39,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
 
   @PostConstruct
   void init() {
-    Executors.newSingleThreadScheduledExecutor().schedule(this, pollingInterval, TimeUnit.SECONDS)
+    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, 0, pollingInterval, TimeUnit.SECONDS)
   }
 
   @Override
@@ -50,6 +51,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
         for (Map trigger in triggers) {
           if (trigger.type == TRIGGER_TYPE && trigger.enabled == true) {
             String key = generateKey(trigger[TRIGGER_MASTER], trigger[TRIGGER_KEY])
+            log.info("Adding pipeline trigger ${pipeline.application}:'${pipeline.name}'")
             if (!_interestingPipelines.containsKey(key)) {
               _interestingPipelines[key] = []
             }
@@ -59,7 +61,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
       }
       this.interestingPipelines = _interestingPipelines
     } catch (e) {
-      e.printStackTrace()
+      log.error("Failed to update available pipeline triggers", e)
     }
   }
 
@@ -68,7 +70,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
     try {
       String key = generateKey(input.master as String, input.name as String)
       if (interestingPipelines.containsKey(key)) {
-        if (input.lastBuild?.result != "SUCCESS" || input.lastBuild?.building != "false") return
+        if (input.lastBuild?.result != "SUCCESS" || input.lastBuild?.building != false) return
         def pipelineConfigs = interestingPipelines[key]
         for (Map pipelineConfig in pipelineConfigs) {
           Map trigger = pipelineConfig.triggers.find {
@@ -82,7 +84,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler implements
         }
       }
     } catch (e) {
-      e.printStackTrace()
+      log.error("Failed to handle build job notification (${input})", e)
       throw e
     }
   }

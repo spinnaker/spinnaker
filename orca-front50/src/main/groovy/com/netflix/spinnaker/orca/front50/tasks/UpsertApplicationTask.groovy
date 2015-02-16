@@ -17,9 +17,15 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.model.Application
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
+@Slf4j
 @Component
+@CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task {
   @Override
   void performRequest(String account, Application application) {
@@ -31,16 +37,38 @@ class UpsertApplicationTask extends AbstractFront50Task {
     }.collect {
       def existingGlobalApplication = fetchApplication(it.name, application.name)
       if (existingGlobalApplication) {
-        // update all global applications with the new application metadata
+        existingGlobalApplication.listAccounts().each {
+          if (fetchApplication(it, application.name)) {
+            try {
+              // propagate updates to all other per-account registries that this global application is associated with
+              log.info("Updating application (name: ${application.name}, account: ${it})")
+              front50Service.update(it, application)
+            } catch (RetrofitError e) {
+              log.error("Unable to update application (name: ${application.name}, account: ${it})", e)
+            }
+          }
+        }
+
+        // ensure global and non-global account associations are merged prior to updating
         application.updateAccounts((existingGlobalApplication.listAccounts() << account) as Set)
+
+        log.info("Updating application (name: ${application.name}, account: ${it.name})")
         front50Service.update(it.name, application)
       } else {
         application.updateAccounts((application.listAccounts() << account) as Set)
+
+        log.info("Creating application (name: ${application.name}, account: ${it.name})")
         front50Service.create(it.name, application.name, application)
       }
 
       return existingGlobalApplication
     }.find { it }
+
+    // avoid propagating account associations to non-global application registries
+    application.accounts = null
+    if (existingGlobalApplication) {
+      existingGlobalApplication.accounts = null
+    }
 
     /*
      * Upsert application to specific account registry.
@@ -49,20 +77,25 @@ class UpsertApplicationTask extends AbstractFront50Task {
      */
     def existingApplication = fetchApplication(account, application.name)
     if (existingApplication) {
-      application.accounts = null
+      log.info("Updating application (name: ${application.name}, account: ${account})")
       front50Service.update(account, application)
     } else {
       if (existingGlobalApplication) {
-        existingGlobalApplication.properties.each { k, v ->
-          // merge in any properties from the global registry that have not been overridden by the application.
-          if (!application."${k}") {
-            application."${k}" = v
-          }
-        }
+        mergeApplicationProperties(existingGlobalApplication, application)
       }
 
-      application.accounts = null
+      log.info("Creating application (name: ${application.name}, account: ${account})")
       front50Service.create(account, application.name, application)
+    }
+  }
+
+  @CompileStatic(TypeCheckingMode.SKIP)
+  private static void mergeApplicationProperties(Application source, Application target) {
+    source.properties.each { k, v ->
+      // merge in any properties from the global registry that have not been overridden by the application.
+      if (!target."${k}") {
+        target."${k}" = v
+      }
     }
   }
 

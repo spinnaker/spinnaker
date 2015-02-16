@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.notifications
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
-
 import javax.annotation.PostConstruct
+import groovy.util.logging.Slf4j
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 abstract class AbstractPollingNotificationAgent implements Runnable {
 
   @Autowired

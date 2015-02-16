@@ -40,7 +40,7 @@ abstract class EchoPollingNotificationAgent extends AbstractPollingNotificationA
       def maps = objectMapper.readValue(response.body.in().text, List)
       handleNotification maps
     } catch (e) {
-      e.printStackTrace()
+      log.error("Polling failed (notificationType: ${notificationType}, lastCheck: ${lastCheck}", e)
     }
   }
 }
