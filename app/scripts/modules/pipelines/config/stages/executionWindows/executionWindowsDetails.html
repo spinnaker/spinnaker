@@ -1,20 +1,18 @@
 <div>
   <div class="row">
     <div class="col-md-6">
-      <h5>Restrict Execution Configuration</h5>
+      <h5>Execution Windows Configuration</h5>
+      <strong>Stage execution can only run:</strong>
       <dl class="dl-narrow dl-horizontal">
-        <dt>Window</dt>
-        <dd>
-          {{stage.context.restrictedExecutionWindow.startHour}}:{{stage.context.restrictedExecutionWindow.startHour}}
-          <b>&nbsp;&nbsp;to&nbsp;&nbsp;</b>
-          {{stage.context.restrictedExecutionWindow.endHour}}:{{stage.context.restrictedExecutionWindow.endMin}}
-        </dd>
-        <dt>Day</dt>
-        <dd>
-          {{stage.context.restrictedExecutionWindow.dayStartHour}}:{{stage.context.restrictedExecutionWindow.dayStartMin}}
-          <b>&nbsp;&nbsp;to&nbsp;&nbsp;</b>
-          {{stage.context.restrictedExecutionWindow.dayEndHour}}:{{stage.context.restrictedExecutionWindow.dayStartMin}}
-        </dd>
+        <div ng-repeat="window in stage.context.restrictedExecutionWindow.whitelist">
+          <dt>From</dt>
+          <dd>
+            {{window.startHour}}:{{window.startHour}}
+            <strong>&nbsp;to&nbsp;</strong>
+            {{window.endHour}}:{{window.endMin}}
+            <strong>&nbsp;PST</strong>
+          </dd>
+        </div>
       </dl>
       <!--<dl class="dl-narrow dl-horizontal">-->
         <!---->
