@@ -24,13 +24,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
-/**
- *
- * @author sthadeshwar
- */
+
 /**
  * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
  * current time is within that window.
+ * @author sthadeshwar
  */
 @Component
 @CompileStatic
@@ -80,10 +78,9 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
     }
 
     /**
-     * Calculates the date-time which is outside of the blackout window. Also, considers the business hours for window calculation
-     * if passed in the stage context.
+     * Calculates a time which is within the whitelist of time windows allowed for execution
      * @param stage
-     * @param currentDateTime
+     * @param scheduledTime
      * @return
      */
     @VisibleForTesting
@@ -221,18 +218,20 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         return thisDate.compareTo(rhsDate)
       }
 
-      @Override
-      int hashCode() {
-        return super.hashCode()
+      boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+        HourMinute that = (HourMinute) o
+        if (hour != that.hour) return false
+        if (min != that.min) return false
+        return true
       }
 
-      @Override
-      boolean equals(Object obj) {
-        HourMinute rhs = (HourMinute) obj
-        Date now = new Date()
-        Date thisDate = getUpdatedDate(now, hour, min, 0)
-        Date rhsDate = getUpdatedDate(now, rhs.hour, rhs.min, 0)
-        return thisDate.equals(rhsDate)
+      int hashCode() {
+        int result
+        result = hour
+        result = 31 * result + min
+        return result
       }
 
       boolean before(HourMinute hourMinute) {

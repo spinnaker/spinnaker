@@ -168,13 +168,13 @@ interface Stage<T extends Execution> {
   void setParentStageId(String id)
 
   /**
-   * @see {@link #setScheduledTime(long scheduledDate)}
+   * @see {@link #setScheduledTime(long scheduledTime)}
    */
   long getScheduledTime()
 
   /**
    * Sets a date when this stage is scheduled to execute
-   * @param scheduledDate
+   * @param scheduledTime
    */
-  void setScheduledTime(long scheduledDate)
+  void setScheduledTime(long scheduledTime)
 }

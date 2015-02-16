@@ -66,7 +66,7 @@ class TaskTasklet implements Tasklet {
         // by a parallel process
         long scheduledTime =  stage.scheduledTime
         stage = currentStage(chunkContext)
-        // Setting the scheduledDate if it has been set by the task
+        // Setting the scheduledTime if it has been set by the task
         stage.scheduledTime = scheduledTime
 
         if (result.status == ExecutionStatus.TERMINAL) {
