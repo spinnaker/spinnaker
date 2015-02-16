@@ -15,7 +15,7 @@ angular.module('deckApp.serverGroup.configure.aws')
       }
 
       return $q.all({
-        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount(),
+        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('aws'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
         loadBalancers: loadBalancerReader.listAWSLoadBalancers(),
         subnets: subnetReader.listSubnets(),

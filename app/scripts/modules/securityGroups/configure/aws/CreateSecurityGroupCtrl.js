@@ -37,7 +37,7 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
       allSecurityGroups = securityGroups;
     });
 
-    accountService.listAccounts().then(function(accounts) {
+    accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       ctrl.accountUpdated();
     });

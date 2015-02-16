@@ -66,7 +66,12 @@ angular.module('deckApp.account.service', [
       return $q.when(preferredZonesByAccount);
     }
 
-    function listAccounts() {
+    function listAccounts(provider) {
+      if (provider) {
+        return listAccounts().then(function(accounts) {
+          return _.filter(accounts, { type: provider });
+        });
+      }
       return Restangular
         .all('credentials')
         .withHttpConfig({cache: infrastructureCaches.credentials})
@@ -79,9 +84,9 @@ angular.module('deckApp.account.service', [
       });
     }
 
-    var getRegionsKeyedByAccount = _.memoize(function() {
+    var getRegionsKeyedByAccount = _.memoize(function(provider) {
       var deferred = $q.defer();
-      listAccounts().then(function(accounts) {
+      listAccounts(provider).then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
           acc[account.name] = Restangular
             .all('credentials')

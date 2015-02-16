@@ -10,7 +10,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader, namingService) {
     function buildNewServerGroupCommand(application, account, region) {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
-      var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount();
+      var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, regionsKeyedByAccount: regionsKeyedByAccountLoader});
 
       return asyncLoader.then(function(asyncData) {
