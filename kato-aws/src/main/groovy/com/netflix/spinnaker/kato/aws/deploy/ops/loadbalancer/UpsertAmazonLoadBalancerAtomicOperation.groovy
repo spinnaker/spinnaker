@@ -115,8 +115,11 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       String dnsName
       if (!loadBalancer) {
         task.updateStatus BASE_PHASE, "Creating ${loadBalancerName} in ${description.credentials.name}:${region}..."
-        def subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(
-                availabilityZones, description.subnetType, SubnetTarget.ELB)
+        def subnetIds = []
+        if (description.subnetType) {
+          subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
+                  description.subnetType, SubnetTarget.ELB)
+        }
         dnsName = createLoadBalancer(loadBalancing, loadBalancerName, availabilityZones, subnetIds, listeners, securityGroups)
       } else {
         dnsName = loadBalancer.DNSName
