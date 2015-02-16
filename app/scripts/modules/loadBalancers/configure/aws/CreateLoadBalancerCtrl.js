@@ -47,7 +47,7 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
 
     function initializeCreateMode() {
       preloadSecurityGroups();
-      accountService.listAccounts().then(function (accounts) {
+      accountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
         ctrl.accountUpdated();

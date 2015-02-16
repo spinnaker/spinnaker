@@ -9,7 +9,7 @@ angular.module('deckApp.serverGroup.configure.gce')
     function configureCommand(command) {
       command.image = command.viewState.imageId;
       return $q.all({
-        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount(),
+        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('gce'),
         loadBalancers: loadBalancerReader.listGCELoadBalancers(),
         instanceTypes: instanceTypeService.getAllTypesByRegion('gce'),
         images: imageService.findImages({provider: 'gce'})
