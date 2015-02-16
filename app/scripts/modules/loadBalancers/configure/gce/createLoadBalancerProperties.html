@@ -26,7 +26,7 @@
         <account-select-field component="loadBalancer" field="credentials" accounts="accounts" on-change="ctrl.accountUpdated()"></account-select-field>
       </div>
     </div>
-    <region-select-field label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
+    <gce-region-select-field label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" on-change="ctrl.regionUpdated()" regions="regions"></gce-region-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
       <div class="col-md-3">
@@ -46,13 +46,13 @@
                ng-model="loadBalancer.detail"
                name="detailName"
                ng-change="ctrl.updateName()"
-               ng-pattern="/^[a-zA-Z0-9]*$/"/>
+               ng-pattern="/^[a-zA-Z0-9-]*$/"/>
       </div>
       <div class="col-md-7 col-md-offset-3" ng-if="form.stackName.$error.pattern">
         <validation-error message="Stack can only contain letters and numbers."></validation-error>
       </div>
       <div class="col-md-7 col-md-offset-3" ng-if="form.detailName.$error.pattern">
-        <validation-error message="Detail can only contain letters and numbers."></validation-error>
+        <validation-error message="Detail can only contain letters, numbers, and dashes."></validation-error>
       </div>
     </div>
     <div class="form-group">
@@ -60,13 +60,6 @@
         <validation-error message="Load Balancer name can only be 32 characters."></validation-error>
       </div>
     </div>
-    <div class="form-group">
-      <div class="col-md-3 sm-label-left">Availability Zones</div>
-      <div class="col-md-7" ng-if="!loadBalancer.region">(Select a region)</div>
-      <checklist class="col-md-9" ng-if="loadBalancer.region" items="availabilityZones"
-                 model="loadBalancer.regionZones"></checklist>
-    </div>
-    <subnet-select-field label-columns="3" help-key="aws.loadBalancer.subnet" component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>
   </div>
   <div class="modal-footer">
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
@@ -75,7 +68,7 @@
     <submit-button is-disabled="form.$invalid || !state.accountsLoaded || taskMonitor.submitting"
              submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
     <button class="btn btn-primary"
-            ng-disabled="form.$invalid || loadBalancer.regionZones.length === 0"
+            ng-disabled="form.$invalid"
             ng-click="wizard.markComplete('Location'); wizard.nextPage()">
       Next <span class="glyphicon glyphicon-chevron-right"></span>
     </button>

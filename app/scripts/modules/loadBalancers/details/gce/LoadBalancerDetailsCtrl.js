@@ -5,7 +5,6 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
   'ui.router',
   'ui.bootstrap',
   'deckApp.notifications.service',
-  'deckApp.securityGroup.read.service',
   'deckApp.confirmationModal.service',
   'deckApp.loadBalancer.write.service',
   'deckApp.loadBalancer.read.service',
@@ -13,7 +12,7 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
   'deckApp.confirmationModal.service'
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
-                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
+                                                      _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
       loading: true
@@ -28,20 +27,12 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
         var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
         detailsLoader.then(function(details) {
           $scope.state.loading = false;
-          var securityGroups = [];
           var filtered = details.filter(function(test) {
             return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
           });
           if (filtered.length) {
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
-            $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
-              var match = securityGroupReader.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
-              if (match) {
-                securityGroups.push(match);
-              }
-            });
-            $scope.securityGroups = _.sortBy(securityGroups, 'name');
           }
         });
       }
@@ -86,7 +77,7 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
       };
 
       var submitMethod = function () {
-        loadBalancer.providerType = $scope.loadBalancer.type;
+        loadBalancer.providerType = $scope.loadBalancer.provider;
         return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application);
       };
 
