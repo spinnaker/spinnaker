@@ -17,44 +17,90 @@
 package com.netflix.spinnaker.gate.retrofit
 
 import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.services.EurekaLookupService
-import java.util.regex.Pattern
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.actuate.metrics.repository.MetricRepository
+import retrofit.client.OkClient
 import retrofit.client.Request
+import retrofit.client.Response
 
-class EurekaOkClient extends MetricsInstrumentedOkClient {
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
+
+class EurekaOkClient extends OkClient {
   static final Pattern NIWS_SCHEME_PATTERN = ~("niws://([^/]+)(.*)")
 
   private final EurekaLookupService eureka
+  private final ExtendedRegistry registry
+  private final Id metricId;
+  private final Id discoveryId;
 
   @Autowired
-  EurekaOkClient(MetricRepository metricRepository, String name, EurekaLookupService eureka) {
-    super(metricRepository, name)
+  EurekaOkClient(ExtendedRegistry registry, String name, EurekaLookupService eureka) {
+    this.registry = registry
     this.eureka = eureka
+    this.metricId = registry.createId("EurekaOkClient_Request").withTag("service", name)
+    this.discoveryId = registry.createId("EurekaOkClient_Discovery").withTag("service", name)
   }
 
   @Override
-  protected HttpURLConnection openConnection(Request r) throws IOException {
-    def request = r
-    if (request.url ==~ NIWS_SCHEME_PATTERN) {
-      def matcher = request.url =~ NIWS_SCHEME_PATTERN
+  Response execute(Request req) throws IOException {
+    def matcher = req.url =~ NIWS_SCHEME_PATTERN
+    if (matcher.matches()) {
       String vip = matcher[0][1]
       String path = ""
       if (matcher[0].size() > 2) {
         path = matcher[0][2]
       }
-      def apps = eureka.getApplications(vip)
-      def randomInstance = DiscoveryApplication.getRandomUpInstance(apps)
-      if (!randomInstance) {
-        throw new RuntimeException("Error resolving Eureka UP instance for ${vip}!")
-      } else {
-        request = new Request(r.method, "http://${randomInstance.hostName}:${randomInstance.port.port}${path}",
-            r.headers, r.body)
+
+      String success = "false"
+      String cause = null
+      long started = System.nanoTime()
+      try {
+        def apps = eureka.getApplications(vip)
+        def randomInstance = DiscoveryApplication.getRandomUpInstance(apps)
+        if (!randomInstance) {
+          throw new NoSuchElementException("Error resolving Eureka UP instance for ${vip}!")
+        }
+        req = new Request(req.method, "http://${randomInstance.hostName}:${randomInstance.port.port}${path}", req.headers, req.body)
+        success = "true"
+      } catch (e) {
+        cause = e.class.simpleName
+        throw e
+      } finally {
+        registry.timer((cause ? discoveryId.withTag('cause', cause) : discoveryId).withTag('success', success)).record(System.nanoTime() - started, TimeUnit.NANOSECONDS)
       }
     }
-    super.openConnection(request)
+
+    long start = System.nanoTime()
+    String cause = null
+    int status = -1
+    try {
+      def response = super.execute(req)
+      status = response.status
+      return response
+    } catch (e) {
+      cause = e.class.simpleName
+      throw e
+    } finally {
+      String responseClass = httpBucketForResponse(status)
+      def id = (cause == null ? metricId : metricId.withTag('cause', cause))
+        .withTag('statusCode', Integer.toString(status))
+        .withTag('status', responseClass)
+        .withTag('success', Boolean.toString(cause == null && status >= 100 && status < 400))
+      registry.timer(id).record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+    }
   }
 
+  private static String httpBucketForResponse(int httpCode) {
+    if (httpCode < 0) {
+      return "Unknown"
+    }
+    if (httpCode < 100 || httpCode >= 600) {
+      return "Invalid"
+    }
+    return "${Integer.toString(httpCode)[0]}xx"
+  }
 }
