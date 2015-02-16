@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.detail', [])
+angular.module('deckApp.tasks.detail.controller', [])
   .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notificationsService, tasksWriter) {
 
     var vm = this;

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.loadBalancer.directive', [])
   .directive('loadBalancer', function ($rootScope, $timeout) {
     return {
       restrict: 'E',
