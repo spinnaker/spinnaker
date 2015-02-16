@@ -81,7 +81,7 @@ class GateConfig {
   }
 
   @Autowired
-  ExtendedRegistry registry
+  ExtendedRegistry extendedRegistry
 
   @Autowired
   EurekaLookupService eurekaLookupService
@@ -181,7 +181,7 @@ class GateConfig {
         newFixedEndpoint("niws://${service.vipAddress}")
         : newFixedEndpoint(service.baseUrl)
 
-    def client = new EurekaOkClient(registry, serviceName, eurekaLookupService)
+    def client = new EurekaOkClient(extendedRegistry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
