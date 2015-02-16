@@ -61,6 +61,9 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
     @Override
     TaskResult execute(Stage stage) {
+      TimeZone.'default' = TimeZone.getTimeZone("America/Los_Angeles")
+      System.setProperty("user.timezone", "America/Los_Angeles")
+
       Date now = getCurrentDate()
       Date scheduledTime
       try {
