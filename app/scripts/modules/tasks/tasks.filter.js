@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.task.filter', [])
   .filter('taskFilter', function() {
     return function(tasks, pred) {
       switch (pred) {

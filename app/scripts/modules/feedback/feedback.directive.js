@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.feedback.directive', [])
   .directive('feedback', function() {
     return {
       restrict: 'E',

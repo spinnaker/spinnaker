@@ -9,5 +9,6 @@ angular
     'deckApp.loadBalancer.gce.details.controller',
     'deckApp.loadBalancer.aws.create.controller',
     'deckApp.loadBalancer.gce.create.controller',
-    'deckApp.loadBalancer.nav.controller'
+    'deckApp.loadBalancer.nav.controller',
+    'deckApp.loadBalancer.directive',
   ]);

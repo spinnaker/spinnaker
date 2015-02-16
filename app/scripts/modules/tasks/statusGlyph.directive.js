@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('deckApp.statusGlyph.directive', [])
   .directive('statusGlyph', function() {
     return {
       restrict: 'E',

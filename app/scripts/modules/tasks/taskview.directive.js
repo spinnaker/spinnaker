@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.taskView.directive', [])
   .directive('taskView', function () {
     return {
       restrict: 'E',

@@ -2,5 +2,6 @@
 
 angular
   .module('deckApp.feedback', [
-    'deckApp.feedback.modal.controller'
+    'deckApp.feedback.modal.controller',
+    'deckApp.feedback.directive'
   ]);
