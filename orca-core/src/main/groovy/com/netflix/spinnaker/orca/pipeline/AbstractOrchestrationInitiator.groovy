@@ -54,11 +54,11 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
     applicationContext.getBeansOfType(StageBuilder).values().each { StageBuilder stageBuilder ->
       stages[stageBuilder.type] = stageBuilder
     }
-    applicationContext.getBeansOfType(StandaloneTask).values().each { StandaloneTask standaloneTask ->
-      def stage = new SimpleStage(standaloneTask.type, standaloneTask)
+    applicationContext.getBeansOfType(StandaloneTask).values().each {
+      def stage = new SimpleStage(it.type, it)
       applicationContext.autowireCapableBeanFactory.autowireBean(stage)
       // TODO: this should be a prototype scoped bean or use a factory I guess
-      stages[standaloneTask.type] = stage
+      stages[it.type] = stage
     }
   }
 

@@ -51,7 +51,7 @@ import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 
 @Configuration
-@ComponentScan(basePackages = ["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.mayo.config"])
+@ComponentScan("com.netflix.spinnaker.orca.pipeline")
 @CompileStatic
 class OrcaConfiguration {
 

@@ -69,7 +69,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       } catch (Exception e) {
         return new DefaultTaskResult(ExecutionStatus.FAILED, [failureReason: 'Exception occurred while calculating time window: ' + e.message])
       }
-      if (now.compareTo(scheduledTime) in [0, 1]) {
+      if (now >= scheduledTime) {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       } else {
         stage.scheduledTime = scheduledTime.time

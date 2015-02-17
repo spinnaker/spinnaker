@@ -58,7 +58,7 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
       List<Map> pipelineMaps = objectMapper.convertValue(pipelines, new TypeReference<List<Map>>() { })
       handleNotification(pipelineMaps)
     } catch (Exception e) {
-      e.printStackTrace()
+      log.error("Exception occurred in run() method of SuspendedPipelinesPollingNotificationAgent", e)
     }
   }
 
