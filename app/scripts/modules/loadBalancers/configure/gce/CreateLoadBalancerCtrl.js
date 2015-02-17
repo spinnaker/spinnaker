@@ -77,19 +77,6 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
       }
     }
 
-    this.setVisibilityHealthCheckTab = function() {
-      var wizard = modalWizardService.getWizard();
-
-      if ($scope.loadBalancer.listeners[0].healthCheck) {
-        wizard.includePage('Health Check');
-        wizard.markIncomplete('Health Check');
-      } else {
-        wizard.excludePage('Health Check');
-        wizard.markComplete('Health Check');
-        wizard.markComplete('Listener');
-      }
-    }
-
     function initializeLoadBalancerNames() {
       searchService.search('gate', {q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
         searchResults.results.forEach(function(result) {
@@ -180,6 +167,19 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
 
     this.addListener = function() {
       $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP'});
+    };
+
+    this.setVisibilityHealthCheckTab = function() {
+      var wizard = modalWizardService.getWizard();
+
+      if ($scope.loadBalancer.listeners[0].healthCheck) {
+        wizard.includePage('Health Check');
+        wizard.markIncomplete('Health Check');
+      } else {
+        wizard.excludePage('Health Check');
+        wizard.markComplete('Health Check');
+        wizard.markComplete('Listener');
+      }
     };
 
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
