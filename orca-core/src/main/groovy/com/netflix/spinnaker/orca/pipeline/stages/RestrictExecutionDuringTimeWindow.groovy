@@ -177,18 +177,6 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       Calendar calendar = Calendar.instance
       calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
       calendar.setTime(new Date())
-      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
-      return calendar.time
-    }
-
-    private static Date getUpdatedDate(Date date, int hour, int min, int seconds) {
-      Calendar calendar = Calendar.instance
-      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
-      calendar.setTime(date)
-      calendar.set(HOUR_OF_DAY, hour)
-      calendar.set(MINUTE, min)
-      calendar.set(SECOND, seconds)
-      calendar.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"))
       return calendar.time
     }
 
@@ -211,11 +199,8 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
       @Override
       int compareTo(Object o) {
-        HourMinute rhs = (HourMinute) o
-        Date now = new Date()
-        Date thisDate = getUpdatedDate(now, hour, min, 0)
-        Date rhsDate = getUpdatedDate(now, rhs.hour, rhs.min, 0)
-        return thisDate.compareTo(rhsDate)
+        HourMinute that = (HourMinute) o
+        return this.before(that) ? -1 : this.after(that) ? 1 : 0
       }
 
       boolean equals(o) {
@@ -234,18 +219,18 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         return result
       }
 
-      boolean before(HourMinute hourMinute) {
-        Date now = new Date()
-        Date thisDate = getUpdatedDate(now, hour, min, 0)
-        Date rhsDate = getUpdatedDate(now, hourMinute.hour, hourMinute.min, 0)
-        return thisDate.before(rhsDate)
+      boolean before(HourMinute that) {
+        return hour < that.hour ? true :
+               hour > that.hour ? false :
+               min < that.min ? true :
+               min > that.min ? false : false
       }
 
-      boolean after(HourMinute hourMinute) {
-        Date now = new Date()
-        Date thisDate = getUpdatedDate(now, hour, min, 0)
-        Date rhsDate = getUpdatedDate(now, hourMinute.hour, hourMinute.min, 0)
-        return thisDate.after(rhsDate)
+      boolean after(HourMinute that) {
+        return hour > that.hour ? true :
+               hour < that.hour ? false :
+               min > that.min ? true :
+               min < that.min ? false : false
       }
 
       @Override
