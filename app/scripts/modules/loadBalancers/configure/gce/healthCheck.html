@@ -2,22 +2,19 @@
   <div class="modal-body">
     <div class="form-group">
       <div class="wizard-subheading">
-        <h4>Health Check</h4>
+        <h4>HTTP Health Check</h4>
       </div>
       <div class="nest">
         <div class="col-md-4 sm-label-left">Ping</div> <div class="col-md-8">
           <table class="table table-condensed packed">
             <thead>
             <tr>
-              <th width="35%">Protocol</th>
               <th width="30%">Port</th>
               <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
             </tr>
             </thead>
             <tbody>
             <tr>
-              <td><select class="form-control input-sm" ng-model="loadBalancer.healthCheckProtocol" required
-                          ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
               <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
                          required min="0"/></td>
               <td><input ng-if="ctrl.requiresHealthCheckPath()" class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
@@ -48,7 +45,7 @@
 
         <div class="form-group">
           <div class="col-md-6 sm-label-left">
-            <b>Interval</b><help-field key="loadBalancer.advancedSettings.healthInterval"/>
+            <b>Interval</b><help-field key="gce.loadBalancer.advancedSettings.healthInterval"/>
           </div>
           <div class="col-md-4">
             <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthInterval"/>
@@ -57,7 +54,7 @@
 
         <div class="form-group">
           <div class="col-md-6 sm-label-left">
-            <b>Healthy Threshold</b><help-field key="loadBalancer.advancedSettings.healthyThreshold"/>
+            <b>Healthy Threshold</b><help-field key="gce.loadBalancer.advancedSettings.healthyThreshold"/>
           </div>
           <div class="col-md-4">
             <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthyThreshold"/>
@@ -66,7 +63,7 @@
 
         <div class="form-group">
           <div class="col-md-6 sm-label-left">
-            <b>Unhealthy Threshold</b><help-field key="loadBalancer.advancedSettings.unhealthyThreshold"/>
+            <b>Unhealthy Threshold</b><help-field key="gce.loadBalancer.advancedSettings.unhealthyThreshold"/>
           </div>
           <div class="col-md-4">
             <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.unhealthyThreshold"/>
