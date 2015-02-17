@@ -95,22 +95,19 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
         detail: 'frontend',
         credentials: settings.defaults.account,
         region: settings.defaults.region,
-        vpcId: null,
         healthCheckProtocol: 'HTTP',
-        healthCheckPort: 7001,
-        healthCheckPath: '/healthcheck',
+        healthCheckPort: 80,
+        healthCheckPath: '/',
         healthTimeout: 5,
         healthInterval: 10,
         healthyThreshold: 10,
         unhealthyThreshold: 2,
         regionZones: [],
-        securityGroups: [],
         listeners: [
           {
-            internalProtocol: 'HTTP',
-            internalPort: 7001,
-            externalProtocol: 'HTTP',
-            externalPort: 80
+            protocol: 'TCP',
+            portRange: '8080',
+            healthCheck: true
           }
         ]
       };
