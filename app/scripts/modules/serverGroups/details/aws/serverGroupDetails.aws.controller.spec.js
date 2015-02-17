@@ -29,7 +29,9 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
     it('should return true if the serverGroup is the only one in the Cluster', function () {
 
       var serverGroup = {
-        cluster: 'foo'
+        cluster: 'foo',
+        account: 'test',
+        region: 'us-east-1',
       };
 
 
@@ -37,6 +39,8 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
         clusters: [
           {
             name: 'foo',
+            account: 'test',
+            region: 'us-east-1',
             serverGroups: [serverGroup]
           }
         ]

@@ -74,8 +74,13 @@
       <dl>
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
-          <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span> {{metric.state}}
-          <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">(Health Check)</a>
+          <div ng-if="metric.type !== 'LoadBalancer'">
+            <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span> {{metric.state}}
+            <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">(Health Check)</a>
+          </div>
+          <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
+            <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+          </div>
         </dd>
       </dl>
     </collapsible-section>

@@ -94,8 +94,10 @@
     }
   }
   .nav-content {
-
     .header {
+      position: relative;
+      z-index: 10;
+      background-color: @lightest_grey;
       padding: 20px 15px 0 0;
       h3 {
         display: inline-block;
@@ -105,11 +107,32 @@
       .actions {
         display: inline-block;
       }
+      .filters {
+        label {
+          font-weight: normal;
+          margin-bottom: 0;
+          margin-left: 10px;
+        }
+      }
+      &.header-clusters {
+        padding-top: 0;
+        h3 {
+          padding-bottom: 5px;
+        }
+        .filters {
+          height: 45px;
+          line-height: 40px;
+          font-size: 90%;
+        }
+        .application-actions {
+          padding-top: 5px;
+        }
+      }
     }
     .sort-filter {
       .form-inline, .form-horizontal {
         border-bottom: 1px solid #e5e5e5;
-        padding: 10px;
+        padding: 0 10px 10px 10px;
         label {
           font-weight: normal;
           margin-bottom: 0;
@@ -131,7 +154,7 @@
       }
     }
     .content {
-      padding: 10px 25px;
+      padding: 0 25px 10px;
     }
   }
 }

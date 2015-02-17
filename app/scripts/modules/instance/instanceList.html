@@ -1,0 +1,49 @@
+<table ng-if="viewModel.instances.length" class="table table-hover table-condensed instances">
+  <thead>
+    <tr>
+      <!-- use this when multi-select is a thing -->
+      <!--<th width="4%"><input type="checkbox"></th>-->
+      <th width="14%" sort-toggle key="id" label="Instance" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
+      <th width="22%" sort-toggle key="launchTime" label="Launch Time" default="true" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
+      <th width="13%" sort-toggle key="availabilityZone" label="Zone" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
+      <th width="15%" class="text-center" sort-toggle key="discoveryState" label="Discovery" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
+      <th width="36%" sort-toggle key="loadBalancerSort" label="Load Balancers" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
+
+      <!--<th width="14%">Instance</th>-->
+      <!--<th width="22%">Launch Time</th>-->
+      <!--<th width="13%">Zone</th>-->
+      <!--<th width="14%" class="text-center">Discovery</th>-->
+      <!--<th>Load Balancers</th>-->
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="instance in viewModel.instances | orderBy: sortFilter.instanceSort.key track by instance.id "
+        ng-click="loadInstanceDetails($event, instance.id)"
+        class="clickable"
+        ng-class="{ active: $state.includes('**.instanceDetails', {instanceId: instance.id}) }">
+      <!-- use this when multi-select is a thing -->
+      <!--<td><input type="checkbox"></td>-->
+      <td>
+        <span class="glyphicon glyphicon-{{instance.status.toLowerCase()}}-triangle"></span>
+        <!-- use this when multi-select is a thing -->
+        <!--<a ui-sref=".instanceDetails({instanceId: instance.id })">{{instance.id}}</a>-->
+        {{instance.id}}
+      </td>
+      <td>{{instance.launchTime | simpleTime }}</td>
+      <td>{{instance.availabilityZone}}</td>
+      <td class="text-center">
+        <span ng-if="instance.discoveryState" class="small discovery-{{instance.discoveryState}}">
+          {{ instance.discoveryStatus | robotToHuman }}
+        </span>
+        <span ng-if="!instance.discoveryState">-</span>
+      </td>
+      <td>
+        <div ng-repeat="loadBalancer in instance.loadBalancers">
+          <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+        </div>
+        <div ng-if="!instance.loadBalancers.length">-</div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<span class="rollup-placeholder" ng-if="!rendered">(Rendering instances...)</span>

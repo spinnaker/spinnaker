@@ -23,7 +23,13 @@ body, html {
   font-size: 11px;
   color: @mid_grey;
 }
+
 .executions {
+  [sticky-headers] {
+    .heading-sticky {
+      margin-left: -15px;
+    }
+  }
   .execution-is-current {
     background-color: #ffffff;
     border: 1px solid @mid_light_grey;
@@ -127,6 +133,9 @@ body, html {
     stroke: rgb(248, 248, 238);
   }
   .filter-controls {
+    position: relative;
+    background-color: @lightest_grey;
+    z-index: 5;
     label {
       font-size: 12px;
       font-weight: bold;

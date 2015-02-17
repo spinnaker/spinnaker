@@ -11,7 +11,9 @@ angular.module('deckApp')
         cluster: '=',
         serverGroup: '=',
         displayOptions: '=',
+        sortFilter: '=',
         application: '=',
+        parentHeading: '=',
       },
       link: function (scope, el) {
         // stolen from uiSref directive
@@ -23,7 +25,7 @@ angular.module('deckApp')
           $timeout(function() {
             var serverGroup = scope.serverGroup;
             // anything handled by ui-sref or actual links should be ignored
-            if (e.isDefaultPrevented() || (e.originalEvent && e.originalEvent.target.href)) {
+            if (e.isDefaultPrevented() || (e.originalEvent && (e.originalEvent.defaultPrevented || e.originalEvent.target.href))) {
               return;
             }
             var params = {
@@ -42,6 +44,13 @@ angular.module('deckApp')
             instance.healthStatus = 'Disabled';
           });
         }
+
+        scope.headerIsSticky = function() {
+          if (!scope.displayOptions.showInstances) {
+            return false;
+          }
+          return scope.serverGroup.instances.length;
+        };
       }
     };
   }

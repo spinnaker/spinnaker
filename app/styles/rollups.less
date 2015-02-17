@@ -20,13 +20,17 @@
   h4 {
     text-transform: uppercase;
     font-weight: 600;
+    background-color: @lightest_grey;
+    margin: 0;
+    padding: 10px 0;
+    &.heading-sticky {
+      box-shadow: 0 8px 6px -6px #999999;
+    }
   }
-  .sub-group {
-    margin-left: 10px;
-  }
-  .summary {
+}
 
-  }
+.rollup-summary {
+  background-color: @mid_grey;
 }
 
 .rollup-entry {
@@ -34,7 +38,6 @@
   border-radius: 3px;
   padding: 0;
   margin: 15px 0;
-  background-color: @mid_grey;
 
   &.disabled {
     opacity: 0.4;
@@ -55,11 +58,11 @@
 
   &.unhealthy {
     border-style: dashed;
-
   }
 }
 
 .instances {
+  background-color: #ffffff;
   a.instance {
     border: 1px solid @healthy_green_border;
     border-radius: 2px;
@@ -117,10 +120,9 @@
 
 .rollup-summary {
   font-size: 110%;
-  padding: 10px;
+  margin: 0;
   display: table;
   width: 100%;
-  text-transform: uppercase;
 
   &:hover {
     border-color: #121212;
@@ -157,6 +159,23 @@
     color: @lighter_grey;
     text-decoration: none;
   }
+  h5 {
+    line-height: 39px;
+    height: 39px;
+    margin: 0;
+    font-size: 110%;
+  }
+  .account-tag {
+    background-color: #777;
+    padding: 0 15px;
+    display: inline-block;
+    margin-right: 10px;
+    text-transform: uppercase;
+    height: 39px;
+    &.account-tag-prod {
+      background-color: @unhealthy_red;
+    }
+  }
 }
 
 running-tasks-tag {
@@ -167,7 +186,7 @@ running-tasks-tag {
   text-align: left;
   position: absolute;
   z-index: 3;
-  right: 0;
+  right: -10px;
   background-color: #ffffff;
   margin-top: 12px;
   border: 1px solid #777777;
@@ -200,16 +219,18 @@ running-tasks-tag {
 }
 
 .menu-load-balancers {
+  opacity: 1;
   text-align: left;
   position: absolute;
   z-index: 3;
-  right: 50px;
+  right: 0;
   background-color: #ffffff;
   margin-top: 8px;
   border: 1px solid #777777;
   padding: 0;
   border-radius: 3px;
   box-shadow: 0px 0px 5px 2px #dddddd;
+  min-width: 150px;
   div {
     font-weight: 600;
     color: #eeeeee;
@@ -223,6 +244,7 @@ running-tasks-tag {
   }
   a {
     border-bottom: 1px solid #d1d1d1;
+    white-space: nowrap;
     &:last-child {
       border-bottom-width: 0;
     }
@@ -257,33 +279,45 @@ running-tasks-tag {
   }
 }
 
-.btn-multiple-load-balancers {
-  text-align: right;
-  &:hover {
-    text-decoration: none;
-  }
-  .icon {
-    width: 30px;
-    right: -12px;
-  }
-  .icon-elb {
-    height: 0;
-    top: 6px;
-    width: 0;
-    &::before {
-      text-shadow: #2A6496 0 0 1px, #2A6496 0 0 2px, #2A6496 0 0 3px;
-    }
-  }
-  .counter {
-    color: #2A6496;
-    background-color: #fff;
-    box-shadow: 0 0 2px #2A6496;
-    top: -3px;
-  }
-  span {
+load-balancers-tag {
+  .overflowing {
     position: relative;
   }
+  .btn-load-balancer {
+    margin-right: 10px;
+  }
+
+  .btn-multiple-load-balancers {
+    text-align: right;
+    margin-right: 15px;
+    &:hover {
+      text-decoration: none;
+    }
+    .icon {
+      width: 30px;
+    }
+    .icon-elb {
+      height: 0;
+      width: 0;
+      &::before {
+        text-shadow: #2A6496 0 0 1px;
+      }
+    }
+    .counter {
+      color: #2A6496;
+      background-color: #fff;
+      box-shadow: 0 0 2px #2A6496;
+      right: -28px;
+      font-size: 90%;
+      padding: 1px 4px;
+      border-radius: 6px;
+    }
+    span {
+      position: relative;
+    }
+  }
 }
+
 
 .rollup-details {
   padding: 0;
@@ -294,7 +328,9 @@ running-tasks-tag {
 
   .badge-disabled {
     .pull-right();
+    font-weight: 700;
     text-transform: uppercase;
+    padding-left: 10px;
   }
 
   .rollup-details-section {
@@ -324,12 +360,12 @@ running-tasks-tag {
 
   .load-balancer-server-group {
     .instances {
-      padding: 5px 0 0 0;
+      padding: 0;
     }
   }
 
   .instances {
-    padding: 0px 10px 5px 10px;
+    padding: 0 10px 5px 0;
   }
 
   &.instances-only {
@@ -339,5 +375,67 @@ running-tasks-tag {
   .build-title {
     font-size: 110%;
     padding: 10px 10px 8px 10px;
+  }
+  .rollup-placeholder {
+    padding: 10px;
+    text-align: center;
+    color: @mid_grey;
+  }
+}
+
+.row {
+  cluster-pod {
+    .rollup-entry {
+      &:hover {
+        box-shadow: none;
+      }
+    }
+    .server-group-sequence {
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .server-group-title, .subgroup-title {
+      padding: 5px 10px;
+      background-color: #fff;
+      border-bottom-width: 0;
+      &.clickable {
+        &:hover, &.active {
+          background-color: @lighter_grey;
+        }
+      }
+    }
+    .heading-sticky {
+      box-shadow: 0 8px 6px -6px #999999;
+    }
+  }
+}
+
+.cluster-pod-details {
+  .pod-subgroup {
+    h6 {
+      text-transform: uppercase;
+      margin: 0;
+      padding: 10px 0 5px 10px;
+    }
+    border-bottom: 1px solid @mid_light_grey;
+    .cluster-pod-server-group {
+      .instance-list {
+        padding: 0 10px;
+      }
+      &.disabled {
+        &:hover, &.active {
+          opacity: 0.7;
+        }
+      }
+    }
+    .table {
+      margin-bottom: 5px;
+      font-size: 90%;
+    }
+  }
+  h5, h6 {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 110%;
   }
 }

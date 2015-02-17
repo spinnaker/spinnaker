@@ -1,82 +1,98 @@
-<h3>
-  Filters <span class="btn btn-default btn-light pull-right" ng-click="clustersFilters.clearFilters()">Clear All</span>
-</h3>
-    <filter-section heading="Search" expanded="true" help-key="cluster.search">
-        <form class="form-horizontal" role="form">
-            <div class="form-group nav-search">
-                <input type="search" auto-focus class="form-control input-sm" ng-model="sortFilter.filter" ng-change="clustersFilters.updateClusterGroups()" style="width: 85%; display: inline-block">
-            </div>
-        </form>
-    </filter-section>
+<div class="heading">
+  <h3>
+    Filters <span class="btn btn-default btn-light pull-right"
+                  ng-click="clustersFilters.clearFilters()">Clear All</span>
+  </h3>
+  <filter-section heading="Search" expanded="true" help-key="cluster.search">
+    <form class="form-horizontal" role="form">
+      <div class="form-group nav-search">
+        <input type="search" class="form-control input-sm" ng-model="sortFilter.filter"
+               ng-change="clustersFilters.updateClusterGroups()" style="width: 85%; display: inline-block">
+      </div>
+    </form>
+  </filter-section>
+</div>
+<div class="content">
 
-    <filter-section heading="Account" expanded="true">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.accountHeadings | orderBy:'toString()'  ">
-            <label>
-                <input type="checkbox" ng-model="sortFilter.account[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
-            </label>
-        </div>
-    </filter-section>
+  <filter-section heading="Account" expanded="true">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.accountHeadings | orderBy:'toString()'  ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.account[heading]"
+               ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
 
-    <filter-section heading="Region" expanded="true">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.regionHeadings | orderBy: 'toString()' ">
-            <label>
-                <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
-            </label>
-        </div>
-    </filter-section>
+  <filter-section heading="Region" expanded="true">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.regionHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Status" expanded="true">
+    <div class="form">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.healthy"
+                 ng-change="clustersFilters.updateClusterGroups()"/>
+          Healthy
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.unhealthy"
+                 ng-change="clustersFilters.updateClusterGroups()"/>
+          Unhealthy
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.disabled"
+                 ng-change="clustersFilters.updateClusterGroups()"/>
+          Disabled
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.unknown"
+                 ng-change="clustersFilters.updateClusterGroups()"/>
+          Unknown
+        </label>
+      </div>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Provider" expanded="true" ng-if="clustersFilters.providerTypeHeadings.length > 1">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings | orderBy: 'toString()'">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
+               ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
+      </label>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Availability Zones" expanded="true">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.availabilityZoneHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.availabilityZone[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
 
 
+  <filter-section heading="Instance Types" expanded="true">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.instanceTypeHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.instanceType[heading]"
+               ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
+      </label>
+    </div>
+  </filter-section>
 
-    <filter-section heading="Status" expanded="true">
-        <div class="form">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox"
-                           ng-model="sortFilter.status.healthy"
-                           ng-change="clustersFilters.updateClusterGroups()"/>
-                    Healthy
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox"
-                           ng-model="sortFilter.status.unhealthy"
-                           ng-change="clustersFilters.updateClusterGroups()"/>
-                    Unhealthy
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox"
-                           ng-model="sortFilter.status.disabled"
-                           ng-change="clustersFilters.updateClusterGroups()"/>
-                    Disabled
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox"
-                           ng-model="sortFilter.status.unknown"
-                           ng-change="clustersFilters.updateClusterGroups()"/>
-                    Unknown
-                </label>
-            </div>
-        </div>
-    </filter-section>
-
-
-    <filter-section heading="Instance Types" expanded="true">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.instanceTypeHeadings| orderBy: 'toString()' ">
-            <label>
-                <input type="checkbox" ng-model="sortFilter.instanceType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
-            </label>
-        </div>
-    </filter-section>
-
-    <filter-section heading="Provider" expanded="true" ng-if="clustersFilters.providerTypeHeadings.length > 1">
-        <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings | orderBy: 'toString()'">
-            <label>
-                <input type="checkbox" ng-model="sortFilter.providerType[heading]" ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
-            </label>
-        </div>
-    </filter-section>
+</div>

@@ -1,13 +1,13 @@
 <span ng-if="loadBalancers.length" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
   <button
-      class="btn btn-link btn-multiple-load-balancers clearfix link-inverse"
+      class="btn btn-link btn-multiple-load-balancers clearfix no-padding"
       ng-if="loadBalancers.length > maxDisplay"
       ng-click="popover.show = !popover.show; $event.stopPropagation();"
       tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{loadBalancers.length}} load balancers">
+    <span class="badge counter">{{loadBalancers.length}}</span>
     <span class="icon">
       <span class="icon-elb"></span>
     </span>
-    <span class="badge counter">{{loadBalancers.length}}</span>
   </button>
   <div class="menu-load-balancers" ng-if="popover.show">
     <div>
@@ -21,7 +21,7 @@
   </div>
   <span class="btn-load-balancer" ng-if="loadBalancers.length <= maxDisplay">
     <button
-       class="btn btn-link link-inverse"
+       class="btn btn-link no-padding"
        ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
        ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
        ui-sref-active="active"

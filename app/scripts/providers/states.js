@@ -192,7 +192,7 @@ angular.module('deckApp.states', [
           {
           name: 'clusters',
           reloadOnSearch: false,
-          url: '/clusters?q&primary&secondary&hideInstances&hideHealthy&hideDisabled&acct&reg&status&providerType&instanceType',
+          url: '/clusters?q&primary&secondary&hideInstances&listInstances&hideHealthy&hideDisabled&acct&reg&status&providerType&instanceType&zone&instanceSort',
           views: {
             'nav': {
               templateUrl: 'scripts/modules/clusterFilter/filterNav.html',

@@ -2,15 +2,17 @@
      ng-class="{active: $state.includes('**.loadBalancerDetails', {region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})}"
      ng-click="loadDetails($event)">
   <div class="rollup-summary">
-    <a class="rollup-title-cell"
-       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
-      <span class="icon icon-elb"></span> {{loadBalancer.name}}
-      <account-tag account="loadBalancer.account" pad="left"></account-tag>
-      <span ng-if="!displayOptions.showServerGroups">
-        <health-counts container="loadBalancer.healthCounts"></health-counts>
-      </span>
-    </a>
+    <div class="rollup-title-cell">
+      <h5>
+        <span class="account-tag account-tag-{{loadBalancer.account}}">{{loadBalancer.account}}</span>
+        <span class="icon icon-elb"></span> {{loadBalancer.name}}
+        <span ng-if="!displayOptions.showServerGroups">
+          <health-counts container="loadBalancer.healthCounts"></health-counts>
+        </span>
+      </h5>
+    </div>
   </div>
+
   <div class="rollup-details">
     <div ng-if="displayOptions.showServerGroups">
       <load-balancer-server-group

@@ -12,10 +12,7 @@ angular.module('deckApp.applications.controller', [
 
     $scope.applicationsLoaded = false;
 
-    $scope.sortModel = {
-      sortKey: 'name',
-      reverse: false
-    };
+    $scope.sortModel = { key: 'name' };
 
     $scope.applicationFilter = '';
 
@@ -47,7 +44,7 @@ angular.module('deckApp.applications.controller', [
 
     this.filterApplications = function filterApplications() {
       var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.applicationFilter, email: $scope.applicationFilter}),
-        sorted = $filter('orderBy')(filtered, $scope.sortModel.sortKey, $scope.sortModel.reverse);
+        sorted = $filter('orderBy')(filtered, $scope.sortModel.key);
       $scope.filteredApplications = sorted;
       this.resetPaginator();
     };

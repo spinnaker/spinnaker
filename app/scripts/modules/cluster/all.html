@@ -1,12 +1,44 @@
-<div class="header">
-  <h3>
-     Server Groups
-  </h3>
-  <div class="application-actions">
-    <button class="btn btn-sm btn-default" ng-click="allClusters.createServerGroup()">
-      <span class="glyphicon glyphicon-plus-sign"></span> Create Server Group
-    </button>
+<div class="header row header-clusters">
+  <div class="col-md-4">
+    <h3>
+      Server Groups
+    </h3>
+  </div>
+  <div class="col-md-4">
+    <div class="form-inline clearfix filters">
+      <div class="form-group pull-right-lg">
+        <label class="checkbox">Show </label>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox"
+                   ng-model="sortFilter.showAllInstances"
+                   ng-change="allClusters.updateClusterGroups()"/>
+            Instances
+          </label>
+        </div>
+        <div class="checkbox" is-visible="sortFilter.showAllInstances">
+          <label>
+            <input type="checkbox"
+                   ng-model="sortFilter.listInstances"
+                   ng-change="allClusters.updateClusterGroups()"/>
+            with details
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="application-actions">
+      <button class="btn btn-sm btn-default" ng-click="allClusters.createServerGroup()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Create Server Group
+      </button>
+    </div>
   </div>
 </div>
-<div ng-include="'scripts/modules/cluster/filters.html'"></div>
-<div class="content" ng-include="'scripts/modules/cluster/groupings.html'"></div>
+<div class="content"
+     data-scroll-id="clusters-content"
+     sticky-headers
+     waypoint-container
+     waypoint-container-key="{{application.name}}"
+     waypoint-offset="100"
+     ng-include="'scripts/modules/cluster/groupings.html'"></div>

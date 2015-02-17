@@ -28,6 +28,8 @@ angular.module('deckApp', [
     'deckApp.application',
     'deckApp.feedback',
 
+    'deckApp.utils.stickyHeader',
+
     'deckApp.aws.loadBalancer.transformer.service',
     'deckApp.gce.loadBalancer.transformer.service',
 

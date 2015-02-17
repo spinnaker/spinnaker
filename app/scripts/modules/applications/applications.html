@@ -33,10 +33,10 @@
     <table ng-if="applicationsLoaded" class="table table-striped">
       <thead>
         <tr>
-          <th sort-toggle key="name" label="Name" default="true" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="createTs" label="Created" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="updateTs" label="Updated" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="email" label="Owner" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="name" label="Name" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="createTs" label="Created" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="updateTs" label="Updated" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="email" label="Owner" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
         </tr>
       </thead>
       <tbody>
