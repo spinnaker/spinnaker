@@ -39,8 +39,6 @@ class UpsertGoogleLoadBalancerStage extends LinearStage {
     def step1 = buildStep(stage, "upsertGoogleLoadBalancer", UpsertGoogleLoadBalancerTask)
     def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
     // TODO(duftler): Implement DeleteGoogleLoadBalancerForceRefreshTask.
-//    def step3 = buildStep(stage, "forceCacheRefresh", UpsertGoogleLoadBalancerForceRefreshTask)
-//    [step1, step2, step3]
     [step1, step2]
   }
 }
