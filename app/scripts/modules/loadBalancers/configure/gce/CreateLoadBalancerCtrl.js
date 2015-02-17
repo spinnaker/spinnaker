@@ -7,13 +7,12 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
   'deckApp.gce.loadBalancer.transformer.service',
   'deckApp.securityGroup.read.service',
   'deckApp.modalWizard',
-  'deckApp.tasks.monitor.service',
-  'deckApp.subnet.read.service'
+  'deckApp.tasks.monitor.service'
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
                                                  accountService, gceLoadBalancerTransformer, securityGroupReader,
-                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
+                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
 
@@ -47,9 +46,15 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
 
     function initializeCreateMode() {
       preloadSecurityGroups();
-      accountService.listAccounts().then(function (accounts) {
+      accountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
+
+        var accountNames = _.pluck($scope.accounts, 'name');
+        if (accountNames.length && accountNames.indexOf($scope.loadBalancer.credentials) === -1) {
+          $scope.loadBalancer.credentials = accountNames[0];
+        }
+
         ctrl.accountUpdated();
       });
     }
@@ -125,49 +130,6 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
       }
     }
 
-    function getAvailableSubnets() {
-      var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
-      return subnetReader.listSubnets().then(function(subnets) {
-        return _(subnets)
-          .filter({account: account, region: region})
-          .reject({'target': 'ec2'})
-          .valueOf();
-      });
-    }
-
-    function updateAvailabilityZones() {
-      var selected = $scope.regions ?
-        $scope.regions.filter(function(region) { return region.name === $scope.loadBalancer.region; }) :
-        [];
-      if (selected.length) {
-        $scope.loadBalancer.regionZones = angular.copy(selected[0].availabilityZones);
-        $scope.availabilityZones = selected[0].availabilityZones;
-      } else {
-        $scope.availabilityZones = [];
-      }
-    }
-
-    function updateSubnets() {
-      getAvailableSubnets().then(function(subnets) {
-        var subnetOptions = subnets.reduce(function(accumulator, subnet) {
-          if (!accumulator[subnet.purpose]) {
-            accumulator[subnet.purpose] = { purpose: subnet.purpose, label: subnet.purpose, vpcIds: [] };
-          }
-          var vpcIds = accumulator[subnet.purpose].vpcIds;
-          if (vpcIds.indexOf(subnet.vpcId) === -1) {
-            vpcIds.push(subnet.vpcId);
-          }
-          return accumulator;
-        }, {});
-        if (_.findIndex(subnetOptions, {purpose: $scope.loadBalancer.subnetType}).length === 0) {
-          $scope.loadBalancer.subnetType = '';
-        }
-        $scope.subnets = _.values(subnetOptions);
-        ctrl.subnetUpdated();
-      });
-    }
-
     function clearSecurityGroups() {
       $scope.availableSecurityGroups = [];
       $scope.existingSecurityGroupNames = [];
@@ -188,29 +150,15 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
 
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
-        $scope.regions = regions;
+        $scope.regions = Object.keys(regions);
         clearSecurityGroups();
         ctrl.regionUpdated();
       });
     };
 
     this.regionUpdated = function() {
-      updateAvailabilityZones();
       updateLoadBalancerNames();
-      updateSubnets();
       ctrl.updateName();
-    };
-
-    this.subnetUpdated = function() {
-      var subnetPurpose = $scope.loadBalancer.subnetType || null,
-          subnet = $scope.subnets.filter(function(test) { return test.purpose === subnetPurpose; }),
-          availableVpcIds = subnet.length ? subnet[0].vpcIds : [];
-        updateAvailableSecurityGroups(availableVpcIds);
-      if (subnetPurpose) {
-        modalWizardService.getWizard().includePage('Security Groups');
-      } else {
-        modalWizardService.getWizard().excludePage('Security Groups');
-      }
     };
 
     this.removeListener = function(index) {
