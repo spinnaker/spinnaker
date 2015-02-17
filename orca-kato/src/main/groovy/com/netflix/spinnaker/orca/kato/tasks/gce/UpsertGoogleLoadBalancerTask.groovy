@@ -63,11 +63,29 @@ class UpsertGoogleLoadBalancerTask implements Task {
   }
 
   Map convert(Stage stage) {
-    // TODO(duftler): Add support for listener and health check properties. Currently relying on default values.
     def operation = [:]
-    operation.networkLoadBalancerName = stage.context.name
-    operation.region = stage.context.region
-    operation.credentials = stage.context.credentials
+    def context = stage.context
+    operation.networkLoadBalancerName = context.name
+    operation.region = context.region
+    operation.credentials = context.credentials
+
+    def listener = context.listeners?.get(0)
+
+    if (listener?.portRange) {
+      operation.portRange = context.listeners?.get(0)?.portRange;
+    }
+
+    if (listener?.healthCheck) {
+      operation.healthCheck = [
+        port: context.healthCheckPort,
+        requestPath: context.healthCheckPath,
+        timeoutSec: context.healthTimeout,
+        checkIntervalSec: context.healthInterval,
+        healthyThreshold: context.healthyThreshold,
+        unhealthyThreshold: context.unhealthyThreshold
+      ]
+    }
+
     operation
   }
 }
