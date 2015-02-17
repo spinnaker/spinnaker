@@ -2,7 +2,15 @@
 /* jshint camelcase:false */
 
 
-angular.module('deckApp')
+angular.module('deckApp.serverGroup.details.gce.controller', [
+  'ui.router',
+  'ui.bootstrap',
+  'deckApp.notifications.service',
+  'deckApp.gce.serverGroupCommandBuilder.service',
+  'deckApp.serverGroup.read.service',
+  'deckApp.confirmationModal.service',
+  'deckApp.serverGroup.write.service',
+])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
                                                   gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter) {
 

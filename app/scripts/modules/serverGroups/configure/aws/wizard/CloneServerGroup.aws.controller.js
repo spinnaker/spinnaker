@@ -1,7 +1,16 @@
 'use strict';
 
 
-angular.module('deckApp.aws')
+angular.module('deckApp.aws.cloneServerGroup.controller', [
+  'ui.router',
+  'deckApp.utils.lodash',
+  'deckApp.image.service',
+  'deckApp.aws.serverGroup.configure.service',
+  'deckApp.serverGroup.write.service',
+  'deckApp.modalWizard',
+  'deckApp.tasks.monitor.service',
+
+])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
                                                   awsServerGroupConfigurationService, serverGroupCommand, application, title) {

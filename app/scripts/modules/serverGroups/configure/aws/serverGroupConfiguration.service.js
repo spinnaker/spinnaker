@@ -1,9 +1,17 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.aws')
-  .factory('awsServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
+angular.module('deckApp.aws.serverGroup.configure.service', [
+  'deckApp.image.service',
+  'deckApp.account.service',
+  'deckApp.securityGroup.read.service',
+  'deckApp.instanceType.service',
+  'deckApp.subnet.read.service',
+  'deckApp.keyPairs.read.service',
+  'deckApp.loadBalancer.read.service'
+])
+  .factory('awsServerGroupConfigurationService', function($q, imageService, accountService, securityGroupReader,
                                                           instanceTypeService,
-                                                          $q, subnetReader, keyPairsReader, loadBalancerReader) {
+                                                          subnetReader, keyPairsReader, loadBalancerReader) {
 
 
     function configureCommand(application, command) {

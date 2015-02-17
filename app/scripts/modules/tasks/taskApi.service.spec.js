@@ -23,7 +23,9 @@ describe('Service: Pond - task complete, task force refresh', function() {
   var application = 'deck';
   var service, $http, config, scope, timeout, task, lodash;
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(
+    module('deckApp.tasks.api')
+  );
 
   beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout, _) {
 
@@ -41,7 +43,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
   it('resolves watchForKatoTask immediately if kato task is present and complete', function() {
 
-    $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+    $http.whenGET('/applications/deck/tasks/1').respond(200, {
       id: 1,
       variables: [
         {
@@ -67,7 +69,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
   it('rejects watchForKatoTask immediately if kato task is present and failed', function() {
 
-    $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+    $http.whenGET('/applications/deck/tasks/1').respond(200, {
       id: 1,
       variables: [
         {
@@ -94,7 +96,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
   it('polls kato task until it completes, then resolves', function() {
     var result = null;
 
-    $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+    $http.whenGET('/applications/deck/tasks/1').respond(200, {
       id: 1,
       variables: [ { key: 'kato.last.task.id', value: { id: 3 } }, {key: 'application', value: application} ],
       status: 'STARTED'
@@ -103,7 +105,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
     $http.flush();
 
-    var katoRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1/details/3');
+    var katoRequestHandler = $http.whenGET('/applications/deck/tasks/1/details/3');
 
     katoRequestHandler.respond(200, TasksFixture.runningKatoTask);
 
@@ -123,7 +125,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
   it('rejects immediately with null if pond task fails without kato task', function() {
     var result = 'not null';
 
-    $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+    $http.whenGET('/applications/deck/tasks/1').respond(200, {
       id: 1,
       variables: [],
       status: 'FAILED'
@@ -144,8 +146,8 @@ describe('Service: Pond - task complete, task force refresh', function() {
   it('waits until matching kato phase found before resolving, appending pending task to kato.tasks', function() {
 
     var result = null,
-      pondRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1'),
-      katoRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1/details/3');
+      pondRequestHandler = $http.whenGET('/applications/deck/tasks/1'),
+      katoRequestHandler = $http.whenGET('/applications/deck/tasks/1/details/3');
 
     pondRequestHandler.respond(200, {
       id: 1,
@@ -183,7 +185,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
     var desiredKatoTask = lodash.cloneDeep(TasksFixture.runningKatoTask);
     desiredKatoTask.id = 4;
     desiredKatoTask.history.push({phase: 'DESIRED_PHASE'});
-    katoRequestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1/details/4');
+    katoRequestHandler = $http.whenGET('/applications/deck/tasks/1/details/4');
 
     katoRequestHandler.respond(200, desiredKatoTask);
 
