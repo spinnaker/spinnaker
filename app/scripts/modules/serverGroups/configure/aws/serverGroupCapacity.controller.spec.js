@@ -2,9 +2,7 @@
 
 describe('Controller: ServerGroupCapacitySelector', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
-
-  beforeEach(module('deckApp'));
+  beforeEach(module('deckApp.serverGroup.configure.aws'));
 
   beforeEach(inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();
