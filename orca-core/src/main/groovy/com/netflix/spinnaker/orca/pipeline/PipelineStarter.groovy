@@ -61,6 +61,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     buildFlow(jobBuilder, pipeline.stages).build().build()
   }
 
+  @CompileDynamic
   protected Job buildForRestart(Pipeline pipeline) {
     def jobBuilder = jobFlowBuilder(pipeline)
     def stages = []
@@ -101,6 +102,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     params.toJobParameters()
   }
 
+  @CompileDynamic
   private JobFlowBuilder jobFlowBuilder(Pipeline pipeline) {
     def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
     pipelineListeners.each {
@@ -129,7 +131,8 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
   }
 
   /*
-   * Because restart applies only to pipeline and not to orchestration
+   * If we want restarts to apply to Orchestration as well, then
+   * this can be refactored and moved to the abstract super class
    */
   Pipeline restart(String executionId) {
     def pipeline = get(executionId)
