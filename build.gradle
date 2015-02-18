@@ -24,18 +24,20 @@ buildscript {
   }
 }
 
+apply from: "gradle/cglib-java8.gradle"
+
 allprojects {
   apply plugin: "spinnaker-gradle-project"
   group = "com.netflix.spinnaker.orca"
 
   configurations.all {
-    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: "javax.servlet", module: "servlet-api"
     exclude group: "org.slf4j", module: "slf4j-log4j12"
     exclude group: "org.slf4j", module: "slf4j-simple"
     resolutionStrategy {
       eachDependency {
-        if (it.requested.group == 'com.netflix.rxjava' && it.requested.name == 'rxjava-core') {
-          it.useTarget group: 'io.reactivex', name: 'rxjava', version: '1.0.2'
+        if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
+          it.useTarget group: "io.reactivex", name: "rxjava", version: "1.0.2"
         }
       }
     }
@@ -44,8 +46,8 @@ allprojects {
 subprojects {
   apply plugin: 'groovy'
   plugins.withType(JavaPlugin) {
-    sourceCompatibility = "1.7"
-    targetCompatibility = "1.7"
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
   }
   dependencies {
     spinnaker.group('spockBase')

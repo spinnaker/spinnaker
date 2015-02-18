@@ -1,0 +1,21 @@
+// Fixes compatibility with cglib-based Spock mocks and Java 8
+allprojects {
+  configurations.all {
+    resolutionStrategy {
+      eachDependency {
+        if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
+          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.3"
+        }
+        if (it.requested.group == "cglib") {
+          it.useTarget group: "cglib", name: "cglib", version: "3.1"
+        }
+        if (it.requested.group == "antlr") {
+          it.useTarget group: "org.antlr", name: it.requested.name, version: "3.5.2"
+        }
+        if (it.requested.group == "org.apache.xbean") {
+          it.useVersion "4.1"
+        }
+      }
+    }
+  }
+}
