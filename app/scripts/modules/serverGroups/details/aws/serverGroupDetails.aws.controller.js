@@ -50,8 +50,13 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         angular.extend(restangularlessDetails, summary);
 
         $scope.serverGroup = restangularlessDetails;
+
         if (!_.isEmpty($scope.serverGroup)) {
+
+          $scope.image = details.image ? details.image : undefined;
+
           var vpc = $scope.serverGroup.asg ? $scope.serverGroup.asg.vpczoneIdentifier : '';
+
           if (vpc !== '') {
             var subnetId = vpc.split(',')[0];
             subnetReader.listSubnets().then(function(subnets) {
@@ -59,6 +64,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
               $scope.serverGroup.subnetType = subnet.purpose;
             });
           }
+
 
           if (details.launchConfig && details.launchConfig.securityGroups) {
             $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
@@ -68,6 +74,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
           }
 
           applyAutoScalingProcesses();
+
         } else {
           notificationsService.create({
             message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
