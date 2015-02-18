@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import groovy.transform.TypeCheckingMode
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -55,7 +54,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    * @return the pipeline that was created.
    */
   @CompileDynamic
-  protected Job build(Map<String, Object> config, Pipeline pipeline) {
+  protected Job build(Map<String, Serializable> config, Pipeline pipeline) {
     def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
     pipelineListeners.each {
       jobBuilder = jobBuilder.listener(it)
@@ -71,7 +70,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
 
   @VisibleForTesting
   @PackageScope
-  static Pipeline parseConfig(Map<String, Object> config) {
+  static Pipeline parseConfig(Map<String, Serializable> config) {
     Pipeline.builder()
             .withApplication(config.application.toString())
             .withName(config.name.toString())
@@ -81,7 +80,7 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
   }
 
   // static compiler doesn't seem to know what to do here anymore...
-  @CompileStatic(TypeCheckingMode.SKIP)
+  @CompileDynamic
   private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
     def stages = []
     stages.addAll(pipeline.stages)
