@@ -20,6 +20,7 @@ import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -52,6 +53,8 @@ class CredentialsController {
       "aws"
     } else if (accountCredentials instanceof GoogleNamedAccountCredentials) {
       "gce"
+    } else if (accountCredentials instanceof CloudFoundryAccountCredentials) {
+      "cf"
     } else {
       "unknown"
     }

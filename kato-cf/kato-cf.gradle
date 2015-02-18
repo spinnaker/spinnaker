@@ -1,0 +1,11 @@
+dependencies {
+    def cloudFoundryClientVersion = '1.1.0'
+
+    compile project(":kato-core")
+    compile spinnaker.dependency('bootActuator')
+    compile ("org.cloudfoundry:cloudfoundry-client-lib:${cloudFoundryClientVersion}")
+    compile ("org.cloudfoundry:cf-gradle-plugin:${cloudFoundryClientVersion}")
+    compile ("org.cloudfoundry:cf-maven-plugin:${cloudFoundryClientVersion}") {
+      exclude module: 'slf4j-jdk14'
+    }
+}
