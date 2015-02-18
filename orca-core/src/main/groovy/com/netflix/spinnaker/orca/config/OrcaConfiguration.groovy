@@ -22,9 +22,7 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.notifications.SuspendedPipelinesNotificationHandler
-import com.netflix.spinnaker.orca.notifications.SuspendedPipelinesPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -49,6 +47,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.orca.pipeline")
@@ -95,15 +95,15 @@ class OrcaConfiguration {
     new OrchestrationStarter()
   }
 
-  @Bean
+  @Bean @Scope(SCOPE_PROTOTYPE)
   SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map input) {
     new SuspendedPipelinesNotificationHandler(input)
   }
 
-  @Bean
-  SuspendedPipelinesPollingNotificationAgent suspendedPipelinesPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    new SuspendedPipelinesPollingNotificationAgent(notificationHandlers)
-  }
+//  @Bean
+//  SuspendedPipelinesPollingNotificationAgent suspendedPipelinesPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
+//    new SuspendedPipelinesPollingNotificationAgent(notificationHandlers)
+//  }
 
   @Bean @Order(Ordered.LOWEST_PRECEDENCE) DefaultExceptionHandler defaultExceptionHandler() {
     new DefaultExceptionHandler()

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.notifications
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 import rx.functions.Func1
 
 import java.util.concurrent.TimeUnit
@@ -32,7 +33,7 @@ import rx.Scheduler
 import rx.Subscription
 import rx.schedulers.Schedulers
 
-@Log4j
+@Slf4j
 @CompileStatic
 abstract class AbstractPollingNotificationAgent {
 
