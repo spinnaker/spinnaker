@@ -26,10 +26,10 @@ class JedisEchoEventPollerSpec extends Specification {
                                      .with(MILLI_OF_SECOND, 0)
                                      .atZone(Clock.systemUTC().zone)
   @Shared response = new Response(
-      "http://echo",
-      200, "OK",
-      [new Header("Date", formatter.format(responseTimestamp))],
-      new TypedString("")
+    "http://echo",
+    200, "OK",
+    [new Header("Date", formatter.format(responseTimestamp))],
+    new TypedString("")
   )
 
   def "retrieves events since epoch if no last check timestamp is found"() {
@@ -63,7 +63,6 @@ class JedisEchoEventPollerSpec extends Specification {
 
   def "stores the timestamp from the response"() {
     given:
-    println "expected: $expected"
     echoService.getEvents(*_) >> response
     jedis.get(LAST_CHECK_KEY) >> null
 

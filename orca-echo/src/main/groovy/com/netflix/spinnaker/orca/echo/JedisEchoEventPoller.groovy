@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.echo
 
 import groovy.transform.CompileStatic
-import java.time.Instant
+import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Component
@@ -39,6 +39,8 @@ class JedisEchoEventPoller implements EchoEventPoller {
 
   private static long dateHeaderFrom(Response response) {
     def header = response.headers.find { it.name == DATE }
-    Instant.from(RFC_1123_DATE_TIME.parse(header.value)).toEpochMilli()
+    ZonedDateTime.from(RFC_1123_DATE_TIME.parse(header.value))
+                 .toInstant()
+                 .toEpochMilli()
   }
 }
