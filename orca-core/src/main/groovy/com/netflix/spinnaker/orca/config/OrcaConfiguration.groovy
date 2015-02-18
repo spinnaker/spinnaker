@@ -96,8 +96,8 @@ class OrcaConfiguration {
   }
 
   @Bean
-  SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler() {
-    new SuspendedPipelinesNotificationHandler()
+  SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map input) {
+    new SuspendedPipelinesNotificationHandler(input)
   }
 
   @Bean

@@ -15,32 +15,32 @@
  */
 
 package com.netflix.spinnaker.orca.notifications
-
-import com.netflix.spinnaker.orca.echo.EchoService
-import org.springframework.beans.factory.annotation.Autowired
-
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.echo.EchoEventPoller
+import net.greghaines.jesque.client.Client
+import rx.functions.Func1
 /**
  * A notification agent for {@code EchoService} to poll for particular type of events
  */
 abstract class EchoPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
-  @Autowired
-  EchoService echoService
-  private long lastCheck = System.currentTimeMillis()
+  protected final EchoEventPoller echoEventPoller
 
-  EchoPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    super(notificationHandlers)
+  EchoPollingNotificationAgent(ObjectMapper objectMapper,
+                               EchoEventPoller echoEventPoller,
+                               Client jesqueClient) {
+    super(objectMapper, jesqueClient)
+    this.echoEventPoller = echoEventPoller
   }
 
   @Override
-  void run() {
-    try {
-      def response = echoService.getEvents(notificationType, lastCheck)
-      lastCheck = System.currentTimeMillis()
-      def maps = objectMapper.readValue(response.body.in().text, List)
-      handleNotification maps
-    } catch (e) {
-      log.error("Polling failed (notificationType: ${notificationType}, lastCheck: ${lastCheck}", e)
+  protected Func1<Long, List<Map>> getEvents() {
+    return new Func1<Long, List<Map>>() {
+      @Override
+      List<Map> call(Long aLong) {
+        def response = echoEventPoller.getEvents(notificationType)
+        objectMapper.readValue(response.body.in().text, List)
+      }
     }
   }
 }

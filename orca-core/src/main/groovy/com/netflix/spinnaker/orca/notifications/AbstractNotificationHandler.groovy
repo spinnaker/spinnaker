@@ -22,6 +22,9 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+
+import javax.ws.rs.HEAD
+
 /**
  * An abstract class that can be extended to implement the {@code NotificationHandler} functionality. It has the basic
  * pipeline orchestration stuff wired in. The {@code NotificationHandler}'s are used by the classes that extend {@AbstractPollingNotificationAgent}
@@ -32,24 +35,29 @@ abstract class AbstractNotificationHandler implements NotificationHandler {
   @Autowired
   PipelineStarter pipelineStarter
 
+  @Autowired
+  ObjectMapper objectMapper
+
   //TODO(cfieber) we aren't currently injecting a full discovery client in kork-core
   @Autowired(required = false)
   DiscoveryClient discoveryClient
 
-  @Autowired
-  ObjectMapper objectMapper
+  private final Map input
+
+  AbstractNotificationHandler(Map input) {
+    this.input = input
+  }
 
   abstract String getHandlerType()
-
-  abstract void handleInternal(Map input)
 
   boolean handles(String type) {
     type == handlerType
   }
 
-  void handle(Map input) {
+  @Override
+  final void run() {
     if (inService) {
-      handleInternal(input)
+      handle(input)
     }
   }
 

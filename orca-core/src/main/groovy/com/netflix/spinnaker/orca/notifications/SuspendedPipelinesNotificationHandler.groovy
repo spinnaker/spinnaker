@@ -23,8 +23,17 @@ class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler 
 
   String handlerType = SuspendedPipelinesPollingNotificationAgent.NOTIFICATION_TYPE
 
+  SuspendedPipelinesNotificationHandler(Map input) {
+    super(input)
+  }
+
   @Override
-  void handleInternal(Map pipeline) {
-    pipelineStarter.restart(pipeline.id)
+  void handle(Map pipeline) {
+    try {
+      pipelineStarter.restart(pipeline.id)
+    } catch (e) {
+      e.printStackTrace()
+      throw e
+    }
   }
 }

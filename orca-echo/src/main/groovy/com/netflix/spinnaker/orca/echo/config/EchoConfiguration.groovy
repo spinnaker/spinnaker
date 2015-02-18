@@ -21,28 +21,31 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.notifications.*
+import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.*
 import retrofit.Endpoint
 import retrofit.RestAdapter
-import retrofit.client.Client
+import retrofit.client.Client as RetrofitClient
 import retrofit.converter.GsonConverter
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
-@Import(RetrofitConfiguration)
+@Import([RetrofitConfiguration, JesqueConfiguration])
 @ConditionalOnProperty(value = 'echo.baseUrl')
+@ComponentScan([
+    "com.netflix.spinnaker.orca.echo",
+    "com.netflix.spinnaker.orca.notifications.jenkins"
+])
 @CompileStatic
 class EchoConfiguration {
 
-  @Autowired Client retrofitClient
+  @Autowired RetrofitClient retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint echoEndpoint(
@@ -60,18 +63,6 @@ class EchoConfiguration {
         .create(EchoService)
   }
 
-  @Bean
-  @ConditionalOnProperty(value = 'mayo.baseUrl')
-  BuildJobNotificationHandler buildJobNotificationHandler() {
-    new BuildJobNotificationHandler()
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = 'mayo.baseUrl')
-  BuildJobPollingNotificationAgent buildJobPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    new BuildJobPollingNotificationAgent(notificationHandlers)
-  }
-
   @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
       ExecutionRepository executionRepository,
       EchoService echoService) {
@@ -83,5 +74,10 @@ class EchoConfiguration {
       ExecutionRepository executionRepository,
       EchoService echoService) {
     new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
+  }
+
+  @Bean @Scope(SCOPE_PROTOTYPE)
+  BuildJobNotificationHandler buildJobNotificationHandler(Map input) {
+    new BuildJobNotificationHandler(input)
   }
 }

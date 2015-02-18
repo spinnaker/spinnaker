@@ -43,20 +43,6 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     1 * echoService.recordEvent(_)
   }
 
-  @Ignore("this is an incorrect test as the listener is not re-entrant")
-  def "does not trigger an event when a re-entrant task starts"() {
-    given:
-    def stepExecution = Stub(StepExecution) {
-      getStatus() >> BatchStatus.STARTED
-    }
-
-    when:
-    echoListener.beforeTask(stage, stepExecution)
-
-    then:
-    0 * echoService._
-  }
-
   @Unroll
   def "triggers an event when a task step exits with #batchStatus / #exitStatus.exitCode"() {
     given:

@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.orca.notifications
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import rx.functions.Func1
+
 /**
  *
  */
@@ -28,38 +32,40 @@ import org.springframework.stereotype.Component
 class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "suspendedPipeline"
-  long pollingInterval = 120
-  String notificationType = NOTIFICATION_TYPE
+  final long pollingInterval = 120
+  final String notificationType = NOTIFICATION_TYPE
 
   @Autowired
   ExecutionRepository executionRepository
 
   @Autowired
-  SuspendedPipelinesPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-    super(notificationHandlers)
+  SuspendedPipelinesPollingNotificationAgent(ObjectMapper objectMapper, Client jesqueClient) {
+    super(objectMapper, jesqueClient)
   }
 
   @Override
-  void handleNotification(List<Map> pipelines) {
+  protected List<Map> filterEvents(List<Map> pipelines) {
     long now = new Date().time
-    for (Map pipeline in pipelines.findAll { it.status == ExecutionStatus.SUSPENDED.name() }) {
-      def stages = pipeline.stages as List<Map>
-      def scheduledStage = stages.find { now >= extractScheduledTime(it) }
-      if (scheduledStage != null) {
-        notify(pipeline)
+    return pipelines.findAll {
+      it.status == ExecutionStatus.SUSPENDED.name() &&
+      it.stages.find { Map stage -> now >= extractScheduledTime(stage) != null }
+    } as List<Map>
+  }
+
+  @Override
+  protected Func1<Long, List<Map>> getEvents() {
+    return new Func1<Long, List<Map>>() {
+      @Override
+      List<Map> call(Long aLong) {
+        List<Pipeline> pipelines = executionRepository.retrievePipelines()
+        return objectMapper.convertValue(pipelines, new TypeReference<List<Map>>() { })
       }
     }
   }
 
   @Override
-  void run() {
-    try {
-      List<Pipeline> pipelines = executionRepository.retrievePipelines()
-      List<Map> pipelineMaps = objectMapper.convertValue(pipelines, new TypeReference<List<Map>>() { })
-      handleNotification(pipelineMaps)
-    } catch (Exception e) {
-      log.error("Exception occurred in run() method of SuspendedPipelinesPollingNotificationAgent", e)
-    }
+  Class<? extends NotificationHandler> handlerType() {
+    return SuspendedPipelinesNotificationHandler
   }
 
   private long extractScheduledTime(Map stage) {
