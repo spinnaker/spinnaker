@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
@@ -42,10 +41,9 @@ class DeployStage extends DeployStrategyStage {
   protected List<Step> basicSteps(Stage stage) {
     def step1 = buildStep(stage, "createDeploy", CreateDeployTask)
     def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep(stage, "sendNotification", NotifyEchoTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step5 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    def step6 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4, step5, step6]
+    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
+    def step5 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    [step1, step2, step3, step4, step5]
   }
 }
