@@ -16,11 +16,14 @@
 
 'use strict';
 
-describe('Service: NamedImage', function() {
+describe('Service: ImageService', function() {
 
   var service, $http, config, scope, timeout;
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(
+    module('deckApp.image.service')
+  );
+
 
   beforeEach(inject(function (settings, imageService, $httpBackend, $rootScope, $timeout) {
 
@@ -34,6 +37,7 @@ describe('Service: NamedImage', function() {
 
   afterEach(function() {
     $http.verifyNoOutstandingRequest();
+    $http.verifyNoOutstandingExpectation();
   });
 
   describe('findImages', function () {
@@ -41,17 +45,17 @@ describe('Service: NamedImage', function() {
     var query = 'abc', region = 'us-west-1';
 
     function buildQueryString() {
-      return config.gateUrl + '/images/find?provider=aws&q='+query + '&region=' + region;
+      return '/images/find?provider=aws&q='+query + '&region=' + region;
     }
 
-    it('queries gate when 3 or more characters are supplied', function() {
+    it('queries gate when 3 characters are supplied', function() {
       var result = null;
 
       $http.when('GET', buildQueryString()).respond(200, [
         {success: true}
       ]);
 
-      service.findImages({provider: 'aws', q: query, region: region}).then(function(results) {
+      service.findImages({provider: 'aws', q: query, region: region}).then(function (results) {
         result = results;
       });
 
@@ -59,6 +63,11 @@ describe('Service: NamedImage', function() {
 
       expect(result.length).toBe(1);
       expect(result[0].success).toBe(true);
+    });
+
+
+    it('queries gate when more than 3 characters are supplied', function() {
+      var result = null;
 
       query = 'abcd';
 
@@ -66,7 +75,9 @@ describe('Service: NamedImage', function() {
         {success: true}
       ]);
 
-      service.findImages({provider: 'aws', q: query, region: region}).then(function(results) {
+      var promise = service.findImages({provider: 'aws', q: query, region: region});
+
+      promise.then(function (results) {
         result = results;
       });
 
@@ -111,7 +122,7 @@ describe('Service: NamedImage', function() {
     var imageName = 'abc', region = 'us-west-1', credentials = 'test';
 
     function buildQueryString() {
-      return config.gateUrl + ['/images', credentials, region, imageName].join('/') + '?provider=aws';
+      return ['/images', credentials, region, imageName].join('/') + '?provider=aws';
     }
 
     it('returns null if server returns 404 or an empty list', function() {

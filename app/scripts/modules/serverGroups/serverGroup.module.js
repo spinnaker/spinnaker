@@ -13,4 +13,7 @@ angular
     'deckApp.serverGroup.configure.common',
     'deckApp.serverGroup.display.tasks.tag',
     'deckApp.serverGroup.details.aws',
+
+    'deckApp.serverGroup.details.gce.controller',
+    'deckApp.aws.cloneServerGroup.controller'
   ]);

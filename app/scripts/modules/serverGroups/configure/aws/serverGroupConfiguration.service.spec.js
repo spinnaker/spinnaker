@@ -18,7 +18,12 @@
 
 describe('Service: awsServerGroupConfiguration', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(
+    module(
+      'deckApp.aws.serverGroup.configure.service'
+    )
+  );
+
 
   beforeEach(inject(function (_awsServerGroupConfigurationService_) {
     this.service = _awsServerGroupConfigurationService_;

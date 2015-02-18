@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.image.service', [
+  'deckApp.aws.image.service',
+  'deckApp.gce.image.service'
+])
   .factory('imageService', function (awsImageService, gceImageService) {
 
     function getDelegate(provider) {

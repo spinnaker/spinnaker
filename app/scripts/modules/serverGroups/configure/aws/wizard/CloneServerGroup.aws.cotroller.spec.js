@@ -7,7 +7,10 @@
  */
 describe('Controller: awsCloneServerGroup', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(
+    module('deckApp.aws.cloneServerGroup.controller')
+  );
+
 
   beforeEach(function() {
     inject(function ($controller, $rootScope, accountService, serverGroupWriter, imageService, settings,

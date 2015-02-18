@@ -1,14 +1,19 @@
 'use strict';
 
 
-angular.module('deckApp')
-  .factory('awsImageService', function (settings, $q, Restangular, scheduledCache) {
+angular.module('deckApp.aws.image.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.caches.scheduled',
+])
+  .factory('awsImageService', function ($q, Restangular,  settings, scheduledCache) {
 
     function findImages(params) {
       if (!params.q || params.q.length < 3) {
         return $q.when([{message: 'Please enter at least 3 characters...'}]);
       }
-      return Restangular.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {
+      return Restangular.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {})
+        .then(function(results) {
           return results;
         },
         function() {

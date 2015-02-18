@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Controller: ApplicationCtrl', function () {
+describe('Controller: gceServerGroupDetailsCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
@@ -8,21 +8,22 @@ describe('Controller: ApplicationCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.application.controller')
+    module('deckApp.serverGroup.details.gce.controller')
   );
 
   beforeEach(
     inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
-      controller = $controller('ApplicationCtrl', {
+      controller = $controller('gceServerGroupDetailsCtrl', {
         $scope: scope,
         application: {
-          enableAutoRefresh: angular.noop
-        }
+          serverGroups: [],
+          registerAutoRefreshHandler: angular.noop
+        },
+        serverGroup: {}
       });
     })
   );
-
 
   it('should instantiate the controller', function () {
     expect(controller).toBeDefined();

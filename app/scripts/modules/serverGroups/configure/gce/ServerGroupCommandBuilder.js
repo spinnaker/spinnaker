@@ -1,7 +1,13 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.gce')
+angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
+  'restangular',
+  'deckApp.settings',
+  'deckApp.account.service',
+  'deckApp.naming',
+  'deckApp.gce.instanceType.service',
+])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, gceInstanceTypeService, namingService) {
 
     // Two assumptions here:
