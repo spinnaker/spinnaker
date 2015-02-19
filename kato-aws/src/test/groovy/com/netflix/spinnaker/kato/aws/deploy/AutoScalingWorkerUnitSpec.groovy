@@ -26,6 +26,7 @@ import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
 import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
@@ -47,12 +48,14 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
       1 * getSecurityGroupForApplication("myasg", null) >> "sg-1234"
     }
+    mockAutoScalingWorker.asgService = Mock(AsgService) {
+      1 * getAncestorAsg(_, _, _) >> null
+    }
 
     when:
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * mockAutoScalingWorker.getAncestorAsg() >> null
     1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
     1 * mockAutoScalingWorker.getUserData(asgName, launchConfigName) >> { "" }
     1 * mockAutoScalingWorker.getLaunchConfigurationName(0) >> launchConfigName
@@ -67,6 +70,11 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
       1 * getSecurityGroupForApplication("myasg", null) >> "sg-1234"
     }
+    mockAutoScalingWorker.asgService = Mock(AsgService) {
+      1 * getAncestorAsg(_, _, _) >> {
+        [autoScalingGroupName: "asgard-test-v000", launchConfigurationName: "asgard-test-v000-launchConfigName"]
+      }
+    }
 
     when:
     mockAutoScalingWorker.deploy()
@@ -74,9 +82,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
     then:
     1 * mockAutoScalingWorker.getUserData(_, _) >> null
     1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
-    1 * mockAutoScalingWorker.getAncestorAsg() >> {
-      [autoScalingGroupName: "asgard-test-v000", launchConfigurationName: "asgard-test-v000-launchConfigName"]
-    }
     1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, _) >> {
       'launchConfigName'
     }
@@ -91,6 +96,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
       1 * getSecurityGroupForApplication("myasg", null)
       1 * createSecurityGroup("myasg", null) >> "sg-1234"
     }
+    mockAutoScalingWorker.asgService = Mock(AsgService) {
+      1 * getAncestorAsg(_, _, _) >> null
+    }
 
     when:
     mockAutoScalingWorker.deploy()
@@ -99,7 +107,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getUserData(_, _) >> null
     1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
 
-    1 * mockAutoScalingWorker.getAncestorAsg() >> null
     1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234']) >> { "launchConfigName" }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
@@ -113,6 +120,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
       0 * getSecurityGroupForApplication("myasg", null)
       0 * createSecurityGroup("myasg", null)
     }
+    mockAutoScalingWorker.asgService = Mock(AsgService) {
+      1 * getAncestorAsg(_, _, _) >> null
+    }
 
     when:
     mockAutoScalingWorker.deploy()
@@ -121,8 +131,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getUserData(_, _) >> null
     1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
 
-    1 * mockAutoScalingWorker.getAncestorAsg() >> null
-    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234', 'sg-2345']) >> { "launchConfigName" }
+    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-1234', 'sg-2345']) >> {
+      "launchConfigName"
+    }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
 
@@ -161,18 +172,18 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * autoscaling.createLaunchConfiguration(_) >> { CreateLaunchConfigurationRequest request ->
       assert request.blockDeviceMappings.size() == 2
       request.blockDeviceMappings.first().with {
-          assert deviceName == "/dev/sdb"
-          assert virtualName == 'ephemeral1'
-          assert ebs == null
+        assert deviceName == "/dev/sdb"
+        assert virtualName == 'ephemeral1'
+        assert ebs == null
       }
       request.blockDeviceMappings.last().with {
-          assert deviceName == '/dev/sdc'
-          assert virtualName == null
-          assert ebs.snapshotId == 's-69'
-          assert ebs.volumeType == 'io1'
-          assert ebs.deleteOnTermination == false
-          assert ebs.iops == 100
-          assert ebs.volumeSize == 125
+        assert deviceName == '/dev/sdc'
+        assert virtualName == null
+        assert ebs.snapshotId == 's-69'
+        assert ebs.volumeType == 'io1'
+        assert ebs.deleteOnTermination == false
+        assert ebs.iops == 100
+        assert ebs.volumeSize == 125
       }
     }
   }
@@ -237,6 +248,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.securityGroupService = Mock(SecurityGroupService) {
       1 * getSecurityGroupIds(["mysecurityGroup"]) >> ["mysecurityGroup": "sg-0000"]
     }
+    mockAutoScalingWorker.asgService = Mock(AsgService) {
+      1 * getAncestorAsg(_, _, _) >> null
+    }
 
     when:
     mockAutoScalingWorker.deploy()
@@ -245,50 +259,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * mockAutoScalingWorker.getUserData(_, _) >> null
     1 * mockAutoScalingWorker.getLaunchConfigurationName(_) >> "launchConfigName"
 
-    1 * mockAutoScalingWorker.getAncestorAsg() >> null
-    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-12345', 'sg-0000']) >> { "launchConfigName" }
+    1 * mockAutoScalingWorker.createLaunchConfiguration("launchConfigName", null, ['sg-12345', 'sg-0000']) >> {
+      "launchConfigName"
+    }
     1 * mockAutoScalingWorker.createAutoScalingGroup(_, _) >> {}
   }
-
-  @Unroll
-  void "should consider app, stack, and details in determining ancestor ASG"() {
-    setup:
-    def autoScaling = Mock(AmazonAutoScaling)
-    AutoScalingWorker worker = new AutoScalingWorker(
-      autoScaling: autoScaling,
-      application: 'app',
-      stack: stack,
-      freeFormDetails: freeFormDetails
-    )
-
-    when:
-    AutoScalingGroup ancestor = worker.ancestorAsg
-
-    then:
-    ancestor?.autoScalingGroupName == expected
-    1 * autoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(
-      autoScalingGroups: [
-        new AutoScalingGroup(autoScalingGroupName: 'app'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-v001'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-new'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-dev-v005'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-test-v010'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail-v015'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail2-v020'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail3-v025')
-      ]
-    )
-
-    where:
-    stack   | freeFormDetails  || expected
-    null    | null             || 'app-v001'
-    'new'   | null             || 'app-new'
-    'dev'   | null             || 'app-dev-v005'
-    'test'  | null             || 'app-test-v010'
-    'dev'   | 'detail'         || 'app-dev-detail-v015'
-    'dev'   | 'detail2'        || 'app-dev-detail2-v020'
-    'none'  | null             || null
-    'dev'   | 'none'           || null
-  }
-
 }

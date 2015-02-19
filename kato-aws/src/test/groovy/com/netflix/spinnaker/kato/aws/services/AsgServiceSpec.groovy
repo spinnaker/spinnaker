@@ -19,12 +19,16 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
+import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.autoscaling.model.ResumeProcessesRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class AsgServiceSpec extends Specification {
 
@@ -70,6 +74,46 @@ class AsgServiceSpec extends Specification {
     0 * _
   }
 
+  void 'should get launch configurations'() {
+    when:
+    def result = asgService.getLaunchConfigurations(['lc1', 'lc2'])
+
+    then:
+    result == ["lc1", "lc2"].collect { new LaunchConfiguration(launchConfigurationName: it)}
+
+    and:
+    1 * mockAmazonAutoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: ["lc1", "lc2"])) >>
+      new DescribeLaunchConfigurationsResult(launchConfigurations:  ["lc1", "lc2"].collect { new LaunchConfiguration(launchConfigurationName: it)})
+    0 * _
+  }
+
+  void 'should get single launch configuration'() {
+    when:
+    def result = asgService.getLaunchConfiguration('lc1')
+
+    then:
+    result == new LaunchConfiguration(launchConfigurationName: 'lc1')
+
+    and:
+    1 * mockAmazonAutoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: ["lc1"])) >>
+      new DescribeLaunchConfigurationsResult(launchConfigurations:  [new LaunchConfiguration(launchConfigurationName: 'lc1')])
+    0 * _
+  }
+
+  void 'should return null when launch configuration does not exist'() {
+    when:
+    def result = asgService.getLaunchConfiguration('lc1')
+
+    then:
+    result == null
+
+    and:
+    1 * mockAmazonAutoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: ["lc1"])) >>
+      new DescribeLaunchConfigurationsResult()
+
+    0 * _
+  }
+
   void 'should suspend processes'() {
     when:
     asgService.suspendProcesses("asg1", AutoScalingProcessType.with { [Launch, Terminate] })
@@ -86,5 +130,38 @@ class AsgServiceSpec extends Specification {
     then:
     1 * mockAmazonAutoScaling.resumeProcesses(new ResumeProcessesRequest(autoScalingGroupName: "asg1", scalingProcesses: ["Launch", "Terminate"]))
     0 * _
+  }
+
+  @Unroll
+  void "should consider app, stack, and details in determining ancestor ASG"() {
+
+    when:
+    AutoScalingGroup ancestor = asgService.getAncestorAsg('app', stack, freeFormDetails)
+
+    then:
+    ancestor?.autoScalingGroupName == expected
+    1 * mockAmazonAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(
+      autoScalingGroups: [
+        new AutoScalingGroup(autoScalingGroupName: 'app'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-v001'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-new'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-v005'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-test-v010'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail-v015'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail2-v020'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail3-v025')
+      ]
+    )
+
+    where:
+    stack   | freeFormDetails  || expected
+    null    | null             || 'app-v001'
+    'new'   | null             || 'app-new'
+    'dev'   | null             || 'app-dev-v005'
+    'test'  | null             || 'app-test-v010'
+    'dev'   | 'detail'         || 'app-dev-detail-v015'
+    'dev'   | 'detail2'        || 'app-dev-detail2-v020'
+    'none'  | null             || null
+    'dev'   | 'none'           || null
   }
 }

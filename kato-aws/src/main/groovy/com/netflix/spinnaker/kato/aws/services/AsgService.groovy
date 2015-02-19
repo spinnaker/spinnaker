@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.aws.services
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
 import com.google.common.collect.Iterables
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
 import groovy.transform.Canonical
@@ -35,6 +36,35 @@ class AsgService {
   void resumeProcesses(String asgName, Collection<AutoScalingProcessType> processes) {
     def request = new ResumeProcessesRequest(scalingProcesses: processes*.name(), autoScalingGroupName: asgName)
     amazonAutoScaling.resumeProcesses(request)
+  }
+
+  AutoScalingGroup getAncestorAsg(String clusterName) {
+    def clusterParts = Names.parseName(clusterName)
+    String application = clusterParts.app
+    String stack = clusterParts.stack
+    String freeFormDetails = clusterParts.detail
+    getAncestorAsg(application, stack, freeFormDetails)
+  }
+
+  AutoScalingGroup getAncestorAsg(String application, String stack, String freeFormDetails) {
+    new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResult>() {
+      @Override
+      protected DescribeAutoScalingGroupsResult makeRequest(DescribeAutoScalingGroupsRequest request) {
+        amazonAutoScaling.describeAutoScalingGroups(request)
+      }
+
+      @Override
+      protected List<AutoScalingGroup> accessResult(DescribeAutoScalingGroupsResult result) {
+        result.autoScalingGroups.findAll { AutoScalingGroup asg ->
+          def names = Names.parseName(asg.autoScalingGroupName)
+          application == names.app &&
+            (stack || names.stack ? stack == names.stack : true) &&
+            (freeFormDetails || names.detail ? freeFormDetails == names.detail : true)
+        }
+      }
+    }.retrieve(new DescribeAutoScalingGroupsRequest()).max { a, b ->
+      a.autoScalingGroupName <=> b.autoScalingGroupName
+    } ?: null
   }
 
   AutoScalingGroup getAutoScalingGroup(String asgName) {
@@ -55,5 +85,24 @@ class AsgService {
     }
     def request = new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: asgNames)
     retriever.retrieve(request)
+  }
+
+  LaunchConfiguration getLaunchConfiguration(String launchConfigurationName) {
+    Iterables.getOnlyElement(getLaunchConfigurations([launchConfigurationName]), null)
+  }
+
+  List<LaunchConfiguration> getLaunchConfigurations(Collection<String> launchConfigurationNames) {
+    def retriever = new AwsResultsRetriever<LaunchConfiguration, DescribeLaunchConfigurationsRequest, DescribeLaunchConfigurationsResult>() {
+      @Override
+      protected DescribeLaunchConfigurationsResult makeRequest(DescribeLaunchConfigurationsRequest request) {
+        amazonAutoScaling.describeLaunchConfigurations(request)
+      }
+
+      @Override
+      protected List<LaunchConfiguration> accessResult(DescribeLaunchConfigurationsResult result) {
+        result.launchConfigurations
+      }
+    }
+    retriever.retrieve(new DescribeLaunchConfigurationsRequest(launchConfigurationNames: launchConfigurationNames))
   }
 }
