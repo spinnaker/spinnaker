@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -72,6 +73,12 @@ class InfoController {
             results[master].results << job
         }
         results.values().sort { it.master }
+    }
+
+    @RequestMapping(value = '/jobs/{master}/{job}')
+    JobConfig getJobConfig(@PathVariable String master, @PathVariable String job) {
+        log.info('Getting the job config for {} at {}', job, master)
+        masters.map[master].getJobConfig(job)
     }
 
     static class MasterResults {
