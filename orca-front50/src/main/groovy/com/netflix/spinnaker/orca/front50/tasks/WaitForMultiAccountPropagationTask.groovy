@@ -37,7 +37,7 @@ import retrofit.RetrofitError
 @CompileStatic
 class WaitForMultiAccountPropagationTask implements RetryableTask {
   long backoffPeriod = 1000
-  long timeout = 35000
+  long timeout = 300000
 
   @Autowired
   Front50Service front50Service

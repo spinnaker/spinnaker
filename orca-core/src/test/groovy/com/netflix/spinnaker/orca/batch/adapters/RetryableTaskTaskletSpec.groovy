@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.Clock
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -30,15 +32,21 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.retry.backoff.Sleeper
 import spock.lang.Shared
+import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
-  @Shared backoffPeriod = 1000L
+  @Shared
+    backoffPeriod = 1000L
+  @Shared
+    timeout = 60000L
 
   def task = Mock(RetryableTask) {
     getBackoffPeriod() >> backoffPeriod
+    getTimeout() >> timeout
   }
 
   def sleeper = Mock(Sleeper)
@@ -54,8 +62,8 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline = Pipeline.builder().withStage("retryable").build()
     pipelineStore.store(pipeline)
     def step = steps.get("${pipeline.stages[0].id}.retryable.task1")
-                    .tasklet(taskFactory.decorate(task))
-                    .build()
+      .tasklet(taskFactory.decorate(task))
+      .build()
     jobBuilder.start(step).build()
   }
 
@@ -65,9 +73,9 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     then:
     3 * task.execute(_) >>> [
-        new DefaultTaskResult(RUNNING),
-        new DefaultTaskResult(RUNNING),
-        new DefaultTaskResult(SUCCEEDED)
+      new DefaultTaskResult(RUNNING),
+      new DefaultTaskResult(RUNNING),
+      new DefaultTaskResult(SUCCEEDED)
     ]
 
     and:
@@ -103,5 +111,35 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     and:
     jobExecution.status == BatchStatus.FAILED
+  }
+
+  @Unroll
+  void "should raise TimeoutException if timeout exceeded"() {
+    given:
+    def clock = Mock(Clock) {
+      1 * now() >> { return 0 }
+      1 * now() >> { return currentTime }
+    }
+
+    and:
+    def tasklet = new RetryableTaskTasklet(task, null, null, clock)
+
+    when:
+    def exceptionThrown = false
+    try {
+      tasklet.doExecuteTask(null)
+    } catch (TimeoutException ignored) {
+      exceptionThrown = true
+    }
+
+    then:
+    exceptionThrown == expectedException
+
+    where:
+    currentTime || expectedException
+    0           || false
+    timeout - 1 || false
+    timeout     || false
+    timeout + 1 || true
   }
 }

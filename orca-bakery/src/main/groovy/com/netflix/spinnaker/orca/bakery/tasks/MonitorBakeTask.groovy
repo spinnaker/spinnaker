@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 class MonitorBakeTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = 600000
+  long timeout = 3600000 // 1hr
 
   @Autowired BakeryService bakery
 
