@@ -47,20 +47,20 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   }
 
   private static boolean anyDown(List<Map<String, String>> healthList) {
-    healthList.any { it.state == "Down"}
+    healthList.any { it.state == HealthState.Down.toString()}
   }
 
   private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
-    List<Map<String, String>> knownHealthList = healthList.findAll{ it.state != "Unknown" }
-    knownHealthList ? knownHealthList.every { it.state == "Up" } : false
+    List<Map<String, String>> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown.toString() }
+    knownHealthList ? knownHealthList.every { it.state == HealthState.Up.toString() } : false
   }
 
   private static boolean anyStarting(List<Map<String, String>> healthList) {
-    healthList.any { it.state == "Starting"}
+    healthList.any { it.state == HealthState.Starting.toString()}
   }
 
   private static boolean anyOutOfService(List<Map<String, String>> healthList) {
-    healthList.any { it.state == "OutOfService"}
+    healthList.any { it.state == HealthState.OutOfService.toString()}
   }
 
   @Override
