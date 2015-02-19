@@ -51,7 +51,7 @@ import org.springframework.core.annotation.Order
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.orca.pipeline")
+@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications"])
 @CompileStatic
 class OrcaConfiguration {
 
@@ -95,15 +95,10 @@ class OrcaConfiguration {
     new OrchestrationStarter()
   }
 
-  @Bean @Scope(SCOPE_PROTOTYPE)
+  @Bean @Scope(SCOPE_PROTOTYPE) // Scope is really important here...
   SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map input) {
     new SuspendedPipelinesNotificationHandler(input)
   }
-
-//  @Bean
-//  SuspendedPipelinesPollingNotificationAgent suspendedPipelinesPollingNotificationAgent(List<NotificationHandler> notificationHandlers) {
-//    new SuspendedPipelinesPollingNotificationAgent(notificationHandlers)
-//  }
 
   @Bean @Order(Ordered.LOWEST_PRECEDENCE) DefaultExceptionHandler defaultExceptionHandler() {
     new DefaultExceptionHandler()
