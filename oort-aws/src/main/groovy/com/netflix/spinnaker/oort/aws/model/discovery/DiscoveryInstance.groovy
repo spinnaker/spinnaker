@@ -40,7 +40,6 @@ class DiscoveryInstance implements Health {
   HealthState state
   String discoveryStatus
 
-//  DataCenterInfo dataCenterInfo
   String availabilityZone
   String instanceId
   String amiId
@@ -68,8 +67,12 @@ class DiscoveryInstance implements Health {
     final HealthState healthState
     if ('UP' == status) {
       healthState = HealthState.Up
-    } else if ('UNKNOWN' == status || 'STARTING' == status) {
+    } else if ('STARTING' == status) {
+      healthState = HealthState.Starting
+    } else if ('UNKNOWN' == status) {
       healthState = HealthState.Unknown
+    } else if ('OUT_OF_SERVICE' == status) {
+      healthState = HealthState.OutOfService
     } else {
       healthState = HealthState.Down
     }

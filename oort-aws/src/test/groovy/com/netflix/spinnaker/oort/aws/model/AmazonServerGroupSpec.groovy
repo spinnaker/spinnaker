@@ -20,6 +20,7 @@ import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Created by zthrash on 1/7/15.
@@ -32,60 +33,35 @@ class AmazonServerGroupSpec extends Specification {
     serverGroup = new AmazonServerGroup()
   }
 
-  void "getting instance status counts for all up instances"() {
+  @Unroll
+  void "getting instance status counts for all #state instances"() {
     given:
-      serverGroup.instances = [buildUpAmazonInstance()]
+      serverGroup.instances = [buildAmazonInstance(state)]
 
     when:
       ServerGroup.InstanceCounts counts =  serverGroup.getInstanceCounts()
+
     then:
       counts.total == 1
-      counts.up == 1
-      counts.down == 0
-      counts.unknown == 0
+      counts.up == (state == HealthState.Up ? 1 : 0)
+      counts.down == (state == HealthState.Down ? 1 : 0)
+      counts.unknown == (state == HealthState.Unknown ? 1 : 0)
+      counts.starting == (state == HealthState.Starting ? 1 : 0)
+      counts.outOfService == (state == HealthState.OutOfService ? 1 : 0)
+
+    where:
+      state                     | _
+      HealthState.Up            | _
+      HealthState.Down          | _
+      HealthState.Unknown       | _
+      HealthState.Starting      | _
+      HealthState.OutOfService  | _
   }
 
-  void "getting instance status counts for all down instances"() {
-    given:
-      serverGroup.instances = [buildDownAmazonInstance()]
-
-    when:
-      ServerGroup.InstanceCounts counts =  serverGroup.getInstanceCounts()
-    then:
-      counts.total == 1
-      counts.up == 0
-      counts.down == 1
-      counts.unknown == 0
-  }
-
-  void "getting instance status counts for all unknown instances"() {
-    given:
-    serverGroup.instances = [buildUnknownAmazonInstance()]
-
-    when:
-    ServerGroup.InstanceCounts counts =  serverGroup.getInstanceCounts()
-    then:
-    counts.total == 1
-    counts.up == 0
-    counts.down == 0
-    counts.unknown == 1
-  }
-
-  Instance buildUpAmazonInstance() {
+  Instance buildAmazonInstance(HealthState state) {
     def instance = Mock(AmazonInstance)
-    instance.getHealthState() >> HealthState.Up
+    instance.getHealthState() >> state
     instance
   }
 
-  Instance buildDownAmazonInstance() {
-    def instance = Mock(AmazonInstance)
-    instance.getHealthState() >> HealthState.Down
-    instance
-  }
-
-  Instance buildUnknownAmazonInstance() {
-    def instance = Mock(AmazonInstance)
-    instance.getHealthState() >> HealthState.Unknown
-    instance
-  }
 }

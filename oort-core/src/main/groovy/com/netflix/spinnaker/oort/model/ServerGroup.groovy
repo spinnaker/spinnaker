@@ -101,7 +101,7 @@ interface ServerGroup {
   Map<String, Object> getLaunchConfig()
 
   /**
-   * A data structure with instance counts, including total, number of up, and number of down instances
+   * A data structure with the total number of instances, and the number of instances reporting each status
    *
    * @return a data structure
    */
@@ -114,18 +114,28 @@ interface ServerGroup {
     Integer total
 
     /**
-     * Total number of "up" instances (which are healthy)
+     * Total number of "Up" instances (all health indicators report "Up" or "Unknown")
      */
     Integer up
 
     /**
-     * Total number of "down" instances (which are unhealthy)
+     * Total number of "Down" instances (at least one health indicator reports "Down")
      */
     Integer down
 
     /**
-     * Total number of "unknown" instances (which have a questionable health status)
+     * Total number of "Unknown" instances (all health indicators report "Unknown", or no health indicators reported)
      */
     Integer unknown
+
+    /**
+     * Total number of "OutOfService" instances (at least one health indicator reports "OutOfService", none are "Down"
+     */
+    Integer outOfService
+
+    /**
+     * Total number of "Starting" instances (where any health indicator reports "Starting" and none are "Down" or "OutOfService")
+     */
+    Integer starting
   }
 }

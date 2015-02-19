@@ -38,24 +38,29 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   HealthState getHealthState() {
     List<Map<String, String>> healthList = getHealth()
 
-    if(anyUpAndNoDown(healthList)) { return HealthState.Up }
-    if(anyDown(healthList)) { return HealthState.Down }
-    if(allUnknown(healthList)) { return HealthState.Unknown }
+    someUpRemainingUnknown(healthList) ? HealthState.Up :
+      anyStarting(healthList) ? HealthState.Starting :
+        anyDown(healthList) ? HealthState.Down :
+          anyOutOfService(healthList) ? HealthState.OutOfService :
+            HealthState.Unknown
 
   }
 
-  private boolean allUnknown(List<Map<String, String>> healthList) {
-    //Only Unknown states use the HealthState enum. Up and Down are strings
-    healthList.every { it.state == HealthState.Unknown }
-  }
-
-  private boolean anyDown(List<Map<String, String>> healthList) {
+  private static boolean anyDown(List<Map<String, String>> healthList) {
     healthList.any { it.state == "Down"}
   }
 
-  private boolean anyUpAndNoDown(List<Map<String, String>> healthList) {
-    List knownHealthList = healthList.findAll{ it.state != HealthState.Unknown }
+  private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
+    List<Map<String, String>> knownHealthList = healthList.findAll{ it.state != "Unknown" }
     knownHealthList ? knownHealthList.every { it.state == "Up" } : false
+  }
+
+  private static boolean anyStarting(List<Map<String, String>> healthList) {
+    healthList.any { it.state == "Starting"}
+  }
+
+  private static boolean anyOutOfService(List<Map<String, String>> healthList) {
+    healthList.any { it.state == "OutOfService"}
   }
 
   @Override

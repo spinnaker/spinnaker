@@ -107,11 +107,13 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
   @Override
   ServerGroup.InstanceCounts getInstanceCounts() {
     Set<Instance> instances = getInstances()
-    def total = instances.size()
-    def up = filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0
-    def down = filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0
-    def unknown = filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0
-    new ServerGroup.InstanceCounts(total: total, up: up, down: down, unknown: unknown)
+    new ServerGroup.InstanceCounts(
+      total: instances.size(),
+      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
   }
 
   static Set filterInstancesByHealthState(Set instances, HealthState healthState) {

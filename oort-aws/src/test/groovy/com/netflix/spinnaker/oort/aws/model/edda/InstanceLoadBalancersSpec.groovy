@@ -84,34 +84,24 @@ class InstanceLoadBalancersSpec extends Specification {
     ilb[0].state == state
 
     where:
-    state               | description
-    HealthState.Down    | 'Instance has failed at least the UnhealthyThreshold number of health checks consecutively.'
-    HealthState.Down    | 'Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.'
-    HealthState.Down    | 'Instance is not currently registered with the LoadBalancer.'
-    HealthState.Unknown | 'Instance registration is still in progress'
-    HealthState.Unknown | 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.'
+    state                     | description
+    HealthState.Down          | 'Instance has failed at least the UnhealthyThreshold number of health checks consecutively.'
+    HealthState.Down          | 'Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.'
+    HealthState.OutOfService  | 'Instance is not currently registered with the LoadBalancer.'
+    HealthState.Starting      | 'Instance registration is still in progress'
+    HealthState.Down          | 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.'
   }
 
-  def 'should return unknown if any instances are unknown but none are down'() {
+  def 'down load balancer should override out of service and up'() {
     def lbis = [
-      new LoadBalancerInstanceState(name: 'lb1', instances: [
-        new LoadBalancerInstance(instanceId: 'i-0', state: 'OutOfService', description: 'dead', reasonCode: 'N/A'),
-        new LoadBalancerInstance(instanceId: 'i-1', state: 'InService', description: 'N/A', reasonCode: 'N/A'),
-        new LoadBalancerInstance(instanceId: 'i-2',
-          state: 'OutOfService',
-          description: 'Instance registration is still in progress',
-          reasonCode: 'N/A')
+      new LoadBalancerInstanceState(name: 'up', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'InService', description: 'N/A', reasonCode: 'N/A')
       ]),
-      new LoadBalancerInstanceState(name: 'lb2', instances: [
-        new LoadBalancerInstance(instanceId: 'i-0', state: 'OutOfService', description: 'Instance registration is still in progress', reasonCode: 'N/A'),
-        new LoadBalancerInstance(instanceId: 'i-1',
-          state: 'OutOfService',
-          description: 'Instance registration is still in progress',
-          reasonCode: 'FailBoat'),
-        new LoadBalancerInstance(instanceId: 'i-2',
-          state: 'OutOfService',
-          description: 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.',
-          reasonCode: 'N/A')
+      new LoadBalancerInstanceState(name: 'outOfService', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'OutOfService', description: 'Instance is not currently registered with the LoadBalancer.', reasonCode: 'N/A')
+      ]),
+      new LoadBalancerInstanceState(name: 'down', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'OutOfService', description: 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.', reasonCode: 'N/A')
       ])
     ]
 
@@ -119,9 +109,47 @@ class InstanceLoadBalancersSpec extends Specification {
     def ilb = InstanceLoadBalancers.fromLoadBalancerInstanceState(lbis)
 
     then:
-    ilb.size() == 3
-    ilb.find {it.instanceId == 'i-0' }.state == HealthState.Down
-    ilb.find {it.instanceId == 'i-1' }.state == HealthState.Unknown
-    ilb.find {it.instanceId == 'i-2' }.state == HealthState.Unknown
+    ilb.size() == 1
+    ilb[0].state == HealthState.Down
   }
+
+  def 'out of service load balancer should override up'() {
+    def lbis = [
+      new LoadBalancerInstanceState(name: 'up', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'InService', description: 'N/A', reasonCode: 'N/A')
+      ]),
+      new LoadBalancerInstanceState(name: 'outOfService', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'OutOfService', description: 'Instance is not currently registered with the LoadBalancer.', reasonCode: 'N/A')
+      ])
+    ]
+
+    when:
+    def ilb = InstanceLoadBalancers.fromLoadBalancerInstanceState(lbis)
+
+    then:
+    ilb.size() == 1
+    ilb[0].state == HealthState.OutOfService
+  }
+
+  def 'starting load balancer should override all other states'() {
+    def lbis = [
+      new LoadBalancerInstanceState(name: 'up', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'InService', description: 'N/A', reasonCode: 'N/A')
+      ]),
+      new LoadBalancerInstanceState(name: 'starting', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'OutOfService', description: 'Instance registration is still in progress', reasonCode: 'N/A')
+      ]),
+      new LoadBalancerInstanceState(name: 'down', instances: [
+        new LoadBalancerInstance(instanceId: 'i-1', state: 'OutOfService', description: 'Instance has not passed the configured HealthyThreshold number of health checks consecutively.', reasonCode: 'N/A')
+      ])
+    ]
+
+    when:
+    def ilb = InstanceLoadBalancers.fromLoadBalancerInstanceState(lbis)
+
+    then:
+    ilb.size() == 1
+    ilb[0].state == HealthState.Starting
+  }
+
 }
