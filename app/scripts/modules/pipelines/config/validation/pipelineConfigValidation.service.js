@@ -1,7 +1,10 @@
 'use strict';
 
-angular.module('deckApp.pipelines.config.validator.service', ['deckApp.pipelines.config'])
-  .factory('pipelineConfigValidator', function(pipelineConfig, $log) {
+angular.module('deckApp.pipelines.config.validator.service', [
+  'deckApp.pipelines.config',
+  'deckApp.utils.lodash',
+])
+  .factory('pipelineConfigValidator', function(pipelineConfig, $log, _) {
 
     var validators = {
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
@@ -63,7 +66,7 @@ angular.module('deckApp.pipelines.config.validator.service', ['deckApp.pipelines
           });
         }
       });
-      return messages;
+      return _.uniq(messages);
     }
 
     return {
