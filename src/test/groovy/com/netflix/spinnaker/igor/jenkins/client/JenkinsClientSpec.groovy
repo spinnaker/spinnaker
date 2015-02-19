@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.jenkins.client
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.TestResults
@@ -144,6 +145,48 @@ class JenkinsClientSpec extends Specification {
         build.testResults[0].urlName == 'testReport'
     }
 
+    void 'get a job config'() {
+        given:
+        setResponse getJobConfig()
+        JobConfig jobConfig = client.getJobConfig("FOO-JOB")
+
+        expect:
+        jobConfig.name == "My-Build"
+        jobConfig.buildable == true
+        jobConfig.color == "red"
+        jobConfig.concurrentBuild == false
+        jobConfig.description == null
+        jobConfig.displayName == "My-Build"
+        jobConfig.parameterDefinitionList?.size() == 2
+        jobConfig.parameterDefinitionList.get(0).name == "pullRequestSourceBranch"
+        jobConfig.parameterDefinitionList.get(0).description == null
+        jobConfig.parameterDefinitionList.get(0).defaultName == "pullRequestSourceBranch"
+        jobConfig.parameterDefinitionList.get(0).defaultValue == "master"
+        jobConfig.parameterDefinitionList.get(1).name == "generation"
+        jobConfig.parameterDefinitionList.get(1).description == null
+        jobConfig.parameterDefinitionList.get(1).defaultName == "generation"
+        jobConfig.parameterDefinitionList.get(1).defaultValue == "4"
+
+        jobConfig.upstreamProjectList.get(0).name == "Upstream-Build"
+        jobConfig.upstreamProjectList.get(0).url == "http://jenkins.builds.net/job/Upstream-Build/"
+        jobConfig.upstreamProjectList.get(0).color == "blue"
+
+        jobConfig.downstreamProjectList.get(0).name == "First-Downstream-Build"
+        jobConfig.downstreamProjectList.get(0).url == "http://jenkins.builds.net/job/First-Downstream-Build/"
+        jobConfig.downstreamProjectList.get(0).color == "blue"
+
+        jobConfig.downstreamProjectList.get(1).name == "Second-Downstream-Build"
+        jobConfig.downstreamProjectList.get(1).url == "http://jenkins.builds.net/job/Second-Downstream-Build/"
+        jobConfig.downstreamProjectList.get(1).color == "blue"
+
+        jobConfig.downstreamProjectList.get(2).name == "Third-Downstream-Build"
+        jobConfig.downstreamProjectList.get(2).url == "http://jenkins.builds.net/job/Third-Downstream-Build/"
+        jobConfig.downstreamProjectList.get(2).color == "red"
+
+        jobConfig.url == "http://jenkins.builds.net/job/My-Build/"
+
+    }
+
     private void setResponse(String body) {
         server.enqueue(
             new MockResponse()
@@ -152,6 +195,36 @@ class JenkinsClientSpec extends Specification {
         )
         server.play()
         client = new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password')
+    }
+
+    private String getJobConfig() {
+        return '<?xml version="1.0" encoding="UTF-8"?>' +
+            '<freeStyleProject>' +
+            '<description/>' +
+            '<displayName>My-Build</displayName>' +
+            '<name>My-Build</name>' +
+            '<url>http://jenkins.builds.net/job/My-Build/</url>' +
+            '<buildable>true</buildable>' +
+            '<color>red</color>' +
+            '<firstBuild><number>1966</number><url>http://jenkins.builds.net/job/My-Build/1966/</url></firstBuild>' +
+            '<healthReport><description>Build stability: 1 out of the last 5 builds failed.</description><iconUrl>health-60to79.png</iconUrl><score>80</score></healthReport>' +
+            '<inQueue>false</inQueue>' +
+            '<keepDependencies>false</keepDependencies>' +
+            '<lastBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastBuild>' +
+            '<lastCompletedBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastCompletedBuild>' +
+            '<lastFailedBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastFailedBuild>' +
+            '<lastStableBuild><number>2697</number><url>http://jenkins.builds.net/job/My-Build/2697/</url></lastStableBuild>' +
+            '<lastSuccessfulBuild><number>2697</number><url>http://jenkins.builds.net/job/My-Build/2697/</url></lastSuccessfulBuild>' +
+            '<lastUnsuccessfulBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastUnsuccessfulBuild>' +
+            '<nextBuildNumber>2699</nextBuildNumber>' +
+            '<property><parameterDefinition><defaultParameterValue><name>pullRequestSourceBranch</name><value>master</value></defaultParameterValue><description/><name>pullRequestSourceBranch</name><type>StringParameterDefinition</type></parameterDefinition><parameterDefinition><defaultParameterValue><name>generation</name><value>4</value></defaultParameterValue><description/><name>generation</name><type>StringParameterDefinition</type></parameterDefinition></property>' +
+            '<concurrentBuild>false</concurrentBuild>' +
+            '<downstreamProject><name>First-Downstream-Build</name><url>http://jenkins.builds.net/job/First-Downstream-Build/</url><color>blue</color></downstreamProject>' +
+            '<downstreamProject><name>Second-Downstream-Build</name><url>http://jenkins.builds.net/job/Second-Downstream-Build/</url><color>blue</color></downstreamProject>' +
+            '<downstreamProject><name>Third-Downstream-Build</name><url>http://jenkins.builds.net/job/Third-Downstream-Build/</url><color>red</color></downstreamProject>' +
+            '<scm/>' +
+            '<upstreamProject><name>Upstream-Build</name><url>http://jenkins.builds.net/job/Upstream-Build/</url><color>blue</color></upstreamProject>' +
+            '</freeStyleProject>'
     }
 
     private String getSingleBuild() {
