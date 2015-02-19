@@ -15,7 +15,7 @@ class ParameterDefinition {
     String defaultName
 
     @Path("defaultParameterValue[1]")
-    @Element(name="value")
+    @Element(name="value", required = false)
     String defaultValue
 
     @Element
