@@ -88,7 +88,7 @@ class PipelineConfigurationSpec extends Specification {
     thrown NoSuchStageException
 
     where:
-    config = [application: "app", stages: [[type: "qux"]]]
+    config = [application: "app", name: "my-pipeline", stages: [[type: "qux"]]]
     configJson = mapper.writeValueAsString(config)
   }
 
@@ -100,7 +100,7 @@ class PipelineConfigurationSpec extends Specification {
     1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
 
     where:
-    config = [application: "app", stages: [[type: "foo"]]]
+    config = [application: "app", name: "my-pipeline", stages: [[type: "foo"]]]
     configJson = mapper.writeValueAsString(config)
   }
 
@@ -120,6 +120,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
+      name: "my-pipeline",
       stages     : [
         [type: "foo"],
         [type: "bar"],
@@ -146,6 +147,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
+      name: "my-pipeline",
       stages     : [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     ]
     configJson = mapper.writeValueAsString(config)
@@ -166,6 +168,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
+      name: "my-pipeline",
       stages     : [
         [type: "foo"],
         [type: "bar"],

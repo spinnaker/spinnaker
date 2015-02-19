@@ -62,6 +62,7 @@ class PipelinePersistenceSpec extends Specification {
     and:
     def config = [
         application: "app",
+        name: "my-pipeline",
         stages     : [
             [type: "test"]
         ]

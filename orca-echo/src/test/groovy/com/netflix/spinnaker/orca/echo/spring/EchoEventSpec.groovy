@@ -47,6 +47,7 @@ class EchoEventSpec extends Specification {
   def setupSpec() {
     def config = [
         application: "app",
+        name: "my-pipeline",
         stages     : [[type: "stage1"], [type: "stage2"]]
     ]
     json = new OrcaObjectMapper().writeValueAsString(config)

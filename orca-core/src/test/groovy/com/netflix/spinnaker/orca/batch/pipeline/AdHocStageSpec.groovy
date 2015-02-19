@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
@@ -79,6 +78,7 @@ class AdHocStageSpec extends Specification {
     where:
     config = [
       application: "app",
+      name: "my-pipeline",
       stages     : [[type: "foo"], [type: "bar"]]
     ]
     configJson = mapper.writeValueAsString(config)
@@ -105,6 +105,7 @@ class AdHocStageSpec extends Specification {
     where:
     config = [
       application: "app",
+      name: "my-pipeline",
       stages     : [[type: "foo"]]
     ]
     configJson = mapper.writeValueAsString(config)
