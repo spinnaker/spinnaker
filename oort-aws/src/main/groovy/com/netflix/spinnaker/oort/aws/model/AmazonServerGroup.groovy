@@ -33,6 +33,7 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
     setProperty "zones", new HashSet<>()
     setProperty "instances", new HashSet<>()
     setProperty "health", new HashSet<>()
+    setProperty "image", new HashSet<>()
   }
 
   @Override
@@ -79,6 +80,7 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
     return loadBalancerNames
   }
 
+
   @Override
   Set<String> getSecurityGroups() {
     def securityGroups = []
@@ -102,6 +104,10 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
   @Override
   Map<String, Object> getLaunchConfig() {
     (Map<String, Object>) getProperty("launchConfig")
+  }
+
+  Map<String, Object> getImage() {
+    (Map<String, Object>) getProperty("image")
   }
 
   @Override

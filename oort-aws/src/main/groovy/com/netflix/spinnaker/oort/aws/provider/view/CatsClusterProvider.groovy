@@ -68,15 +68,19 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       return null
     }
 
-    Collection<CacheData> launchConfigs = resolveRelationshipData(serverGroupData, LAUNCH_CONFIGS.ns)
-    Collection<CacheData> imageConfigs = launchConfigs ? resolveRelationshipData(launchConfigs[0], IMAGES.ns) : null
-
     def asg = serverGroupData.attributes["asg"]
+
+    String launchConfigKey = Keys.getLaunchConfigKey(serverGroupData?.attributes['launchConfigName'] as String, account, region )
+    CacheData launchConfigs = cacheView.get(LAUNCH_CONFIGS.ns, launchConfigKey)
+
+    String imageKey = Keys.getImageKey(launchConfigs?.attributes['imageId'] as String, account, region)
+    CacheData imageConfigs = cacheView.get(IMAGES.ns, imageKey)
+
     def serverGroup = new AmazonServerGroup(name, "aws", region)
     serverGroup.accountName = account
     serverGroup.zones = serverGroupData.attributes["zones"]
-    serverGroup.launchConfig = launchConfigs ? launchConfigs[0].attributes : null
-    serverGroup.image = imageConfigs ? imageConfigs[0].attributes : null
+    serverGroup.launchConfig = launchConfigs ? launchConfigs.attributes : null
+    serverGroup.image = imageConfigs ? imageConfigs.attributes : null
     serverGroup.asg = asg
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
 
