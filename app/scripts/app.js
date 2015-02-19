@@ -80,6 +80,7 @@ angular.module('deckApp', [
     'deckApp.loadBalancer',
     'deckApp.vpc',
     'deckApp.keyPairs',
+    'deckApp.networking',
     'deckApp.config'
   ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
