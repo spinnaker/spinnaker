@@ -12,7 +12,7 @@
           <input type="text"
                  autofocus
                  name="name"
-                 ng-pattern="/^[a-zA-z_0-9-.]*$/"
+                 ng-pattern="/^[a-zA-z_0-9.]*$/"
                  class="form-control input-sm"
                  data-purpose="application-name"
                  ng-model="newAppModal.application.name"
@@ -25,7 +25,7 @@
 
       <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.pattern">
         <div class="col-sm-9 col-sm-offset-3 error-message">
-          <span>Only dot(.), dash(-), and underscore(_) special characters are allowed.</span>
+          <span>Only dot(.) and underscore(_) special characters are allowed.</span>
         </div>
       </div>
 
