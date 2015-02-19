@@ -19,7 +19,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.AbstractBatchLifecycleSpec
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.config.OrcaTestConfiguration
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -44,7 +44,7 @@ import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuring
  * @author sthadeshwar
  */
 @Unroll
-@ContextConfiguration(classes = OrcaConfiguration)
+@ContextConfiguration(classes = [OrcaTestConfiguration])
 class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   @Autowired ApplicationContext applicationContext;
@@ -220,6 +220,7 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   private Stage stage(List<Map> windows) {
     Map restrictedExecutionWindow = [whitelist:windows]
     Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
+    Pipeline pipeline = new Pipeline()
     return new PipelineStage(pipeline, "testRestrictExecution", context)
   }
 
