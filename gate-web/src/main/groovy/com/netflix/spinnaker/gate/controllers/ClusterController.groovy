@@ -102,4 +102,12 @@ class ClusterController {
                                  @PathVariable("clusterName") String clusterName) {
     elasticIpService.getForCluster(application, account, clusterName)
   }
+
+  @RequestMapping(value = "/{account}/{clusterName}/elasticIps/{region}", method = RequestMethod.GET)
+  List<Map> getClusterElasticIpsForRegion(@PathVariable("application") String application,
+                                          @PathVariable("account") String account,
+                                          @PathVariable("clusterName") String clusterName,
+                                          @PathVariable("region") String region) {
+    elasticIpService.getForClusterAndRegion(application, account, clusterName, region)
+  }
 }

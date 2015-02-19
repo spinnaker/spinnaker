@@ -158,6 +158,14 @@ class GateConfig {
       }
 
       @Override
+      List<Map> getForClusterAndRegion(@Path("application") String application,
+                                       @Path("account") String account,
+                                       @Path("cluster") String cluster,
+                                       @Path("region") String region) {
+        return []
+      }
+
+      @Override
       List<Map> getForAccount(@Path("account") String account) {
         return []
       }

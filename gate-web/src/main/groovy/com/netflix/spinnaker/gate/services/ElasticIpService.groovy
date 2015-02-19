@@ -20,6 +20,12 @@ class ElasticIpService {
     } execute()
   }
 
+  List<Map> getForClusterAndRegion(String application, String account, String cluster, String region) {
+    HystrixFactory.newListCommand(GROUP, "getElasticIpsForClusterAndRegion", true) {
+      flexService.getForClusterAndRegion(application, account, cluster, region)
+    } execute()
+  }
+
   List<Map> getForAccount(String account) {
     HystrixFactory.newListCommand(GROUP, "getElasticIpsForAccount", true) {
       return flexService.getForAccount(account)

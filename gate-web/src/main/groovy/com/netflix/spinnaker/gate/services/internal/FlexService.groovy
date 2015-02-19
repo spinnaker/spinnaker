@@ -10,6 +10,12 @@ interface FlexService {
                           @Path("account") String account,
                           @Path("cluster") String cluster)
 
+  @GET("/applications/{application}/clusters/{account}/{cluster}/elasticIps/{region}")
+  List<Map> getForClusterAndRegion(@Path("application") String application,
+                                   @Path("account") String account,
+                                   @Path("cluster") String cluster,
+                                   @Path("region") String region)
+
   @GET("/elasticIps/{account}")
   List<Map> getForAccount(@Path("account") String account)
 
