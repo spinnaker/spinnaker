@@ -47,7 +47,7 @@ class JedisJobRegistry implements JobRegistry {
       throw new NoSuchJobException("Unable to recreate the job [${name}] as it has never been executed")
     }
     // jobExecutions are ordered newest first
-    def latestExecution = jobExecutions.get(0)
+    def latestExecution = jobExecutions.first()
     def pipelineId = latestExecution.jobParameters.getString("pipeline")
     def pipeline = executionRepository.retrievePipeline(pipelineId)
     pipelineStarter.build(pipeline.initialConfig, pipeline)

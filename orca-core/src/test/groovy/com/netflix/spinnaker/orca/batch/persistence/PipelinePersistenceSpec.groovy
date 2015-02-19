@@ -7,6 +7,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.JobRegistry
@@ -15,7 +16,6 @@ import org.springframework.batch.core.configuration.annotation.DefaultBatchConfi
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
-import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -37,19 +37,18 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 class PipelinePersistenceSpec extends Specification {
 
   @Autowired ThreadPoolTaskExecutor taskExecutor
-  @Autowired JobLauncher jobLauncher
   @Autowired PipelineStarter pipelineStarter
-  @Autowired JobRepository jobRepository
   @Autowired AbstractApplicationContext applicationContext
   @Autowired StepBuilderFactory steps
   @Autowired ExecutionRepository executionRepository
   @Autowired ObjectMapper mapper
   @Autowired JobRegistry jobRegistry
 
-  def task = Mock(Task)
+  def task1 = Mock(Task)
+  def task2 = Mock(Task)
 
   def setup() {
-    def testStage = new TestStage("test", steps, executionRepository, task)
+    def testStage = new TestStage("test", steps, executionRepository, task1, task2)
     applicationContext.beanFactory.registerSingleton("testStage", testStage)
 
     pipelineStarter.initialize()
@@ -57,7 +56,7 @@ class PipelinePersistenceSpec extends Specification {
 
   def "if a pipeline dies we can reconstitute it"() {
     given:
-    task.execute(_) >> new DefaultTaskResult(RUNNING)
+    task1.execute(_) >> new DefaultTaskResult(RUNNING)
 
     and:
     def config = [
@@ -75,7 +74,14 @@ class PipelinePersistenceSpec extends Specification {
     taskExecutor.shutdown()
 
     expect:
-    jobRegistry.getJob("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+    with(jobRegistry.getJob(jobNameFor(pipeline))) {
+      name == jobNameFor(pipeline)
+      restartable
+    }
+  }
+
+  private String jobNameFor(Pipeline pipeline) {
+    "Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}"
   }
 
   @CompileStatic
